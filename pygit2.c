@@ -304,6 +304,15 @@ Object_read_raw(Object *self) {
     return result;
 }
 
+static PyObject *
+Object_write(Object *self) {
+    if (git_object_write(self->obj) < 0) {
+        PyErr_SetString(PyExc_RuntimeError, "Failed to write object to repo");
+        return NULL;
+    }
+    return Py_None;
+}
+
 static PyGetSetDef Object_getseters[] = {
     {"type", (getter)Object_get_type, NULL, "type number", NULL},
     {"sha", (getter)Object_get_sha, NULL, "hex SHA", NULL},
@@ -313,6 +322,8 @@ static PyGetSetDef Object_getseters[] = {
 static PyMethodDef Object_methods[] = {
     {"read_raw", (PyCFunction)Object_read_raw, METH_NOARGS,
      "Read the raw contents of the object from the repo."},
+    {"write", (PyCFunction)Object_write, METH_NOARGS,
+     "Write the object to the repo, if changed."},
     {NULL}
 };
 
@@ -358,6 +369,36 @@ static PyTypeObject ObjectType = {
     0,                                         /* tp_new */
 };
 
+static int
+Commit_init(Commit *py_commit, PyObject *args, PyObject **kwds) {
+    Repository *repo = NULL;
+    git_commit *commit;
+
+    if (kwds) {
+        PyErr_SetString(PyExc_TypeError, "Commit takes no keyword arugments");
+        return -1;
+    }
+
+    if (!PyArg_ParseTuple(args, "O", &repo))
+        return -1;
+
+    if (!PyObject_TypeCheck(repo, &RepositoryType)) {
+        PyErr_SetString(PyExc_TypeError, "Expected Repository for repo");
+        return -1;
+    }
+
+    commit = git_commit_new(repo->repo);
+    if (!commit) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return -1;
+    }
+    Py_INCREF(repo);
+    py_commit->repo = repo;
+    py_commit->own_obj = 1;
+    py_commit->commit = commit;
+    return 0;
+}
+
 static PyObject *
 Commit_get_message_short(Commit *commit) {
     return PyString_FromString(git_commit_message_short(commit->commit));
@@ -366,6 +407,16 @@ Commit_get_message_short(Commit *commit) {
 static PyObject *
 Commit_get_message(Commit *commit) {
     return PyString_FromString(git_commit_message(commit->commit));
+}
+
+static int
+Commit_set_message(Commit *commit, PyObject *message) {
+    if (!PyString_Check(message)) {
+        PyErr_SetString(PyExc_TypeError, "Expected string for commit message.");
+        return -1;
+    }
+    git_commit_set_message(commit->commit, PyString_AS_STRING(message));
+    return 0;
 }
 
 static PyObject *
@@ -382,6 +433,16 @@ Commit_get_committer(Commit *commit) {
                          git_person_time(committer));
 }
 
+static int
+Commit_set_committer(Commit *commit, PyObject *value) {
+    char *name = NULL, *email = NULL;
+    long long time;
+    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+        return -1;
+    git_commit_set_committer(commit->commit, name, email, time);
+    return 0;
+}
+
 static PyObject *
 Commit_get_author(Commit *commit) {
     git_person *author;
@@ -391,14 +452,27 @@ Commit_get_author(Commit *commit) {
                          git_person_time(author));
 }
 
+static int
+Commit_set_author(Commit *commit, PyObject *value) {
+    char *name = NULL, *email = NULL;
+    long long time;
+    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+        return -1;
+    git_commit_set_author(commit->commit, name, email, time);
+    return 0;
+}
+
 static PyGetSetDef Commit_getseters[] = {
     {"message_short", (getter)Commit_get_message_short, NULL, "short message",
      NULL},
-    {"message", (getter)Commit_get_message, NULL, "message", NULL},
+    {"message", (getter)Commit_get_message, (setter)Commit_set_message,
+     "message", NULL},
     {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
      NULL},
-    {"committer", (getter)Commit_get_committer, NULL, "committer", NULL},
-    {"author", (getter)Commit_get_author, NULL, "author", NULL},
+    {"committer", (getter)Commit_get_committer,
+     (setter)Commit_set_committer, "committer", NULL},
+    {"author", (getter)Commit_get_author,
+     (setter)Commit_set_author, "author", NULL},
     {NULL}
 };
 
@@ -439,7 +513,7 @@ static PyTypeObject CommitType = {
     0,                                         /* tp_descr_get */
     0,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
+    (initproc)Commit_init,                     /* tp_init */
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
@@ -460,6 +534,7 @@ initpygit2(void)
     if (PyType_Ready(&ObjectType) < 0)
         return;
     CommitType.tp_base = &ObjectType;
+    CommitType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&CommitType) < 0)
         return;
 
