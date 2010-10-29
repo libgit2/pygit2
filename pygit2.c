@@ -146,6 +146,54 @@ Repository_getitem(Repository *self, PyObject *value) {
     return (PyObject*)py_obj;
 }
 
+static git_rawobj
+repository_raw_read(git_repository *repo, const git_oid *oid) {
+    git_odb *db;
+    git_rawobj raw;
+
+    db = git_repository_database(repo);
+    if (git_odb_read(&raw, db, oid) < 0) {
+        PyErr_SetString(PyExc_RuntimeError, "Unable to read object");
+        return raw;
+    }
+    return raw;
+}
+
+static PyObject *
+Repository_read(Repository *self, PyObject *py_hex) {
+    char *hex;
+    git_oid id;
+    git_rawobj raw;
+    PyObject *result;
+
+    hex = PyString_AsString(py_hex);
+    if (!hex) {
+        PyErr_SetString(PyExc_TypeError, "Expected string for hex SHA");
+        return NULL;
+    }
+
+    if (git_oid_mkstr(&id, hex) < 0) {
+        PyErr_SetString(PyExc_ValueError, "Invalid hex SHA");
+        return NULL;
+    }
+
+    raw = repository_raw_read(self->repo, &id);
+    if (!raw.data) {
+        PyErr_Format(PyExc_RuntimeError, "Failed to read hex SHA \"%s\"", hex);
+        return NULL;
+    }
+
+    result = Py_BuildValue("(ns#)", raw.type, raw.data, raw.len);
+    free(raw.data);
+    return result;
+}
+
+static PyMethodDef Repository_methods[] = {
+    {"read", (PyCFunction)Repository_read, METH_O,
+     "Read raw object data from the repository."},
+    {NULL, NULL, 0, NULL}
+};
+
 static PySequenceMethods Repository_as_sequence = {
     0,                               /* sq_length */
     0,                               /* sq_concat */
@@ -192,7 +240,7 @@ static PyTypeObject RepositoryType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
     0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
+    Repository_methods,                        /* tp_methods */
     0,                                         /* tp_members */
     0,                                         /* tp_getset */
     0,                                         /* tp_base */
@@ -228,25 +276,23 @@ Object_get_sha(Object *self, void *closure) {
 
 static PyObject *
 Object_read_raw(Object *self) {
-    git_odb *db;
+    const git_oid *id;
     git_rawobj raw;
     PyObject *result;
 
-    db = git_repository_database(self->repo->repo);
-    if (git_odb_read(&raw, db, git_object_id(self->obj)) < 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Missing object");
-        goto error;
+    id = git_object_id(self->obj);
+    if (!id)
+        return Py_None;  /* in-memory object */
+
+    raw = repository_raw_read(git_object_owner(self->obj), id);
+    if (!raw.data) {
+        PyErr_SetString(PyExc_RuntimeError, "Failed to read object");
+        return NULL;
     }
 
     result = PyString_FromStringAndSize(raw.data, raw.len);
-    if (!result)
-        goto error;
     free(raw.data);
     return result;
-
-error:
-    free(raw.data);
-    return NULL;
 }
 
 static PyGetSetDef Object_getseters[] = {
