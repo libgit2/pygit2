@@ -26,6 +26,7 @@
  */
 
 #include <Python.h>
+#include <git/commit.h>
 #include <git/common.h>
 #include <git/repository.h>
 #include <git/commit.h>
@@ -36,14 +37,22 @@ typedef struct {
     git_repository *repo;
 } Repository;
 
-typedef struct {
-    PyObject_HEAD
-    Repository *repo;
-    git_object *obj;
-    int own_obj:1;
-} Object;
+/* The structs for the various object subtypes are identical except for the type
+ * of their object pointers. */
+#define OBJECT_STRUCT(_name, _ptr_type, _ptr_name) \
+        typedef struct {\
+            PyObject_HEAD\
+            Repository *repo;\
+            int own_obj:1;\
+            _ptr_type *_ptr_name;\
+        } _name;
 
-static PyTypeObject RepositoryType, ObjectType;
+OBJECT_STRUCT(Object, git_object, obj)
+OBJECT_STRUCT(Commit, git_commit, commit)
+
+static PyTypeObject RepositoryType;
+static PyTypeObject ObjectType;
+static PyTypeObject CommitType;
 
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
@@ -94,7 +103,7 @@ static Object *wrap_object(git_object *obj, Repository *repo) {
     Object *py_obj = NULL;
     switch (git_object_type(obj)) {
         case GIT_OBJ_COMMIT:
-            py_obj = (Object*)ObjectType.tp_alloc(&ObjectType, 0);
+            py_obj = (Object*)CommitType.tp_alloc(&CommitType, 0);
             break;
         case GIT_OBJ_TREE:
             py_obj = (Object*)ObjectType.tp_alloc(&ObjectType, 0);
@@ -258,7 +267,7 @@ Object_dealloc(Object* self)
 {
     if (self->own_obj)
         git_object_free(self->obj);
-    Py_DECREF(self->repo);
+    Py_XDECREF(self->repo);
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -349,6 +358,92 @@ static PyTypeObject ObjectType = {
     0,                                         /* tp_new */
 };
 
+static PyObject *
+Commit_get_message_short(Commit *commit) {
+    return PyString_FromString(git_commit_message_short(commit->commit));
+}
+
+static PyObject *
+Commit_get_message(Commit *commit) {
+    return PyString_FromString(git_commit_message(commit->commit));
+}
+
+static PyObject *
+Commit_get_commit_time(Commit *commit) {
+    return PyLong_FromLong(git_commit_time(commit->commit));
+}
+
+static PyObject *
+Commit_get_committer(Commit *commit) {
+    git_person *committer;
+    committer = (git_person*)git_commit_committer(commit->commit);
+    return Py_BuildValue("(ssl)", git_person_name(committer),
+                         git_person_email(committer),
+                         git_person_time(committer));
+}
+
+static PyObject *
+Commit_get_author(Commit *commit) {
+    git_person *author;
+    author = (git_person*)git_commit_author(commit->commit);
+    return Py_BuildValue("(ssl)", git_person_name(author),
+                         git_person_email(author),
+                         git_person_time(author));
+}
+
+static PyGetSetDef Commit_getseters[] = {
+    {"message_short", (getter)Commit_get_message_short, NULL, "short message",
+     NULL},
+    {"message", (getter)Commit_get_message, NULL, "message", NULL},
+    {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
+     NULL},
+    {"committer", (getter)Commit_get_committer, NULL, "committer", NULL},
+    {"author", (getter)Commit_get_author, NULL, "author", NULL},
+    {NULL}
+};
+
+static PyTypeObject CommitType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /*ob_size*/
+    "pygit2.Commit",                           /*tp_name*/
+    sizeof(Commit),                            /*tp_basicsize*/
+    0,                                         /*tp_itemsize*/
+    0,                                         /*tp_dealloc*/
+    0,                                         /*tp_print*/
+    0,                                         /*tp_getattr*/
+    0,                                         /*tp_setattr*/
+    0,                                         /*tp_compare*/
+    0,                                         /*tp_repr*/
+    0,                                         /*tp_as_number*/
+    0,                                         /*tp_as_sequence*/
+    0,                                         /*tp_as_mapping*/
+    0,                                         /*tp_hash */
+    0,                                         /*tp_call*/
+    0,                                         /*tp_str*/
+    0,                                         /*tp_getattro*/
+    0,                                         /*tp_setattro*/
+    0,                                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
+    "Commit objects",                          /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    0,                                         /* tp_methods */
+    0,                                         /* tp_members */
+    Commit_getseters,                          /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    0,                                         /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
 static PyMethodDef module_methods[] = {
     {NULL}
 };
@@ -364,6 +459,9 @@ initpygit2(void)
     /* Do not set ObjectType.tp_new, to prevent creating Objects directly. */
     if (PyType_Ready(&ObjectType) < 0)
         return;
+    CommitType.tp_base = &ObjectType;
+    if (PyType_Ready(&CommitType) < 0)
+        return;
 
     m = Py_InitModule3("pygit2", module_methods,
                        "Python bindings for libgit2.");
@@ -376,4 +474,7 @@ initpygit2(void)
 
     Py_INCREF(&ObjectType);
     PyModule_AddObject(m, "Object", (PyObject *)&ObjectType);
+
+    Py_INCREF(&CommitType);
+    PyModule_AddObject(m, "Commit", (PyObject *)&CommitType);
 }
