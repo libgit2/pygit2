@@ -552,4 +552,10 @@ initpygit2(void)
 
     Py_INCREF(&CommitType);
     PyModule_AddObject(m, "Commit", (PyObject *)&CommitType);
+
+    PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
+    PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
+    PyModule_AddIntConstant(m, "GIT_OBJ_TREE", GIT_OBJ_TREE);
+    PyModule_AddIntConstant(m, "GIT_OBJ_BLOB", GIT_OBJ_BLOB);
+    PyModule_AddIntConstant(m, "GIT_OBJ_TAG", GIT_OBJ_TAG);
 }
