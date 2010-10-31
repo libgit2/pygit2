@@ -62,6 +62,7 @@ class CommitTest(utils.TestRepoTestCase):
         commit.committer = committer
         commit.author = author
 
+        self.assertEqual(None, commit.sha)
         self.assertEqual(pygit2.GIT_OBJ_COMMIT, commit.type)
         self.assertEqual(message, commit.message)
         # TODO: Uncomment when git_commit_set_message updates message_short.

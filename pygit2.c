@@ -278,8 +278,14 @@ Object_get_type(Object *self, void *closure) {
 
 static PyObject *
 Object_get_sha(Object *self, void *closure) {
+    const git_oid *id;
     char hex[GIT_OID_HEXSZ];
-    git_oid_fmt(hex, git_object_id(self->obj));
+
+    id = git_object_id(self->obj);
+    if (!id)
+        return Py_None;
+
+    git_oid_fmt(hex, id);
     return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
 }
 
