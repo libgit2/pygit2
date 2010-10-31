@@ -36,7 +36,7 @@ import unittest
 
 
 def test_suite():
-    names = ['repository']
+    names = ['commit', 'repository']
     modules = ['test.test_%s' % n for n in names]
     return unittest.defaultTestLoader.loadTestsFromNames(modules)
 
