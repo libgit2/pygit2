@@ -387,42 +387,43 @@ static PyTypeObject ObjectType = {
 };
 
 static int
-object_init_check(const char *type_name, PyObject *args, PyObject *kwds,
-                  Repository **repo) {
+Object_init_with_type(Object *py_obj, const git_otype type, PyObject *args,
+                      PyObject *kwds) {
+    Repository *repo = NULL;
+    git_object *obj;
+
     if (kwds) {
         PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
-                     type_name);
-        return 0;
+                     py_obj->ob_type->tp_name);
+        return -1;
     }
 
-    if (!PyArg_ParseTuple(args, "O", repo))
-        return 0;
-
-    if (!PyObject_TypeCheck(*repo, &RepositoryType)) {
-        PyErr_SetString(PyExc_TypeError, "Expected Repository for repo");
-        return 0;
-    }
-    return 1;
-}
-
-static int
-Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
-    Repository *repo = NULL;
-    git_commit *commit;
-
-    if (!object_init_check("Commit", args, kwds, &repo))
+    if (!PyArg_ParseTuple(args, "O", &repo))
         return -1;
 
-    commit = git_commit_new(repo->repo);
-    if (!commit) {
+    if (!PyObject_TypeCheck(repo, &RepositoryType)) {
+        PyErr_Format(PyExc_TypeError,
+                     "repo argument must be %.200s, not %.200s",
+                     RepositoryType.tp_name, repo->ob_type->tp_name);
+        return -1;
+    }
+
+    obj = git_object_new(repo->repo, type);
+    if (!obj) {
         PyErr_SetNone(PyExc_MemoryError);
         return -1;
     }
     Py_INCREF(repo);
-    py_commit->repo = repo;
-    py_commit->own_obj = 1;
-    py_commit->commit = commit;
+    py_obj->repo = repo;
+    py_obj->own_obj = 1;
+    py_obj->obj = obj;
     return 0;
+}
+
+static int
+Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
+    return Object_init_with_type((Object*)py_commit, GIT_OBJ_COMMIT, args,
+                                 kwds);
 }
 
 static PyObject *
@@ -678,22 +679,7 @@ static PyTypeObject TreeEntryType = {
 
 static int
 Tree_init(Tree *py_tree, PyObject *args, PyObject *kwds) {
-    Repository *repo = NULL;
-    git_tree *tree;
-
-    if (!object_init_check("Tree", args, kwds, &repo))
-        return -1;
-
-    tree = git_tree_new(repo->repo);
-    if (!tree) {
-        PyErr_SetNone(PyExc_MemoryError);
-        return -1;
-    }
-    Py_INCREF(repo);
-    py_tree->repo = repo;
-    py_tree->own_obj = 1;
-    py_tree->tree = tree;
-    return 0;
+    return Object_init_with_type((Object*)py_tree, GIT_OBJ_TREE, args, kwds);
 }
 
 static Py_ssize_t
@@ -922,22 +908,7 @@ static PyTypeObject TreeType = {
 
 static int
 Blob_init(Blob *py_blob, PyObject *args, PyObject *kwds) {
-    Repository *repo = NULL;
-    git_object *blob;
-
-    if (!object_init_check("blob", args, kwds, &repo))
-        return -1;
-
-    blob = git_object_new(repo->repo, GIT_OBJ_BLOB);
-    if (!blob) {
-        PyErr_SetNone(PyExc_MemoryError);
-        return -1;
-    }
-    Py_INCREF(repo);
-    py_blob->repo = repo;
-    py_blob->own_obj = 1;
-    py_blob->blob = blob;
-    return 0;
+    return Object_init_with_type((Object*)py_blob, GIT_OBJ_BLOB, args, kwds);
 }
 
 /* TODO: libgit2 needs some way to set blob data. */
