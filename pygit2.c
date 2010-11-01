@@ -376,22 +376,31 @@ static PyTypeObject ObjectType = {
 };
 
 static int
-Commit_init(Commit *py_commit, PyObject *args, PyObject **kwds) {
+object_init_check(const char *type_name, PyObject *args, PyObject *kwds,
+                  Repository **repo) {
+    if (kwds) {
+        PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
+                     type_name);
+        return 0;
+    }
+
+    if (!PyArg_ParseTuple(args, "O", repo))
+        return 0;
+
+    if (!PyObject_TypeCheck(*repo, &RepositoryType)) {
+        PyErr_SetString(PyExc_TypeError, "Expected Repository for repo");
+        return 0;
+    }
+    return 1;
+}
+
+static int
+Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
     Repository *repo = NULL;
     git_commit *commit;
 
-    if (kwds) {
-        PyErr_SetString(PyExc_TypeError, "Commit takes no keyword arugments");
+    if (!object_init_check("Commit", args, kwds, &repo))
         return -1;
-    }
-
-    if (!PyArg_ParseTuple(args, "O", &repo))
-        return -1;
-
-    if (!PyObject_TypeCheck(repo, &RepositoryType)) {
-        PyErr_SetString(PyExc_TypeError, "Expected Repository for repo");
-        return -1;
-    }
 
     commit = git_commit_new(repo->repo);
     if (!commit) {
