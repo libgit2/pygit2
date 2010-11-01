@@ -49,10 +49,19 @@ typedef struct {
 
 OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
+OBJECT_STRUCT(Tree, git_tree, tree)
+
+typedef struct {
+    PyObject_HEAD
+    git_tree_entry *entry;
+    Tree *tree;
+} TreeEntry;
 
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
+static PyTypeObject TreeEntryType;
+static PyTypeObject TreeType;
 
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
@@ -106,7 +115,7 @@ static Object *wrap_object(git_object *obj, Repository *repo) {
             py_obj = (Object*)CommitType.tp_alloc(&CommitType, 0);
             break;
         case GIT_OBJ_TREE:
-            py_obj = (Object*)ObjectType.tp_alloc(&ObjectType, 0);
+            py_obj = (Object*)TreeType.tp_alloc(&TreeType, 0);
             break;
         case GIT_OBJ_BLOB:
             py_obj = (Object*)ObjectType.tp_alloc(&ObjectType, 0);
@@ -533,6 +542,382 @@ static PyTypeObject CommitType = {
     0,                                         /* tp_new */
 };
 
+static void
+TreeEntry_dealloc(TreeEntry *self) {
+    Py_XDECREF(self->tree);
+    self->ob_type->tp_free((PyObject *)self);
+}
+
+static PyObject *
+TreeEntry_get_attributes(TreeEntry *self) {
+    return PyInt_FromLong(git_tree_entry_attributes(self->entry));
+}
+
+static int
+TreeEntry_set_attributes(TreeEntry *self, PyObject *value) {
+    unsigned int attributes;
+    attributes = PyInt_AsLong(value);
+    if (PyErr_Occurred())
+        return -1;
+    git_tree_entry_set_attributes(self->entry, attributes);
+    return 0;
+}
+
+static PyObject *
+TreeEntry_get_name(TreeEntry *self) {
+    return PyString_FromString(git_tree_entry_name(self->entry));
+}
+
+static int
+TreeEntry_set_name(TreeEntry *self, PyObject *value) {
+    char *name;
+    name = PyString_AsString(value);
+    if (!name)
+        return -1;
+    git_tree_entry_set_name(self->entry, name);
+    return 0;
+}
+
+static PyObject *
+TreeEntry_get_sha(TreeEntry *self) {
+    char hex[GIT_OID_HEXSZ];
+    git_oid_fmt(hex, git_tree_entry_id(self->entry));
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+}
+
+static int
+TreeEntry_set_sha(TreeEntry *self, PyObject *value) {
+    char *hex;
+    git_oid oid;
+
+    hex = PyString_AsString(value);
+    if (!hex)
+        return -1;
+    if (git_oid_mkstr(&oid, hex) < 0) {
+        PyErr_Format(PyExc_ValueError, "Invalid hex SHA \"%s\"", hex);
+        return -1;
+    }
+    git_tree_entry_set_id(self->entry, &oid);
+    return 0;
+}
+
+static PyObject *
+TreeEntry_to_object(TreeEntry *self) {
+    git_object *obj;
+    char hex[GIT_OID_HEXSZ];
+    PyObject *py_hex;
+
+    obj = git_tree_entry_2object(self->entry);
+    if (!obj) {
+        git_oid_fmt(hex, git_tree_entry_id(self->entry));
+        py_hex = PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+        PyErr_SetObject(PyExc_KeyError, py_hex);
+        return NULL;
+    }
+    return (PyObject*)wrap_object(obj, self->tree->repo);
+}
+
+static PyGetSetDef TreeEntry_getseters[] = {
+    {"attributes", (getter)TreeEntry_get_attributes,
+     (setter)TreeEntry_set_attributes, "attributes", NULL},
+    {"name", (getter)TreeEntry_get_name, (setter)TreeEntry_set_name, "name",
+     NULL},
+    {"sha", (getter)TreeEntry_get_sha, (setter)TreeEntry_set_sha, "sha", NULL},
+    {NULL}
+};
+
+static PyMethodDef TreeEntry_methods[] = {
+    {"to_object", (PyCFunction)TreeEntry_to_object, METH_NOARGS,
+     "Look up the corresponding object in the repo."},
+    {NULL, NULL, 0, NULL}
+};
+
+static PyTypeObject TreeEntryType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /*ob_size*/
+    "pygit2.TreeEntry",                        /*tp_name*/
+    sizeof(TreeEntry),                         /*tp_basicsize*/
+    0,                                         /*tp_itemsize*/
+    (destructor)TreeEntry_dealloc,             /*tp_dealloc*/
+    0,                                         /*tp_print*/
+    0,                                         /*tp_getattr*/
+    0,                                         /*tp_setattr*/
+    0,                                         /*tp_compare*/
+    0,                                         /*tp_repr*/
+    0,                                         /*tp_as_number*/
+    0,                                         /*tp_as_sequence*/
+    0,                                         /*tp_as_mapping*/
+    0,                                         /*tp_hash */
+    0,                                         /*tp_call*/
+    0,                                         /*tp_str*/
+    0,                                         /*tp_getattro*/
+    0,                                         /*tp_setattro*/
+    0,                                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
+    "TreeEntry objects",                       /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    TreeEntry_methods,                         /* tp_methods */
+    0,                                         /* tp_members */
+    TreeEntry_getseters,                       /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    0,                                         /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
+static int
+Tree_init(Tree *py_tree, PyObject *args, PyObject *kwds) {
+    Repository *repo = NULL;
+    git_tree *tree;
+
+    if (!object_init_check("Tree", args, kwds, &repo))
+        return -1;
+
+    tree = git_tree_new(repo->repo);
+    if (!tree) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return -1;
+    }
+    Py_INCREF(repo);
+    py_tree->repo = repo;
+    py_tree->own_obj = 1;
+    py_tree->tree = tree;
+    return 0;
+}
+
+static Py_ssize_t
+Tree_len(Tree *self) {
+    return (Py_ssize_t)git_tree_entrycount(self->tree);
+}
+
+static int
+Tree_contains(Tree *self, PyObject *py_name) {
+    char *name;
+    name = PyString_AsString(py_name);
+    return name && git_tree_entry_byname(self->tree, name) ? 1 : 0;
+}
+
+static TreeEntry *
+wrap_tree_entry(git_tree_entry *entry, Tree *tree) {
+    TreeEntry *py_entry = NULL;
+    py_entry = (TreeEntry*)TreeEntryType.tp_alloc(&TreeEntryType, 0);
+    if (!py_entry)
+        return NULL;
+
+    py_entry->entry = entry;
+    py_entry->tree = tree;
+    Py_INCREF(tree);
+    return py_entry;
+}
+
+static TreeEntry *
+Tree_getitem_by_name(Tree *self, PyObject *py_name) {
+    char *name;
+    git_tree_entry *entry;
+    name = PyString_AS_STRING(py_name);
+    entry = git_tree_entry_byname(self->tree, name);
+    if (!entry) {
+        PyErr_SetObject(PyExc_KeyError, py_name);
+        return NULL;
+    }
+    return wrap_tree_entry(entry, self);
+}
+
+static int
+Tree_fix_index(Tree *self, PyObject *py_index) {
+    long index;
+    size_t len;
+    long slen;
+
+    index = PyInt_AsLong(py_index);
+    if (PyErr_Occurred())
+        return -1;
+
+    len = git_tree_entrycount(self->tree);
+    slen = (long)len;
+    if (index >= slen) {
+        PyErr_SetObject(PyExc_IndexError, py_index);
+        return -1;
+    } else if (index < -slen) {
+        PyErr_SetObject(PyExc_IndexError, py_index);
+        return -1;
+    }
+
+    /* This function is called via mp_subscript, which doesn't do negative index
+     * rewriting, so we have to do it manually. */
+    if (index < 0)
+        index = len + index;
+    return (int)index;
+}
+
+static TreeEntry *
+Tree_getitem_by_index(Tree *self, PyObject *py_index) {
+    int index;
+    git_tree_entry *entry;
+
+    index = Tree_fix_index(self, py_index);
+    if (PyErr_Occurred())
+        return NULL;
+
+    entry = git_tree_entry_byindex(self->tree, index);
+    if (!entry) {
+        PyErr_SetObject(PyExc_IndexError, py_index);
+        return NULL;
+    }
+    return wrap_tree_entry(entry, self);
+}
+
+static TreeEntry *
+Tree_getitem(Tree *self, PyObject *value) {
+    if (PyString_Check(value)) {
+        return Tree_getitem_by_name(self, value);
+    } else if (PyInt_Check(value)) {
+        return Tree_getitem_by_index(self, value);
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected int or str for tree index.");
+        return NULL;
+    }
+}
+
+static int
+Tree_delitem_by_name(Tree *self, PyObject *name) {
+    int err;
+    err = git_tree_remove_entry_byname(self->tree, PyString_AS_STRING(name));
+    if (err < 0) {
+        PyErr_SetObject(PyExc_KeyError, name);
+        return -1;
+    }
+    return 0;
+}
+
+static int
+Tree_delitem_by_index(Tree *self, PyObject *py_index) {
+    int index, err;
+    index = Tree_fix_index(self, py_index);
+    if (PyErr_Occurred())
+        return -1;
+    err = git_tree_remove_entry_byindex(self->tree, index);
+    if (err < 0) {
+        PyErr_SetObject(PyExc_IndexError, py_index);
+        return -1;
+    }
+    return 0;
+}
+
+static int
+Tree_delitem(Tree *self, PyObject *name, PyObject *value) {
+    /* TODO: This function is only used for deleting items. We may be able to
+     * come up with some reasonable assignment semantics, but it's tricky
+     * because git_tree_entry objects are owned by their containing tree. */
+    if (value) {
+        PyErr_SetString(PyExc_ValueError,
+                        "Cannot set TreeEntry directly; use add_entry.");
+        return -1;
+    }
+
+    if (PyString_Check(name)) {
+        return Tree_delitem_by_name(self, name);
+    } else if (PyInt_Check(name)) {
+        return Tree_delitem_by_index(self, name);
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected int or str for tree index.");
+        return -1;
+    }
+}
+
+static PyObject *
+Tree_add_entry(Tree *self, PyObject *args) {
+    char *hex, *name;
+    int attributes;
+    git_oid oid;
+
+    if (!PyArg_ParseTuple(args, "ssi", &hex, &name, &attributes))
+        return NULL;
+
+    if (git_oid_mkstr(&oid, hex) < 0) {
+        PyErr_Format(PyExc_ValueError, "Invalid hex SHA \"%s\"", hex);
+        return NULL;
+    }
+
+    if (git_tree_add_entry(self->tree, &oid, name, attributes) < 0)
+        return PyErr_NoMemory();
+    return Py_None;
+}
+
+static PyMethodDef Tree_methods[] = {
+    {"add_entry", (PyCFunction)Tree_add_entry, METH_VARARGS,
+     "Add an entry to a Tree."},
+    {NULL}
+};
+
+static PySequenceMethods Tree_as_sequence = {
+    0,                          /* sq_length */
+    0,                          /* sq_concat */
+    0,                          /* sq_repeat */
+    0,                          /* sq_item */
+    0,                          /* sq_slice */
+    0,                          /* sq_ass_item */
+    0,                          /* sq_ass_slice */
+    (objobjproc)Tree_contains,  /* sq_contains */
+};
+
+static PyMappingMethods Tree_as_mapping = {
+    (lenfunc)Tree_len,            /* mp_length */
+    (binaryfunc)Tree_getitem,     /* mp_subscript */
+    (objobjargproc)Tree_delitem,  /* mp_ass_subscript */
+};
+
+static PyTypeObject TreeType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /*ob_size*/
+    "pygit2.Tree",                             /*tp_name*/
+    sizeof(Tree),                              /*tp_basicsize*/
+    0,                                         /*tp_itemsize*/
+    0,                                         /*tp_dealloc*/
+    0,                                         /*tp_print*/
+    0,                                         /*tp_getattr*/
+    0,                                         /*tp_setattr*/
+    0,                                         /*tp_compare*/
+    0,                                         /*tp_repr*/
+    0,                                         /*tp_as_number*/
+    &Tree_as_sequence,                         /*tp_as_sequence*/
+    &Tree_as_mapping,                          /*tp_as_mapping*/
+    0,                                         /*tp_hash */
+    0,                                         /*tp_call*/
+    0,                                         /*tp_str*/
+    0,                                         /*tp_getattro*/
+    0,                                         /*tp_setattro*/
+    0,                                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
+    "Tree objects",                            /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    Tree_methods,                              /* tp_methods */
+    0,                                         /* tp_members */
+    0,                                         /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    (initproc)Tree_init,                       /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
 static PyMethodDef module_methods[] = {
     {NULL}
 };
@@ -552,6 +937,14 @@ initpygit2(void)
     CommitType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&CommitType) < 0)
         return;
+    TreeEntryType.tp_base = &ObjectType;
+    TreeEntryType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&TreeEntryType) < 0)
+        return;
+    TreeType.tp_base = &ObjectType;
+    TreeType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&TreeType) < 0)
+        return;
 
     m = Py_InitModule3("pygit2", module_methods,
                        "Python bindings for libgit2.");
@@ -567,6 +960,12 @@ initpygit2(void)
 
     Py_INCREF(&CommitType);
     PyModule_AddObject(m, "Commit", (PyObject *)&CommitType);
+
+    Py_INCREF(&TreeEntryType);
+    PyModule_AddObject(m, "TreeEntry", (PyObject *)&TreeEntryType);
+
+    Py_INCREF(&TreeType);
+    PyModule_AddObject(m, "Tree", (PyObject *)&TreeType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
