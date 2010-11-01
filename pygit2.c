@@ -50,6 +50,7 @@ typedef struct {
 OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
+OBJECT_STRUCT(Blob, git_object, blob)
 
 typedef struct {
     PyObject_HEAD
@@ -62,6 +63,7 @@ static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
 static PyTypeObject TreeEntryType;
 static PyTypeObject TreeType;
+static PyTypeObject BlobType;
 
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
@@ -118,7 +120,7 @@ static Object *wrap_object(git_object *obj, Repository *repo) {
             py_obj = (Object*)TreeType.tp_alloc(&TreeType, 0);
             break;
         case GIT_OBJ_BLOB:
-            py_obj = (Object*)ObjectType.tp_alloc(&ObjectType, 0);
+            py_obj = (Object*)BlobType.tp_alloc(&BlobType, 0);
             break;
         case GIT_OBJ_TAG:
             py_obj = (Object*)ObjectType.tp_alloc(&ObjectType, 0);
@@ -918,6 +920,74 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_new */
 };
 
+static int
+Blob_init(Blob *py_blob, PyObject *args, PyObject *kwds) {
+    Repository *repo = NULL;
+    git_object *blob;
+
+    if (!object_init_check("blob", args, kwds, &repo))
+        return -1;
+
+    blob = git_object_new(repo->repo, GIT_OBJ_BLOB);
+    if (!blob) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return -1;
+    }
+    Py_INCREF(repo);
+    py_blob->repo = repo;
+    py_blob->own_obj = 1;
+    py_blob->blob = blob;
+    return 0;
+}
+
+/* TODO: libgit2 needs some way to set blob data. */
+static PyGetSetDef Blob_getseters[] = {
+    {"data", (getter)Object_read_raw, NULL, "raw data", NULL},
+    {NULL}
+};
+
+static PyTypeObject BlobType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /*ob_size*/
+    "pygit2.Blob",                             /*tp_name*/
+    sizeof(Blob),                              /*tp_basicsize*/
+    0,                                         /*tp_itemsize*/
+    0,                                         /*tp_dealloc*/
+    0,                                         /*tp_print*/
+    0,                                         /*tp_getattr*/
+    0,                                         /*tp_setattr*/
+    0,                                         /*tp_compare*/
+    0,                                         /*tp_repr*/
+    0,                                         /*tp_as_number*/
+    0,                                         /*tp_as_sequence*/
+    0,                                         /*tp_as_mapping*/
+    0,                                         /*tp_hash */
+    0,                                         /*tp_call*/
+    0,                                         /*tp_str*/
+    0,                                         /*tp_getattro*/
+    0,                                         /*tp_setattro*/
+    0,                                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
+    "Blob objects",                            /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    0,                                         /* tp_methods */
+    0,                                         /* tp_members */
+    Blob_getseters,                            /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    (initproc)Blob_init,                       /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
 static PyMethodDef module_methods[] = {
     {NULL}
 };
@@ -945,6 +1015,10 @@ initpygit2(void)
     TreeType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TreeType) < 0)
         return;
+    BlobType.tp_base = &ObjectType;
+    BlobType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&BlobType) < 0)
+        return;
 
     m = Py_InitModule3("pygit2", module_methods,
                        "Python bindings for libgit2.");
@@ -966,6 +1040,9 @@ initpygit2(void)
 
     Py_INCREF(&TreeType);
     PyModule_AddObject(m, "Tree", (PyObject *)&TreeType);
+
+    Py_INCREF(&BlobType);
+    PyModule_AddObject(m, "Blob", (PyObject *)&BlobType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);

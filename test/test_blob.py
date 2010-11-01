@@ -25,25 +25,27 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Pygit2 test definitions.
+"""Tests for Blob objects."""
 
-These tests are run automatically with 'setup.py test', but can also be run
-manually.
-"""
+__author__ = 'dborowitz@google.com (Dave Borowitz)'
 
-import sys
 import unittest
 
+import pygit2
+import utils
 
-def test_suite():
-    names = ['blob', 'commit', 'repository', 'tree']
-    modules = ['test.test_%s' % n for n in names]
-    return unittest.defaultTestLoader.loadTestsFromNames(modules)
+BLOB_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 
 
-def main():
-    unittest.main(module=__name__, defaultTest='test_suite', argv=sys.argv[:1])
+class BlobTest(utils.TestRepoTestCase):
+
+    def test_read_blob(self):
+        blob = self.repo[BLOB_SHA]
+        self.assertTrue(isinstance(blob, pygit2.Blob))
+        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+        self.assertEqual('a contents\n', blob.data)
+        self.assertEqual('a contents\n', blob.read_raw())
 
 
 if __name__ == '__main__':
-    main()
+  unittest.main()
