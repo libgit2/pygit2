@@ -132,6 +132,15 @@ Error_set_py_str(int err, PyObject *py_str) {
 }
 
 static int
+py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
+    char *hex;
+    hex = PyString_AsString(py_str);
+    if (!hex)
+        return GIT_ENOTOID;
+    return git_oid_mkstr(oid, hex);
+}
+
+static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
     char *path;
 
@@ -163,14 +172,11 @@ Repository_dealloc(Repository *self) {
 
 static int
 Repository_contains(Repository *self, PyObject *value) {
-    char *hex;
     git_oid oid;
-
-    hex = PyString_AsString(value);
-    if (!hex)
-        return -1;
-    if (git_oid_mkstr(&oid, hex) < 0) {
-        PyErr_Format(PyExc_ValueError, "Invalid hex SHA \"%s\"", hex);
+    int err;
+    err = py_str_to_git_oid(value, &oid);
+    if (err < 0) {
+        Error_set_py_str(err, value);
         return -1;
     }
     return git_odb_exists(git_repository_database(self->repo), &oid);
@@ -205,18 +211,14 @@ static Object *wrap_object(git_object *obj, Repository *repo) {
 
 static PyObject *
 Repository_getitem(Repository *self, PyObject *value) {
-    char *hex;
     git_oid oid;
+    int err;
     git_object *obj;
     Object *py_obj;
 
-    hex = PyString_AsString(value);
-    if (!hex)
-        return NULL;
-    if (git_oid_mkstr(&oid, hex) < 0) {
-        PyErr_Format(PyExc_ValueError, "Invalid hex SHA \"%s\"", hex);
-        return NULL;
-    }
+    err = py_str_to_git_oid(value, &oid);
+    if (err < 0)
+        return Error_set_py_str(err, value);
 
     obj = git_repository_lookup(self->repo, &oid, GIT_OBJ_ANY);
     /* Grr, libgit2 currently doesn't give us any info on this error, so we
@@ -232,42 +234,25 @@ Repository_getitem(Repository *self, PyObject *value) {
     return (PyObject*)py_obj;
 }
 
-static git_rawobj
-repository_raw_read(git_repository *repo, const git_oid *oid) {
-    git_odb *db;
-    git_rawobj raw;
-
-    db = git_repository_database(repo);
-    if (git_odb_read(&raw, db, oid) < 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Unable to read object");
-        return raw;
-    }
-    return raw;
+static int
+Repository_read_raw(git_rawobj *raw, git_repository *repo, const git_oid *oid) {
+    return git_odb_read(raw, git_repository_database(repo), oid);
 }
 
 static PyObject *
 Repository_read(Repository *self, PyObject *py_hex) {
-    char *hex;
-    git_oid id;
+    git_oid oid;
+    int err;
     git_rawobj raw;
     PyObject *result;
 
-    hex = PyString_AsString(py_hex);
-    if (!hex) {
-        PyErr_SetString(PyExc_TypeError, "Expected string for hex SHA");
-        return NULL;
-    }
+    err = py_str_to_git_oid(py_hex, &oid);
+    if (err < 0)
+        return Error_set_py_str(err, py_hex);
 
-    if (git_oid_mkstr(&id, hex) < 0) {
-        PyErr_SetString(PyExc_ValueError, "Invalid hex SHA");
-        return NULL;
-    }
-
-    raw = repository_raw_read(self->repo, &id);
-    if (!raw.data) {
-        PyErr_Format(PyExc_RuntimeError, "Failed to read hex SHA \"%s\"", hex);
-        return NULL;
-    }
+    err = Repository_read_raw(&raw, self->repo, &oid);
+    if (err < 0)
+        return Error_set_py_str(err, py_hex);
 
     result = Py_BuildValue("(ns#)", raw.type, raw.data, raw.len);
     free(raw.data);
@@ -349,12 +334,12 @@ Object_dealloc(Object* self)
 }
 
 static PyObject *
-Object_get_type(Object *self, void *closure) {
+Object_get_type(Object *self) {
     return PyInt_FromLong(git_object_type(self->obj));
 }
 
 static PyObject *
-Object_get_sha(Object *self, void *closure) {
+Object_get_sha(Object *self) {
     const git_oid *id;
     char hex[GIT_OID_HEXSZ];
 
@@ -370,27 +355,37 @@ static PyObject *
 Object_read_raw(Object *self) {
     const git_oid *id;
     git_rawobj raw;
-    PyObject *result;
+    int err;
+    PyObject *result = NULL, *py_sha = NULL;
 
     id = git_object_id(self->obj);
     if (!id)
         return Py_None;  /* in-memory object */
 
-    raw = repository_raw_read(git_object_owner(self->obj), id);
-    if (!raw.data) {
-        PyErr_SetString(PyExc_RuntimeError, "Failed to read object");
-        return NULL;
+    err = Repository_read_raw(&raw, self->repo->repo, id);
+    if (err < 0) {
+        py_sha = Object_get_sha(self);
+        Error_set_py_str(err, py_sha);
+        goto cleanup;
     }
 
     result = PyString_FromStringAndSize(raw.data, raw.len);
+
+cleanup:
+    Py_XDECREF(py_sha);
     free(raw.data);
     return result;
 }
 
 static PyObject *
 Object_write(Object *self) {
-    if (git_object_write(self->obj) < 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Failed to write object to repo");
+    int err;
+    PyObject *py_sha;
+    err = git_object_write(self->obj);
+    if (err < 0) {
+        py_sha = Object_get_sha(self);
+        Error_set_py_str(err, py_sha);
+        Py_DECREF(py_sha);
         return NULL;
     }
     return Py_None;
@@ -656,14 +651,12 @@ TreeEntry_get_sha(TreeEntry *self) {
 
 static int
 TreeEntry_set_sha(TreeEntry *self, PyObject *value) {
-    char *hex;
     git_oid oid;
+    int err;
 
-    hex = PyString_AsString(value);
-    if (!hex)
-        return -1;
-    if (git_oid_mkstr(&oid, hex) < 0) {
-        PyErr_Format(PyExc_ValueError, "Invalid hex SHA \"%s\"", hex);
+    err = py_str_to_git_oid(value, &oid);
+    if (err < 0) {
+        Error_set_py_str(err, value);
         return -1;
     }
     git_tree_entry_set_id(self->entry, &oid);
@@ -890,17 +883,17 @@ Tree_delitem(Tree *self, PyObject *name, PyObject *value) {
 
 static PyObject *
 Tree_add_entry(Tree *self, PyObject *args) {
-    char *hex, *name;
-    int attributes;
+    PyObject *py_sha;
+    char *name;
+    int attributes, err;
     git_oid oid;
 
-    if (!PyArg_ParseTuple(args, "ssi", &hex, &name, &attributes))
+    if (!PyArg_ParseTuple(args, "Osi", &py_sha, &name, &attributes))
         return NULL;
 
-    if (git_oid_mkstr(&oid, hex) < 0) {
-        PyErr_Format(PyExc_ValueError, "Invalid hex SHA \"%s\"", hex);
-        return NULL;
-    }
+    err = py_str_to_git_oid(py_sha, &oid);
+    if (err < 0)
+        return Error_set_py_str(err, py_sha);
 
     if (git_tree_add_entry(self->tree, &oid, name, attributes) < 0)
         return PyErr_NoMemory();
