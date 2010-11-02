@@ -28,6 +28,7 @@
 #include <Python.h>
 #include <git/commit.h>
 #include <git/common.h>
+#include <git/errors.h>
 #include <git/repository.h>
 #include <git/commit.h>
 #include <git/odb.h>
@@ -64,6 +65,71 @@ static PyTypeObject CommitType;
 static PyTypeObject TreeEntryType;
 static PyTypeObject TreeType;
 static PyTypeObject BlobType;
+
+static PyObject *GitError;
+
+static PyObject *
+Error_set(int err) {
+    assert(err < 0);
+    switch (err) {
+        case GIT_ENOMEM:
+            PyErr_NoMemory();
+            break;
+        case GIT_EOSERR:
+            PyErr_SetFromErrno(GitError);
+            break;
+        case GIT_EOBJTYPE:
+            PyErr_SetString(GitError, "Invalid object type.");
+            break;
+        default:
+            PyErr_Format(GitError, "%s", git_strerror(err));
+            break;
+    }
+    return NULL;
+}
+
+static PyObject *
+Error_set_py_str(int err, PyObject *py_str) {
+    PyObject *repr = NULL;
+
+    assert(err < 0);
+    switch (err) {
+        case GIT_ENOTOID:
+            if (!PyString_Check(py_str)) {
+                PyErr_Format(PyExc_TypeError, "Hex SHA must be str, not %.200s",
+                             py_str->ob_type->tp_name);
+            } else {
+                repr = PyObject_Repr(py_str);
+                if (repr)
+                    PyErr_Format(PyExc_ValueError, "Invalid hex SHA: %s",
+                                 PyString_AS_STRING(repr));
+                else
+                    PyErr_SetString(PyExc_ValueError,
+                                    "Invalid hex SHA: <error in __repr__>");
+            }
+            break;
+
+        case GIT_ENOTFOUND:
+            PyErr_SetObject(PyExc_KeyError, py_str);
+            break;
+
+        case GIT_EOBJCORRUPTED:
+            repr = PyObject_Str(py_str);
+            if (repr)
+                PyErr_Format(GitError, "Corrupted object: %s",
+                             PyString_AS_STRING(repr));
+            else
+                PyErr_SetString(GitError,
+                                "Corrupted object: <error in __str__>");
+            break;
+
+        default:
+            Error_set(err);
+            break;
+    }
+    Py_XDECREF(repr);
+    return NULL;
+}
 
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
@@ -968,6 +1034,8 @@ initpygit2(void)
 {
     PyObject* m;
 
+    GitError = PyErr_NewException("pygit2.GitError", NULL, NULL);
+
     RepositoryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&RepositoryType) < 0)
         return;
@@ -996,6 +1064,9 @@ initpygit2(void)
 
     if (m == NULL)
       return;
+
+    Py_INCREF(GitError);
+    PyModule_AddObject(m, "GitError", GitError);
 
     Py_INCREF(&RepositoryType);
     PyModule_AddObject(m, "Repository", (PyObject *)&RepositoryType);
