@@ -377,7 +377,7 @@ Object_get_sha(Object *self) {
 
     id = git_object_id(self->obj);
     if (!id)
-        return Py_None;
+        Py_RETURN_NONE;
 
     git_oid_fmt(hex, id);
     return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
@@ -392,7 +392,7 @@ Object_read_raw(Object *self) {
 
     id = git_object_id(self->obj);
     if (!id)
-        return Py_None;  /* in-memory object */
+        Py_RETURN_NONE;  /* in-memory object */
 
     err = Repository_read_raw(&raw, self->repo->repo, id);
     if (err < 0) {
@@ -420,7 +420,7 @@ Object_write(Object *self) {
         Py_DECREF(py_sha);
         return NULL;
     }
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyGetSetDef Object_getseters[] = {
@@ -930,7 +930,7 @@ Tree_add_entry(Tree *self, PyObject *args) {
 
     if (git_tree_add_entry(self->tree, &oid, name, attributes) < 0)
         return PyErr_NoMemory();
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyMethodDef Tree_methods[] = {
@@ -1062,7 +1062,7 @@ Tag_dealloc(Tag *self) {
     self->ob_type->tp_free((PyObject*)self);
 }
 
-static Object *
+static PyObject *
 Tag_get_target(Tag *self) {
     git_object *target;
     target = (git_object*)git_tag_target(self->tag);
@@ -1072,7 +1072,7 @@ Tag_get_target(Tag *self) {
          * would have returned NULL from git_repository_lookup. */
         Py_RETURN_NONE;
     }
-    return wrap_object(target, self->repo);
+    return (PyObject*)wrap_object(target, self->repo);
 }
 
 static int
