@@ -32,13 +32,14 @@
 #include <git/repository.h>
 #include <git/commit.h>
 #include <git/odb.h>
+#include <git/tag.h>
 
 typedef struct {
     PyObject_HEAD
     git_repository *repo;
 } Repository;
 
-/* The structs for the various object subtypes are identical except for the type
+/* The structs for some of the object subtypes are identical except for the type
  * of their object pointers. */
 #define OBJECT_STRUCT(_name, _ptr_type, _ptr_name) \
         typedef struct {\
@@ -55,6 +56,14 @@ OBJECT_STRUCT(Blob, git_object, blob)
 
 typedef struct {
     PyObject_HEAD
+    Repository *repo;
+    int own_obj:1;
+    git_tag *tag;
+    Object *target;
+} Tag;
+
+typedef struct {
+    PyObject_HEAD
     git_tree_entry *entry;
     Tree *tree;
 } TreeEntry;
@@ -65,6 +74,7 @@ static PyTypeObject CommitType;
 static PyTypeObject TreeEntryType;
 static PyTypeObject TreeType;
 static PyTypeObject BlobType;
+static PyTypeObject TagType;
 
 static PyObject *GitError;
 
@@ -182,7 +192,29 @@ Repository_contains(Repository *self, PyObject *value) {
     return git_odb_exists(git_repository_database(self->repo), &oid);
 }
 
-static Object *wrap_object(git_object *obj, Repository *repo) {
+static Object *wrap_object(git_object *, Repository *repo);
+
+static Tag *
+wrap_tag(git_tag *tag, Repository *repo) {
+    Tag *py_tag;
+    Object *py_target;
+
+    py_tag = (Tag*)TagType.tp_alloc(&TagType, 0);
+    if (!py_tag)
+        return NULL;
+
+    py_target = wrap_object((git_object*)git_tag_target(tag), repo);
+    if (!py_target) {
+        py_tag->ob_type->tp_free((PyObject*)py_tag);
+        return NULL;
+    }
+    py_tag->target = py_target;
+    Py_INCREF(py_target);
+    return py_tag;
+}
+
+static Object *
+wrap_object(git_object *obj, Repository *repo) {
     Object *py_obj = NULL;
     switch (git_object_type(obj)) {
         case GIT_OBJ_COMMIT:
@@ -195,7 +227,7 @@ static Object *wrap_object(git_object *obj, Repository *repo) {
             py_obj = (Object*)BlobType.tp_alloc(&BlobType, 0);
             break;
         case GIT_OBJ_TAG:
-            py_obj = (Object*)ObjectType.tp_alloc(&ObjectType, 0);
+            py_obj = (Object*)wrap_tag((git_tag*)obj, repo);
             break;
         default:
             assert(0);
@@ -500,7 +532,8 @@ Commit_get_message(Commit *commit) {
 static int
 Commit_set_message(Commit *commit, PyObject *message) {
     if (!PyString_Check(message)) {
-        PyErr_SetString(PyExc_TypeError, "Expected string for commit message.");
+        PyErr_Format(PyExc_TypeError, "message must be str, not %.200s",
+                     message->ob_type->tp_name);
         return -1;
     }
     git_commit_set_message(commit->commit, PyString_AS_STRING(message));
@@ -1018,6 +1051,171 @@ static PyTypeObject BlobType = {
     0,                                         /* tp_new */
 };
 
+static int
+Tag_init(Tag *py_tag, PyObject *args, PyObject *kwds) {
+    return Object_init_with_type((Object*)py_tag, GIT_OBJ_TAG, args, kwds);
+}
+
+static void
+Tag_dealloc(Tag *self) {
+    Py_XDECREF(self->target);
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+static Object *
+Tag_get_target(Tag *self) {
+    git_object *target;
+    target = (git_object*)git_tag_target(self->tag);
+    if (!target) {
+        /* This can only happen if we have a new tag with no target set yet. In
+         * particular, it can't happen if the tag fails to parse, since that
+         * would have returned NULL from git_repository_lookup. */
+        Py_RETURN_NONE;
+    }
+    return wrap_object(target, self->repo);
+}
+
+static int
+Tag_set_target(Tag *self, Object *target) {
+    if (!PyObject_TypeCheck(target, &ObjectType)) {
+        PyErr_Format(PyExc_TypeError, "target must be %.200s, not %.200s",
+                     ObjectType.tp_name, target->ob_type->tp_name);
+        return -1;
+    }
+
+    Py_XDECREF(self->target);
+    self->target = target;
+    Py_INCREF(target);
+    git_tag_set_target(self->tag, target->obj);
+    return 0;
+}
+
+static PyObject *
+Tag_get_target_type(Tag *self) {
+    if (!self->target)
+        Py_RETURN_NONE;
+    return PyInt_FromLong(git_tag_type(self->tag));
+}
+
+static PyObject *
+Tag_get_name(Tag *self) {
+    const char *name;
+    name = git_tag_name(self->tag);
+    if (!name)
+        Py_RETURN_NONE;
+    return PyString_FromString(name);
+}
+
+static int
+Tag_set_name(Tag *self, PyObject *py_name) {
+    char *name;
+    if (!PyString_Check(py_name)) {
+        PyErr_Format(PyExc_TypeError, "name must be str, not %.200s",
+                     py_name->ob_type->tp_name);
+        return -1;
+    }
+    name = PyString_AsString(py_name);
+    if (!name)
+        return -1;
+    git_tag_set_name(self->tag, name);
+    return 0;
+}
+
+static PyObject *
+Tag_get_tagger(Tag *tag) {
+    git_person *tagger;
+    tagger = (git_person*)git_tag_tagger(tag->tag);
+    if (!tagger)
+        Py_RETURN_NONE;
+    return Py_BuildValue("(ssl)", git_person_name(tagger),
+                         git_person_email(tagger),
+                         git_person_time(tagger));
+}
+
+static int
+Tag_set_tagger(Tag *tag, PyObject *value) {
+    char *name = NULL, *email = NULL;
+    long long time;
+    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+        return -1;
+    git_tag_set_tagger(tag->tag, name, email, time);
+    return 0;
+}
+
+static PyObject *
+Tag_get_message(Tag *self) {
+    const char *message;
+    message = git_tag_message(self->tag);
+    if (!message)
+        Py_RETURN_NONE;
+    return PyString_FromString(message);
+}
+
+static int
+Tag_set_message(Tag *self, PyObject *message) {
+    if (!PyString_Check(message)) {
+        PyErr_Format(PyExc_TypeError, "message must be str, not %.200s",
+                     message->ob_type->tp_name);
+        return -1;
+    }
+    git_tag_set_message(self->tag, PyString_AS_STRING(message));
+    return 0;
+}
+
+static PyGetSetDef Tag_getseters[] = {
+    {"target", (getter)Tag_get_target, (setter)Tag_set_target, "tagged object",
+     NULL},
+    {"target_type", (getter)Tag_get_target_type, NULL, "type of tagged object",
+     NULL},
+    {"name", (getter)Tag_get_name, (setter)Tag_set_name, "tag name", NULL},
+    {"tagger", (getter)Tag_get_tagger, (setter)Tag_set_tagger, "tagger", NULL},
+    {"message", (getter)Tag_get_message, (setter)Tag_set_message, "tag message",
+     NULL},
+    {NULL}
+};
+
+static PyTypeObject TagType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /*ob_size*/
+    "pygit2.Tag",                              /*tp_name*/
+    sizeof(Tag),                               /*tp_basicsize*/
+    0,                                         /*tp_itemsize*/
+    (destructor)Tag_dealloc,                   /*tp_dealloc*/
+    0,                                         /*tp_print*/
+    0,                                         /*tp_getattr*/
+    0,                                         /*tp_setattr*/
+    0,                                         /*tp_compare*/
+    0,                                         /*tp_repr*/
+    0,                                         /*tp_as_number*/
+    0,                                         /*tp_as_sequence*/
+    0,                                         /*tp_as_mapping*/
+    0,                                         /*tp_hash */
+    0,                                         /*tp_call*/
+    0,                                         /*tp_str*/
+    0,                                         /*tp_getattro*/
+    0,                                         /*tp_setattro*/
+    0,                                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
+    "Tag objects",                             /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    0,                                         /* tp_methods */
+    0,                                         /* tp_members */
+    Tag_getseters,                             /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    (initproc)Tag_init,                        /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
 static PyMethodDef module_methods[] = {
     {NULL}
 };
@@ -1051,6 +1249,10 @@ initpygit2(void)
     BlobType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&BlobType) < 0)
         return;
+    TagType.tp_base = &ObjectType;
+    TagType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&TagType) < 0)
+        return;
 
     m = Py_InitModule3("pygit2", module_methods,
                        "Python bindings for libgit2.");
@@ -1078,6 +1280,9 @@ initpygit2(void)
 
     Py_INCREF(&BlobType);
     PyModule_AddObject(m, "Blob", (PyObject *)&BlobType);
+
+    Py_INCREF(&TagType);
+    PyModule_AddObject(m, "Tag", (PyObject *)&TagType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
