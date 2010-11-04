@@ -513,6 +513,16 @@ Object_init_with_type(Object *py_obj, const git_otype type, PyObject *args,
     return 0;
 }
 
+static PyObject *
+build_person(const char *name, const char *email, long long time) {
+    return Py_BuildValue("(ssL)", name, email, time);
+}
+
+static int
+parse_person(PyObject *value, char **name, char **email, long long *time) {
+    return PyArg_ParseTuple(value, "ssL", name, email, time);
+}
+
 static int
 Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
     return Object_init_with_type((Object*)py_commit, GIT_OBJ_COMMIT, args,
@@ -549,16 +559,16 @@ static PyObject *
 Commit_get_committer(Commit *commit) {
     git_person *committer;
     committer = (git_person*)git_commit_committer(commit->commit);
-    return Py_BuildValue("(ssl)", git_person_name(committer),
-                         git_person_email(committer),
-                         git_person_time(committer));
+    return build_person(git_person_name(committer),
+                        git_person_email(committer),
+                        git_person_time(committer));
 }
 
 static int
 Commit_set_committer(Commit *commit, PyObject *value) {
     char *name = NULL, *email = NULL;
     long long time;
-    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+    if (!parse_person(value, &name, &email, &time))
         return -1;
     git_commit_set_committer(commit->commit, name, email, time);
     return 0;
@@ -568,16 +578,16 @@ static PyObject *
 Commit_get_author(Commit *commit) {
     git_person *author;
     author = (git_person*)git_commit_author(commit->commit);
-    return Py_BuildValue("(ssl)", git_person_name(author),
-                         git_person_email(author),
-                         git_person_time(author));
+    return build_person(git_person_name(author),
+                        git_person_email(author),
+                        git_person_time(author));
 }
 
 static int
 Commit_set_author(Commit *commit, PyObject *value) {
     char *name = NULL, *email = NULL;
     long long time;
-    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+    if (!parse_person(value, &name, &email, &time))
         return -1;
     git_commit_set_author(commit->commit, name, email, time);
     return 0;
@@ -1127,16 +1137,16 @@ Tag_get_tagger(Tag *tag) {
     tagger = (git_person*)git_tag_tagger(tag->tag);
     if (!tagger)
         Py_RETURN_NONE;
-    return Py_BuildValue("(ssl)", git_person_name(tagger),
-                         git_person_email(tagger),
-                         git_person_time(tagger));
+    return build_person(git_person_name(tagger),
+                        git_person_email(tagger),
+                        git_person_time(tagger));
 }
 
 static int
 Tag_set_tagger(Tag *tag, PyObject *value) {
     char *name = NULL, *email = NULL;
     long long time;
-    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+    if (!parse_person(value, &name, &email, &time))
         return -1;
     git_tag_set_tagger(tag->tag, name, email, time);
     return 0;
