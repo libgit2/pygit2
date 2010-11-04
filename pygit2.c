@@ -195,7 +195,7 @@ static Object *wrap_object(git_object *obj, Repository *repo) {
             assert(0);
     }
     if (!py_obj)
-        return NULL;
+        return (Object*)PyErr_NoMemory();
 
     py_obj->obj = obj;
     py_obj->repo = repo;
@@ -219,11 +219,11 @@ Repository_getitem(Repository *self, PyObject *value) {
     }
 
     obj = git_repository_lookup(self->repo, &oid, GIT_OBJ_ANY);
-    if (!obj) {
-        PyErr_Format(PyExc_RuntimeError, "Failed to look up hex SHA \"%s\"",
-                     hex);
-        return NULL;
-    }
+    /* Grr, libgit2 currently doesn't give us any info on this error, so we
+     * can't even tell the difference between a missing object and, say, an I/O
+     * error. */
+    if (!obj)
+        return Error_set_py_str(GIT_ENOTFOUND, value);
 
     py_obj = wrap_object(obj, self);
     if (!py_obj)
