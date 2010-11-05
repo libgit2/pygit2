@@ -49,9 +49,9 @@ class TreeTest(utils.TestRepoTestCase):
     def test_read_tree(self):
         tree = self.repo[TREE_SHA]
         self.assertRaises(TypeError, lambda: tree[()])
-        self.assertRaises(KeyError, lambda: tree['abcd'])
-        self.assertRaises(IndexError, lambda: tree[-4])
-        self.assertRaises(IndexError, lambda: tree[3])
+        self.assertRaisesWithArg(KeyError, 'abcd', lambda: tree['abcd'])
+        self.assertRaisesWithArg(IndexError, -4, lambda: tree[-4])
+        self.assertRaisesWithArg(IndexError, 3, lambda: tree[3])
 
         self.assertEqual(3, len(tree))
         a_sha = '7f129fd57e31e935c6d60a0c794efe4e6927664b'
@@ -84,7 +84,7 @@ class TreeTest(utils.TestRepoTestCase):
         self.assertEqual(2, len(tree))
         self.assertTrue('x' in tree)
         self.assertTrue('y' in tree)
-        self.assertRaises(KeyError, tree['x'].to_object)
+        self.assertRaisesWithArg(KeyError, '1' * 40, tree['x'].to_object)
 
         tree.add_entry('3' * 40, 'z1', 0100644)
         tree.add_entry('4' * 40, 'z2', 0100644)
@@ -108,11 +108,11 @@ class TreeTest(utils.TestRepoTestCase):
 
         def fail_del_by_name():
             del tree['asdf']
-        self.assertRaises(KeyError, fail_del_by_name)
+        self.assertRaisesWithArg(KeyError, 'asdf', fail_del_by_name)
 
         def fail_del_by_index():
             del tree[99]
-        self.assertRaises(IndexError, fail_del_by_index)
+        self.assertRaisesWithArg(IndexError, 99, fail_del_by_index)
 
         self.assertTrue('c' in tree)
         self.assertEqual(3, len(tree))

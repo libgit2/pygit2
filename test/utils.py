@@ -50,3 +50,11 @@ class TestRepoTestCase(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self._temp_dir)
+
+    def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except exc_class, e:
+            self.assertEqual((arg,), e.args)
+        else:
+            self.fail('%s(%r) not raised' % (exc_class.__name__, arg))
