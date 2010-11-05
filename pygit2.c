@@ -157,6 +157,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
     char *path;
+    int err;
 
     if (kwds) {
         PyErr_SetString(PyExc_TypeError,
@@ -167,10 +168,9 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
     if (!PyArg_ParseTuple(args, "s", &path))
         return -1;
 
-    self->repo = git_repository_open(path);
-    if (!self->repo) {
-        PyErr_Format(PyExc_RuntimeError, "Failed to open repo directory at %s",
-                     path);
+    err = git_repository_open(&self->repo, path);
+    if (err < 0) {
+        Error_set_str(err, path);
         return -1;
     }
 
@@ -256,12 +256,9 @@ Repository_getitem(Repository *self, PyObject *value) {
     if (err < 0)
         return Error_set_py_obj(err, value);
 
-    obj = git_repository_lookup(self->repo, &oid, GIT_OBJ_ANY);
-    /* Grr, libgit2 currently doesn't give us any info on this error, so we
-     * can't even tell the difference between a missing object and, say, an I/O
-     * error. */
-    if (!obj)
-        return Error_set_py_obj(GIT_ENOTFOUND, value);
+    err = git_repository_lookup(&obj, self->repo, &oid, GIT_OBJ_ANY);
+    if (err < 0)
+        return Error_set_py_obj(err, value);
 
     py_obj = wrap_object(obj, self);
     if (!py_obj)
@@ -488,6 +485,7 @@ Object_init_with_type(Object *py_obj, const git_otype type, PyObject *args,
                       PyObject *kwds) {
     Repository *repo = NULL;
     git_object *obj;
+    int err;
 
     if (kwds) {
         PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
@@ -505,9 +503,9 @@ Object_init_with_type(Object *py_obj, const git_otype type, PyObject *args,
         return -1;
     }
 
-    obj = git_object_new(repo->repo, type);
-    if (!obj) {
-        PyErr_SetNone(PyExc_MemoryError);
+    err = git_repository_newobject(&obj, repo->repo, type);
+    if (err < 0) {
+        Error_set(err);
         return -1;
     }
     Py_INCREF(repo);
@@ -713,15 +711,14 @@ TreeEntry_set_sha(TreeEntry *self, PyObject *value) {
 static PyObject *
 TreeEntry_to_object(TreeEntry *self) {
     git_object *obj;
-    char hex[GIT_OID_HEXSZ];
-    PyObject *py_hex;
+    int err;
+    char hex[GIT_OID_HEXSZ + 1];
 
-    obj = git_tree_entry_2object(self->entry);
-    if (!obj) {
+    err = git_tree_entry_2object(&obj, self->entry);
+    if (err < 0) {
         git_oid_fmt(hex, git_tree_entry_id(self->entry));
-        py_hex = PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
-        PyErr_SetObject(PyExc_KeyError, py_hex);
-        return NULL;
+        hex[GIT_OID_HEXSZ] = '\0';
+        return Error_set_str(err, hex);
     }
     return (PyObject*)wrap_object(obj, self->tree->repo);
 }
