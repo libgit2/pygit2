@@ -874,7 +874,9 @@ Tree_getitem(Tree *self, PyObject *value) {
     } else if (PyInt_Check(value)) {
         return Tree_getitem_by_index(self, value);
     } else {
-        PyErr_SetString(PyExc_TypeError, "Expected int or str for tree index.");
+        PyErr_Format(PyExc_TypeError,
+                     "Tree entry index must be int or str, not %.200s",
+                     value->ob_type->tp_name);
         return NULL;
     }
 }
@@ -920,7 +922,9 @@ Tree_delitem(Tree *self, PyObject *name, PyObject *value) {
     } else if (PyInt_Check(name)) {
         return Tree_delitem_by_index(self, name);
     } else {
-        PyErr_SetString(PyExc_TypeError, "Expected int or str for tree index.");
+        PyErr_Format(PyExc_TypeError,
+                     "Tree entry index must be int or str, not %.200s",
+                     value->ob_type->tp_name);
         return -1;
     }
 }
