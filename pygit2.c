@@ -79,65 +79,69 @@ static PyTypeObject TagType;
 static PyObject *GitError;
 
 static PyObject *
+Error_type(int err) {
+    switch (err) {
+        case GIT_ENOTFOUND:
+            return PyExc_KeyError;
+        case GIT_EOSERR:
+            return PyExc_OSError;
+        case GIT_ENOTOID:
+            return PyExc_ValueError;
+        case GIT_ENOMEM:
+            return PyExc_MemoryError;
+        default:
+            return GitError;
+    }
+}
+
+static PyObject *
 Error_set(int err) {
     assert(err < 0);
-    switch (err) {
-        case GIT_ENOMEM:
-            PyErr_NoMemory();
-            break;
-        case GIT_EOSERR:
-            PyErr_SetFromErrno(GitError);
-            break;
-        case GIT_EOBJTYPE:
-            PyErr_SetString(GitError, "Invalid object type.");
-            break;
-        default:
-            PyErr_Format(GitError, "%s", git_strerror(err));
-            break;
+    if (err == GIT_ENOTFOUND) {
+        /* KeyError expects the arg to be the missing key. If the caller called
+         * this instead of Error_set_py_obj, it means we don't know the key, but
+         * nor should we use git_strerror. */
+        PyErr_SetNone(PyExc_KeyError);
+        return NULL;
+    } else if (err == GIT_EOSERR) {
+        PyErr_SetFromErrno(GitError);
+        return NULL;
     }
+    PyErr_SetString(Error_type(err), git_strerror(err));
     return NULL;
 }
 
 static PyObject *
-Error_set_py_str(int err, PyObject *py_str) {
-    PyObject *repr = NULL;
+Error_set_str(int err, const char *str) {
+    if (err == GIT_ENOTFOUND) {
+        /* KeyError expects the arg to be the missing key. */
+        PyErr_Format(PyExc_KeyError, "%s", str);
+        return NULL;
+    }
+    PyErr_Format(Error_type(err), "%s: %s", str, git_strerror(err));
+    return NULL;
+}
+
+static PyObject *
+Error_set_py_obj(int err, PyObject *py_obj) {
+    PyObject *py_str;
+    char *str;
 
     assert(err < 0);
-    switch (err) {
-        case GIT_ENOTOID:
-            if (!PyString_Check(py_str)) {
-                PyErr_Format(PyExc_TypeError, "Hex SHA must be str, not %.200s",
-                             py_str->ob_type->tp_name);
-            } else {
-                repr = PyObject_Repr(py_str);
-                if (repr)
-                    PyErr_Format(PyExc_ValueError, "Invalid hex SHA: %s",
-                                 PyString_AS_STRING(repr));
-                else
-                    PyErr_SetString(PyExc_ValueError,
-                                    "Invalid hex SHA: <error in __repr__>");
-            }
-            break;
 
-        case GIT_ENOTFOUND:
-            PyErr_SetObject(PyExc_KeyError, py_str);
-            break;
-
-        case GIT_EOBJCORRUPTED:
-            repr = PyObject_Str(py_str);
-            if (repr)
-                PyErr_Format(GitError, "Corrupted object: %s",
-                             PyString_AS_STRING(repr));
-            else
-                PyErr_SetString(GitError,
-                                "Corrupted object: <error in __str__>");
-            break;
-
-        default:
-            Error_set(err);
-            break;
+    if (err == GIT_ENOTOID && !PyString_Check(py_obj)) {
+        PyErr_Format(PyExc_TypeError, "Git object id must be str, not %.200s",
+                     py_obj->ob_type->tp_name);
+        return NULL;
+    } else if (err == GIT_ENOTFOUND) {
+        /* KeyError expects the arg to be the missing key. */
+        PyErr_SetObject(PyExc_KeyError, py_obj);
+        return NULL;
     }
-    Py_XDECREF(repr);
+    py_str = PyObject_Str(py_obj);
+    str = py_str ? PyString_AS_STRING(py_str) : "<error in __str__>";
+    PyErr_Format(Error_type(err), "%s: %s", str, git_strerror(err));
+    Py_XDECREF(py_str);
     return NULL;
 }
 
@@ -186,7 +190,7 @@ Repository_contains(Repository *self, PyObject *value) {
     int err;
     err = py_str_to_git_oid(value, &oid);
     if (err < 0) {
-        Error_set_py_str(err, value);
+        Error_set_py_obj(err, value);
         return -1;
     }
     return git_odb_exists(git_repository_database(self->repo), &oid);
@@ -250,14 +254,14 @@ Repository_getitem(Repository *self, PyObject *value) {
 
     err = py_str_to_git_oid(value, &oid);
     if (err < 0)
-        return Error_set_py_str(err, value);
+        return Error_set_py_obj(err, value);
 
     obj = git_repository_lookup(self->repo, &oid, GIT_OBJ_ANY);
     /* Grr, libgit2 currently doesn't give us any info on this error, so we
      * can't even tell the difference between a missing object and, say, an I/O
      * error. */
     if (!obj)
-        return Error_set_py_str(GIT_ENOTFOUND, value);
+        return Error_set_py_obj(GIT_ENOTFOUND, value);
 
     py_obj = wrap_object(obj, self);
     if (!py_obj)
@@ -280,11 +284,11 @@ Repository_read(Repository *self, PyObject *py_hex) {
 
     err = py_str_to_git_oid(py_hex, &oid);
     if (err < 0)
-        return Error_set_py_str(err, py_hex);
+        return Error_set_py_obj(err, py_hex);
 
     err = Repository_read_raw(&raw, self->repo, &oid);
     if (err < 0)
-        return Error_set_py_str(err, py_hex);
+        return Error_set_py_obj(err, py_hex);
 
     result = Py_BuildValue("(ns#)", raw.type, raw.data, raw.len);
     free(raw.data);
@@ -397,7 +401,7 @@ Object_read_raw(Object *self) {
     err = Repository_read_raw(&raw, self->repo->repo, id);
     if (err < 0) {
         py_sha = Object_get_sha(self);
-        Error_set_py_str(err, py_sha);
+        Error_set_py_obj(err, py_sha);
         goto cleanup;
     }
 
@@ -416,7 +420,7 @@ Object_write(Object *self) {
     err = git_object_write(self->obj);
     if (err < 0) {
         py_sha = Object_get_sha(self);
-        Error_set_py_str(err, py_sha);
+        Error_set_py_obj(err, py_sha);
         Py_DECREF(py_sha);
         return NULL;
     }
@@ -699,7 +703,7 @@ TreeEntry_set_sha(TreeEntry *self, PyObject *value) {
 
     err = py_str_to_git_oid(value, &oid);
     if (err < 0) {
-        Error_set_py_str(err, value);
+        Error_set_py_obj(err, value);
         return -1;
     }
     git_tree_entry_set_id(self->entry, &oid);
@@ -936,7 +940,7 @@ Tree_add_entry(Tree *self, PyObject *args) {
 
     err = py_str_to_git_oid(py_sha, &oid);
     if (err < 0)
-        return Error_set_py_str(err, py_sha);
+        return Error_set_py_obj(err, py_sha);
 
     if (git_tree_add_entry(self->tree, &oid, name, attributes) < 0)
         return PyErr_NoMemory();
