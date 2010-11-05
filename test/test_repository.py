@@ -44,6 +44,7 @@ class RepositoryTest(utils.TestRepoTestCase):
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)
         self.assertRaises(ValueError, self.repo.read, A_BIN_SHA)
+        self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read, '1' * 40)
 
         a = self.repo.read(A_HEX_SHA)
         self.assertEqual((pygit2.GIT_OBJ_BLOB, 'a contents\n'), a)
