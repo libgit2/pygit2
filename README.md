@@ -6,12 +6,10 @@ pygit2 is a set of Python 2.6+ bindings to the libgit2 linkable C Git library.
 INSTALLING AND RUNNING
 ========================
 
-First you need to install libgit2:
+First you need to install the latest version of libgit2. 
+You can find platform-specific instructions to build the library in the libgit2 website:
 
-    $ git clone git://github.com/libgit2/libgit2.git
-    $ cd libgit2
-    $ make
-    $ make install
+	http://libgit2.github.com
 
 Next, make sure you have the required library dependencies for pygit2: OpenSSL and ZLib.
 For instance, in Debian-based systems run:
@@ -22,7 +20,7 @@ Also, make sure you have Python 2.6+ installed together with the Python developm
 
 When those are installed, you can install pygit2:
 
-    $ git clone git@github.com:libgit2/pygit2.git
+    $ git clone git://github.com/libgit2/pygit2.git 
     $ cd pygit2
     $ python setup.py install
     $ python setup.py test
