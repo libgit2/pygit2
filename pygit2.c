@@ -26,13 +26,8 @@
  */
 
 #include <Python.h>
-#include <git/commit.h>
-#include <git/common.h>
-#include <git/errors.h>
-#include <git/repository.h>
-#include <git/commit.h>
-#include <git/odb.h>
-#include <git/tag.h>
+#include <git2.h>
+
 
 typedef struct {
     PyObject_HEAD
@@ -559,11 +554,11 @@ Commit_get_commit_time(Commit *commit) {
 
 static PyObject *
 Commit_get_committer(Commit *commit) {
-    git_person *committer;
-    committer = (git_person*)git_commit_committer(commit->commit);
-    return build_person(git_person_name(committer),
-                        git_person_email(committer),
-                        git_person_time(committer));
+    const git_signature *committer = git_commit_committer(commit->commit);
+
+    return build_person(committer->name,
+                        committer->email,
+                        committer->when.time);
 }
 
 static int
@@ -572,17 +567,22 @@ Commit_set_committer(Commit *commit, PyObject *value) {
     long long time;
     if (!parse_person(value, &name, &email, &time))
         return -1;
-    git_commit_set_committer(commit->commit, name, email, time);
+
+    git_signature *signature = git_signature_new(name, email, time, 0);
+    if ( signature == NULL)
+        return -1;
+
+    git_commit_set_committer(commit->commit, signature);
     return 0;
 }
 
 static PyObject *
 Commit_get_author(Commit *commit) {
-    git_person *author;
-    author = (git_person*)git_commit_author(commit->commit);
-    return build_person(git_person_name(author),
-                        git_person_email(author),
-                        git_person_time(author));
+    const git_signature *author = git_commit_author(commit->commit);
+
+    return build_person(author->name,
+                        author->email,
+                        author->when.time);
 }
 
 static int
@@ -591,7 +591,11 @@ Commit_set_author(Commit *commit, PyObject *value) {
     long long time;
     if (!parse_person(value, &name, &email, &time))
         return -1;
-    git_commit_set_author(commit->commit, name, email, time);
+    git_signature *signature = git_signature_new(name, email, time, 0);
+    if ( signature == NULL)
+        return -1;
+
+    git_commit_set_author(commit->commit, signature);
     return 0;
 }
 
@@ -1138,13 +1142,12 @@ Tag_set_name(Tag *self, PyObject *py_name) {
 
 static PyObject *
 Tag_get_tagger(Tag *tag) {
-    git_person *tagger;
-    tagger = (git_person*)git_tag_tagger(tag->tag);
+    const git_signature *tagger = git_tag_tagger(tag->tag);
     if (!tagger)
         Py_RETURN_NONE;
-    return build_person(git_person_name(tagger),
-                        git_person_email(tagger),
-                        git_person_time(tagger));
+    return build_person(tagger->name,
+                        tagger->email,
+                        tagger->when.time);
 }
 
 static int
@@ -1153,7 +1156,12 @@ Tag_set_tagger(Tag *tag, PyObject *value) {
     long long time;
     if (!parse_person(value, &name, &email, &time))
         return -1;
-    git_tag_set_tagger(tag->tag, name, email, time);
+
+    git_signature *signature = git_signature_new(name, email, time, 0);
+    if ( signature == NULL)
+        return -1;
+
+    git_tag_set_tagger(tag->tag, signature);
     return 0;
 }
 
