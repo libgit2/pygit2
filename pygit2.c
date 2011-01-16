@@ -26,13 +26,16 @@
  */
 
 #include <Python.h>
-#include <git/commit.h>
-#include <git/common.h>
-#include <git/errors.h>
-#include <git/repository.h>
-#include <git/commit.h>
-#include <git/odb.h>
-#include <git/tag.h>
+#include <git2/commit.h>
+#include <git2/common.h>
+#include <git2/errors.h>
+#include <git2/repository.h>
+#include <git2/commit.h>
+#include <git2/odb.h>
+#include <git2/tag.h>
+#include <git2/object.h>
+#include <git2/signature.h>
+#include <git2/tree.h>
 
 typedef struct {
     PyObject_HEAD
@@ -516,12 +519,12 @@ Object_init_with_type(Object *py_obj, const git_otype type, PyObject *args,
 }
 
 static PyObject *
-build_person(const char *name, const char *email, long long time) {
+build_person(const char *name, const char *email, time_t time) {
     return Py_BuildValue("(ssL)", name, email, time);
 }
 
 static int
-parse_person(PyObject *value, char **name, char **email, long long *time) {
+parse_person(PyObject *value, char **name, char **email, time_t *time) {
     return PyArg_ParseTuple(value, "ssL", name, email, time);
 }
 
@@ -559,39 +562,47 @@ Commit_get_commit_time(Commit *commit) {
 
 static PyObject *
 Commit_get_committer(Commit *commit) {
-    git_person *committer;
-    committer = (git_person*)git_commit_committer(commit->commit);
-    return build_person(git_person_name(committer),
-                        git_person_email(committer),
-                        git_person_time(committer));
+    git_signature *committer;
+    committer = (git_signature*)git_commit_committer(commit->commit);
+    return build_person(committer->name,
+                        committer->email,
+                        committer->when.time);
 }
 
 static int
 Commit_set_committer(Commit *commit, PyObject *value) {
     char *name = NULL, *email = NULL;
-    long long time;
+    time_t time;
+    git_signature *committer;
     if (!parse_person(value, &name, &email, &time))
         return -1;
-    git_commit_set_committer(commit->commit, name, email, time);
+    /* TODO: offset */
+    committer = git_signature_new(name, email, time, 0);
+    git_commit_set_committer(commit->commit, committer);
+    git_signature_free(committer);
     return 0;
 }
 
 static PyObject *
 Commit_get_author(Commit *commit) {
-    git_person *author;
-    author = (git_person*)git_commit_author(commit->commit);
-    return build_person(git_person_name(author),
-                        git_person_email(author),
-                        git_person_time(author));
+    git_signature *author;
+    author = (git_signature*)git_commit_author(commit->commit);
+    return build_person(author->name,
+                        author->email,
+                        author->when.time);
 }
 
 static int
 Commit_set_author(Commit *commit, PyObject *value) {
     char *name = NULL, *email = NULL;
-    long long time;
+    time_t time;
+    git_signature *author;
     if (!parse_person(value, &name, &email, &time))
         return -1;
-    git_commit_set_author(commit->commit, name, email, time);
+    /* TODO: offset */
+    author = git_signature_new(name, email, time, 0);
+    git_commit_set_author(commit->commit, author);
+    git_signature_free(author);
     return 0;
 }
 
@@ -1138,22 +1149,26 @@ Tag_set_name(Tag *self, PyObject *py_name) {
 
 static PyObject *
 Tag_get_tagger(Tag *tag) {
-    git_person *tagger;
-    tagger = (git_person*)git_tag_tagger(tag->tag);
+    git_signature *tagger;
+    tagger = (git_signature*)git_tag_tagger(tag->tag);
     if (!tagger)
         Py_RETURN_NONE;
-    return build_person(git_person_name(tagger),
-                        git_person_email(tagger),
-                        git_person_time(tagger));
+    return build_person(tagger->name,
+                        tagger->email,
+                        tagger->when.time);
 }
 
 static int
 Tag_set_tagger(Tag *tag, PyObject *value) {
     char *name = NULL, *email = NULL;
-    long long time;
+    time_t time;
+    git_signature *tagger;
     if (!parse_person(value, &name, &email, &time))
         return -1;
-    git_tag_set_tagger(tag->tag, name, email, time);
+    /* TODO: offset */
+    tagger = git_signature_new(name, email, time, 0);
+    git_tag_set_tagger(tag->tag, tagger);
+    git_signature_free(tagger);
     return 0;
 }
 
