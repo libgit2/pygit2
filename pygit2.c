@@ -933,23 +933,24 @@ Tree_delitem(Tree *self, PyObject *name, PyObject *value) {
     }
 }
 
-static PyObject *
+static TreeEntry *
 Tree_add_entry(Tree *self, PyObject *args) {
     PyObject *py_sha;
     char *name;
     int attributes, err;
     git_oid oid;
+    git_tree_entry *entry = NULL;
 
     if (!PyArg_ParseTuple(args, "Osi", &py_sha, &name, &attributes))
         return NULL;
 
     err = py_str_to_git_oid(py_sha, &oid);
     if (err < 0)
-        return Error_set_py_obj(err, py_sha);
+        return (TreeEntry*)Error_set_py_obj(err, py_sha);
 
-    if (git_tree_add_entry(self->tree, &oid, name, attributes) < 0)
-        return PyErr_NoMemory();
-    Py_RETURN_NONE;
+    if (git_tree_add_entry(&entry, self->tree, &oid, name, attributes) < 0)
+        return (TreeEntry*)PyErr_NoMemory();
+    return wrap_tree_entry(entry, self);
 }
 
 static PyMethodDef Tree_methods[] = {
