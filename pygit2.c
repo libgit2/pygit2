@@ -32,6 +32,7 @@
 typedef struct {
     PyObject_HEAD
     git_repository *repo;
+    PyObject *index; /* It will be None for a bare repository */
 } Repository;
 
 /* The structs for some of the object subtypes are identical except for the type
@@ -63,6 +64,12 @@ typedef struct {
     Tree *tree;
 } TreeEntry;
 
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_index *index;
+} Index;
+
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
@@ -70,6 +77,7 @@ static PyTypeObject TreeEntryType;
 static PyTypeObject TreeType;
 static PyTypeObject BlobType;
 static PyTypeObject TagType;
+static PyTypeObject IndexType;
 
 static PyObject *GitError;
 
@@ -176,6 +184,7 @@ static void
 Repository_dealloc(Repository *self) {
     if (self->repo)
         git_repository_free(self->repo);
+    Py_XDECREF(self->index);
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -287,10 +296,44 @@ Repository_read(Repository *self, PyObject *py_hex) {
     return result;
 }
 
+static PyObject *
+Repository_get_index(Repository *self, void *closure) {
+    int err;
+    git_index *index;
+    Index *py_index;
+
+    assert(self->repo);
+
+    if (self->index == NULL) {
+        err = git_repository_index(&index, self->repo);
+        if (err == GIT_SUCCESS) {
+            py_index = (Index*)IndexType.tp_alloc(&IndexType, 0);
+            if (!py_index)
+                return PyErr_NoMemory();
+            py_index->repo = self;
+            py_index->index = index;
+            self->index = (PyObject*)py_index;
+        } else if (err == GIT_EBAREINDEX) {
+            Py_INCREF(Py_None);
+            self->index = Py_None;
+        } else {
+            return Error_set(err);
+        }
+    }
+
+    Py_INCREF(self->index);
+    return self->index;
+}
+
 static PyMethodDef Repository_methods[] = {
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
     {NULL, NULL, 0, NULL}
+};
+
+static PyGetSetDef Repository_getseters[] = {
+    {"index", (getter)Repository_get_index, NULL, "index file. ", NULL},
+    {NULL}
 };
 
 static PySequenceMethods Repository_as_sequence = {
@@ -341,7 +384,7 @@ static PyTypeObject RepositoryType = {
     0,                                         /* tp_iternext */
     Repository_methods,                        /* tp_methods */
     0,                                         /* tp_members */
-    0,                                         /* tp_getset */
+    Repository_getseters,                      /* tp_getset */
     0,                                         /* tp_base */
     0,                                         /* tp_dict */
     0,                                         /* tp_descr_get */
@@ -1240,6 +1283,55 @@ static PyTypeObject TagType = {
     0,                                         /* tp_new */
 };
 
+static void
+Index_dealloc(Index* self)
+{
+    Py_XDECREF(self->repo);
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+static PyTypeObject IndexType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /* ob_size */
+    "pygit2.Index",                            /* tp_name */
+    sizeof(Index),                             /* tp_basicsize */
+    0,                                         /* tp_itemsize */
+    (destructor)Index_dealloc,                 /* tp_dealloc */
+    0,                                         /* tp_print */
+    0,                                         /* tp_getattr */
+    0,                                         /* tp_setattr */
+    0,                                         /* tp_compare */
+    0,                                         /* tp_repr */
+    0,                                         /* tp_as_number */
+    0,                                         /* tp_as_sequence */
+    0,                                         /* tp_as_mapping */
+    0,                                         /* tp_hash */
+    0,                                         /* tp_call */
+    0,                                         /* tp_str */
+    0,                                         /* tp_getattro */
+    0,                                         /* tp_setattro */
+    0,                                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
+    "Index file",                              /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    0,                                         /* tp_methods */
+    0,                                         /* tp_members */
+    0            ,                             /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    0,                                         /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
 static PyMethodDef module_methods[] = {
     {NULL}
 };
@@ -1277,6 +1369,9 @@ initpygit2(void)
     TagType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TagType) < 0)
         return;
+    IndexType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&IndexType) < 0)
+        return;
 
     m = Py_InitModule3("pygit2", module_methods,
                        "Python bindings for libgit2.");
@@ -1307,6 +1402,9 @@ initpygit2(void)
 
     Py_INCREF(&TagType);
     PyModule_AddObject(m, "Tag", (PyObject *)&TagType);
+
+    Py_INCREF(&IndexType);
+    PyModule_AddObject(m, "Index", (PyObject *)&IndexType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
