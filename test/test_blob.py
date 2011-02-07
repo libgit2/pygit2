@@ -37,7 +37,7 @@ import utils
 BLOB_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 
 
-class BlobTest(utils.TestRepoTestCase):
+class BlobTest(utils.BareRepoTestCase):
 
     def test_read_blob(self):
         blob = self.repo[BLOB_SHA]

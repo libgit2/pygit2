@@ -36,10 +36,16 @@ import pygit2
 import utils
 
 
-class IndexTest(utils.TestRepoTestCase):
+class IndexBareTest(utils.BareRepoTestCase):
 
     def test_bare(self):
         self.assertEqual(None, self.repo.index)
+
+
+class IndexTest(utils.RepoTestCase):
+
+    def test_index(self):
+        self.assertNotEqual(None, self.repo.index)
 
 
 if __name__ == '__main__':

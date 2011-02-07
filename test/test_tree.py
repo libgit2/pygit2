@@ -38,7 +38,7 @@ TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'
 
 
-class TreeTest(utils.TestRepoTestCase):
+class TreeTest(utils.BareRepoTestCase):
 
     def assertTreeEntryEqual(self, entry, sha, name, attributes):
         self.assertEqual(entry.sha, sha)

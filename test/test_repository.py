@@ -39,7 +39,7 @@ A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 A_BIN_SHA = binascii.unhexlify(A_HEX_SHA)
 
 
-class RepositoryTest(utils.TestRepoTestCase):
+class RepositoryTest(utils.BareRepoTestCase):
 
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)

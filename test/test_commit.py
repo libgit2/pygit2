@@ -37,7 +37,7 @@ import utils
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 
 
-class CommitTest(utils.TestRepoTestCase):
+class CommitTest(utils.BareRepoTestCase):
 
     def test_read_commit(self):
         commit = self.repo[COMMIT_SHA]

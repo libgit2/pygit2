@@ -37,7 +37,7 @@ import utils
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 
 
-class TagTest(utils.TestRepoTestCase):
+class TagTest(utils.BareRepoTestCase):
 
     def test_read_tag(self):
         tag = self.repo[TAG_SHA]
