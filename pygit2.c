@@ -49,6 +49,7 @@ OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
 OBJECT_STRUCT(Blob, git_object, blob)
+OBJECT_STRUCT(Index, git_index, index)
 
 typedef struct {
     PyObject_HEAD
@@ -63,12 +64,6 @@ typedef struct {
     git_tree_entry *entry;
     Tree *tree;
 } TreeEntry;
-
-typedef struct {
-    PyObject_HEAD
-    Repository *repo;
-    git_index *index;
-} Index;
 
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
@@ -312,6 +307,7 @@ Repository_get_index(Repository *self, void *closure) {
                 return PyErr_NoMemory();
             py_index->repo = self;
             py_index->index = index;
+            py_index->own_obj = 0;
             self->index = (PyObject*)py_index;
         } else if (err == GIT_EBAREINDEX) {
             Py_INCREF(Py_None);
@@ -1283,12 +1279,143 @@ static PyTypeObject TagType = {
     0,                                         /* tp_new */
 };
 
+static int
+Index_init(Index *self, PyObject *args, PyObject *kwds) {
+    char *path;
+    int err;
+
+    if (kwds) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Index takes no keyword arugments");
+        return -1;
+    }
+
+    if (!PyArg_ParseTuple(args, "s", &path))
+        return -1;
+
+    err = git_index_open_bare(&self->index, path);
+    if (err < 0) {
+        Error_set_str(err, path);
+        return -1;
+    }
+
+    self->own_obj = 1;
+    return 0;
+}
+
 static void
 Index_dealloc(Index* self)
 {
+    if (self->own_obj)
+        git_index_free(self->index);
     Py_XDECREF(self->repo);
     self->ob_type->tp_free((PyObject*)self);
 }
+
+static PyObject *
+Index_add(Index *self, PyObject *args) {
+    int err;
+    const char *path;
+    int stage;
+
+    if (!PyArg_ParseTuple(args, "si", &path, &stage))
+        return NULL;
+
+    err = git_index_add(self->index, path, stage);
+    if (err < 0)
+        return Error_set_str(err, path);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Index_clear(Index *self) {
+    git_index_clear(self->index);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Index_entrycount(Index *self) {
+    long count;
+
+    count = (long)git_index_entrycount(self->index);
+    return PyInt_FromLong(count);
+}
+
+static PyObject *
+Index_find(Index *self, PyObject *py_path) {
+    char *path;
+    long idx;
+
+    path = PyString_AsString(py_path);
+    if (!path)
+        return NULL;
+
+    idx = (long)git_index_find(self->index, path);
+    if (idx < 0)
+        return Error_set_str(idx, path);
+
+    return PyInt_FromLong(idx);
+}
+
+static PyObject *
+Index_read(Index *self) {
+    int err;
+
+    err = git_index_read(self->index);
+    if (err < GIT_SUCCESS)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Index_remove(Index *self, PyObject *py_idx) {
+    int err;
+    int idx;
+
+    idx = (int)PyInt_AsLong(py_idx);
+    if (idx == -1 && PyErr_Occurred())
+        return NULL;
+
+    err = git_index_remove(self->index, idx);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Index_write(Index *self) {
+    int err;
+
+    err = git_index_write(self->index);
+    if (err < GIT_SUCCESS)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef Index_methods[] = {
+    {"add", (PyCFunction)Index_add, METH_VARARGS,
+     "Add or update an index entry from a file in disk."},
+    {"clear", (PyCFunction)Index_clear, METH_NOARGS,
+     "Clear the contents (all the entries) of an index object."},
+    {"entrycount", (PyCFunction)Index_entrycount, METH_NOARGS,
+     "Get the count of entries currently in the index."},
+    {"find", (PyCFunction)Index_find, METH_O,
+     "Find the first index of any entries which point to given path in the"
+     " Git index."},
+    {"read", (PyCFunction)Index_read, METH_NOARGS,
+     "Update the contents of an existing index object in memory by reading"
+     " from the hard disk."},
+    {"remove", (PyCFunction)Index_remove, METH_O,
+     "Remove an entry from the index."},
+    {"write", (PyCFunction)Index_write, METH_NOARGS,
+     "Write an existing index object from memory back to disk using an"
+     " atomic file lock."},
+    {NULL}
+};
 
 static PyTypeObject IndexType = {
     PyObject_HEAD_INIT(NULL)
@@ -1319,15 +1446,15 @@ static PyTypeObject IndexType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
     0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
+    Index_methods,                             /* tp_methods */
     0,                                         /* tp_members */
-    0            ,                             /* tp_getset */
+    0,                                         /* tp_getset */
     0,                                         /* tp_base */
     0,                                         /* tp_dict */
     0,                                         /* tp_descr_get */
     0,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
+    (initproc)Index_init,                      /* tp_init */
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
