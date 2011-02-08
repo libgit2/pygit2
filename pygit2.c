@@ -1341,14 +1341,6 @@ Index_clear(Index *self) {
 }
 
 static PyObject *
-Index_entrycount(Index *self) {
-    long count;
-
-    count = (long)git_index_entrycount(self->index);
-    return PyInt_FromLong(count);
-}
-
-static PyObject *
 Index_find(Index *self, PyObject *py_path) {
     char *path;
     long idx;
@@ -1365,53 +1357,11 @@ Index_find(Index *self, PyObject *py_path) {
 }
 
 static PyObject *
-Index_get(Index *self, PyObject *py_idx) {
-    int idx;
-    git_index_entry *index_entry;
-    IndexEntry *py_index_entry;
-
-    idx = (int)PyInt_AsLong(py_idx);
-    if (idx == -1 && PyErr_Occurred())
-        return NULL;
-
-    index_entry = git_index_get(self->index, idx);
-    if (!index_entry) {
-        PyErr_SetObject(PyExc_KeyError, py_idx);
-        return NULL;
-    }
-
-    py_index_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
-    if (!py_index_entry)
-        return PyErr_NoMemory();
-
-    py_index_entry->entry = index_entry;
-
-    Py_INCREF(py_index_entry);
-    return (PyObject*)py_index_entry;
-}
-
-static PyObject *
 Index_read(Index *self) {
     int err;
 
     err = git_index_read(self->index);
     if (err < GIT_SUCCESS)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
-static PyObject *
-Index_remove(Index *self, PyObject *py_idx) {
-    int err;
-    int idx;
-
-    idx = (int)PyInt_AsLong(py_idx);
-    if (idx == -1 && PyErr_Occurred())
-        return NULL;
-
-    err = git_index_remove(self->index, idx);
-    if (err < 0)
         return Error_set(err);
 
     Py_RETURN_NONE;
@@ -1428,27 +1378,145 @@ Index_write(Index *self) {
     Py_RETURN_NONE;
 }
 
+/* This is an internal function, used by Index_getitem and Index_setitem */
+static int
+Index_get_position(Index *self, PyObject *value) {
+    char *path;
+    int idx;
+
+    if (PyString_Check(value)) {
+        path = PyString_AsString(value);
+        if (!path)
+            return -1;
+        idx = git_index_find(self->index, path);
+        if (idx < 0) {
+            Error_set_str(idx, path);
+            return -1;
+        }
+    } else if (PyInt_Check(value)) {
+        idx = (int)PyInt_AsLong(value);
+        if (idx == -1 && PyErr_Occurred())
+            return -1;
+        if (idx < 0) {
+            PyErr_SetObject(PyExc_ValueError, value);
+            return -1;
+        }
+    } else {
+        PyErr_Format(PyExc_TypeError,
+                     "Index entry key must be int or str, not %.200s",
+                     value->ob_type->tp_name);
+        return -1;
+    }
+
+    return idx;
+}
+
+static int
+Index_contains(Index *self, PyObject *value) {
+    char *path;
+    int idx;
+
+    path = PyString_AsString(value);
+    if (!path)
+        return -1;
+    idx = git_index_find(self->index, path);
+    if (idx == GIT_ENOTFOUND)
+        return 0;
+    if (idx < 0) {
+        Error_set_str(idx, path);
+        return -1;
+    }
+
+    return 1;
+}
+
+static Py_ssize_t
+Index_len(Index *self) {
+    return (Py_ssize_t)git_index_entrycount(self->index);
+}
+
+static PyObject *
+Index_getitem(Index *self, PyObject *value) {
+    int idx;
+    git_index_entry *index_entry;
+    IndexEntry *py_index_entry;
+
+    idx = Index_get_position(self, value);
+    if (idx == -1)
+        return NULL;
+
+    index_entry = git_index_get(self->index, idx);
+    if (!index_entry) {
+        PyErr_SetObject(PyExc_KeyError, value);
+        return NULL;
+    }
+
+    py_index_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
+    if (!py_index_entry)
+        return PyErr_NoMemory();
+
+    py_index_entry->entry = index_entry;
+
+    Py_INCREF(py_index_entry);
+    return (PyObject*)py_index_entry;
+}
+
+static int
+Index_setitem(Index *self, PyObject *key, PyObject *value) {
+    int err;
+    int idx;
+
+    if (value) {
+        PyErr_SetString(PyExc_NotImplementedError,
+                        "set item on index not yet implemented");
+        return -1;
+    }
+
+    idx = Index_get_position(self, key);
+    if (idx == -1)
+        return -1;
+
+    err = git_index_remove(self->index, idx);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    return 0;
+}
+
 static PyMethodDef Index_methods[] = {
     {"add", (PyCFunction)Index_add, METH_VARARGS,
      "Add or update an index entry from a file in disk."},
     {"clear", (PyCFunction)Index_clear, METH_NOARGS,
      "Clear the contents (all the entries) of an index object."},
-    {"entrycount", (PyCFunction)Index_entrycount, METH_NOARGS,
-     "Get the count of entries currently in the index."},
-    {"find", (PyCFunction)Index_find, METH_O,
+    {"_find", (PyCFunction)Index_find, METH_O,
      "Find the first index of any entries which point to given path in the"
      " Git index."},
-    {"get", (PyCFunction)Index_get, METH_O,
-     "Get a pointer to one of the entries in the index."},
     {"read", (PyCFunction)Index_read, METH_NOARGS,
      "Update the contents of an existing index object in memory by reading"
      " from the hard disk."},
-    {"remove", (PyCFunction)Index_remove, METH_O,
-     "Remove an entry from the index."},
     {"write", (PyCFunction)Index_write, METH_NOARGS,
      "Write an existing index object from memory back to disk using an"
      " atomic file lock."},
     {NULL}
+};
+
+static PySequenceMethods Index_as_sequence = {
+    0,                          /* sq_length */
+    0,                          /* sq_concat */
+    0,                          /* sq_repeat */
+    0,                          /* sq_item */
+    0,                          /* sq_slice */
+    0,                          /* sq_ass_item */
+    0,                          /* sq_ass_slice */
+    (objobjproc)Index_contains, /* sq_contains */
+};
+
+static PyMappingMethods Index_as_mapping = {
+    (lenfunc)Index_len,              /* mp_length */
+    (binaryfunc)Index_getitem,       /* mp_subscript */
+    (objobjargproc)Index_setitem,    /* mp_ass_subscript */
 };
 
 static PyTypeObject IndexType = {
@@ -1464,8 +1532,8 @@ static PyTypeObject IndexType = {
     0,                                         /* tp_compare */
     0,                                         /* tp_repr */
     0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
+    &Index_as_sequence,                        /* tp_as_sequence */
+    &Index_as_mapping,                         /* tp_as_mapping */
     0,                                         /* tp_hash */
     0,                                         /* tp_call */
     0,                                         /* tp_str */
