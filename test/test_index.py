@@ -32,7 +32,6 @@ __author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
 
 import unittest
 
-import pygit2
 import utils
 
 
@@ -46,6 +45,50 @@ class IndexTest(utils.RepoTestCase):
 
     def test_index(self):
         self.assertNotEqual(None, self.repo.index)
+
+    def test_read(self):
+        index = self.repo.index
+        self.assertEqual(len(index), 0)
+        index.read()
+        self.assertEqual(len(index), 1)
+
+        self.assertRaises(TypeError, lambda: index[()])
+        self.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
+        self.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
+
+        sha = '3b18e512dba79e4c8300dd08aeb37f8e728b8dad'
+        self.assertTrue('hello.txt' in index)
+        self.assertEqual(index['hello.txt'].sha, sha)
+        self.assertEqual(index[0].sha, sha)
+
+    def test_add(self):
+        index = self.repo.index
+        index.read()
+
+        sha = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
+        self.assertFalse('bye.txt' in index)
+        index.add('bye.txt', 0)
+        self.assertTrue('bye.txt' in index)
+        self.assertEqual(len(index), 2)
+        self.assertEqual(index['bye.txt'].sha, sha)
+
+    def test_clear(self):
+        index = self.repo.index
+        index.read()
+        self.assertEqual(len(index), 1)
+        index.clear()
+        self.assertEqual(len(index), 0)
+
+    def test_write(self):
+        index = self.repo.index
+        index.read()
+        index.add('bye.txt', 0)
+        index.write()
+
+        index.clear()
+        self.assertFalse('bye.txt' in index)
+        index.read()
+        self.assertTrue('bye.txt' in index)
 
 
 if __name__ == '__main__':
