@@ -65,6 +65,11 @@ typedef struct {
     Tree *tree;
 } TreeEntry;
 
+typedef struct {
+    PyObject_HEAD
+    git_index_entry *entry;
+} IndexEntry;
+
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
@@ -73,6 +78,7 @@ static PyTypeObject TreeType;
 static PyTypeObject BlobType;
 static PyTypeObject TagType;
 static PyTypeObject IndexType;
+static PyTypeObject IndexEntryType;
 
 static PyObject *GitError;
 
@@ -1359,6 +1365,32 @@ Index_find(Index *self, PyObject *py_path) {
 }
 
 static PyObject *
+Index_get(Index *self, PyObject *py_idx) {
+    int idx;
+    git_index_entry *index_entry;
+    IndexEntry *py_index_entry;
+
+    idx = (int)PyInt_AsLong(py_idx);
+    if (idx == -1 && PyErr_Occurred())
+        return NULL;
+
+    index_entry = git_index_get(self->index, idx);
+    if (!index_entry) {
+        PyErr_SetObject(PyExc_KeyError, py_idx);
+        return NULL;
+    }
+
+    py_index_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
+    if (!py_index_entry)
+        return PyErr_NoMemory();
+
+    py_index_entry->entry = index_entry;
+
+    Py_INCREF(py_index_entry);
+    return (PyObject*)py_index_entry;
+}
+
+static PyObject *
 Index_read(Index *self) {
     int err;
 
@@ -1406,6 +1438,8 @@ static PyMethodDef Index_methods[] = {
     {"find", (PyCFunction)Index_find, METH_O,
      "Find the first index of any entries which point to given path in the"
      " Git index."},
+    {"get", (PyCFunction)Index_get, METH_O,
+     "Get a pointer to one of the entries in the index."},
     {"read", (PyCFunction)Index_read, METH_NOARGS,
      "Update the contents of an existing index object in memory by reading"
      " from the hard disk."},
@@ -1459,6 +1493,67 @@ static PyTypeObject IndexType = {
     0,                                         /* tp_new */
 };
 
+static void
+IndexEntry_dealloc(IndexEntry *self) {
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+static PyObject *
+IndexEntry_get_sha(IndexEntry *self) {
+    const git_oid *id;
+    char hex[GIT_OID_HEXSZ];
+
+    git_oid_fmt(hex, &self->entry->oid);
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+}
+
+static PyGetSetDef IndexEntry_getseters[] = {
+    {"sha", (getter)IndexEntry_get_sha, NULL, "hex SHA",  NULL},
+    {NULL},
+};
+
+static PyTypeObject IndexEntryType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /* ob_size */
+    "pygit2.IndexEntry",                       /* tp_name */
+    sizeof(IndexEntry),                        /* tp_basicsize */
+    0,                                         /* tp_itemsize */
+    (destructor)IndexEntry_dealloc,            /* tp_dealloc */
+    0,                                         /* tp_print */
+    0,                                         /* tp_getattr */
+    0,                                         /* tp_setattr */
+    0,                                         /* tp_compare */
+    0,                                         /* tp_repr */
+    0,                                         /* tp_as_number */
+    0,                                         /* tp_as_sequence */
+    0,                                         /* tp_as_mapping */
+    0,                                         /* tp_hash */
+    0,                                         /* tp_call */
+    0,                                         /* tp_str */
+    0,                                         /* tp_getattro */
+    0,                                         /* tp_setattro */
+    0,                                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags */
+    "Index entry",                             /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    0,                                         /* tp_methods */
+    0,                                         /* tp_members */
+    IndexEntry_getseters,                      /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    0,                                         /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
 static PyMethodDef module_methods[] = {
     {NULL}
 };
@@ -1499,6 +1594,9 @@ initpygit2(void)
     IndexType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&IndexType) < 0)
         return;
+    IndexEntryType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&IndexEntryType) < 0)
+        return;
 
     m = Py_InitModule3("pygit2", module_methods,
                        "Python bindings for libgit2.");
@@ -1532,6 +1630,9 @@ initpygit2(void)
 
     Py_INCREF(&IndexType);
     PyModule_AddObject(m, "Index", (PyObject *)&IndexType);
+
+    Py_INCREF(&IndexEntryType);
+    PyModule_AddObject(m, "IndexEntry", (PyObject *)&IndexEntryType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
