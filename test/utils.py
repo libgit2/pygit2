@@ -29,9 +29,9 @@ __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 import os
 import shutil
+import tarfile
 import tempfile
 import unittest
-import zipfile
 
 import pygit2
 
@@ -70,9 +70,9 @@ class RepoTestCase(BaseTestCase):
         repo_dir = 'testrepo'
         repo_path = os.path.join(os.path.dirname(__file__), 'data', repo_dir)
         temp_dir = tempfile.mkdtemp()
-        z = zipfile.ZipFile(repo_path + '.zip')
-        z.extractall(temp_dir)
-        z.close()
+        tar = tarfile.open(repo_path + '.tar')
+        tar.extractall(temp_dir)
+        tar.close()
         self._temp_dir = temp_dir
         temp_repo_path = os.path.join(temp_dir, repo_dir, '.git')
         self.repo = pygit2.Repository(temp_repo_path)
