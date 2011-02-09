@@ -1568,7 +1568,6 @@ IndexEntry_dealloc(IndexEntry *self) {
 
 static PyObject *
 IndexEntry_get_sha(IndexEntry *self) {
-    const git_oid *id;
     char hex[GIT_OID_HEXSZ];
 
     git_oid_fmt(hex, &self->entry->oid);
