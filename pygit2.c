@@ -70,6 +70,12 @@ typedef struct {
     git_index_entry *entry;
 } IndexEntry;
 
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_revwalk *walk;
+} RevWalker;
+
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
@@ -79,6 +85,7 @@ static PyTypeObject BlobType;
 static PyTypeObject TagType;
 static PyTypeObject IndexType;
 static PyTypeObject IndexEntryType;
+static PyTypeObject RevWalkerType;
 
 static PyObject *GitError;
 
@@ -93,6 +100,8 @@ Error_type(int err) {
             return PyExc_ValueError;
         case GIT_ENOMEM:
             return PyExc_MemoryError;
+        case GIT_EREVWALKOVER:
+            return PyExc_StopIteration;
         default:
             return GitError;
     }
@@ -327,7 +336,59 @@ Repository_get_index(Repository *self, void *closure) {
     return self->index;
 }
 
+static PyObject *
+Repository_log(Repository *self, PyObject *py_hex)
+{
+    int err;
+    char *hex;
+    git_oid oid;
+    git_commit *commit;
+    git_revwalk *walk;
+    RevWalker *py_walker;
+
+    hex = PyString_AsString(py_hex);
+    if (!hex)
+        return NULL;
+
+    err = git_oid_mkstr(&oid, hex);
+    if (err < 0)
+        return Error_set_str(err, hex);
+
+    err = git_commit_lookup(&commit, self->repo, &oid);
+    if (err < 0)
+        return Error_set_str(err, hex);
+
+    err = git_revwalk_new(&walk, self->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_revwalk_sorting(walk, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE);
+    if (err < 0) {
+        git_revwalk_free(walk);
+        return Error_set(err);
+    }
+
+    err = git_revwalk_push(walk, commit);
+    if (err < 0) {
+        git_revwalk_free(walk);
+        return Error_set(err);
+    }
+
+    py_walker = PyObject_New(RevWalker, &RevWalkerType);
+    if (!py_walker) {
+        git_revwalk_free(walk);
+        return NULL;
+    }
+
+    Py_INCREF(self);
+    py_walker->repo = self;
+    py_walker->walk = walk;
+    return (PyObject*)py_walker;
+}
+
 static PyMethodDef Repository_methods[] = {
+    {"log", (PyCFunction)Repository_log, METH_O,
+     "Generator that traverses the history starting from the given commit."},
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
     {NULL, NULL, 0, NULL}
@@ -1621,6 +1682,82 @@ static PyTypeObject IndexEntryType = {
     0,                                         /* tp_new */
 };
 
+static void
+RevWalker_dealloc(RevWalker *self) {
+    git_revwalk_free(self->walk);
+    Py_DECREF(self->repo);
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+static PyObject *
+RevWalker_iter(RevWalker *self) {
+    Py_INCREF(self);
+    return (PyObject*)self;
+}
+
+static PyObject *
+RevWalker_iternext(RevWalker *self) {
+    int err;
+    git_commit *commit;
+    Commit *py_commit;
+
+    err = git_revwalk_next(&commit, self->walk);
+    if (err < 0)
+        return Error_set(err);
+
+    py_commit = PyObject_New(Commit, &CommitType);
+    if (!py_commit)
+        return NULL;
+    py_commit->commit = commit;
+    Py_INCREF(self->repo);
+    py_commit->repo = self->repo;
+    py_commit->own_obj = 0;
+
+    return (PyObject*)py_commit;
+}
+
+static PyTypeObject RevWalkerType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /* ob_size */
+    "pygit2.RevWalker",                        /* tp_name */
+    sizeof(RevWalker),                         /* tp_basicsize */
+    0,                                         /* tp_itemsize */
+    (destructor)RevWalker_dealloc,             /* tp_dealloc */
+    0,                                         /* tp_print */
+    0,                                         /* tp_getattr */
+    0,                                         /* tp_setattr */
+    0,                                         /* tp_compare */
+    0,                                         /* tp_repr */
+    0,                                         /* tp_as_number */
+    0,                                         /* tp_as_sequence */
+    0,                                         /* tp_as_mapping */
+    0,                                         /* tp_hash */
+    0,                                         /* tp_call */
+    0,                                         /* tp_str */
+    0,                                         /* tp_getattro */
+    0,                                         /* tp_setattro */
+    0,                                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_ITER, /* tp_flags */
+    "Revision walker",                         /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    (getiterfunc)RevWalker_iter,               /* tp_iter */
+    (iternextfunc)RevWalker_iternext,          /* tp_iternext */
+    0,                                         /* tp_methods */
+    0,                                         /* tp_members */
+    0,                                         /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    0,                                         /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
 static PyMethodDef module_methods[] = {
     {NULL}
 };
@@ -1663,6 +1800,9 @@ initpygit2(void)
         return;
     IndexEntryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&IndexEntryType) < 0)
+        return;
+    RevWalkerType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&RevWalkerType) < 0)
         return;
 
     m = Py_InitModule3("pygit2", module_methods,

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 #
-# Copyright 2010 Google, Inc.
+# Copyright 2011 Itaapy
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -25,25 +26,16 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Pygit2 test definitions.
+"""Tests for revision walk."""
 
-These tests are run automatically with 'setup.py test', but can also be run
-manually.
-"""
+__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
 
-import sys
-import unittest
+import utils
 
 
-names = ['blob', 'commit', 'index', 'repository', 'revwalk', 'tag', 'tree']
-def test_suite():
-    modules = ['test.test_%s' % n for n in names]
-    return unittest.defaultTestLoader.loadTestsFromNames(modules)
+class WalkerTest(utils.BareRepoTestCase):
 
-
-def main():
-    unittest.main(module=__name__, defaultTest='test_suite', argv=sys.argv[:1])
-
-
-if __name__ == '__main__':
-    main()
+    def test_walk(self):
+        history = self.repo.log("5fe808e8953c12735680c257f56600cb0de44b10")
+        history = list(history)
+        self.assertEqual(len(history), 2)
