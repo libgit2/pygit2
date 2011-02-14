@@ -1,5 +1,6 @@
 /*
  * Copyright 2010 Google, Inc.
+ * Copyright 2011 Itaapy
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2,
@@ -74,7 +75,7 @@ typedef struct {
     PyObject_HEAD
     Repository *repo;
     git_revwalk *walk;
-} RevWalker;
+} Walker;
 
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
@@ -85,7 +86,7 @@ static PyTypeObject BlobType;
 static PyTypeObject TagType;
 static PyTypeObject IndexType;
 static PyTypeObject IndexEntryType;
-static PyTypeObject RevWalkerType;
+static PyTypeObject WalkerType;
 
 static PyObject *GitError;
 
@@ -336,27 +337,43 @@ Repository_get_index(Repository *self, void *closure) {
     return self->index;
 }
 
-static PyObject *
-Repository_log(Repository *self, PyObject *py_hex)
-{
+static git_commit *
+py_str_to_git_commit(Repository *py_repo, PyObject *py_hex) {
     int err;
     char *hex;
     git_oid oid;
     git_commit *commit;
-    git_revwalk *walk;
-    RevWalker *py_walker;
 
     hex = PyString_AsString(py_hex);
     if (!hex)
         return NULL;
 
     err = git_oid_mkstr(&oid, hex);
-    if (err < 0)
-        return Error_set_str(err, hex);
+    if (err < 0) {
+        Error_set_str(err, hex);
+        return NULL;
+    }
 
-    err = git_commit_lookup(&commit, self->repo, &oid);
-    if (err < 0)
-        return Error_set_str(err, hex);
+    err = git_commit_lookup(&commit, py_repo->repo, &oid);
+    if (err < 0) {
+        Error_set_str(err, hex);
+        return NULL;
+    }
+
+    return commit;
+}
+
+static PyObject *
+Repository_walk(Repository *self, PyObject *py_hex)
+{
+    int err;
+    git_commit *commit;
+    git_revwalk *walk;
+    Walker *py_walker;
+
+    commit = py_str_to_git_commit(self, py_hex);
+    if (commit == NULL)
+        return NULL;
 
     err = git_revwalk_new(&walk, self->repo);
     if (err < 0)
@@ -374,7 +391,7 @@ Repository_log(Repository *self, PyObject *py_hex)
         return Error_set(err);
     }
 
-    py_walker = PyObject_New(RevWalker, &RevWalkerType);
+    py_walker = PyObject_New(Walker, &WalkerType);
     if (!py_walker) {
         git_revwalk_free(walk);
         return NULL;
@@ -387,7 +404,7 @@ Repository_log(Repository *self, PyObject *py_hex)
 }
 
 static PyMethodDef Repository_methods[] = {
-    {"log", (PyCFunction)Repository_log, METH_O,
+    {"walk", (PyCFunction)Repository_walk, METH_O,
      "Generator that traverses the history starting from the given commit."},
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
@@ -1683,20 +1700,74 @@ static PyTypeObject IndexEntryType = {
 };
 
 static void
-RevWalker_dealloc(RevWalker *self) {
+Walker_dealloc(Walker *self) {
     git_revwalk_free(self->walk);
     Py_DECREF(self->repo);
     self->ob_type->tp_free((PyObject*)self);
 }
 
 static PyObject *
-RevWalker_iter(RevWalker *self) {
+Walker_hide(Walker *self, PyObject *py_hex) {
+    int err;
+    git_commit *commit;
+
+    commit = py_str_to_git_commit(self->repo, py_hex);
+    if (commit == NULL)
+        return NULL;
+
+    err = git_revwalk_hide(self->walk, commit);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Walker_push(Walker *self, PyObject *py_hex) {
+    int err;
+    git_commit *commit;
+
+    commit = py_str_to_git_commit(self->repo, py_hex);
+    if (commit == NULL)
+        return NULL;
+
+    err = git_revwalk_push(self->walk, commit);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Walker_sort(Walker *self, PyObject *py_sort_mode) {
+    int sort_mode;
+    int err;
+
+    sort_mode = (int)PyInt_AsLong(py_sort_mode);
+    if (sort_mode == -1 && PyErr_Occurred())
+        return NULL;
+
+    err = git_revwalk_sorting(self->walk, sort_mode);
+    if (err < 0)
+        return Error_set_py_obj(err, py_sort_mode);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Walker_reset(Walker *self) {
+    git_revwalk_reset(self->walk);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Walker_iter(Walker *self) {
     Py_INCREF(self);
     return (PyObject*)self;
 }
 
 static PyObject *
-RevWalker_iternext(RevWalker *self) {
+Walker_iternext(Walker *self) {
     int err;
     git_commit *commit;
     Commit *py_commit;
@@ -1716,13 +1787,25 @@ RevWalker_iternext(RevWalker *self) {
     return (PyObject*)py_commit;
 }
 
-static PyTypeObject RevWalkerType = {
+static PyMethodDef Walker_methods[] = {
+    {"hide", (PyCFunction)Walker_hide, METH_O,
+     "Mark a commit (and its ancestors) uninteresting for the output."},
+    {"push", (PyCFunction)Walker_push, METH_O,
+     "Mark a commit to start traversal from."},
+    {"reset", (PyCFunction)Walker_reset, METH_NOARGS,
+     "Reset the walking machinery for reuse."},
+    {"sort", (PyCFunction)Walker_sort, METH_O,
+     "Change the sorting mode (this resets the walker)."},
+    {NULL}
+};
+
+static PyTypeObject WalkerType = {
     PyObject_HEAD_INIT(NULL)
     0,                                         /* ob_size */
-    "pygit2.RevWalker",                        /* tp_name */
-    sizeof(RevWalker),                         /* tp_basicsize */
+    "pygit2.Walker",                           /* tp_name */
+    sizeof(Walker),                            /* tp_basicsize */
     0,                                         /* tp_itemsize */
-    (destructor)RevWalker_dealloc,             /* tp_dealloc */
+    (destructor)Walker_dealloc,                /* tp_dealloc */
     0,                                         /* tp_print */
     0,                                         /* tp_getattr */
     0,                                         /* tp_setattr */
@@ -1743,9 +1826,9 @@ static PyTypeObject RevWalkerType = {
     0,                                         /* tp_clear */
     0,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
-    (getiterfunc)RevWalker_iter,               /* tp_iter */
-    (iternextfunc)RevWalker_iternext,          /* tp_iternext */
-    0,                                         /* tp_methods */
+    (getiterfunc)Walker_iter,                  /* tp_iter */
+    (iternextfunc)Walker_iternext,             /* tp_iternext */
+    Walker_methods,                            /* tp_methods */
     0,                                         /* tp_members */
     0,                                         /* tp_getset */
     0,                                         /* tp_base */
@@ -1801,8 +1884,8 @@ initpygit2(void)
     IndexEntryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&IndexEntryType) < 0)
         return;
-    RevWalkerType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&RevWalkerType) < 0)
+    WalkerType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&WalkerType) < 0)
         return;
 
     m = Py_InitModule3("pygit2", module_methods,
@@ -1846,4 +1929,8 @@ initpygit2(void)
     PyModule_AddIntConstant(m, "GIT_OBJ_TREE", GIT_OBJ_TREE);
     PyModule_AddIntConstant(m, "GIT_OBJ_BLOB", GIT_OBJ_BLOB);
     PyModule_AddIntConstant(m, "GIT_OBJ_TAG", GIT_OBJ_TAG);
+    PyModule_AddIntConstant(m, "GIT_SORT_NONE", GIT_SORT_NONE);
+    PyModule_AddIntConstant(m, "GIT_SORT_TOPOLOGICAL", GIT_SORT_TOPOLOGICAL);
+    PyModule_AddIntConstant(m, "GIT_SORT_TIME", GIT_SORT_TIME);
+    PyModule_AddIntConstant(m, "GIT_SORT_REVERSE", GIT_SORT_REVERSE);
 }

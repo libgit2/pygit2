@@ -36,6 +36,6 @@ import utils
 class WalkerTest(utils.BareRepoTestCase):
 
     def test_walk(self):
-        history = self.repo.log("5fe808e8953c12735680c257f56600cb0de44b10")
+        history = self.repo.walk("5fe808e8953c12735680c257f56600cb0de44b10")
         history = list(history)
         self.assertEqual(len(history), 2)
