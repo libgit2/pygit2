@@ -364,31 +364,47 @@ py_str_to_git_commit(Repository *py_repo, PyObject *py_hex) {
 }
 
 static PyObject *
-Repository_walk(Repository *self, PyObject *py_hex)
+Repository_walk(Repository *self, PyObject *args)
 {
+    PyObject *value;
+    unsigned int sort;
     int err;
     git_commit *commit;
     git_revwalk *walk;
     Walker *py_walker;
 
-    commit = py_str_to_git_commit(self, py_hex);
-    if (commit == NULL)
+    sort = GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE;
+    if (!PyArg_ParseTuple(args, "O|I", &value, &sort))
         return NULL;
+
+    if (value != Py_None && !PyString_Check(value)) {
+        PyErr_SetObject(PyExc_TypeError, value);
+        return NULL;
+    }
 
     err = git_revwalk_new(&walk, self->repo);
     if (err < 0)
         return Error_set(err);
 
-    err = git_revwalk_sorting(walk, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE);
+    /* Sort */
+    err = git_revwalk_sorting(walk, sort);
     if (err < 0) {
         git_revwalk_free(walk);
         return Error_set(err);
     }
 
-    err = git_revwalk_push(walk, commit);
-    if (err < 0) {
-        git_revwalk_free(walk);
-        return Error_set(err);
+    /* Push */
+    if (value != Py_None) {
+        commit = py_str_to_git_commit(self, value);
+        if (commit == NULL) {
+            git_revwalk_free(walk);
+            return NULL;
+        }
+        err = git_revwalk_push(walk, commit);
+        if (err < 0) {
+            git_revwalk_free(walk);
+            return Error_set(err);
+        }
     }
 
     py_walker = PyObject_New(Walker, &WalkerType);
@@ -404,7 +420,7 @@ Repository_walk(Repository *self, PyObject *py_hex)
 }
 
 static PyMethodDef Repository_methods[] = {
-    {"walk", (PyCFunction)Repository_walk, METH_O,
+    {"walk", (PyCFunction)Repository_walk, METH_VARARGS,
      "Generator that traverses the history starting from the given commit."},
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
