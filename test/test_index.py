@@ -50,16 +50,16 @@ class IndexTest(utils.RepoTestCase):
         index = self.repo.index
         self.assertEqual(len(index), 0)
         index.read()
-        self.assertEqual(len(index), 1)
+        self.assertEqual(len(index), 2)
 
         self.assertRaises(TypeError, lambda: index[()])
         self.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
         self.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
 
-        sha = '3b18e512dba79e4c8300dd08aeb37f8e728b8dad'
+        sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
         self.assertTrue('hello.txt' in index)
         self.assertEqual(index['hello.txt'].sha, sha)
-        self.assertEqual(index[0].sha, sha)
+        self.assertEqual(index[1].sha, sha)
 
     def test_add(self):
         index = self.repo.index
@@ -69,13 +69,13 @@ class IndexTest(utils.RepoTestCase):
         self.assertFalse('bye.txt' in index)
         index.add('bye.txt', 0)
         self.assertTrue('bye.txt' in index)
-        self.assertEqual(len(index), 2)
+        self.assertEqual(len(index), 3)
         self.assertEqual(index['bye.txt'].sha, sha)
 
     def test_clear(self):
         index = self.repo.index
         index.read()
-        self.assertEqual(len(index), 1)
+        self.assertEqual(len(index), 2)
         index.clear()
         self.assertEqual(len(index), 0)
 

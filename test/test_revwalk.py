@@ -30,12 +30,37 @@
 
 __author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
 
+import unittest
+
+from pygit2 import GIT_SORT_TIME, GIT_SORT_REVERSE
 import utils
 
+# In the order given by git log
+log = [
+    '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98',
+    '5ebeeebb320790caf276b9fc8b24546d63316533',
+    '4ec4389a8068641da2d6578db0419484972284c8',
+    '6aaa262e655dd54252e5813c8e5acd7780ed097d',
+    'acecd5ea2924a4b900e7e149496e1f4b57976e51']
 
-class WalkerTest(utils.BareRepoTestCase):
+
+class WalkerTest(utils.RepoTestCase):
 
     def test_walk(self):
-        history = self.repo.walk("5fe808e8953c12735680c257f56600cb0de44b10")
-        history = list(history)
-        self.assertEqual(len(history), 2)
+        walker = self.repo.walk(log[0], GIT_SORT_TIME)
+        out = [ x.sha for x in walker ]
+        self.assertEqual(out, log)
+
+    def test_reverse(self):
+        walker = self.repo.walk(log[0], GIT_SORT_TIME | GIT_SORT_REVERSE)
+        out = [ x.sha for x in walker ]
+        self.assertEqual(out, list(reversed(log)))
+
+    def test_hide(self):
+        walker = self.repo.walk(log[0], GIT_SORT_TIME)
+        walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
+        self.assertEqual(len(list(walker)), 2)
+
+
+if __name__ == '__main__':
+    unittest.main()

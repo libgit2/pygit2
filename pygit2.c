@@ -373,8 +373,7 @@ Repository_walk(Repository *self, PyObject *args)
     git_revwalk *walk;
     Walker *py_walker;
 
-    sort = GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE;
-    if (!PyArg_ParseTuple(args, "O|I", &value, &sort))
+    if (!PyArg_ParseTuple(args, "OI", &value, &sort))
         return NULL;
 
     if (value != Py_None && !PyString_Check(value)) {
