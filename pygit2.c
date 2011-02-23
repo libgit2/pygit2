@@ -737,6 +737,24 @@ Commit_set_author(Commit *commit, PyObject *value) {
     return 0;
 }
 
+static PyObject *
+Commit_get_tree(Commit *commit) {
+    const git_tree *tree;
+    Tree *py_tree;
+
+    tree = git_commit_tree(commit->commit);
+    if (tree == NULL)
+        Py_RETURN_NONE;
+
+    py_tree = PyObject_New(Tree, &TreeType);
+    Py_INCREF(commit->repo);
+    py_tree->repo = commit->repo;
+    py_tree->own_obj = 0;
+    py_tree->tree = (git_tree*)tree;
+
+    return (PyObject*)py_tree;
+}
+
 static PyGetSetDef Commit_getseters[] = {
     {"message_short", (getter)Commit_get_message_short, NULL, "short message",
      NULL},
@@ -748,6 +766,7 @@ static PyGetSetDef Commit_getseters[] = {
      (setter)Commit_set_committer, "committer", NULL},
     {"author", (getter)Commit_get_author,
      (setter)Commit_set_author, "author", NULL},
+    {"tree", (getter)Commit_get_tree, NULL, "tree object"},
     {NULL}
 };
 

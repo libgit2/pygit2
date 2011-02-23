@@ -47,10 +47,13 @@ class CommitTest(utils.BareRepoTestCase):
                          commit.message)
         commit_time = 1288481576
         self.assertEqual(commit_time, commit.commit_time)
-        self.assertEqual(('Dave Borowitz', 'dborowitz@google.com', commit_time),
-                         commit.committer)
+        self.assertEqual(
+            ('Dave Borowitz', 'dborowitz@google.com', commit_time),
+            commit.committer)
         self.assertEqual(('Dave Borowitz', 'dborowitz@google.com', 1288477363),
                          commit.author)
+        self.assertEqual(
+            '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', commit.tree.sha)
 
     def test_new_commit(self):
         message = 'New commit.\n\nMessage.\n'
@@ -71,6 +74,7 @@ class CommitTest(utils.BareRepoTestCase):
         #self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
+        self.assertEqual(None, commit.tree)
 
     def test_modify_commit(self):
         message = 'New commit.\n\nMessage.\n'
