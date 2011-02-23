@@ -1896,7 +1896,6 @@ initpygit2(void)
     CommitType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&CommitType) < 0)
         return;
-    TreeEntryType.tp_base = &ObjectType;
     TreeEntryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TreeEntryType) < 0)
         return;
