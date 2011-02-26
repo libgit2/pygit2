@@ -42,6 +42,10 @@ class CommitTest(utils.BareRepoTestCase):
     def test_read_commit(self):
         commit = self.repo[COMMIT_SHA]
         self.assertEqual(COMMIT_SHA, commit.sha)
+        parents = commit.parents
+        self.assertEqual(1, len(parents))
+        self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
+                         parents[0].sha)
         self.assertEqual('Second test data commit.', commit.message_short)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),

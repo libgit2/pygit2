@@ -644,6 +644,30 @@ Commit_set_author(Commit *commit, PyObject *value) {
     return 0;
 }
 
+static PyObject *
+Commit_get_parents(Commit *commit)
+{
+    unsigned int parent_count = git_commit_parentcount(commit->commit);
+    unsigned int i;
+    git_commit *parent;
+    Object *obj;
+
+    PyObject *list = PyList_New(parent_count);
+    if (!list)
+        return NULL;
+
+    for (i=0; i < parent_count; i++)
+    {
+        parent = git_commit_parent(commit->commit, i);
+        obj = wrap_object((git_object *)parent, commit->repo);
+        obj->own_obj = 0;
+
+        PyList_SET_ITEM(list, i, (PyObject *)obj);
+    }
+
+    return list;
+}
+
 static PyGetSetDef Commit_getseters[] = {
     {"message_short", (getter)Commit_get_message_short, NULL, "short message",
      NULL},
@@ -655,6 +679,8 @@ static PyGetSetDef Commit_getseters[] = {
      (setter)Commit_set_committer, "committer", NULL},
     {"author", (getter)Commit_get_author,
      (setter)Commit_set_author, "author", NULL},
+    {"parents", (getter)Commit_get_parents, NULL, "parents of this commit",
+      NULL},
     {NULL}
 };
 
