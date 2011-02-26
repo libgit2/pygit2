@@ -158,6 +158,20 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
     return git_oid_mkstr(oid, hex);
 }
 
+static PyObject *
+get_object_id(git_object *obj)
+{
+    const git_oid *id;
+    char hex[GIT_OID_HEXSZ];
+
+    id = git_object_id(obj);
+    if (!id)
+        Py_RETURN_NONE;
+
+    git_oid_fmt(hex, id);
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+}
+
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
     char *path;
@@ -644,6 +658,12 @@ Commit_set_author(Commit *commit, PyObject *value) {
     return 0;
 }
 
+static PyObject *
+Commit_get_id(Commit *commit)
+{
+    return get_object_id((git_object *)commit->commit);
+}
+
 static PyGetSetDef Commit_getseters[] = {
     {"message_short", (getter)Commit_get_message_short, NULL, "short message",
      NULL},
@@ -655,6 +675,7 @@ static PyGetSetDef Commit_getseters[] = {
      (setter)Commit_set_committer, "committer", NULL},
     {"author", (getter)Commit_get_author,
      (setter)Commit_set_author, "author", NULL},
+    {"id", (getter)Commit_get_id, NULL, "commit id", NULL},
     {NULL}
 };
 
