@@ -656,8 +656,7 @@ Commit_get_parents(Commit *commit)
     if (!list)
         return NULL;
 
-    for (i=0; i < parent_count; i++)
-    {
+    for (i=0; i < parent_count; i++) {
         parent = git_commit_parent(commit->commit, i);
         obj = wrap_object((git_object *)parent, commit->repo);
         obj->own_obj = 0;
