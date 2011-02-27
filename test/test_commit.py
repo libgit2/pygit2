@@ -67,6 +67,10 @@ class CommitTest(utils.BareRepoTestCase):
         commit.committer = committer
         commit.author = author
 
+        self.assertEqual(0, len(commit.parents))
+
+        commit.add_parent(COMMIT_SHA)
+
         self.assertEqual(None, commit.sha)
         self.assertEqual(pygit2.GIT_OBJ_COMMIT, commit.type)
         self.assertEqual(message, commit.message)
@@ -74,6 +78,8 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
+        self.assertEqual(1, len(commit.parents))
+        self.assertEqual(COMMIT_SHA, commit.parents[0].sha)
 
     def test_modify_commit(self):
         message = 'New commit.\n\nMessage.\n'

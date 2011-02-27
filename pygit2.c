@@ -668,6 +668,39 @@ Commit_get_parents(Commit *commit)
     return list;
 }
 
+static PyObject *
+Commit_add_parent(Commit *self, PyObject *parent)
+{
+    int err;
+    git_commit *parent_commit;
+
+    if (PyString_Check(parent)) {
+        git_oid oid;
+
+        err = py_str_to_git_oid(parent, &oid);
+        if (err < 0)
+            return Error_set_py_obj(err, parent);
+
+        err = git_commit_lookup(&parent_commit, self->repo->repo, &oid);
+        if (err < 0)
+            return Error_set_py_obj(err, parent);
+    } else {
+        if (!PyObject_TypeCheck(parent, &CommitType)) {
+            PyErr_Format(PyExc_TypeError, "target must be %.200s, not %.200s",
+                         CommitType.tp_name, parent->ob_type->tp_name);
+            return NULL;
+        }
+
+        parent_commit = ((Commit *) parent)->commit;
+    }
+
+    err = git_commit_add_parent(self->commit, parent_commit);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
 static PyGetSetDef Commit_getseters[] = {
     {"message_short", (getter)Commit_get_message_short, NULL, "short message",
      NULL},
@@ -681,6 +714,12 @@ static PyGetSetDef Commit_getseters[] = {
      (setter)Commit_set_author, "author", NULL},
     {"parents", (getter)Commit_get_parents, NULL, "parents of this commit",
       NULL},
+    {NULL}
+};
+
+static PyMethodDef Commit_methods[] = {
+    {"add_parent", (PyCFunction)Commit_add_parent, METH_O,
+     "Add a new parent commit to an existing commit."},
     {NULL}
 };
 
@@ -713,7 +752,7 @@ static PyTypeObject CommitType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
     0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
+    Commit_methods,                            /* tp_methods */
     0,                                         /* tp_members */
     Commit_getseters,                          /* tp_getset */
     0,                                         /* tp_base */
