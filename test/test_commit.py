@@ -70,10 +70,8 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqual(None, commit.sha)
         self.assertEqual(pygit2.GIT_OBJ_COMMIT, commit.type)
         self.assertEqual(message, commit.message)
-        # TODO: Uncomment when git_commit_set_message updates message_short.
-        #self.assertEqual('New commit.', commit.message_short)
-        # TODO: Uncomment when git_commit_set_committer updates commit_time.
-        #self.assertEqual(12346, commit.commit_time)
+        self.assertEqual('New commit.', commit.message_short)
+        self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
 
@@ -88,10 +86,8 @@ class CommitTest(utils.BareRepoTestCase):
         commit.author = author
 
         self.assertEqual(message, commit.message)
-        # TODO: Uncomment when libgit2 supports changing message_short.
-        #self.assertEqual('New commit.', commit.message_short)
-        # TODO: Uncomment when libgit2 supports changing commit_time.
-        #self.assertEqual(12346, commit.commit_time)
+        self.assertEqual('New commit.', commit.message_short)
+        self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
 
