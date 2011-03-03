@@ -766,7 +766,7 @@ static PyGetSetDef Commit_getseters[] = {
      (setter)Commit_set_committer, "committer", NULL},
     {"author", (getter)Commit_get_author,
      (setter)Commit_set_author, "author", NULL},
-    {"tree", (getter)Commit_get_tree, NULL, "tree object"},
+    {"tree", (getter)Commit_get_tree, NULL, "tree object", NULL},
     {NULL}
 };
 
