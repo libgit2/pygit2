@@ -41,6 +41,11 @@ class CommitTest(utils.BareRepoTestCase):
 
     def test_read_commit(self):
         commit = self.repo[COMMIT_SHA]
+        self.assertEqual(COMMIT_SHA, commit.sha)
+        parents = commit.parents
+        self.assertEqual(1, len(parents))
+        self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
+                         parents[0].sha)
         self.assertEqual('Second test data commit.', commit.message_short)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
@@ -65,16 +70,20 @@ class CommitTest(utils.BareRepoTestCase):
         commit.committer = committer
         commit.author = author
 
+        self.assertEqual(0, len(commit.parents))
+
+        commit.add_parent(COMMIT_SHA)
+
         self.assertEqual(None, commit.sha)
         self.assertEqual(pygit2.GIT_OBJ_COMMIT, commit.type)
         self.assertEqual(message, commit.message)
-        # TODO: Uncomment when git_commit_set_message updates message_short.
-        #self.assertEqual('New commit.', commit.message_short)
-        # TODO: Uncomment when git_commit_set_committer updates commit_time.
-        #self.assertEqual(12346, commit.commit_time)
+        self.assertEqual('New commit.', commit.message_short)
+        self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
         self.assertEqual(None, commit.tree)
+        self.assertEqual(1, len(commit.parents))
+        self.assertEqual(COMMIT_SHA, commit.parents[0].sha)
 
     def test_modify_commit(self):
         message = 'New commit.\n\nMessage.\n'
@@ -87,10 +96,8 @@ class CommitTest(utils.BareRepoTestCase):
         commit.author = author
 
         self.assertEqual(message, commit.message)
-        # TODO: Uncomment when libgit2 supports changing message_short.
-        #self.assertEqual('New commit.', commit.message_short)
-        # TODO: Uncomment when libgit2 supports changing commit_time.
-        #self.assertEqual(12346, commit.commit_time)
+        self.assertEqual('New commit.', commit.message_short)
+        self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
 
