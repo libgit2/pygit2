@@ -1498,9 +1498,9 @@ static PyObject *
 Index_add(Index *self, PyObject *args) {
     int err;
     const char *path;
-    int stage;
+    int stage=0;
 
-    if (!PyArg_ParseTuple(args, "si", &path, &stage))
+    if (!PyArg_ParseTuple(args, "s|i", &path, &stage))
         return NULL;
 
     err = git_index_add(self->index, path, stage);

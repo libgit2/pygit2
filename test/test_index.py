@@ -67,7 +67,7 @@ class IndexTest(utils.RepoTestCase):
 
         sha = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
         self.assertFalse('bye.txt' in index)
-        index.add('bye.txt', 0)
+        index.add('bye.txt')
         self.assertTrue('bye.txt' in index)
         self.assertEqual(len(index), 3)
         self.assertEqual(index['bye.txt'].sha, sha)
