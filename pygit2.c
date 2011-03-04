@@ -42,7 +42,6 @@ typedef struct {
         typedef struct {\
             PyObject_HEAD\
             Repository *repo;\
-            int own_obj:1;\
             _ptr_type *_ptr_name;\
         } _name;
 
@@ -50,12 +49,10 @@ OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
 OBJECT_STRUCT(Blob, git_object, blob)
-OBJECT_STRUCT(Index, git_index, index)
 
 typedef struct {
     PyObject_HEAD
     Repository *repo;
-    int own_obj:1;
     git_tag *tag;
     Object *target;
 } Tag;
@@ -65,6 +62,13 @@ typedef struct {
     git_tree_entry *entry;
     Tree *tree;
 } TreeEntry;
+
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_index *index;
+    int own_obj:1;
+} Index;
 
 typedef struct {
     PyObject_HEAD
@@ -271,14 +275,13 @@ Repository_getitem(Repository *self, PyObject *value) {
     if (err < 0)
         return Error_set_py_obj(err, value);
 
-    err = git_repository_lookup(&obj, self->repo, &oid, GIT_OBJ_ANY);
+    err = git_object_lookup(&obj, self->repo, &oid, GIT_OBJ_ANY);
     if (err < 0)
         return Error_set_py_obj(err, value);
 
     py_obj = wrap_object(obj, self);
     if (!py_obj)
         return NULL;
-    py_obj->own_obj = 0;
     return (PyObject*)py_obj;
 }
 
@@ -493,8 +496,7 @@ static PyTypeObject RepositoryType = {
 static void
 Object_dealloc(Object* self)
 {
-    if (self->own_obj)
-        git_object_free(self->obj);
+    git_object_close(self->obj);
     Py_XDECREF(self->repo);
     self->ob_type->tp_free((PyObject*)self);
 }
@@ -636,14 +638,13 @@ Object_init_with_type(Object *py_obj, const git_otype type, PyObject *args,
         return -1;
     }
 
-    err = git_repository_newobject(&obj, repo->repo, type);
+    err = git_object_new(&obj, repo->repo, type);
     if (err < 0) {
         Error_set(err);
         return -1;
     }
     Py_INCREF(repo);
     py_obj->repo = repo;
-    py_obj->own_obj = 1;
     py_obj->obj = obj;
     return 0;
 }
@@ -749,7 +750,6 @@ Commit_get_tree(Commit *commit) {
     py_tree = PyObject_New(Tree, &TreeType);
     Py_INCREF(commit->repo);
     py_tree->repo = commit->repo;
-    py_tree->own_obj = 0;
     py_tree->tree = (git_tree*)tree;
 
     return (PyObject*)py_tree;
@@ -770,7 +770,6 @@ Commit_get_parents(Commit *commit)
     for (i=0; i < parent_count; i++) {
         parent = git_commit_parent(commit->commit, i);
         obj = wrap_object((git_object *)parent, commit->repo);
-        obj->own_obj = 0;
 
         PyList_SET_ITEM(list, i, (PyObject *)obj);
     }
@@ -1310,7 +1309,7 @@ Tag_get_target(Tag *self) {
     if (!target) {
         /* This can only happen if we have a new tag with no target set yet. In
          * particular, it can't happen if the tag fails to parse, since that
-         * would have returned NULL from git_repository_lookup. */
+         * would have returned NULL from git_object_lookup. */
         Py_RETURN_NONE;
     }
     return (PyObject*)wrap_object(target, self->repo);
@@ -1880,7 +1879,6 @@ Walker_iternext(Walker *self) {
     py_commit->commit = commit;
     Py_INCREF(self->repo);
     py_commit->repo = self->repo;
-    py_commit->own_obj = 0;
 
     return (PyObject*)py_commit;
 }
