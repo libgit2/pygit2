@@ -1943,7 +1943,37 @@ static PyTypeObject WalkerType = {
     0,                                         /* tp_new */
 };
 
+static PyObject *
+init_repository(PyObject *self, PyObject *args) {
+    git_repository *repo;
+    Repository *py_repo;
+    const char *path;
+    unsigned int bare;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "sI", &path, &bare))
+        return NULL;
+
+    err = git_repository_init(&repo, path, bare);
+    if (err < 0) {
+        Error_set_str(err, path);
+        return NULL;
+    }
+
+    py_repo = PyObject_New(Repository, &RepositoryType);
+    if (!py_repo) {
+        git_repository_free(repo);
+        return NULL;
+    }
+
+    py_repo->repo = repo;
+    py_repo->index = NULL;
+    return (PyObject*)py_repo;
+};
+
 static PyMethodDef module_methods[] = {
+    {"init_repository", init_repository, METH_VARARGS,
+     "Creates a new Git repository in the given folder."},
     {NULL}
 };
 
