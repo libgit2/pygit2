@@ -1742,6 +1742,11 @@ IndexEntry_dealloc(IndexEntry *self) {
 }
 
 static PyObject *
+IndexEntry_get_path(IndexEntry *self) {
+    return PyString_FromString(self->entry->path);
+}
+
+static PyObject *
 IndexEntry_get_sha(IndexEntry *self) {
     char hex[GIT_OID_HEXSZ];
 
@@ -1750,6 +1755,7 @@ IndexEntry_get_sha(IndexEntry *self) {
 }
 
 static PyGetSetDef IndexEntry_getseters[] = {
+    {"path", (getter)IndexEntry_get_path, NULL, "path", NULL},
     {"sha", (getter)IndexEntry_get_sha, NULL, "hex SHA",  NULL},
     {NULL},
 };
