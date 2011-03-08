@@ -25,7 +25,47 @@ When those are installed, you can install pygit2:
     $ python setup.py install
     $ python setup.py test
 
-    
+
+USING
+======
+
+Initialize a Git repository:
+
+    >>> from pygit2 import init_repository
+    >>> bare = False
+    >>> repo = init_repository('test', bare)
+
+Open a repository:
+
+    >>> from pygit2 import Repository
+    >>> repo = Repository('test/.git')
+
+Index read:
+
+    >>> index = repo.index
+    >>> index.read()
+    >>> sha = index['path/to/file'].sha    # from path to sha
+    >>> blob = repo[sha]                   # from sha to blob
+
+Iterate over all entries of the index:
+
+    >>> for i in range(0, len(index)):
+    ...     entry = index[i]
+    ...     print entry.path, entry.sha
+
+Index write:
+
+    >>> index.add('path/to/file')          # git add
+    >>> del index['path/to/file']          # gig rm
+    >>> index.write()                      # don't forget to save the changes
+
+Revision walking:
+
+    >>> from pygit2 import GIT_SORT_TIME
+    >>> for commit in repo.walk(sha, GIT_SORT_TIME):
+    ...     print commit.sha
+
+
 CONTRIBUTING
 ==============
 
@@ -44,7 +84,3 @@ LICENSE
 ==============
 
 GPLv2 with linking exception. See COPYING for more details.
-
-
-
-
