@@ -9,7 +9,7 @@ INSTALLING AND RUNNING
 First you need to install the latest version of libgit2. 
 You can find platform-specific instructions to build the library in the libgit2 website:
 
-	http://libgit2.github.com
+  <http://libgit2.github.com>
 
 Next, make sure you have the required library dependencies for pygit2: OpenSSL and ZLib.
 For instance, in Debian-based systems run:
