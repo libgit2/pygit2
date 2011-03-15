@@ -43,7 +43,7 @@ class TagTest(utils.BareRepoTestCase):
         tag = self.repo[TAG_SHA]
         self.assertTrue(isinstance(tag, pygit2.Tag))
         self.assertEqual(pygit2.GIT_OBJ_TAG, tag.type)
-        self.assertEqual(pygit2.GIT_OBJ_COMMIT, tag.target_type)
+        self.assertEqual(pygit2.GIT_OBJ_COMMIT, tag.target.type)
         self.assertEqual('root', tag.name)
         self.assertEqual(('Dave Borowitz', 'dborowitz@google.com', 1288724692),
                          tag.tagger)

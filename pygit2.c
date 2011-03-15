@@ -54,7 +54,7 @@ typedef struct {
     PyObject_HEAD
     Repository *repo;
     git_tag *tag;
-    Object *target;
+    PyObject *target;
 } Tag;
 
 typedef struct {
@@ -166,10 +166,21 @@ Error_set_py_obj(int err, PyObject *py_obj) {
 static int
 py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
     char *hex;
+    int err;
+
     hex = PyString_AsString(py_str);
-    if (!hex)
-        return GIT_ENOTOID;
-    return git_oid_mkstr(oid, hex);
+    if (hex == NULL) {
+        Error_set_py_obj(GIT_ENOTOID, py_str);
+        return -1;
+    }
+
+    err = git_oid_mkstr(oid, hex);
+    if (err < 0) {
+        Error_set_py_obj(err, py_str);
+        return -1;
+    }
+
+    return 0;
 }
 
 static int
@@ -207,33 +218,12 @@ static int
 Repository_contains(Repository *self, PyObject *value) {
     git_oid oid;
     int err;
+
     err = py_str_to_git_oid(value, &oid);
-    if (err < 0) {
-        Error_set_py_obj(err, value);
+    if (err < 0)
         return -1;
-    }
+
     return git_odb_exists(git_repository_database(self->repo), &oid);
-}
-
-static Object *wrap_object(git_object *, Repository *repo);
-
-static Tag *
-wrap_tag(git_tag *tag, Repository *repo) {
-    Tag *py_tag;
-    Object *py_target;
-
-    py_tag = (Tag*)TagType.tp_alloc(&TagType, 0);
-    if (!py_tag)
-        return NULL;
-
-    py_target = wrap_object((git_object*)git_tag_target(tag), repo);
-    if (!py_target) {
-        py_tag->ob_type->tp_free((PyObject*)py_tag);
-        return NULL;
-    }
-    py_tag->target = py_target;
-    Py_INCREF(py_target);
-    return py_tag;
 }
 
 static Object *
@@ -250,7 +240,7 @@ wrap_object(git_object *obj, Repository *repo) {
             py_obj = (Object*)BlobType.tp_alloc(&BlobType, 0);
             break;
         case GIT_OBJ_TAG:
-            py_obj = (Object*)wrap_tag((git_tag*)obj, repo);
+            py_obj = (Object*)TagType.tp_alloc(&TagType, 0);
             break;
         default:
             assert(0);
@@ -273,7 +263,7 @@ Repository_getitem(Repository *self, PyObject *value) {
 
     err = py_str_to_git_oid(value, &oid);
     if (err < 0)
-        return Error_set_py_obj(err, value);
+        return NULL;
 
     err = git_object_lookup(&obj, self->repo, &oid, GIT_OBJ_ANY);
     if (err < 0)
@@ -299,7 +289,7 @@ Repository_read(Repository *self, PyObject *py_hex) {
 
     err = py_str_to_git_oid(py_hex, &oid);
     if (err < 0)
-        return Error_set_py_obj(err, py_hex);
+        return NULL;
 
     err = Repository_read_raw(&raw, self->repo, &oid);
     if (err < 0)
@@ -340,39 +330,13 @@ Repository_get_index(Repository *self, void *closure) {
     return self->index;
 }
 
-static git_commit *
-py_str_to_git_commit(Repository *py_repo, PyObject *py_hex) {
-    int err;
-    char *hex;
-    git_oid oid;
-    git_commit *commit;
-
-    hex = PyString_AsString(py_hex);
-    if (!hex)
-        return NULL;
-
-    err = git_oid_mkstr(&oid, hex);
-    if (err < 0) {
-        Error_set_str(err, hex);
-        return NULL;
-    }
-
-    err = git_commit_lookup(&commit, py_repo->repo, &oid);
-    if (err < 0) {
-        Error_set_str(err, hex);
-        return NULL;
-    }
-
-    return commit;
-}
-
 static PyObject *
 Repository_walk(Repository *self, PyObject *args)
 {
     PyObject *value;
     unsigned int sort;
     int err;
-    git_commit *commit;
+    git_oid oid;
     git_revwalk *walk;
     Walker *py_walker;
 
@@ -397,12 +361,12 @@ Repository_walk(Repository *self, PyObject *args)
 
     /* Push */
     if (value != Py_None) {
-        commit = py_str_to_git_commit(self, value);
-        if (commit == NULL) {
+        err = py_str_to_git_oid(value, &oid);
+        if (err < 0) {
             git_revwalk_free(walk);
             return NULL;
         }
-        err = git_revwalk_push(walk, commit);
+        err = git_revwalk_push(walk, &oid);
         if (err < 0) {
             git_revwalk_free(walk);
             return Error_set(err);
@@ -740,12 +704,16 @@ Commit_set_author(Commit *commit, PyObject *value) {
 
 static PyObject *
 Commit_get_tree(Commit *commit) {
-    const git_tree *tree;
+    git_tree *tree;
     Tree *py_tree;
+    int err;
 
-    tree = git_commit_tree(commit->commit);
-    if (tree == NULL)
+    err = git_commit_tree(&tree, commit->commit);
+    if (err == GIT_ENOTFOUND)
         Py_RETURN_NONE;
+
+    if (err < 0)
+        return Error_set(err);
 
     py_tree = PyObject_New(Tree, &TreeType);
     Py_INCREF(commit->repo);
@@ -758,20 +726,31 @@ Commit_get_tree(Commit *commit) {
 static PyObject *
 Commit_get_parents(Commit *commit)
 {
-    unsigned int parent_count = git_commit_parentcount(commit->commit);
-    unsigned int i;
+    unsigned int i, parent_count;
+    int err;
     git_commit *parent;
-    Object *obj;
+    PyObject *obj;
+    PyObject *list;
 
-    PyObject *list = PyList_New(parent_count);
+    parent_count = git_commit_parentcount(commit->commit);
+    list = PyList_New(parent_count);
     if (!list)
         return NULL;
 
     for (i=0; i < parent_count; i++) {
-        parent = git_commit_parent(commit->commit, i);
-        obj = wrap_object((git_object *)parent, commit->repo);
+        err = git_commit_parent(&parent, commit->commit, i);
+        if (err < 0) {
+            Py_DECREF(list);
+            Error_set(err);
+            return NULL;
+        }
+        obj = (PyObject*)wrap_object((git_object *)parent, commit->repo);
+        if (obj == NULL) {
+            Py_DECREF(list);
+            return NULL;
+        }
 
-        PyList_SET_ITEM(list, i, (PyObject *)obj);
+        PyList_SET_ITEM(list, i, obj);
     }
 
     return list;
@@ -788,7 +767,7 @@ Commit_add_parent(Commit *self, PyObject *parent)
 
         err = py_str_to_git_oid(parent, &oid);
         if (err < 0)
-            return Error_set_py_obj(err, parent);
+            return NULL;
 
         err = git_commit_lookup(&parent_commit, self->repo->repo, &oid);
         if (err < 0)
@@ -924,10 +903,9 @@ TreeEntry_set_sha(TreeEntry *self, PyObject *value) {
     int err;
 
     err = py_str_to_git_oid(value, &oid);
-    if (err < 0) {
-        Error_set_py_obj(err, value);
+    if (err < 0)
         return -1;
-    }
+
     git_tree_entry_set_id(self->entry, &oid);
     return 0;
 }
@@ -1166,7 +1144,7 @@ Tree_add_entry(Tree *self, PyObject *args) {
 
     err = py_str_to_git_oid(py_sha, &oid);
     if (err < 0)
-        return (TreeEntry*)Error_set_py_obj(err, py_sha);
+        return NULL;
 
     if (git_tree_add_entry(&entry, self->tree, &oid, name, attributes) < 0)
         return (TreeEntry*)PyErr_NoMemory();
@@ -1305,18 +1283,29 @@ Tag_dealloc(Tag *self) {
 static PyObject *
 Tag_get_target(Tag *self) {
     git_object *target;
-    target = (git_object*)git_tag_target(self->tag);
-    if (!target) {
-        /* This can only happen if we have a new tag with no target set yet. In
-         * particular, it can't happen if the tag fails to parse, since that
-         * would have returned NULL from git_object_lookup. */
-        Py_RETURN_NONE;
+    int err;
+
+    if (self->target == NULL) {
+        err = git_tag_target(&target, self->tag);
+        if (err == GIT_ENOTFOUND) {
+            /* This can only happen if we have a new tag with no target set
+             * yet. */
+            Py_INCREF(Py_None);
+            self->target = Py_None;
+        } else if (err < 0)
+            return Error_set(err);
+        else
+            self->target = (PyObject*)wrap_object(target, self->repo);
     }
-    return (PyObject*)wrap_object(target, self->repo);
+
+    Py_INCREF(self->target);
+    return self->target;
 }
 
 static int
 Tag_set_target(Tag *self, Object *target) {
+    int err;
+
     if (!PyObject_TypeCheck(target, &ObjectType)) {
         PyErr_Format(PyExc_TypeError, "target must be %.200s, not %.200s",
                      ObjectType.tp_name, target->ob_type->tp_name);
@@ -1324,17 +1313,15 @@ Tag_set_target(Tag *self, Object *target) {
     }
 
     Py_XDECREF(self->target);
-    self->target = target;
+    self->target = (PyObject*)target;
     Py_INCREF(target);
-    git_tag_set_target(self->tag, target->obj);
-    return 0;
-}
+    err = git_tag_set_target(self->tag, target->obj);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
 
-static PyObject *
-Tag_get_target_type(Tag *self) {
-    if (!self->target)
-        Py_RETURN_NONE;
-    return PyInt_FromLong(git_tag_type(self->tag));
+    return 0;
 }
 
 static PyObject *
@@ -1408,8 +1395,6 @@ Tag_set_message(Tag *self, PyObject *message) {
 
 static PyGetSetDef Tag_getseters[] = {
     {"target", (getter)Tag_get_target, (setter)Tag_set_target, "tagged object",
-     NULL},
-    {"target_type", (getter)Tag_get_target_type, NULL, "type of tagged object",
      NULL},
     {"name", (getter)Tag_get_name, (setter)Tag_set_name, "tag name", NULL},
     {"tagger", (getter)Tag_get_tagger, (setter)Tag_set_tagger, "tagger", NULL},
@@ -1812,13 +1797,13 @@ Walker_dealloc(Walker *self) {
 static PyObject *
 Walker_hide(Walker *self, PyObject *py_hex) {
     int err;
-    git_commit *commit;
+    git_oid oid;
 
-    commit = py_str_to_git_commit(self->repo, py_hex);
-    if (commit == NULL)
+    err = py_str_to_git_oid(py_hex, &oid);
+    if (err < 0)
         return NULL;
 
-    err = git_revwalk_hide(self->walk, commit);
+    err = git_revwalk_hide(self->walk, &oid);
     if (err < 0)
         return Error_set(err);
 
@@ -1828,13 +1813,13 @@ Walker_hide(Walker *self, PyObject *py_hex) {
 static PyObject *
 Walker_push(Walker *self, PyObject *py_hex) {
     int err;
-    git_commit *commit;
+    git_oid oid;
 
-    commit = py_str_to_git_commit(self->repo, py_hex);
-    if (commit == NULL)
+    err = py_str_to_git_oid(py_hex, &oid);
+    if (err < 0)
         return NULL;
 
-    err = git_revwalk_push(self->walk, commit);
+    err = git_revwalk_push(self->walk, &oid);
     if (err < 0)
         return Error_set(err);
 
@@ -1874,8 +1859,13 @@ Walker_iternext(Walker *self) {
     int err;
     git_commit *commit;
     Commit *py_commit;
+    git_oid oid;
 
-    err = git_revwalk_next(&commit, self->walk);
+    err = git_revwalk_next(&oid, self->walk);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_commit_lookup(&commit, self->repo->repo, &oid);
     if (err < 0)
         return Error_set(err);
 
