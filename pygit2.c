@@ -48,7 +48,7 @@ typedef struct {
 OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
-OBJECT_STRUCT(Blob, git_object, blob)
+OBJECT_STRUCT(Blob, git_blob, blob)
 
 typedef struct {
     PyObject_HEAD
