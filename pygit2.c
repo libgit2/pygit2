@@ -276,28 +276,29 @@ Repository_getitem(Repository *self, PyObject *value) {
 }
 
 static int
-Repository_read_raw(git_rawobj *raw, git_repository *repo, const git_oid *oid) {
-    return git_odb_read(raw, git_repository_database(repo), oid);
+Repository_read_raw(git_odb_object **obj, git_repository *repo, const git_oid *oid) {
+    return git_odb_read(obj, git_repository_database(repo), oid);
 }
 
 static PyObject *
 Repository_read(Repository *self, PyObject *py_hex) {
     git_oid oid;
     int err;
-    git_rawobj raw;
-    PyObject *result;
+    git_odb_object *obj;
 
     err = py_str_to_git_oid(py_hex, &oid);
     if (err < 0)
         return NULL;
 
-    err = Repository_read_raw(&raw, self->repo, &oid);
+    err = Repository_read_raw(&obj, self->repo, &oid);
     if (err < 0)
         return Error_set_py_obj(err, py_hex);
 
-    result = Py_BuildValue("(ns#)", raw.type, raw.data, raw.len);
-    free(raw.data);
-    return result;
+    return Py_BuildValue(
+        "(ns#)",
+        git_odb_object_type(obj),
+        git_odb_object_data(obj),
+        git_odb_object_size(obj));
 }
 
 static PyObject *
@@ -353,11 +354,7 @@ Repository_walk(Repository *self, PyObject *args)
         return Error_set(err);
 
     /* Sort */
-    err = git_revwalk_sorting(walk, sort);
-    if (err < 0) {
-        git_revwalk_free(walk);
-        return Error_set(err);
-    }
+    git_revwalk_sorting(walk, sort);
 
     /* Push */
     if (value != Py_None) {
@@ -390,7 +387,7 @@ static PyMethodDef Repository_methods[] = {
      "Generator that traverses the history starting from the given commit."},
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
-    {NULL, NULL, 0, NULL}
+    {NULL}
 };
 
 static PyGetSetDef Repository_getseters[] = {
@@ -486,7 +483,7 @@ Object_get_sha(Object *self) {
 static PyObject *
 Object_read_raw(Object *self) {
     const git_oid *id;
-    git_rawobj raw;
+    git_odb_object *obj;
     int err;
     PyObject *result = NULL, *py_sha = NULL;
 
@@ -494,33 +491,20 @@ Object_read_raw(Object *self) {
     if (!id)
         Py_RETURN_NONE;  /* in-memory object */
 
-    err = Repository_read_raw(&raw, self->repo->repo, id);
+    err = Repository_read_raw(&obj, self->repo->repo, id);
     if (err < 0) {
         py_sha = Object_get_sha(self);
         Error_set_py_obj(err, py_sha);
         goto cleanup;
     }
 
-    result = PyString_FromStringAndSize(raw.data, raw.len);
+    result = PyString_FromStringAndSize(
+        git_odb_object_data(obj),
+        git_odb_object_size(obj));
 
 cleanup:
     Py_XDECREF(py_sha);
-    free(raw.data);
     return result;
-}
-
-static PyObject *
-Object_write(Object *self) {
-    int err;
-    PyObject *py_sha;
-    err = git_object_write(self->obj);
-    if (err < 0) {
-        py_sha = Object_get_sha(self);
-        Error_set_py_obj(err, py_sha);
-        Py_DECREF(py_sha);
-        return NULL;
-    }
-    Py_RETURN_NONE;
 }
 
 static PyGetSetDef Object_getseters[] = {
@@ -532,8 +516,6 @@ static PyGetSetDef Object_getseters[] = {
 static PyMethodDef Object_methods[] = {
     {"read_raw", (PyCFunction)Object_read_raw, METH_NOARGS,
      "Read the raw contents of the object from the repo."},
-    {"write", (PyCFunction)Object_write, METH_NOARGS,
-     "Write the object to the repo, if changed."},
     {NULL}
 };
 
@@ -579,40 +561,6 @@ static PyTypeObject ObjectType = {
     0,                                         /* tp_new */
 };
 
-static int
-Object_init_with_type(Object *py_obj, const git_otype type, PyObject *args,
-                      PyObject *kwds) {
-    Repository *repo = NULL;
-    git_object *obj;
-    int err;
-
-    if (kwds) {
-        PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
-                     py_obj->ob_type->tp_name);
-        return -1;
-    }
-
-    if (!PyArg_ParseTuple(args, "O", &repo))
-        return -1;
-
-    if (!PyObject_TypeCheck(repo, &RepositoryType)) {
-        PyErr_Format(PyExc_TypeError,
-                     "repo argument must be %.200s, not %.200s",
-                     RepositoryType.tp_name, repo->ob_type->tp_name);
-        return -1;
-    }
-
-    err = git_object_new(&obj, repo->repo, type);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-    Py_INCREF(repo);
-    py_obj->repo = repo;
-    py_obj->obj = obj;
-    return 0;
-}
-
 static PyObject *
 build_person(const char *name, const char *email, long long time) {
     return Py_BuildValue("(ssL)", name, email, time);
@@ -625,8 +573,34 @@ parse_person(PyObject *value, char **name, char **email, long long *time) {
 
 static int
 Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
-    return Object_init_with_type((Object*)py_commit, GIT_OBJ_COMMIT, args,
-                                 kwds);
+    Repository *repo = NULL;
+    git_oid oid;
+    git_commit *commit;
+    int err;
+
+    if (kwds) {
+        PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
+                     py_commit->ob_type->tp_name);
+        return -1;
+    }
+
+    /* TODO Finish this */
+    if (!PyArg_ParseTuple(args, "O!", &RepositoryType, &repo))
+        return -1;
+
+    err = git_commit_create(&oid, repo->repo, NULL,
+        author, committer, message, tree_oid, parent_count, parent_oids);
+    if (err < 0)
+        return -1;
+
+    err = git_commit_lookup(&commit, repo->repo, &oid);
+    if (err < 0)
+        return -1;
+
+    Py_INCREF(repo);
+    py_commit->repo = repo;
+    py_commit->commit = commit;
+    return 0;
 }
 
 static PyObject *
@@ -637,17 +611,6 @@ Commit_get_message_short(Commit *commit) {
 static PyObject *
 Commit_get_message(Commit *commit) {
     return PyString_FromString(git_commit_message(commit->commit));
-}
-
-static int
-Commit_set_message(Commit *commit, PyObject *message) {
-    if (!PyString_Check(message)) {
-        PyErr_Format(PyExc_TypeError, "message must be str, not %.200s",
-                     message->ob_type->tp_name);
-        return -1;
-    }
-    git_commit_set_message(commit->commit, PyString_AS_STRING(message));
-    return 0;
 }
 
 static PyObject *
@@ -664,21 +627,6 @@ Commit_get_committer(Commit *commit) {
                         committer->when.time);
 }
 
-static int
-Commit_set_committer(Commit *commit, PyObject *value) {
-    char *name = NULL, *email = NULL;
-    long long time;
-    if (!parse_person(value, &name, &email, &time))
-        return -1;
-
-    git_signature *signature = git_signature_new(name, email, time, 0);
-    if ( signature == NULL)
-        return -1;
-
-    git_commit_set_committer(commit->commit, signature);
-    return 0;
-}
-
 static PyObject *
 Commit_get_author(Commit *commit) {
     const git_signature *author = git_commit_author(commit->commit);
@@ -686,20 +634,6 @@ Commit_get_author(Commit *commit) {
     return build_person(author->name,
                         author->email,
                         author->when.time);
-}
-
-static int
-Commit_set_author(Commit *commit, PyObject *value) {
-    char *name = NULL, *email = NULL;
-    long long time;
-    if (!parse_person(value, &name, &email, &time))
-        return -1;
-    git_signature *signature = git_signature_new(name, email, time, 0);
-    if ( signature == NULL)
-        return -1;
-
-    git_commit_set_author(commit->commit, signature);
-    return 0;
 }
 
 static PyObject *
@@ -756,59 +690,17 @@ Commit_get_parents(Commit *commit)
     return list;
 }
 
-static PyObject *
-Commit_add_parent(Commit *self, PyObject *parent)
-{
-    int err;
-    git_commit *parent_commit;
-
-    if (PyString_Check(parent)) {
-        git_oid oid;
-
-        err = py_str_to_git_oid(parent, &oid);
-        if (err < 0)
-            return NULL;
-
-        err = git_commit_lookup(&parent_commit, self->repo->repo, &oid);
-        if (err < 0)
-            return Error_set_py_obj(err, parent);
-    } else {
-        if (!PyObject_TypeCheck(parent, &CommitType)) {
-            PyErr_Format(PyExc_TypeError, "target must be %.200s, not %.200s",
-                         CommitType.tp_name, parent->ob_type->tp_name);
-            return NULL;
-        }
-
-        parent_commit = ((Commit *) parent)->commit;
-    }
-
-    err = git_commit_add_parent(self->commit, parent_commit);
-    if (err < 0)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
 static PyGetSetDef Commit_getseters[] = {
     {"message_short", (getter)Commit_get_message_short, NULL, "short message",
      NULL},
-    {"message", (getter)Commit_get_message, (setter)Commit_set_message,
-     "message", NULL},
+    {"message", (getter)Commit_get_message, NULL, "message", NULL},
     {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
      NULL},
-    {"committer", (getter)Commit_get_committer,
-     (setter)Commit_set_committer, "committer", NULL},
-    {"author", (getter)Commit_get_author,
-     (setter)Commit_set_author, "author", NULL},
+    {"committer", (getter)Commit_get_committer, NULL, "committer", NULL},
+    {"author", (getter)Commit_get_author, NULL, "author", NULL},
     {"tree", (getter)Commit_get_tree, NULL, "tree object", NULL},
     {"parents", (getter)Commit_get_parents, NULL, "parents of this commit",
       NULL},
-    {NULL}
-};
-
-static PyMethodDef Commit_methods[] = {
-    {"add_parent", (PyCFunction)Commit_add_parent, METH_O,
-     "Add a new parent commit to an existing commit."},
     {NULL}
 };
 
@@ -841,7 +733,7 @@ static PyTypeObject CommitType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
     0,                                         /* tp_iternext */
-    Commit_methods,                            /* tp_methods */
+    0,                                         /* tp_methods */
     0,                                         /* tp_members */
     Commit_getseters,                          /* tp_getset */
     0,                                         /* tp_base */
@@ -865,29 +757,9 @@ TreeEntry_get_attributes(TreeEntry *self) {
     return PyInt_FromLong(git_tree_entry_attributes(self->entry));
 }
 
-static int
-TreeEntry_set_attributes(TreeEntry *self, PyObject *value) {
-    unsigned int attributes;
-    attributes = PyInt_AsLong(value);
-    if (PyErr_Occurred())
-        return -1;
-    git_tree_entry_set_attributes(self->entry, attributes);
-    return 0;
-}
-
 static PyObject *
 TreeEntry_get_name(TreeEntry *self) {
     return PyString_FromString(git_tree_entry_name(self->entry));
-}
-
-static int
-TreeEntry_set_name(TreeEntry *self, PyObject *value) {
-    char *name;
-    name = PyString_AsString(value);
-    if (!name)
-        return -1;
-    git_tree_entry_set_name(self->entry, name);
-    return 0;
 }
 
 static PyObject *
@@ -897,26 +769,13 @@ TreeEntry_get_sha(TreeEntry *self) {
     return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
 }
 
-static int
-TreeEntry_set_sha(TreeEntry *self, PyObject *value) {
-    git_oid oid;
-    int err;
-
-    err = py_str_to_git_oid(value, &oid);
-    if (err < 0)
-        return -1;
-
-    git_tree_entry_set_id(self->entry, &oid);
-    return 0;
-}
-
 static PyObject *
 TreeEntry_to_object(TreeEntry *self) {
     git_object *obj;
     int err;
     char hex[GIT_OID_HEXSZ + 1];
 
-    err = git_tree_entry_2object(&obj, self->entry);
+    err = git_tree_entry_2object(&obj, self->tree->repo->repo, self->entry);
     if (err < 0) {
         git_oid_fmt(hex, git_tree_entry_id(self->entry));
         hex[GIT_OID_HEXSZ] = '\0';
@@ -926,11 +785,9 @@ TreeEntry_to_object(TreeEntry *self) {
 }
 
 static PyGetSetDef TreeEntry_getseters[] = {
-    {"attributes", (getter)TreeEntry_get_attributes,
-     (setter)TreeEntry_set_attributes, "attributes", NULL},
-    {"name", (getter)TreeEntry_get_name, (setter)TreeEntry_set_name, "name",
-     NULL},
-    {"sha", (getter)TreeEntry_get_sha, (setter)TreeEntry_set_sha, "sha", NULL},
+    {"attributes", (getter)TreeEntry_get_attributes, NULL, "attributes", NULL},
+    {"name", (getter)TreeEntry_get_name, NULL, "name", NULL},
+    {"sha", (getter)TreeEntry_get_sha, NULL, "sha", NULL},
     {NULL}
 };
 
@@ -981,11 +838,6 @@ static PyTypeObject TreeEntryType = {
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
-
-static int
-Tree_init(Tree *py_tree, PyObject *args, PyObject *kwds) {
-    return Object_init_with_type((Object*)py_tree, GIT_OBJ_TREE, args, kwds);
-}
 
 static Py_ssize_t
 Tree_len(Tree *self) {
@@ -1083,80 +935,6 @@ Tree_getitem(Tree *self, PyObject *value) {
     }
 }
 
-static int
-Tree_delitem_by_name(Tree *self, PyObject *name) {
-    int err;
-    err = git_tree_remove_entry_byname(self->tree, PyString_AS_STRING(name));
-    if (err < 0) {
-        PyErr_SetObject(PyExc_KeyError, name);
-        return -1;
-    }
-    return 0;
-}
-
-static int
-Tree_delitem_by_index(Tree *self, PyObject *py_index) {
-    int index, err;
-    index = Tree_fix_index(self, py_index);
-    if (PyErr_Occurred())
-        return -1;
-    err = git_tree_remove_entry_byindex(self->tree, index);
-    if (err < 0) {
-        PyErr_SetObject(PyExc_IndexError, py_index);
-        return -1;
-    }
-    return 0;
-}
-
-static int
-Tree_delitem(Tree *self, PyObject *name, PyObject *value) {
-    /* TODO: This function is only used for deleting items. We may be able to
-     * come up with some reasonable assignment semantics, but it's tricky
-     * because git_tree_entry objects are owned by their containing tree. */
-    if (value) {
-        PyErr_SetString(PyExc_ValueError,
-                        "Cannot set TreeEntry directly; use add_entry.");
-        return -1;
-    }
-
-    if (PyString_Check(name)) {
-        return Tree_delitem_by_name(self, name);
-    } else if (PyInt_Check(name)) {
-        return Tree_delitem_by_index(self, name);
-    } else {
-        PyErr_Format(PyExc_TypeError,
-                     "Tree entry index must be int or str, not %.200s",
-                     value->ob_type->tp_name);
-        return -1;
-    }
-}
-
-static TreeEntry *
-Tree_add_entry(Tree *self, PyObject *args) {
-    PyObject *py_sha;
-    char *name;
-    int attributes, err;
-    git_oid oid;
-    git_tree_entry *entry = NULL;
-
-    if (!PyArg_ParseTuple(args, "Osi", &py_sha, &name, &attributes))
-        return NULL;
-
-    err = py_str_to_git_oid(py_sha, &oid);
-    if (err < 0)
-        return NULL;
-
-    if (git_tree_add_entry(&entry, self->tree, &oid, name, attributes) < 0)
-        return (TreeEntry*)PyErr_NoMemory();
-    return wrap_tree_entry(entry, self);
-}
-
-static PyMethodDef Tree_methods[] = {
-    {"add_entry", (PyCFunction)Tree_add_entry, METH_VARARGS,
-     "Add an entry to a Tree."},
-    {NULL}
-};
-
 static PySequenceMethods Tree_as_sequence = {
     0,                          /* sq_length */
     0,                          /* sq_concat */
@@ -1171,7 +949,7 @@ static PySequenceMethods Tree_as_sequence = {
 static PyMappingMethods Tree_as_mapping = {
     (lenfunc)Tree_len,            /* mp_length */
     (binaryfunc)Tree_getitem,     /* mp_subscript */
-    (objobjargproc)Tree_delitem,  /* mp_ass_subscript */
+    0,                            /* mp_ass_subscript */
 };
 
 static PyTypeObject TreeType = {
@@ -1203,7 +981,7 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
     0,                                         /* tp_iternext */
-    Tree_methods,                              /* tp_methods */
+    0,                                         /* tp_methods */
     0,                                         /* tp_members */
     0,                                         /* tp_getset */
     0,                                         /* tp_base */
@@ -1211,17 +989,11 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_descr_get */
     0,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
-    (initproc)Tree_init,                       /* tp_init */
+    0,                                         /* tp_init */
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
 
-static int
-Blob_init(Blob *py_blob, PyObject *args, PyObject *kwds) {
-    return Object_init_with_type((Object*)py_blob, GIT_OBJ_BLOB, args, kwds);
-}
-
-/* TODO: libgit2 needs some way to set blob data. */
 static PyGetSetDef Blob_getseters[] = {
     {"data", (getter)Object_read_raw, NULL, "raw data", NULL},
     {NULL}
@@ -1264,14 +1036,41 @@ static PyTypeObject BlobType = {
     0,                                         /* tp_descr_get */
     0,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
-    (initproc)Blob_init,                       /* tp_init */
+    0,                                         /* tp_init */
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
 
 static int
 Tag_init(Tag *py_tag, PyObject *args, PyObject *kwds) {
-    return Object_init_with_type((Object*)py_tag, GIT_OBJ_TAG, args, kwds);
+    Repository *repo = NULL;
+    git_oid oid;
+    git_tag *tag;
+    int err;
+
+    if (kwds) {
+        PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
+                     py_tag->ob_type->tp_name);
+        return -1;
+    }
+
+    /* TODO Finish this */
+    if (!PyArg_ParseTuple(args, "O!", &RepositoryType, &repo))
+        return -1;
+
+    err = git_tag_create(&oid, repo->repo,
+        tag_name, target, target_type, tagger, message);
+    if (err < 0)
+        return -1;
+
+    err = git_tag_lookup(&tag, repo->repo, &oid);
+    if (err < 0)
+        return -1;
+
+    Py_INCREF(repo);
+    py_tag->repo = repo;
+    py_tag->tag = tag;
+    return 0;
 }
 
 static void
@@ -1302,28 +1101,6 @@ Tag_get_target(Tag *self) {
     return self->target;
 }
 
-static int
-Tag_set_target(Tag *self, Object *target) {
-    int err;
-
-    if (!PyObject_TypeCheck(target, &ObjectType)) {
-        PyErr_Format(PyExc_TypeError, "target must be %.200s, not %.200s",
-                     ObjectType.tp_name, target->ob_type->tp_name);
-        return -1;
-    }
-
-    Py_XDECREF(self->target);
-    self->target = (PyObject*)target;
-    Py_INCREF(target);
-    err = git_tag_set_target(self->tag, target->obj);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-
-    return 0;
-}
-
 static PyObject *
 Tag_get_name(Tag *self) {
     const char *name;
@@ -1331,21 +1108,6 @@ Tag_get_name(Tag *self) {
     if (!name)
         Py_RETURN_NONE;
     return PyString_FromString(name);
-}
-
-static int
-Tag_set_name(Tag *self, PyObject *py_name) {
-    char *name;
-    if (!PyString_Check(py_name)) {
-        PyErr_Format(PyExc_TypeError, "name must be str, not %.200s",
-                     py_name->ob_type->tp_name);
-        return -1;
-    }
-    name = PyString_AsString(py_name);
-    if (!name)
-        return -1;
-    git_tag_set_name(self->tag, name);
-    return 0;
 }
 
 static PyObject *
@@ -1358,21 +1120,6 @@ Tag_get_tagger(Tag *tag) {
                         tagger->when.time);
 }
 
-static int
-Tag_set_tagger(Tag *tag, PyObject *value) {
-    char *name = NULL, *email = NULL;
-    long long time;
-    if (!parse_person(value, &name, &email, &time))
-        return -1;
-
-    git_signature *signature = git_signature_new(name, email, time, 0);
-    if ( signature == NULL)
-        return -1;
-
-    git_tag_set_tagger(tag->tag, signature);
-    return 0;
-}
-
 static PyObject *
 Tag_get_message(Tag *self) {
     const char *message;
@@ -1382,23 +1129,11 @@ Tag_get_message(Tag *self) {
     return PyString_FromString(message);
 }
 
-static int
-Tag_set_message(Tag *self, PyObject *message) {
-    if (!PyString_Check(message)) {
-        PyErr_Format(PyExc_TypeError, "message must be str, not %.200s",
-                     message->ob_type->tp_name);
-        return -1;
-    }
-    git_tag_set_message(self->tag, PyString_AS_STRING(message));
-    return 0;
-}
-
 static PyGetSetDef Tag_getseters[] = {
-    {"target", (getter)Tag_get_target, (setter)Tag_set_target, "tagged object",
-     NULL},
-    {"name", (getter)Tag_get_name, (setter)Tag_set_name, "tag name", NULL},
-    {"tagger", (getter)Tag_get_tagger, (setter)Tag_set_tagger, "tagger", NULL},
-    {"message", (getter)Tag_get_message, (setter)Tag_set_message, "tag message",
+    {"target", (getter)Tag_get_target, NULL, "tagged object", NULL},
+    {"name", (getter)Tag_get_name, NULL, "tag name", NULL},
+    {"tagger", (getter)Tag_get_tagger, NULL, "tagger", NULL},
+    {"message", (getter)Tag_get_message, NULL, "tag message",
      NULL},
     {NULL}
 };
@@ -1829,15 +1564,12 @@ Walker_push(Walker *self, PyObject *py_hex) {
 static PyObject *
 Walker_sort(Walker *self, PyObject *py_sort_mode) {
     int sort_mode;
-    int err;
 
     sort_mode = (int)PyInt_AsLong(py_sort_mode);
     if (sort_mode == -1 && PyErr_Occurred())
         return NULL;
 
-    err = git_revwalk_sorting(self->walk, sort_mode);
-    if (err < 0)
-        return Error_set_py_obj(err, py_sort_mode);
+    git_revwalk_sorting(self->walk, sort_mode);
 
     Py_RETURN_NONE;
 }
