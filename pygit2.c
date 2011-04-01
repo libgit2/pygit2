@@ -171,16 +171,16 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
     hex = PyString_AsString(py_str);
     if (hex == NULL) {
         Error_set_py_obj(GIT_ENOTOID, py_str);
-        return -1;
+        return 0;
     }
 
     err = git_oid_mkstr(oid, hex);
     if (err < 0) {
         Error_set_py_obj(err, py_str);
-        return -1;
+        return 0;
     }
 
-    return 0;
+    return 1;
 }
 
 static int
@@ -217,10 +217,8 @@ Repository_dealloc(Repository *self) {
 static int
 Repository_contains(Repository *self, PyObject *value) {
     git_oid oid;
-    int err;
 
-    err = py_str_to_git_oid(value, &oid);
-    if (err < 0)
+    if (!py_str_to_git_oid(value, &oid))
         return -1;
 
     return git_odb_exists(git_repository_database(self->repo), &oid);
@@ -261,8 +259,7 @@ Repository_getitem(Repository *self, PyObject *value) {
     git_object *obj;
     Object *py_obj;
 
-    err = py_str_to_git_oid(value, &oid);
-    if (err < 0)
+    if (!py_str_to_git_oid(value, &oid))
         return NULL;
 
     err = git_object_lookup(&obj, self->repo, &oid, GIT_OBJ_ANY);
@@ -286,8 +283,7 @@ Repository_read(Repository *self, PyObject *py_hex) {
     int err;
     git_odb_object *obj;
 
-    err = py_str_to_git_oid(py_hex, &oid);
-    if (err < 0)
+    if (!py_str_to_git_oid(py_hex, &oid))
         return NULL;
 
     err = Repository_read_raw(&obj, self->repo, &oid);
@@ -358,8 +354,7 @@ Repository_walk(Repository *self, PyObject *args)
 
     /* Push */
     if (value != Py_None) {
-        err = py_str_to_git_oid(value, &oid);
-        if (err < 0) {
+        if (!py_str_to_git_oid(value, &oid)) {
             git_revwalk_free(walk);
             return NULL;
         }
@@ -561,20 +556,39 @@ static PyTypeObject ObjectType = {
     0,                                         /* tp_new */
 };
 
+/* TODO Add support for the time offset */
 static PyObject *
-build_person(const char *name, const char *email, long long time) {
-    return Py_BuildValue("(ssL)", name, email, time);
+build_person(const git_signature *signature) {
+    return Py_BuildValue("(ssL)", signature->name, signature->email,
+                         signature->when.time);
 }
 
 static int
-parse_person(PyObject *value, char **name, char **email, long long *time) {
-    return PyArg_ParseTuple(value, "ssL", name, email, time);
+signature_converter(PyObject *value, git_signature **out) {
+    char *name, *email;
+    long long time;
+    int offset = 0;
+    git_signature *signature;
+
+    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+        return 0;
+
+    signature = git_signature_new(name, email, time, offset);
+    if (signature == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return 0;
+    }
+
+    *out = signature;
+    return 1;
 }
 
 static int
 Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
     Repository *repo = NULL;
-    git_oid oid;
+    git_signature *author, *committer;
+    char *message;
+    git_oid tree_oid, oid;
     git_commit *commit;
     int err;
 
@@ -584,12 +598,16 @@ Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
         return -1;
     }
 
-    /* TODO Finish this */
-    if (!PyArg_ParseTuple(args, "O!", &RepositoryType, &repo))
+    /* TODO Support parents */
+    if (!PyArg_ParseTuple(args, "O!O&O&sO&", &RepositoryType, &repo,
+                          signature_converter, &author,
+                          signature_converter, &committer,
+                          &message,
+                          py_str_to_git_oid, &tree_oid))
         return -1;
 
     err = git_commit_create(&oid, repo->repo, NULL,
-        author, committer, message, tree_oid, parent_count, parent_oids);
+        author, committer, message, &tree_oid, 0, NULL);
     if (err < 0)
         return -1;
 
@@ -620,20 +638,16 @@ Commit_get_commit_time(Commit *commit) {
 
 static PyObject *
 Commit_get_committer(Commit *commit) {
-    const git_signature *committer = git_commit_committer(commit->commit);
+    const git_signature *signature = git_commit_committer(commit->commit);
 
-    return build_person(committer->name,
-                        committer->email,
-                        committer->when.time);
+    return build_person(signature);
 }
 
 static PyObject *
 Commit_get_author(Commit *commit) {
-    const git_signature *author = git_commit_author(commit->commit);
+    const git_signature *signature = git_commit_author(commit->commit);
 
-    return build_person(author->name,
-                        author->email,
-                        author->when.time);
+    return build_person(signature);
 }
 
 static PyObject *
@@ -1044,9 +1058,11 @@ static PyTypeObject BlobType = {
 static int
 Tag_init(Tag *py_tag, PyObject *args, PyObject *kwds) {
     Repository *repo = NULL;
-    git_oid oid;
+    char *tag_name, *message;
+    git_signature *tagger;
+    git_oid target, oid;
     git_tag *tag;
-    int err;
+    int err, target_type;
 
     if (kwds) {
         PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
@@ -1055,11 +1071,16 @@ Tag_init(Tag *py_tag, PyObject *args, PyObject *kwds) {
     }
 
     /* TODO Finish this */
-    if (!PyArg_ParseTuple(args, "O!", &RepositoryType, &repo))
+    if (!PyArg_ParseTuple(args, "O!sO&iO&s", &RepositoryType, &repo,
+                          &tag_name,
+                          py_str_to_git_oid, &target,
+                          &target_type,
+                          signature_converter, &tagger,
+                          &message))
         return -1;
 
     err = git_tag_create(&oid, repo->repo,
-        tag_name, target, target_type, tagger, message);
+        tag_name, &target, target_type, tagger, message);
     if (err < 0)
         return -1;
 
@@ -1112,12 +1133,10 @@ Tag_get_name(Tag *self) {
 
 static PyObject *
 Tag_get_tagger(Tag *tag) {
-    const git_signature *tagger = git_tag_tagger(tag->tag);
-    if (!tagger)
+    const git_signature *signature = git_tag_tagger(tag->tag);
+    if (!signature)
         Py_RETURN_NONE;
-    return build_person(tagger->name,
-                        tagger->email,
-                        tagger->when.time);
+    return build_person(signature);
 }
 
 static PyObject *
@@ -1534,8 +1553,7 @@ Walker_hide(Walker *self, PyObject *py_hex) {
     int err;
     git_oid oid;
 
-    err = py_str_to_git_oid(py_hex, &oid);
-    if (err < 0)
+    if (!py_str_to_git_oid(py_hex, &oid))
         return NULL;
 
     err = git_revwalk_hide(self->walk, &oid);
@@ -1550,8 +1568,7 @@ Walker_push(Walker *self, PyObject *py_hex) {
     int err;
     git_oid oid;
 
-    err = py_str_to_git_oid(py_hex, &oid);
-    if (err < 0)
+    if (!py_str_to_git_oid(py_hex, &oid))
         return NULL;
 
     err = git_revwalk_push(self->walk, &oid);
