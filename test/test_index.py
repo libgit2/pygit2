@@ -48,8 +48,6 @@ class IndexTest(utils.RepoTestCase):
 
     def test_read(self):
         index = self.repo.index
-        self.assertEqual(len(index), 0)
-        index.read()
         self.assertEqual(len(index), 2)
 
         self.assertRaises(TypeError, lambda: index[()])

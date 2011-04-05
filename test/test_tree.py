@@ -29,6 +29,7 @@
 
 __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
+import operator
 import unittest
 
 import pygit2
@@ -76,7 +77,10 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(
           subtree[0], '297efb891a47de80be0cfe9c639e4b8c9b450989', 'd', 0100644)
 
-    def test_new_tree(self):
+    # XXX Creating new trees was removed from libgit2 by v0.11.0, we
+    # deactivate this test temporarily, since the feature may come back in
+    # a near feature (if it does not this test will be removed).
+    def xtest_new_tree(self):
         tree = pygit2.Tree(self.repo)
         self.assertEqual(0, len(tree))
         tree.add_entry('1' * 40, 'x', 0100644)
@@ -101,33 +105,8 @@ class TreeTest(utils.BareRepoTestCase):
 
     def test_modify_tree(self):
         tree = self.repo[TREE_SHA]
-
-        def fail_set():
-            tree['c'] = tree['a']
-        self.assertRaises(ValueError, fail_set)
-
-        def fail_del_by_name():
-            del tree['asdf']
-        self.assertRaisesWithArg(KeyError, 'asdf', fail_del_by_name)
-
-        def fail_del_by_index():
-            del tree[99]
-        self.assertRaisesWithArg(IndexError, 99, fail_del_by_index)
-
-        self.assertTrue('c' in tree)
-        self.assertEqual(3, len(tree))
-        del tree['c']
-        self.assertEqual(2, len(tree))
-        self.assertFalse('c' in tree)
-
-        tree.add_entry('1' * 40, 'c', 0100644)
-        self.assertTrue('c' in tree)
-        self.assertEqual(3, len(tree))
-
-        old_sha = tree.sha
-        tree.write()
-        self.assertNotEqual(tree.sha, old_sha)
-        self.assertEqual(tree.sha, self.repo[tree.sha].sha)
+        self.assertRaises(TypeError, operator.setitem, 'c', tree['a'])
+        self.assertRaises(TypeError, operator.delitem, 'c')
 
 
 if __name__ == '__main__':

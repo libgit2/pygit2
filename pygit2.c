@@ -887,6 +887,7 @@ static PyTypeObject TreeEntryType = {
 
 static Py_ssize_t
 Tree_len(Tree *self) {
+    assert(self->tree);
     return (Py_ssize_t)git_tree_entrycount(self->tree);
 }
 
@@ -1102,7 +1103,6 @@ Tag_init(Tag *py_tag, PyObject *args, PyObject *kwds) {
         return -1;
     }
 
-    /* TODO Finish this */
     if (!PyArg_ParseTuple(args, "O!sO&iO&s", &RepositoryType, &repo,
                           &tag_name,
                           py_str_to_git_oid, &target,

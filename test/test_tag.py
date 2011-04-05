@@ -55,40 +55,31 @@ class TagTest(utils.BareRepoTestCase):
 
     def test_new_tag(self):
         name = 'thetag'
+        target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
         message = 'Tag a blob.\n'
         tagger = ('John Doe', 'jdoe@example.com', 12347)
 
-        tag = pygit2.Tag(self.repo)
-        self.assertEqual(None, tag.sha)
-        self.assertEqual(None, tag.name)
-        self.assertEqual(None, tag.tagger)
-        self.assertEqual(None, tag.message)
-        self.assertEqual(None, tag.target)
+        tag = pygit2.Tag(self.repo, name, target, pygit2.GIT_OBJ_BLOB,
+                         tagger, message)
 
-        tag.name = name
-        tag.tagger = tagger
-        tag.message = message
-        target = self.repo['af431f20fc541ed6d5afede3e2dc7160f6f01f16']
-        target_sha = target.sha
-        tag.target = target
-        del target
+        self.assertEqual('3ee44658fd11660e828dfc96b9b5c5f38d5b49bb', tag.sha)
         self.assertEqual(name, tag.name)
+        self.assertEqual(target, tag.target.sha)
         self.assertEqual(tagger, tag.tagger)
-        self.assertEqual(target_sha, tag.target.sha)
-
-        tag.write()
+        self.assertEqual(message, tag.message)
         self.assertEqual(name, self.repo[tag.sha].name)
 
     def test_modify_tag(self):
-        message = 'Different message.\n'
+        name = 'thetag'
+        target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
+        message = 'Tag a blob.\n'
+        tagger = ('John Doe', 'jdoe@example.com', 12347)
+
         tag = self.repo[TAG_SHA]
-        old_sha = tag.sha
-        self.assertNotEqual(message, tag.message)
-        tag.message = message
-        self.assertEqual(message, tag.message)
-        tag.write()
-        self.assertNotEqual(old_sha, tag.sha)
-        self.assertEqual(tag.sha, self.repo[tag.sha].sha)
+        self.assertRaises(AttributeError, setattr, tag, 'name', name)
+        self.assertRaises(AttributeError, setattr, tag, 'target', target)
+        self.assertRaises(AttributeError, setattr, tag, 'tagger', tagger)
+        self.assertRaises(AttributeError, setattr, tag, 'message', message)
 
 
 if __name__ == '__main__':
