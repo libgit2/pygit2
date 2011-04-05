@@ -1431,6 +1431,28 @@ Index_setitem(Index *self, PyObject *key, PyObject *value) {
     return 0;
 }
 
+static PyObject *
+Index_create_tree(Index *self) {
+	git_oid oid;
+    int err;
+	Tree *py_tree;
+	git_tree *tree;
+
+	err = git_tree_create_fromindex(&oid, self->index);
+
+    if (err < 0) {
+        return Error_set(err);
+    }
+
+	git_tree_lookup(&tree, self->repo->repo, &oid);
+	py_tree = PyObject_New(Tree, &TreeType);
+    py_tree->repo = self->repo;
+    py_tree->tree = (git_tree*)tree;
+
+	
+   return (PyObject*)py_tree;
+}
+
 static PyMethodDef Index_methods[] = {
     {"add", (PyCFunction)Index_add, METH_VARARGS,
      "Add or update an index entry from a file in disk."},
@@ -1445,6 +1467,8 @@ static PyMethodDef Index_methods[] = {
     {"write", (PyCFunction)Index_write, METH_NOARGS,
      "Write an existing index object from memory back to disk using an"
      " atomic file lock."},
+    {"create_tree", (PyCFunction)Index_create_tree, METH_NOARGS,
+     "Create a tree from the index entries"},
     {NULL}
 };
 
