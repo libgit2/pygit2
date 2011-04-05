@@ -36,8 +36,8 @@ typedef struct {
     PyObject *index; /* It will be None for a bare repository */
 } Repository;
 
-/* The structs for some of the object subtypes are identical except for the type
- * of their object pointers. */
+/* The structs for some of the object subtypes are identical except for the
+ * type of their object pointers. */
 #define OBJECT_STRUCT(_name, _ptr_type, _ptr_name) \
         typedef struct {\
             PyObject_HEAD\
@@ -584,13 +584,26 @@ signature_converter(PyObject *value, git_signature **out) {
 }
 
 static int
+free_parents(git_oid **parents, int n) {
+    int i;
+
+    for (i = 0; i < n; i++)
+        free(parents[i]);
+    free(parents);
+    return -1;
+}
+
+static int
 Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
     Repository *repo = NULL;
     git_signature *author, *committer;
     char *message;
     git_oid tree_oid, oid;
+    PyObject *py_parents, *py_parent;
+    int parent_count;
+    git_oid **parents;
     git_commit *commit;
-    int err;
+    int err, i;
 
     if (kwds) {
         PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
@@ -598,26 +611,45 @@ Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
         return -1;
     }
 
-    /* TODO Support parents */
-    if (!PyArg_ParseTuple(args, "O!O&O&sO&", &RepositoryType, &repo,
+    if (!PyArg_ParseTuple(args, "O!O&O&sO&O!", &RepositoryType, &repo,
                           signature_converter, &author,
                           signature_converter, &committer,
                           &message,
-                          py_str_to_git_oid, &tree_oid))
+                          py_str_to_git_oid, &tree_oid,
+                          &PyList_Type, &py_parents))
         return -1;
 
-    err = git_commit_create(&oid, repo->repo, NULL,
-        author, committer, message, &tree_oid, 0, NULL);
-    if (err < 0)
+    parent_count = (int)PyList_Size(py_parents);
+    parents = malloc(parent_count * sizeof(git_oid*));
+    if (parents == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
         return -1;
+    }
+    for (i = 0; i < parent_count; i++) {
+        parents[i] = malloc(sizeof(git_oid));
+        if (parents[i] == NULL) {
+            PyErr_SetNone(PyExc_MemoryError);
+            return free_parents(parents, i);
+        }
+        py_parent = PyList_GET_ITEM(py_parents, i);
+        if (!py_str_to_git_oid(py_parent, parents[i]))
+            return free_parents(parents, i);
+    }
+
+    err = git_commit_create(&oid, repo->repo, NULL,
+        author, committer, message, &tree_oid,
+        parent_count, (const git_oid**)parents);
+    if (err < 0)
+        return free_parents(parents, parent_count);
 
     err = git_commit_lookup(&commit, repo->repo, &oid);
     if (err < 0)
-        return -1;
+        return free_parents(parents, parent_count);
 
     Py_INCREF(repo);
     py_commit->repo = repo;
     py_commit->commit = commit;
+    free_parents(parents, parent_count);
     return 0;
 }
 

@@ -31,7 +31,7 @@ __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 import unittest
 
-import pygit2
+from pygit2 import Commit, GIT_OBJ_COMMIT
 import utils
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -64,24 +64,20 @@ class CommitTest(utils.BareRepoTestCase):
         message = 'New commit.\n\nMessage.\n'
         committer = ('John Doe', 'jdoe@example.com', 12346)
         author = ('Jane Doe', 'jdoe2@example.com', 12345)
+        tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
-        commit = pygit2.Commit(self.repo)
-        commit.message = message
-        commit.committer = committer
-        commit.author = author
+        parents = [COMMIT_SHA]
+        commit = Commit(self.repo, author, committer, message, tree, parents)
 
-        self.assertEqual(0, len(commit.parents))
-
-        commit.add_parent(COMMIT_SHA)
-
-        self.assertEqual(None, commit.sha)
-        self.assertEqual(pygit2.GIT_OBJ_COMMIT, commit.type)
+        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
+        self.assertEqual('30bb126a4959290987fc07ea49f92be276dce9d6',
+                         commit.sha)
         self.assertEqual(message, commit.message)
         self.assertEqual('New commit.', commit.message_short)
         self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
-        self.assertEqual(None, commit.tree)
+        self.assertEqual(tree, commit.tree.sha)
         self.assertEqual(1, len(commit.parents))
         self.assertEqual(COMMIT_SHA, commit.parents[0].sha)
 
@@ -91,15 +87,12 @@ class CommitTest(utils.BareRepoTestCase):
         author = ('Jane Doe', 'jdoe2@example.com', 12345)
 
         commit = self.repo[COMMIT_SHA]
-        commit.message = message
-        commit.committer = committer
-        commit.author = author
-
-        self.assertEqual(message, commit.message)
-        self.assertEqual('New commit.', commit.message_short)
-        self.assertEqual(12346, commit.commit_time)
-        self.assertEqual(committer, commit.committer)
-        self.assertEqual(author, commit.author)
+        self.assertRaises(AttributeError, setattr, commit, 'message', message)
+        self.assertRaises(AttributeError, setattr, commit, 'committer',
+                          committer)
+        self.assertRaises(AttributeError, setattr, commit, 'author', author)
+        self.assertRaises(AttributeError, setattr, commit, 'tree', None)
+        self.assertRaises(AttributeError, setattr, commit, 'parents', None)
 
 
 if __name__ == '__main__':
