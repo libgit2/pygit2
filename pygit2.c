@@ -894,8 +894,12 @@ Tree_len(Tree *self) {
 static int
 Tree_contains(Tree *self, PyObject *py_name) {
     char *name;
+
     name = PyString_AsString(py_name);
-    return name && git_tree_entry_byname(self->tree, name) ? 1 : 0;
+    if (name == NULL)
+        return -1;
+
+    return git_tree_entry_byname(self->tree, name) ? 1 : 0;
 }
 
 static TreeEntry *
