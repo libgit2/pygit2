@@ -59,7 +59,7 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    git_tree_entry *entry;
+    const git_tree_entry *entry;
     Tree *tree;
 } TreeEntry;
 
@@ -903,7 +903,7 @@ Tree_contains(Tree *self, PyObject *py_name) {
 }
 
 static TreeEntry *
-wrap_tree_entry(git_tree_entry *entry, Tree *tree) {
+wrap_tree_entry(const git_tree_entry *entry, Tree *tree) {
     TreeEntry *py_entry = NULL;
     py_entry = (TreeEntry*)TreeEntryType.tp_alloc(&TreeEntryType, 0);
     if (!py_entry)
@@ -918,7 +918,8 @@ wrap_tree_entry(git_tree_entry *entry, Tree *tree) {
 static TreeEntry *
 Tree_getitem_by_name(Tree *self, PyObject *py_name) {
     char *name;
-    git_tree_entry *entry;
+    const git_tree_entry *entry;
+
     name = PyString_AS_STRING(py_name);
     entry = git_tree_entry_byname(self->tree, name);
     if (!entry) {
@@ -958,7 +959,7 @@ Tree_fix_index(Tree *self, PyObject *py_index) {
 static TreeEntry *
 Tree_getitem_by_index(Tree *self, PyObject *py_index) {
     int index;
-    git_tree_entry *entry;
+    const git_tree_entry *entry;
 
     index = Tree_fix_index(self, py_index);
     if (PyErr_Occurred())
