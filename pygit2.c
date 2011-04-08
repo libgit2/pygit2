@@ -638,12 +638,16 @@ Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
     err = git_commit_create(&oid, repo->repo, NULL,
         author, committer, message, &tree_oid,
         parent_count, (const git_oid**)parents);
-    if (err < 0)
+    if (err < 0) {
+        Error_set(err);
         return free_parents(parents, parent_count);
+    }
 
     err = git_commit_lookup(&commit, repo->repo, &oid);
-    if (err < 0)
+    if (err < 0) {
+        Error_set(err);
         return free_parents(parents, parent_count);
+    }
 
     Py_INCREF(repo);
     py_commit->repo = repo;
