@@ -61,7 +61,6 @@ class IndexTest(utils.RepoTestCase):
 
     def test_add(self):
         index = self.repo.index
-        index.read()
 
         sha = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
         self.assertFalse('bye.txt' in index)
@@ -72,14 +71,12 @@ class IndexTest(utils.RepoTestCase):
 
     def test_clear(self):
         index = self.repo.index
-        index.read()
         self.assertEqual(len(index), 2)
         index.clear()
         self.assertEqual(len(index), 0)
 
     def test_write(self):
         index = self.repo.index
-        index.read()
         index.add('bye.txt', 0)
         index.write()
 
@@ -91,7 +88,6 @@ class IndexTest(utils.RepoTestCase):
     def test_create_tree(self):
         sha = 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
         index = self.repo.index
-        index.read()
         tree = index.create_tree()
         self.assertEqual(sha, tree.sha)
 
