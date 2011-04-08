@@ -45,8 +45,9 @@ class TagTest(utils.BareRepoTestCase):
         self.assertEqual(pygit2.GIT_OBJ_TAG, tag.type)
         self.assertEqual(pygit2.GIT_OBJ_COMMIT, tag.target.type)
         self.assertEqual('root', tag.name)
-        self.assertEqual(('Dave Borowitz', 'dborowitz@google.com', 1288724692),
-                         tag.tagger)
+        self.assertEqual(
+            ('Dave Borowitz', 'dborowitz@google.com', 1288724692, -420),
+            tag.tagger)
         self.assertEqual('Tagged root commit.\n', tag.message)
 
         commit = tag.target
@@ -57,7 +58,7 @@ class TagTest(utils.BareRepoTestCase):
         name = 'thetag'
         target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
         message = 'Tag a blob.\n'
-        tagger = ('John Doe', 'jdoe@example.com', 12347)
+        tagger = ('John Doe', 'jdoe@example.com', 12347, 0)
 
         tag = pygit2.Tag(self.repo, name, target, pygit2.GIT_OBJ_BLOB,
                          tagger, message)

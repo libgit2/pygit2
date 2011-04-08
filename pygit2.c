@@ -556,21 +556,20 @@ static PyTypeObject ObjectType = {
     0,                                         /* tp_new */
 };
 
-/* TODO Add support for the time offset */
 static PyObject *
 build_person(const git_signature *signature) {
-    return Py_BuildValue("(ssL)", signature->name, signature->email,
-                         signature->when.time);
+    return Py_BuildValue("(ssLi)", signature->name, signature->email,
+                         signature->when.time, signature->when.offset);
 }
 
 static int
 signature_converter(PyObject *value, git_signature **out) {
     char *name, *email;
     long long time;
-    int offset = 0;
+    int offset;
     git_signature *signature;
 
-    if (!PyArg_ParseTuple(value, "ssL", &name, &email, &time))
+    if (!PyArg_ParseTuple(value, "ssLi", &name, &email, &time, &offset))
         return 0;
 
     signature = git_signature_new(name, email, time, offset);
