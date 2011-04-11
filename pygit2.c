@@ -377,7 +377,119 @@ Repository_walk(Repository *self, PyObject *args)
     return (PyObject*)py_walker;
 }
 
+static PyObject *
+build_person(const git_signature *signature) {
+    return Py_BuildValue("(ssLi)", signature->name, signature->email,
+                         signature->when.time, signature->when.offset);
+}
+
+static int
+signature_converter(PyObject *value, git_signature **out) {
+    char *name, *email;
+    long long time;
+    int offset;
+    git_signature *signature;
+
+    if (!PyArg_ParseTuple(value, "ssLi", &name, &email, &time, &offset))
+        return 0;
+
+    signature = git_signature_new(name, email, time, offset);
+    if (signature == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return 0;
+    }
+
+    *out = signature;
+    return 1;
+}
+
+static PyObject *
+free_parents(git_oid **parents, int n) {
+    int i;
+
+    for (i = 0; i < n; i++)
+        free(parents[i]);
+    free(parents);
+    return NULL;
+}
+
+static PyObject *
+Repository_create_commit(Repository *self, PyObject *args) {
+    git_signature *author, *committer;
+    char *message;
+    git_oid tree_oid, oid;
+    PyObject *py_parents, *py_parent;
+    int parent_count;
+    git_oid **parents;
+    int err, i;
+    char hex[GIT_OID_HEXSZ];
+
+    if (!PyArg_ParseTuple(args, "O&O&sO&O!",
+                          signature_converter, &author,
+                          signature_converter, &committer,
+                          &message,
+                          py_str_to_git_oid, &tree_oid,
+                          &PyList_Type, &py_parents))
+        return NULL;
+
+    parent_count = (int)PyList_Size(py_parents);
+    parents = malloc(parent_count * sizeof(git_oid*));
+    if (parents == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return NULL;
+    }
+    for (i = 0; i < parent_count; i++) {
+        parents[i] = malloc(sizeof(git_oid));
+        if (parents[i] == NULL) {
+            PyErr_SetNone(PyExc_MemoryError);
+            return free_parents(parents, i);
+        }
+        py_parent = PyList_GET_ITEM(py_parents, i);
+        if (!py_str_to_git_oid(py_parent, parents[i]))
+            return free_parents(parents, i);
+    }
+
+    err = git_commit_create(&oid, self->repo, NULL,
+        author, committer, message, &tree_oid,
+        parent_count, (const git_oid**)parents);
+    free_parents(parents, parent_count);
+    if (err < 0)
+        return Error_set(err);
+
+    git_oid_fmt(hex, &oid);
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+}
+
+static PyObject *
+Repository_create_tag(Repository *self, PyObject *args) {
+    char *tag_name, *message;
+    git_signature *tagger;
+    git_oid target, oid;
+    int err, target_type;
+    char hex[GIT_OID_HEXSZ];
+
+    if (!PyArg_ParseTuple(args, "sO&iO&s",
+                          &tag_name,
+                          py_str_to_git_oid, &target,
+                          &target_type,
+                          signature_converter, &tagger,
+                          &message))
+        return NULL;
+
+    err = git_tag_create(&oid, self->repo,
+        tag_name, &target, target_type, tagger, message);
+    if (err < 0)
+        return NULL;
+
+    git_oid_fmt(hex, &oid);
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+}
+
 static PyMethodDef Repository_methods[] = {
+    {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
+     "Create a new commit object, return its SHA."},
+    {"create_tag", (PyCFunction)Repository_create_tag, METH_VARARGS,
+     "Create a new tag object, return its SHA."},
     {"walk", (PyCFunction)Repository_walk, METH_VARARGS,
      "Generator that traverses the history starting from the given commit."},
     {"read", (PyCFunction)Repository_read, METH_O,
@@ -557,106 +669,6 @@ static PyTypeObject ObjectType = {
 };
 
 static PyObject *
-build_person(const git_signature *signature) {
-    return Py_BuildValue("(ssLi)", signature->name, signature->email,
-                         signature->when.time, signature->when.offset);
-}
-
-static int
-signature_converter(PyObject *value, git_signature **out) {
-    char *name, *email;
-    long long time;
-    int offset;
-    git_signature *signature;
-
-    if (!PyArg_ParseTuple(value, "ssLi", &name, &email, &time, &offset))
-        return 0;
-
-    signature = git_signature_new(name, email, time, offset);
-    if (signature == NULL) {
-        PyErr_SetNone(PyExc_MemoryError);
-        return 0;
-    }
-
-    *out = signature;
-    return 1;
-}
-
-static int
-free_parents(git_oid **parents, int n) {
-    int i;
-
-    for (i = 0; i < n; i++)
-        free(parents[i]);
-    free(parents);
-    return -1;
-}
-
-static int
-Commit_init(Commit *py_commit, PyObject *args, PyObject *kwds) {
-    Repository *repo = NULL;
-    git_signature *author, *committer;
-    char *message;
-    git_oid tree_oid, oid;
-    PyObject *py_parents, *py_parent;
-    int parent_count;
-    git_oid **parents;
-    git_commit *commit;
-    int err, i;
-
-    if (kwds) {
-        PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
-                     py_commit->ob_type->tp_name);
-        return -1;
-    }
-
-    if (!PyArg_ParseTuple(args, "O!O&O&sO&O!", &RepositoryType, &repo,
-                          signature_converter, &author,
-                          signature_converter, &committer,
-                          &message,
-                          py_str_to_git_oid, &tree_oid,
-                          &PyList_Type, &py_parents))
-        return -1;
-
-    parent_count = (int)PyList_Size(py_parents);
-    parents = malloc(parent_count * sizeof(git_oid*));
-    if (parents == NULL) {
-        PyErr_SetNone(PyExc_MemoryError);
-        return -1;
-    }
-    for (i = 0; i < parent_count; i++) {
-        parents[i] = malloc(sizeof(git_oid));
-        if (parents[i] == NULL) {
-            PyErr_SetNone(PyExc_MemoryError);
-            return free_parents(parents, i);
-        }
-        py_parent = PyList_GET_ITEM(py_parents, i);
-        if (!py_str_to_git_oid(py_parent, parents[i]))
-            return free_parents(parents, i);
-    }
-
-    err = git_commit_create(&oid, repo->repo, NULL,
-        author, committer, message, &tree_oid,
-        parent_count, (const git_oid**)parents);
-    if (err < 0) {
-        Error_set(err);
-        return free_parents(parents, parent_count);
-    }
-
-    err = git_commit_lookup(&commit, repo->repo, &oid);
-    if (err < 0) {
-        Error_set(err);
-        return free_parents(parents, parent_count);
-    }
-
-    Py_INCREF(repo);
-    py_commit->repo = repo;
-    py_commit->commit = commit;
-    free_parents(parents, parent_count);
-    return 0;
-}
-
-static PyObject *
 Commit_get_message_short(Commit *commit) {
     return PyString_FromString(git_commit_message_short(commit->commit));
 }
@@ -790,7 +802,7 @@ static PyTypeObject CommitType = {
     0,                                         /* tp_descr_get */
     0,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
-    (initproc)Commit_init,                     /* tp_init */
+    0,                                         /* tp_init */
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
@@ -1096,44 +1108,6 @@ static PyTypeObject BlobType = {
     0,                                         /* tp_new */
 };
 
-static int
-Tag_init(Tag *py_tag, PyObject *args, PyObject *kwds) {
-    Repository *repo = NULL;
-    char *tag_name, *message;
-    git_signature *tagger;
-    git_oid target, oid;
-    git_tag *tag;
-    int err, target_type;
-
-    if (kwds) {
-        PyErr_Format(PyExc_TypeError, "%s takes no keyword arugments",
-                     py_tag->ob_type->tp_name);
-        return -1;
-    }
-
-    if (!PyArg_ParseTuple(args, "O!sO&iO&s", &RepositoryType, &repo,
-                          &tag_name,
-                          py_str_to_git_oid, &target,
-                          &target_type,
-                          signature_converter, &tagger,
-                          &message))
-        return -1;
-
-    err = git_tag_create(&oid, repo->repo,
-        tag_name, &target, target_type, tagger, message);
-    if (err < 0)
-        return -1;
-
-    err = git_tag_lookup(&tag, repo->repo, &oid);
-    if (err < 0)
-        return -1;
-
-    Py_INCREF(repo);
-    py_tag->repo = repo;
-    py_tag->tag = tag;
-    return 0;
-}
-
 static void
 Tag_dealloc(Tag *self) {
     Py_XDECREF(self->target);
@@ -1234,7 +1208,7 @@ static PyTypeObject TagType = {
     0,                                         /* tp_descr_get */
     0,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
-    (initproc)Tag_init,                        /* tp_init */
+    0,                                         /* tp_init */
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
@@ -1443,28 +1417,14 @@ static PyObject *
 Index_create_tree(Index *self) {
     git_oid oid;
     int err;
-    Tree *py_tree;
-    git_tree *tree;
+    char hex[GIT_OID_HEXSZ];
 
     err = git_tree_create_fromindex(&oid, self->index);
-    if (err < 0) {
+    if (err < 0)
         return Error_set(err);
-    }
 
-    err = git_tree_lookup(&tree, self->repo->repo, &oid);
-    if (err < 0) {
-        return Error_set(err);
-    }
-
-    py_tree = PyObject_New(Tree, &TreeType);
-    if (!py_tree)
-        return NULL;
-
-    Py_INCREF(self->repo);
-    py_tree->repo = self->repo;
-    py_tree->tree = (git_tree*)tree;
-
-    return (PyObject*)py_tree;
+    git_oid_fmt(hex, &oid);
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
 }
 
 static PyMethodDef Index_methods[] = {
@@ -1482,7 +1442,7 @@ static PyMethodDef Index_methods[] = {
      "Write an existing index object from memory back to disk using an"
      " atomic file lock."},
     {"create_tree", (PyCFunction)Index_create_tree, METH_NOARGS,
-     "Create a tree from the index entries"},
+     "Create a tree from the index file, return its SHA."},
     {NULL}
 };
 
@@ -1796,27 +1756,26 @@ initpygit2(void)
     RepositoryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&RepositoryType) < 0)
         return;
-    /* Do not set ObjectType.tp_new, to prevent creating Objects directly. */
+
+    /* Do not set 'tp_new' for Git objects. To create Git objects use the
+     * Repository.create_XXX methods */
     if (PyType_Ready(&ObjectType) < 0)
         return;
     CommitType.tp_base = &ObjectType;
-    CommitType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&CommitType) < 0)
         return;
-    TreeEntryType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&TreeEntryType) < 0)
-        return;
     TreeType.tp_base = &ObjectType;
-    TreeType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TreeType) < 0)
         return;
     BlobType.tp_base = &ObjectType;
-    BlobType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&BlobType) < 0)
         return;
     TagType.tp_base = &ObjectType;
-    TagType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TagType) < 0)
+        return;
+
+    TreeEntryType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&TreeEntryType) < 0)
         return;
     IndexType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&IndexType) < 0)

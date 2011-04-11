@@ -60,8 +60,9 @@ class TagTest(utils.BareRepoTestCase):
         message = 'Tag a blob.\n'
         tagger = ('John Doe', 'jdoe@example.com', 12347, 0)
 
-        tag = pygit2.Tag(self.repo, name, target, pygit2.GIT_OBJ_BLOB,
-                         tagger, message)
+        sha = self.repo.create_tag(name, target, pygit2.GIT_OBJ_BLOB, tagger,
+                                   message)
+        tag = self.repo[sha]
 
         self.assertEqual('3ee44658fd11660e828dfc96b9b5c5f38d5b49bb', tag.sha)
         self.assertEqual(name, tag.name)

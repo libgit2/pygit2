@@ -86,10 +86,8 @@ class IndexTest(utils.RepoTestCase):
         self.assertTrue('bye.txt' in index)
 
     def test_create_tree(self):
-        sha = 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
-        index = self.repo.index
-        tree = index.create_tree()
-        self.assertEqual(sha, tree.sha)
+        sha = self.repo.index.create_tree()
+        self.assertEqual(sha, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
 
 if __name__ == '__main__':

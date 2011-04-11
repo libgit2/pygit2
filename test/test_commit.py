@@ -31,7 +31,7 @@ __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 import unittest
 
-from pygit2 import Commit, GIT_OBJ_COMMIT
+from pygit2 import GIT_OBJ_COMMIT
 import utils
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -62,13 +62,15 @@ class CommitTest(utils.BareRepoTestCase):
             '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', commit.tree.sha)
 
     def test_new_commit(self):
+        repo = self.repo
         message = 'New commit.\n\nMessage.\n'
         committer = ('John Doe', 'jdoe@example.com', 12346, 0)
         author = ('Jane Doe', 'jdoe2@example.com', 12345, 0)
         tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
         parents = [COMMIT_SHA]
-        commit = Commit(self.repo, author, committer, message, tree, parents)
+        sha = repo.create_commit(author, committer, message, tree, parents)
+        commit = repo[sha]
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
         self.assertEqual('30bb126a4959290987fc07ea49f92be276dce9d6',
