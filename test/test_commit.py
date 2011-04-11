@@ -69,7 +69,8 @@ class CommitTest(utils.BareRepoTestCase):
         tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
         parents = [COMMIT_SHA]
-        sha = repo.create_commit(author, committer, message, tree, parents)
+        sha = repo.create_commit(None, author, committer, message, tree,
+                                 parents)
         commit = repo[sha]
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)

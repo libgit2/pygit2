@@ -416,7 +416,7 @@ free_parents(git_oid **parents, int n) {
 static PyObject *
 Repository_create_commit(Repository *self, PyObject *args) {
     git_signature *author, *committer;
-    char *message;
+    char *message, *update_ref;
     git_oid tree_oid, oid;
     PyObject *py_parents, *py_parent;
     int parent_count;
@@ -424,7 +424,8 @@ Repository_create_commit(Repository *self, PyObject *args) {
     int err, i;
     char hex[GIT_OID_HEXSZ];
 
-    if (!PyArg_ParseTuple(args, "O&O&sO&O!",
+    if (!PyArg_ParseTuple(args, "zO&O&sO&O!",
+                          &update_ref,
                           signature_converter, &author,
                           signature_converter, &committer,
                           &message,
@@ -449,9 +450,8 @@ Repository_create_commit(Repository *self, PyObject *args) {
             return free_parents(parents, i);
     }
 
-    err = git_commit_create(&oid, self->repo, NULL,
-        author, committer, message, &tree_oid,
-        parent_count, (const git_oid**)parents);
+    err = git_commit_create(&oid, self->repo, update_ref, author, committer,
+        message, &tree_oid, parent_count, (const git_oid**)parents);
     free_parents(parents, parent_count);
     if (err < 0)
         return Error_set(err);
