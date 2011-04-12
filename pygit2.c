@@ -49,6 +49,7 @@ OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
 OBJECT_STRUCT(Blob, git_blob, blob)
+OBJECT_STRUCT(Walker, git_revwalk, walk)
 
 typedef struct {
     PyObject_HEAD
@@ -77,9 +78,8 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    Repository *repo;
-    git_revwalk *walk;
-} Walker;
+    git_reference *reference;
+} Reference;
 
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
@@ -91,6 +91,7 @@ static PyTypeObject TagType;
 static PyTypeObject IndexType;
 static PyTypeObject IndexEntryType;
 static PyTypeObject WalkerType;
+static PyTypeObject ReferenceType;
 
 static PyObject *GitError;
 
@@ -163,6 +164,46 @@ Error_set_py_obj(int err, PyObject *py_obj) {
     return NULL;
 }
 
+static Object *
+wrap_object(git_object *obj, Repository *repo) {
+    Object *py_obj = NULL;
+    switch (git_object_type(obj)) {
+        case GIT_OBJ_COMMIT:
+            py_obj = (Object*)CommitType.tp_alloc(&CommitType, 0);
+            break;
+        case GIT_OBJ_TREE:
+            py_obj = (Object*)TreeType.tp_alloc(&TreeType, 0);
+            break;
+        case GIT_OBJ_BLOB:
+            py_obj = (Object*)BlobType.tp_alloc(&BlobType, 0);
+            break;
+        case GIT_OBJ_TAG:
+            py_obj = (Object*)TagType.tp_alloc(&TagType, 0);
+            break;
+        default:
+            assert(0);
+    }
+    if (!py_obj)
+        return (Object*)PyErr_NoMemory();
+
+    py_obj->obj = obj;
+    py_obj->repo = repo;
+    Py_INCREF(repo);
+    return py_obj;
+}
+
+static PyObject *
+wrap_reference(git_reference * c_reference)
+{
+    Reference *py_reference=NULL;
+
+    py_reference = (Reference *)ReferenceType.tp_alloc(&ReferenceType, 0);
+    if (py_reference == NULL)
+        return NULL;
+    py_reference->reference = c_reference;
+    return (PyObject *)py_reference;
+}
+
 static int
 py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
     char *hex;
@@ -224,34 +265,6 @@ Repository_contains(Repository *self, PyObject *value) {
     return git_odb_exists(git_repository_database(self->repo), &oid);
 }
 
-static Object *
-wrap_object(git_object *obj, Repository *repo) {
-    Object *py_obj = NULL;
-    switch (git_object_type(obj)) {
-        case GIT_OBJ_COMMIT:
-            py_obj = (Object*)CommitType.tp_alloc(&CommitType, 0);
-            break;
-        case GIT_OBJ_TREE:
-            py_obj = (Object*)TreeType.tp_alloc(&TreeType, 0);
-            break;
-        case GIT_OBJ_BLOB:
-            py_obj = (Object*)BlobType.tp_alloc(&BlobType, 0);
-            break;
-        case GIT_OBJ_TAG:
-            py_obj = (Object*)TagType.tp_alloc(&TagType, 0);
-            break;
-        default:
-            assert(0);
-    }
-    if (!py_obj)
-        return (Object*)PyErr_NoMemory();
-
-    py_obj->obj = obj;
-    py_obj->repo = repo;
-    Py_INCREF(repo);
-    return py_obj;
-}
-
 static PyObject *
 Repository_getitem(Repository *self, PyObject *value) {
     git_oid oid;
@@ -273,7 +286,8 @@ Repository_getitem(Repository *self, PyObject *value) {
 }
 
 static int
-Repository_read_raw(git_odb_object **obj, git_repository *repo, const git_oid *oid) {
+Repository_read_raw(git_odb_object **obj, git_repository *repo,
+                    const git_oid *oid) {
     return git_odb_read(obj, git_repository_database(repo), oid);
 }
 
@@ -485,6 +499,87 @@ Repository_create_tag(Repository *self, PyObject *args) {
     return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
 }
 
+static PyObject *
+Repository_listall_references(Repository *self, PyObject *args)
+{
+    git_strarray c_result;
+    PyObject *py_result, *py_string;
+    unsigned index;
+    int err;
+
+    /* 1- Get the C result */
+    /* TODO We can choose an other option (instead of GIT_REF_LISTALL) */
+    err = git_reference_listall (&c_result, self->repo, GIT_REF_LISTALL);
+    if (err < 0)
+        return Error_set(err);
+
+    /* 2- Create a new PyTuple */
+    if ( (py_result = PyTuple_New(c_result.count)) == NULL) {
+        git_strarray_free(&c_result);
+        return NULL;
+    }
+
+    /* 3- Fill it */
+    for (index=0; index < c_result.count; index++) {
+        if ((py_string = PyString_FromString( (c_result.strings)[index] ))
+             == NULL) {
+            Py_XDECREF(py_result);
+            git_strarray_free(&c_result);
+            return NULL;
+        }
+        PyTuple_SET_ITEM(py_result, index, py_string);
+    }
+
+    /* 4- Destroy the c_result */
+    git_strarray_free(&c_result);
+
+    /* 5- And return the py_result */
+    return py_result;
+}
+
+static PyObject *
+Repository_lookup_reference(Repository *self, PyObject *py_name)
+{
+    git_reference *c_reference;
+    char *c_name;
+    int err;
+
+    /* 1- Get the C name */
+    c_name = PyString_AsString(py_name);
+    if (c_name == NULL)
+        return NULL;
+
+    /* 2- Lookup */
+    err = git_reference_lookup(&c_reference, self->repo, c_name);
+    if (err < 0)
+      return Error_set(err);
+
+    /* 3- Make an instance of Reference and return it */
+    return wrap_reference(c_reference);
+}
+
+static PyObject *
+Repository_create_reference(Repository *self,  PyObject *args)
+{
+    git_reference *c_reference;
+    char *c_name;
+    git_oid oid;
+    int err;
+
+    /* 1- Get the C variables */
+    if (!PyArg_ParseTuple(args, "sO&", &c_name,
+                                       py_str_to_git_oid, &oid))
+        return NULL;
+
+    /* 2- Create the reference */
+    err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid);
+    if (err < 0)
+      return Error_set(err);
+
+    /* 3- Make an instance of Reference and return it */
+    return wrap_reference(c_reference);
+}
+
 static PyMethodDef Repository_methods[] = {
     {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
      "Create a new commit object, return its SHA."},
@@ -494,6 +589,15 @@ static PyMethodDef Repository_methods[] = {
      "Generator that traverses the history starting from the given commit."},
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
+    {"listall_references", (PyCFunction)Repository_listall_references,
+      METH_NOARGS,
+      "Return a list with all the references that can be found in a "
+      "repository."},
+    {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
+       "Lookup a reference by its name in a repository."},
+    {"create_reference", (PyCFunction)Repository_create_reference, METH_VARARGS,
+     "Create a new reference \"name\" that points to the object given by its "
+     "\"sha\"."},
     {NULL}
 };
 
@@ -530,7 +634,7 @@ static PyTypeObject RepositoryType = {
     0,                                         /* tp_getattr */
     0,                                         /* tp_setattr */
     0,                                         /* tp_compare */
-    0,                                         /* tp_repr */
+    0,                                        /* tp_repr */
     0,                                         /* tp_as_number */
     &Repository_as_sequence,                   /* tp_as_sequence */
     &Repository_as_mapping,                    /* tp_as_mapping */
@@ -1713,6 +1817,131 @@ static PyTypeObject WalkerType = {
 };
 
 static PyObject *
+Reference_resolve(Reference *self, PyObject *args)
+{
+    git_reference *c_reference;
+    int err;
+
+    /* 1- Resolve */
+    err = git_reference_resolve(&c_reference, self->reference);
+    if (err < 0)
+      return Error_set(err);
+
+    /* 2- Make an instance of Reference and return it */
+    return wrap_reference(c_reference);
+}
+
+static PyObject *
+Reference_get_target(Reference *self, PyObject *args)
+{
+    const char * c_name;
+
+    /* 1- Get the target */
+    c_name = git_reference_target(self->reference);
+    if (c_name == NULL) {
+        PyErr_Format(PyExc_ValueError, "Not target available");
+        return NULL;
+    }
+
+    /* 2- Make a PyString and return it */
+    return PyString_FromString(c_name);
+}
+
+static PyObject *
+Reference_get_name(Reference *self) {
+    const char *c_name;
+
+    c_name = git_reference_name(self->reference);
+    return PyString_FromString(c_name);
+}
+
+static PyObject *
+Reference_get_sha(Reference *self) {
+    char hex[GIT_OID_HEXSZ];
+    const git_oid *oid;
+
+    /* 1- Get the oid (only for "direct" references) */
+    oid = git_reference_oid(self->reference);
+    if (oid == NULL)
+    {
+        PyErr_Format(PyExc_ValueError,
+        "sha is only available if the reference is direct (i.e. not symbolic)");
+        return NULL;
+    }
+
+    /* 2- Convert and return it */
+    git_oid_fmt(hex, oid);
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+}
+
+static PyObject *
+Reference_get_type(Reference *self) {
+    git_rtype c_type;
+
+    c_type = git_reference_type(self->reference);
+    return PyInt_FromLong(c_type);
+}
+
+static PyMethodDef Reference_methods[] = {
+    {"resolve", (PyCFunction)Reference_resolve, METH_NOARGS,
+      "Resolve a symbolic reference and return a direct reference"},
+    {"get_target", (PyCFunction)Reference_get_target, METH_NOARGS,
+      "Get full name to the reference pointed by this symbolic reference."},
+    {NULL}
+};
+
+static PyGetSetDef Reference_getseters[] = {
+    {"name", (getter)Reference_get_name, NULL,
+     "The full name of a reference.", NULL},
+    {"sha", (getter)Reference_get_sha, NULL, "hex SHA",  NULL},
+    {"type", (getter)Reference_get_type, NULL,
+     "type (GIT_REF_OID, GIT_REF_SYMBOLIC or GIT_REF_PACKED).", NULL},
+    {NULL}
+};
+
+static PyTypeObject ReferenceType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /* ob_size */
+    "pygit2.Reference",                        /* tp_name */
+    sizeof(Reference),                         /* tp_basicsize */
+    0,                                         /* tp_itemsize */
+    0,                                         /* tp_dealloc */
+    0,                                         /* tp_print */
+    0,                                         /* tp_getattr */
+    0,                                         /* tp_setattr */
+    0,                                         /* tp_compare */
+    0,                                         /* tp_repr */
+    0,                                         /* tp_as_number */
+    0,                                         /* tp_as_sequence */
+    0,                                         /* tp_as_mapping */
+    0,                                         /* tp_hash */
+    0,                                         /* tp_call */
+    0,                                         /* tp_str */
+    0,                                         /* tp_getattro */
+    0,                                         /* tp_setattro */
+    0,                                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags */
+    "Reference",                               /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    Reference_methods,                         /* tp_methods */
+    0,                                         /* tp_members */
+    Reference_getseters,                       /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    0,                                         /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
+static PyObject *
 init_repository(PyObject *self, PyObject *args) {
     git_repository *repo;
     Repository *py_repo;
@@ -1786,6 +2015,9 @@ initpygit2(void)
     WalkerType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&WalkerType) < 0)
         return;
+    ReferenceType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&ReferenceType) < 0)
+        return;
 
     m = Py_InitModule3("pygit2", module_methods,
                        "Python bindings for libgit2.");
@@ -1823,6 +2055,9 @@ initpygit2(void)
     Py_INCREF(&IndexEntryType);
     PyModule_AddObject(m, "IndexEntry", (PyObject *)&IndexEntryType);
 
+    Py_INCREF(&ReferenceType);
+    PyModule_AddObject(m, "Reference", (PyObject *)&ReferenceType);
+
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
     PyModule_AddIntConstant(m, "GIT_OBJ_TREE", GIT_OBJ_TREE);
@@ -1832,4 +2067,7 @@ initpygit2(void)
     PyModule_AddIntConstant(m, "GIT_SORT_TOPOLOGICAL", GIT_SORT_TOPOLOGICAL);
     PyModule_AddIntConstant(m, "GIT_SORT_TIME", GIT_SORT_TIME);
     PyModule_AddIntConstant(m, "GIT_SORT_REVERSE", GIT_SORT_REVERSE);
+    PyModule_AddIntConstant(m,"GIT_REF_OID", GIT_REF_OID);
+    PyModule_AddIntConstant(m,"GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
+    PyModule_AddIntConstant(m,"GIT_REF_PACKED", GIT_REF_PACKED);
 }
