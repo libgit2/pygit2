@@ -500,26 +500,29 @@ Repository_create_tag(Repository *self, PyObject *args) {
 }
 
 static PyObject *
-Repository_listall_references(Repository *self, PyObject *args)
-{
+Repository_listall_references(Repository *self, PyObject *args) {
+    unsigned list_flags=GIT_REF_LISTALL;
     git_strarray c_result;
     PyObject *py_result, *py_string;
     unsigned index;
     int err;
 
-    /* 1- Get the C result */
-    /* TODO We can choose an other option (instead of GIT_REF_LISTALL) */
-    err = git_reference_listall (&c_result, self->repo, GIT_REF_LISTALL);
+    /* 1- Get list_flags */
+    if (!PyArg_ParseTuple(args, "|I", &list_flags))
+        return NULL;
+
+    /* 2- Get the C result */
+    err = git_reference_listall(&c_result, self->repo, list_flags);
     if (err < 0)
         return Error_set(err);
 
-    /* 2- Create a new PyTuple */
+    /* 3- Create a new PyTuple */
     if ( (py_result = PyTuple_New(c_result.count)) == NULL) {
         git_strarray_free(&c_result);
         return NULL;
     }
 
-    /* 3- Fill it */
+    /* 4- Fill it */
     for (index=0; index < c_result.count; index++) {
         if ((py_string = PyString_FromString( (c_result.strings)[index] ))
              == NULL) {
@@ -530,16 +533,15 @@ Repository_listall_references(Repository *self, PyObject *args)
         PyTuple_SET_ITEM(py_result, index, py_string);
     }
 
-    /* 4- Destroy the c_result */
+    /* 5- Destroy the c_result */
     git_strarray_free(&c_result);
 
-    /* 5- And return the py_result */
+    /* 6- And return the py_result */
     return py_result;
 }
 
 static PyObject *
-Repository_lookup_reference(Repository *self, PyObject *py_name)
-{
+Repository_lookup_reference(Repository *self, PyObject *py_name) {
     git_reference *c_reference;
     char *c_name;
     int err;
@@ -559,8 +561,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 }
 
 static PyObject *
-Repository_create_reference(Repository *self,  PyObject *args)
-{
+Repository_create_reference(Repository *self,  PyObject *args) {
     git_reference *c_reference;
     char *c_name;
     git_oid oid;
@@ -580,6 +581,39 @@ Repository_create_reference(Repository *self,  PyObject *args)
     return wrap_reference(c_reference);
 }
 
+static PyObject *
+Repository_create_symbolic_reference(Repository *self,  PyObject *args) {
+    git_reference *c_reference;
+    char *c_name, *c_target;
+    int err;
+
+    /* 1- Get the C variables */
+    if (!PyArg_ParseTuple(args, "ss", &c_name, &c_target))
+        return NULL;
+
+    /* 2- Create the reference */
+    err = git_reference_create_symbolic(&c_reference, self->repo, c_name,
+                                        c_target);
+    if (err < 0)
+      return Error_set(err);
+
+    /* 3- Make an instance of Reference and return it */
+    return wrap_reference(c_reference);
+}
+
+static PyObject *
+Repository_packall_references(Repository *self,  PyObject *args) {
+    int err;
+
+    /* 1- Pack */
+    err = git_reference_packall(self->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    /* 2- Return None */
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef Repository_methods[] = {
     {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
      "Create a new commit object, return its SHA."},
@@ -590,7 +624,7 @@ static PyMethodDef Repository_methods[] = {
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
     {"listall_references", (PyCFunction)Repository_listall_references,
-      METH_NOARGS,
+      METH_VARARGS,
       "Return a list with all the references that can be found in a "
       "repository."},
     {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
@@ -598,6 +632,12 @@ static PyMethodDef Repository_methods[] = {
     {"create_reference", (PyCFunction)Repository_create_reference, METH_VARARGS,
      "Create a new reference \"name\" that points to the object given by its "
      "\"sha\"."},
+    {"create_symbolic_reference",
+      (PyCFunction)Repository_create_symbolic_reference, METH_VARARGS,
+     "Create a new symbolic reference \"name\" that points to the reference "
+     "\"target\"."},
+    {"packall_references", (PyCFunction)Repository_packall_references,
+     METH_NOARGS, "Pack all the loose references in the repository."},
     {NULL}
 };
 
@@ -1817,8 +1857,42 @@ static PyTypeObject WalkerType = {
 };
 
 static PyObject *
-Reference_resolve(Reference *self, PyObject *args)
-{
+Reference_delete(Reference *self, PyObject *args) {
+    int err;
+
+    /* 1- Delete the reference */
+    err = git_reference_delete(self->reference);
+    if (err < 0)
+      return Error_set(err);
+
+    /* 2- Invalidate the pointer */
+    self->reference = NULL;
+
+    /* 3- Return None */
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Reference_rename(Reference *self, PyObject *py_name) {
+    char *c_name;
+    int err;
+
+    /* 1- Get the C name */
+    c_name = PyString_AsString(py_name);
+    if (c_name == NULL)
+        return NULL;
+
+    /* 2- Rename */
+    err = git_reference_rename(self->reference, c_name);
+    if (err < 0)
+      return Error_set(err);
+
+    /* 3- Return None */
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Reference_resolve(Reference *self, PyObject *args) {
     git_reference *c_reference;
     int err;
 
@@ -1832,8 +1906,7 @@ Reference_resolve(Reference *self, PyObject *args)
 }
 
 static PyObject *
-Reference_get_target(Reference *self, PyObject *args)
-{
+Reference_get_target(Reference *self) {
     const char * c_name;
 
     /* 1- Get the target */
@@ -1845,6 +1918,27 @@ Reference_get_target(Reference *self, PyObject *args)
 
     /* 2- Make a PyString and return it */
     return PyString_FromString(c_name);
+}
+
+static int
+Reference_set_target(Reference *self, PyObject *py_name) {
+    char *c_name;
+    int err;
+
+    /* 1- Get the C name */
+    c_name = PyString_AsString(py_name);
+    if (c_name == NULL)
+        return -1;
+
+    /* 2- Set the new target */
+    err = git_reference_set_target(self->reference, c_name);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    /* 3- All OK */
+    return 0;
 }
 
 static PyObject *
@@ -1874,6 +1968,26 @@ Reference_get_sha(Reference *self) {
     return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
 }
 
+static int
+Reference_set_sha(Reference *self, PyObject *py_sha) {
+    git_oid oid;
+    int err;
+
+    /* 1- Get the oid from the py_sha */
+    if (!py_str_to_git_oid(py_sha, &oid))
+        return -1;
+
+    /* 2- Set the oid */
+    err = git_reference_set_oid (self->reference, &oid);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    /* 3- All OK */
+    return 0;
+}
+
 static PyObject *
 Reference_get_type(Reference *self) {
     git_rtype c_type;
@@ -1883,17 +1997,22 @@ Reference_get_type(Reference *self) {
 }
 
 static PyMethodDef Reference_methods[] = {
+    {"delete", (PyCFunction)Reference_delete, METH_NOARGS,
+     "Delete this reference. It will no longer be valid!"},
+    {"rename", (PyCFunction)Reference_rename, METH_O,
+      "Rename the reference."},
     {"resolve", (PyCFunction)Reference_resolve, METH_NOARGS,
-      "Resolve a symbolic reference and return a direct reference"},
-    {"get_target", (PyCFunction)Reference_get_target, METH_NOARGS,
-      "Get full name to the reference pointed by this symbolic reference."},
+      "Resolve a symbolic reference and return a direct reference."},
     {NULL}
 };
 
 static PyGetSetDef Reference_getseters[] = {
     {"name", (getter)Reference_get_name, NULL,
      "The full name of a reference.", NULL},
-    {"sha", (getter)Reference_get_sha, NULL, "hex SHA",  NULL},
+    {"sha", (getter)Reference_get_sha, (setter)Reference_set_sha, "hex SHA",
+     NULL},
+    {"target", (getter)Reference_get_target, (setter)Reference_set_target,
+     "target", NULL},
     {"type", (getter)Reference_get_type, NULL,
      "type (GIT_REF_OID, GIT_REF_SYMBOLIC or GIT_REF_PACKED).", NULL},
     {NULL}
