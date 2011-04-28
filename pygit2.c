@@ -342,6 +342,25 @@ Repository_get_index(Repository *self, void *closure) {
 }
 
 static PyObject *
+Repository_get_path(Repository *self, void *closure) {
+    const char *c_path;
+
+    c_path = git_repository_path(self->repo);
+    return PyString_FromString(c_path);
+}
+
+static PyObject *
+Repository_get_workdir(Repository *self, void *closure) {
+    const char *c_path;
+
+    c_path = git_repository_workdir(self->repo);
+    if (c_path == NULL)
+        Py_RETURN_NONE;
+
+    return PyString_FromString(c_path);
+}
+
+static PyObject *
 Repository_walk(Repository *self, PyObject *args)
 {
     PyObject *value;
@@ -643,6 +662,11 @@ static PyMethodDef Repository_methods[] = {
 
 static PyGetSetDef Repository_getseters[] = {
     {"index", (getter)Repository_get_index, NULL, "index file. ", NULL},
+    {"path", (getter)Repository_get_path, NULL,
+     "The normalized path to the git repository.", NULL},
+    {"workdir", (getter)Repository_get_workdir, NULL,
+     "The normalized path to the working directory of the repository. "
+     "If the repository is bare, None will be returned.", NULL},
     {NULL}
 };
 

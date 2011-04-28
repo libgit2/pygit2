@@ -31,6 +31,7 @@ __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 import binascii
 import unittest
+from os.path import join, abspath
 
 import pygit2
 import utils
@@ -74,6 +75,29 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)
+
+    def test_get_path(self):
+        directory = abspath(self.repo.path)
+        expected = abspath(join(self._temp_dir, 'testrepo.git'))
+        self.assertEqual(directory, expected)
+
+    def test_get_workdir(self):
+        self.assertEqual(self.repo.workdir, None)
+
+
+
+class RepositoryTest_II(utils.RepoTestCase):
+
+    def test_get_path(self):
+        directory = abspath(self.repo.path)
+        expected = abspath(join(self._temp_dir, 'testrepo', '.git'))
+        self.assertEqual(directory, expected)
+
+    def test_get_workdir(self):
+        directory = abspath(self.repo.workdir)
+        expected = abspath(join(self._temp_dir, 'testrepo'))
+        self.assertEqual(directory, expected)
+
 
 
 if __name__ == '__main__':
