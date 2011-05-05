@@ -164,9 +164,20 @@ Error_set_py_obj(int err, PyObject *py_obj) {
     return NULL;
 }
 
-static Object *
-wrap_object(git_object *obj, Repository *repo) {
+static PyObject *
+lookup_object(Repository *repo, const git_oid *oid, git_otype type) {
+    int err;
+    char hex[GIT_OID_HEXSZ + 1];
+    git_object *obj;
     Object *py_obj = NULL;
+
+    err = git_object_lookup(&obj, repo->repo, oid, type);
+    if (err < 0) {
+        git_oid_fmt(hex, oid);
+        hex[GIT_OID_HEXSZ] = '\0';
+        return Error_set_str(err, hex);
+    }
+
     switch (git_object_type(obj)) {
         case GIT_OBJ_COMMIT:
             py_obj = (Object*)CommitType.tp_alloc(&CommitType, 0);
@@ -184,12 +195,12 @@ wrap_object(git_object *obj, Repository *repo) {
             assert(0);
     }
     if (!py_obj)
-        return (Object*)PyErr_NoMemory();
+        return PyErr_NoMemory();
 
     py_obj->obj = obj;
     py_obj->repo = repo;
     Py_INCREF(repo);
-    return py_obj;
+    return (PyObject*)py_obj;
 }
 
 static PyObject *
@@ -268,21 +279,12 @@ Repository_contains(Repository *self, PyObject *value) {
 static PyObject *
 Repository_getitem(Repository *self, PyObject *value) {
     git_oid oid;
-    int err;
     git_object *obj;
-    Object *py_obj;
 
     if (!py_str_to_git_oid(value, &oid))
         return NULL;
 
-    err = git_object_lookup(&obj, self->repo, &oid, GIT_OBJ_ANY);
-    if (err < 0)
-        return Error_set_py_obj(err, value);
-
-    py_obj = wrap_object(obj, self);
-    if (!py_obj)
-        return NULL;
-    return (PyObject*)py_obj;
+    return lookup_object(self, &oid, GIT_OBJ_ANY);
 }
 
 static int
@@ -890,8 +892,7 @@ static PyObject *
 Commit_get_parents(Commit *commit)
 {
     unsigned int i, parent_count;
-    int err;
-    git_commit *parent;
+    const git_oid *parent_oid;
     PyObject *obj;
     PyObject *list;
 
@@ -901,13 +902,13 @@ Commit_get_parents(Commit *commit)
         return NULL;
 
     for (i=0; i < parent_count; i++) {
-        err = git_commit_parent(&parent, commit->commit, i);
-        if (err < 0) {
+        parent_oid = git_commit_parent_oid(commit->commit, i);
+        if (parent_oid == NULL) {
             Py_DECREF(list);
-            Error_set(err);
+            Error_set(GIT_ENOTFOUND);
             return NULL;
         }
-        obj = (PyObject*)wrap_object((git_object *)parent, commit->repo);
+        obj = lookup_object(commit->repo, parent_oid, GIT_OBJ_COMMIT);
         if (obj == NULL) {
             Py_DECREF(list);
             return NULL;
@@ -1000,17 +1001,10 @@ TreeEntry_get_sha(TreeEntry *self) {
 
 static PyObject *
 TreeEntry_to_object(TreeEntry *self) {
-    git_object *obj;
-    int err;
-    char hex[GIT_OID_HEXSZ + 1];
+    const git_oid *entry_oid;
 
-    err = git_tree_entry_2object(&obj, self->tree->repo->repo, self->entry);
-    if (err < 0) {
-        git_oid_fmt(hex, git_tree_entry_id(self->entry));
-        hex[GIT_OID_HEXSZ] = '\0';
-        return Error_set_str(err, hex);
-    }
-    return (PyObject*)wrap_object(obj, self->tree->repo);
+    entry_oid = git_tree_entry_id(self->entry);
+    return lookup_object(self->tree->repo, entry_oid, GIT_OBJ_ANY);
 }
 
 static PyGetSetDef TreeEntry_getseters[] = {
@@ -1284,20 +1278,15 @@ Tag_dealloc(Tag *self) {
 
 static PyObject *
 Tag_get_target(Tag *self) {
-    git_object *target;
-    int err;
+    const git_oid *target_oid;
+    git_otype target_type;
 
     if (self->target == NULL) {
-        err = git_tag_target(&target, self->tag);
-        if (err == GIT_ENOTFOUND) {
-            /* This can only happen if we have a new tag with no target set
-             * yet. */
-            Py_INCREF(Py_None);
-            self->target = Py_None;
-        } else if (err < 0)
-            return Error_set(err);
-        else
-            self->target = (PyObject*)wrap_object(target, self->repo);
+        target_oid = git_tag_target_oid(self->tag);
+        target_type = git_tag_type(self->tag);
+        self->target = lookup_object(self->repo, target_oid, target_type);
+        if (self->target == NULL)
+            return NULL;
     }
 
     Py_INCREF(self->target);
