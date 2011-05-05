@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 #
 # Copyright 2010 Google, Inc.
+# Copyright 2011 Itaapy
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -72,8 +73,8 @@ setup(name='pygit2',
       version='0.1',
       url='http://github.com/libgit2/pygit2',
       license='GPLv2',
-      author='David Borowitz',
-      author_email='dborowitz@google.com',
+      maintainer='J. David Ibáñez',
+      maintainer_email='jdavid@itaapy.com',
       long_description="""
       Bindings for libgit2, a linkable C library for the Git version-control
       system.
