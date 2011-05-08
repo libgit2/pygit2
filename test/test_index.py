@@ -88,6 +88,10 @@ class IndexTest(utils.RepoTestCase):
         index.read()
         self.assertTrue('bye.txt' in index)
 
+    def test_iter(self):
+        index = self.repo.index
+        entries = [index[x] for x in xrange(len(index))]
+        self.assertNotEqual(list(index), entries)
 
 if __name__ == '__main__':
     unittest.main()
