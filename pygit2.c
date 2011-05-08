@@ -72,6 +72,12 @@ typedef struct {
 } Index;
 
 typedef struct {
+  PyObject_HEAD
+  Index *owner;
+  Py_ssize_t i;
+} IndexIter;
+
+typedef struct {
     PyObject_HEAD
     git_index_entry *entry;
 } IndexEntry;
@@ -89,11 +95,16 @@ static PyTypeObject TreeType;
 static PyTypeObject BlobType;
 static PyTypeObject TagType;
 static PyTypeObject IndexType;
+static PyTypeObject IndexIterType;
 static PyTypeObject IndexEntryType;
 static PyTypeObject WalkerType;
 static PyTypeObject ReferenceType;
 
 static PyObject *GitError;
+
+static PyObject * IndexIter_new(PyTypeObject *, Index *);
+static void       IndexIter_dealloc(IndexIter *);
+static PyObject * IndexIter_iternext(IndexIter *);
 
 static PyObject *
 Error_type(int err) {
@@ -1515,6 +1526,11 @@ Index_contains(Index *self, PyObject *value) {
     return 1;
 }
 
+static PyObject *
+Index_iter(Index *self) {
+  return IndexIter_new(&IndexIterType, self);
+}
+
 static Py_ssize_t
 Index_len(Index *self) {
     return (Py_ssize_t)git_index_entrycount(self->index);
@@ -1647,7 +1663,7 @@ static PyTypeObject IndexType = {
     0,                                         /* tp_clear */
     0,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
+    (getiterfunc)Index_iter,                   /* tp_iter */
     0,                                         /* tp_iternext */
     Index_methods,                             /* tp_methods */
     0,                                         /* tp_members */
@@ -1661,6 +1677,71 @@ static PyTypeObject IndexType = {
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
+
+
+static PyObject *
+IndexIter_new(PyTypeObject *type, Index *owner) {
+  IndexIter *self = PyObject_New(IndexIter, type);
+  if (self != NULL) {
+    Py_INCREF(owner);
+    self->owner = owner;
+    self->i = 0;
+  }
+  return (PyObject *)self;
+}
+
+static void
+IndexIter_dealloc(IndexIter *self) {
+  Py_CLEAR(self->owner);
+  PyObject_Del(self);
+}
+
+static PyObject *
+IndexIter_iternext(IndexIter *self) {
+  PyObject *value = NULL, *entry = NULL;
+
+  if (self->i >= Index_len(self->owner))
+    return NULL;
+
+  value = PyInt_FromSsize_t(self->i++);
+  if (value == NULL)
+    return NULL;
+
+  entry = Index_getitem(self->owner, value);
+  Py_CLEAR(value);
+  return entry;
+}
+
+static PyTypeObject IndexIterType = {
+   PyVarObject_HEAD_INIT(&PyType_Type, 0)
+   "pygit2.IndexIter",                      /* tp_name           */
+   sizeof(IndexIter),                       /* tp_basicsize      */
+   0,                                       /* tp_itemsize       */
+   (destructor)IndexIter_dealloc ,          /* tp_dealloc        */
+   0,                                       /* tp_print          */
+   0,                                       /* tp_getattr        */
+   0,                                       /* tp_setattr        */
+   0,                                       /* tp_compare        */
+   0,                                       /* tp_repr           */
+   0,                                       /* tp_as_number      */
+   0,                                       /* tp_as_sequence    */
+   0,                                       /* tp_as_mapping     */
+   0,                                       /* tp_hash           */
+   0,                                       /* tp_call           */
+   0,                                       /* tp_str            */
+   PyObject_GenericGetAttr,                 /* tp_getattro       */
+   0,                                       /* tp_setattro       */
+   0,                                       /* tp_as_buffer      */
+   Py_TPFLAGS_DEFAULT |
+   Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
+   0,                                       /* tp_doc            */
+   0,                                       /* tp_traverse       */
+   0,                                       /* tp_clear          */
+   0,                                       /* tp_richcompare    */
+   0,                                       /* tp_weaklistoffset */
+   PyObject_SelfIter,                       /* tp_iter           */
+   (iternextfunc)IndexIter_iternext,        /* tp_iternext       */
+ };
 
 static void
 IndexEntry_dealloc(IndexEntry *self) {
