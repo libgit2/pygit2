@@ -119,14 +119,14 @@ Error_set(int err) {
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. If the caller called
          * this instead of Error_set_py_obj, it means we don't know the key, but
-         * nor should we use git_strerror. */
+         * nor should we use git_lasterror. */
         PyErr_SetNone(PyExc_KeyError);
         return NULL;
     } else if (err == GIT_EOSERR) {
         PyErr_SetFromErrno(GitError);
         return NULL;
     }
-    PyErr_SetString(Error_type(err), git_strerror(err));
+    PyErr_SetString(Error_type(err), git_lasterror());
     return NULL;
 }
 
@@ -137,7 +137,7 @@ Error_set_str(int err, const char *str) {
         PyErr_Format(PyExc_KeyError, "%s", str);
         return NULL;
     }
-    PyErr_Format(Error_type(err), "%s: %s", str, git_strerror(err));
+    PyErr_Format(Error_type(err), "%s: %s", str, git_lasterror());
     return NULL;
 }
 
@@ -159,7 +159,7 @@ Error_set_py_obj(int err, PyObject *py_obj) {
     }
     py_str = PyObject_Str(py_obj);
     str = py_str ? PyString_AS_STRING(py_str) : "<error in __str__>";
-    PyErr_Format(Error_type(err), "%s: %s", str, git_strerror(err));
+    PyErr_Format(Error_type(err), "%s: %s", str, git_lasterror());
     Py_XDECREF(py_str);
     return NULL;
 }
