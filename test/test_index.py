@@ -89,6 +89,10 @@ class IndexTest(utils.RepoTestCase):
         sha = self.repo.index.create_tree()
         self.assertEqual(sha, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
+    def test_iter(self):
+        index = self.repo.index
+        entries = [index[x] for x in xrange(len(index))]
+        self.assertNotEqual(list(index), entries)
 
 if __name__ == '__main__':
     unittest.main()
