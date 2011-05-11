@@ -6,7 +6,7 @@ pygit2 is a set of Python 2.5+ bindings to the libgit2 linkable C Git library.
 INSTALLING AND RUNNING
 ========================
 
-First you need to install the latest version of libgit2. 
+First you need to install the latest version of libgit2.
 You can find platform-specific instructions to build the library in the libgit2 website:
 
   <http://libgit2.github.com>
@@ -20,7 +20,7 @@ Also, make sure you have Python 2.5+ installed together with the Python developm
 
 When those are installed, you can install pygit2:
 
-    $ git clone git://github.com/libgit2/pygit2.git 
+    $ git clone git://github.com/libgit2/pygit2.git
     $ cd pygit2
     $ python setup.py install
     $ python setup.py test
@@ -56,7 +56,7 @@ Iterate over all entries of the index:
 Index write:
 
     >>> index.add('path/to/file')          # git add
-    >>> del index['path/to/file']          # gig rm
+    >>> del index['path/to/file']          # git rm
     >>> index.write()                      # don't forget to save the changes
 
 Revision walking:
@@ -73,7 +73,7 @@ Fork libgit2/pygit2 on GitHub, make it awesomer (preferably in a branch named
 for the topic), send a pull request.
 
 
-AUTHORS 
+AUTHORS
 ==============
 
 * David Borowitz <dborowitz@google.com>
