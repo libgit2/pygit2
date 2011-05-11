@@ -74,7 +74,7 @@ typedef struct {
 typedef struct {
   PyObject_HEAD
   Index *owner;
-  Py_ssize_t i;
+  int i;
 } IndexIter;
 
 typedef struct {
@@ -101,10 +101,6 @@ static PyTypeObject WalkerType;
 static PyTypeObject ReferenceType;
 
 static PyObject *GitError;
-
-static PyObject * IndexIter_new(PyTypeObject *, Index *);
-static void       IndexIter_dealloc(IndexIter *);
-static PyObject * IndexIter_iternext(IndexIter *);
 
 static PyObject *
 Error_type(int err) {
@@ -1528,7 +1524,16 @@ Index_contains(Index *self, PyObject *value) {
 
 static PyObject *
 Index_iter(Index *self) {
-  return IndexIter_new(&IndexIterType, self);
+  IndexIter *iter;
+
+  iter = PyObject_New(IndexIter, &IndexIterType);
+  if (!iter)
+      return NULL;
+
+  Py_INCREF(self);
+  iter->owner = self;
+  iter->i = 0;
+  return (PyObject*)iter;
 }
 
 static Py_ssize_t
@@ -1537,10 +1542,23 @@ Index_len(Index *self) {
 }
 
 static PyObject *
+wrap_index_entry(git_index_entry *entry, Index *index) {
+    IndexEntry *py_entry;
+
+    py_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
+    if (!py_entry)
+        return PyErr_NoMemory();
+
+    py_entry->entry = entry;
+
+    Py_INCREF(py_entry);
+    return (PyObject*)py_entry;
+}
+
+static PyObject *
 Index_getitem(Index *self, PyObject *value) {
     int idx;
     git_index_entry *index_entry;
-    IndexEntry *py_index_entry;
 
     idx = Index_get_position(self, value);
     if (idx == -1)
@@ -1552,14 +1570,7 @@ Index_getitem(Index *self, PyObject *value) {
         return NULL;
     }
 
-    py_index_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
-    if (!py_index_entry)
-        return PyErr_NoMemory();
-
-    py_index_entry->entry = index_entry;
-
-    Py_INCREF(py_index_entry);
-    return (PyObject*)py_index_entry;
+    return wrap_index_entry(index_entry, self);
 }
 
 static int
@@ -1679,37 +1690,23 @@ static PyTypeObject IndexType = {
 };
 
 
-static PyObject *
-IndexIter_new(PyTypeObject *type, Index *owner) {
-  IndexIter *self = PyObject_New(IndexIter, type);
-  if (self != NULL) {
-    Py_INCREF(owner);
-    self->owner = owner;
-    self->i = 0;
-  }
-  return (PyObject *)self;
-}
-
 static void
 IndexIter_dealloc(IndexIter *self) {
-  Py_CLEAR(self->owner);
-  PyObject_Del(self);
+    Py_CLEAR(self->owner);
+    PyObject_Del(self);
 }
 
 static PyObject *
 IndexIter_iternext(IndexIter *self) {
-  PyObject *value = NULL, *entry = NULL;
+    git_index_entry *index_entry;
+    PyObject *entry = NULL;
 
-  if (self->i >= Index_len(self->owner))
-    return NULL;
+    index_entry = git_index_get(self->owner->index, self->i);
+    if (!index_entry)
+        return NULL;
 
-  value = PyInt_FromSsize_t(self->i++);
-  if (value == NULL)
-    return NULL;
-
-  entry = Index_getitem(self->owner, value);
-  Py_CLEAR(value);
-  return entry;
+    self->i += 1;
+    return wrap_index_entry(index_entry, self->owner);
 }
 
 static PyTypeObject IndexIterType = {
