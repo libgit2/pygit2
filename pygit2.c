@@ -354,7 +354,7 @@ static PyObject *
 Repository_get_path(Repository *self, void *closure) {
     const char *c_path;
 
-    c_path = git_repository_path(self->repo);
+    c_path = git_repository_path(self->repo, GIT_REPO_PATH);
     return PyString_FromString(c_path);
 }
 
@@ -362,7 +362,7 @@ static PyObject *
 Repository_get_workdir(Repository *self, void *closure) {
     const char *c_path;
 
-    c_path = git_repository_workdir(self->repo);
+    c_path = git_repository_path(self->repo, GIT_REPO_PATH_WORKDIR);
     if (c_path == NULL)
         Py_RETURN_NONE;
 
@@ -1391,7 +1391,7 @@ Index_init(Index *self, PyObject *args, PyObject *kwds) {
     if (!PyArg_ParseTuple(args, "s", &path))
         return -1;
 
-    err = git_index_open_bare(&self->index, path);
+    err = git_index_open(&self->index, path);
     if (err < 0) {
         Error_set_str(err, path);
         return -1;
