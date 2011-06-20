@@ -233,7 +233,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
         return 0;
     }
 
-    err = git_oid_mkstr(oid, hex);
+    err = git_oid_fromstr(oid, hex);
     if (err < 0) {
         Error_set_py_obj(err, py_str);
         return 0;
