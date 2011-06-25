@@ -29,6 +29,12 @@
 #include <Python.h>
 #include <git2.h>
 
+/* Define PyVarObject_HEAD_INIT for Python 2.5 */
+#ifndef PyVarObject_HEAD_INIT
+#define PyVarObject_HEAD_INIT(type, size) \
+    PyObject_HEAD_INIT(type) size,
+#endif
+
 
 typedef struct {
     PyObject_HEAD
