@@ -292,7 +292,6 @@ Repository_contains(Repository *self, PyObject *value) {
 static PyObject *
 Repository_getitem(Repository *self, PyObject *value) {
     git_oid oid;
-    git_object *obj;
 
     if (!py_str_to_git_oid(value, &oid))
         return NULL;
@@ -1705,7 +1704,6 @@ IndexIter_dealloc(IndexIter *self) {
 static PyObject *
 IndexIter_iternext(IndexIter *self) {
     git_index_entry *index_entry;
-    PyObject *entry = NULL;
 
     index_entry = git_index_get(self->owner->index, self->i);
     if (!index_entry)
