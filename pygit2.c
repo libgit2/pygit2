@@ -238,14 +238,14 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
         Error_set_py_obj(GIT_ENOTOID, py_str);
         return 0;
     }
-    
+
     if (PyString_Size(py_str) == 20) {
         git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
         err = 0;
     } else {
         err = git_oid_fromstr(oid, hex_or_bin);
     }
-    
+
     if (err < 0) {
         Error_set_py_obj(err, py_str);
         return 0;
@@ -324,11 +324,14 @@ Repository_read(Repository *self, PyObject *py_hex) {
     if (err < 0)
         return Error_set_py_obj(err, py_hex);
 
-    return Py_BuildValue(
+    PyObject* tuple = Py_BuildValue(
         "(ns#)",
         git_odb_object_type(obj),
         git_odb_object_data(obj),
         git_odb_object_size(obj));
+
+    git_odb_object_close(obj);
+    return tuple;
 }
 
 static PyObject *
@@ -796,6 +799,8 @@ Object_read_raw(Object *self) {
     result = PyString_FromStringAndSize(
         git_odb_object_data(obj),
         git_odb_object_size(obj));
+
+    git_odb_object_close(obj);
 
 cleanup:
     Py_XDECREF(py_sha);
