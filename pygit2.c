@@ -850,6 +850,8 @@ Object_read_raw(Object *self) {
     result = PyString_FromStringAndSize(
         git_odb_object_data(obj),
         git_odb_object_size(obj));
+        
+    git_odb_object_close(obj);
 
 cleanup:
     Py_XDECREF(py_sha);
