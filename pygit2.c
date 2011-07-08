@@ -361,6 +361,7 @@ Repository_write(Repository *self, PyObject *args)
 {
     int err;
     git_oid oid;
+	git_odb_stream* stream;
     
     int type_id;
     const char* buffer;
@@ -374,9 +375,13 @@ Repository_write(Repository *self, PyObject *args)
         return Error_set_str(-100, "Invalid object type");
     
     git_odb* odb = git_repository_database(self->repo);
-    err = git_odb_write(&oid, odb, buffer, buflen, type_id);
-    if (err < 0)
-        return Error_set(err);
+	if ((err = git_odb_open_wstream(&stream, odb, buflen, type)) == GIT_SUCCESS) {
+		stream->write(stream, buffer, buflen);
+		err = stream->finalize_write(&oid, stream);
+		stream->free(stream);
+	}
+	if (err < 0)
+		return Error_set_str(err, "failed to write data");
     
     return git_oid_to_py_string(&oid);
 }
