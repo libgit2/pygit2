@@ -47,15 +47,15 @@ class ReferencesTest(utils.RepoTestCase):
         repo = self.repo
 
         # Without argument
-        self.assertEqual(repo.listall_references(),
-                         ('refs/heads/i18n', 'refs/heads/master'))
+        self.assertEqual(sorted(repo.listall_references()),
+                         ['refs/heads/i18n', 'refs/heads/master'])
 
         # We add a symbolic reference
         reference = repo.create_symbolic_reference('refs/tags/version1',
                                                    'refs/heads/master')
-        self.assertEqual(repo.listall_references(),
-                         ('refs/heads/i18n', 'refs/heads/master',
-                          'refs/tags/version1'))
+        self.assertEqual(sorted(repo.listall_references()),
+                         ['refs/heads/i18n', 'refs/heads/master',
+                          'refs/tags/version1'])
 
         # Now we list only the symbolic references
         self.assertEqual(repo.listall_references(GIT_REF_SYMBOLIC),
