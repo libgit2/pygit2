@@ -230,16 +230,22 @@ wrap_reference(git_reference * c_reference)
 
 static int
 py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
-    char *hex;
+    const char *hex_or_bin;
     int err;
 
-    hex = PyString_AsString(py_str);
-    if (hex == NULL) {
+    hex_or_bin = PyString_AsString(py_str);
+    if (hex_or_bin == NULL) {
         Error_set_py_obj(GIT_ENOTOID, py_str);
         return 0;
     }
-
-    err = git_oid_fromstr(oid, hex);
+	
+	if (PyString_Size(py_str) == 20) {
+		git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
+		err = 0;
+	} else {
+		err = git_oid_fromstr(oid, hex_or_bin);
+	}
+	
     if (err < 0) {
         Error_set_py_obj(err, py_str);
         return 0;
