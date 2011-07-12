@@ -97,6 +97,15 @@ class IndexTest(utils.RepoTestCase):
         #entries = [index[x] for x in xrange(n)]
         #self.assertEqual(list(index), entries)
 
+    def test_attributes(self):
+        """
+            Testing that we can access an index entry attributes.
+        """
+        index = self.repo.index
+
+        hello_attributes = index['hello.txt'].attributes
+        self.assertEqual(hello_attributes, 33188)
+
 
 if __name__ == '__main__':
     unittest.main()
