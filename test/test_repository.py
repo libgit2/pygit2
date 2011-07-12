@@ -44,10 +44,11 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)
-        self.assertRaises(ValueError, self.repo.read, A_BIN_SHA)
         self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read, '1' * 40)
 
+        ab = self.repo.read(A_BIN_SHA)
         a = self.repo.read(A_HEX_SHA)
+        self.assertEqual(ab, a)
         self.assertEqual((pygit2.GIT_OBJ_BLOB, 'a contents\n'), a)
 
         a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
@@ -55,13 +56,13 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
-        self.assertRaises(ValueError, lambda: A_BIN_SHA in self.repo)
+        self.assertTrue(A_BIN_SHA in self.repo)
         self.assertTrue(A_HEX_SHA in self.repo)
         self.assertFalse('a' * 40 in self.repo)
 
     def test_lookup_blob(self):
         self.assertRaises(TypeError, lambda: self.repo[123])
-        self.assertRaises(ValueError, lambda: self.repo[A_BIN_SHA])
+        self.assertEqual(self.repo[A_BIN_SHA].sha, A_HEX_SHA)
         a = self.repo[A_HEX_SHA]
         self.assertEqual('a contents\n', a.read_raw())
         self.assertEqual(A_HEX_SHA, a.sha)
