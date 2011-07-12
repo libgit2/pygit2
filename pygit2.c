@@ -1750,6 +1750,11 @@ IndexEntry_dealloc(IndexEntry *self) {
 }
 
 static PyObject *
+IndexEntry_get_attributes(IndexEntry *self) {
+    return PyInt_FromLong(self->entry->mode);
+}
+
+static PyObject *
 IndexEntry_get_path(IndexEntry *self) {
     return PyString_FromString(self->entry->path);
 }
@@ -1763,6 +1768,7 @@ IndexEntry_get_sha(IndexEntry *self) {
 }
 
 static PyGetSetDef IndexEntry_getseters[] = {
+    {"attributes", (getter)IndexEntry_get_attributes, NULL, "attributes", NULL},
     {"path", (getter)IndexEntry_get_path, NULL, "path", NULL},
     {"sha", (getter)IndexEntry_get_sha, NULL, "hex SHA",  NULL},
     {NULL},
