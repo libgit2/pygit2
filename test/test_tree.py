@@ -108,6 +108,16 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertRaises(TypeError, operator.setitem, 'c', tree['a'])
         self.assertRaises(TypeError, operator.delitem, 'c')
 
+    def test_iterate_tree(self):
+        """
+            Testing that we're able to iterate of a Tree object and that the
+            resulting sha strings are consitent with the sha strings we could
+            get with other Tree access methods.
+        """
+        tree = self.repo[TREE_SHA]
+        for tree_entry in tree:
+            self.assertEqual(tree_entry.sha, tree[tree_entry.name].sha)
+
 
 if __name__ == '__main__':
   unittest.main()

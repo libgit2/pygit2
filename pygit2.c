@@ -84,6 +84,12 @@ typedef struct {
 } IndexIter;
 
 typedef struct {
+  PyObject_HEAD
+  Tree *owner;
+  int i;
+} TreeIter;
+
+typedef struct {
     PyObject_HEAD
     git_index_entry *entry;
 } IndexEntry;
@@ -101,6 +107,7 @@ static PyTypeObject TreeType;
 static PyTypeObject BlobType;
 static PyTypeObject TagType;
 static PyTypeObject IndexType;
+static PyTypeObject TreeIterType;
 static PyTypeObject IndexIterType;
 static PyTypeObject IndexEntryType;
 static PyTypeObject WalkerType;
@@ -1156,6 +1163,21 @@ Tree_fix_index(Tree *self, PyObject *py_index) {
     return (int)index;
 }
 
+static PyObject *
+Tree_iter(Tree *self) {
+  TreeIter *iter;
+
+  iter = PyObject_New(TreeIter, &TreeIterType);
+  if (!iter)
+      return NULL;
+
+  Py_INCREF(self);
+  iter->owner = self;
+  iter->i = 0;
+
+  return (PyObject*)iter;
+}
+
 static TreeEntry *
 Tree_getitem_by_index(Tree *self, PyObject *py_index) {
     int index;
@@ -1231,7 +1253,7 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_clear */
     0,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
+    (getiterfunc)Tree_iter,                    /* tp_iter */
     0,                                         /* tp_iternext */
     0,                                         /* tp_methods */
     0,                                         /* tp_members */
@@ -1245,6 +1267,55 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_alloc */
     0,                                         /* tp_new */
 };
+
+static void
+TreeIter_dealloc(TreeIter *self) {
+    Py_CLEAR(self->owner);
+    PyObject_Del(self);
+}
+
+static TreeEntry *
+TreeIter_iternext(TreeIter *self) {
+    const git_tree_entry *tree_entry;
+
+    tree_entry = git_tree_entry_byindex(self->owner->tree, self->i);
+    if (!tree_entry)
+        return NULL;
+
+    self->i += 1;
+    return (TreeEntry*)wrap_tree_entry(tree_entry, self->owner);
+}
+
+static PyTypeObject TreeIterType = {
+   PyVarObject_HEAD_INIT(&PyType_Type, 0)
+   "pygit2.TreeIter",                      /* tp_name           */
+   sizeof(TreeIter),                       /* tp_basicsize      */
+   0,                                       /* tp_itemsize       */
+   (destructor)TreeIter_dealloc ,          /* tp_dealloc        */
+   0,                                       /* tp_print          */
+   0,                                       /* tp_getattr        */
+   0,                                       /* tp_setattr        */
+   0,                                       /* tp_compare        */
+   0,                                       /* tp_repr           */
+   0,                                       /* tp_as_number      */
+   0,                                       /* tp_as_sequence    */
+   0,                                       /* tp_as_mapping     */
+   0,                                       /* tp_hash           */
+   0,                                       /* tp_call           */
+   0,                                       /* tp_str            */
+   PyObject_GenericGetAttr,                 /* tp_getattro       */
+   0,                                       /* tp_setattro       */
+   0,                                       /* tp_as_buffer      */
+   Py_TPFLAGS_DEFAULT |
+   Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
+   0,                                       /* tp_doc            */
+   0,                                       /* tp_traverse       */
+   0,                                       /* tp_clear          */
+   0,                                       /* tp_richcompare    */
+   0,                                       /* tp_weaklistoffset */
+   PyObject_SelfIter,                       /* tp_iter           */
+   (iternextfunc)TreeIter_iternext,        /* tp_iternext       */
+ };
 
 static PyGetSetDef Blob_getseters[] = {
     {"data", (getter)Object_read_raw, NULL, "raw data", NULL},
