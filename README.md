@@ -49,7 +49,7 @@ Index read:
 
 Iterate over all entries of the index:
 
-    >>> for i in range(0, len(index)):
+    >>> for i in xrange(len(index)):
     ...     entry = index[i]
     ...     print entry.path, entry.sha
 
@@ -64,6 +64,18 @@ Revision walking:
     >>> from pygit2 import GIT_SORT_TIME
     >>> for commit in repo.walk(sha, GIT_SORT_TIME):
     ...     print commit.sha
+
+Read commit information:
+
+    >>> master_ref = repo.lookup_reference("refs/heads/master")   # Getting the Reference object
+    >>> commit = repo[master_ref.sha]
+    >>> [name, email, timestamp, tz_offset] = commit.author       # Read the commit authored infos
+    >>> tree = commit.tree                                        # Access the tree of the commit
+
+Iterate over all entries of the tree:
+
+    >>> for entry in tree:
+    ...     print entry.name, entry.sha, entry.attributes
 
 
 CONTRIBUTING
