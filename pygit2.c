@@ -467,11 +467,11 @@ signature_converter(PyObject *value, git_signature **out) {
 }
 
 static PyObject *
-free_parents(git_oid **parents, int n) {
+free_parents(git_commit **parents, int n) {
     int i;
 
     for (i = 0; i < n; i++)
-        free(parents[i]);
+        git_commit_close(parents[i]);
     free(parents);
     return NULL;
 }
@@ -480,10 +480,11 @@ static PyObject *
 Repository_create_commit(Repository *self, PyObject *args) {
     git_signature *author, *committer;
     char *message, *update_ref;
-    git_oid tree_oid, oid;
+    git_oid oid;
+    git_tree *tree;
     PyObject *py_parents, *py_parent;
     int parent_count;
-    git_oid **parents;
+    git_commit **parents;
     int err, i;
     char hex[GIT_OID_HEXSZ];
 
@@ -492,29 +493,36 @@ Repository_create_commit(Repository *self, PyObject *args) {
                           signature_converter, &author,
                           signature_converter, &committer,
                           &message,
-                          py_str_to_git_oid, &tree_oid,
+                          py_str_to_git_oid, &oid,
                           &PyList_Type, &py_parents))
         return NULL;
 
+    err = git_tree_lookup(&tree, self->repo, &oid);
+    if (err < 0)
+        return Error_set(err);
+
     parent_count = (int)PyList_Size(py_parents);
-    parents = malloc(parent_count * sizeof(git_oid*));
+    parents = malloc(parent_count * sizeof(git_commit*));
     if (parents == NULL) {
+        git_tree_close(tree);
         PyErr_SetNone(PyExc_MemoryError);
         return NULL;
     }
     for (i = 0; i < parent_count; i++) {
-        parents[i] = malloc(sizeof(git_oid));
-        if (parents[i] == NULL) {
-            PyErr_SetNone(PyExc_MemoryError);
+        py_parent = PyList_GET_ITEM(py_parents, i);
+        if (!py_str_to_git_oid(py_parent, &oid)) {
+            git_tree_close(tree);
             return free_parents(parents, i);
         }
-        py_parent = PyList_GET_ITEM(py_parents, i);
-        if (!py_str_to_git_oid(py_parent, parents[i]))
+        if (git_commit_lookup(&parents[i], self->repo, &oid)) {
+            git_tree_close(tree);
             return free_parents(parents, i);
+        }
     }
 
     err = git_commit_create(&oid, self->repo, update_ref, author, committer,
-        message, &tree_oid, parent_count, (const git_oid**)parents);
+        message, tree, parent_count, (const git_commit**)parents);
+    git_tree_close(tree);
     free_parents(parents, parent_count);
     if (err < 0)
         return Error_set(err);
@@ -527,20 +535,29 @@ static PyObject *
 Repository_create_tag(Repository *self, PyObject *args) {
     char *tag_name, *message;
     git_signature *tagger;
-    git_oid target, oid;
+    git_oid oid;
+    git_object *target;
     int err, target_type;
-    char hex[GIT_OID_HEXSZ];
+    char hex[GIT_OID_HEXSZ + 1];
 
     if (!PyArg_ParseTuple(args, "sO&iO&s",
                           &tag_name,
-                          py_str_to_git_oid, &target,
+                          py_str_to_git_oid, &oid,
                           &target_type,
                           signature_converter, &tagger,
                           &message))
         return NULL;
 
-    err = git_tag_create(&oid, self->repo,
-        tag_name, &target, target_type, tagger, message);
+    err = git_object_lookup(&target, self->repo, &oid, target_type);
+    if (err < 0) {
+        git_oid_fmt(hex, &oid);
+        hex[GIT_OID_HEXSZ] = '\0';
+        return Error_set_str(err, hex);
+    }
+
+    err = git_tag_create(&oid, self->repo, tag_name, target, tagger, message,
+                         0);
+    git_object_close(target);
     if (err < 0)
         return NULL;
 
@@ -622,7 +639,7 @@ Repository_create_reference(Repository *self,  PyObject *args) {
         return NULL;
 
     /* 2- Create the reference */
-    err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid);
+    err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid, 0);
     if (err < 0)
       return Error_set(err);
 
@@ -642,7 +659,7 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args) {
 
     /* 2- Create the reference */
     err = git_reference_create_symbolic(&c_reference, self->repo, c_name,
-                                        c_target);
+                                        c_target, 0);
     if (err < 0)
       return Error_set(err);
 
@@ -2066,7 +2083,7 @@ Reference_rename(Reference *self, PyObject *py_name) {
         return NULL;
 
     /* 2- Rename */
-    err = git_reference_rename(self->reference, c_name);
+    err = git_reference_rename(self->reference, c_name, 0);
     if (err < 0)
       return Error_set(err);
 
