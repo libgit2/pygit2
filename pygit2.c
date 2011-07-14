@@ -1655,7 +1655,6 @@ wrap_index_entry(git_index_entry *entry, Index *index) {
 
     py_entry->entry = entry;
 
-    Py_INCREF(py_entry);
     return (PyObject*)py_entry;
 }
 
