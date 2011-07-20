@@ -53,6 +53,17 @@ class RepositoryTest(utils.BareRepoTestCase):
 
         a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
         self.assertEqual((pygit2.GIT_OBJ_BLOB, 'a contents 2\n'), a2)
+        
+    def test_write(self):
+        data = "hello world"
+        # invalid object type
+        self.assertRaises(pygit2.GitError, self.repo.write, pygit2.GIT_OBJ_ANY, data)
+
+        hex_sha = self.repo.write(pygit2.GIT_OBJ_BLOB, data)
+        self.assertEqual(len(hex_sha), 40)
+
+        # works as buffer as well
+        self.assertEqual(hex_sha, self.repo.write(pygit2.GIT_OBJ_BLOB, buffer(data)))
 
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)

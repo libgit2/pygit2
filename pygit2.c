@@ -169,7 +169,7 @@ Error_set_py_obj(int err, PyObject *py_obj) {
     assert(err < 0);
 
     if (err == GIT_ENOTOID && !PyString_Check(py_obj)) {
-        PyErr_Format(PyExc_TypeError, "Git object id must be str, not %.200s",
+        PyErr_Format(PyExc_TypeError, "Git object id must be 40 byte hexadecimal str, or 20 byte binary str: %.200s",
                      py_obj->ob_type->tp_name);
         return NULL;
     } else if (err == GIT_ENOTFOUND) {
@@ -223,6 +223,18 @@ lookup_object(Repository *repo, const git_oid *oid, git_otype type) {
     return (PyObject*)py_obj;
 }
 
+static git_otype 
+int_to_loose_object_type(int type_id)
+{
+	switch((git_otype)type_id) {
+		case GIT_OBJ_COMMIT: return GIT_OBJ_COMMIT;
+		case GIT_OBJ_TREE: return GIT_OBJ_TREE;
+		case GIT_OBJ_BLOB: return GIT_OBJ_BLOB;
+		case GIT_OBJ_TAG: return GIT_OBJ_TAG;
+		default: return GIT_OBJ_BAD;
+	}
+}
+
 static PyObject *
 wrap_reference(git_reference * c_reference)
 {
@@ -259,6 +271,16 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
     }
 
     return 1;
+}
+
+static PyObject*
+git_oid_to_py_string(git_oid* oid)
+{
+    char buf[GIT_OID_HEXSZ+1];
+    if (strlen(git_oid_to_string(buf, sizeof(buf), oid)) != GIT_OID_HEXSZ)
+        return NULL;
+    
+    return PyString_FromStringAndSize(buf, GIT_OID_HEXSZ);
 }
 
 static int
@@ -339,6 +361,37 @@ Repository_read(Repository *self, PyObject *py_hex) {
 
     git_odb_object_close(obj);
     return tuple;
+}
+
+static PyObject *
+Repository_write(Repository *self, PyObject *args)
+{
+    int err;
+    git_oid oid;
+    git_odb_stream* stream;
+
+    int type_id;
+    const char* buffer;
+    Py_ssize_t buflen;
+
+    if (!PyArg_ParseTuple(args, "Is#", &type_id, &buffer, &buflen))
+        return NULL;
+
+    git_otype type = int_to_loose_object_type(type_id);
+    if (type == GIT_OBJ_BAD)
+        return Error_set_str(-100, "Invalid object type");
+
+    git_odb* odb = git_repository_database(self->repo);
+
+    if ((err = git_odb_open_wstream(&stream, odb, buflen, type)) == GIT_SUCCESS) {
+        stream->write(stream, buffer, buflen);
+        err = stream->finalize_write(&oid, stream);
+        stream->free(stream);
+    }
+    if (err < 0)
+        return Error_set_str(err, "failed to write data");
+
+    return git_oid_to_py_string(&oid);
 }
 
 static PyObject *
@@ -689,6 +742,10 @@ static PyMethodDef Repository_methods[] = {
      "Generator that traverses the history starting from the given commit."},
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
+    {"write", (PyCFunction)Repository_write, METH_VARARGS,
+     "Write raw object data into the repository. First arg is the object type number, \n\
+     the second one a buffer with data.\n\
+     Return the hexadecimal sha of the created object"},
     {"listall_references", (PyCFunction)Repository_listall_references,
       METH_VARARGS,
       "Return a list with all the references that can be found in a "
