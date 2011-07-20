@@ -274,13 +274,12 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
 }
 
 static PyObject*
-git_oid_to_py_string(git_oid* oid)
+git_oid_to_py_str(const git_oid *oid)
 {
-    char buf[GIT_OID_HEXSZ+1];
-    if (strlen(git_oid_to_string(buf, sizeof(buf), oid)) != GIT_OID_HEXSZ)
-        return NULL;
+    char hex[GIT_OID_HEXSZ];
 
-    return PyString_FromStringAndSize(buf, GIT_OID_HEXSZ);
+    git_oid_fmt(hex, oid);
+    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
 }
 
 static int
@@ -392,7 +391,7 @@ Repository_write(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set_str(err, "failed to write data");
 
-    return git_oid_to_py_string(&oid);
+    return git_oid_to_py_str(&oid);
 }
 
 static PyObject *
@@ -540,7 +539,6 @@ Repository_create_commit(Repository *self, PyObject *args) {
     int parent_count;
     git_commit **parents;
     int err, i;
-    char hex[GIT_OID_HEXSZ];
 
     if (!PyArg_ParseTuple(args, "zO&O&sO&O!",
                           &update_ref,
@@ -581,8 +579,7 @@ Repository_create_commit(Repository *self, PyObject *args) {
     if (err < 0)
         return Error_set(err);
 
-    git_oid_fmt(hex, &oid);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return git_oid_to_py_str(&oid);
 }
 
 static PyObject *
@@ -615,8 +612,7 @@ Repository_create_tag(Repository *self, PyObject *args) {
     if (err < 0)
         return NULL;
 
-    git_oid_fmt(hex, &oid);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return git_oid_to_py_str(&oid);
 }
 
 static PyObject *
@@ -849,15 +845,13 @@ Object_get_type(Object *self) {
 
 static PyObject *
 Object_get_sha(Object *self) {
-    const git_oid *id;
-    char hex[GIT_OID_HEXSZ];
+    const git_oid *oid;
 
-    id = git_object_id(self->obj);
-    if (!id)
+    oid = git_object_id(self->obj);
+    if (!oid)
         Py_RETURN_NONE;
 
-    git_oid_fmt(hex, id);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return git_oid_to_py_str(oid);
 }
 
 static PyObject *
@@ -1099,9 +1093,7 @@ TreeEntry_get_name(TreeEntry *self) {
 
 static PyObject *
 TreeEntry_get_sha(TreeEntry *self) {
-    char hex[GIT_OID_HEXSZ];
-    git_oid_fmt(hex, git_tree_entry_id(self->entry));
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return git_oid_to_py_str(git_tree_entry_id(self->entry));
 }
 
 static PyObject *
@@ -1762,14 +1754,12 @@ static PyObject *
 Index_create_tree(Index *self) {
     git_oid oid;
     int err;
-    char hex[GIT_OID_HEXSZ];
 
     err = git_tree_create_fromindex(&oid, self->index);
     if (err < 0)
         return Error_set(err);
 
-    git_oid_fmt(hex, &oid);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return git_oid_to_py_str(&oid);
 }
 
 static PyMethodDef Index_methods[] = {
@@ -1917,10 +1907,7 @@ IndexEntry_get_path(IndexEntry *self) {
 
 static PyObject *
 IndexEntry_get_sha(IndexEntry *self) {
-    char hex[GIT_OID_HEXSZ];
-
-    git_oid_fmt(hex, &self->entry->oid);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return git_oid_to_py_str(&self->entry->oid);
 }
 
 static PyGetSetDef IndexEntry_getseters[] = {
@@ -2208,7 +2195,6 @@ Reference_get_name(Reference *self) {
 
 static PyObject *
 Reference_get_sha(Reference *self) {
-    char hex[GIT_OID_HEXSZ];
     const git_oid *oid;
 
     /* 1- Get the oid (only for "direct" references) */
@@ -2222,8 +2208,7 @@ Reference_get_sha(Reference *self) {
     }
 
     /* 2- Convert and return it */
-    git_oid_fmt(hex, oid);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return git_oid_to_py_str(oid);
 }
 
 static int
