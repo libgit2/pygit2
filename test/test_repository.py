@@ -33,7 +33,7 @@ import binascii
 import unittest
 from os.path import join, abspath
 
-import pygit2
+from pygit2 import GitError, GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
 import utils
 
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
@@ -49,21 +49,21 @@ class RepositoryTest(utils.BareRepoTestCase):
         ab = self.repo.read(A_BIN_SHA)
         a = self.repo.read(A_HEX_SHA)
         self.assertEqual(ab, a)
-        self.assertEqual((pygit2.GIT_OBJ_BLOB, 'a contents\n'), a)
+        self.assertEqual((GIT_OBJ_BLOB, 'a contents\n'), a)
 
         a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        self.assertEqual((pygit2.GIT_OBJ_BLOB, 'a contents 2\n'), a2)
-        
+        self.assertEqual((GIT_OBJ_BLOB, 'a contents 2\n'), a2)
+
     def test_write(self):
         data = "hello world"
         # invalid object type
-        self.assertRaises(pygit2.GitError, self.repo.write, pygit2.GIT_OBJ_ANY, data)
+        self.assertRaises(GitError, self.repo.write, GIT_OBJ_ANY, data)
 
-        hex_sha = self.repo.write(pygit2.GIT_OBJ_BLOB, data)
+        hex_sha = self.repo.write(GIT_OBJ_BLOB, data)
         self.assertEqual(len(hex_sha), 40)
 
         # works as buffer as well
-        self.assertEqual(hex_sha, self.repo.write(pygit2.GIT_OBJ_BLOB, buffer(data)))
+        self.assertEqual(hex_sha, self.repo.write(GIT_OBJ_BLOB, buffer(data)))
 
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
@@ -77,13 +77,13 @@ class RepositoryTest(utils.BareRepoTestCase):
         a = self.repo[A_HEX_SHA]
         self.assertEqual('a contents\n', a.read_raw())
         self.assertEqual(A_HEX_SHA, a.sha)
-        self.assertEqual(pygit2.GIT_OBJ_BLOB, a.type)
+        self.assertEqual(GIT_OBJ_BLOB, a.type)
 
     def test_lookup_commit(self):
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
         commit = self.repo[commit_sha]
         self.assertEqual(commit_sha, commit.sha)
-        self.assertEqual(pygit2.GIT_OBJ_COMMIT, commit.type)
+        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)

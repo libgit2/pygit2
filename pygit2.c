@@ -137,9 +137,9 @@ static PyObject *
 Error_set(int err) {
     assert(err < 0);
     if (err == GIT_ENOTFOUND) {
-        /* KeyError expects the arg to be the missing key. If the caller called
-         * this instead of Error_set_py_obj, it means we don't know the key, but
-         * nor should we use git_lasterror. */
+        /* KeyError expects the arg to be the missing key. If the caller
+         * called this instead of Error_set_py_obj, it means we don't know
+         * the key, but nor should we use git_lasterror. */
         PyErr_SetNone(PyExc_KeyError);
         return NULL;
     } else if (err == GIT_EOSERR) {
@@ -223,16 +223,16 @@ lookup_object(Repository *repo, const git_oid *oid, git_otype type) {
     return (PyObject*)py_obj;
 }
 
-static git_otype 
+static git_otype
 int_to_loose_object_type(int type_id)
 {
-	switch((git_otype)type_id) {
-		case GIT_OBJ_COMMIT: return GIT_OBJ_COMMIT;
-		case GIT_OBJ_TREE: return GIT_OBJ_TREE;
-		case GIT_OBJ_BLOB: return GIT_OBJ_BLOB;
-		case GIT_OBJ_TAG: return GIT_OBJ_TAG;
-		default: return GIT_OBJ_BAD;
-	}
+    switch((git_otype)type_id) {
+        case GIT_OBJ_COMMIT: return GIT_OBJ_COMMIT;
+        case GIT_OBJ_TREE: return GIT_OBJ_TREE;
+        case GIT_OBJ_BLOB: return GIT_OBJ_BLOB;
+        case GIT_OBJ_TAG: return GIT_OBJ_TAG;
+        default: return GIT_OBJ_BAD;
+    }
 }
 
 static PyObject *
@@ -279,7 +279,7 @@ git_oid_to_py_string(git_oid* oid)
     char buf[GIT_OID_HEXSZ+1];
     if (strlen(git_oid_to_string(buf, sizeof(buf), oid)) != GIT_OID_HEXSZ)
         return NULL;
-    
+
     return PyString_FromStringAndSize(buf, GIT_OID_HEXSZ);
 }
 
@@ -383,7 +383,8 @@ Repository_write(Repository *self, PyObject *args)
 
     git_odb* odb = git_repository_database(self->repo);
 
-    if ((err = git_odb_open_wstream(&stream, odb, buflen, type)) == GIT_SUCCESS) {
+    err = git_odb_open_wstream(&stream, odb, buflen, type);
+    if (err == GIT_SUCCESS) {
         stream->write(stream, buffer, buflen);
         err = stream->finalize_write(&oid, stream);
         stream->free(stream);
@@ -743,21 +744,21 @@ static PyMethodDef Repository_methods[] = {
     {"read", (PyCFunction)Repository_read, METH_O,
      "Read raw object data from the repository."},
     {"write", (PyCFunction)Repository_write, METH_VARARGS,
-     "Write raw object data into the repository. First arg is the object type number, \n\
-     the second one a buffer with data.\n\
-     Return the hexadecimal sha of the created object"},
+     "Write raw object data into the repository. First arg is the object\n"
+     "type, the second one a buffer with data. Return the hexadecimal sha\n"
+     "of the created object."},
     {"listall_references", (PyCFunction)Repository_listall_references,
       METH_VARARGS,
-      "Return a list with all the references that can be found in a "
-      "repository."},
+      "Return a list with all the references in the repository."},
     {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
        "Lookup a reference by its name in a repository."},
-    {"create_reference", (PyCFunction)Repository_create_reference, METH_VARARGS,
+    {"create_reference", (PyCFunction)Repository_create_reference,
+     METH_VARARGS,
      "Create a new reference \"name\" that points to the object given by its "
      "\"sha\"."},
     {"create_symbolic_reference",
       (PyCFunction)Repository_create_symbolic_reference, METH_VARARGS,
-     "Create a new symbolic reference \"name\" that points to the reference "
+     "Create a new symbolic reference \"name\" that points to the reference\n"
      "\"target\"."},
     {"packall_references", (PyCFunction)Repository_packall_references,
      METH_NOARGS, "Pack all the loose references in the repository."},
@@ -1230,8 +1231,8 @@ Tree_fix_index(Tree *self, PyObject *py_index) {
         return -1;
     }
 
-    /* This function is called via mp_subscript, which doesn't do negative index
-     * rewriting, so we have to do it manually. */
+    /* This function is called via mp_subscript, which doesn't do negative
+     * index rewriting, so we have to do it manually. */
     if (index < 0)
         index = len + index;
     return (int)index;
@@ -2215,7 +2216,8 @@ Reference_get_sha(Reference *self) {
     if (oid == NULL)
     {
         PyErr_Format(PyExc_ValueError,
-        "sha is only available if the reference is direct (i.e. not symbolic)");
+                     "sha is only available if the reference is direct "
+                     "(i.e. not symbolic)");
         return NULL;
     }
 
