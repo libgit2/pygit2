@@ -42,8 +42,8 @@ typedef struct {
     PyObject *index; /* It will be None for a bare repository */
 } Repository;
 
-/* The structs for some of the object subtypes are identical except for the
- * type of their object pointers. */
+/* The structs for some of the object subtypes are identical except for
+ * the type of their object pointers. */
 #define OBJECT_STRUCT(_name, _ptr_type, _ptr_name) \
         typedef struct {\
             PyObject_HEAD\
@@ -138,11 +138,12 @@ Error_set(int err) {
     assert(err < 0);
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. If the caller
-         * called this instead of Error_set_py_obj, it means we don't know
-         * the key, but nor should we use git_lasterror. */
+         * called this instead of Error_set_py_obj, it means we don't
+         * know the key, but nor should we use git_lasterror. */
         PyErr_SetNone(PyExc_KeyError);
         return NULL;
-    } else if (err == GIT_EOSERR) {
+    }
+    else if (err == GIT_EOSERR) {
         PyErr_SetFromErrno(GitError);
         return NULL;
     }
@@ -169,10 +170,12 @@ Error_set_py_obj(int err, PyObject *py_obj) {
     assert(err < 0);
 
     if (err == GIT_ENOTOID && !PyString_Check(py_obj)) {
-        PyErr_Format(PyExc_TypeError, "Git object id must be 40 byte hexadecimal str, or 20 byte binary str: %.200s",
+        PyErr_Format(PyExc_TypeError,
+                     "Git object id must be 40 byte hexadecimal str, or 20 byte binary str: %.200s",
                      py_obj->ob_type->tp_name);
         return NULL;
-    } else if (err == GIT_ENOTFOUND) {
+    }
+    else if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. */
         PyErr_SetObject(PyExc_KeyError, py_obj);
         return NULL;
@@ -261,7 +264,8 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
     if (PyString_Size(py_str) == 20) {
         git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
         err = 0;
-    } else {
+    }
+    else {
         err = git_oid_fromstr(oid, hex_or_bin);
     }
 
@@ -412,10 +416,12 @@ Repository_get_index(Repository *self, void *closure) {
             py_index->index = index;
             py_index->own_obj = 0;
             self->index = (PyObject*)py_index;
-        } else if (err == GIT_EBAREINDEX) {
+        }
+        else if (err == GIT_EBAREINDEX) {
             Py_INCREF(Py_None);
             self->index = Py_None;
-        } else {
+        }
+        else {
             return Error_set(err);
         }
     }
@@ -790,44 +796,44 @@ static PyMappingMethods Repository_as_mapping = {
 
 static PyTypeObject RepositoryType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size */
-    "pygit2.Repository",                       /* tp_name */
-    sizeof(Repository),                        /* tp_basicsize */
-    0,                                         /* tp_itemsize */
-    (destructor)Repository_dealloc,            /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_compare */
-    0,                                        /* tp_repr */
-    0,                                         /* tp_as_number */
-    &Repository_as_sequence,                   /* tp_as_sequence */
-    &Repository_as_mapping,                    /* tp_as_mapping */
-    0,                                         /* tp_hash  */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
-    "Git repository",                          /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Repository",                       /* tp_name           */
+    sizeof(Repository),                        /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Repository_dealloc,            /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    &Repository_as_sequence,                   /* tp_as_sequence    */
+    &Repository_as_mapping,                    /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "Git repository",                          /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    Repository_methods,                        /* tp_methods */
-    0,                                         /* tp_members */
-    Repository_getseters,                      /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    (initproc)Repository_init,                 /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    Repository_methods,                        /* tp_methods        */
+    0,                                         /* tp_members        */
+    Repository_getseters,                      /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)Repository_init,                 /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static void
@@ -897,44 +903,44 @@ static PyMethodDef Object_methods[] = {
 
 static PyTypeObject ObjectType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /*ob_size*/
-    "pygit2.Object",                           /*tp_name*/
-    sizeof(Object),                            /*tp_basicsize*/
-    0,                                         /*tp_itemsize*/
-    (destructor)Object_dealloc,                /*tp_dealloc*/
-    0,                                         /*tp_print*/
-    0,                                         /*tp_getattr*/
-    0,                                         /*tp_setattr*/
-    0,                                         /*tp_compare*/
-    0,                                         /*tp_repr*/
-    0,                                         /*tp_as_number*/
-    0,                                         /*tp_as_sequence*/
-    0,                                         /*tp_as_mapping*/
-    0,                                         /*tp_hash */
-    0,                                         /*tp_call*/
-    0,                                         /*tp_str*/
-    0,                                         /*tp_getattro*/
-    0,                                         /*tp_setattro*/
-    0,                                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
-    "Object objects",                          /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Object",                           /* tp_name           */
+    sizeof(Object),                            /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Object_dealloc,                /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "Object objects",                          /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    Object_methods,                            /* tp_methods */
-    0,                                         /* tp_members */
-    Object_getseters,                          /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    Object_methods,                            /* tp_methods        */
+    0,                                         /* tp_members        */
+    Object_getseters,                          /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static PyObject *
@@ -1035,44 +1041,44 @@ static PyGetSetDef Commit_getseters[] = {
 
 static PyTypeObject CommitType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /*ob_size*/
-    "pygit2.Commit",                           /*tp_name*/
-    sizeof(Commit),                            /*tp_basicsize*/
-    0,                                         /*tp_itemsize*/
-    0,                                         /*tp_dealloc*/
-    0,                                         /*tp_print*/
-    0,                                         /*tp_getattr*/
-    0,                                         /*tp_setattr*/
-    0,                                         /*tp_compare*/
-    0,                                         /*tp_repr*/
-    0,                                         /*tp_as_number*/
-    0,                                         /*tp_as_sequence*/
-    0,                                         /*tp_as_mapping*/
-    0,                                         /*tp_hash */
-    0,                                         /*tp_call*/
-    0,                                         /*tp_str*/
-    0,                                         /*tp_getattro*/
-    0,                                         /*tp_setattro*/
-    0,                                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
-    "Commit objects",                          /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Commit",                           /* tp_name           */
+    sizeof(Commit),                            /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    0,                                         /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "Commit objects",                          /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
-    0,                                         /* tp_members */
-    Commit_getseters,                          /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    Commit_getseters,                          /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static void
@@ -1119,44 +1125,44 @@ static PyMethodDef TreeEntry_methods[] = {
 
 static PyTypeObject TreeEntryType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /*ob_size*/
-    "pygit2.TreeEntry",                        /*tp_name*/
-    sizeof(TreeEntry),                         /*tp_basicsize*/
-    0,                                         /*tp_itemsize*/
-    (destructor)TreeEntry_dealloc,             /*tp_dealloc*/
-    0,                                         /*tp_print*/
-    0,                                         /*tp_getattr*/
-    0,                                         /*tp_setattr*/
-    0,                                         /*tp_compare*/
-    0,                                         /*tp_repr*/
-    0,                                         /*tp_as_number*/
-    0,                                         /*tp_as_sequence*/
-    0,                                         /*tp_as_mapping*/
-    0,                                         /*tp_hash */
-    0,                                         /*tp_call*/
-    0,                                         /*tp_str*/
-    0,                                         /*tp_getattro*/
-    0,                                         /*tp_setattro*/
-    0,                                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
-    "TreeEntry objects",                       /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.TreeEntry",                        /* tp_name           */
+    sizeof(TreeEntry),                         /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)TreeEntry_dealloc,             /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "TreeEntry objects",                       /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    TreeEntry_methods,                         /* tp_methods */
-    0,                                         /* tp_members */
-    TreeEntry_getseters,                       /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    TreeEntry_methods,                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    TreeEntry_getseters,                       /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static Py_ssize_t
@@ -1218,7 +1224,8 @@ Tree_fix_index(Tree *self, PyObject *py_index) {
     if (index >= slen) {
         PyErr_SetObject(PyExc_IndexError, py_index);
         return -1;
-    } else if (index < -slen) {
+    }
+    else if (index < -slen) {
         PyErr_SetObject(PyExc_IndexError, py_index);
         return -1;
     }
@@ -1266,9 +1273,11 @@ static TreeEntry *
 Tree_getitem(Tree *self, PyObject *value) {
     if (PyString_Check(value)) {
         return Tree_getitem_by_name(self, value);
-    } else if (PyInt_Check(value)) {
+    }
+    else if (PyInt_Check(value)) {
         return Tree_getitem_by_index(self, value);
-    } else {
+    }
+    else {
         PyErr_Format(PyExc_TypeError,
                      "Tree entry index must be int or str, not %.200s",
                      value->ob_type->tp_name);
@@ -1295,44 +1304,44 @@ static PyMappingMethods Tree_as_mapping = {
 
 static PyTypeObject TreeType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /*ob_size*/
-    "pygit2.Tree",                             /*tp_name*/
-    sizeof(Tree),                              /*tp_basicsize*/
-    0,                                         /*tp_itemsize*/
-    0,                                         /*tp_dealloc*/
-    0,                                         /*tp_print*/
-    0,                                         /*tp_getattr*/
-    0,                                         /*tp_setattr*/
-    0,                                         /*tp_compare*/
-    0,                                         /*tp_repr*/
-    0,                                         /*tp_as_number*/
-    &Tree_as_sequence,                         /*tp_as_sequence*/
-    &Tree_as_mapping,                          /*tp_as_mapping*/
-    0,                                         /*tp_hash */
-    0,                                         /*tp_call*/
-    0,                                         /*tp_str*/
-    0,                                         /*tp_getattro*/
-    0,                                         /*tp_setattro*/
-    0,                                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
-    "Tree objects",                            /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Tree",                             /* tp_name           */
+    sizeof(Tree),                              /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    0,                                         /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    &Tree_as_sequence,                         /* tp_as_sequence    */
+    &Tree_as_mapping,                          /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "Tree objects",                            /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    (getiterfunc)Tree_iter,                    /* tp_iter */
-    0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
-    0,                                         /* tp_members */
-    0,                                         /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    (getiterfunc)Tree_iter,                    /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static void
@@ -1355,10 +1364,10 @@ TreeIter_iternext(TreeIter *self) {
 
 static PyTypeObject TreeIterType = {
    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-   "pygit2.TreeIter",                      /* tp_name           */
-   sizeof(TreeIter),                       /* tp_basicsize      */
+   "pygit2.TreeIter",                       /* tp_name           */
+   sizeof(TreeIter),                        /* tp_basicsize      */
    0,                                       /* tp_itemsize       */
-   (destructor)TreeIter_dealloc ,          /* tp_dealloc        */
+   (destructor)TreeIter_dealloc ,           /* tp_dealloc        */
    0,                                       /* tp_print          */
    0,                                       /* tp_getattr        */
    0,                                       /* tp_setattr        */
@@ -1381,7 +1390,7 @@ static PyTypeObject TreeIterType = {
    0,                                       /* tp_richcompare    */
    0,                                       /* tp_weaklistoffset */
    PyObject_SelfIter,                       /* tp_iter           */
-   (iternextfunc)TreeIter_iternext,        /* tp_iternext       */
+   (iternextfunc)TreeIter_iternext,         /* tp_iternext       */
  };
 
 static PyGetSetDef Blob_getseters[] = {
@@ -1391,44 +1400,44 @@ static PyGetSetDef Blob_getseters[] = {
 
 static PyTypeObject BlobType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /*ob_size*/
-    "pygit2.Blob",                             /*tp_name*/
-    sizeof(Blob),                              /*tp_basicsize*/
-    0,                                         /*tp_itemsize*/
-    0,                                         /*tp_dealloc*/
-    0,                                         /*tp_print*/
-    0,                                         /*tp_getattr*/
-    0,                                         /*tp_setattr*/
-    0,                                         /*tp_compare*/
-    0,                                         /*tp_repr*/
-    0,                                         /*tp_as_number*/
-    0,                                         /*tp_as_sequence*/
-    0,                                         /*tp_as_mapping*/
-    0,                                         /*tp_hash */
-    0,                                         /*tp_call*/
-    0,                                         /*tp_str*/
-    0,                                         /*tp_getattro*/
-    0,                                         /*tp_setattro*/
-    0,                                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
-    "Blob objects",                            /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Blob",                             /* tp_name           */
+    sizeof(Blob),                              /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    0,                                         /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "Blob objects",                            /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
-    0,                                         /* tp_members */
-    Blob_getseters,                            /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    Blob_getseters,                            /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static void
@@ -1491,44 +1500,44 @@ static PyGetSetDef Tag_getseters[] = {
 
 static PyTypeObject TagType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /*ob_size*/
-    "pygit2.Tag",                              /*tp_name*/
-    sizeof(Tag),                               /*tp_basicsize*/
-    0,                                         /*tp_itemsize*/
-    (destructor)Tag_dealloc,                   /*tp_dealloc*/
-    0,                                         /*tp_print*/
-    0,                                         /*tp_getattr*/
-    0,                                         /*tp_setattr*/
-    0,                                         /*tp_compare*/
-    0,                                         /*tp_repr*/
-    0,                                         /*tp_as_number*/
-    0,                                         /*tp_as_sequence*/
-    0,                                         /*tp_as_mapping*/
-    0,                                         /*tp_hash */
-    0,                                         /*tp_call*/
-    0,                                         /*tp_str*/
-    0,                                         /*tp_getattro*/
-    0,                                         /*tp_setattro*/
-    0,                                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
-    "Tag objects",                             /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Tag",                              /* tp_name           */
+    sizeof(Tag),                               /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Tag_dealloc,                   /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "Tag objects",                             /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
-    0,                                         /* tp_members */
-    Tag_getseters,                             /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    Tag_getseters,                             /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static int
@@ -1639,7 +1648,8 @@ Index_get_position(Index *self, PyObject *value) {
             Error_set_str(idx, path);
             return -1;
         }
-    } else if (PyInt_Check(value)) {
+    }
+    else if (PyInt_Check(value)) {
         idx = (int)PyInt_AsLong(value);
         if (idx == -1 && PyErr_Occurred())
             return -1;
@@ -1647,7 +1657,8 @@ Index_get_position(Index *self, PyObject *value) {
             PyErr_SetObject(PyExc_ValueError, value);
             return -1;
         }
-    } else {
+    }
+    else {
         PyErr_Format(PyExc_TypeError,
                      "Index entry key must be int or str, not %.200s",
                      value->ob_type->tp_name);
@@ -1800,44 +1811,44 @@ static PyMappingMethods Index_as_mapping = {
 
 static PyTypeObject IndexType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size */
-    "pygit2.Index",                            /* tp_name */
-    sizeof(Index),                             /* tp_basicsize */
-    0,                                         /* tp_itemsize */
-    (destructor)Index_dealloc,                 /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_compare */
-    0,                                         /* tp_repr */
-    0,                                         /* tp_as_number */
-    &Index_as_sequence,                        /* tp_as_sequence */
-    &Index_as_mapping,                         /* tp_as_mapping */
-    0,                                         /* tp_hash */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
-    "Index file",                              /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Index",                            /* tp_name           */
+    sizeof(Index),                             /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Index_dealloc,                 /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    &Index_as_sequence,                        /* tp_as_sequence    */
+    &Index_as_mapping,                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "Index file",                              /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    (getiterfunc)Index_iter,                   /* tp_iter */
-    0,                                         /* tp_iternext */
-    Index_methods,                             /* tp_methods */
-    0,                                         /* tp_members */
-    0,                                         /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    (initproc)Index_init,                      /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    (getiterfunc)Index_iter,                   /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    Index_methods,                             /* tp_methods        */
+    0,                                         /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)Index_init,                      /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 
@@ -1919,44 +1930,44 @@ static PyGetSetDef IndexEntry_getseters[] = {
 
 static PyTypeObject IndexEntryType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size */
-    "pygit2.IndexEntry",                       /* tp_name */
-    sizeof(IndexEntry),                        /* tp_basicsize */
-    0,                                         /* tp_itemsize */
-    (destructor)IndexEntry_dealloc,            /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_compare */
-    0,                                         /* tp_repr */
-    0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
-    0,                                         /* tp_hash */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                        /* tp_flags */
-    "Index entry",                             /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.IndexEntry",                       /* tp_name           */
+    sizeof(IndexEntry),                        /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)IndexEntry_dealloc,            /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    "Index entry",                             /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
-    0,                                         /* tp_members */
-    IndexEntry_getseters,                      /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    IndexEntry_getseters,                      /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static void
@@ -2060,44 +2071,44 @@ static PyMethodDef Walker_methods[] = {
 
 static PyTypeObject WalkerType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size */
-    "pygit2.Walker",                           /* tp_name */
-    sizeof(Walker),                            /* tp_basicsize */
-    0,                                         /* tp_itemsize */
-    (destructor)Walker_dealloc,                /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_compare */
-    0,                                         /* tp_repr */
-    0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
-    0,                                         /* tp_hash */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_ITER, /* tp_flags */
-    "Revision walker",                         /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Walker",                           /* tp_name           */
+    sizeof(Walker),                            /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Walker_dealloc,                /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_ITER, /* tp_flags          */
+    "Revision walker",                         /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    (getiterfunc)Walker_iter,                  /* tp_iter */
-    (iternextfunc)Walker_iternext,             /* tp_iternext */
-    Walker_methods,                            /* tp_methods */
-    0,                                         /* tp_members */
-    0,                                         /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    (getiterfunc)Walker_iter,                  /* tp_iter           */
+    (iternextfunc)Walker_iternext,             /* tp_iternext       */
+    Walker_methods,                            /* tp_methods        */
+    0,                                         /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static PyObject *
@@ -2263,44 +2274,44 @@ static PyGetSetDef Reference_getseters[] = {
 
 static PyTypeObject ReferenceType = {
     PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size */
-    "pygit2.Reference",                        /* tp_name */
-    sizeof(Reference),                         /* tp_basicsize */
-    0,                                         /* tp_itemsize */
-    0,                                         /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_compare */
-    0,                                         /* tp_repr */
-    0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
-    0,                                         /* tp_hash */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                        /* tp_flags */
-    "Reference",                               /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    0,                                         /* ob_size           */
+    "pygit2.Reference",                        /* tp_name           */
+    sizeof(Reference),                         /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    0,                                         /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    "Reference",                               /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    Reference_methods,                         /* tp_methods */
-    0,                                         /* tp_members */
-    Reference_getseters,                       /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    Reference_methods,                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    Reference_getseters,                       /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
 };
 
 static PyObject *
