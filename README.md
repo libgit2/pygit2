@@ -49,8 +49,7 @@ Index read:
 
 Iterate over all entries of the index:
 
-    >>> for i in xrange(len(index)):
-    ...     entry = index[i]
+    >>> for entry in index:
     ...     print entry.path, entry.sha
 
 Index write:
