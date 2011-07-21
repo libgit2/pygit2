@@ -42,8 +42,8 @@ typedef struct {
     PyObject *index; /* It will be None for a bare repository */
 } Repository;
 
-/* The structs for some of the object subtypes are identical except for the
- * type of their object pointers. */
+/* The structs for some of the object subtypes are identical except for
+ * the type of their object pointers. */
 #define OBJECT_STRUCT(_name, _ptr_type, _ptr_name) \
         typedef struct {\
             PyObject_HEAD\
@@ -138,11 +138,12 @@ Error_set(int err) {
     assert(err < 0);
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. If the caller
-         * called this instead of Error_set_py_obj, it means we don't know
-         * the key, but nor should we use git_lasterror. */
+         * called this instead of Error_set_py_obj, it means we don't
+         * know the key, but nor should we use git_lasterror. */
         PyErr_SetNone(PyExc_KeyError);
         return NULL;
-    } else if (err == GIT_EOSERR) {
+    }
+    else if (err == GIT_EOSERR) {
         PyErr_SetFromErrno(GitError);
         return NULL;
     }
@@ -169,10 +170,12 @@ Error_set_py_obj(int err, PyObject *py_obj) {
     assert(err < 0);
 
     if (err == GIT_ENOTOID && !PyString_Check(py_obj)) {
-        PyErr_Format(PyExc_TypeError, "Git object id must be 40 byte hexadecimal str, or 20 byte binary str: %.200s",
+        PyErr_Format(PyExc_TypeError,
+                     "Git object id must be 40 byte hexadecimal str, or 20 byte binary str: %.200s",
                      py_obj->ob_type->tp_name);
         return NULL;
-    } else if (err == GIT_ENOTFOUND) {
+    }
+    else if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. */
         PyErr_SetObject(PyExc_KeyError, py_obj);
         return NULL;
@@ -261,7 +264,8 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
     if (PyString_Size(py_str) == 20) {
         git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
         err = 0;
-    } else {
+    }
+    else {
         err = git_oid_fromstr(oid, hex_or_bin);
     }
 
@@ -412,10 +416,12 @@ Repository_get_index(Repository *self, void *closure) {
             py_index->index = index;
             py_index->own_obj = 0;
             self->index = (PyObject*)py_index;
-        } else if (err == GIT_EBAREINDEX) {
+        }
+        else if (err == GIT_EBAREINDEX) {
             Py_INCREF(Py_None);
             self->index = Py_None;
-        } else {
+        }
+        else {
             return Error_set(err);
         }
     }
@@ -1218,7 +1224,8 @@ Tree_fix_index(Tree *self, PyObject *py_index) {
     if (index >= slen) {
         PyErr_SetObject(PyExc_IndexError, py_index);
         return -1;
-    } else if (index < -slen) {
+    }
+    else if (index < -slen) {
         PyErr_SetObject(PyExc_IndexError, py_index);
         return -1;
     }
@@ -1266,9 +1273,11 @@ static TreeEntry *
 Tree_getitem(Tree *self, PyObject *value) {
     if (PyString_Check(value)) {
         return Tree_getitem_by_name(self, value);
-    } else if (PyInt_Check(value)) {
+    }
+    else if (PyInt_Check(value)) {
         return Tree_getitem_by_index(self, value);
-    } else {
+    }
+    else {
         PyErr_Format(PyExc_TypeError,
                      "Tree entry index must be int or str, not %.200s",
                      value->ob_type->tp_name);
@@ -1639,7 +1648,8 @@ Index_get_position(Index *self, PyObject *value) {
             Error_set_str(idx, path);
             return -1;
         }
-    } else if (PyInt_Check(value)) {
+    }
+    else if (PyInt_Check(value)) {
         idx = (int)PyInt_AsLong(value);
         if (idx == -1 && PyErr_Occurred())
             return -1;
@@ -1647,7 +1657,8 @@ Index_get_position(Index *self, PyObject *value) {
             PyErr_SetObject(PyExc_ValueError, value);
             return -1;
         }
-    } else {
+    }
+    else {
         PyErr_Format(PyExc_TypeError,
                      "Index entry key must be int or str, not %.200s",
                      value->ob_type->tp_name);
