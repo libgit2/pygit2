@@ -28,6 +28,7 @@
 
 #include <Python.h>
 #include <git2.h>
+#include "git2/status.h"
 
 /* Define PyVarObject_HEAD_INIT for Python 2.5 */
 #ifndef PyVarObject_HEAD_INIT
@@ -730,6 +731,30 @@ Repository_packall_references(Repository *self,  PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static int read_status_cb(const char *path, unsigned int status_flags,
+                          void *payload_dict)
+{
+    /* This is the callback that will be called in git_status_foreach. It
+     * will be called for every path.*/
+    PyObject *flags;
+
+    flags = PyInt_FromLong((long) status_flags);
+    PyDict_SetItemString(payload_dict, path, flags);
+
+    return GIT_SUCCESS;
+}
+
+static PyObject *
+Repository_status(Repository *self, PyObject *args)
+{
+    PyObject *payload_dict;
+
+    payload_dict = PyDict_New();
+    git_status_foreach(self->repo, read_status_cb, payload_dict);
+
+    return dict;
+}
+
 static PyMethodDef Repository_methods[] = {
     {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
      "Create a new commit object, return its SHA."},
@@ -758,6 +783,9 @@ static PyMethodDef Repository_methods[] = {
      "\"target\"."},
     {"packall_references", (PyCFunction)Repository_packall_references,
      METH_NOARGS, "Pack all the loose references in the repository."},
+    {"status", (PyCFunction)Repository_status, METH_NOARGS, "Reads the "
+     "status of the repository and returns a dictionnary with file paths "
+     "as keys and status flags as values.\nSee pygit2.GIT_STATUS_*."},
     {NULL}
 };
 
@@ -2432,4 +2460,23 @@ initpygit2(void)
     PyModule_AddIntConstant(m,"GIT_REF_OID", GIT_REF_OID);
     PyModule_AddIntConstant(m,"GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
     PyModule_AddIntConstant(m,"GIT_REF_PACKED", GIT_REF_PACKED);
+
+    /** Git status flags **/
+    PyModule_AddIntConstant(m,"GIT_STATUS_CURRENT", GIT_STATUS_CURRENT);
+
+    /* Flags for index status */
+    PyModule_AddIntConstant(m,"GIT_STATUS_INDEX_NEW", GIT_STATUS_INDEX_NEW);
+    PyModule_AddIntConstant(m,"GIT_STATUS_INDEX_MODIFIED",
+                            GIT_STATUS_INDEX_MODIFIED);
+    PyModule_AddIntConstant(m,"GIT_STATUS_INDEX_DELETED" ,
+                            GIT_STATUS_INDEX_DELETED);
+
+    /* Flags for worktree status */
+    PyModule_AddIntConstant(m,"GIT_STATUS_WT_NEW", GIT_STATUS_WT_NEW);
+    PyModule_AddIntConstant(m,"GIT_STATUS_WT_MODIFIED" ,
+                            GIT_STATUS_WT_MODIFIED);
+    PyModule_AddIntConstant(m,"GIT_STATUS_WT_DELETED", GIT_STATUS_WT_DELETED);
+
+    /* Flags for ignored files */
+    PyModule_AddIntConstant(m,"GIT_STATUS_IGNORED", GIT_STATUS_IGNORED);
 }
