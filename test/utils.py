@@ -66,8 +66,10 @@ class BareRepoTestCase(BaseTestCase):
 
 class RepoTestCase(BaseTestCase):
 
+    repo_dir = 'testrepo'
+
     def setUp(self):
-        repo_dir = 'testrepo'
+        repo_dir = self.repo_dir
         repo_path = os.path.join(os.path.dirname(__file__), 'data', repo_dir)
         temp_dir = tempfile.mkdtemp()
         tar = tarfile.open(repo_path + '.tar')
@@ -76,3 +78,7 @@ class RepoTestCase(BaseTestCase):
         self._temp_dir = temp_dir
         temp_repo_path = os.path.join(temp_dir, repo_dir, '.git')
         self.repo = pygit2.Repository(temp_repo_path)
+
+class DirtyRepoTestCase(RepoTestCase):
+
+    repo_dir = 'dirtyrepo'
