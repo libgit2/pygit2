@@ -116,7 +116,8 @@ static PyTypeObject ReferenceType;
 static PyObject *GitError;
 
 static PyObject *
-Error_type(int err) {
+Error_type(int err)
+{
     switch (err) {
         case GIT_ENOTFOUND:
             return PyExc_KeyError;
@@ -134,7 +135,8 @@ Error_type(int err) {
 }
 
 static PyObject *
-Error_set(int err) {
+Error_set(int err)
+{
     assert(err < 0);
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. If the caller
@@ -152,7 +154,8 @@ Error_set(int err) {
 }
 
 static PyObject *
-Error_set_str(int err, const char *str) {
+Error_set_str(int err, const char *str)
+{
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. */
         PyErr_Format(PyExc_KeyError, "%s", str);
@@ -163,7 +166,8 @@ Error_set_str(int err, const char *str) {
 }
 
 static PyObject *
-Error_set_py_obj(int err, PyObject *py_obj) {
+Error_set_py_obj(int err, PyObject *py_obj)
+{
     PyObject *py_str;
     char *str;
 
@@ -188,7 +192,8 @@ Error_set_py_obj(int err, PyObject *py_obj) {
 }
 
 static PyObject *
-lookup_object(Repository *repo, const git_oid *oid, git_otype type) {
+lookup_object(Repository *repo, const git_oid *oid, git_otype type)
+{
     int err;
     char hex[GIT_OID_HEXSZ + 1];
     git_object *obj;
@@ -251,7 +256,8 @@ wrap_reference(git_reference * c_reference)
 }
 
 static int
-py_str_to_git_oid(PyObject *py_str, git_oid *oid) {
+py_str_to_git_oid(PyObject *py_str, git_oid *oid)
+{
     const char *hex_or_bin;
     int err;
 
@@ -287,7 +293,8 @@ git_oid_to_py_str(const git_oid *oid)
 }
 
 static int
-Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
+Repository_init(Repository *self, PyObject *args, PyObject *kwds)
+{
     char *path;
     int err;
 
@@ -310,7 +317,8 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds) {
 }
 
 static void
-Repository_dealloc(Repository *self) {
+Repository_dealloc(Repository *self)
+{
     if (self->repo)
         git_repository_free(self->repo);
     Py_XDECREF(self->index);
@@ -318,7 +326,8 @@ Repository_dealloc(Repository *self) {
 }
 
 static int
-Repository_contains(Repository *self, PyObject *value) {
+Repository_contains(Repository *self, PyObject *value)
+{
     git_oid oid;
 
     if (!py_str_to_git_oid(value, &oid))
@@ -328,7 +337,8 @@ Repository_contains(Repository *self, PyObject *value) {
 }
 
 static PyObject *
-Repository_getitem(Repository *self, PyObject *value) {
+Repository_getitem(Repository *self, PyObject *value)
+{
     git_oid oid;
 
     if (!py_str_to_git_oid(value, &oid))
@@ -339,12 +349,14 @@ Repository_getitem(Repository *self, PyObject *value) {
 
 static int
 Repository_read_raw(git_odb_object **obj, git_repository *repo,
-                    const git_oid *oid) {
+                    const git_oid *oid)
+{
     return git_odb_read(obj, git_repository_database(repo), oid);
 }
 
 static PyObject *
-Repository_read(Repository *self, PyObject *py_hex) {
+Repository_read(Repository *self, PyObject *py_hex)
+{
     git_oid oid;
     int err;
     git_odb_object *obj;
@@ -399,7 +411,8 @@ Repository_write(Repository *self, PyObject *args)
 }
 
 static PyObject *
-Repository_get_index(Repository *self, void *closure) {
+Repository_get_index(Repository *self, void *closure)
+{
     int err;
     git_index *index;
     Index *py_index;
@@ -431,7 +444,8 @@ Repository_get_index(Repository *self, void *closure) {
 }
 
 static PyObject *
-Repository_get_path(Repository *self, void *closure) {
+Repository_get_path(Repository *self, void *closure)
+{
     const char *c_path;
 
     c_path = git_repository_path(self->repo, GIT_REPO_PATH);
@@ -439,7 +453,8 @@ Repository_get_path(Repository *self, void *closure) {
 }
 
 static PyObject *
-Repository_get_workdir(Repository *self, void *closure) {
+Repository_get_workdir(Repository *self, void *closure)
+{
     const char *c_path;
 
     c_path = git_repository_path(self->repo, GIT_REPO_PATH_WORKDIR);
@@ -500,13 +515,15 @@ Repository_walk(Repository *self, PyObject *args)
 }
 
 static PyObject *
-build_person(const git_signature *signature) {
+build_person(const git_signature *signature)
+{
     return Py_BuildValue("(ssLi)", signature->name, signature->email,
                          signature->when.time, signature->when.offset);
 }
 
 static int
-signature_converter(PyObject *value, git_signature **out) {
+signature_converter(PyObject *value, git_signature **out)
+{
     char *name, *email;
     long long time;
     int offset;
@@ -526,7 +543,8 @@ signature_converter(PyObject *value, git_signature **out) {
 }
 
 static PyObject *
-free_parents(git_commit **parents, int n) {
+free_parents(git_commit **parents, int n)
+{
     int i;
 
     for (i = 0; i < n; i++)
@@ -536,7 +554,8 @@ free_parents(git_commit **parents, int n) {
 }
 
 static PyObject *
-Repository_create_commit(Repository *self, PyObject *args) {
+Repository_create_commit(Repository *self, PyObject *args)
+{
     git_signature *author, *committer;
     char *message, *update_ref;
     git_oid oid;
@@ -589,7 +608,8 @@ Repository_create_commit(Repository *self, PyObject *args) {
 }
 
 static PyObject *
-Repository_create_tag(Repository *self, PyObject *args) {
+Repository_create_tag(Repository *self, PyObject *args)
+{
     char *tag_name, *message;
     git_signature *tagger;
     git_oid oid;
@@ -622,7 +642,8 @@ Repository_create_tag(Repository *self, PyObject *args) {
 }
 
 static PyObject *
-Repository_listall_references(Repository *self, PyObject *args) {
+Repository_listall_references(Repository *self, PyObject *args)
+{
     unsigned list_flags=GIT_REF_LISTALL;
     git_strarray c_result;
     PyObject *py_result, *py_string;
@@ -663,7 +684,8 @@ Repository_listall_references(Repository *self, PyObject *args) {
 }
 
 static PyObject *
-Repository_lookup_reference(Repository *self, PyObject *py_name) {
+Repository_lookup_reference(Repository *self, PyObject *py_name)
+{
     git_reference *c_reference;
     char *c_name;
     int err;
@@ -683,7 +705,8 @@ Repository_lookup_reference(Repository *self, PyObject *py_name) {
 }
 
 static PyObject *
-Repository_create_reference(Repository *self,  PyObject *args) {
+Repository_create_reference(Repository *self,  PyObject *args)
+{
     git_reference *c_reference;
     char *c_name;
     git_oid oid;
@@ -704,7 +727,8 @@ Repository_create_reference(Repository *self,  PyObject *args) {
 }
 
 static PyObject *
-Repository_create_symbolic_reference(Repository *self,  PyObject *args) {
+Repository_create_symbolic_reference(Repository *self,  PyObject *args)
+{
     git_reference *c_reference;
     char *c_name, *c_target;
     int err;
@@ -724,7 +748,8 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args) {
 }
 
 static PyObject *
-Repository_packall_references(Repository *self,  PyObject *args) {
+Repository_packall_references(Repository *self,  PyObject *args)
+{
     int err;
 
     /* 1- Pack */
@@ -845,12 +870,14 @@ Object_dealloc(Object* self)
 }
 
 static PyObject *
-Object_get_type(Object *self) {
+Object_get_type(Object *self)
+{
     return PyInt_FromLong(git_object_type(self->obj));
 }
 
 static PyObject *
-Object_get_sha(Object *self) {
+Object_get_sha(Object *self)
+{
     const git_oid *oid;
 
     oid = git_object_id(self->obj);
@@ -861,7 +888,8 @@ Object_get_sha(Object *self) {
 }
 
 static PyObject *
-Object_read_raw(Object *self) {
+Object_read_raw(Object *self)
+{
     const git_oid *id;
     git_odb_object *obj;
     int err;
@@ -944,36 +972,42 @@ static PyTypeObject ObjectType = {
 };
 
 static PyObject *
-Commit_get_message_short(Commit *commit) {
+Commit_get_message_short(Commit *commit)
+{
     return PyString_FromString(git_commit_message_short(commit->commit));
 }
 
 static PyObject *
-Commit_get_message(Commit *commit) {
+Commit_get_message(Commit *commit)
+{
     return PyString_FromString(git_commit_message(commit->commit));
 }
 
 static PyObject *
-Commit_get_commit_time(Commit *commit) {
+Commit_get_commit_time(Commit *commit)
+{
     return PyLong_FromLong(git_commit_time(commit->commit));
 }
 
 static PyObject *
-Commit_get_committer(Commit *commit) {
+Commit_get_committer(Commit *commit)
+{
     const git_signature *signature = git_commit_committer(commit->commit);
 
     return build_person(signature);
 }
 
 static PyObject *
-Commit_get_author(Commit *commit) {
+Commit_get_author(Commit *commit)
+{
     const git_signature *signature = git_commit_author(commit->commit);
 
     return build_person(signature);
 }
 
 static PyObject *
-Commit_get_tree(Commit *commit) {
+Commit_get_tree(Commit *commit)
+{
     git_tree *tree;
     Tree *py_tree;
     int err;
@@ -1082,28 +1116,33 @@ static PyTypeObject CommitType = {
 };
 
 static void
-TreeEntry_dealloc(TreeEntry *self) {
+TreeEntry_dealloc(TreeEntry *self)
+{
     Py_XDECREF(self->tree);
     self->ob_type->tp_free((PyObject *)self);
 }
 
 static PyObject *
-TreeEntry_get_attributes(TreeEntry *self) {
+TreeEntry_get_attributes(TreeEntry *self)
+{
     return PyInt_FromLong(git_tree_entry_attributes(self->entry));
 }
 
 static PyObject *
-TreeEntry_get_name(TreeEntry *self) {
+TreeEntry_get_name(TreeEntry *self)
+{
     return PyString_FromString(git_tree_entry_name(self->entry));
 }
 
 static PyObject *
-TreeEntry_get_sha(TreeEntry *self) {
+TreeEntry_get_sha(TreeEntry *self)
+{
     return git_oid_to_py_str(git_tree_entry_id(self->entry));
 }
 
 static PyObject *
-TreeEntry_to_object(TreeEntry *self) {
+TreeEntry_to_object(TreeEntry *self)
+{
     const git_oid *entry_oid;
 
     entry_oid = git_tree_entry_id(self->entry);
@@ -1166,13 +1205,15 @@ static PyTypeObject TreeEntryType = {
 };
 
 static Py_ssize_t
-Tree_len(Tree *self) {
+Tree_len(Tree *self)
+{
     assert(self->tree);
     return (Py_ssize_t)git_tree_entrycount(self->tree);
 }
 
 static int
-Tree_contains(Tree *self, PyObject *py_name) {
+Tree_contains(Tree *self, PyObject *py_name)
+{
     char *name;
 
     name = PyString_AsString(py_name);
@@ -1183,7 +1224,8 @@ Tree_contains(Tree *self, PyObject *py_name) {
 }
 
 static TreeEntry *
-wrap_tree_entry(const git_tree_entry *entry, Tree *tree) {
+wrap_tree_entry(const git_tree_entry *entry, Tree *tree)
+{
     TreeEntry *py_entry = NULL;
     py_entry = (TreeEntry*)TreeEntryType.tp_alloc(&TreeEntryType, 0);
     if (!py_entry)
@@ -1196,7 +1238,8 @@ wrap_tree_entry(const git_tree_entry *entry, Tree *tree) {
 }
 
 static TreeEntry *
-Tree_getitem_by_name(Tree *self, PyObject *py_name) {
+Tree_getitem_by_name(Tree *self, PyObject *py_name)
+{
     char *name;
     const git_tree_entry *entry;
 
@@ -1210,7 +1253,8 @@ Tree_getitem_by_name(Tree *self, PyObject *py_name) {
 }
 
 static int
-Tree_fix_index(Tree *self, PyObject *py_index) {
+Tree_fix_index(Tree *self, PyObject *py_index)
+{
     long index;
     size_t len;
     long slen;
@@ -1238,7 +1282,8 @@ Tree_fix_index(Tree *self, PyObject *py_index) {
 }
 
 static PyObject *
-Tree_iter(Tree *self) {
+Tree_iter(Tree *self)
+{
   TreeIter *iter;
 
   iter = PyObject_New(TreeIter, &TreeIterType);
@@ -1253,7 +1298,8 @@ Tree_iter(Tree *self) {
 }
 
 static TreeEntry *
-Tree_getitem_by_index(Tree *self, PyObject *py_index) {
+Tree_getitem_by_index(Tree *self, PyObject *py_index)
+{
     int index;
     const git_tree_entry *entry;
 
@@ -1270,7 +1316,8 @@ Tree_getitem_by_index(Tree *self, PyObject *py_index) {
 }
 
 static TreeEntry *
-Tree_getitem(Tree *self, PyObject *value) {
+Tree_getitem(Tree *self, PyObject *value)
+{
     if (PyString_Check(value)) {
         return Tree_getitem_by_name(self, value);
     }
@@ -1345,13 +1392,15 @@ static PyTypeObject TreeType = {
 };
 
 static void
-TreeIter_dealloc(TreeIter *self) {
+TreeIter_dealloc(TreeIter *self)
+{
     Py_CLEAR(self->owner);
     PyObject_Del(self);
 }
 
 static TreeEntry *
-TreeIter_iternext(TreeIter *self) {
+TreeIter_iternext(TreeIter *self)
+{
     const git_tree_entry *tree_entry;
 
     tree_entry = git_tree_entry_byindex(self->owner->tree, self->i);
@@ -1441,13 +1490,15 @@ static PyTypeObject BlobType = {
 };
 
 static void
-Tag_dealloc(Tag *self) {
+Tag_dealloc(Tag *self)
+{
     Py_XDECREF(self->target);
     self->ob_type->tp_free((PyObject*)self);
 }
 
 static PyObject *
-Tag_get_target(Tag *self) {
+Tag_get_target(Tag *self)
+{
     const git_oid *target_oid;
     git_otype target_type;
 
@@ -1464,7 +1515,8 @@ Tag_get_target(Tag *self) {
 }
 
 static PyObject *
-Tag_get_name(Tag *self) {
+Tag_get_name(Tag *self)
+{
     const char *name;
     name = git_tag_name(self->tag);
     if (!name)
@@ -1473,7 +1525,8 @@ Tag_get_name(Tag *self) {
 }
 
 static PyObject *
-Tag_get_tagger(Tag *tag) {
+Tag_get_tagger(Tag *tag)
+{
     const git_signature *signature = git_tag_tagger(tag->tag);
     if (!signature)
         Py_RETURN_NONE;
@@ -1481,7 +1534,8 @@ Tag_get_tagger(Tag *tag) {
 }
 
 static PyObject *
-Tag_get_message(Tag *self) {
+Tag_get_message(Tag *self)
+{
     const char *message;
     message = git_tag_message(self->tag);
     if (!message)
@@ -1541,7 +1595,8 @@ static PyTypeObject TagType = {
 };
 
 static int
-Index_init(Index *self, PyObject *args, PyObject *kwds) {
+Index_init(Index *self, PyObject *args, PyObject *kwds)
+{
     char *path;
     int err;
 
@@ -1574,7 +1629,8 @@ Index_dealloc(Index* self)
 }
 
 static PyObject *
-Index_add(Index *self, PyObject *args) {
+Index_add(Index *self, PyObject *args)
+{
     int err;
     const char *path;
     int stage=0;
@@ -1590,13 +1646,15 @@ Index_add(Index *self, PyObject *args) {
 }
 
 static PyObject *
-Index_clear(Index *self) {
+Index_clear(Index *self)
+{
     git_index_clear(self->index);
     Py_RETURN_NONE;
 }
 
 static PyObject *
-Index_find(Index *self, PyObject *py_path) {
+Index_find(Index *self, PyObject *py_path)
+{
     char *path;
     long idx;
 
@@ -1612,7 +1670,8 @@ Index_find(Index *self, PyObject *py_path) {
 }
 
 static PyObject *
-Index_read(Index *self) {
+Index_read(Index *self)
+{
     int err;
 
     err = git_index_read(self->index);
@@ -1623,7 +1682,8 @@ Index_read(Index *self) {
 }
 
 static PyObject *
-Index_write(Index *self) {
+Index_write(Index *self)
+{
     int err;
 
     err = git_index_write(self->index);
@@ -1635,7 +1695,8 @@ Index_write(Index *self) {
 
 /* This is an internal function, used by Index_getitem and Index_setitem */
 static int
-Index_get_position(Index *self, PyObject *value) {
+Index_get_position(Index *self, PyObject *value)
+{
     char *path;
     int idx;
 
@@ -1669,7 +1730,8 @@ Index_get_position(Index *self, PyObject *value) {
 }
 
 static int
-Index_contains(Index *self, PyObject *value) {
+Index_contains(Index *self, PyObject *value)
+{
     char *path;
     int idx;
 
@@ -1688,7 +1750,8 @@ Index_contains(Index *self, PyObject *value) {
 }
 
 static PyObject *
-Index_iter(Index *self) {
+Index_iter(Index *self)
+{
   IndexIter *iter;
 
   iter = PyObject_New(IndexIter, &IndexIterType);
@@ -1702,12 +1765,14 @@ Index_iter(Index *self) {
 }
 
 static Py_ssize_t
-Index_len(Index *self) {
+Index_len(Index *self)
+{
     return (Py_ssize_t)git_index_entrycount(self->index);
 }
 
 static PyObject *
-wrap_index_entry(git_index_entry *entry, Index *index) {
+wrap_index_entry(git_index_entry *entry, Index *index)
+{
     IndexEntry *py_entry;
 
     py_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
@@ -1720,7 +1785,8 @@ wrap_index_entry(git_index_entry *entry, Index *index) {
 }
 
 static PyObject *
-Index_getitem(Index *self, PyObject *value) {
+Index_getitem(Index *self, PyObject *value)
+{
     int idx;
     git_index_entry *index_entry;
 
@@ -1738,7 +1804,8 @@ Index_getitem(Index *self, PyObject *value) {
 }
 
 static int
-Index_setitem(Index *self, PyObject *key, PyObject *value) {
+Index_setitem(Index *self, PyObject *key, PyObject *value)
+{
     int err;
     int idx;
 
@@ -1762,7 +1829,8 @@ Index_setitem(Index *self, PyObject *key, PyObject *value) {
 }
 
 static PyObject *
-Index_create_tree(Index *self) {
+Index_create_tree(Index *self)
+{
     git_oid oid;
     int err;
 
@@ -1853,13 +1921,15 @@ static PyTypeObject IndexType = {
 
 
 static void
-IndexIter_dealloc(IndexIter *self) {
+IndexIter_dealloc(IndexIter *self)
+{
     Py_CLEAR(self->owner);
     PyObject_Del(self);
 }
 
 static PyObject *
-IndexIter_iternext(IndexIter *self) {
+IndexIter_iternext(IndexIter *self)
+{
     git_index_entry *index_entry;
 
     index_entry = git_index_get(self->owner->index, self->i);
@@ -1902,22 +1972,26 @@ static PyTypeObject IndexIterType = {
  };
 
 static void
-IndexEntry_dealloc(IndexEntry *self) {
+IndexEntry_dealloc(IndexEntry *self)
+{
     self->ob_type->tp_free((PyObject*)self);
 }
 
 static PyObject *
-IndexEntry_get_mode(IndexEntry *self) {
+IndexEntry_get_mode(IndexEntry *self)
+{
     return PyInt_FromLong(self->entry->mode);
 }
 
 static PyObject *
-IndexEntry_get_path(IndexEntry *self) {
+IndexEntry_get_path(IndexEntry *self)
+{
     return PyString_FromString(self->entry->path);
 }
 
 static PyObject *
-IndexEntry_get_sha(IndexEntry *self) {
+IndexEntry_get_sha(IndexEntry *self)
+{
     return git_oid_to_py_str(&self->entry->oid);
 }
 
@@ -1971,14 +2045,16 @@ static PyTypeObject IndexEntryType = {
 };
 
 static void
-Walker_dealloc(Walker *self) {
+Walker_dealloc(Walker *self)
+{
     git_revwalk_free(self->walk);
     Py_DECREF(self->repo);
     self->ob_type->tp_free((PyObject*)self);
 }
 
 static PyObject *
-Walker_hide(Walker *self, PyObject *py_hex) {
+Walker_hide(Walker *self, PyObject *py_hex)
+{
     int err;
     git_oid oid;
 
@@ -1993,7 +2069,8 @@ Walker_hide(Walker *self, PyObject *py_hex) {
 }
 
 static PyObject *
-Walker_push(Walker *self, PyObject *py_hex) {
+Walker_push(Walker *self, PyObject *py_hex)
+{
     int err;
     git_oid oid;
 
@@ -2008,7 +2085,8 @@ Walker_push(Walker *self, PyObject *py_hex) {
 }
 
 static PyObject *
-Walker_sort(Walker *self, PyObject *py_sort_mode) {
+Walker_sort(Walker *self, PyObject *py_sort_mode)
+{
     int sort_mode;
 
     sort_mode = (int)PyInt_AsLong(py_sort_mode);
@@ -2021,19 +2099,22 @@ Walker_sort(Walker *self, PyObject *py_sort_mode) {
 }
 
 static PyObject *
-Walker_reset(Walker *self) {
+Walker_reset(Walker *self)
+{
     git_revwalk_reset(self->walk);
     Py_RETURN_NONE;
 }
 
 static PyObject *
-Walker_iter(Walker *self) {
+Walker_iter(Walker *self)
+{
     Py_INCREF(self);
     return (PyObject*)self;
 }
 
 static PyObject *
-Walker_iternext(Walker *self) {
+Walker_iternext(Walker *self)
+{
     int err;
     git_commit *commit;
     Commit *py_commit;
@@ -2112,7 +2193,8 @@ static PyTypeObject WalkerType = {
 };
 
 static PyObject *
-Reference_delete(Reference *self, PyObject *args) {
+Reference_delete(Reference *self, PyObject *args)
+{
     int err;
 
     /* 1- Delete the reference */
@@ -2128,7 +2210,8 @@ Reference_delete(Reference *self, PyObject *args) {
 }
 
 static PyObject *
-Reference_rename(Reference *self, PyObject *py_name) {
+Reference_rename(Reference *self, PyObject *py_name)
+{
     char *c_name;
     int err;
 
@@ -2147,7 +2230,8 @@ Reference_rename(Reference *self, PyObject *py_name) {
 }
 
 static PyObject *
-Reference_resolve(Reference *self, PyObject *args) {
+Reference_resolve(Reference *self, PyObject *args)
+{
     git_reference *c_reference;
     int err;
 
@@ -2161,7 +2245,8 @@ Reference_resolve(Reference *self, PyObject *args) {
 }
 
 static PyObject *
-Reference_get_target(Reference *self) {
+Reference_get_target(Reference *self)
+{
     const char * c_name;
 
     /* 1- Get the target */
@@ -2176,7 +2261,8 @@ Reference_get_target(Reference *self) {
 }
 
 static int
-Reference_set_target(Reference *self, PyObject *py_name) {
+Reference_set_target(Reference *self, PyObject *py_name)
+{
     char *c_name;
     int err;
 
@@ -2197,7 +2283,8 @@ Reference_set_target(Reference *self, PyObject *py_name) {
 }
 
 static PyObject *
-Reference_get_name(Reference *self) {
+Reference_get_name(Reference *self)
+{
     const char *c_name;
 
     c_name = git_reference_name(self->reference);
@@ -2205,7 +2292,8 @@ Reference_get_name(Reference *self) {
 }
 
 static PyObject *
-Reference_get_sha(Reference *self) {
+Reference_get_sha(Reference *self)
+{
     const git_oid *oid;
 
     /* 1- Get the oid (only for "direct" references) */
@@ -2223,7 +2311,8 @@ Reference_get_sha(Reference *self) {
 }
 
 static int
-Reference_set_sha(Reference *self, PyObject *py_sha) {
+Reference_set_sha(Reference *self, PyObject *py_sha)
+{
     git_oid oid;
     int err;
 
@@ -2243,7 +2332,8 @@ Reference_set_sha(Reference *self, PyObject *py_sha) {
 }
 
 static PyObject *
-Reference_get_type(Reference *self) {
+Reference_get_type(Reference *self)
+{
     git_rtype c_type;
 
     c_type = git_reference_type(self->reference);
@@ -2315,7 +2405,8 @@ static PyTypeObject ReferenceType = {
 };
 
 static PyObject *
-init_repository(PyObject *self, PyObject *args) {
+init_repository(PyObject *self, PyObject *args)
+{
     git_repository *repo;
     Repository *py_repo;
     const char *path;
