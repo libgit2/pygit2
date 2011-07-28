@@ -47,6 +47,14 @@ Index read:
     >>> sha = index['path/to/file'].sha    # from path to sha
     >>> blob = repo[sha]                   # from sha to blob
 
+Inspect the status of the repository:
+
+    >>> from pygit2 import GIT_STATUS_CURRENT
+    >>> status = repo.status()
+    >>> for filepath, flags in status.items():
+    ...     if flags != GIT_STATUS_CURRENT:
+    ...         print "Filepath %s isn't clean" % filepath
+
 Iterate over all entries of the index:
 
     >>> for entry in index:
