@@ -522,23 +522,22 @@ build_person(const git_signature *signature)
 }
 
 static int
-signature_converter(PyObject *value, git_signature **out)
+signature_converter(PyObject *value, git_signature **signature)
 {
     char *name, *email;
     long long time;
     int offset;
-    git_signature *signature;
+    int err;
 
     if (!PyArg_ParseTuple(value, "ssLi", &name, &email, &time, &offset))
         return 0;
 
-    signature = git_signature_new(name, email, time, offset);
-    if (signature == NULL) {
-        PyErr_SetNone(PyExc_MemoryError);
+    err = git_signature_new(signature, name, email, time, offset);
+    if (err < 0) {
+        Error_set(err);
         return 0;
     }
 
-    *out = signature;
     return 1;
 }
 
