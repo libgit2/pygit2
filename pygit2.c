@@ -1651,7 +1651,6 @@ Index_dealloc(Index* self)
 {
     if (self->own_obj)
         git_index_free(self->index);
-    Py_XDECREF(self->repo);
     self->ob_type->tp_free((PyObject*)self);
 }
 
