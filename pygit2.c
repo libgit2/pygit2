@@ -425,6 +425,7 @@ Repository_get_index(Repository *self, void *closure)
             py_index = (Index*)IndexType.tp_alloc(&IndexType, 0);
             if (!py_index)
                 return PyErr_NoMemory();
+            Py_INCREF(self);
             py_index->repo = self;
             py_index->index = index;
             py_index->own_obj = 0;
