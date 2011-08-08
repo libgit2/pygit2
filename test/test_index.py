@@ -31,9 +31,11 @@
 __author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
 
 import unittest
+import os
 
 import utils
 
+import pygit2
 
 class IndexBareTest(utils.BareRepoTestCase):
 
@@ -57,6 +59,7 @@ class IndexTest(utils.RepoTestCase):
         sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
         self.assertTrue('hello.txt' in index)
         self.assertEqual(index['hello.txt'].sha, sha)
+        self.assertEqual(index['hello.txt'].path, 'hello.txt')
         self.assertEqual(index[1].sha, sha)
 
     def test_add(self):
@@ -93,9 +96,10 @@ class IndexTest(utils.RepoTestCase):
         index = self.repo.index
         n = len(index)
         self.assertEqual(len(list(index)), n)
-        # FIXME This fails
-        #entries = [index[x] for x in xrange(n)]
-        #self.assertEqual(list(index), entries)
+
+        # Compare SHAs, not IndexEntry object identity
+        entries = [index[x].sha for x in xrange(n)]
+        self.assertEqual(list(x.sha for x in index), entries)
 
     def test_mode(self):
         """
@@ -106,6 +110,12 @@ class IndexTest(utils.RepoTestCase):
         hello_mode = index['hello.txt'].mode
         self.assertEqual(hello_mode, 33188)
 
+    def test_bare_index(self):
+        index = pygit2.Index(os.path.join(self.repo.path, 'index'))
+        self.assertEqual([x.sha for x in index],
+                [x.sha for x in self.repo.index])
+
+        self.assertRaises(pygit2.GitError, lambda: index.add('bye.txt', 0))
 
 if __name__ == '__main__':
     unittest.main()

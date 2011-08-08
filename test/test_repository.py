@@ -31,9 +31,11 @@ __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 import binascii
 import unittest
+import os
 from os.path import join, abspath
 
-from pygit2 import GitError, GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
+from pygit2 import (GitError, GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT,
+        init_repository)
 import utils
 
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
@@ -111,6 +113,14 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.assertEqual(directory, expected)
 
 
+class NewRepositoryTest(utils.NoRepoTestCase):
+    def test_new_repo(self):
+        repo = init_repository(self.temp_dir, False)
+
+        hex_sha = repo.write(GIT_OBJ_BLOB, "Test")
+        self.assertEqual(len(hex_sha), 40)
+
+        assert os.path.exists(os.path.join(self._temp_dir, '.git'))
 
 if __name__ == '__main__':
   unittest.main()

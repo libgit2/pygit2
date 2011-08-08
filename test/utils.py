@@ -79,6 +79,11 @@ class RepoTestCase(BaseTestCase):
         temp_repo_path = os.path.join(temp_dir, repo_dir, '.git')
         self.repo = pygit2.Repository(temp_repo_path)
 
+class NoRepoTestCase(BaseTestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        self._temp_dir = self.temp_dir
+
 class DirtyRepoTestCase(RepoTestCase):
 
     repo_dir = 'dirtyrepo'

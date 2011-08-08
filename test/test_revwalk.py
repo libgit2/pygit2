@@ -61,6 +61,26 @@ class WalkerTest(utils.RepoTestCase):
         walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
         self.assertEqual(len(list(walker)), 2)
 
+    def test_reset(self):
+        walker = self.repo.walk(log[0], GIT_SORT_TIME)
+        walker.reset()
+        out = [ x.sha for x in walker ]
+        self.assertEqual(out, [])
+
+    def test_push(self):
+        walker = self.repo.walk(log[-1], GIT_SORT_TIME)
+        out = [ x.sha for x in walker ]
+        self.assertEqual(out, log[-1:])
+        walker.reset()
+        walker.push(log[0])
+        out = [ x.sha for x in walker ]
+        self.assertEqual(out, log)
+
+    def test_sort(self):
+        walker = self.repo.walk(log[0], GIT_SORT_TIME)
+        walker.sort(GIT_SORT_TIME | GIT_SORT_REVERSE)
+        out = [ x.sha for x in walker ]
+        self.assertEqual(out, list(reversed(log)))
 
 if __name__ == '__main__':
     unittest.main()
