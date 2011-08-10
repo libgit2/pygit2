@@ -29,10 +29,25 @@
 #include <Python.h>
 #include <git2.h>
 
-/* Define PyVarObject_HEAD_INIT for Python 2.5 */
+/* Python 2.5 support */
+#ifndef Py_TYPE
+  #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
+#endif
 #ifndef PyVarObject_HEAD_INIT
-#define PyVarObject_HEAD_INIT(type, size) \
-    PyObject_HEAD_INIT(type) size,
+  #define PyVarObject_HEAD_INIT(type, size) PyObject_HEAD_INIT(type) size,
+#endif
+
+/* Python 3 support */
+#if PY_MAJOR_VERSION >= 3
+  #define PyInt_AsLong PyLong_AsLong
+  #define PyInt_Check PyLong_Check
+  #define PyInt_FromLong PyLong_FromLong
+  #define PyString_AS_STRING PyBytes_AS_STRING
+  #define PyString_AsString PyBytes_AsString
+  #define PyString_Check PyBytes_Check
+  #define PyString_FromString PyBytes_FromString
+  #define PyString_FromStringAndSize PyBytes_FromStringAndSize
+  #define PyString_Size PyBytes_Size
 #endif
 
 
@@ -175,8 +190,8 @@ Error_set_py_obj(int err, PyObject *py_obj)
 
     if (err == GIT_ENOTOID && !PyString_Check(py_obj)) {
         PyErr_Format(PyExc_TypeError,
-                     "Git object id must be 40 byte hexadecimal str, or 20 byte binary str: %.200s",
-                     py_obj->ob_type->tp_name);
+                     "Git object id must be byte string, not: %.200s",
+                     Py_TYPE(py_obj)->tp_name);
         return NULL;
     }
     else if (err == GIT_ENOTFOUND) {
@@ -322,7 +337,7 @@ Repository_dealloc(Repository *self)
     if (self->repo)
         git_repository_free(self->repo);
     Py_XDECREF(self->index);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int
@@ -847,8 +862,7 @@ static PyMappingMethods Repository_as_mapping = {
 };
 
 static PyTypeObject RepositoryType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Repository",                       /* tp_name           */
     sizeof(Repository),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -893,7 +907,7 @@ Object_dealloc(Object* self)
 {
     git_object_close(self->obj);
     Py_XDECREF(self->repo);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -957,8 +971,7 @@ static PyMethodDef Object_methods[] = {
 };
 
 static PyTypeObject ObjectType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Object",                           /* tp_name           */
     sizeof(Object),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -1101,8 +1114,7 @@ static PyGetSetDef Commit_getseters[] = {
 };
 
 static PyTypeObject CommitType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Commit",                           /* tp_name           */
     sizeof(Commit),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -1146,7 +1158,7 @@ static void
 TreeEntry_dealloc(TreeEntry *self)
 {
     Py_XDECREF(self->tree);
-    self->ob_type->tp_free((PyObject *)self);
+    Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 static PyObject *
@@ -1190,8 +1202,7 @@ static PyMethodDef TreeEntry_methods[] = {
 };
 
 static PyTypeObject TreeEntryType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.TreeEntry",                        /* tp_name           */
     sizeof(TreeEntry),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -1354,7 +1365,7 @@ Tree_getitem(Tree *self, PyObject *value)
     else {
         PyErr_Format(PyExc_TypeError,
                      "Tree entry index must be int or str, not %.200s",
-                     value->ob_type->tp_name);
+                     Py_TYPE(value)->tp_name);
         return NULL;
     }
 }
@@ -1377,8 +1388,7 @@ static PyMappingMethods Tree_as_mapping = {
 };
 
 static PyTypeObject TreeType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Tree",                             /* tp_name           */
     sizeof(Tree),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -1475,8 +1485,7 @@ static PyGetSetDef Blob_getseters[] = {
 };
 
 static PyTypeObject BlobType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Blob",                             /* tp_name           */
     sizeof(Blob),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -1520,7 +1529,7 @@ static void
 Tag_dealloc(Tag *self)
 {
     Py_XDECREF(self->target);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -1580,8 +1589,7 @@ static PyGetSetDef Tag_getseters[] = {
 };
 
 static PyTypeObject TagType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Tag",                              /* tp_name           */
     sizeof(Tag),                               /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -1652,7 +1660,7 @@ Index_dealloc(Index* self)
     if (self->own_obj)
         git_index_free(self->index);
     Py_XDECREF(self->repo);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -1749,7 +1757,7 @@ Index_get_position(Index *self, PyObject *value)
     else {
         PyErr_Format(PyExc_TypeError,
                      "Index entry key must be int or str, not %.200s",
-                     value->ob_type->tp_name);
+                     Py_TYPE(value)->tp_name);
         return -1;
     }
 
@@ -1905,8 +1913,7 @@ static PyMappingMethods Index_as_mapping = {
 };
 
 static PyTypeObject IndexType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Index",                            /* tp_name           */
     sizeof(Index),                             /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -2001,7 +2008,7 @@ static PyTypeObject IndexIterType = {
 static void
 IndexEntry_dealloc(IndexEntry *self)
 {
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -2030,8 +2037,7 @@ static PyGetSetDef IndexEntry_getseters[] = {
 };
 
 static PyTypeObject IndexEntryType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.IndexEntry",                       /* tp_name           */
     sizeof(IndexEntry),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -2076,7 +2082,7 @@ Walker_dealloc(Walker *self)
 {
     git_revwalk_free(self->walk);
     Py_DECREF(self->repo);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -2178,8 +2184,7 @@ static PyMethodDef Walker_methods[] = {
 };
 
 static PyTypeObject WalkerType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Walker",                           /* tp_name           */
     sizeof(Walker),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -2198,7 +2203,7 @@ static PyTypeObject WalkerType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_ITER, /* tp_flags          */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
     "Revision walker",                         /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
@@ -2390,8 +2395,7 @@ static PyGetSetDef Reference_getseters[] = {
 };
 
 static PyTypeObject ReferenceType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                         /* ob_size           */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Reference",                        /* tp_name           */
     sizeof(Reference),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
@@ -2466,55 +2470,50 @@ static PyMethodDef module_methods[] = {
     {NULL}
 };
 
-PyMODINIT_FUNC
-initpygit2(void)
+PyObject*
+moduleinit(PyObject* m)
 {
-    PyObject* m;
+    if (m == NULL)
+        return NULL;
 
     GitError = PyErr_NewException("pygit2.GitError", NULL, NULL);
 
     RepositoryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&RepositoryType) < 0)
-        return;
+        return NULL;
 
     /* Do not set 'tp_new' for Git objects. To create Git objects use the
      * Repository.create_XXX methods */
     if (PyType_Ready(&ObjectType) < 0)
-        return;
+        return NULL;
     CommitType.tp_base = &ObjectType;
     if (PyType_Ready(&CommitType) < 0)
-        return;
+        return NULL;
     TreeType.tp_base = &ObjectType;
     if (PyType_Ready(&TreeType) < 0)
-        return;
+        return NULL;
     BlobType.tp_base = &ObjectType;
     if (PyType_Ready(&BlobType) < 0)
-        return;
+        return NULL;
     TagType.tp_base = &ObjectType;
     if (PyType_Ready(&TagType) < 0)
-        return;
+        return NULL;
 
     TreeEntryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TreeEntryType) < 0)
-        return;
+        return NULL;
     IndexType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&IndexType) < 0)
-        return;
+        return NULL;
     IndexEntryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&IndexEntryType) < 0)
-        return;
+        return NULL;
     WalkerType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&WalkerType) < 0)
-        return;
+        return NULL;
     ReferenceType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&ReferenceType) < 0)
-        return;
-
-    m = Py_InitModule3("pygit2", module_methods,
-                       "Python bindings for libgit2.");
-
-    if (m == NULL)
-      return;
+        return NULL;
 
     Py_INCREF(GitError);
     PyModule_AddObject(m, "GitError", GitError);
@@ -2558,26 +2557,60 @@ initpygit2(void)
     PyModule_AddIntConstant(m, "GIT_SORT_TOPOLOGICAL", GIT_SORT_TOPOLOGICAL);
     PyModule_AddIntConstant(m, "GIT_SORT_TIME", GIT_SORT_TIME);
     PyModule_AddIntConstant(m, "GIT_SORT_REVERSE", GIT_SORT_REVERSE);
-    PyModule_AddIntConstant(m,"GIT_REF_OID", GIT_REF_OID);
-    PyModule_AddIntConstant(m,"GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
-    PyModule_AddIntConstant(m,"GIT_REF_PACKED", GIT_REF_PACKED);
+    PyModule_AddIntConstant(m, "GIT_REF_OID", GIT_REF_OID);
+    PyModule_AddIntConstant(m, "GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
+    PyModule_AddIntConstant(m, "GIT_REF_PACKED", GIT_REF_PACKED);
 
     /** Git status flags **/
-    PyModule_AddIntConstant(m,"GIT_STATUS_CURRENT", GIT_STATUS_CURRENT);
+    PyModule_AddIntConstant(m, "GIT_STATUS_CURRENT", GIT_STATUS_CURRENT);
 
     /* Flags for index status */
-    PyModule_AddIntConstant(m,"GIT_STATUS_INDEX_NEW", GIT_STATUS_INDEX_NEW);
-    PyModule_AddIntConstant(m,"GIT_STATUS_INDEX_MODIFIED",
+    PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_NEW", GIT_STATUS_INDEX_NEW);
+    PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_MODIFIED",
                             GIT_STATUS_INDEX_MODIFIED);
-    PyModule_AddIntConstant(m,"GIT_STATUS_INDEX_DELETED" ,
+    PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_DELETED" ,
                             GIT_STATUS_INDEX_DELETED);
 
     /* Flags for worktree status */
-    PyModule_AddIntConstant(m,"GIT_STATUS_WT_NEW", GIT_STATUS_WT_NEW);
-    PyModule_AddIntConstant(m,"GIT_STATUS_WT_MODIFIED" ,
+    PyModule_AddIntConstant(m, "GIT_STATUS_WT_NEW", GIT_STATUS_WT_NEW);
+    PyModule_AddIntConstant(m, "GIT_STATUS_WT_MODIFIED" ,
                             GIT_STATUS_WT_MODIFIED);
-    PyModule_AddIntConstant(m,"GIT_STATUS_WT_DELETED", GIT_STATUS_WT_DELETED);
+    PyModule_AddIntConstant(m, "GIT_STATUS_WT_DELETED", GIT_STATUS_WT_DELETED);
 
     /* Flags for ignored files */
-    PyModule_AddIntConstant(m,"GIT_STATUS_IGNORED", GIT_STATUS_IGNORED);
+    PyModule_AddIntConstant(m, "GIT_STATUS_IGNORED", GIT_STATUS_IGNORED);
+
+    return m;
 }
+
+
+#if PY_MAJOR_VERSION < 3
+  PyMODINIT_FUNC
+  initpygit2(void)
+  {
+      PyObject* m;
+      m = Py_InitModule3("pygit2", module_methods,
+                         "Python bindings for libgit2.");
+      moduleinit(m);
+  }
+#else
+  static struct PyModuleDef moduledef = {
+      PyModuleDef_HEAD_INIT,
+      "pygit2",                        /* m_name */
+      "Python bindings for libgit2.",  /* m_doc */
+      -1,                              /* m_size */
+      module_methods,                  /* m_methods */
+      NULL,                            /* m_reload */
+      NULL,                            /* m_traverse */
+      NULL,                            /* m_clear */
+      NULL,                            /* m_free */
+  };
+
+  PyMODINIT_FUNC
+  PyInit_pygit2(void)
+  {
+      PyObject* m;
+      m = PyModule_Create(&moduledef);
+      return moduleinit(m);
+  }
+#endif
