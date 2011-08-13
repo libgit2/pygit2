@@ -28,14 +28,16 @@
 
 """Tests for Index files."""
 
-__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
-
-import unittest
+from __future__ import unicode_literals
 import os
-
-import utils
+import unittest
 
 import pygit2
+import utils
+
+
+__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
+
 
 class IndexBareTest(utils.BareRepoTestCase):
 

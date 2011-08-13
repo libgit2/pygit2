@@ -27,12 +27,14 @@
 
 """Tests for Blob objects."""
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
+from __future__ import unicode_literals
 import unittest
 
 import pygit2
 import utils
+
+
+__author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 BLOB_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 

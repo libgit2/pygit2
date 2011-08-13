@@ -27,13 +27,15 @@
 
 """Tests for Commit objects."""
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
+from __future__ import unicode_literals
 import operator
 import unittest
 
 import pygit2
 import utils
+
+
+__author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'

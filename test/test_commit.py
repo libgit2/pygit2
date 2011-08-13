@@ -27,12 +27,14 @@
 
 """Tests for Commit objects."""
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
+from __future__ import unicode_literals
 import unittest
 
 from pygit2 import GIT_OBJ_COMMIT
 import utils
+
+
+__author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 

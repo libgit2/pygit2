@@ -25,8 +25,6 @@
 
 """Test utilities for libgit2."""
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
 import os
 import shutil
 import tarfile
@@ -34,6 +32,9 @@ import tempfile
 import unittest
 
 import pygit2
+
+
+__author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 
 class BaseTestCase(unittest.TestCase):
