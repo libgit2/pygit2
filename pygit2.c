@@ -276,26 +276,37 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
     const char *hex_or_bin;
     int err;
 
-    hex_or_bin = PyString_AsString(py_str);
-    if (hex_or_bin == NULL) {
-        Error_set_py_obj(GIT_ENOTOID, py_str);
-        return 0;
-    }
-
-    if (PyString_Size(py_str) == 20) {
+    /* Case 1: raw sha */
+    if (PyString_Check(py_str)) {
+        hex_or_bin = PyString_AsString(py_str);
+        if (hex_or_bin == NULL)
+            return 0;
         git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
-        err = 0;
+        return 1;
     }
-    else {
+
+    /* Case 2: hex sha */
+    if (PyUnicode_Check(py_str)) {
+        py_str = PyUnicode_AsASCIIString(py_str);
+        if (py_str == NULL)
+            return 0;
+        hex_or_bin = PyString_AsString(py_str);
+        Py_DECREF(py_str);
+        if (hex_or_bin == NULL)
+            return 0;
         err = git_oid_fromstr(oid, hex_or_bin);
+        if (err < 0) {
+            Error_set_py_obj(err, py_str);
+            return 0;
+        }
+        return 1;
     }
 
-    if (err < 0) {
-        Error_set_py_obj(err, py_str);
-        return 0;
-    }
-
-    return 1;
+    /* Type error */
+    PyErr_Format(PyExc_TypeError,
+                 "Git object id must be byte or a text string, not: %.200s",
+                 Py_TYPE(py_str)->tp_name);
+    return 0;
 }
 
 static PyObject*
