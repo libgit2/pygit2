@@ -52,7 +52,7 @@ class TagTest(utils.BareRepoTestCase):
 
         commit = tag.target
         del tag
-        self.assertEqual('Initial test data commit.', commit.message_short)
+        self.assertEqual('Initial test data commit.\n', commit.message)
 
     def test_new_tag(self):
         name = 'thetag'

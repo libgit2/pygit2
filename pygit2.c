@@ -613,7 +613,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     }
 
     err = git_commit_create(&oid, self->repo, update_ref, author, committer,
-        message, tree, parent_count, (const git_commit**)parents);
+        NULL, message, tree, parent_count, (const git_commit**)parents);
     git_tree_close(tree);
     free_parents(parents, parent_count);
     if (err < 0)
@@ -1012,9 +1012,15 @@ static PyTypeObject ObjectType = {
 };
 
 static PyObject *
-Commit_get_message_short(Commit *commit)
+Commit_get_message_encoding(Commit *commit)
 {
-    return PyString_FromString(git_commit_message_short(commit->commit));
+    char *encoding;
+
+    encoding = git_commit_message_encoding(commit->commit);
+    if (encoding == NULL)
+        Py_RETURN_NONE;
+
+    return PyString_FromString(encoding);
 }
 
 static PyObject *
@@ -1100,8 +1106,8 @@ Commit_get_parents(Commit *commit)
 }
 
 static PyGetSetDef Commit_getseters[] = {
-    {"message_short", (getter)Commit_get_message_short, NULL, "short message",
-     NULL},
+    {"message_encoding", (getter)Commit_get_message_encoding, NULL,
+     "message encoding", NULL},
     {"message", (getter)Commit_get_message, NULL, "message", NULL},
     {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
      NULL},

@@ -46,7 +46,8 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqual(1, len(parents))
         self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
                          parents[0].sha)
-        self.assertEqual('Second test data commit.', commit.message_short)
+        self.assertEqual(None, commit.message_encoding)
+        #self.assertEqual('Second test data commit.', commit.message_short)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)
@@ -76,8 +77,9 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
         self.assertEqual('30bb126a4959290987fc07ea49f92be276dce9d6',
                          commit.sha)
+        self.assertEqual(None, commit.message_encoding)
         self.assertEqual(message, commit.message)
-        self.assertEqual('New commit.', commit.message_short)
+        #self.assertEqual('New commit.', commit.message_short)
         self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
