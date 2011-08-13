@@ -1014,7 +1014,7 @@ static PyTypeObject ObjectType = {
 static PyObject *
 Commit_get_message_encoding(Commit *commit)
 {
-    char *encoding;
+    const char *encoding;
 
     encoding = git_commit_message_encoding(commit->commit);
     if (encoding == NULL)
