@@ -45,8 +45,8 @@ class BlobTest(utils.BareRepoTestCase):
         blob = self.repo[BLOB_SHA]
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
-        self.assertEqual('a contents\n', blob.data)
-        self.assertEqual('a contents\n', blob.read_raw())
+        self.assertEqual(b'a contents\n', blob.data)
+        self.assertEqual(b'a contents\n', blob.read_raw())
 
 
 if __name__ == '__main__':
