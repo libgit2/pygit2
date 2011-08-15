@@ -1037,7 +1037,14 @@ Commit_get_message_encoding(Commit *commit)
 static PyObject *
 Commit_get_message(Commit *commit)
 {
-    return PyString_FromString(git_commit_message(commit->commit));
+    const char *encoding;
+    const char *message;
+    int len;
+
+    encoding = git_commit_message_encoding(commit->commit);
+    message = git_commit_message(commit->commit);
+    len = strlen(message);
+    return PyUnicode_Decode(message, (Py_ssize_t)len, encoding, "strict");
 }
 
 static PyObject *
