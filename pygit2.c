@@ -315,7 +315,7 @@ git_oid_to_py_str(const git_oid *oid)
     char hex[GIT_OID_HEXSZ];
 
     git_oid_fmt(hex, oid);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return PyUnicode_DecodeASCII(hex, GIT_OID_HEXSZ, "strict");
 }
 
 static int
