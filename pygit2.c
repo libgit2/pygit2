@@ -990,6 +990,12 @@ Commit_get_commit_time(Commit *commit)
 }
 
 static PyObject *
+Commit_get_commit_time_offset(Commit *commit)
+{
+    return PyLong_FromLong(git_commit_time_offset(commit->commit));
+}
+
+static PyObject *
 Commit_get_committer(Commit *commit)
 {
     const git_signature *signature = git_commit_committer(commit->commit);
@@ -1065,6 +1071,8 @@ static PyGetSetDef Commit_getseters[] = {
     {"message", (getter)Commit_get_message, NULL, "message", NULL},
     {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
      NULL},
+    {"commit_time_offset", (getter)Commit_get_commit_time_offset, NULL,
+     "commit time offset", NULL},
     {"committer", (getter)Commit_get_committer, NULL, "committer", NULL},
     {"author", (getter)Commit_get_author, NULL, "author", NULL},
     {"tree", (getter)Commit_get_tree, NULL, "tree object", NULL},
