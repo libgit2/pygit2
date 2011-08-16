@@ -504,11 +504,6 @@ Repository_walk(Repository *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OI", &value, &sort))
         return NULL;
 
-    if (value != Py_None && !PyString_Check(value)) {
-        PyErr_SetObject(PyExc_TypeError, value);
-        return NULL;
-    }
-
     err = git_revwalk_new(&walk, self->repo);
     if (err < 0)
         return Error_set(err);
