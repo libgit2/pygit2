@@ -100,7 +100,7 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual(len(list(index)), n)
 
         # Compare SHAs, not IndexEntry object identity
-        entries = [index[x].sha for x in xrange(n)]
+        entries = [index[x].sha for x in range(n)]
         self.assertEqual(list(x.sha for x in index), entries)
 
     def test_mode(self):
