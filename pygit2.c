@@ -26,6 +26,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
 
