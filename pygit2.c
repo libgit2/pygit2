@@ -1747,6 +1747,31 @@ Index_write(Index *self)
     Py_RETURN_NONE;
 }
 
+char *
+py_str_to_c_str(PyObject *value)
+{
+    char *c_str;
+
+    /* Case 1: byte string */
+    if (PyString_Check(value))
+        return PyString_AsString(value);
+
+    /* Case 2: text string */
+    if (PyUnicode_Check(value)) {
+        value = PyUnicode_AsUTF8String(value);
+        if (value == NULL)
+            return NULL;
+        c_str = PyString_AsString(value);
+        Py_DECREF(value);
+        return c_str;
+    }
+
+    /* Type error */
+    PyErr_Format(PyExc_TypeError, "unexpected %.200s",
+                 Py_TYPE(value)->tp_name);
+    return NULL;
+}
+
 /* This is an internal function, used by Index_getitem and Index_setitem */
 static int
 Index_get_position(Index *self, PyObject *value)
@@ -1754,17 +1779,8 @@ Index_get_position(Index *self, PyObject *value)
     char *path;
     int idx;
 
-    if (PyString_Check(value)) {
-        path = PyString_AsString(value);
-        if (!path)
-            return -1;
-        idx = git_index_find(self->index, path);
-        if (idx < 0) {
-            Error_set_str(idx, path);
-            return -1;
-        }
-    }
-    else if (PyInt_Check(value)) {
+    /* Case 1: integer */
+    if (PyInt_Check(value)) {
         idx = (int)PyInt_AsLong(value);
         if (idx == -1 && PyErr_Occurred())
             return -1;
@@ -1772,14 +1788,18 @@ Index_get_position(Index *self, PyObject *value)
             PyErr_SetObject(PyExc_ValueError, value);
             return -1;
         }
-    }
-    else {
-        PyErr_Format(PyExc_TypeError,
-                     "Index entry key must be int or str, not %.200s",
-                     Py_TYPE(value)->tp_name);
-        return -1;
+        return idx;
     }
 
+    /* Case 2: byte or text string */
+    path = py_str_to_c_str(value);
+    if (!path)
+        return -1;
+    idx = git_index_find(self->index, path);
+    if (idx < 0) {
+        Error_set_str(idx, path);
+        return -1;
+    }
     return idx;
 }
 
@@ -1789,7 +1809,7 @@ Index_contains(Index *self, PyObject *value)
     char *path;
     int idx;
 
-    path = PyString_AsString(value);
+    path = py_str_to_c_str(value);
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);
