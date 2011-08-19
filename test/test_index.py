@@ -28,14 +28,16 @@
 
 """Tests for Index files."""
 
-__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
-
-import unittest
+from __future__ import unicode_literals
 import os
-
-import utils
+import unittest
 
 import pygit2
+import utils
+
+
+__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
+
 
 class IndexBareTest(utils.BareRepoTestCase):
 
@@ -98,7 +100,7 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual(len(list(index)), n)
 
         # Compare SHAs, not IndexEntry object identity
-        entries = [index[x].sha for x in xrange(n)]
+        entries = [index[x].sha for x in range(n)]
         self.assertEqual(list(x.sha for x in index), entries)
 
     def test_mode(self):

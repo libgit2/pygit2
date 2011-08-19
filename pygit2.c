@@ -277,26 +277,37 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
     const char *hex_or_bin;
     int err;
 
-    hex_or_bin = PyString_AsString(py_str);
-    if (hex_or_bin == NULL) {
-        Error_set_py_obj(GIT_ENOTOID, py_str);
-        return 0;
-    }
-
-    if (PyString_Size(py_str) == 20) {
+    /* Case 1: raw sha */
+    if (PyString_Check(py_str)) {
+        hex_or_bin = PyString_AsString(py_str);
+        if (hex_or_bin == NULL)
+            return 0;
         git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
-        err = 0;
+        return 1;
     }
-    else {
+
+    /* Case 2: hex sha */
+    if (PyUnicode_Check(py_str)) {
+        py_str = PyUnicode_AsASCIIString(py_str);
+        if (py_str == NULL)
+            return 0;
+        hex_or_bin = PyString_AsString(py_str);
+        Py_DECREF(py_str);
+        if (hex_or_bin == NULL)
+            return 0;
         err = git_oid_fromstr(oid, hex_or_bin);
+        if (err < 0) {
+            Error_set_py_obj(err, py_str);
+            return 0;
+        }
+        return 1;
     }
 
-    if (err < 0) {
-        Error_set_py_obj(err, py_str);
-        return 0;
-    }
-
-    return 1;
+    /* Type error */
+    PyErr_Format(PyExc_TypeError,
+                 "Git object id must be byte or a text string, not: %.200s",
+                 Py_TYPE(py_str)->tp_name);
+    return 0;
 }
 
 static PyObject*
@@ -305,7 +316,32 @@ git_oid_to_py_str(const git_oid *oid)
     char hex[GIT_OID_HEXSZ];
 
     git_oid_fmt(hex, oid);
-    return PyString_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    return PyUnicode_DecodeASCII(hex, GIT_OID_HEXSZ, "strict");
+}
+
+char *
+py_str_to_c_str(PyObject *value)
+{
+    char *c_str;
+
+    /* Case 1: byte string */
+    if (PyString_Check(value))
+        return PyString_AsString(value);
+
+    /* Case 2: text string */
+    if (PyUnicode_Check(value)) {
+        value = PyUnicode_AsUTF8String(value);
+        if (value == NULL)
+            return NULL;
+        c_str = PyString_AsString(value);
+        Py_DECREF(value);
+        return c_str;
+    }
+
+    /* Type error */
+    PyErr_Format(PyExc_TypeError, "unexpected %.200s",
+                 Py_TYPE(value)->tp_name);
+    return NULL;
 }
 
 static int
@@ -493,11 +529,6 @@ Repository_walk(Repository *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "OI", &value, &sort))
         return NULL;
-
-    if (value != Py_None && !PyString_Check(value)) {
-        PyErr_SetObject(PyExc_TypeError, value);
-        return NULL;
-    }
 
     err = git_revwalk_new(&walk, self->repo);
     if (err < 0)
@@ -1027,7 +1058,14 @@ Commit_get_message_encoding(Commit *commit)
 static PyObject *
 Commit_get_message(Commit *commit)
 {
-    return PyString_FromString(git_commit_message(commit->commit));
+    const char *encoding;
+    const char *message;
+    int len;
+
+    encoding = git_commit_message_encoding(commit->commit);
+    message = git_commit_message(commit->commit);
+    len = strlen(message);
+    return PyUnicode_Decode(message, (Py_ssize_t)len, encoding, "strict");
 }
 
 static PyObject *
@@ -1269,7 +1307,7 @@ Tree_contains(Tree *self, PyObject *py_name)
 {
     char *name;
 
-    name = PyString_AsString(py_name);
+    name = py_str_to_c_str(py_name);
     if (name == NULL)
         return -1;
 
@@ -1288,21 +1326,6 @@ wrap_tree_entry(const git_tree_entry *entry, Tree *tree)
     py_entry->tree = tree;
     Py_INCREF(tree);
     return py_entry;
-}
-
-static TreeEntry *
-Tree_getitem_by_name(Tree *self, PyObject *py_name)
-{
-    char *name;
-    const git_tree_entry *entry;
-
-    name = PyString_AS_STRING(py_name);
-    entry = git_tree_entry_byname(self->tree, name);
-    if (!entry) {
-        PyErr_SetObject(PyExc_KeyError, py_name);
-        return NULL;
-    }
-    return wrap_tree_entry(entry, self);
 }
 
 static int
@@ -1371,18 +1394,23 @@ Tree_getitem_by_index(Tree *self, PyObject *py_index)
 static TreeEntry *
 Tree_getitem(Tree *self, PyObject *value)
 {
-    if (PyString_Check(value)) {
-        return Tree_getitem_by_name(self, value);
-    }
-    else if (PyInt_Check(value)) {
+    char *name;
+    const git_tree_entry *entry;
+
+    /* Case 1: integer */
+    if (PyInt_Check(value))
         return Tree_getitem_by_index(self, value);
-    }
-    else {
-        PyErr_Format(PyExc_TypeError,
-                     "Tree entry index must be int or str, not %.200s",
-                     Py_TYPE(value)->tp_name);
+
+    /* Case 2: byte or text string */
+    name = py_str_to_c_str(value);
+    if (name == NULL)
+        return NULL;
+    entry = git_tree_entry_byname(self->tree, name);
+    if (!entry) {
+        PyErr_SetObject(PyExc_KeyError, value);
         return NULL;
     }
+    return wrap_tree_entry(entry, self);
 }
 
 static PySequenceMethods Tree_as_sequence = {
@@ -1750,17 +1778,8 @@ Index_get_position(Index *self, PyObject *value)
     char *path;
     int idx;
 
-    if (PyString_Check(value)) {
-        path = PyString_AsString(value);
-        if (!path)
-            return -1;
-        idx = git_index_find(self->index, path);
-        if (idx < 0) {
-            Error_set_str(idx, path);
-            return -1;
-        }
-    }
-    else if (PyInt_Check(value)) {
+    /* Case 1: integer */
+    if (PyInt_Check(value)) {
         idx = (int)PyInt_AsLong(value);
         if (idx == -1 && PyErr_Occurred())
             return -1;
@@ -1768,14 +1787,18 @@ Index_get_position(Index *self, PyObject *value)
             PyErr_SetObject(PyExc_ValueError, value);
             return -1;
         }
-    }
-    else {
-        PyErr_Format(PyExc_TypeError,
-                     "Index entry key must be int or str, not %.200s",
-                     Py_TYPE(value)->tp_name);
-        return -1;
+        return idx;
     }
 
+    /* Case 2: byte or text string */
+    path = py_str_to_c_str(value);
+    if (!path)
+        return -1;
+    idx = git_index_find(self->index, path);
+    if (idx < 0) {
+        Error_set_str(idx, path);
+        return -1;
+    }
     return idx;
 }
 
@@ -1785,7 +1808,7 @@ Index_contains(Index *self, PyObject *value)
     char *path;
     int idx;
 
-    path = PyString_AsString(value);
+    path = py_str_to_c_str(value);
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);

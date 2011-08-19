@@ -27,8 +27,7 @@
 
 """Tests for Repository objects."""
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
+from __future__ import unicode_literals
 import binascii
 import unittest
 import os
@@ -37,6 +36,9 @@ from os.path import join, abspath
 from pygit2 import (GitError, GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT,
         init_repository)
 import utils
+
+
+__author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 A_BIN_SHA = binascii.unhexlify(A_HEX_SHA)
@@ -57,7 +59,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertEqual((GIT_OBJ_BLOB, 'a contents 2\n'), a2)
 
     def test_write(self):
-        data = "hello world"
+        data = b"hello world"
         # invalid object type
         self.assertRaises(GitError, self.repo.write, GIT_OBJ_ANY, data)
 

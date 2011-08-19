@@ -28,14 +28,14 @@
 
 """Tests for reference objects."""
 
+from __future__ import unicode_literals
+import unittest
+
+from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC
+import utils
+
 
 __author__ = 'david.versmisse@itaapy.com (David Versmisse)'
-
-import unittest
-import utils
-from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC
-
-
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 

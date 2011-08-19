@@ -27,12 +27,14 @@
 
 """Tests for Tag objects."""
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
+from __future__ import unicode_literals
 import unittest
 
 import pygit2
 import utils
+
+
+__author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 

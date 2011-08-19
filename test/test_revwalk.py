@@ -28,12 +28,15 @@
 
 """Tests for revision walk."""
 
-__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
-
+from __future__ import unicode_literals
 import unittest
 
 from pygit2 import GIT_SORT_TIME, GIT_SORT_REVERSE
 import utils
+
+
+__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
+
 
 # In the order given by git log
 log = [

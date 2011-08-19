@@ -1,7 +1,8 @@
 pygit2 - libgit2 bindings in Python
 =====================================
 
-pygit2 is a set of Python 2.5+ bindings to the libgit2 linkable C Git library.
+pygit2 is a set of Python bindings to the libgit2 linkable C Git library.
+The supported versions of Python are 2.6, 2.7, 3.1 and 3.2
 
 INSTALLING AND RUNNING
 ========================
@@ -16,7 +17,7 @@ For instance, in Debian-based systems run:
 
     $ sudo apt-get install zlib1g-dev libssl-dev
 
-Also, make sure you have Python 2.5+ installed together with the Python development headers.
+Also, make sure you have Python 2.6+ installed together with the Python development headers.
 
 When those are installed, you can install pygit2:
 

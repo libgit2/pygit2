@@ -28,12 +28,14 @@
 
 """Tests for revision walk."""
 
-__author__ = 'mike.perdide@gmail.com (Julien Miotte)'
-
+from __future__ import unicode_literals
 import unittest
 
 import pygit2
 import utils
+
+
+__author__ = 'mike.perdide@gmail.com (Julien Miotte)'
 
 EXPECTED = {
  "current_file":                    pygit2.GIT_STATUS_CURRENT,
