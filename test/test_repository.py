@@ -59,7 +59,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertEqual((GIT_OBJ_BLOB, 'a contents 2\n'), a2)
 
     def test_write(self):
-        data = "hello world"
+        data = b"hello world"
         # invalid object type
         self.assertRaises(GitError, self.repo.write, GIT_OBJ_ANY, data)
 
