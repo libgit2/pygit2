@@ -344,6 +344,9 @@ py_str_to_c_str(PyObject *value)
     return NULL;
 }
 
+#define c_str_to_py_str(c_str) \
+        PyUnicode_DecodeUTF8(c_str, strlen(c_str), "strict")
+
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 {
@@ -502,7 +505,7 @@ Repository_get_path(Repository *self, void *closure)
     const char *c_path;
 
     c_path = git_repository_path(self->repo, GIT_REPO_PATH);
-    return PyString_FromString(c_path);
+    return c_str_to_py_str(c_path);
 }
 
 static PyObject *
@@ -514,7 +517,7 @@ Repository_get_workdir(Repository *self, void *closure)
     if (c_path == NULL)
         Py_RETURN_NONE;
 
-    return PyString_FromString(c_path);
+    return c_str_to_py_str(c_path);
 }
 
 static PyObject *
@@ -707,15 +710,16 @@ Repository_listall_references(Repository *self, PyObject *args)
         return Error_set(err);
 
     /* 3- Create a new PyTuple */
-    if ( (py_result = PyTuple_New(c_result.count)) == NULL) {
+    py_result = PyTuple_New(c_result.count);
+    if (py_result == NULL) {
         git_strarray_free(&c_result);
         return NULL;
     }
 
     /* 4- Fill it */
     for (index=0; index < c_result.count; index++) {
-        if ((py_string = PyString_FromString( (c_result.strings)[index] ))
-             == NULL) {
+        py_string = c_str_to_py_str((c_result.strings)[index]);
+        if (py_string == NULL) {
             Py_XDECREF(py_result);
             git_strarray_free(&c_result);
             return NULL;
@@ -738,7 +742,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = PyString_AsString(py_name);
+    c_name = py_str_to_c_str(py_name);
     if (c_name == NULL)
         return NULL;
 
@@ -1223,7 +1227,7 @@ TreeEntry_get_attributes(TreeEntry *self)
 static PyObject *
 TreeEntry_get_name(TreeEntry *self)
 {
-    return PyString_FromString(git_tree_entry_name(self->entry));
+    return c_str_to_py_str(git_tree_entry_name(self->entry));
 }
 
 static PyObject *
@@ -1600,7 +1604,7 @@ Tag_get_name(Tag *self)
     name = git_tag_name(self->tag);
     if (!name)
         Py_RETURN_NONE;
-    return PyString_FromString(name);
+    return c_str_to_py_str(name);
 }
 
 static PyObject *
@@ -1619,7 +1623,7 @@ Tag_get_message(Tag *self)
     message = git_tag_message(self->tag);
     if (!message)
         Py_RETURN_NONE;
-    return PyString_FromString(message);
+    return c_str_to_py_str(message);
 }
 
 static PyGetSetDef Tag_getseters[] = {
@@ -2058,7 +2062,7 @@ IndexEntry_get_mode(IndexEntry *self)
 static PyObject *
 IndexEntry_get_path(IndexEntry *self)
 {
-    return PyString_FromString(self->entry->path);
+    return c_str_to_py_str(self->entry->path);
 }
 
 static PyObject *
@@ -2286,7 +2290,7 @@ Reference_rename(Reference *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = PyString_AsString(py_name);
+    c_name = py_str_to_c_str(py_name);
     if (c_name == NULL)
         return NULL;
 
@@ -2327,7 +2331,7 @@ Reference_get_target(Reference *self)
     }
 
     /* 2- Make a PyString and return it */
-    return PyString_FromString(c_name);
+    return c_str_to_py_str(c_name);
 }
 
 static int
@@ -2337,7 +2341,7 @@ Reference_set_target(Reference *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = PyString_AsString(py_name);
+    c_name = py_str_to_c_str(py_name);
     if (c_name == NULL)
         return -1;
 
@@ -2358,7 +2362,7 @@ Reference_get_name(Reference *self)
     const char *c_name;
 
     c_name = git_reference_name(self->reference);
-    return PyString_FromString(c_name);
+    return c_str_to_py_str(c_name);
 }
 
 static PyObject *

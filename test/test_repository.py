@@ -79,7 +79,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertRaises(TypeError, lambda: self.repo[123])
         self.assertEqual(self.repo[A_BIN_SHA].sha, A_HEX_SHA)
         a = self.repo[A_HEX_SHA]
-        self.assertEqual('a contents\n', a.read_raw())
+        self.assertEqual(b'a contents\n', a.read_raw())
         self.assertEqual(A_HEX_SHA, a.sha)
         self.assertEqual(GIT_OBJ_BLOB, a.type)
 
