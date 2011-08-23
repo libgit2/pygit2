@@ -27,11 +27,12 @@
 
 """Tests for Commit objects."""
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
 from pygit2 import GIT_OBJ_COMMIT
-import utils
+from . import utils
 
 
 __author__ = 'dborowitz@google.com (Dave Borowitz)'

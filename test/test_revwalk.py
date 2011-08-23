@@ -28,11 +28,12 @@
 
 """Tests for revision walk."""
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
 from pygit2 import GIT_SORT_TIME, GIT_SORT_REVERSE
-import utils
+from . import utils
 
 
 __author__ = 'jdavid@itaapy.com (J. David Ibáñez)'

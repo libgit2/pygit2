@@ -28,11 +28,12 @@
 
 """Tests for reference objects."""
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
 from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC
-import utils
+from . import utils
 
 
 __author__ = 'david.versmisse@itaapy.com (David Versmisse)'

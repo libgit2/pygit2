@@ -27,6 +27,7 @@
 
 """Tests for Repository objects."""
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 import binascii
 import unittest
@@ -35,7 +36,7 @@ from os.path import join, abspath
 
 from pygit2 import (GitError, GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT,
         init_repository)
-import utils
+from . import utils
 
 
 __author__ = 'dborowitz@google.com (Dave Borowitz)'

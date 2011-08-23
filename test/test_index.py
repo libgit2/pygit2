@@ -28,12 +28,13 @@
 
 """Tests for Index files."""
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 import os
 import unittest
 
 import pygit2
-import utils
+from . import utils
 
 
 __author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
