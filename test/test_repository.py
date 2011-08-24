@@ -67,9 +67,6 @@ class RepositoryTest(utils.BareRepoTestCase):
         hex_sha = self.repo.write(GIT_OBJ_BLOB, data)
         self.assertEqual(len(hex_sha), 40)
 
-        # works as buffer as well
-        self.assertEqual(hex_sha, self.repo.write(GIT_OBJ_BLOB, buffer(data)))
-
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
         self.assertTrue(A_BIN_SHA in self.repo)
