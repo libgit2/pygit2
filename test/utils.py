@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2010 Google, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
