@@ -67,9 +67,9 @@ class CommitTest(utils.BareRepoTestCase):
 
     def test_new_commit(self):
         repo = self.repo
-        message = 'New commit.\n\nMessage.\n'
+        message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
         committer = ('John Doe', 'jdoe@example.com', 12346, 0)
-        author = ('Jane Doe', 'jdoe2@example.com', 12345, 0)
+        author = ('J. David Ibáñez', 'jdavid@example.com', 12345, 0)
         tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
         parents = [COMMIT_SHA]
@@ -78,7 +78,7 @@ class CommitTest(utils.BareRepoTestCase):
         commit = repo[sha]
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
-        self.assertEqual('30bb126a4959290987fc07ea49f92be276dce9d6',
+        self.assertEqual('98286caaab3f1fde5bf52c8369b2b0423bad743b',
                          commit.sha)
         self.assertEqual(None, commit.message_encoding)
         self.assertEqual(message, commit.message)

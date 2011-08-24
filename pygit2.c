@@ -566,22 +566,29 @@ Repository_walk(Repository *self, PyObject *args)
 }
 
 static PyObject *
-build_person(const git_signature *signature)
+build_person(const git_signature *signature, const char *encoding)
 {
-    return Py_BuildValue("(ssLi)", signature->name, signature->email,
+    PyObject *name;
+
+    name = PyUnicode_Decode(signature->name, strlen(signature->name),
+                            encoding, "strict");
+    return Py_BuildValue("(NsLi)", name, signature->email,
                          signature->when.time, signature->when.offset);
 }
 
 static int
 signature_converter(PyObject *value, git_signature **signature)
 {
+    PyObject *py_name;
     char *name, *email;
     long long time;
     int offset;
     int err;
 
-    if (!PyArg_ParseTuple(value, "ssLi", &name, &email, &time, &offset))
+    if (!PyArg_ParseTuple(value, "OsLi", &py_name, &email, &time, &offset))
         return 0;
+
+    name = py_str_to_c_str(py_name);
 
     err = git_signature_new(signature, name, email, time, offset);
     if (err < 0) {
@@ -610,19 +617,21 @@ Repository_create_commit(Repository *self, PyObject *args)
     char *message, *update_ref;
     git_oid oid;
     git_tree *tree;
-    PyObject *py_parents, *py_parent;
+    PyObject *py_message, *py_parents, *py_parent;
     int parent_count;
     git_commit **parents;
     int err, i;
 
-    if (!PyArg_ParseTuple(args, "zO&O&sO&O!",
+    if (!PyArg_ParseTuple(args, "zO&O&OO&O!",
                           &update_ref,
                           signature_converter, &author,
                           signature_converter, &committer,
-                          &message,
+                          &py_message,
                           py_str_to_git_oid, &oid,
                           &PyList_Type, &py_parents))
         return NULL;
+
+    message = py_str_to_c_str(py_message);
 
     err = git_tree_lookup(&tree, self->repo, &oid);
     if (err < 0)
@@ -1062,14 +1071,13 @@ Commit_get_message_encoding(Commit *commit)
 static PyObject *
 Commit_get_message(Commit *commit)
 {
-    const char *encoding;
-    const char *message;
-    int len;
+    const char *message, *encoding;
 
-    encoding = git_commit_message_encoding(commit->commit);
     message = git_commit_message(commit->commit);
-    len = strlen(message);
-    return PyUnicode_Decode(message, (Py_ssize_t)len, encoding, "strict");
+    encoding = git_commit_message_encoding(commit->commit);
+    if (encoding == NULL)
+        encoding = "utf-8";
+    return PyUnicode_Decode(message, strlen(message), encoding, "strict");
 }
 
 static PyObject *
@@ -1087,17 +1095,27 @@ Commit_get_commit_time_offset(Commit *commit)
 static PyObject *
 Commit_get_committer(Commit *commit)
 {
-    const git_signature *signature = git_commit_committer(commit->commit);
+    const git_signature *signature;
+    const char *encoding;
 
-    return build_person(signature);
+    signature = git_commit_committer(commit->commit);
+    encoding = git_commit_message_encoding(commit->commit);
+    if (encoding == NULL)
+        encoding = "utf-8";
+    return build_person(signature, encoding);
 }
 
 static PyObject *
 Commit_get_author(Commit *commit)
 {
-    const git_signature *signature = git_commit_author(commit->commit);
+    const git_signature *signature;
+    const char *encoding;
 
-    return build_person(signature);
+    signature = git_commit_author(commit->commit);
+    encoding = git_commit_message_encoding(commit->commit);
+    if (encoding == NULL)
+        encoding = "utf-8";
+    return build_person(signature, encoding);
 }
 
 static PyObject *
@@ -1613,7 +1631,7 @@ Tag_get_tagger(Tag *tag)
     const git_signature *signature = git_tag_tagger(tag->tag);
     if (!signature)
         Py_RETURN_NONE;
-    return build_person(signature);
+    return build_person(signature, "utf-8");
 }
 
 static PyObject *
