@@ -123,4 +123,4 @@ class NewRepositoryTest(utils.NoRepoTestCase):
         assert os.path.exists(os.path.join(self._temp_dir, '.git'))
 
 if __name__ == '__main__':
-  unittest.main()
+    unittest.main()
