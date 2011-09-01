@@ -32,7 +32,7 @@ from __future__ import unicode_literals
 import binascii
 import unittest
 import os
-from os.path import join, abspath
+from os.path import join, realpath
 
 from pygit2 import (GitError, GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT,
         init_repository)
@@ -91,8 +91,8 @@ class RepositoryTest(utils.BareRepoTestCase):
                          commit.message)
 
     def test_get_path(self):
-        directory = abspath(self.repo.path)
-        expected = abspath(join(self._temp_dir, 'testrepo.git'))
+        directory = realpath(self.repo.path)
+        expected = realpath(join(self._temp_dir, 'testrepo.git'))
         self.assertEqual(directory, expected)
 
     def test_get_workdir(self):
@@ -103,13 +103,13 @@ class RepositoryTest(utils.BareRepoTestCase):
 class RepositoryTest_II(utils.RepoTestCase):
 
     def test_get_path(self):
-        directory = abspath(self.repo.path)
-        expected = abspath(join(self._temp_dir, 'testrepo', '.git'))
+        directory = realpath(self.repo.path)
+        expected = realpath(join(self._temp_dir, 'testrepo', '.git'))
         self.assertEqual(directory, expected)
 
     def test_get_workdir(self):
-        directory = abspath(self.repo.workdir)
-        expected = abspath(join(self._temp_dir, 'testrepo'))
+        directory = realpath(self.repo.workdir)
+        expected = realpath(join(self._temp_dir, 'testrepo'))
         self.assertEqual(directory, expected)
 
 
