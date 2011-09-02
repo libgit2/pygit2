@@ -45,8 +45,8 @@ Index read:
 
     >>> index = repo.index
     >>> index.read()
-    >>> sha = index['path/to/file'].sha    # from path to sha
-    >>> blob = repo[sha]                   # from sha to blob
+    >>> oid = index['path/to/file'].oid    # from path to object id
+    >>> blob = repo[oid]                   # from object id to object
 
 Inspect the status of the repository:
 
@@ -59,7 +59,7 @@ Inspect the status of the repository:
 Iterate over all entries of the index:
 
     >>> for entry in index:
-    ...     print entry.path, entry.sha
+    ...     print entry.path, entry.hex
 
 Index write:
 
@@ -70,20 +70,20 @@ Index write:
 Revision walking:
 
     >>> from pygit2 import GIT_SORT_TIME
-    >>> for commit in repo.walk(sha, GIT_SORT_TIME):
-    ...     print commit.sha
+    >>> for commit in repo.walk(oid, GIT_SORT_TIME):
+    ...     print commit.hex
 
 Read commit information:
 
     >>> master_ref = repo.lookup_reference("refs/heads/master")   # Getting the Reference object
-    >>> commit = repo[master_ref.sha]
+    >>> commit = repo[master_ref.oid]
     >>> [name, email, timestamp, tz_offset] = commit.author       # Read the commit authored infos
     >>> tree = commit.tree                                        # Access the tree of the commit
 
 Iterate over all entries of the tree:
 
     >>> for entry in tree:
-    ...     print entry.name, entry.sha, entry.attributes
+    ...     print entry.name, entry.hex, entry.attributes
 
 
 CONTRIBUTING
