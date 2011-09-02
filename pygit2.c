@@ -959,9 +959,15 @@ Object_dealloc(Object* self)
 }
 
 static PyObject *
-Object_get_type(Object *self)
+Object_get_oid(Object *self)
 {
-    return PyInt_FromLong(git_object_type(self->obj));
+    const git_oid *oid;
+
+    oid = git_object_id(self->obj);
+    if (!oid)
+        Py_RETURN_NONE;
+
+    return PyString_FromStringAndSize(oid->id, GIT_OID_RAWSZ);
 }
 
 static PyObject *
@@ -974,6 +980,12 @@ Object_get_sha(Object *self)
         Py_RETURN_NONE;
 
     return git_oid_to_py_str(oid);
+}
+
+static PyObject *
+Object_get_type(Object *self)
+{
+    return PyInt_FromLong(git_object_type(self->obj));
 }
 
 static PyObject *
@@ -1007,8 +1019,9 @@ cleanup:
 }
 
 static PyGetSetDef Object_getseters[] = {
-    {"type", (getter)Object_get_type, NULL, "type number", NULL},
+    {"oid", (getter)Object_get_oid, NULL, "object id", NULL},
     {"sha", (getter)Object_get_sha, NULL, "hex SHA", NULL},
+    {"type", (getter)Object_get_type, NULL, "type number", NULL},
     {NULL}
 };
 

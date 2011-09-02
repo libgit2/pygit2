@@ -29,6 +29,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from binascii import b2a_hex
 import unittest
 
 import pygit2
@@ -44,6 +45,9 @@ class BlobTest(utils.BareRepoTestCase):
 
     def test_read_blob(self):
         blob = self.repo[BLOB_SHA]
+        self.assertEqual(blob.sha, BLOB_SHA)
+        sha = b2a_hex(blob.oid).decode('ascii')
+        self.assertEqual(sha, BLOB_SHA)
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
         self.assertEqual(b'a contents\n', blob.data)
