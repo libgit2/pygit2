@@ -81,7 +81,7 @@ class ReferencesTest(utils.RepoTestCase):
     def test_reference_set_sha(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
-        reference.sha = NEW_COMMIT
+        reference.oid = NEW_COMMIT
         self.assertEqual(reference.sha, NEW_COMMIT)
 
 
