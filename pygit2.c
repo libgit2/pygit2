@@ -310,7 +310,10 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
     return 0;
 }
 
-static PyObject*
+#define git_oid_to_python(oid) \
+        PyString_FromStringAndSize(oid.id, GIT_OID_RAWSZ)
+
+static PyObject *
 git_oid_to_py_str(const git_oid *oid)
 {
     char hex[GIT_OID_HEXSZ];
@@ -462,7 +465,7 @@ Repository_write(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set_str(err, "failed to write data");
 
-    return git_oid_to_py_str(&oid);
+    return git_oid_to_python(oid);
 }
 
 static PyObject *
@@ -663,7 +666,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_py_str(&oid);
+    return git_oid_to_python(oid);
 }
 
 static PyObject *
@@ -697,7 +700,7 @@ Repository_create_tag(Repository *self, PyObject *args)
     if (err < 0)
         return NULL;
 
-    return git_oid_to_py_str(&oid);
+    return git_oid_to_python(oid);
 }
 
 static PyObject *
@@ -1933,7 +1936,7 @@ Index_create_tree(Index *self)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_py_str(&oid);
+    return git_oid_to_python(oid);
 }
 
 static PyMethodDef Index_methods[] = {

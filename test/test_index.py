@@ -29,6 +29,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from binascii import b2a_hex
 import os
 import unittest
 
@@ -91,7 +92,8 @@ class IndexTest(utils.RepoTestCase):
         self.assertTrue('bye.txt' in index)
 
     def test_create_tree(self):
-        sha = self.repo.index.create_tree()
+        oid = self.repo.index.create_tree()
+        sha = b2a_hex(oid).decode('ascii')
         self.assertEqual(sha, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
     def test_iter(self):

@@ -64,8 +64,9 @@ class RepositoryTest(utils.BareRepoTestCase):
         # invalid object type
         self.assertRaises(GitError, self.repo.write, GIT_OBJ_ANY, data)
 
-        hex_sha = self.repo.write(GIT_OBJ_BLOB, data)
-        self.assertEqual(len(hex_sha), 40)
+        oid = self.repo.write(GIT_OBJ_BLOB, data)
+        self.assertEqual(type(oid), bytes)
+        self.assertEqual(len(oid), 20)
 
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
@@ -117,8 +118,9 @@ class NewRepositoryTest(utils.NoRepoTestCase):
     def test_new_repo(self):
         repo = init_repository(self.temp_dir, False)
 
-        hex_sha = repo.write(GIT_OBJ_BLOB, "Test")
-        self.assertEqual(len(hex_sha), 40)
+        oid = repo.write(GIT_OBJ_BLOB, "Test")
+        self.assertEqual(type(oid), bytes)
+        self.assertEqual(len(oid), 20)
 
         assert os.path.exists(os.path.join(self._temp_dir, '.git'))
 
