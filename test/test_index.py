@@ -61,9 +61,9 @@ class IndexTest(utils.RepoTestCase):
 
         sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
         self.assertTrue('hello.txt' in index)
-        self.assertEqual(index['hello.txt'].sha, sha)
+        self.assertEqual(index['hello.txt'].hex, sha)
         self.assertEqual(index['hello.txt'].path, 'hello.txt')
-        self.assertEqual(index[1].sha, sha)
+        self.assertEqual(index[1].hex, sha)
 
     def test_add(self):
         index = self.repo.index
@@ -73,7 +73,7 @@ class IndexTest(utils.RepoTestCase):
         index.add('bye.txt')
         self.assertTrue('bye.txt' in index)
         self.assertEqual(len(index), 3)
-        self.assertEqual(index['bye.txt'].sha, sha)
+        self.assertEqual(index['bye.txt'].hex, sha)
 
     def test_clear(self):
         index = self.repo.index
@@ -102,8 +102,8 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual(len(list(index)), n)
 
         # Compare SHAs, not IndexEntry object identity
-        entries = [index[x].sha for x in range(n)]
-        self.assertEqual(list(x.sha for x in index), entries)
+        entries = [index[x].hex for x in range(n)]
+        self.assertEqual(list(x.hex for x in index), entries)
 
     def test_mode(self):
         """
@@ -116,8 +116,8 @@ class IndexTest(utils.RepoTestCase):
 
     def test_bare_index(self):
         index = pygit2.Index(os.path.join(self.repo.path, 'index'))
-        self.assertEqual([x.sha for x in index],
-                [x.sha for x in self.repo.index])
+        self.assertEqual([x.hex for x in index],
+                [x.hex for x in self.repo.index])
 
         self.assertRaises(pygit2.GitError, lambda: index.add('bye.txt', 0))
 

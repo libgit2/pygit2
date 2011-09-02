@@ -45,7 +45,7 @@ class BlobTest(utils.BareRepoTestCase):
 
     def test_read_blob(self):
         blob = self.repo[BLOB_SHA]
-        self.assertEqual(blob.sha, BLOB_SHA)
+        self.assertEqual(blob.hex, BLOB_SHA)
         sha = b2a_hex(blob.oid).decode('ascii')
         self.assertEqual(sha, BLOB_SHA)
         self.assertTrue(isinstance(blob, pygit2.Blob))

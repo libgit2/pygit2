@@ -45,7 +45,7 @@ SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'
 class TreeTest(utils.BareRepoTestCase):
 
     def assertTreeEntryEqual(self, entry, sha, name, attributes):
-        self.assertEqual(entry.sha, sha)
+        self.assertEqual(entry.hex, sha)
         self.assertEqual(entry.name, name)
         self.assertEqual(entry.attributes, attributes,
                          '0%o != 0%o' % (entry.attributes, attributes))
@@ -100,11 +100,11 @@ class TreeTest(utils.BareRepoTestCase):
         del tree[2]
         self.assertEqual(2, len(tree))
 
-        self.assertEqual(None, tree.sha)
+        self.assertEqual(None, tree.hex)
         tree.write()
         contents = '100644 x\0%s100755 y\0%s' % ('\x11' * 20, '\x22' * 20)
         self.assertEqual((pygit2.GIT_OBJ_TREE, contents),
-                         self.repo.read(tree.sha))
+                         self.repo.read(tree.hex))
 
     def test_modify_tree(self):
         tree = self.repo[TREE_SHA]
@@ -119,7 +119,7 @@ class TreeTest(utils.BareRepoTestCase):
         """
         tree = self.repo[TREE_SHA]
         for tree_entry in tree:
-            self.assertEqual(tree_entry.sha, tree[tree_entry.name].sha)
+            self.assertEqual(tree_entry.hex, tree[tree_entry.name].hex)
 
 
 if __name__ == '__main__':

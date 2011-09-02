@@ -75,14 +75,14 @@ class ReferencesTest(utils.RepoTestCase):
 
     def test_reference_get_sha(self):
         reference = self.repo.lookup_reference('refs/heads/master')
-        self.assertEqual(reference.sha, LAST_COMMIT)
+        self.assertEqual(reference.hex, LAST_COMMIT)
 
 
     def test_reference_set_sha(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
         reference.oid = NEW_COMMIT
-        self.assertEqual(reference.sha, NEW_COMMIT)
+        self.assertEqual(reference.hex, NEW_COMMIT)
 
 
     def test_reference_get_type(self):
@@ -128,7 +128,7 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
         reference = reference.resolve()
         self.assertEqual(reference.type, GIT_REF_OID)
-        self.assertEqual(reference.sha, LAST_COMMIT)
+        self.assertEqual(reference.hex, LAST_COMMIT)
 
 
     def test_create_reference(self):
@@ -138,7 +138,7 @@ class ReferencesTest(utils.RepoTestCase):
         refs = self.repo.listall_references()
         self.assertTrue('refs/tags/version1' in refs)
         reference = self.repo.lookup_reference('refs/tags/version1')
-        self.assertEqual(reference.sha, LAST_COMMIT)
+        self.assertEqual(reference.hex, LAST_COMMIT)
 
 
     def test_create_symbolic_reference(self):

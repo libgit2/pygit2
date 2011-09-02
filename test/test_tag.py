@@ -67,12 +67,12 @@ class TagTest(utils.BareRepoTestCase):
                                    message)
         tag = self.repo[sha]
 
-        self.assertEqual('3ee44658fd11660e828dfc96b9b5c5f38d5b49bb', tag.sha)
+        self.assertEqual('3ee44658fd11660e828dfc96b9b5c5f38d5b49bb', tag.hex)
         self.assertEqual(name, tag.name)
-        self.assertEqual(target, tag.target.sha)
+        self.assertEqual(target, tag.target.hex)
         self.assertEqual(tagger, tag.tagger)
         self.assertEqual(message, tag.message)
-        self.assertEqual(name, self.repo[tag.sha].name)
+        self.assertEqual(name, self.repo[tag.hex].name)
 
     def test_modify_tag(self):
         name = 'thetag'

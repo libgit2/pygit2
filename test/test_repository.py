@@ -76,16 +76,16 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_lookup_blob(self):
         self.assertRaises(TypeError, lambda: self.repo[123])
-        self.assertEqual(self.repo[A_BIN_SHA].sha, A_HEX_SHA)
+        self.assertEqual(self.repo[A_BIN_SHA].hex, A_HEX_SHA)
         a = self.repo[A_HEX_SHA]
         self.assertEqual(b'a contents\n', a.read_raw())
-        self.assertEqual(A_HEX_SHA, a.sha)
+        self.assertEqual(A_HEX_SHA, a.hex)
         self.assertEqual(GIT_OBJ_BLOB, a.type)
 
     def test_lookup_commit(self):
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
         commit = self.repo[commit_sha]
-        self.assertEqual(commit_sha, commit.sha)
+        self.assertEqual(commit_sha, commit.hex)
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),

@@ -971,7 +971,7 @@ Object_get_oid(Object *self)
 }
 
 static PyObject *
-Object_get_sha(Object *self)
+Object_get_hex(Object *self)
 {
     const git_oid *oid;
 
@@ -994,7 +994,7 @@ Object_read_raw(Object *self)
     const git_oid *id;
     git_odb_object *obj;
     int err;
-    PyObject *result = NULL, *py_sha = NULL;
+    PyObject *result = NULL, *py_hex = NULL;
 
     id = git_object_id(self->obj);
     if (!id)
@@ -1002,8 +1002,8 @@ Object_read_raw(Object *self)
 
     err = Repository_read_raw(&obj, self->repo->repo, id);
     if (err < 0) {
-        py_sha = Object_get_sha(self);
-        Error_set_py_obj(err, py_sha);
+        py_hex = Object_get_hex(self);
+        Error_set_py_obj(err, py_hex);
         goto cleanup;
     }
 
@@ -1014,13 +1014,13 @@ Object_read_raw(Object *self)
     git_odb_object_close(obj);
 
 cleanup:
-    Py_XDECREF(py_sha);
+    Py_XDECREF(py_hex);
     return result;
 }
 
 static PyGetSetDef Object_getseters[] = {
     {"oid", (getter)Object_get_oid, NULL, "object id", NULL},
-    {"sha", (getter)Object_get_sha, NULL, "hex SHA", NULL},
+    {"hex", (getter)Object_get_hex, NULL, "hex oid", NULL},
     {"type", (getter)Object_get_type, NULL, "type number", NULL},
     {NULL}
 };
@@ -1274,7 +1274,7 @@ TreeEntry_get_oid(TreeEntry *self)
 }
 
 static PyObject *
-TreeEntry_get_sha(TreeEntry *self)
+TreeEntry_get_hex(TreeEntry *self)
 {
     return git_oid_to_py_str(git_tree_entry_id(self->entry));
 }
@@ -1291,8 +1291,8 @@ TreeEntry_to_object(TreeEntry *self)
 static PyGetSetDef TreeEntry_getseters[] = {
     {"attributes", (getter)TreeEntry_get_attributes, NULL, "attributes", NULL},
     {"name", (getter)TreeEntry_get_name, NULL, "name", NULL},
-    {"oid", (getter)TreeEntry_get_oid, NULL, "oid", NULL},
-    {"sha", (getter)TreeEntry_get_sha, NULL, "sha", NULL},
+    {"oid", (getter)TreeEntry_get_oid, NULL, "object id", NULL},
+    {"hex", (getter)TreeEntry_get_hex, NULL, "hex oid", NULL},
     {NULL}
 };
 
@@ -2116,7 +2116,7 @@ IndexEntry_get_oid(IndexEntry *self)
 }
 
 static PyObject *
-IndexEntry_get_sha(IndexEntry *self)
+IndexEntry_get_hex(IndexEntry *self)
 {
     return git_oid_to_py_str(&self->entry->oid);
 }
@@ -2125,7 +2125,7 @@ static PyGetSetDef IndexEntry_getseters[] = {
     {"mode", (getter)IndexEntry_get_mode, NULL, "mode", NULL},
     {"path", (getter)IndexEntry_get_path, NULL, "path", NULL},
     {"oid", (getter)IndexEntry_get_oid, NULL, "object id",  NULL},
-    {"sha", (getter)IndexEntry_get_sha, NULL, "hex SHA",  NULL},
+    {"hex", (getter)IndexEntry_get_hex, NULL, "hex oid",  NULL},
     {NULL},
 };
 
@@ -2426,7 +2426,7 @@ Reference_get_oid(Reference *self)
     if (oid == NULL)
     {
         PyErr_Format(PyExc_ValueError,
-                     "sha is only available if the reference is direct "
+                     "oid is only available if the reference is direct "
                      "(i.e. not symbolic)");
         return NULL;
     }
@@ -2436,17 +2436,17 @@ Reference_get_oid(Reference *self)
 }
 
 static int
-Reference_set_oid(Reference *self, PyObject *py_sha)
+Reference_set_oid(Reference *self, PyObject *py_hex)
 {
     git_oid oid;
     int err;
 
-    /* 1- Get the oid from the py_sha */
-    if (!py_str_to_git_oid(py_sha, &oid))
+    /* 1- Get the oid */
+    if (!py_str_to_git_oid(py_hex, &oid))
         return -1;
 
     /* 2- Set the oid */
-    err = git_reference_set_oid (self->reference, &oid);
+    err = git_reference_set_oid(self->reference, &oid);
     if (err < 0) {
         Error_set(err);
         return -1;
@@ -2457,7 +2457,7 @@ Reference_set_oid(Reference *self, PyObject *py_sha)
 }
 
 static PyObject *
-Reference_get_sha(Reference *self)
+Reference_get_hex(Reference *self)
 {
     const git_oid *oid;
 
@@ -2466,7 +2466,7 @@ Reference_get_sha(Reference *self)
     if (oid == NULL)
     {
         PyErr_Format(PyExc_ValueError,
-                     "sha is only available if the reference is direct "
+                     "oid is only available if the reference is direct "
                      "(i.e. not symbolic)");
         return NULL;
     }
@@ -2499,7 +2499,7 @@ static PyGetSetDef Reference_getseters[] = {
      "The full name of a reference.", NULL},
     {"oid", (getter)Reference_get_oid, (setter)Reference_set_oid, "object id",
      NULL},
-    {"sha", (getter)Reference_get_sha, NULL, "hex SHA", NULL},
+    {"hex", (getter)Reference_get_hex, NULL, "hex oid", NULL},
     {"target", (getter)Reference_get_target, (setter)Reference_set_target,
      "target", NULL},
     {"type", (getter)Reference_get_type, NULL,

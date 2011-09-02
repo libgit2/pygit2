@@ -44,11 +44,11 @@ class CommitTest(utils.BareRepoTestCase):
 
     def test_read_commit(self):
         commit = self.repo[COMMIT_SHA]
-        self.assertEqual(COMMIT_SHA, commit.sha)
+        self.assertEqual(COMMIT_SHA, commit.hex)
         parents = commit.parents
         self.assertEqual(1, len(parents))
         self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
-                         parents[0].sha)
+                         parents[0].hex)
         self.assertEqual(None, commit.message_encoding)
         #self.assertEqual('Second test data commit.', commit.message_short)
         self.assertEqual(('Second test data commit.\n\n'
@@ -63,7 +63,7 @@ class CommitTest(utils.BareRepoTestCase):
             ('Dave Borowitz', 'dborowitz@google.com', 1288477363, -420),
             commit.author)
         self.assertEqual(
-            '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', commit.tree.sha)
+            '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', commit.tree.hex)
 
     def test_new_commit(self):
         repo = self.repo
@@ -79,16 +79,16 @@ class CommitTest(utils.BareRepoTestCase):
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
         self.assertEqual('98286caaab3f1fde5bf52c8369b2b0423bad743b',
-                         commit.sha)
+                         commit.hex)
         self.assertEqual(None, commit.message_encoding)
         self.assertEqual(message, commit.message)
         #self.assertEqual('New commit.', commit.message_short)
         self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
-        self.assertEqual(tree, commit.tree.sha)
+        self.assertEqual(tree, commit.tree.hex)
         self.assertEqual(1, len(commit.parents))
-        self.assertEqual(COMMIT_SHA, commit.parents[0].sha)
+        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
 
     def test_modify_commit(self):
         message = 'New commit.\n\nMessage.\n'
