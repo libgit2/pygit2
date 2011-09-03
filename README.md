@@ -31,20 +31,39 @@ When those are installed, you can install pygit2:
     $ python setup.py test
 
 
+The repository
+=================
+
+Everything starts by opening an existing repository:
+
+    >>> from pygit2 import Repository
+    >>> repo = Repository('pygit2/.git')
+
+Or by creating a new one:
+
+    >>> from pygit2 import init_repository
+    >>> bare = False
+    >>> repo = init_repository('test', bare)
+
+These are the basic attributes of a repository:
+
+    Repository.path    -- path to the Git repository
+    Repository.workdir -- path to the working directory, None in the case of
+                          a bare repo
+
+
 Git objects
 ===========
 
 In the first place Git is a key-value storage system. The values stored are
-called *Git Objects*, there are four types (commits, trees, blobs and tags),
-each type there is a Python class:
+called *objects*, there are four types (commits, trees, blobs and tags),
+for each type pygit2 has a Python class:
 
-    # Open a repository
-    >>> from pygit2 import Repository
-    >>> repo = Repository('pygit2/.git')
     # Get the last commit
     >>> head = repo.lookup_reference('HEAD')
     >>> head = head.resolve()
     >>> commit = repo[head.oid]
+
     # Show commits and trees
     >>> commit
     <pygit2.Commit object at 0x7f9d2f3000b0>
@@ -52,9 +71,9 @@ each type there is a Python class:
     <pygit2.Tree object at 0x7f9d2f3000f0>
 
 These four classes (``Commit``, ``Tree``, ``Blob`` and ``Tag``) inherit from
-the ``pygit2.Object`` base class, which provides shared behaviour. A Git
-object is identified by a unique *object id*, which is a binary byte string;
-this is often represented as an hexadecimal text string:
+the ``Object`` base class, which provides shared behaviour. A Git object is
+identified by a unique *object id*, which is a binary byte string; this is
+often represented as an hexadecimal text string:
 
     >>> commit.oid
     b'x\xde\xb5W\x8d\x01<\xdb\xdf\x08o\xa1\xd1\xa3\xe7\xd9\x82\xe8\x88\x8f'
@@ -62,8 +81,8 @@ this is often represented as an hexadecimal text string:
     '78deb5578d013cdbdf086fa1d1a3e7d982e8888f'
 
 The API of pygit2 accepts both the raw object id and its hexadecimal
-representation of the object id, the difference is done based on its type
-(a byte or a text string).
+representation, the difference is done based on its type (a byte or a text
+string).
 
 This is the common interface for all Git objects:
 
@@ -87,7 +106,7 @@ Commits
     Commit.tree      -- the tree object attached to the commit
     Commit.parents   -- the list of parent commits
 
-The author and committer attributes of the commit are tuples with four
+The author and committer attributes of commit objects are tuples with four
 elements, the author name and email, the unix time and time offset in
 minutes:
 
@@ -106,7 +125,8 @@ interfaces:
     >>> tree = commit.tree
     >>> len(tree)
     6
-    # Iteratation
+
+    # Iteration
     >>> for entry in tree:
     ...     print(entry.hex, entry.name)
     ...
@@ -116,10 +136,12 @@ interfaces:
     c87dae4094b3a6d10e08bc6c5ef1f55a7e448659 pygit2.c
     85a67270a49ef16cdd3d328f06a3e4b459f09b27 setup.py
     3d8985bbec338eb4d47c5b01b863ee89d044bd53 test
+
     # Get an entry by name
     >>> entry = tree['pygit2.c']
     >>> entry
     <pygit2.TreeEntry object at 0xcc10f0>
+
     # Get the object the entry points to
     >>> blob = repo[entry.oid]
     >>> blob
@@ -144,22 +166,6 @@ Tags
 -----------------
 
 XXX
-
-
-The repository
-=================
-
-
-Initialize a Git repository:
-
-    >>> from pygit2 import init_repository
-    >>> bare = False
-    >>> repo = init_repository('test', bare)
-
-Open a repository:
-
-    >>> from pygit2 import Repository
-    >>> repo = Repository('test/.git')
 
 
 References
