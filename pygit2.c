@@ -274,6 +274,7 @@ wrap_reference(git_reference * c_reference)
 static int
 py_str_to_git_oid(PyObject *py_str, git_oid *oid)
 {
+    PyObject *py_hex;
     const char *hex_or_bin;
     int err;
 
@@ -288,11 +289,11 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
 
     /* Case 2: hex sha */
     if (PyUnicode_Check(py_str)) {
-        py_str = PyUnicode_AsASCIIString(py_str);
-        if (py_str == NULL)
+        py_hex = PyUnicode_AsASCIIString(py_str);
+        if (py_hex == NULL)
             return 0;
-        hex_or_bin = PyString_AsString(py_str);
-        Py_DECREF(py_str);
+        hex_or_bin = PyString_AsString(py_hex);
+        Py_DECREF(py_hex);
         if (hex_or_bin == NULL)
             return 0;
         err = git_oid_fromstr(oid, hex_or_bin);
