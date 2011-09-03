@@ -964,8 +964,7 @@ Object_get_oid(Object *self)
     const git_oid *oid;
 
     oid = git_object_id(self->obj);
-    if (!oid)
-        Py_RETURN_NONE;
+    assert(oid);
 
     return PyString_FromStringAndSize(oid->id, GIT_OID_RAWSZ);
 }
@@ -976,8 +975,7 @@ Object_get_hex(Object *self)
     const git_oid *oid;
 
     oid = git_object_id(self->obj);
-    if (!oid)
-        Py_RETURN_NONE;
+    assert(oid);
 
     return git_oid_to_py_str(oid);
 }
@@ -991,31 +989,28 @@ Object_get_type(Object *self)
 static PyObject *
 Object_read_raw(Object *self)
 {
-    const git_oid *id;
+    const git_oid *oid;
     git_odb_object *obj;
     int err;
-    PyObject *result = NULL, *py_hex = NULL;
+    PyObject *aux = NULL;
 
-    id = git_object_id(self->obj);
-    if (!id)
-        Py_RETURN_NONE;  /* in-memory object */
+    oid = git_object_id(self->obj);
+    assert(oid);
 
-    err = Repository_read_raw(&obj, self->repo->repo, id);
+    err = Repository_read_raw(&obj, self->repo->repo, oid);
     if (err < 0) {
-        py_hex = Object_get_hex(self);
-        Error_set_py_obj(err, py_hex);
-        goto cleanup;
+        aux = git_oid_to_py_str(oid);
+        Error_set_py_obj(err, aux);
+        Py_XDECREF(aux);
+        return NULL;
     }
 
-    result = PyString_FromStringAndSize(
+    aux = PyString_FromStringAndSize(
         git_odb_object_data(obj),
         git_odb_object_size(obj));
 
     git_odb_object_close(obj);
-
-cleanup:
-    Py_XDECREF(py_hex);
-    return result;
+    return aux;
 }
 
 static PyGetSetDef Object_getseters[] = {
