@@ -208,17 +208,20 @@ Error_set_py_obj(int err, PyObject *py_obj)
 }
 
 static PyObject *
-lookup_object(Repository *repo, const git_oid *oid, git_otype type)
+lookup_object_prefix(Repository *repo, const git_oid *oid, unsigned int prefix_len, git_otype type)
 {
     int err;
     char hex[GIT_OID_HEXSZ + 1];
     git_object *obj;
     Object *py_obj = NULL;
 
-    err = git_object_lookup(&obj, repo->repo, oid, type);
+    if(prefix_len % 2)
+        prefix_len--;
+
+    err = git_object_lookup_prefix(&obj, repo->repo, oid, prefix_len, type);
     if (err < 0) {
         git_oid_fmt(hex, oid);
-        hex[GIT_OID_HEXSZ] = '\0';
+        hex[prefix_len] = '\0';
         return Error_set_str(err, hex);
     }
 
@@ -245,6 +248,12 @@ lookup_object(Repository *repo, const git_oid *oid, git_otype type)
     py_obj->repo = repo;
     Py_INCREF(repo);
     return (PyObject*)py_obj;
+}
+
+static PyObject *
+lookup_object(Repository *repo, const git_oid *oid, git_otype type)
+{
+    return lookup_object_prefix(repo, oid, GIT_OID_HEXSZ, type);
 }
 
 static git_otype
@@ -277,6 +286,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
     PyObject *py_hex;
     const char *hex_or_bin;
     int err;
+    size_t prefix_len;
 
     /* Case 1: raw sha */
     if (PyString_Check(py_str)) {
@@ -296,7 +306,8 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         Py_DECREF(py_hex);
         if (hex_or_bin == NULL)
             return 0;
-        err = git_oid_fromstr(oid, hex_or_bin);
+        prefix_len = strnlen(hex_or_bin, GIT_OID_HEXSZ);
+        err = git_oid_fromstrn(oid, hex_or_bin, prefix_len);
         if (err < 0) {
             Error_set_py_obj(err, py_str);
             return 0;
@@ -394,6 +405,46 @@ Repository_contains(Repository *self, PyObject *value)
 
     return git_odb_exists(git_repository_database(self->repo), &oid);
 }
+
+static PyObject *
+Repository_lookup_prefix(Repository *self, PyObject *value)
+{
+    git_oid oid;
+    unsigned int prefix_len;
+    Object *py_obj;
+    char hex[GIT_OID_HEXSZ + 1];
+    char *py_hex;
+
+    if (!PyUnicode_Check(value)) {
+        /* Type error */
+        PyErr_Format(PyExc_TypeError,
+                     "Git object id prefix must be a text string, not: %.200s",
+                     Py_TYPE(value)->tp_name);
+        return NULL;
+    }
+
+    prefix_len = (unsigned int)PyUnicode_GetSize(value);
+
+    if (!py_str_to_git_oid(value, &oid))
+        return NULL;
+
+    py_obj = (Object*)lookup_object_prefix(self, &oid, prefix_len, GIT_OBJ_ANY);
+    if(py_obj && prefix_len % 2) {
+        /* If the prefix length is odd, the last character will have been
+         * discarded in the lookup, so check for a strict prefix match. */
+        git_oid_fmt(hex, git_object_id(py_obj->obj));
+        hex[GIT_OID_HEXSZ] = '\0';
+
+        py_hex = py_str_to_c_str(value);
+        if(strncmp(py_hex, hex, prefix_len) != 0) {
+            /* KeyError expects the arg to be the missing key. */
+            PyErr_SetObject(PyExc_KeyError, value);
+            return NULL;
+        }
+    }
+    return py_obj;
+}
+
 
 static PyObject *
 Repository_getitem(Repository *self, PyObject *value)
@@ -877,6 +928,8 @@ static PyMethodDef Repository_methods[] = {
      "\"target\"."},
     {"packall_references", (PyCFunction)Repository_packall_references,
      METH_NOARGS, "Pack all the loose references in the repository."},
+    {"lookup_prefix", (PyCFunction)Repository_lookup_prefix,
+     METH_O, "Lookup an object by a prefix of its object id (sha)."},
     {"status", (PyCFunction)Repository_status, METH_NOARGS, "Reads the "
      "status of the repository and returns a dictionnary with file paths "
      "as keys and status flags as values.\nSee pygit2.GIT_STATUS_*."},
