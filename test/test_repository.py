@@ -82,6 +82,12 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertEqual(A_HEX_SHA, a.hex)
         self.assertEqual(GIT_OBJ_BLOB, a.type)
 
+    def test_lookup_blob_prefix(self):
+        a = self.repo.lookup_prefix(A_HEX_SHA[:5])
+        self.assertEqual(b'a contents\n', a.read_raw())
+        self.assertEqual(A_HEX_SHA, a.hex)
+        self.assertEqual(GIT_OBJ_BLOB, a.type)
+
     def test_lookup_commit(self):
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
         commit = self.repo[commit_sha]
@@ -90,6 +96,18 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)
+
+    def test_lookup_commit_prefix(self):
+        commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
+        commit_sha_prefix = commit_sha[:7]
+        too_short_prefix = commit_sha[:3]
+        commit = self.repo.lookup_prefix(commit_sha_prefix)
+        self.assertEqual(commit_sha, commit.hex)
+        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
+        self.assertEqual(('Second test data commit.\n\n'
+                       'This commit has some additional text.\n'),
+                      commit.message)
+        self.assertRaises(GitError, self.repo.lookup_prefix, too_short_prefix)
 
     def test_get_path(self):
         directory = realpath(self.repo.path)
