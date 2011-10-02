@@ -215,9 +215,6 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, unsigned int prefix_l
     git_object *obj;
     Object *py_obj = NULL;
 
-    if(prefix_len % 2)
-        prefix_len--;
-
     err = git_object_lookup_prefix(&obj, repo->repo, oid, prefix_len, type);
     if (err < 0) {
         git_oid_fmt(hex, oid);
@@ -280,7 +277,7 @@ wrap_reference(git_reference * c_reference)
     return (PyObject *)py_reference;
 }
 
-static int
+static unsigned int
 py_str_to_git_oid(PyObject *py_str, git_oid *oid)
 {
     PyObject *py_hex;
@@ -294,7 +291,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         if (hex_or_bin == NULL)
             return 0;
         git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
-        return 1;
+        return GIT_OID_HEXSZ;
     }
 
     /* Case 2: hex sha */
@@ -307,12 +304,18 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         if (hex_or_bin == NULL)
             return 0;
         prefix_len = strnlen(hex_or_bin, GIT_OID_HEXSZ);
+
+        /* git_oid_fromstrn will trim the last nibble from
+         * an odd-length string, so take this into account. */
+        if(prefix_len % 2)
+            prefix_len--;
+
         err = git_oid_fromstrn(oid, hex_or_bin, prefix_len);
         if (err < 0) {
             Error_set_py_obj(err, py_str);
             return 0;
         }
-        return 1;
+        return (unsigned int)prefix_len;
     }
 
     /* Type error */
@@ -411,6 +414,7 @@ Repository_lookup_prefix(Repository *self, PyObject *value)
 {
     git_oid oid;
     unsigned int prefix_len;
+    Py_ssize_t py_prefix_len;
     Object *py_obj;
     char hex[GIT_OID_HEXSZ + 1];
     char *py_hex;
@@ -423,26 +427,27 @@ Repository_lookup_prefix(Repository *self, PyObject *value)
         return NULL;
     }
 
-    prefix_len = (unsigned int)PyUnicode_GetSize(value);
+    py_prefix_len = PyUnicode_GetSize(value);
+    prefix_len = py_str_to_git_oid(value, &oid);
 
-    if (!py_str_to_git_oid(value, &oid))
+    if (!prefix_len)
         return NULL;
 
     py_obj = (Object*)lookup_object_prefix(self, &oid, prefix_len, GIT_OBJ_ANY);
-    if(py_obj && prefix_len % 2) {
+    if(py_obj && py_prefix_len % 2) {
         /* If the prefix length is odd, the last character will have been
          * discarded in the lookup, so check for a strict prefix match. */
         git_oid_fmt(hex, git_object_id(py_obj->obj));
         hex[GIT_OID_HEXSZ] = '\0';
 
         py_hex = py_str_to_c_str(value);
-        if(strncmp(py_hex, hex, prefix_len) != 0) {
+        if(strncmp(py_hex, hex, py_prefix_len) != 0) {
             /* KeyError expects the arg to be the missing key. */
             PyErr_SetObject(PyExc_KeyError, value);
             return NULL;
         }
     }
-    return py_obj;
+    return (PyObject *)py_obj;
 }
 
 
