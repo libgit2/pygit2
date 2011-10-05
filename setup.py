@@ -70,11 +70,11 @@ else:
 setup(name='pygit2',
       description='Python bindings for libgit2.',
       keywords='git',
-      version='0.1',
+      version='0.15.0',
       url='http://github.com/libgit2/pygit2',
       license='GPLv2',
       maintainer='J. David Ibáñez',
-      maintainer_email='jdavid@itaapy.com',
+      maintainer_email='jdavid.ibp@gmail.com',
       long_description="""
       Bindings for libgit2, a linkable C library for the Git version-control
       system.
