@@ -71,10 +71,15 @@ class CommitTest(utils.BareRepoTestCase):
         committer = ('John Doe', 'jdoe@example.com', 12346, 0)
         author = ('J. David Ibáñez', 'jdavid@example.com', 12345, 0)
         tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+        tree_prefix = tree[:5]
+        too_short_prefix = tree[:3]
 
-        parents = [COMMIT_SHA]
-        sha = repo.create_commit(None, author, committer, message, tree,
-                                 parents)
+        parents = [COMMIT_SHA[:5]]
+        self.assertRaises(ValueError, repo.create_commit, None, author,
+                          committer, message, too_short_prefix, parents)
+        
+        sha = repo.create_commit(None, author, committer, message,
+                                 tree_prefix, parents)
         commit = repo[sha]
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
