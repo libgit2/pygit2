@@ -45,6 +45,7 @@
   #define PyInt_FromLong PyLong_FromLong
   #define PyString_AS_STRING PyBytes_AS_STRING
   #define PyString_AsString PyBytes_AsString
+  #define PyString_AsStringAndSize PyBytes_AsStringAndSize
   #define PyString_Check PyBytes_Check
   #define PyString_FromString PyBytes_FromString
   #define PyString_FromStringAndSize PyBytes_FromStringAndSize
@@ -275,9 +276,9 @@ static size_t
 py_str_to_git_oid(PyObject *py_str, git_oid *oid)
 {
     PyObject *py_hex;
-    const char *hex_or_bin;
+    char *hex_or_bin;
     int err;
-    size_t len;
+    Py_ssize_t len;
 
     /* Case 1: raw sha */
     if (PyString_Check(py_str)) {
@@ -293,11 +294,10 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         py_hex = PyUnicode_AsASCIIString(py_str);
         if (py_hex == NULL)
             return 0;
-        hex_or_bin = PyString_AsString(py_hex);
+        err = PyString_AsStringAndSize(py_hex, &hex_or_bin, &len);
         Py_DECREF(py_hex);
-        if (hex_or_bin == NULL)
+        if (err)
             return 0;
-        len = strnlen(hex_or_bin, GIT_OID_HEXSZ);
         err = git_oid_fromstrn(oid, hex_or_bin, len);
         if (err < 0) {
             Error_set_py_obj(err, py_str);
