@@ -321,8 +321,8 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
     }
 
 
-#define git_oid_to_python(oid) \
-        PyString_FromStringAndSize(oid.id, GIT_OID_RAWSZ)
+#define git_oid_to_python(id) \
+        PyString_FromStringAndSize((const char*)id, GIT_OID_RAWSZ)
 
 static PyObject *
 git_oid_to_py_str(const git_oid *oid)
@@ -485,7 +485,7 @@ Repository_write(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set_str(err, "failed to write data");
 
-    return git_oid_to_python(oid);
+    return git_oid_to_python(oid.id);
 }
 
 static PyObject *
@@ -697,7 +697,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid);
+    return git_oid_to_python(oid.id);
 }
 
 static PyObject *
@@ -738,7 +738,7 @@ Repository_create_tag(Repository *self, PyObject *args)
     if (err < 0)
         return NULL;
 
-    return git_oid_to_python(oid);
+    return git_oid_to_python(oid.id);
 }
 
 static PyObject *
@@ -1010,7 +1010,7 @@ Object_get_oid(Object *self)
     oid = git_object_id(self->obj);
     assert(oid);
 
-    return PyString_FromStringAndSize(oid->id, GIT_OID_RAWSZ);
+    return git_oid_to_python(oid->id);
 }
 
 static PyObject *
@@ -1309,7 +1309,7 @@ TreeEntry_get_oid(TreeEntry *self)
     const git_oid *oid;
 
     oid = git_tree_entry_id(self->entry);
-    return PyString_FromStringAndSize(oid->id, GIT_OID_RAWSZ);
+    return git_oid_to_python(oid->id);
 }
 
 static PyObject *
@@ -1998,7 +1998,7 @@ Index_create_tree(Index *self)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid);
+    return git_oid_to_python(oid.id);
 }
 
 static PyMethodDef Index_methods[] = {
@@ -2151,7 +2151,7 @@ IndexEntry_get_path(IndexEntry *self)
 static PyObject *
 IndexEntry_get_oid(IndexEntry *self)
 {
-    return git_oid_to_python(self->entry->oid);
+    return git_oid_to_python(self->entry->oid.id);
 }
 
 static PyObject *
@@ -2477,7 +2477,7 @@ Reference_get_oid(Reference *self)
     }
 
     /* 2- Convert and return it */
-    return PyString_FromStringAndSize(oid->id, GIT_OID_RAWSZ);
+    return git_oid_to_python(oid->id);
 }
 
 static int
