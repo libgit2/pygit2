@@ -1579,7 +1579,7 @@ TreeIter_iternext(TreeIter *self)
 }
 
 static PyTypeObject TreeIterType = {
-   PyVarObject_HEAD_INIT(&PyType_Type, 0)
+   PyVarObject_HEAD_INIT(NULL, 0)
    "pygit2.TreeIter",                       /* tp_name           */
    sizeof(TreeIter),                        /* tp_basicsize      */
    0,                                       /* tp_itemsize       */
@@ -2100,7 +2100,7 @@ IndexIter_iternext(IndexIter *self)
 }
 
 static PyTypeObject IndexIterType = {
-   PyVarObject_HEAD_INIT(&PyType_Type, 0)
+   PyVarObject_HEAD_INIT(NULL, 0)
    "pygit2.IndexIter",                      /* tp_name           */
    sizeof(IndexIter),                       /* tp_basicsize      */
    0,                                       /* tp_itemsize       */
