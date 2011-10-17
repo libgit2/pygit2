@@ -29,6 +29,7 @@
 
 import os
 import shutil
+import stat
 import tarfile
 import tempfile
 import unittest
@@ -39,10 +40,31 @@ import pygit2
 __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 
-class BaseTestCase(unittest.TestCase):
+def rmtree(path):
+    """In Windows a read-only file cannot be removed, and shutil.rmtree fails.
+    So we implement our own version of rmtree to address this issue.
+    """
+    for root, dirs, files in os.walk(path, topdown=False):
+        for name in files:
+            filename = os.path.join(root, name)
+            try:
+                os.remove(filename)
+            except OSError:
+                # Try again
+                os.chmod(filename, stat.S_IWUSR)
+                os.remove(filename)
+        os.rmdir(root)
+
+
+class NoRepoTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self._temp_dir = tempfile.mkdtemp()
+        self.repo = None
 
     def tearDown(self):
-        shutil.rmtree(self._temp_dir)
+        del self.repo
+        rmtree(self._temp_dir)
 
     def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
         try:
@@ -53,39 +75,39 @@ class BaseTestCase(unittest.TestCase):
             self.fail('%s(%r) not raised' % (exc_class.__name__, arg))
 
 
-def open_repo(repo_dir):
-    repo_path = os.path.join(os.path.dirname(__file__), 'data', repo_dir)
-    temp_dir = tempfile.mkdtemp()
-    temp_repo_path = os.path.join(temp_dir, repo_dir)
-    shutil.copytree(repo_path, temp_repo_path)
-    return temp_dir, pygit2.Repository(temp_repo_path)
+class BareRepoTestCase(NoRepoTestCase):
 
-
-class BareRepoTestCase(BaseTestCase):
+    repo_dir = 'testrepo.git'
 
     def setUp(self):
-        self._temp_dir, self.repo = open_repo('testrepo.git')
+        super(BareRepoTestCase, self).setUp()
+
+        repo_dir = self.repo_dir
+        repo_path = os.path.join(os.path.dirname(__file__), 'data', repo_dir)
+        temp_repo_path = os.path.join(self._temp_dir, repo_dir)
+
+        shutil.copytree(repo_path, temp_repo_path)
+
+        self.repo = pygit2.Repository(temp_repo_path)
 
 
-class RepoTestCase(BaseTestCase):
+class RepoTestCase(NoRepoTestCase):
 
     repo_dir = 'testrepo'
 
     def setUp(self):
+        super(RepoTestCase, self).setUp()
+
         repo_dir = self.repo_dir
         repo_path = os.path.join(os.path.dirname(__file__), 'data', repo_dir)
-        temp_dir = tempfile.mkdtemp()
+        temp_repo_path = os.path.join(self._temp_dir, repo_dir, '.git')
+
         tar = tarfile.open(repo_path + '.tar')
-        tar.extractall(temp_dir)
+        tar.extractall(self._temp_dir)
         tar.close()
-        self._temp_dir = temp_dir
-        temp_repo_path = os.path.join(temp_dir, repo_dir, '.git')
+
         self.repo = pygit2.Repository(temp_repo_path)
 
-class NoRepoTestCase(BaseTestCase):
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-        self._temp_dir = self.temp_dir
 
 class DirtyRepoTestCase(RepoTestCase):
 

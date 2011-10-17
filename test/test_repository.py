@@ -116,7 +116,7 @@ class RepositoryTest_II(utils.RepoTestCase):
 
 class NewRepositoryTest(utils.NoRepoTestCase):
     def test_new_repo(self):
-        repo = init_repository(self.temp_dir, False)
+        repo = init_repository(self._temp_dir, False)
 
         oid = repo.write(GIT_OBJ_BLOB, "Test")
         self.assertEqual(type(oid), bytes)
