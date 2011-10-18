@@ -1658,7 +1658,9 @@ static PyTypeObject BlobType = {
 static void
 Tag_dealloc(Tag *self)
 {
+    git_tag_close(self->tag);
     Py_XDECREF(self->target);
+    Py_XDECREF(self->repo);
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
