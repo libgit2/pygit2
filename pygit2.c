@@ -190,9 +190,10 @@ Error_set_py_obj(int err, PyObject *py_obj)
 
     assert(err < 0);
 
-    if (err == GIT_ENOTOID && !PyString_Check(py_obj)) {
+    if (err == GIT_ENOTOID && !PyString_Check(py_obj)
+        && !PyUnicode_Check(py_obj)) {
         PyErr_Format(PyExc_TypeError,
-                     "Git object id must be byte string, not: %.200s",
+                     "Git object id must be byte or a text string, not: %.200s",
                      Py_TYPE(py_obj)->tp_name);
         return NULL;
     }
@@ -209,17 +210,19 @@ Error_set_py_obj(int err, PyObject *py_obj)
 }
 
 static PyObject *
-lookup_object(Repository *repo, const git_oid *oid, git_otype type)
+lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
+                     git_otype type)
 {
     int err;
     char hex[GIT_OID_HEXSZ + 1];
     git_object *obj;
     Object *py_obj = NULL;
 
-    err = git_object_lookup(&obj, repo->repo, oid, type);
+    err = git_object_lookup_prefix(&obj, repo->repo, oid,
+                                   (unsigned int)len, type);
     if (err < 0) {
         git_oid_fmt(hex, oid);
-        hex[GIT_OID_HEXSZ] = '\0';
+        hex[len] = '\0';
         return Error_set_str(err, hex);
     }
 
@@ -246,6 +249,12 @@ lookup_object(Repository *repo, const git_oid *oid, git_otype type)
     py_obj->repo = repo;
     Py_INCREF(repo);
     return (PyObject*)py_obj;
+}
+
+static PyObject *
+lookup_object(Repository *repo, const git_oid *oid, git_otype type)
+{
+    return lookup_object_prefix(repo, oid, GIT_OID_HEXSZ, type);
 }
 
 static git_otype
@@ -415,18 +424,18 @@ Repository_getitem(Repository *self, PyObject *value)
     size_t len;
 
     len = py_str_to_git_oid(value, &oid);
-    TODO_SUPPORT_SHORT_HEXS(len)
     if (len == 0)
         return NULL;
 
-    return lookup_object(self, &oid, GIT_OBJ_ANY);
+    return lookup_object_prefix(self, &oid, len, GIT_OBJ_ANY);
 }
 
 static int
 Repository_read_raw(git_odb_object **obj, git_repository *repo,
-                    const git_oid *oid)
+                    const git_oid *oid, size_t len)
 {
-    return git_odb_read(obj, git_repository_database(repo), oid);
+    return git_odb_read_prefix(obj, git_repository_database(repo),
+                               oid, (unsigned int)len);
 }
 
 static PyObject *
@@ -438,11 +447,10 @@ Repository_read(Repository *self, PyObject *py_hex)
     size_t len;
 
     len = py_str_to_git_oid(py_hex, &oid);
-    TODO_SUPPORT_SHORT_HEXS(len)
     if (len == 0)
         return NULL;
 
-    err = Repository_read_raw(&obj, self->repo, &oid);
+    err = Repository_read_raw(&obj, self->repo, &oid, len);
     if (err < 0)
         return Error_set_py_obj(err, py_hex);
 
@@ -659,13 +667,12 @@ Repository_create_commit(Repository *self, PyObject *args)
         return NULL;
 
     len = py_str_to_git_oid(py_oid, &oid);
-    TODO_SUPPORT_SHORT_HEXS(len)
     if (len == 0)
         return NULL;
 
     message = py_str_to_c_str(py_message);
 
-    err = git_tree_lookup(&tree, self->repo, &oid);
+    err = git_tree_lookup_prefix(&tree, self->repo, &oid, (unsigned int)len);
     if (err < 0)
         return Error_set(err);
 
@@ -679,12 +686,12 @@ Repository_create_commit(Repository *self, PyObject *args)
     for (i = 0; i < parent_count; i++) {
         py_parent = PyList_GET_ITEM(py_parents, i);
         len = py_str_to_git_oid(py_parent, &oid);
-        TODO_SUPPORT_SHORT_HEXS(len)
         if (len == 0) {
             git_tree_close(tree);
             return free_parents(parents, i);
         }
-        if (git_commit_lookup(&parents[i], self->repo, &oid)) {
+        if (git_commit_lookup_prefix(&parents[i], self->repo, &oid,
+                                     (unsigned int)len)) {
             git_tree_close(tree);
             return free_parents(parents, i);
         }
@@ -721,14 +728,14 @@ Repository_create_tag(Repository *self, PyObject *args)
         return NULL;
 
     len = py_str_to_git_oid(py_oid, &oid);
-    TODO_SUPPORT_SHORT_HEXS(len)
     if (len == 0)
         return NULL;
 
-    err = git_object_lookup(&target, self->repo, &oid, target_type);
+    err = git_object_lookup_prefix(&target, self->repo, &oid,
+                                   (unsigned int)len, target_type);
     if (err < 0) {
         git_oid_fmt(hex, &oid);
-        hex[GIT_OID_HEXSZ] = '\0';
+        hex[len] = '\0';
         return Error_set_str(err, hex);
     }
 
@@ -1041,7 +1048,7 @@ Object_read_raw(Object *self)
     oid = git_object_id(self->obj);
     assert(oid);
 
-    err = Repository_read_raw(&obj, self->repo->repo, oid);
+    err = Repository_read_raw(&obj, self->repo->repo, oid, GIT_OID_HEXSZ);
     if (err < 0) {
         aux = git_oid_to_py_str(oid);
         Error_set_py_obj(err, aux);
