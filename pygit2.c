@@ -202,7 +202,7 @@ Error_set_py_obj(int err, PyObject *py_obj)
         PyErr_SetObject(PyExc_KeyError, py_obj);
         return NULL;
     }
-    py_str = PyObject_Str(py_obj);
+    py_str = PyObject_Bytes(py_obj);
     str = py_str ? PyString_AS_STRING(py_str) : "<error in __str__>";
     PyErr_Format(Error_type(err), "%s: %s", str, git_lasterror());
     Py_XDECREF(py_str);
