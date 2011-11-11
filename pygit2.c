@@ -378,7 +378,7 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 
     if (kwds) {
         PyErr_SetString(PyExc_TypeError,
-                        "Repository takes no keyword arugments");
+                        "Repository takes no keyword arguments");
         return -1;
     }
 
@@ -1776,7 +1776,7 @@ Index_init(Index *self, PyObject *args, PyObject *kwds)
 
     if (kwds) {
         PyErr_SetString(PyExc_TypeError,
-                        "Index takes no keyword arugments");
+                        "Index takes no keyword arguments");
         return -1;
     }
 
