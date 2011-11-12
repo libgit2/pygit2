@@ -343,7 +343,7 @@ git_oid_to_py_str(const git_oid *oid)
 }
 
 char *
-py_str_to_c_str(PyObject *value)
+py_str_to_c_str(PyObject *value, const char *encoding)
 {
     char *c_str;
 
@@ -353,7 +353,10 @@ py_str_to_c_str(PyObject *value)
 
     /* Case 2: text string */
     if (PyUnicode_Check(value)) {
-        value = PyUnicode_AsUTF8String(value);
+        if (encoding == NULL)
+            value = PyUnicode_AsUTF8String(value);
+        else
+            value = PyUnicode_AsEncodedString(value, encoding, "strict");
         if (value == NULL)
             return NULL;
         c_str = PyString_AsString(value);
@@ -610,27 +613,28 @@ build_person(const git_signature *signature, const char *encoding)
                          signature->when.time, signature->when.offset);
 }
 
-static int
-signature_converter(PyObject *value, git_signature **signature)
+static git_signature *
+py_signature_to_git_signature(PyObject *value, const char* encoding)
 {
     PyObject *py_name;
     char *name, *email;
     long long time;
     int offset;
     int err;
+    git_signature *signature;
 
     if (!PyArg_ParseTuple(value, "OsLi", &py_name, &email, &time, &offset))
-        return 0;
+        return NULL;
 
-    name = py_str_to_c_str(py_name);
+    name = py_str_to_c_str(py_name, encoding);
 
-    err = git_signature_new(signature, name, email, time, offset);
+    err = git_signature_new(&signature, name, email, time, offset);
     if (err < 0) {
         Error_set(err);
-        return 0;
+        return NULL;
     }
 
-    return 1;
+    return signature;
 }
 
 static PyObject *
@@ -647,30 +651,39 @@ free_parents(git_commit **parents, int n)
 static PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
 {
+    PyObject *py_author, *py_committer;
+    PyObject *py_oid, *py_message, *py_parents, *py_parent;
     git_signature *author, *committer;
-    char *message, *update_ref;
+    char *message, *update_ref, *encoding;
     git_oid oid;
     git_tree *tree;
-    PyObject *py_oid, *py_message, *py_parents, *py_parent;
     int parent_count;
     git_commit **parents;
     int err, i;
     size_t len;
 
-    if (!PyArg_ParseTuple(args, "zO&O&OOO!",
+    if (!PyArg_ParseTuple(args, "zO!O!zOOO!",
                           &update_ref,
-                          signature_converter, &author,
-                          signature_converter, &committer,
+                          &PyTuple_Type, &py_author,
+                          &PyTuple_Type, &py_committer,
+                          &encoding,
                           &py_message,
                           &py_oid,
                           &PyList_Type, &py_parents))
+        return NULL;
+
+    author = py_signature_to_git_signature(py_author, encoding);
+    if (author == NULL)
+        return NULL;
+    committer = py_signature_to_git_signature(py_committer, encoding);
+    if (committer == NULL)
         return NULL;
 
     len = py_str_to_git_oid(py_oid, &oid);
     if (len == 0)
         return NULL;
 
-    message = py_str_to_c_str(py_message);
+    message = py_str_to_c_str(py_message, encoding);
 
     err = git_tree_lookup_prefix(&tree, self->repo, &oid, (unsigned int)len);
     if (err < 0)
@@ -698,7 +711,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     }
 
     err = git_commit_create(&oid, self->repo, update_ref, author, committer,
-        NULL, message, tree, parent_count, (const git_commit**)parents);
+        encoding, message, tree, parent_count, (const git_commit**)parents);
     git_tree_close(tree);
     free_parents(parents, parent_count);
     if (err < 0)
@@ -710,7 +723,7 @@ Repository_create_commit(Repository *self, PyObject *args)
 static PyObject *
 Repository_create_tag(Repository *self, PyObject *args)
 {
-    PyObject *py_oid;
+    PyObject *py_oid, *py_tagger;
     char *tag_name, *message;
     git_signature *tagger;
     git_oid oid;
@@ -719,12 +732,16 @@ Repository_create_tag(Repository *self, PyObject *args)
     char hex[GIT_OID_HEXSZ + 1];
     size_t len;
 
-    if (!PyArg_ParseTuple(args, "sOiO&s",
+    if (!PyArg_ParseTuple(args, "sOiO!s",
                           &tag_name,
                           &py_oid,
                           &target_type,
-                          signature_converter, &tagger,
+                          &PyTuple_Type, &py_tagger,
                           &message))
+        return NULL;
+
+    tagger = py_signature_to_git_signature(py_tagger, NULL);
+    if (tagger == NULL)
         return NULL;
 
     len = py_str_to_git_oid(py_oid, &oid);
@@ -799,7 +816,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = py_str_to_c_str(py_name);
+    c_name = py_str_to_c_str(py_name, NULL);
     if (c_name == NULL)
         return NULL;
 
@@ -1127,7 +1144,7 @@ Commit_get_message_encoding(Commit *commit)
     if (encoding == NULL)
         Py_RETURN_NONE;
 
-    return PyString_FromString(encoding);
+    return PyUnicode_DecodeASCII(encoding, strlen(encoding), "strict");
 }
 
 static PyObject *
@@ -1401,7 +1418,7 @@ Tree_contains(Tree *self, PyObject *py_name)
 {
     char *name;
 
-    name = py_str_to_c_str(py_name);
+    name = py_str_to_c_str(py_name, NULL);
     if (name == NULL)
         return -1;
 
@@ -1496,7 +1513,7 @@ Tree_getitem(Tree *self, PyObject *value)
         return Tree_getitem_by_index(self, value);
 
     /* Case 2: byte or text string */
-    name = py_str_to_c_str(value);
+    name = py_str_to_c_str(value, NULL);
     if (name == NULL)
         return NULL;
     entry = git_tree_entry_byname(self->tree, name);
@@ -1887,7 +1904,7 @@ Index_get_position(Index *self, PyObject *value)
     }
 
     /* Case 2: byte or text string */
-    path = py_str_to_c_str(value);
+    path = py_str_to_c_str(value, NULL);
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);
@@ -1904,7 +1921,7 @@ Index_contains(Index *self, PyObject *value)
     char *path;
     int idx;
 
-    path = py_str_to_c_str(value);
+    path = py_str_to_c_str(value, NULL);
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);
@@ -2395,7 +2412,7 @@ Reference_rename(Reference *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = py_str_to_c_str(py_name);
+    c_name = py_str_to_c_str(py_name, NULL);
     if (c_name == NULL)
         return NULL;
 
@@ -2446,7 +2463,7 @@ Reference_set_target(Reference *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = py_str_to_c_str(py_name);
+    c_name = py_str_to_c_str(py_name, NULL);
     if (c_name == NULL)
         return -1;
 

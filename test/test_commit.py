@@ -50,7 +50,6 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
                          parents[0].hex)
         self.assertEqual(None, commit.message_encoding)
-        #self.assertEqual('Second test data commit.', commit.message_short)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)
@@ -76,9 +75,9 @@ class CommitTest(utils.BareRepoTestCase):
 
         parents = [COMMIT_SHA[:5]]
         self.assertRaises(ValueError, repo.create_commit, None, author,
-                          committer, message, too_short_prefix, parents)
-        
-        sha = repo.create_commit(None, author, committer, message,
+                          committer, None, message, too_short_prefix, parents)
+
+        sha = repo.create_commit(None, author, committer, None, message,
                                  tree_prefix, parents)
         commit = repo[sha]
 
@@ -87,7 +86,29 @@ class CommitTest(utils.BareRepoTestCase):
                          commit.hex)
         self.assertEqual(None, commit.message_encoding)
         self.assertEqual(message, commit.message)
-        #self.assertEqual('New commit.', commit.message_short)
+        self.assertEqual(12346, commit.commit_time)
+        self.assertEqual(committer, commit.committer)
+        self.assertEqual(author, commit.author)
+        self.assertEqual(tree, commit.tree.hex)
+        self.assertEqual(1, len(commit.parents))
+        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
+
+    def test_new_commit_encoding(self):
+        repo = self.repo
+        message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
+        committer = ('John Doe', 'jdoe@example.com', 12346, 0)
+        author = ('J. David Ibáñez', 'jdavid@example.com', 12345, 0)
+        tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+        tree_prefix = tree[:5]
+
+        parents = [COMMIT_SHA[:5]]
+        sha = repo.create_commit(None, author, committer, 'iso-8859-1',
+                                 message, tree_prefix, parents)
+        commit = repo[sha]
+
+        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
+        self.assertEqual('iso-8859-1', commit.message_encoding)
+        self.assertEqual(message, commit.message)
         self.assertEqual(12346, commit.commit_time)
         self.assertEqual(committer, commit.committer)
         self.assertEqual(author, commit.author)
