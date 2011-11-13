@@ -373,6 +373,14 @@ py_str_to_c_str(PyObject *value, const char *encoding)
 #define c_str_to_py_str(c_str) \
         PyUnicode_DecodeUTF8(c_str, strlen(c_str), "strict")
 
+#define py_path_to_c_str(py_path) \
+        py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
+
+#define c_str_to_py_path(c_str) \
+        PyUnicode_Decode(c_str, strlen(c_str), \
+                         Py_FileSystemDefaultEncoding, "strict")
+
+
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 {
@@ -539,7 +547,7 @@ Repository_get_path(Repository *self, void *closure)
     const char *c_path;
 
     c_path = git_repository_path(self->repo, GIT_REPO_PATH);
-    return c_str_to_py_str(c_path);
+    return c_str_to_py_path(c_path);
 }
 
 static PyObject *
@@ -551,7 +559,7 @@ Repository_get_workdir(Repository *self, void *closure)
     if (c_path == NULL)
         Py_RETURN_NONE;
 
-    return c_str_to_py_str(c_path);
+    return c_str_to_py_path(c_path);
 }
 
 static PyObject *
@@ -792,7 +800,7 @@ Repository_listall_references(Repository *self, PyObject *args)
 
     /* 4- Fill it */
     for (index=0; index < c_result.count; index++) {
-        py_string = c_str_to_py_str((c_result.strings)[index]);
+        py_string = c_str_to_py_path((c_result.strings)[index]);
         if (py_string == NULL) {
             Py_XDECREF(py_result);
             git_strarray_free(&c_result);
@@ -816,7 +824,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = py_str_to_c_str(py_name, NULL);
+    c_name = py_path_to_c_str(py_name);
     if (c_name == NULL)
         return NULL;
 
@@ -1324,7 +1332,7 @@ TreeEntry_get_attributes(TreeEntry *self)
 static PyObject *
 TreeEntry_get_name(TreeEntry *self)
 {
-    return c_str_to_py_str(git_tree_entry_name(self->entry));
+    return c_str_to_py_path(git_tree_entry_name(self->entry));
 }
 
 static PyObject *
@@ -1418,7 +1426,7 @@ Tree_contains(Tree *self, PyObject *py_name)
 {
     char *name;
 
-    name = py_str_to_c_str(py_name, NULL);
+    name = py_path_to_c_str(py_name);
     if (name == NULL)
         return -1;
 
@@ -1513,7 +1521,7 @@ Tree_getitem(Tree *self, PyObject *value)
         return Tree_getitem_by_index(self, value);
 
     /* Case 2: byte or text string */
-    name = py_str_to_c_str(value, NULL);
+    name = py_path_to_c_str(value);
     if (name == NULL)
         return NULL;
     entry = git_tree_entry_byname(self->tree, name);
@@ -1904,7 +1912,7 @@ Index_get_position(Index *self, PyObject *value)
     }
 
     /* Case 2: byte or text string */
-    path = py_str_to_c_str(value, NULL);
+    path = py_path_to_c_str(value);
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);
@@ -1921,7 +1929,7 @@ Index_contains(Index *self, PyObject *value)
     char *path;
     int idx;
 
-    path = py_str_to_c_str(value, NULL);
+    path = py_path_to_c_str(value);
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);
@@ -2171,7 +2179,7 @@ IndexEntry_get_mode(IndexEntry *self)
 static PyObject *
 IndexEntry_get_path(IndexEntry *self)
 {
-    return c_str_to_py_str(self->entry->path);
+    return c_str_to_py_path(self->entry->path);
 }
 
 static PyObject *
@@ -2412,7 +2420,7 @@ Reference_rename(Reference *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = py_str_to_c_str(py_name, NULL);
+    c_name = py_path_to_c_str(py_name);
     if (c_name == NULL)
         return NULL;
 
@@ -2453,7 +2461,7 @@ Reference_get_target(Reference *self)
     }
 
     /* 2- Make a PyString and return it */
-    return c_str_to_py_str(c_name);
+    return c_str_to_py_path(c_name);
 }
 
 static int
@@ -2463,7 +2471,7 @@ Reference_set_target(Reference *self, PyObject *py_name)
     int err;
 
     /* 1- Get the C name */
-    c_name = py_str_to_c_str(py_name, NULL);
+    c_name = py_path_to_c_str(py_name);
     if (c_name == NULL)
         return -1;
 
@@ -2484,7 +2492,7 @@ Reference_get_name(Reference *self)
     const char *c_name;
 
     c_name = git_reference_name(self->reference);
-    return c_str_to_py_str(c_name);
+    return c_str_to_py_path(c_name);
 }
 
 static PyObject *
