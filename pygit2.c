@@ -646,28 +646,18 @@ py_signature_to_git_signature(PyObject *value, const char* encoding)
 }
 
 static PyObject *
-free_parents(git_commit **parents, int n)
-{
-    int i;
-
-    for (i = 0; i < n; i++)
-        git_commit_close(parents[i]);
-    free(parents);
-    return NULL;
-}
-
-static PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
 {
     PyObject *py_author, *py_committer;
     PyObject *py_oid, *py_message, *py_parents, *py_parent;
-    git_signature *author, *committer;
+    PyObject *py_result = NULL;
+    git_signature *author = NULL, *committer = NULL;
     char *message, *update_ref, *encoding;
     git_oid oid;
-    git_tree *tree;
+    git_tree *tree = NULL;
     int parent_count;
-    git_commit **parents;
-    int err, i;
+    git_commit **parents = NULL;
+    int err = 0, i = 0;
     size_t len;
 
     if (!PyArg_ParseTuple(args, "zO!O!zOOO!",
@@ -685,47 +675,56 @@ Repository_create_commit(Repository *self, PyObject *args)
         return NULL;
     committer = py_signature_to_git_signature(py_committer, encoding);
     if (committer == NULL)
-        return NULL;
+        goto out;
 
     len = py_str_to_git_oid(py_oid, &oid);
     if (len == 0)
-        return NULL;
+        goto out;
 
     message = py_str_to_c_str(py_message, encoding);
 
     err = git_tree_lookup_prefix(&tree, self->repo, &oid, (unsigned int)len);
-    if (err < 0)
-        return Error_set(err);
+    if (err < 0) {
+        Error_set(err);
+        goto out;
+    }
 
     parent_count = (int)PyList_Size(py_parents);
     parents = malloc(parent_count * sizeof(git_commit*));
     if (parents == NULL) {
-        git_tree_close(tree);
         PyErr_SetNone(PyExc_MemoryError);
-        return NULL;
+        goto out;
     }
-    for (i = 0; i < parent_count; i++) {
+    for (; i < parent_count; i++) {
         py_parent = PyList_GET_ITEM(py_parents, i);
         len = py_str_to_git_oid(py_parent, &oid);
-        if (len == 0) {
-            git_tree_close(tree);
-            return free_parents(parents, i);
-        }
+        if (len == 0)
+            goto out;
         if (git_commit_lookup_prefix(&parents[i], self->repo, &oid,
-                                     (unsigned int)len)) {
-            git_tree_close(tree);
-            return free_parents(parents, i);
-        }
+                                     (unsigned int)len))
+            goto out;
     }
 
     err = git_commit_create(&oid, self->repo, update_ref, author, committer,
-        encoding, message, tree, parent_count, (const git_commit**)parents);
-    git_tree_close(tree);
-    free_parents(parents, parent_count);
-    if (err < 0)
-        return Error_set(err);
+                            encoding, message, tree, parent_count,
+                            (const git_commit**)parents);
+    if (err < 0) {
+        Error_set(err);
+        goto out;
+    }
 
-    return git_oid_to_python(oid.id);
+    py_result = git_oid_to_python(oid.id);
+
+out:
+    git_signature_free(author);
+    git_signature_free(committer);
+    git_tree_close(tree);
+    while (i > 0) {
+        i--;
+        git_commit_close(parents[i]);
+    }
+    free(parents);
+    return py_result;
 }
 
 static PyObject *
