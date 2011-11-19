@@ -1222,6 +1222,9 @@ Commit_get_tree(Commit *commit)
         return Error_set(err);
 
     py_tree = PyObject_New(Tree, &TreeType);
+    if (!py_tree)
+        return NULL;
+
     Py_INCREF(commit->repo);
     py_tree->repo = commit->repo;
     py_tree->tree = (git_tree*)tree;
