@@ -75,9 +75,9 @@ class CommitTest(utils.BareRepoTestCase):
 
         parents = [COMMIT_SHA[:5]]
         self.assertRaises(ValueError, repo.create_commit, None, author,
-                          committer, None, message, too_short_prefix, parents)
+                          committer, message, too_short_prefix, parents)
 
-        sha = repo.create_commit(None, author, committer, None, message,
+        sha = repo.create_commit(None, author, committer, message,
                                  tree_prefix, parents)
         commit = repo[sha]
 
@@ -102,8 +102,8 @@ class CommitTest(utils.BareRepoTestCase):
         tree_prefix = tree[:5]
 
         parents = [COMMIT_SHA[:5]]
-        sha = repo.create_commit(None, author, committer, 'iso-8859-1',
-                                 message, tree_prefix, parents)
+        sha = repo.create_commit(None, author, committer, message,
+                                 tree_prefix, parents, 'iso-8859-1')
         commit = repo[sha]
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)

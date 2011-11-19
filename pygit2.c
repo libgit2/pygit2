@@ -652,7 +652,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     PyObject *py_oid, *py_message, *py_parents, *py_parent;
     PyObject *py_result = NULL;
     git_signature *author = NULL, *committer = NULL;
-    char *message, *update_ref, *encoding;
+    char *message, *update_ref, *encoding = NULL;
     git_oid oid;
     git_tree *tree = NULL;
     int parent_count;
@@ -660,14 +660,14 @@ Repository_create_commit(Repository *self, PyObject *args)
     int err = 0, i = 0;
     size_t len;
 
-    if (!PyArg_ParseTuple(args, "zO!O!zOOO!",
+    if (!PyArg_ParseTuple(args, "zO!O!OOO!|s",
                           &update_ref,
                           &PyTuple_Type, &py_author,
                           &PyTuple_Type, &py_committer,
-                          &encoding,
                           &py_message,
                           &py_oid,
-                          &PyList_Type, &py_parents))
+                          &PyList_Type, &py_parents,
+                          &encoding))
         return NULL;
 
     author = py_signature_to_git_signature(py_author, encoding);
