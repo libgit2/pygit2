@@ -242,12 +242,13 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
         default:
             assert(0);
     }
-    if (!py_obj)
-        return PyErr_NoMemory();
 
-    py_obj->obj = obj;
-    py_obj->repo = repo;
-    Py_INCREF(repo);
+    if (py_obj) {
+        py_obj->obj = obj;
+        py_obj->repo = repo;
+        Py_INCREF(repo);
+    }
+
     return (PyObject*)py_obj;
 }
 
@@ -275,9 +276,9 @@ wrap_reference(git_reference * c_reference)
     Reference *py_reference=NULL;
 
     py_reference = (Reference *)ReferenceType.tp_alloc(&ReferenceType, 0);
-    if (py_reference == NULL)
-        return NULL;
-    py_reference->reference = c_reference;
+    if (py_reference)
+        py_reference->reference = c_reference;
+
     return (PyObject *)py_reference;
 }
 
@@ -521,7 +522,8 @@ Repository_get_index(Repository *self, void *closure)
         if (err == GIT_SUCCESS) {
             py_index = (Index*)IndexType.tp_alloc(&IndexType, 0);
             if (!py_index)
-                return PyErr_NoMemory();
+                return NULL;
+
             Py_INCREF(self);
             py_index->repo = self;
             py_index->index = index;
@@ -1443,12 +1445,12 @@ wrap_tree_entry(const git_tree_entry *entry, Tree *tree)
 {
     TreeEntry *py_entry = NULL;
     py_entry = (TreeEntry*)TreeEntryType.tp_alloc(&TreeEntryType, 0);
-    if (!py_entry)
-        return NULL;
+    if (py_entry) {
+        py_entry->entry = entry;
+        py_entry->tree = tree;
+        Py_INCREF(tree);
+    }
 
-    py_entry->entry = entry;
-    py_entry->tree = tree;
-    Py_INCREF(tree);
     return py_entry;
 }
 
@@ -1975,10 +1977,8 @@ wrap_index_entry(git_index_entry *entry, Index *index)
     IndexEntry *py_entry;
 
     py_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
-    if (!py_entry)
-        return PyErr_NoMemory();
-
-    py_entry->entry = entry;
+    if (py_entry)
+        py_entry->entry = entry;
 
     return (PyObject*)py_entry;
 }
