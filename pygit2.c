@@ -72,14 +72,8 @@ OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
 OBJECT_STRUCT(Blob, git_blob, blob)
+OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
-
-typedef struct {
-    PyObject_HEAD
-    Repository *repo;
-    git_tag *tag;
-    PyObject *target;
-} Tag;
 
 typedef struct {
     PyObject_HEAD
@@ -228,16 +222,16 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
 
     switch (git_object_type(obj)) {
         case GIT_OBJ_COMMIT:
-            py_obj = (Object*)CommitType.tp_alloc(&CommitType, 0);
+            py_obj = PyObject_New(Object, &CommitType);
             break;
         case GIT_OBJ_TREE:
-            py_obj = (Object*)TreeType.tp_alloc(&TreeType, 0);
+            py_obj = PyObject_New(Object, &TreeType);
             break;
         case GIT_OBJ_BLOB:
-            py_obj = (Object*)BlobType.tp_alloc(&BlobType, 0);
+            py_obj = PyObject_New(Object, &BlobType);
             break;
         case GIT_OBJ_TAG:
-            py_obj = (Object*)TagType.tp_alloc(&TagType, 0);
+            py_obj = PyObject_New(Object, &TagType);
             break;
         default:
             assert(0);
@@ -248,7 +242,6 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
         py_obj->repo = repo;
         Py_INCREF(repo);
     }
-
     return (PyObject*)py_obj;
 }
 
@@ -275,7 +268,7 @@ wrap_reference(git_reference * c_reference)
 {
     Reference *py_reference=NULL;
 
-    py_reference = (Reference *)ReferenceType.tp_alloc(&ReferenceType, 0);
+    py_reference = PyObject_New(Reference, &ReferenceType);
     if (py_reference)
         py_reference->reference = c_reference;
 
@@ -412,7 +405,7 @@ Repository_dealloc(Repository *self)
     if (self->repo)
         git_repository_free(self->repo);
     Py_XDECREF(self->index);
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyObject_Del(self);
 }
 
 static int
@@ -520,7 +513,7 @@ Repository_get_index(Repository *self, void *closure)
     if (self->index == NULL) {
         err = git_repository_index(&index, self->repo);
         if (err == GIT_SUCCESS) {
-            py_index = (Index*)IndexType.tp_alloc(&IndexType, 0);
+            py_index = PyObject_New(Index, &IndexType);
             if (!py_index)
                 return NULL;
 
@@ -1035,7 +1028,7 @@ Object_dealloc(Object* self)
 {
     git_object_close(self->obj);
     Py_XDECREF(self->repo);
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyObject_Del(self);
 }
 
 static PyObject *
@@ -1224,13 +1217,11 @@ Commit_get_tree(Commit *commit)
         return Error_set(err);
 
     py_tree = PyObject_New(Tree, &TreeType);
-    if (!py_tree)
-        return NULL;
-
-    Py_INCREF(commit->repo);
-    py_tree->repo = commit->repo;
-    py_tree->tree = (git_tree*)tree;
-
+    if (py_tree) {
+        Py_INCREF(commit->repo);
+        py_tree->repo = commit->repo;
+        py_tree->tree = (git_tree*)tree;
+    }
     return (PyObject*)py_tree;
 }
 
@@ -1327,7 +1318,7 @@ static void
 TreeEntry_dealloc(TreeEntry *self)
 {
     Py_XDECREF(self->tree);
-    Py_TYPE(self)->tp_free((PyObject *)self);
+    PyObject_Del(self);
 }
 
 static PyObject *
@@ -1443,14 +1434,14 @@ Tree_contains(Tree *self, PyObject *py_name)
 static TreeEntry *
 wrap_tree_entry(const git_tree_entry *entry, Tree *tree)
 {
-    TreeEntry *py_entry = NULL;
-    py_entry = (TreeEntry*)TreeEntryType.tp_alloc(&TreeEntryType, 0);
+    TreeEntry *py_entry;
+
+    py_entry = PyObject_New(TreeEntry, &TreeEntryType);
     if (py_entry) {
         py_entry->entry = entry;
         py_entry->tree = tree;
         Py_INCREF(tree);
     }
-
     return py_entry;
 }
 
@@ -1486,17 +1477,15 @@ Tree_fix_index(Tree *self, PyObject *py_index)
 static PyObject *
 Tree_iter(Tree *self)
 {
-  TreeIter *iter;
+    TreeIter *iter;
 
-  iter = PyObject_New(TreeIter, &TreeIterType);
-  if (!iter)
-      return NULL;
-
-  Py_INCREF(self);
-  iter->owner = self;
-  iter->i = 0;
-
-  return (PyObject*)iter;
+    iter = PyObject_New(TreeIter, &TreeIterType);
+    if (iter) {
+        Py_INCREF(self);
+        iter->owner = self;
+        iter->i = 0;
+    }
+    return (PyObject*)iter;
 }
 
 static TreeEntry *
@@ -1694,31 +1683,15 @@ static PyTypeObject BlobType = {
     0,                                         /* tp_new            */
 };
 
-static void
-Tag_dealloc(Tag *self)
-{
-    git_tag_close(self->tag);
-    Py_XDECREF(self->target);
-    Py_XDECREF(self->repo);
-    Py_TYPE(self)->tp_free((PyObject*)self);
-}
-
 static PyObject *
 Tag_get_target(Tag *self)
 {
     const git_oid *target_oid;
     git_otype target_type;
 
-    if (self->target == NULL) {
-        target_oid = git_tag_target_oid(self->tag);
-        target_type = git_tag_type(self->tag);
-        self->target = lookup_object(self->repo, target_oid, target_type);
-        if (self->target == NULL)
-            return NULL;
-    }
-
-    Py_INCREF(self->target);
-    return self->target;
+    target_oid = git_tag_target_oid(self->tag);
+    target_type = git_tag_type(self->tag);
+    return lookup_object(self->repo, target_oid, target_type);
 }
 
 static PyObject *
@@ -1764,7 +1737,7 @@ static PyTypeObject TagType = {
     "pygit2.Tag",                              /* tp_name           */
     sizeof(Tag),                               /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    (destructor)Tag_dealloc,                   /* tp_dealloc        */
+    0,                                         /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
@@ -1831,7 +1804,7 @@ Index_dealloc(Index* self)
     if (self->own_obj)
         git_index_free(self->index);
     Py_XDECREF(self->repo);
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyObject_Del(self);
 }
 
 static PyObject *
@@ -1953,16 +1926,15 @@ Index_contains(Index *self, PyObject *value)
 static PyObject *
 Index_iter(Index *self)
 {
-  IndexIter *iter;
+    IndexIter *iter;
 
-  iter = PyObject_New(IndexIter, &IndexIterType);
-  if (!iter)
-      return NULL;
-
-  Py_INCREF(self);
-  iter->owner = self;
-  iter->i = 0;
-  return (PyObject*)iter;
+    iter = PyObject_New(IndexIter, &IndexIterType);
+    if (iter) {
+        Py_INCREF(self);
+        iter->owner = self;
+        iter->i = 0;
+    }
+    return (PyObject*)iter;
 }
 
 static Py_ssize_t
@@ -1976,7 +1948,7 @@ wrap_index_entry(git_index_entry *entry, Index *index)
 {
     IndexEntry *py_entry;
 
-    py_entry = (IndexEntry*)IndexEntryType.tp_alloc(&IndexEntryType, 0);
+    py_entry = PyObject_New(IndexEntry, &IndexEntryType);
     if (py_entry)
         py_entry->entry = entry;
 
@@ -2172,7 +2144,7 @@ static PyTypeObject IndexIterType = {
 static void
 IndexEntry_dealloc(IndexEntry *self)
 {
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyObject_Del(self);
 }
 
 static PyObject *
@@ -2253,7 +2225,7 @@ Walker_dealloc(Walker *self)
 {
     git_revwalk_free(self->walk);
     Py_DECREF(self->repo);
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyObject_Del(self);
 }
 
 static PyObject *
@@ -2339,12 +2311,11 @@ Walker_iternext(Walker *self)
         return Error_set(err);
 
     py_commit = PyObject_New(Commit, &CommitType);
-    if (!py_commit)
-        return NULL;
-    py_commit->commit = commit;
-    Py_INCREF(self->repo);
-    py_commit->repo = self->repo;
-
+    if (py_commit) {
+        py_commit->commit = commit;
+        Py_INCREF(self->repo);
+        py_commit->repo = self->repo;
+    }
     return (PyObject*)py_commit;
 }
 
