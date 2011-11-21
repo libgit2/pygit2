@@ -73,6 +73,7 @@ OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
 OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
+OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
 
 typedef struct {
@@ -80,13 +81,6 @@ typedef struct {
     const git_tree_entry *entry;
     Tree *tree;
 } TreeEntry;
-
-typedef struct {
-    PyObject_HEAD
-    Repository *repo;
-    git_index *index;
-    int own_obj:1;
-} Index;
 
 typedef struct {
   PyObject_HEAD
@@ -402,10 +396,24 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 static void
 Repository_dealloc(Repository *self)
 {
-    if (self->repo)
-        git_repository_free(self->repo);
+    PyObject_GC_UnTrack(self);
     Py_XDECREF(self->index);
-    PyObject_Del(self);
+    git_repository_free(self->repo);
+    PyObject_GC_Del(self);
+}
+
+static int
+Repository_traverse(Repository *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->index);
+    return 0;
+}
+
+static int
+Repository_clear(Repository *self)
+{
+    Py_CLEAR(self->index);
+    return 0;
 }
 
 static int
@@ -513,14 +521,14 @@ Repository_get_index(Repository *self, void *closure)
     if (self->index == NULL) {
         err = git_repository_index(&index, self->repo);
         if (err == GIT_SUCCESS) {
-            py_index = PyObject_New(Index, &IndexType);
+            py_index = PyObject_GC_New(Index, &IndexType);
             if (!py_index)
                 return NULL;
 
             Py_INCREF(self);
             py_index->repo = self;
             py_index->index = index;
-            py_index->own_obj = 0;
+            PyObject_GC_Track(py_index);
             self->index = (PyObject*)py_index;
         }
         else if (err == GIT_EBAREINDEX) {
@@ -1002,10 +1010,12 @@ static PyTypeObject RepositoryType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    Py_TPFLAGS_DEFAULT |
+    Py_TPFLAGS_BASETYPE |
+    Py_TPFLAGS_HAVE_GC,                        /* tp_flags          */
     "Git repository",                          /* tp_doc            */
-    0,                                         /* tp_traverse       */
-    0,                                         /* tp_clear          */
+    (traverseproc)Repository_traverse,         /* tp_traverse       */
+    (inquiry)Repository_clear,                 /* tp_clear          */
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
@@ -1794,17 +1804,23 @@ Index_init(Index *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    self->own_obj = 1;
     return 0;
 }
 
 static void
 Index_dealloc(Index* self)
 {
-    if (self->own_obj)
-        git_index_free(self->index);
+    PyObject_GC_UnTrack(self);
     Py_XDECREF(self->repo);
-    PyObject_Del(self);
+    git_index_free(self->index);
+    PyObject_GC_Del(self);
+}
+
+static int
+Index_traverse(Index *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->repo);
+    return 0;
 }
 
 static PyObject *
@@ -2068,9 +2084,11 @@ static PyTypeObject IndexType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    Py_TPFLAGS_DEFAULT |
+    Py_TPFLAGS_BASETYPE |
+    Py_TPFLAGS_HAVE_GC,                        /* tp_flags          */
     "Index file",                              /* tp_doc            */
-    0,                                         /* tp_traverse       */
+    (traverseproc)Index_traverse,              /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
@@ -2624,15 +2642,16 @@ init_repository(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    py_repo = PyObject_New(Repository, &RepositoryType);
-    if (!py_repo) {
-        git_repository_free(repo);
-        return NULL;
+    py_repo = PyObject_GC_New(Repository, &RepositoryType);
+    if (py_repo) {
+        py_repo->repo = repo;
+        py_repo->index = NULL;
+        PyObject_GC_Track(py_repo);
+        return (PyObject*)py_repo;
     }
 
-    py_repo->repo = repo;
-    py_repo->index = NULL;
-    return (PyObject*)py_repo;
+    git_repository_free(repo);
+    return NULL;
 };
 
 static PyMethodDef module_methods[] = {
