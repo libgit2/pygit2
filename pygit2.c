@@ -83,15 +83,15 @@ typedef struct {
 } TreeEntry;
 
 typedef struct {
-  PyObject_HEAD
-  Index *owner;
-  int i;
+    PyObject_HEAD
+    Index *owner;
+    int i;
 } IndexIter;
 
 typedef struct {
-  PyObject_HEAD
-  Tree *owner;
-  int i;
+    PyObject_HEAD
+    Tree *owner;
+    int i;
 } TreeIter;
 
 typedef struct {
@@ -905,15 +905,15 @@ Repository_packall_references(Repository *self,  PyObject *args)
     Py_RETURN_NONE;
 }
 
-static int read_status_cb(const char *path, unsigned int status_flags,
-                          void *payload_dict)
+static int
+read_status_cb(const char *path, unsigned int status_flags, void *payload)
 {
     /* This is the callback that will be called in git_status_foreach. It
      * will be called for every path.*/
     PyObject *flags;
 
     flags = PyInt_FromLong((long) status_flags);
-    PyDict_SetItemString(payload_dict, path, flags);
+    PyDict_SetItemString(payload, path, flags);
 
     return GIT_SUCCESS;
 }
@@ -1617,35 +1617,35 @@ TreeIter_iternext(TreeIter *self)
 }
 
 static PyTypeObject TreeIterType = {
-   PyVarObject_HEAD_INIT(NULL, 0)
-   "pygit2.TreeIter",                       /* tp_name           */
-   sizeof(TreeIter),                        /* tp_basicsize      */
-   0,                                       /* tp_itemsize       */
-   (destructor)TreeIter_dealloc ,           /* tp_dealloc        */
-   0,                                       /* tp_print          */
-   0,                                       /* tp_getattr        */
-   0,                                       /* tp_setattr        */
-   0,                                       /* tp_compare        */
-   0,                                       /* tp_repr           */
-   0,                                       /* tp_as_number      */
-   0,                                       /* tp_as_sequence    */
-   0,                                       /* tp_as_mapping     */
-   0,                                       /* tp_hash           */
-   0,                                       /* tp_call           */
-   0,                                       /* tp_str            */
-   PyObject_GenericGetAttr,                 /* tp_getattro       */
-   0,                                       /* tp_setattro       */
-   0,                                       /* tp_as_buffer      */
-   Py_TPFLAGS_DEFAULT |
-   Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
-   0,                                       /* tp_doc            */
-   0,                                       /* tp_traverse       */
-   0,                                       /* tp_clear          */
-   0,                                       /* tp_richcompare    */
-   0,                                       /* tp_weaklistoffset */
-   PyObject_SelfIter,                       /* tp_iter           */
-   (iternextfunc)TreeIter_iternext,         /* tp_iternext       */
- };
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pygit2.TreeIter",                       /* tp_name           */
+    sizeof(TreeIter),                        /* tp_basicsize      */
+    0,                                       /* tp_itemsize       */
+    (destructor)TreeIter_dealloc ,           /* tp_dealloc        */
+    0,                                       /* tp_print          */
+    0,                                       /* tp_getattr        */
+    0,                                       /* tp_setattr        */
+    0,                                       /* tp_compare        */
+    0,                                       /* tp_repr           */
+    0,                                       /* tp_as_number      */
+    0,                                       /* tp_as_sequence    */
+    0,                                       /* tp_as_mapping     */
+    0,                                       /* tp_hash           */
+    0,                                       /* tp_call           */
+    0,                                       /* tp_str            */
+    PyObject_GenericGetAttr,                 /* tp_getattro       */
+    0,                                       /* tp_setattro       */
+    0,                                       /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT |
+    Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
+    0,                                       /* tp_doc            */
+    0,                                       /* tp_traverse       */
+    0,                                       /* tp_clear          */
+    0,                                       /* tp_richcompare    */
+    0,                                       /* tp_weaklistoffset */
+    PyObject_SelfIter,                       /* tp_iter           */
+    (iternextfunc)TreeIter_iternext,         /* tp_iternext       */
+};
 
 static PyGetSetDef Blob_getseters[] = {
     {"data", (getter)Object_read_raw, NULL, "raw data", NULL},
@@ -2129,35 +2129,35 @@ IndexIter_iternext(IndexIter *self)
 }
 
 static PyTypeObject IndexIterType = {
-   PyVarObject_HEAD_INIT(NULL, 0)
-   "pygit2.IndexIter",                      /* tp_name           */
-   sizeof(IndexIter),                       /* tp_basicsize      */
-   0,                                       /* tp_itemsize       */
-   (destructor)IndexIter_dealloc ,          /* tp_dealloc        */
-   0,                                       /* tp_print          */
-   0,                                       /* tp_getattr        */
-   0,                                       /* tp_setattr        */
-   0,                                       /* tp_compare        */
-   0,                                       /* tp_repr           */
-   0,                                       /* tp_as_number      */
-   0,                                       /* tp_as_sequence    */
-   0,                                       /* tp_as_mapping     */
-   0,                                       /* tp_hash           */
-   0,                                       /* tp_call           */
-   0,                                       /* tp_str            */
-   PyObject_GenericGetAttr,                 /* tp_getattro       */
-   0,                                       /* tp_setattro       */
-   0,                                       /* tp_as_buffer      */
-   Py_TPFLAGS_DEFAULT |
-   Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
-   0,                                       /* tp_doc            */
-   0,                                       /* tp_traverse       */
-   0,                                       /* tp_clear          */
-   0,                                       /* tp_richcompare    */
-   0,                                       /* tp_weaklistoffset */
-   PyObject_SelfIter,                       /* tp_iter           */
-   (iternextfunc)IndexIter_iternext,        /* tp_iternext       */
- };
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pygit2.IndexIter",                      /* tp_name           */
+    sizeof(IndexIter),                       /* tp_basicsize      */
+    0,                                       /* tp_itemsize       */
+    (destructor)IndexIter_dealloc ,          /* tp_dealloc        */
+    0,                                       /* tp_print          */
+    0,                                       /* tp_getattr        */
+    0,                                       /* tp_setattr        */
+    0,                                       /* tp_compare        */
+    0,                                       /* tp_repr           */
+    0,                                       /* tp_as_number      */
+    0,                                       /* tp_as_sequence    */
+    0,                                       /* tp_as_mapping     */
+    0,                                       /* tp_hash           */
+    0,                                       /* tp_call           */
+    0,                                       /* tp_str            */
+    PyObject_GenericGetAttr,                 /* tp_getattro       */
+    0,                                       /* tp_setattro       */
+    0,                                       /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT |
+    Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
+    0,                                       /* tp_doc            */
+    0,                                       /* tp_traverse       */
+    0,                                       /* tp_clear          */
+    0,                                       /* tp_richcompare    */
+    0,                                       /* tp_weaklistoffset */
+    PyObject_SelfIter,                       /* tp_iter           */
+    (iternextfunc)IndexIter_iternext,        /* tp_iternext       */
+};
 
 static void
 IndexEntry_dealloc(IndexEntry *self)
