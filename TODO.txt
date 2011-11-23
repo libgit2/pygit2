@@ -1,0 +1,6 @@
+Signature
+=========
+- Implement equality interface
+- Return unicode for the email
+- Implement interface to access the name/email as bytes
+- In Repository's create_commit/create_tag check signatures encoding is right

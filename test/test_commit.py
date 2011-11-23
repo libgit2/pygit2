@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
-from pygit2 import GIT_OBJ_COMMIT
+from pygit2 import GIT_OBJ_COMMIT, Signature
 from . import utils
 
 
@@ -55,20 +55,22 @@ class CommitTest(utils.BareRepoTestCase):
                          commit.message)
         commit_time = 1288481576
         self.assertEqual(commit_time, commit.commit_time)
-        self.assertEqual(
-            ('Dave Borowitz', 'dborowitz@google.com', commit_time, -420),
-            commit.committer)
-        self.assertEqual(
-            ('Dave Borowitz', 'dborowitz@google.com', 1288477363, -420),
-            commit.author)
+        self.assertEqualSignature(
+            commit.committer,
+            Signature('Dave Borowitz', 'dborowitz@google.com',
+                      commit_time, -420))
+        self.assertEqualSignature(
+            commit.author,
+            Signature('Dave Borowitz', 'dborowitz@google.com', 1288477363,
+                      -420))
         self.assertEqual(
             '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', commit.tree.hex)
 
     def test_new_commit(self):
         repo = self.repo
         message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
-        committer = ('John Doe', 'jdoe@example.com', 12346, 0)
-        author = ('J. David Ibáñez', 'jdavid@example.com', 12345, 0)
+        committer = Signature('John Doe', 'jdoe@example.com', 12346, 0)
+        author = Signature('J. David Ibáñez', 'jdavid@example.com', 12345, 0)
         tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
         tree_prefix = tree[:5]
         too_short_prefix = tree[:3]
@@ -87,31 +89,34 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqual(None, commit.message_encoding)
         self.assertEqual(message, commit.message)
         self.assertEqual(12346, commit.commit_time)
-        self.assertEqual(committer, commit.committer)
-        self.assertEqual(author, commit.author)
+        self.assertEqualSignature(committer, commit.committer)
+        self.assertEqualSignature(author, commit.author)
         self.assertEqual(tree, commit.tree.hex)
         self.assertEqual(1, len(commit.parents))
         self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
 
     def test_new_commit_encoding(self):
         repo = self.repo
+        encoding = 'iso-8859-1'
         message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
-        committer = ('John Doe', 'jdoe@example.com', 12346, 0)
-        author = ('J. David Ibáñez', 'jdavid@example.com', 12345, 0)
+        committer = Signature('John Doe', 'jdoe@example.com', 12346, 0,
+                              encoding)
+        author = Signature('J. David Ibáñez', 'jdavid@example.com', 12345, 0,
+                           encoding)
         tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
         tree_prefix = tree[:5]
 
         parents = [COMMIT_SHA[:5]]
         sha = repo.create_commit(None, author, committer, message,
-                                 tree_prefix, parents, 'iso-8859-1')
+                                 tree_prefix, parents, encoding)
         commit = repo[sha]
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
         self.assertEqual('iso-8859-1', commit.message_encoding)
         self.assertEqual(message, commit.message)
         self.assertEqual(12346, commit.commit_time)
-        self.assertEqual(committer, commit.committer)
-        self.assertEqual(author, commit.author)
+        self.assertEqualSignature(committer, commit.committer)
+        self.assertEqualSignature(author, commit.author)
         self.assertEqual(tree, commit.tree.hex)
         self.assertEqual(1, len(commit.parents))
         self.assertEqual(COMMIT_SHA, commit.parents[0].hex)

@@ -104,6 +104,13 @@ typedef struct {
     git_reference *reference;
 } Reference;
 
+typedef struct {
+    PyObject_HEAD
+    Object *obj;
+    const git_signature *signature;
+    const char *encoding;
+} Signature;
+
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
@@ -117,6 +124,7 @@ static PyTypeObject IndexIterType;
 static PyTypeObject IndexEntryType;
 static PyTypeObject WalkerType;
 static PyTypeObject ReferenceType;
+static PyTypeObject SignatureType;
 
 static PyObject *GitError;
 
@@ -614,47 +622,27 @@ Repository_walk(Repository *self, PyObject *args)
 }
 
 static PyObject *
-build_person(const git_signature *signature, const char *encoding)
+build_signature(Object *obj, const git_signature *signature,
+                const char *encoding)
 {
-    PyObject *name;
+    Signature *py_signature;
 
-    name = PyUnicode_Decode(signature->name, strlen(signature->name),
-                            encoding, "strict");
-    return Py_BuildValue("(NsLi)", name, signature->email,
-                         signature->when.time, signature->when.offset);
-}
-
-static git_signature *
-py_signature_to_git_signature(PyObject *value, const char* encoding)
-{
-    PyObject *py_name;
-    char *name, *email;
-    long long time;
-    int offset;
-    int err;
-    git_signature *signature;
-
-    if (!PyArg_ParseTuple(value, "OsLi", &py_name, &email, &time, &offset))
-        return NULL;
-
-    name = py_str_to_c_str(py_name, encoding);
-
-    err = git_signature_new(&signature, name, email, time, offset);
-    if (err < 0) {
-        Error_set(err);
-        return NULL;
+    py_signature = PyObject_New(Signature, &SignatureType);
+    if (py_signature) {
+        Py_INCREF(obj);
+        py_signature->obj = obj;
+        py_signature->signature = signature;
+        py_signature->encoding = encoding;
     }
-
-    return signature;
+    return (PyObject*)py_signature;
 }
 
 static PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
 {
-    PyObject *py_author, *py_committer;
+    Signature *py_author, *py_committer;
     PyObject *py_oid, *py_message, *py_parents, *py_parent;
     PyObject *py_result = NULL;
-    git_signature *author = NULL, *committer = NULL;
     char *message, *update_ref, *encoding = NULL;
     git_oid oid;
     git_tree *tree = NULL;
@@ -665,20 +653,13 @@ Repository_create_commit(Repository *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "zO!O!OOO!|s",
                           &update_ref,
-                          &PyTuple_Type, &py_author,
-                          &PyTuple_Type, &py_committer,
+                          &SignatureType, &py_author,
+                          &SignatureType, &py_committer,
                           &py_message,
                           &py_oid,
                           &PyList_Type, &py_parents,
                           &encoding))
         return NULL;
-
-    author = py_signature_to_git_signature(py_author, encoding);
-    if (author == NULL)
-        return NULL;
-    committer = py_signature_to_git_signature(py_committer, encoding);
-    if (committer == NULL)
-        goto out;
 
     len = py_str_to_git_oid(py_oid, &oid);
     if (len == 0)
@@ -708,7 +689,8 @@ Repository_create_commit(Repository *self, PyObject *args)
             goto out;
     }
 
-    err = git_commit_create(&oid, self->repo, update_ref, author, committer,
+    err = git_commit_create(&oid, self->repo, update_ref,
+                            py_author->signature, py_committer->signature,
                             encoding, message, tree, parent_count,
                             (const git_commit**)parents);
     if (err < 0) {
@@ -719,8 +701,6 @@ Repository_create_commit(Repository *self, PyObject *args)
     py_result = git_oid_to_python(oid.id);
 
 out:
-    git_signature_free(author);
-    git_signature_free(committer);
     git_tree_close(tree);
     while (i > 0) {
         i--;
@@ -733,9 +713,9 @@ out:
 static PyObject *
 Repository_create_tag(Repository *self, PyObject *args)
 {
-    PyObject *py_oid, *py_tagger, *py_result = NULL;
+    PyObject *py_oid, *py_result = NULL;
+    Signature *py_tagger;
     char *tag_name, *message;
-    git_signature *tagger = NULL;
     git_oid oid;
     git_object *target = NULL;
     int err, target_type;
@@ -746,12 +726,8 @@ Repository_create_tag(Repository *self, PyObject *args)
                           &tag_name,
                           &py_oid,
                           &target_type,
-                          &PyTuple_Type, &py_tagger,
+                          &SignatureType, &py_tagger,
                           &message))
-        return NULL;
-
-    tagger = py_signature_to_git_signature(py_tagger, NULL);
-    if (tagger == NULL)
         return NULL;
 
     len = py_str_to_git_oid(py_oid, &oid);
@@ -767,13 +743,12 @@ Repository_create_tag(Repository *self, PyObject *args)
         goto out;
     }
 
-    err = git_tag_create(&oid, self->repo, tag_name, target, tagger, message,
-                         0);
+    err = git_tag_create(&oid, self->repo, tag_name, target,
+                         py_tagger->signature, message, 0);
     if (err == 0)
         py_result = git_oid_to_python(oid.id);
 
 out:
-    git_signature_free(tagger);
     git_object_close(target);
     return py_result;
 }
@@ -1187,29 +1162,27 @@ Commit_get_commit_time_offset(Commit *commit)
 }
 
 static PyObject *
-Commit_get_committer(Commit *commit)
+Commit_get_committer(Commit *self)
 {
     const git_signature *signature;
     const char *encoding;
 
-    signature = git_commit_committer(commit->commit);
-    encoding = git_commit_message_encoding(commit->commit);
-    if (encoding == NULL)
-        encoding = "utf-8";
-    return build_person(signature, encoding);
+    signature = git_commit_committer(self->commit);
+    encoding = git_commit_message_encoding(self->commit);
+
+    return build_signature((Object*)self, signature, encoding);
 }
 
 static PyObject *
-Commit_get_author(Commit *commit)
+Commit_get_author(Commit *self)
 {
     const git_signature *signature;
     const char *encoding;
 
-    signature = git_commit_author(commit->commit);
-    encoding = git_commit_message_encoding(commit->commit);
-    if (encoding == NULL)
-        encoding = "utf-8";
-    return build_person(signature, encoding);
+    signature = git_commit_author(self->commit);
+    encoding = git_commit_message_encoding(self->commit);
+
+    return build_signature((Object*)self, signature, encoding);
 }
 
 static PyObject *
@@ -1715,12 +1688,13 @@ Tag_get_name(Tag *self)
 }
 
 static PyObject *
-Tag_get_tagger(Tag *tag)
+Tag_get_tagger(Tag *self)
 {
-    const git_signature *signature = git_tag_tagger(tag->tag);
+    const git_signature *signature = git_tag_tagger(self->tag);
     if (!signature)
         Py_RETURN_NONE;
-    return build_person(signature, "utf-8");
+
+    return build_signature((Object*)self, signature, "utf-8");
 }
 
 static PyObject *
@@ -2624,6 +2598,142 @@ static PyTypeObject ReferenceType = {
     0,                                         /* tp_new            */
 };
 
+static int
+Signature_init(Signature *self, PyObject *args, PyObject *kwds)
+{
+    PyObject *py_name;
+    char *name, *email, *encoding = NULL;
+    long long time;
+    int offset;
+    int err;
+    git_signature *signature;
+
+    if (kwds) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Signature takes no keyword arguments");
+        return -1;
+    }
+
+    if (!PyArg_ParseTuple(args, "OsLi|s",
+                          &py_name, &email, &time, &offset, &encoding))
+        return -1;
+
+    name = py_str_to_c_str(py_name, encoding);
+
+    err = git_signature_new(&signature, name, email, time, offset);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    self->obj = NULL;
+    self->signature = signature;
+
+    if (encoding) {
+        self->encoding = strdup(encoding);
+        if (self->encoding == NULL) {
+            PyErr_NoMemory();
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static void
+Signature_dealloc(Signature *self)
+{
+    if (self->obj)
+        Py_DECREF(self->obj);
+    else {
+        git_signature_free((git_signature*)self->signature);
+        free((void*)self->encoding);
+    }
+    Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+static PyObject *
+Signature_get_name(Signature *self)
+{
+    const char *encoding;
+    git_object *object;
+
+    encoding = self->encoding;
+    if (encoding == NULL)
+        encoding = "utf-8";
+
+    return PyUnicode_Decode(self->signature->name,
+                            strlen(self->signature->name),
+                            encoding, "strict");
+}
+
+static PyObject *
+Signature_get_email(Signature *self)
+{
+    return PyString_FromString(self->signature->email);
+}
+
+static PyObject *
+Signature_get_time(Signature *self)
+{
+    return PyInt_FromLong(self->signature->when.time);
+}
+
+static PyObject *
+Signature_get_offset(Signature *self)
+{
+    return PyInt_FromLong(self->signature->when.offset);
+}
+
+static PyGetSetDef Signature_getseters[] = {
+    {"name", (getter)Signature_get_name, NULL, "Name", NULL},
+    {"email", (getter)Signature_get_email, NULL, "Email", NULL},
+    {"time", (getter)Signature_get_time, NULL, "Time", NULL},
+    {"offset", (getter)Signature_get_offset, NULL, "Offset", NULL},
+    {NULL}
+};
+
+static PyTypeObject SignatureType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pygit2.Signature",                        /* tp_name           */
+    sizeof(Signature),                         /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Signature_dealloc,             /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    "Signature",                               /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    Signature_getseters,                       /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)Signature_init,                  /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
 static PyObject *
 init_repository(PyObject *self, PyObject *args)
 {
@@ -2704,6 +2814,9 @@ moduleinit(PyObject* m)
     ReferenceType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&ReferenceType) < 0)
         return NULL;
+    SignatureType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&SignatureType) < 0)
+        return NULL;
 
     Py_INCREF(GitError);
     PyModule_AddObject(m, "GitError", GitError);
@@ -2737,6 +2850,9 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&ReferenceType);
     PyModule_AddObject(m, "Reference", (PyObject *)&ReferenceType);
+
+    Py_INCREF(&SignatureType);
+    PyModule_AddObject(m, "Signature", (PyObject *)&SignatureType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);

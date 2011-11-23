@@ -74,6 +74,13 @@ class NoRepoTestCase(unittest.TestCase):
         else:
             self.fail('%s(%r) not raised' % (exc_class.__name__, arg))
 
+    def assertEqualSignature(self, a, b):
+        # XXX Remove this once equality test is supported by Signature
+        self.assertEqual(a.name, b.name)
+        self.assertEqual(a.email, b.email)
+        self.assertEqual(a.time, b.time)
+        self.assertEqual(a.offset, b.offset)
+
 
 class BareRepoTestCase(NoRepoTestCase):
 

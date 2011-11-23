@@ -48,19 +48,18 @@ class TagTest(utils.BareRepoTestCase):
         self.assertEqual(pygit2.GIT_OBJ_TAG, tag.type)
         self.assertEqual(pygit2.GIT_OBJ_COMMIT, tag.target.type)
         self.assertEqual('root', tag.name)
-        self.assertEqual(
-            ('Dave Borowitz', 'dborowitz@google.com', 1288724692, -420),
-            tag.tagger)
         self.assertEqual('Tagged root commit.\n', tag.message)
-
-        commit = tag.target
-        self.assertEqual('Initial test data commit.\n', commit.message)
+        self.assertEqual('Initial test data commit.\n', tag.target.message)
+        self.assertEqualSignature(
+            tag.tagger,
+            pygit2.Signature('Dave Borowitz', 'dborowitz@google.com',
+                             1288724692, -420))
 
     def test_new_tag(self):
         name = 'thetag'
         target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
         message = 'Tag a blob.\n'
-        tagger = ('John Doe', 'jdoe@example.com', 12347, 0)
+        tagger = pygit2.Signature('John Doe', 'jdoe@example.com', 12347, 0)
 
         target_prefix = target[:5]
         too_short_prefix = target[:3]
@@ -74,7 +73,7 @@ class TagTest(utils.BareRepoTestCase):
         self.assertEqual('3ee44658fd11660e828dfc96b9b5c5f38d5b49bb', tag.hex)
         self.assertEqual(name, tag.name)
         self.assertEqual(target, tag.target.hex)
-        self.assertEqual(tagger, tag.tagger)
+        self.assertEqualSignature(tagger, tag.tagger)
         self.assertEqual(message, tag.message)
         self.assertEqual(name, self.repo[tag.hex].name)
 
