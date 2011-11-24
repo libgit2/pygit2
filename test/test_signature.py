@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2010 Google, Inc.
+# Copyright 2011 J. David Ibáñez
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -25,26 +25,33 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Pygit2 test definitions.
-
-These tests are run automatically with 'setup.py test', but can also be run
-manually.
-"""
-
-import sys
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
 
-
-names = ['blob', 'commit', 'index', 'refs', 'repository', 'revwalk', 'tag',
-         'tree', 'signature', 'status']
-def test_suite():
-    modules = ['test.test_%s' % n for n in names]
-    return unittest.defaultTestLoader.loadTestsFromNames(modules)
+from pygit2 import Signature
+from .utils import NoRepoTestCase
 
 
-def main():
-    unittest.main(module=__name__, defaultTest='test_suite', argv=sys.argv[:1])
+__author__ = 'jdavid.ibp@gmail.com (J. David Ibáñez)'
+
+
+
+class SignatureTest(NoRepoTestCase):
+
+    def test_default(self):
+        signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60)
+        encoding = signature._encoding
+        self.assertEqual(signature.name, signature._name.decode(encoding))
+        self.assertEqual(signature.name.encode(encoding), signature._name)
+
+    def test_latin1(self):
+        encoding = 'iso-8859-1'
+        signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60,
+                              encoding)
+        self.assertEqual(signature.name, signature._name.decode(encoding))
+        self.assertEqual(signature.name.encode(encoding), signature._name)
 
 
 if __name__ == '__main__':
-    main()
+    unittest.main()

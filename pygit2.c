@@ -44,7 +44,19 @@
   #define PyString_Size PyBytes_Size
 #endif
 
+/* Utilities */
+static PyObject *
+to_str(const char *value, const char *encoding, const char *errors)
+{
+    if (encoding == NULL)
+        encoding = "utf-8";
+    return PyUnicode_Decode(value, strlen(value), encoding, errors);
+}
 
+#define to_bytes(value) PyString_FromString(value)
+
+
+/* Python objects */
 typedef struct {
     PyObject_HEAD
     git_repository *repo;
@@ -358,15 +370,11 @@ py_str_to_c_str(PyObject *value, const char *encoding)
     return NULL;
 }
 
-#define c_str_to_py_str(c_str) \
-        PyUnicode_DecodeUTF8(c_str, strlen(c_str), "strict")
-
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 
 #define c_str_to_py_path(c_str) \
-        PyUnicode_Decode(c_str, strlen(c_str), \
-                         Py_FileSystemDefaultEncoding, "strict")
+        to_str(c_str, Py_FileSystemDefaultEncoding, "strict")
 
 
 static int
@@ -1136,9 +1144,7 @@ Commit_get_message(Commit *commit)
 
     message = git_commit_message(commit->commit);
     encoding = git_commit_message_encoding(commit->commit);
-    if (encoding == NULL)
-        encoding = "utf-8";
-    return PyUnicode_Decode(message, strlen(message), encoding, "strict");
+    return to_str(message, encoding, "strict");
 }
 
 static PyObject *
@@ -1676,7 +1682,7 @@ Tag_get_name(Tag *self)
     name = git_tag_name(self->tag);
     if (!name)
         Py_RETURN_NONE;
-    return c_str_to_py_str(name);
+    return to_str(name, "utf-8", "strict");
 }
 
 static PyObject *
@@ -1696,7 +1702,7 @@ Tag_get_message(Tag *self)
     message = git_tag_message(self->tag);
     if (!message)
         Py_RETURN_NONE;
-    return c_str_to_py_str(message);
+    return to_str(message, "utf-8", "strict");
 }
 
 static PyGetSetDef Tag_getseters[] = {
@@ -2645,24 +2651,39 @@ Signature_dealloc(Signature *self)
 }
 
 static PyObject *
-Signature_get_name(Signature *self)
+Signature_get_encoding(Signature *self)
 {
     const char *encoding;
-    git_object *object;
 
     encoding = self->encoding;
     if (encoding == NULL)
         encoding = "utf-8";
 
-    return PyUnicode_Decode(self->signature->name,
-                            strlen(self->signature->name),
-                            encoding, "strict");
+    return PyUnicode_DecodeASCII(encoding, strlen(encoding), "strict");
+}
+
+static PyObject *
+Signature_get_raw_name(Signature *self)
+{
+    return to_bytes(self->signature->name);
+}
+
+static PyObject *
+Signature_get_raw_email(Signature *self)
+{
+    return to_bytes(self->signature->email);
+}
+
+static PyObject *
+Signature_get_name(Signature *self)
+{
+    return to_str(self->signature->name, self->encoding, "strict");
 }
 
 static PyObject *
 Signature_get_email(Signature *self)
 {
-    return PyString_FromString(self->signature->email);
+    return to_str(self->signature->email, self->encoding, "strict");
 }
 
 static PyObject *
@@ -2678,6 +2699,9 @@ Signature_get_offset(Signature *self)
 }
 
 static PyGetSetDef Signature_getseters[] = {
+    {"_encoding", (getter)Signature_get_encoding, NULL, "encoding", NULL},
+    {"_name", (getter)Signature_get_raw_name, NULL, "Name (bytes)", NULL},
+    {"_email", (getter)Signature_get_raw_email, NULL, "Email (bytes)", NULL},
     {"name", (getter)Signature_get_name, NULL, "Name", NULL},
     {"email", (getter)Signature_get_email, NULL, "Email", NULL},
     {"time", (getter)Signature_get_time, NULL, "Time", NULL},
