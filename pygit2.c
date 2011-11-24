@@ -30,14 +30,6 @@
 #include <Python.h>
 #include <git2.h>
 
-/* Python 2.5 support */
-#ifndef Py_TYPE
-  #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
-#endif
-#ifndef PyVarObject_HEAD_INIT
-  #define PyVarObject_HEAD_INIT(type, size) PyObject_HEAD_INIT(type) size,
-#endif
-
 /* Python 3 support */
 #if PY_MAJOR_VERSION >= 3
   #define PyInt_AsLong PyLong_AsLong
