@@ -42,6 +42,7 @@ class SignatureTest(NoRepoTestCase):
     def test_default(self):
         signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60)
         encoding = signature._encoding
+        self.assertEqual(encoding, 'utf-8')
         self.assertEqual(signature.name, signature._name.decode(encoding))
         self.assertEqual(signature.name.encode(encoding), signature._name)
 
@@ -49,6 +50,7 @@ class SignatureTest(NoRepoTestCase):
         encoding = 'iso-8859-1'
         signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60,
                               encoding)
+        self.assertEqual(encoding, signature._encoding)
         self.assertEqual(signature.name, signature._name.decode(encoding))
         self.assertEqual(signature.name.encode(encoding), signature._name)
 
