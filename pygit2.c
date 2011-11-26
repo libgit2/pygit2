@@ -45,7 +45,7 @@
 #endif
 
 /* Utilities */
-static PyObject *
+Py_LOCAL_INLINE(PyObject*)
 to_str(const char *value, const char *encoding, const char *errors)
 {
     if (encoding == NULL)
@@ -53,7 +53,17 @@ to_str(const char *value, const char *encoding, const char *errors)
     return PyUnicode_Decode(value, strlen(value), encoding, errors);
 }
 
-#define to_bytes(value) PyString_FromString(value)
+Py_LOCAL_INLINE(PyObject*)
+to_bytes(const char * value)
+{
+    return PyString_FromString(value);
+}
+
+Py_LOCAL_INLINE(PyObject*)
+to_path(const char *value)
+{
+    return to_str(value, Py_FileSystemDefaultEncoding, "strict");
+}
 
 
 /* Python objects */
@@ -373,9 +383,6 @@ py_str_to_c_str(PyObject *value, const char *encoding)
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 
-#define c_str_to_py_path(c_str) \
-        to_str(c_str, Py_FileSystemDefaultEncoding, "strict")
-
 
 static int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds)
@@ -555,10 +562,7 @@ Repository_get_index(Repository *self, void *closure)
 static PyObject *
 Repository_get_path(Repository *self, void *closure)
 {
-    const char *c_path;
-
-    c_path = git_repository_path(self->repo, GIT_REPO_PATH);
-    return c_str_to_py_path(c_path);
+    return to_path(git_repository_path(self->repo, GIT_REPO_PATH));
 }
 
 static PyObject *
@@ -570,7 +574,7 @@ Repository_get_workdir(Repository *self, void *closure)
     if (c_path == NULL)
         Py_RETURN_NONE;
 
-    return c_str_to_py_path(c_path);
+    return to_path(c_path);
 }
 
 static PyObject *
@@ -780,7 +784,7 @@ Repository_listall_references(Repository *self, PyObject *args)
 
     /* 4- Fill it */
     for (index=0; index < c_result.count; index++) {
-        py_string = c_str_to_py_path((c_result.strings)[index]);
+        py_string = to_path((c_result.strings)[index]);
         if (py_string == NULL) {
             Py_XDECREF(py_result);
             git_strarray_free(&c_result);
@@ -1311,7 +1315,7 @@ TreeEntry_get_attributes(TreeEntry *self)
 static PyObject *
 TreeEntry_get_name(TreeEntry *self)
 {
-    return c_str_to_py_path(git_tree_entry_name(self->entry));
+    return to_path(git_tree_entry_name(self->entry));
 }
 
 static PyObject *
@@ -2146,7 +2150,7 @@ IndexEntry_get_mode(IndexEntry *self)
 static PyObject *
 IndexEntry_get_path(IndexEntry *self)
 {
-    return c_str_to_py_path(self->entry->path);
+    return to_path(self->entry->path);
 }
 
 static PyObject *
@@ -2427,7 +2431,7 @@ Reference_get_target(Reference *self)
     }
 
     /* 2- Make a PyString and return it */
-    return c_str_to_py_path(c_name);
+    return to_path(c_name);
 }
 
 static int
@@ -2455,10 +2459,7 @@ Reference_set_target(Reference *self, PyObject *py_name)
 static PyObject *
 Reference_get_name(Reference *self)
 {
-    const char *c_name;
-
-    c_name = git_reference_name(self->reference);
-    return c_str_to_py_path(c_name);
+    return to_path(git_reference_name(self->reference));
 }
 
 static PyObject *
