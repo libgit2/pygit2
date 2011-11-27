@@ -42,7 +42,7 @@ from . import utils
 __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
-A_BIN_SHA = binascii.unhexlify(A_HEX_SHA)
+A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
 
 
 class RepositoryTest(utils.BareRepoTestCase):
