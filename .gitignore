@@ -2,5 +2,6 @@ build
 dist
 pygit2.so
 test/*.pyc
+test/__pycache__
 *.egg-info
 *.swp
