@@ -437,14 +437,24 @@ static int
 Repository_contains(Repository *self, PyObject *value)
 {
     git_oid oid;
+    git_odb *odb;
     size_t len;
+    int err, exists;
 
     len = py_str_to_git_oid(value, &oid);
     TODO_SUPPORT_SHORT_HEXS(len)
     if (len == 0)
         return -1;
 
-    return git_odb_exists(git_repository_database(self->repo), &oid);
+    err = git_repository_odb(&odb, self->repo);
+    if (err < 0) {
+        Error_set_str(err, "failed to open object database");
+        return -1;
+    }
+
+    exists = git_odb_exists(odb, &oid);
+    git_odb_free(odb);
+    return exists;
 }
 
 static PyObject *
@@ -460,12 +470,30 @@ Repository_getitem(Repository *self, PyObject *value)
     return lookup_object_prefix(self, &oid, len, GIT_OBJ_ANY);
 }
 
-static int
-Repository_read_raw(git_odb_object **obj, git_repository *repo,
-                    const git_oid *oid, size_t len)
+static git_odb_object *
+Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
 {
-    return git_odb_read_prefix(obj, git_repository_database(repo),
-                               oid, (unsigned int)len);
+    git_odb *odb;
+    git_odb_object *obj;
+    int err;
+    PyObject *aux;
+
+    err = git_repository_odb(&odb, repo);
+    if (err < 0) {
+        Error_set_str(err, "failed to open object database");
+        return NULL;
+    }
+
+    err = git_odb_read_prefix(&obj, odb, oid, (unsigned int)len);
+    git_odb_free(odb);
+    if (err < 0) {
+        aux = git_oid_to_py_str(oid);
+        Error_set_py_obj(err, aux);
+        Py_XDECREF(aux);
+        return NULL;
+    }
+
+    return obj;
 }
 
 static PyObject *
@@ -480,9 +508,9 @@ Repository_read(Repository *self, PyObject *py_hex)
     if (len == 0)
         return NULL;
 
-    err = Repository_read_raw(&obj, self->repo, &oid, len);
-    if (err < 0)
-        return Error_set_py_obj(err, py_hex);
+    obj = Repository_read_raw(self->repo, &oid, len);
+    if (obj == NULL)
+        return NULL;
 
     PyObject* tuple = Py_BuildValue(
         "(ns#)",
@@ -490,7 +518,7 @@ Repository_read(Repository *self, PyObject *py_hex)
         git_odb_object_data(obj),
         git_odb_object_size(obj));
 
-    git_odb_object_close(obj);
+    git_odb_object_free(obj);
     return tuple;
 }
 
@@ -499,6 +527,7 @@ Repository_write(Repository *self, PyObject *args)
 {
     int err;
     git_oid oid;
+    git_odb *odb;
     git_odb_stream* stream;
 
     int type_id;
@@ -512,17 +541,20 @@ Repository_write(Repository *self, PyObject *args)
     if (type == GIT_OBJ_BAD)
         return Error_set_str(-100, "Invalid object type");
 
-    git_odb* odb = git_repository_database(self->repo);
+    err = git_repository_odb(&odb, self->repo);
+    if (err < 0) {
+        Error_set_str(err, "failed to open object database");
+        return NULL;
+    }
 
     err = git_odb_open_wstream(&stream, odb, buflen, type);
-    if (err == GIT_SUCCESS) {
-        stream->write(stream, buffer, buflen);
-        err = stream->finalize_write(&oid, stream);
-        stream->free(stream);
-    }
+    git_odb_free(odb);
     if (err < 0)
         return Error_set_str(err, "failed to write data");
 
+    stream->write(stream, buffer, buflen);
+    err = stream->finalize_write(&oid, stream);
+    stream->free(stream);
     return git_oid_to_python(oid.id);
 }
 
@@ -564,7 +596,7 @@ Repository_get_index(Repository *self, void *closure)
 static PyObject *
 Repository_get_path(Repository *self, void *closure)
 {
-    return to_path(git_repository_path(self->repo, GIT_REPO_PATH));
+    return to_path(git_repository_path(self->repo));
 }
 
 static PyObject *
@@ -572,7 +604,7 @@ Repository_get_workdir(Repository *self, void *closure)
 {
     const char *c_path;
 
-    c_path = git_repository_path(self->repo, GIT_REPO_PATH_WORKDIR);
+    c_path = git_repository_workdir(self->repo);
     if (c_path == NULL)
         Py_RETURN_NONE;
 
@@ -707,10 +739,10 @@ Repository_create_commit(Repository *self, PyObject *args)
     py_result = git_oid_to_python(oid.id);
 
 out:
-    git_tree_close(tree);
+    git_tree_free(tree);
     while (i > 0) {
         i--;
-        git_commit_close(parents[i]);
+        git_commit_free(parents[i]);
     }
     free(parents);
     return py_result;
@@ -755,7 +787,7 @@ Repository_create_tag(Repository *self, PyObject *args)
         py_result = git_oid_to_python(oid.id);
 
 out:
-    git_object_close(target);
+    git_object_free(target);
     return py_result;
 }
 
@@ -1017,7 +1049,7 @@ static PyTypeObject RepositoryType = {
 static void
 Object_dealloc(Object* self)
 {
-    git_object_close(self->obj);
+    git_object_free(self->obj);
     Py_XDECREF(self->repo);
     PyObject_Del(self);
 }
@@ -1056,24 +1088,20 @@ Object_read_raw(Object *self)
     const git_oid *oid;
     git_odb_object *obj;
     int err;
-    PyObject *aux = NULL;
+    PyObject *aux;
 
     oid = git_object_id(self->obj);
     assert(oid);
 
-    err = Repository_read_raw(&obj, self->repo->repo, oid, GIT_OID_HEXSZ);
-    if (err < 0) {
-        aux = git_oid_to_py_str(oid);
-        Error_set_py_obj(err, aux);
-        Py_XDECREF(aux);
+    obj = Repository_read_raw(self->repo->repo, oid, GIT_OID_HEXSZ);
+    if (obj == NULL)
         return NULL;
-    }
 
     aux = PyString_FromStringAndSize(
         git_odb_object_data(obj),
         git_odb_object_size(obj));
 
-    git_odb_object_close(obj);
+    git_odb_object_free(obj);
     return aux;
 }
 

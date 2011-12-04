@@ -6,3 +6,4 @@ Signature
 Other
 =========
 - Make the Py_LOCAL_INLINE macro to work with Python 2.6, 2.7 and 3.1
+- Expose the ODB (Repository.odb)
