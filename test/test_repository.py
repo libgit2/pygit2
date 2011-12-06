@@ -34,8 +34,7 @@ import unittest
 import os
 from os.path import join, realpath
 
-from pygit2 import (GitError, GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT,
-        init_repository)
+from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository
 from . import utils
 
 
@@ -66,7 +65,7 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_write(self):
         data = b"hello world"
         # invalid object type
-        self.assertRaises(GitError, self.repo.write, GIT_OBJ_ANY, data)
+        self.assertRaises(ValueError, self.repo.write, GIT_OBJ_ANY, data)
 
         oid = self.repo.write(GIT_OBJ_BLOB, data)
         self.assertEqual(type(oid), bytes)

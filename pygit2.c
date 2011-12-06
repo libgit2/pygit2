@@ -167,17 +167,10 @@ static PyObject *
 Error_set(int err)
 {
     assert(err < 0);
-    if (err == GIT_ENOTFOUND) {
-        /* KeyError expects the arg to be the missing key. If the caller
-         * called this instead of Error_set_py_obj, it means we don't
-         * know the key, but nor should we use git_lasterror. */
-        PyErr_SetNone(PyExc_KeyError);
-        return NULL;
-    }
-    else if (err == GIT_EOSERR) {
-        PyErr_SetFromErrno(GitError);
-        return NULL;
-    }
+
+    if (err == GIT_EOSERR)
+        return PyErr_SetFromErrno(GitError);
+
     PyErr_SetString(Error_type(err), git_lasterror());
     return NULL;
 }
@@ -187,38 +180,21 @@ Error_set_str(int err, const char *str)
 {
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. */
-        PyErr_Format(PyExc_KeyError, "%s", str);
+        PyErr_SetString(PyExc_KeyError, str);
         return NULL;
     }
-    PyErr_Format(Error_type(err), "%s: %s", str, git_lasterror());
-    return NULL;
+
+    return PyErr_Format(Error_type(err), "%s: %s", str, git_lasterror());
 }
 
 static PyObject *
-Error_set_py_obj(int err, PyObject *py_obj)
+Error_set_oid(int err, const git_oid *oid, size_t len)
 {
-    PyObject *py_str;
-    char *str;
+    char hex[GIT_OID_HEXSZ + 1];
 
-    assert(err < 0);
-
-    if (err == GIT_ENOTOID && !PyString_Check(py_obj)
-        && !PyUnicode_Check(py_obj)) {
-        PyErr_Format(PyExc_TypeError,
-                     "Git object id must be byte or a text string, not: %.200s",
-                     Py_TYPE(py_obj)->tp_name);
-        return NULL;
-    }
-    else if (err == GIT_ENOTFOUND) {
-        /* KeyError expects the arg to be the missing key. */
-        PyErr_SetObject(PyExc_KeyError, py_obj);
-        return NULL;
-    }
-    py_str = PyObject_Bytes(py_obj);
-    str = py_str ? PyString_AS_STRING(py_str) : "<error in __str__>";
-    PyErr_Format(Error_type(err), "%s: %s", str, git_lasterror());
-    Py_XDECREF(py_str);
-    return NULL;
+    git_oid_fmt(hex, oid);
+    hex[len] = '\0';
+    return Error_set_str(err, hex);
 }
 
 static PyObject *
@@ -226,17 +202,13 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
                      git_otype type)
 {
     int err;
-    char hex[GIT_OID_HEXSZ + 1];
     git_object *obj;
     Object *py_obj = NULL;
 
     err = git_object_lookup_prefix(&obj, repo->repo, oid,
                                    (unsigned int)len, type);
-    if (err < 0) {
-        git_oid_fmt(hex, oid);
-        hex[len] = '\0';
-        return Error_set_str(err, hex);
-    }
+    if (err < 0)
+        return Error_set_oid(err, oid, len);
 
     switch (git_object_type(obj)) {
         case GIT_OBJ_COMMIT:
@@ -321,7 +293,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
             return 0;
         err = git_oid_fromstrn(oid, hex_or_bin, len);
         if (err < 0) {
-            Error_set_py_obj(err, py_str);
+            PyErr_SetObject(Error_type(err), py_str);
             return 0;
         }
         return len;
@@ -448,7 +420,7 @@ Repository_contains(Repository *self, PyObject *value)
 
     err = git_repository_odb(&odb, self->repo);
     if (err < 0) {
-        Error_set_str(err, "failed to open object database");
+        Error_set(err);
         return -1;
     }
 
@@ -480,16 +452,14 @@ Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
 
     err = git_repository_odb(&odb, repo);
     if (err < 0) {
-        Error_set_str(err, "failed to open object database");
+        Error_set(err);
         return NULL;
     }
 
     err = git_odb_read_prefix(&obj, odb, oid, (unsigned int)len);
     git_odb_free(odb);
     if (err < 0) {
-        aux = git_oid_to_py_str(oid);
-        Error_set_py_obj(err, aux);
-        Py_XDECREF(aux);
+        Error_set_oid(err, oid, len);
         return NULL;
     }
 
@@ -529,28 +499,26 @@ Repository_write(Repository *self, PyObject *args)
     git_oid oid;
     git_odb *odb;
     git_odb_stream* stream;
-
     int type_id;
     const char* buffer;
     Py_ssize_t buflen;
+    git_otype type;
 
     if (!PyArg_ParseTuple(args, "Is#", &type_id, &buffer, &buflen))
         return NULL;
 
-    git_otype type = int_to_loose_object_type(type_id);
+    type = int_to_loose_object_type(type_id);
     if (type == GIT_OBJ_BAD)
-        return Error_set_str(-100, "Invalid object type");
+        return PyErr_Format(PyExc_ValueError, "%d", type_id);
 
     err = git_repository_odb(&odb, self->repo);
-    if (err < 0) {
-        Error_set_str(err, "failed to open object database");
-        return NULL;
-    }
+    if (err < 0)
+        return Error_set(err);
 
     err = git_odb_open_wstream(&stream, odb, buflen, type);
     git_odb_free(odb);
     if (err < 0)
-        return Error_set_str(err, "failed to write data");
+        return Error_set(err);
 
     stream->write(stream, buffer, buflen);
     err = stream->finalize_write(&oid, stream);
@@ -757,7 +725,6 @@ Repository_create_tag(Repository *self, PyObject *args)
     git_oid oid;
     git_object *target = NULL;
     int err, target_type;
-    char hex[GIT_OID_HEXSZ + 1];
     size_t len;
 
     if (!PyArg_ParseTuple(args, "sOiO!s",
@@ -770,23 +737,18 @@ Repository_create_tag(Repository *self, PyObject *args)
 
     len = py_str_to_git_oid(py_oid, &oid);
     if (len == 0)
-        goto out;
+        return NULL;
 
     err = git_object_lookup_prefix(&target, self->repo, &oid,
                                    (unsigned int)len, target_type);
-    if (err < 0) {
-        git_oid_fmt(hex, &oid);
-        hex[len] = '\0';
-        Error_set_str(err, hex);
-        goto out;
-    }
+    if (err < 0)
+        return Error_set_oid(err, &oid, len);
 
     err = git_tag_create(&oid, self->repo, tag_name, target,
                          py_tagger->signature, message, 0);
     if (err == 0)
         py_result = git_oid_to_python(oid.id);
 
-out:
     git_object_free(target);
     return py_result;
 }
@@ -2456,7 +2418,7 @@ Reference_get_target(Reference *self)
     /* 1- Get the target */
     c_name = git_reference_target(self->reference);
     if (c_name == NULL) {
-        PyErr_Format(PyExc_ValueError, "Not target available");
+        PyErr_SetString(PyExc_ValueError, "Not target available");
         return NULL;
     }
 
@@ -2499,11 +2461,10 @@ Reference_get_oid(Reference *self)
 
     /* 1- Get the oid (only for "direct" references) */
     oid = git_reference_oid(self->reference);
-    if (oid == NULL)
-    {
-        PyErr_Format(PyExc_ValueError,
-                     "oid is only available if the reference is direct "
-                     "(i.e. not symbolic)");
+    if (oid == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+                        "oid is only available if the reference is direct "
+                        "(i.e. not symbolic)");
         return NULL;
     }
 
@@ -2542,11 +2503,10 @@ Reference_get_hex(Reference *self)
 
     /* 1- Get the oid (only for "direct" references) */
     oid = git_reference_oid(self->reference);
-    if (oid == NULL)
-    {
-        PyErr_Format(PyExc_ValueError,
-                     "oid is only available if the reference is direct "
-                     "(i.e. not symbolic)");
+    if (oid == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+                        "oid is only available if the reference is direct "
+                        "(i.e. not symbolic)");
         return NULL;
     }
 
@@ -2794,10 +2754,8 @@ init_repository(PyObject *self, PyObject *args)
         return NULL;
 
     err = git_repository_init(&repo, path, bare);
-    if (err < 0) {
-        Error_set_str(err, path);
-        return NULL;
-    }
+    if (err < 0)
+        return Error_set_str(err, path);
 
     py_repo = PyObject_GC_New(Repository, &RepositoryType);
     if (py_repo) {
