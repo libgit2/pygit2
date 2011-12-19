@@ -67,6 +67,17 @@ to_bytes(const char * value)
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
 #endif
 
+#define CHECK_REFERENCE(self)\
+    if (self->reference == NULL) {\
+        PyErr_SetString(GitError, "deleted reference");\
+        return NULL;\
+    }
+
+#define CHECK_REFERENCE_INT(self)\
+    if (self->reference == NULL) {\
+        PyErr_SetString(GitError, "deleted reference");\
+        return -1;\
+    }
 
 /* Python objects */
 typedef struct {
@@ -773,26 +784,21 @@ Repository_listall_references(Repository *self, PyObject *args)
 
     /* 3- Create a new PyTuple */
     py_result = PyTuple_New(c_result.count);
-    if (py_result == NULL) {
-        git_strarray_free(&c_result);
-        return NULL;
-    }
+    if (py_result == NULL)
+        goto out;
 
     /* 4- Fill it */
     for (index=0; index < c_result.count; index++) {
         py_string = to_path((c_result.strings)[index]);
         if (py_string == NULL) {
-            Py_XDECREF(py_result);
-            git_strarray_free(&c_result);
-            return NULL;
+            Py_CLEAR(py_result);
+            goto out;
         }
         PyTuple_SET_ITEM(py_result, index, py_string);
     }
 
-    /* 5- Destroy the c_result */
+out:
     git_strarray_free(&c_result);
-
-    /* 6- And return the py_result */
     return py_result;
 }
 
@@ -811,7 +817,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     /* 2- Lookup */
     err = git_reference_lookup(&c_reference, self->repo, c_name);
     if (err < 0)
-      return Error_set(err);
+        return Error_set_str(err, c_name);
 
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference);
@@ -860,7 +866,7 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args)
     err = git_reference_create_symbolic(&c_reference, self->repo, c_name,
                                         c_target, 0);
     if (err < 0)
-      return Error_set(err);
+        return Error_set(err);
 
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference);
@@ -2363,16 +2369,15 @@ Reference_delete(Reference *self, PyObject *args)
 {
     int err;
 
-    /* 1- Delete the reference */
+    CHECK_REFERENCE(self);
+
+    /* Delete the reference */
     err = git_reference_delete(self->reference);
     if (err < 0)
-      return Error_set(err);
+        return Error_set(err);
 
-    /* 2- Invalidate the pointer */
-    self->reference = NULL;
-
-    /* 3- Return None */
-    Py_RETURN_NONE;
+    self->reference = NULL; /* Invalidate the pointer */
+    Py_RETURN_NONE;         /* Return None */
 }
 
 static PyObject *
@@ -2381,18 +2386,19 @@ Reference_rename(Reference *self, PyObject *py_name)
     char *c_name;
     int err;
 
-    /* 1- Get the C name */
+    CHECK_REFERENCE(self);
+
+    /* Get the C name */
     c_name = py_path_to_c_str(py_name);
     if (c_name == NULL)
         return NULL;
 
-    /* 2- Rename */
+    /* Rename */
     err = git_reference_rename(self->reference, c_name, 0);
     if (err < 0)
-      return Error_set(err);
+        return Error_set(err);
 
-    /* 3- Return None */
-    Py_RETURN_NONE;
+    Py_RETURN_NONE; /* Return None */
 }
 
 static PyObject *
@@ -2401,12 +2407,14 @@ Reference_resolve(Reference *self, PyObject *args)
     git_reference *c_reference;
     int err;
 
-    /* 1- Resolve */
+    CHECK_REFERENCE(self);
+
+    /* Resolve */
     err = git_reference_resolve(&c_reference, self->reference);
     if (err < 0)
-      return Error_set(err);
+        return Error_set(err);
 
-    /* 2- Make an instance of Reference and return it */
+    /* Make an instance of Reference and return it */
     return wrap_reference(c_reference);
 }
 
@@ -2415,14 +2423,16 @@ Reference_get_target(Reference *self)
 {
     const char * c_name;
 
-    /* 1- Get the target */
+    CHECK_REFERENCE(self);
+
+    /* Get the target */
     c_name = git_reference_target(self->reference);
     if (c_name == NULL) {
-        PyErr_SetString(PyExc_ValueError, "Not target available");
+        PyErr_SetString(PyExc_ValueError, "no target available");
         return NULL;
     }
 
-    /* 2- Make a PyString and return it */
+    /* Make a PyString and return it */
     return to_path(c_name);
 }
 
@@ -2432,25 +2442,27 @@ Reference_set_target(Reference *self, PyObject *py_name)
     char *c_name;
     int err;
 
-    /* 1- Get the C name */
+    CHECK_REFERENCE_INT(self);
+
+    /* Get the C name */
     c_name = py_path_to_c_str(py_name);
     if (c_name == NULL)
         return -1;
 
-    /* 2- Set the new target */
+    /* Set the new target */
     err = git_reference_set_target(self->reference, c_name);
     if (err < 0) {
         Error_set(err);
         return -1;
     }
 
-    /* 3- All OK */
     return 0;
 }
 
 static PyObject *
 Reference_get_name(Reference *self)
 {
+    CHECK_REFERENCE(self);
     return to_path(git_reference_name(self->reference));
 }
 
@@ -2459,7 +2471,9 @@ Reference_get_oid(Reference *self)
 {
     const git_oid *oid;
 
-    /* 1- Get the oid (only for "direct" references) */
+    CHECK_REFERENCE(self);
+
+    /* Get the oid (only for "direct" references) */
     oid = git_reference_oid(self->reference);
     if (oid == NULL) {
         PyErr_SetString(PyExc_ValueError,
@@ -2468,7 +2482,7 @@ Reference_get_oid(Reference *self)
         return NULL;
     }
 
-    /* 2- Convert and return it */
+    /* Convert and return it */
     return git_oid_to_python(oid->id);
 }
 
@@ -2479,20 +2493,21 @@ Reference_set_oid(Reference *self, PyObject *py_hex)
     int err;
     size_t len;
 
-    /* 1- Get the oid */
+    CHECK_REFERENCE_INT(self);
+
+    /* Get the oid */
     len = py_str_to_git_oid(py_hex, &oid);
     TODO_SUPPORT_SHORT_HEXS(len)
     if (len == 0)
         return -1;
 
-    /* 2- Set the oid */
+    /* Set the oid */
     err = git_reference_set_oid(self->reference, &oid);
     if (err < 0) {
         Error_set(err);
         return -1;
     }
 
-    /* 3- All OK */
     return 0;
 }
 
@@ -2501,7 +2516,9 @@ Reference_get_hex(Reference *self)
 {
     const git_oid *oid;
 
-    /* 1- Get the oid (only for "direct" references) */
+    CHECK_REFERENCE(self);
+
+    /* Get the oid (only for "direct" references) */
     oid = git_reference_oid(self->reference);
     if (oid == NULL) {
         PyErr_SetString(PyExc_ValueError,
@@ -2510,7 +2527,7 @@ Reference_get_hex(Reference *self)
         return NULL;
     }
 
-    /* 2- Convert and return it */
+    /* Convert and return it */
     return git_oid_to_py_str(oid);
 }
 
@@ -2519,6 +2536,7 @@ Reference_get_type(Reference *self)
 {
     git_rtype c_type;
 
+    CHECK_REFERENCE(self);
     c_type = git_reference_type(self->reference);
     return PyInt_FromLong(c_type);
 }

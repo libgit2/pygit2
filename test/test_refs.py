@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
-from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC
+from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC
 from . import utils
 
 
@@ -112,6 +112,18 @@ class ReferencesTest(utils.RepoTestCase):
         # And we delete it
         reference.delete()
         self.assertFalse('refs/tags/version1' in repo.listall_references())
+
+        # Access the deleted reference
+        self.assertRaises(GitError, getattr, reference, 'name')
+        self.assertRaises(GitError, getattr, reference, 'type')
+        self.assertRaises(GitError, getattr, reference, 'oid')
+        self.assertRaises(GitError, setattr, reference, 'oid', LAST_COMMIT)
+        self.assertRaises(GitError, getattr, reference, 'hex')
+        self.assertRaises(GitError, getattr, reference, 'target')
+        self.assertRaises(GitError, setattr, reference, 'target', "a/b/c")
+        self.assertRaises(GitError, reference.delete)
+        self.assertRaises(GitError, reference.resolve)
+        self.assertRaises(GitError, reference.rename, "refs/tags/version2")
 
 
     def test_rename(self):

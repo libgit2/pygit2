@@ -3,6 +3,12 @@ Signature
 - Implement equality interface
 - In Repository's create_commit/create_tag check signatures encoding is right
 
+References
+==========
+- Free the git_reference struct.
+- Wrap missing functions: git_reference_foreach, git_reference_is_packed,
+  git_reference_reload
+
 Other
 =========
 - Make the Py_LOCAL_INLINE macro to work with Python 2.6, 2.7 and 3.1
