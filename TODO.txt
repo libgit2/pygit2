@@ -5,7 +5,6 @@ Signature
 
 References
 ==========
-- Free the git_reference struct.
 - Wrap missing functions: git_reference_foreach, git_reference_is_packed,
   git_reference_reload
 

@@ -845,7 +845,7 @@ Repository_create_reference(Repository *self,  PyObject *args)
     /* 2- Create the reference */
     err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid, 0);
     if (err < 0)
-      return Error_set(err);
+        return Error_set(err);
 
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference);
@@ -2364,6 +2364,13 @@ static PyTypeObject WalkerType = {
     0,                                         /* tp_new            */
 };
 
+static void
+Reference_dealloc(Reference *self)
+{
+    git_reference_free(self->reference);
+    PyObject_Del(self);
+}
+
 static PyObject *
 Reference_delete(Reference *self, PyObject *args)
 {
@@ -2569,7 +2576,7 @@ static PyTypeObject ReferenceType = {
     "pygit2.Reference",                        /* tp_name           */
     sizeof(Reference),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                         /* tp_dealloc        */
+    (destructor)Reference_dealloc,             /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
