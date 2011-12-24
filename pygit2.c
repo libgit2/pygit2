@@ -2416,12 +2416,22 @@ Reference_resolve(Reference *self, PyObject *args)
 
     CHECK_REFERENCE(self);
 
-    /* Resolve */
+    /* Direct: reload */
+    if (git_reference_type(self->reference) == GIT_REF_OID) {
+        err = git_reference_reload(self->reference);
+        if (err < 0) {
+            self->reference = NULL;
+            return Error_set(err);
+        }
+        Py_INCREF(self);
+        return (PyObject *)self;
+    }
+
+    /* Symbolic: resolve */
     err = git_reference_resolve(&c_reference, self->reference);
     if (err < 0)
         return Error_set(err);
 
-    /* Make an instance of Reference and return it */
     return wrap_reference(c_reference);
 }
 

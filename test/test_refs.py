@@ -143,6 +143,12 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.hex, LAST_COMMIT)
 
 
+    def test_reference_resolve_identity(self):
+        head = self.repo.lookup_reference('HEAD')
+        ref = head.resolve()
+        self.assertTrue(ref.resolve() is ref)
+
+
     def test_create_reference(self):
         # We add a tag as a new reference that points to "origin/master"
         reference = self.repo.create_reference('refs/tags/version1',
