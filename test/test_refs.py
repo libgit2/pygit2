@@ -135,6 +135,17 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.name, 'refs/tags/version2')
 
 
+    def test_reload(self):
+        name = 'refs/tags/version1'
+
+        ref = self.repo.create_symbolic_reference(name, "refs/heads/master")
+        ref2 = self.repo.lookup_reference(name)
+        ref.delete()
+        self.assertEqual(ref2.name, name)
+        self.assertRaises(KeyError, ref2.reload)
+        self.assertRaises(GitError, getattr, ref2, 'name')
+
+
     def test_reference_resolve(self):
         reference = self.repo.lookup_reference('HEAD')
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)

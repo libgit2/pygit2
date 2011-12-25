@@ -5,8 +5,7 @@ Signature
 
 References
 ==========
-- Wrap missing functions: git_reference_foreach, git_reference_is_packed,
-  git_reference_reload
+- Wrap missing functions: git_reference_foreach, git_reference_is_packed.
 - Write more twisted tests. Like accessing a reference deleted by someone
   else.
 

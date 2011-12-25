@@ -2409,6 +2409,23 @@ Reference_rename(Reference *self, PyObject *py_name)
 }
 
 static PyObject *
+Reference_reload(Reference *self)
+{
+    int err;
+
+    CHECK_REFERENCE(self);
+
+    err = git_reference_reload(self->reference);
+    if (err < 0) {
+        self->reference = NULL;
+        return Error_set(err);
+    }
+
+    Py_RETURN_NONE;
+}
+
+
+static PyObject *
 Reference_resolve(Reference *self, PyObject *args)
 {
     git_reference *c_reference;
@@ -2563,6 +2580,8 @@ static PyMethodDef Reference_methods[] = {
      "Delete this reference. It will no longer be valid!"},
     {"rename", (PyCFunction)Reference_rename, METH_O,
       "Rename the reference."},
+    {"reload", (PyCFunction)Reference_reload, METH_NOARGS,
+     "Reload the reference from the file-system."},
     {"resolve", (PyCFunction)Reference_resolve, METH_NOARGS,
       "Resolve a symbolic reference and return a direct reference."},
     {NULL}
