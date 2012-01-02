@@ -1986,7 +1986,7 @@ Index_setitem(Index *self, PyObject *key, PyObject *value)
 }
 
 static PyObject *
-Index_create_tree(Index *self)
+Index_write_tree(Index *self)
 {
     git_oid oid;
     int err;
@@ -2012,8 +2012,8 @@ static PyMethodDef Index_methods[] = {
     {"write", (PyCFunction)Index_write, METH_NOARGS,
      "Write an existing index object from memory back to disk using an"
      " atomic file lock."},
-    {"create_tree", (PyCFunction)Index_create_tree, METH_NOARGS,
-     "Create a tree from the index file, return its SHA."},
+    {"write_tree", (PyCFunction)Index_write_tree, METH_NOARGS,
+     "Create a tree object from the index file, return its oid."},
     {NULL}
 };
 

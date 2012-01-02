@@ -92,8 +92,8 @@ class IndexTest(utils.RepoTestCase):
         index.read()
         self.assertTrue('bye.txt' in index)
 
-    def test_create_tree(self):
-        oid = self.repo.index.create_tree()
+    def test_write_tree(self):
+        oid = self.repo.index.write_tree()
         sha = b2a_hex(oid).decode('ascii')
         self.assertEqual(sha, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
