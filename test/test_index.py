@@ -92,6 +92,23 @@ class IndexTest(utils.RepoTestCase):
         index.read()
         self.assertTrue('bye.txt' in index)
 
+
+    def test_read_tree(self):
+        tree_oid = '68aba62e560c0ebc3396e8ae9335232cd93a3f60'
+        # Test reading first tree
+        index = self.repo.index
+        self.assertEqual(len(index), 2)
+        index.read_tree(tree_oid)
+        self.assertEqual(len(index), 1)
+        # Test read-write returns the same oid
+        oid = index.write_tree()
+        oid = b2a_hex(oid).decode('ascii')
+        self.assertEqual(oid, tree_oid)
+        # Test the index is only modified in memory
+        index.read()
+        self.assertEqual(len(index), 2)
+
+
     def test_write_tree(self):
         oid = self.repo.index.write_tree()
         sha = b2a_hex(oid).decode('ascii')

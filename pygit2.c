@@ -1986,6 +1986,31 @@ Index_setitem(Index *self, PyObject *key, PyObject *value)
 }
 
 static PyObject *
+Index_read_tree(Index *self, PyObject *value)
+{
+    git_oid oid;
+    git_tree *tree;
+    size_t len;
+    int err;
+
+    len = py_str_to_git_oid(value, &oid);
+    TODO_SUPPORT_SHORT_HEXS(len)
+    if (len == 0)
+        return NULL;
+
+    err = git_tree_lookup_prefix(&tree, self->repo->repo, &oid,
+                                 (unsigned int)len);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_index_read_tree(self->index, tree);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
 Index_write_tree(Index *self)
 {
     git_oid oid;
@@ -2012,6 +2037,8 @@ static PyMethodDef Index_methods[] = {
     {"write", (PyCFunction)Index_write, METH_NOARGS,
      "Write an existing index object from memory back to disk using an"
      " atomic file lock."},
+    {"read_tree", (PyCFunction)Index_read_tree, METH_O,
+     "Update the index file from the given tree object."},
     {"write_tree", (PyCFunction)Index_write_tree, METH_NOARGS,
      "Create a tree object from the index file, return its oid."},
     {NULL}
