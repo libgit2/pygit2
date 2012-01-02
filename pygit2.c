@@ -548,24 +548,20 @@ Repository_get_index(Repository *self, void *closure)
 
     if (self->index == NULL) {
         err = git_repository_index(&index, self->repo);
-        if (err == GIT_SUCCESS) {
-            py_index = PyObject_GC_New(Index, &IndexType);
-            if (!py_index)
-                return NULL;
-
-            Py_INCREF(self);
-            py_index->repo = self;
-            py_index->index = index;
-            PyObject_GC_Track(py_index);
-            self->index = (PyObject*)py_index;
-        }
-        else if (err == GIT_EBAREINDEX) {
-            Py_INCREF(Py_None);
-            self->index = Py_None;
-        }
-        else {
+        if (err < 0)
             return Error_set(err);
+
+        py_index = PyObject_GC_New(Index, &IndexType);
+        if (!py_index) {
+            git_index_free(index);
+            return NULL;
         }
+
+        Py_INCREF(self);
+        py_index->repo = self;
+        py_index->index = index;
+        PyObject_GC_Track(py_index);
+        self->index = (PyObject*)py_index;
     }
 
     Py_INCREF(self->index);

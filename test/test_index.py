@@ -43,7 +43,8 @@ __author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
 class IndexBareTest(utils.BareRepoTestCase):
 
     def test_bare(self):
-        self.assertEqual(None, self.repo.index)
+        index = self.repo.index
+        self.assertEqual(len(index), 0)
 
 
 class IndexTest(utils.RepoTestCase):
