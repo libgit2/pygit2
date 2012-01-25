@@ -484,6 +484,7 @@ Repository_read(Repository *self, PyObject *py_hex)
     int err;
     git_odb_object *obj;
     size_t len;
+    PyObject* tuple;
 
     len = py_str_to_git_oid(py_hex, &oid);
     if (len == 0)
@@ -493,7 +494,7 @@ Repository_read(Repository *self, PyObject *py_hex)
     if (obj == NULL)
         return NULL;
 
-    PyObject* tuple = Py_BuildValue(
+    tuple = Py_BuildValue(
         "(ns#)",
         git_odb_object_type(obj),
         git_odb_object_data(obj),
