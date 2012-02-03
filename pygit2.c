@@ -174,6 +174,20 @@ Error_type(int err)
     }
 }
 
+/*
+ * Python doesn't like it when the error string is NULL. Not giving
+ * back an error string could be a bug in the library
+ */
+static const char *
+git_last_error(void)
+{
+	const char *ret;
+
+	ret = git_lasterror();
+
+	return ret != NULL ? ret : "(No error information given)";
+}
+
 static PyObject *
 Error_set(int err)
 {
@@ -182,7 +196,7 @@ Error_set(int err)
     if (err == GIT_EOSERR)
         return PyErr_SetFromErrno(GitError);
 
-    PyErr_SetString(Error_type(err), git_lasterror());
+    PyErr_SetString(Error_type(err), git_last_error());
     return NULL;
 }
 
@@ -195,7 +209,7 @@ Error_set_str(int err, const char *str)
         return NULL;
     }
 
-    return PyErr_Format(Error_type(err), "%s: %s", str, git_lasterror());
+    return PyErr_Format(Error_type(err), "%s: %s", str, git_last_error());
 }
 
 static PyObject *
