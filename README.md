@@ -106,12 +106,21 @@ Commits
     Commit.tree      -- the tree object attached to the commit
     Commit.parents   -- the list of parent commits
 
-The author and committer attributes of commit objects are tuples with four
-elements, the author name and email, the unix time and time offset in
-minutes:
+### Signatures
+
+The author and committer attributes of commit objects are ``Signature``
+objects:
 
     >>> commit.author
-    ('J. David Ibáñez', 'jdavid.ibp@gmail.com', 1315005198, 120)
+    <pygit2.Signature object at 0x7f75e9b1f5f8>
+
+This is their interface:
+
+    Signature.name   -- person's name
+    Signature.email  -- person's email address
+    Signature.time   -- unix time
+    Signature.offset -- offset from utc in minutes
+
 
 Trees
 -----------------
