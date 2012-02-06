@@ -35,7 +35,6 @@ except ImportError:
     from distutils.core import setup, Extension, Command
     SETUPTOOLS = False
 
-import sys
 
 # Replace with your libgit2 configuration.
 include_dirs = ['/usr/local/include']
@@ -67,11 +66,18 @@ else:
     kwargs = {'cmdclass': {'test': TestCommand}}
 
 
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Version Control"]
+
+
 setup(name='pygit2',
       description='Python bindings for libgit2.',
       keywords='git',
-      version='0.15.0',
+      version='0.16.0',
       url='http://github.com/libgit2/pygit2',
+      classifiers=classifiers,
       license='GPLv2',
       maintainer='J. David Ibáñez',
       maintainer_email='jdavid.ibp@gmail.com',
