@@ -100,6 +100,8 @@ Objects can not be modified once they have been created.
 Commits
 -----------------
 
+::
+
     Commit.author    -- the author of the commit
     Commit.committer -- the committer of the commit
     Commit.message   -- the message, a text string
