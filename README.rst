@@ -14,16 +14,16 @@ INSTALLING AND RUNNING
 First you need to install the latest version of libgit2.
 You can find platform-specific instructions to build the library in the libgit2 website:
 
-  <http://libgit2.github.com>
+  http://libgit2.github.com
 
 Next, make sure you have the required library dependencies for pygit2: OpenSSL and ZLib.
-For instance, in Debian-based systems run:
+For instance, in Debian-based systems run::
 
     $ sudo apt-get install zlib1g-dev libssl-dev
 
 Also, make sure you have Python 2.6+ installed together with the Python development headers.
 
-When those are installed, you can install pygit2:
+When those are installed, you can install pygit2::
 
     $ git clone git://github.com/libgit2/pygit2.git
     $ cd pygit2
@@ -34,18 +34,18 @@ When those are installed, you can install pygit2:
 The repository
 =================
 
-Everything starts by opening an existing repository:
+Everything starts by opening an existing repository::
 
     >>> from pygit2 import Repository
     >>> repo = Repository('pygit2/.git')
 
-Or by creating a new one:
+Or by creating a new one::
 
     >>> from pygit2 import init_repository
     >>> bare = False
     >>> repo = init_repository('test', bare)
 
-These are the basic attributes of a repository:
+These are the basic attributes of a repository::
 
     Repository.path    -- path to the Git repository
     Repository.workdir -- path to the working directory, None in the case of
@@ -57,7 +57,7 @@ Git objects
 
 In the first place Git is a key-value storage system. The values stored are
 called *objects*, there are four types (commits, trees, blobs and tags),
-for each type pygit2 has a Python class:
+for each type pygit2 has a Python class::
 
     # Get the last commit
     >>> head = repo.lookup_reference('HEAD')
@@ -73,7 +73,7 @@ for each type pygit2 has a Python class:
 These four classes (``Commit``, ``Tree``, ``Blob`` and ``Tag``) inherit from
 the ``Object`` base class, which provides shared behaviour. A Git object is
 identified by a unique *object id*, which is a binary byte string; this is
-often represented as an hexadecimal text string:
+often represented as an hexadecimal text string::
 
     >>> commit.oid
     b'x\xde\xb5W\x8d\x01<\xdb\xdf\x08o\xa1\xd1\xa3\xe7\xd9\x82\xe8\x88\x8f'
@@ -84,7 +84,7 @@ The API of pygit2 accepts both the raw object id and its hexadecimal
 representation, the difference is done based on its type (a byte or a text
 string).
 
-This is the common interface for all Git objects:
+This is the common interface for all Git objects::
 
     Object.type       -- one of the GIT_OBJ_COMMIT, GIT_OBJ_TREE,
                          GIT_OBJ_BLOB or GIT_OBJ_TAG constants
@@ -106,15 +106,16 @@ Commits
     Commit.tree      -- the tree object attached to the commit
     Commit.parents   -- the list of parent commits
 
-### Signatures
+Signatures
+.............
 
 The author and committer attributes of commit objects are ``Signature``
-objects:
+objects::
 
     >>> commit.author
     <pygit2.Signature object at 0x7f75e9b1f5f8>
 
-This is their interface:
+This is their interface::
 
     Signature.name   -- person's name
     Signature.email  -- person's email address
@@ -128,7 +129,7 @@ Trees
 A tree is a sorted collection of tree entries. It is similar to a folder or
 directory in a file system. Each entry points to another tree or a blob.  A
 tree can be iterated, and partially implements the sequence and mapping
-interfaces:
+interfaces::
 
     # Number of entries
     >>> tree = commit.tree
@@ -156,7 +157,7 @@ interfaces:
     >>> blob
     <pygit2.Blob object at 0xcc12d0>
 
-This is the interface of a tree entry:
+This is the interface of a tree entry::
 
     TreeEntry.name        -- name of the tree entry
     TreeEntry.oid         -- the id of the git object
@@ -167,7 +168,7 @@ This is the interface of a tree entry:
 Blobs
 -----------------
 
-A blob is equivalent to a file in a file system.
+A blob is equivalent to a file in a file system::
 
     Blob.data -- the contents of the blob, a byte string
 
@@ -180,7 +181,7 @@ XXX
 References
 =================
 
-Reference lookup:
+Reference lookup::
 
     >>> master_ref = repo.lookup_reference("refs/heads/master")
     >>> commit = repo[master_ref.oid]
@@ -189,6 +190,8 @@ Reference lookup:
 Revision walking
 =================
 
+::
+
     >>> from pygit2 import GIT_SORT_TIME
     >>> for commit in repo.walk(oid, GIT_SORT_TIME):
     ...     print commit.hex
@@ -196,19 +199,19 @@ Revision walking
 The index file
 =================
 
-Index read:
+Index read::
 
     >>> index = repo.index
     >>> index.read()
     >>> oid = index['path/to/file'].oid    # from path to object id
     >>> blob = repo[oid]                   # from object id to object
 
-Iterate over all entries of the index:
+Iterate over all entries of the index::
 
     >>> for entry in index:
     ...     print entry.path, entry.hex
 
-Index write:
+Index write::
 
     >>> index.add('path/to/file')          # git add
     >>> del index['path/to/file']          # git rm
@@ -217,7 +220,7 @@ Index write:
 Status
 =================
 
-Inspect the status of the repository:
+Inspect the status of the repository::
 
     >>> from pygit2 import GIT_STATUS_CURRENT
     >>> status = repo.status()

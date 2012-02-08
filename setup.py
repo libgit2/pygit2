@@ -72,6 +72,9 @@ classifiers = [
     "Topic :: Software Development :: Version Control"]
 
 
+with open('README.rst') as readme:
+    long_description = readme.read()
+
 setup(name='pygit2',
       description='Python bindings for libgit2.',
       keywords='git',
@@ -81,15 +84,11 @@ setup(name='pygit2',
       license='GPLv2',
       maintainer='J. David Ibáñez',
       maintainer_email='jdavid.ibp@gmail.com',
-      long_description="""
-      Bindings for libgit2, a linkable C library for the Git version-control
-      system.
-      """,
+      long_description=long_description,
       ext_modules = [
           Extension('pygit2', ['pygit2.c'],
                     include_dirs=include_dirs,
                     library_dirs=library_dirs,
                     libraries=libraries),
           ],
-      **kwargs
-      )
+      **kwargs)
