@@ -921,6 +921,23 @@ Repository_status(Repository *self, PyObject *args)
     return payload_dict;
 }
 
+static PyObject *
+Repository_status_file(Repository *self, PyObject *value)
+{
+    char *path;
+    int status, err;
+
+    path = py_path_to_c_str(value);
+    if (!path)
+        return NULL;
+
+    err = git_status_file(&status, self->repo, path);
+    if (err < 0)
+        return Error_set_str(err, path);
+
+    return PyInt_FromLong(status);
+}
+
 static PyMethodDef Repository_methods[] = {
     {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
      "Create a new commit object, return its SHA."},
@@ -952,6 +969,8 @@ static PyMethodDef Repository_methods[] = {
     {"status", (PyCFunction)Repository_status, METH_NOARGS, "Reads the "
      "status of the repository and returns a dictionnary with file paths "
      "as keys and status flags as values.\nSee pygit2.GIT_STATUS_*."},
+    {"status_file", (PyCFunction)Repository_status_file, METH_O,
+     "Returns the status of the given file path."},
     {NULL}
 };
 
@@ -2964,17 +2983,13 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
     PyModule_AddIntConstant(m, "GIT_REF_PACKED", GIT_REF_PACKED);
 
-    /** Git status flags **/
+    /* Git status flags */
     PyModule_AddIntConstant(m, "GIT_STATUS_CURRENT", GIT_STATUS_CURRENT);
-
-    /* Flags for index status */
     PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_NEW", GIT_STATUS_INDEX_NEW);
     PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_MODIFIED",
                             GIT_STATUS_INDEX_MODIFIED);
     PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_DELETED" ,
                             GIT_STATUS_INDEX_DELETED);
-
-    /* Flags for worktree status */
     PyModule_AddIntConstant(m, "GIT_STATUS_WT_NEW", GIT_STATUS_WT_NEW);
     PyModule_AddIntConstant(m, "GIT_STATUS_WT_MODIFIED" ,
                             GIT_STATUS_WT_MODIFIED);
