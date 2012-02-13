@@ -98,6 +98,7 @@ typedef struct {
 OBJECT_STRUCT(Object, git_object, obj)
 OBJECT_STRUCT(Commit, git_commit, commit)
 OBJECT_STRUCT(Tree, git_tree, tree)
+OBJECT_STRUCT(TreeBuilder, git_treebuilder, bld)
 OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
@@ -142,6 +143,7 @@ static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
 static PyTypeObject TreeType;
+static PyTypeObject TreeBuilderType;
 static PyTypeObject TreeEntryType;
 static PyTypeObject TreeIterType;
 static PyTypeObject BlobType;
@@ -1593,6 +1595,68 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_new            */
 };
 
+static int
+TreeBuilder_init(TreeBuilder *self, PyObject *args, PyObject *kwds)
+{
+    PyObject *py_name;
+    int err;
+
+    err = git_treebuilder_create(&self->bld, NULL);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    return 0;
+}
+
+static void
+TreeBuilder_dealloc(TreeBuilder* self)
+{
+    git_treebuilder_free(self->bld);
+}
+
+static PyTypeObject TreeBuilderType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pygit2.TreeBuilder",                      /* tp_name           */
+    sizeof(TreeBuilder),                       /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)TreeBuilder_dealloc,           /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    "TreeBuilder objects",                     /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)TreeBuilder_init,                /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
 static void
 TreeIter_dealloc(TreeIter *self)
 {
@@ -2918,6 +2982,9 @@ moduleinit(PyObject* m)
     IndexEntryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&IndexEntryType) < 0)
         return NULL;
+    TreeBuilderType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&TreeBuilderType) < 0)
+        return NULL;
     WalkerType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&WalkerType) < 0)
         return NULL;
@@ -2945,6 +3012,9 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&TreeType);
     PyModule_AddObject(m, "Tree", (PyObject *)&TreeType);
+
+    Py_INCREF(&TreeBuilderType);
+    PyModule_AddObject(m, "TreeBuilder", (PyObject *)&TreeBuilderType);
 
     Py_INCREF(&BlobType);
     PyModule_AddObject(m, "Blob", (PyObject *)&BlobType);
