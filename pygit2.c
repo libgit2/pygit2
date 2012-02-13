@@ -1616,6 +1616,32 @@ TreeBuilder_dealloc(TreeBuilder* self)
     git_treebuilder_free(self->bld);
 }
 
+static PyObject *
+TreeBuilder_insert(TreeBuilder *self, TreeEntry *py_tentry)
+{
+    int err, attr;
+    const git_oid *oid;
+    const char *fname;
+    const git_tree_entry *tentry;
+
+    tentry = py_tentry->entry;
+    fname = git_tree_entry_name(tentry);
+    oid = git_tree_entry_id(tentry);
+    attr = git_tree_entry_attributes(tentry);
+
+    err = git_treebuilder_insert(NULL, self->bld, fname, oid, attr);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef TreeBuilder_methods[] = {
+    {"insert", (PyCFunction)TreeBuilder_insert, METH_O,
+     "Insert or replace an entry in the treebuilder"},
+    {NULL, NULL, 0, NULL}
+};
+
 static PyTypeObject TreeBuilderType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.TreeBuilder",                      /* tp_name           */
@@ -1644,7 +1670,7 @@ static PyTypeObject TreeBuilderType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    TreeBuilder_methods,                       /* tp_methods        */
     0,                                         /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */
