@@ -46,11 +46,17 @@
 
 /* Utilities */
 Py_LOCAL_INLINE(PyObject*)
-to_unicode(const char *value, const char *encoding, const char *errors)
+to_unicode_n(const char *value, size_t len, const char *encoding, const char *errors)
 {
     if (encoding == NULL)
         encoding = "utf-8";
-    return PyUnicode_Decode(value, strlen(value), encoding, errors);
+    return PyUnicode_Decode(value, len, encoding, errors);
+}
+
+Py_LOCAL_INLINE(PyObject*)
+to_unicode(const char *value, const char *encoding, const char *errors)
+{
+    return to_unicode_n(value, strlen(value), encoding, errors);
 }
 
 Py_LOCAL_INLINE(PyObject*)
