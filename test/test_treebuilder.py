@@ -1,6 +1,6 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2010 Google, Inc.
+# Copyright 2012 Carlos Martín Nieto
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -25,26 +25,40 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Pygit2 test definitions.
+"""Tests for Index files."""
 
-These tests are run automatically with 'setup.py test', but can also be run
-manually.
-"""
-
-import sys
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from binascii import b2a_hex
+import os
 import unittest
 
-
-names = ['blob', 'commit', 'index', 'refs', 'repository', 'revwalk', 'tag',
-         'tree', 'signature', 'status', 'treebuilder']
-def test_suite():
-    modules = ['test.test_%s' % n for n in names]
-    return unittest.defaultTestLoader.loadTestsFromNames(modules)
+import pygit2
+from . import utils
 
 
-def main():
-    unittest.main(module=__name__, defaultTest='test_suite', argv=sys.argv[:1])
+__author__ = 'carlos@cmartin.tk (Carlos Martín Nieto)'
 
+TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+
+class TreeBuilderTest(utils.BareRepoTestCase):
+    def test_new_empty_treebuilder(self):
+        bld = pygit2.TreeBuilder()
+
+    def test_noop_treebuilder(self):
+        tree = self.repo[TREE_SHA]
+        bld = pygit2.TreeBuilder(tree)
+        result = bld.write(self.repo)
+        self.assertEqual(tree.oid, result)
+
+    def test_rebuild_treebuilder(self):
+        tree = self.repo[TREE_SHA]
+        bld = pygit2.TreeBuilder(tree)
+        for e in tree:
+            bld.insert(e)
+
+        result = bld.write(self.repo)
+        self.assertEqual(tree.oid, result)
 
 if __name__ == '__main__':
-    main()
+    unittest.main()
