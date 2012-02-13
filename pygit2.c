@@ -1636,9 +1636,25 @@ TreeBuilder_insert(TreeBuilder *self, TreeEntry *py_tentry)
     Py_RETURN_NONE;
 }
 
+static PyObject *
+TreeBuilder_write(TreeBuilder *self, Repository *py_repo)
+{
+    int err;
+    git_oid oid;
+    git_repository *repo = py_repo->repo;
+
+    err = git_treebuilder_write(&oid, repo, self->bld);
+    if (err < 0)
+        return Error_set(err);
+
+    return git_oid_to_python(&oid);
+}
+
 static PyMethodDef TreeBuilder_methods[] = {
     {"insert", (PyCFunction)TreeBuilder_insert, METH_O,
      "Insert or replace an entry in the treebuilder"},
+    {"write", (PyCFunction)TreeBuilder_write, METH_O,
+     "Write the tree to the given repository"},
     {NULL, NULL, 0, NULL}
 };
 
