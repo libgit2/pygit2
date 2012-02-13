@@ -1598,10 +1598,22 @@ static PyTypeObject TreeType = {
 static int
 TreeBuilder_init(TreeBuilder *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *py_name;
+    Tree *py_tree = NULL;
+    git_tree *tree;
     int err;
 
-    err = git_treebuilder_create(&self->bld, NULL);
+    if (kwds) {
+        PyErr_SetString(PyExc_TypeError,
+                        "TreeBuilder takes no keyword arguments");
+        return -1;
+    }
+
+    if (!PyArg_ParseTuple(args, "|O", &py_tree))
+        return -1;
+
+    tree = py_tree == NULL ? NULL : py_tree->tree;
+
+    err = git_treebuilder_create(&self->bld, tree);
     if (err < 0) {
         Error_set(err);
         return -1;
