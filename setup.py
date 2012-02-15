@@ -28,6 +28,7 @@
 
 """Setup file for pygit2."""
 
+import os
 try:
     from setuptools import setup, Extension, Command
     SETUPTOOLS = True
@@ -35,12 +36,22 @@ except ImportError:
     from distutils.core import setup, Extension, Command
     SETUPTOOLS = False
 
-
-# Replace with your libgit2 configuration.
-include_dirs = ['/usr/local/include']
-library_dirs = ['/usr/local/lib']
+# Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libraries = ['git2', 'z', 'crypto']
+if os.name == 'nt':
+    libraries = ['git2']
 
+libgit2_path = os.getenv("LIBGIT2")
+if libgit2_path is None:
+    if os.name == 'nt':
+        program_files = os.getenv("ProgramFiles")
+        libgit2_path = '%s\libgit2' % program_files
+    else:
+        libgit2_path = '/usr/local'
+
+libgit2_bin = os.path.join(libgit2_path, 'bin')
+libgit2_include = os.path.join(libgit2_path, 'include')
+libgit2_lib =  os.path.join(libgit2_path, 'lib')
 
 class TestCommand(Command):
     """Command for running pygit2 tests."""
@@ -87,8 +98,8 @@ setup(name='pygit2',
       long_description=long_description,
       ext_modules = [
           Extension('pygit2', ['pygit2.c'],
-                    include_dirs=include_dirs,
-                    library_dirs=library_dirs,
+                    include_dirs=[libgit2_include],
+                    library_dirs=[libgit2_lib],
                     libraries=libraries),
           ],
       **kwargs)
