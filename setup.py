@@ -45,7 +45,6 @@ libgit2_path = os.getenv("LIBGIT2")
 if libgit2_path is None:
     if os.name == 'nt':
         program_files = os.getenv("ProgramFiles")
-        print(program_files)
         libgit2_path = '%s\libgit2' % program_files
     else:
         libgit2_path = '/usr/local'
