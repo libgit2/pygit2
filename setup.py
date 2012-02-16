@@ -29,16 +29,15 @@
 """Setup file for pygit2."""
 
 import os
-try:
-    from setuptools import setup, Extension, Command
-    SETUPTOOLS = True
-except ImportError:
-    from distutils.core import setup, Extension, Command
-    SETUPTOOLS = False
+import sys
+from distutils.core import setup, Extension, Command
+from distutils.command.build import build
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libraries = ['git2', 'z', 'crypto']
+libgit2_dlls = []
 if os.name == 'nt':
+    libgit2_dlls = ['git2.dll']
     libraries = ['git2']
 
 libgit2_path = os.getenv("LIBGIT2")
@@ -52,6 +51,37 @@ if libgit2_path is None:
 libgit2_bin = os.path.join(libgit2_path, 'bin')
 libgit2_include = os.path.join(libgit2_path, 'include')
 libgit2_lib =  os.path.join(libgit2_path, 'lib')
+
+def we_are_frozen():
+    # All of the modules are built-in to the interpreter, e.g., by py2exe
+    return hasattr(sys, "frozen")
+
+def module_path():
+    if we_are_frozen():
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(__file__)
+
+pygit2_base = os.path.join(module_path(), 'pygit2')
+try:
+    os.makedirs(pygit2_base)
+except OSError:
+    pass
+
+# On Windows, we install the git2.dll too.
+def _get_dlls():
+    # return a list of of (FQ-in-name, relative-out-name) tuples.
+    ret = []
+    look_dirs = [libgit2_bin] + os.environ.get("PATH","").split(os.pathsep)
+    for bin in ['git2.dll']:
+        for look in look_dirs:
+            f = os.path.join(look, bin)
+            if os.path.isfile(f):
+                ret.append((f, bin))
+                break
+        else:
+            log.warn("Could not find required DLL %r to include", bin)
+            log.debug("(looked in %s)", look_dirs)
+    return ret
 
 class TestCommand(Command):
     """Command for running pygit2 tests."""
@@ -70,12 +100,15 @@ class TestCommand(Command):
         test.main()
 
 
-kwargs = {}
-if SETUPTOOLS:
-    kwargs = {'test_suite': 'test.test_suite'}
-else:
-    kwargs = {'cmdclass': {'test': TestCommand}}
+class build_with_dlls(build):
 
+    def run(self):
+        build.run(self)
+        # the apr binaries.
+        if os.name == 'nt':
+            # On Windows we package up the apr dlls with the plugin.
+            for s, d in _get_dlls():
+                self.copy_file(s, os.path.join(pygit2_base, d))
 
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -96,10 +129,13 @@ setup(name='pygit2',
       maintainer='J. David Ibáñez',
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
-      ext_modules = [
+      ext_modules=[
           Extension('pygit2', ['pygit2.c'],
                     include_dirs=[libgit2_include],
                     library_dirs=[libgit2_lib],
                     libraries=libraries),
           ],
-      **kwargs)
+      packages=[''],
+      package_dir={'': 'pygit2'},
+      package_data={'': libgit2_dlls},
+      cmdclass={'test': TestCommand, 'build': build_with_dlls})
