@@ -567,7 +567,6 @@ Repository_get_index(Repository *self, void *closure)
             return NULL;
         }
 
-        Py_INCREF(self);
         py_index->repo = self;
         py_index->index = index;
         PyObject_GC_Track(py_index);
