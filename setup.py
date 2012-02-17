@@ -103,12 +103,12 @@ class TestCommand(Command):
 class build_with_dlls(build):
 
     def run(self):
-        build.run(self)
-        # the apr binaries.
+        # Fetching those dlls to source directory first.
         if os.name == 'nt':
             # On Windows we package up the apr dlls with the plugin.
             for s, d in _get_dlls():
                 self.copy_file(s, os.path.join(pygit2_base, d))
+        build.run(self)
 
 classifiers = [
     "Development Status :: 3 - Alpha",
