@@ -111,12 +111,6 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    Index *owner;
-    int i;
-} IndexIter;
-
-typedef struct {
-    PyObject_HEAD
     Tree *owner;
     int i;
 } TreeIter;
@@ -125,6 +119,12 @@ typedef struct {
     PyObject_HEAD
     git_index_entry *entry;
 } IndexEntry;
+
+typedef struct {
+    PyObject_HEAD
+    Index *owner;
+    int i;
+} IndexIter;
 
 typedef struct {
     PyObject_HEAD
@@ -141,14 +141,14 @@ typedef struct {
 static PyTypeObject RepositoryType;
 static PyTypeObject ObjectType;
 static PyTypeObject CommitType;
-static PyTypeObject TreeEntryType;
 static PyTypeObject TreeType;
+static PyTypeObject TreeEntryType;
+static PyTypeObject TreeIterType;
 static PyTypeObject BlobType;
 static PyTypeObject TagType;
 static PyTypeObject IndexType;
-static PyTypeObject TreeIterType;
-static PyTypeObject IndexIterType;
 static PyTypeObject IndexEntryType;
+static PyTypeObject IndexIterType;
 static PyTypeObject WalkerType;
 static PyTypeObject ReferenceType;
 static PyTypeObject SignatureType;
