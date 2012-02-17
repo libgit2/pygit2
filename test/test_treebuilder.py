@@ -42,21 +42,21 @@ TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
 class TreeBuilderTest(utils.BareRepoTestCase):
     def test_new_empty_treebuilder(self):
-        bld = pygit2.TreeBuilder()
+        bld = self.repo.TreeBuilder()
 
     def test_noop_treebuilder(self):
         tree = self.repo[TREE_SHA]
-        bld = pygit2.TreeBuilder(tree)
-        result = bld.write(self.repo)
+        bld = self.repo.TreeBuilder(TREE_SHA)
+        result = bld.write()
         self.assertEqual(tree.oid, result)
 
     def test_rebuild_treebuilder(self):
         tree = self.repo[TREE_SHA]
-        bld = pygit2.TreeBuilder(tree)
+        bld = self.repo.TreeBuilder(TREE_SHA)
         for e in tree:
             bld.insert(e)
 
-        result = bld.write(self.repo)
+        result = bld.write()
         self.assertEqual(tree.oid, result)
 
 if __name__ == '__main__':
