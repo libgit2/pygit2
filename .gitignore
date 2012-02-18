@@ -5,3 +5,4 @@ test/*.pyc
 test/__pycache__
 *.egg-info
 *.swp
+pygit2/*
