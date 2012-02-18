@@ -523,8 +523,7 @@ Repository_write(Repository *self, PyObject *args)
 {
     int err;
     git_oid oid;
-    git_odb *odb;
-    git_odb_stream* stream;
+    git_odb *odb = NULL;
     int type_id;
     const char* buffer;
     Py_ssize_t buflen;
@@ -538,17 +537,13 @@ Repository_write(Repository *self, PyObject *args)
         return PyErr_Format(PyExc_ValueError, "%d", type_id);
 
     err = git_repository_odb(&odb, self->repo);
-    if (err < 0)
-        return Error_set(err);
-
-    err = git_odb_open_wstream(&stream, odb, buflen, type);
+    err = err < 0 ? err: git_odb_write(&oid, odb, buffer, buflen, type);
     git_odb_free(odb);
-    if (err < 0)
-        return Error_set(err);
 
-    stream->write(stream, buffer, buflen);
-    err = stream->finalize_write(&oid, stream);
-    stream->free(stream);
+    if (err < 0)
+    {
+        return Error_set(err);
+    }
     return git_oid_to_python(oid.id);
 }
 
@@ -572,7 +567,6 @@ Repository_get_index(Repository *self, void *closure)
             return NULL;
         }
 
-        Py_INCREF(self);
         py_index->repo = self;
         py_index->index = index;
         PyObject_GC_Track(py_index);

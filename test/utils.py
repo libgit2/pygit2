@@ -39,21 +39,19 @@ import pygit2
 
 __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
+def force_rm_handle(path):
+    os.chmod(
+        path,
+        os.stat(path).st_mode | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+    )
+    os.remove(path)
 
 def rmtree(path):
     """In Windows a read-only file cannot be removed, and shutil.rmtree fails.
     So we implement our own version of rmtree to address this issue.
     """
-    for root, dirs, files in os.walk(path, topdown=False):
-        for name in files:
-            filename = os.path.join(root, name)
-            try:
-                os.remove(filename)
-            except OSError:
-                # Try again
-                os.chmod(filename, stat.S_IWUSR)
-                os.remove(filename)
-        os.rmdir(root)
+    if os.path.exists(path):
+        shutil.rmtree(path, onerror=lambda func, path, e: force_rm_handle(path))
 
 
 class NoRepoTestCase(unittest.TestCase):
