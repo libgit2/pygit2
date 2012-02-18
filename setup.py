@@ -34,11 +34,6 @@ from distutils.core import setup, Extension, Command
 from distutils.command.build import build
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
-libraries = ['git2', 'z', 'crypto']
-libgit2_dlls = []
-if os.name == 'nt':
-    libgit2_dlls = ['git2.dll']
-    libraries = ['git2']
 
 libgit2_path = os.getenv("LIBGIT2")
 if libgit2_path is None:
@@ -67,12 +62,18 @@ try:
 except OSError:
     pass
 
+libraries = ['git2', 'z', 'crypto']
+libgit2_dlls = []
+if os.name == 'nt':
+    libgit2_dlls = ['git2.dll']
+    libraries = ['git2']
+
 # On Windows, we install the git2.dll too.
 def _get_dlls():
     # return a list of of (FQ-in-name, relative-out-name) tuples.
     ret = []
     look_dirs = [libgit2_bin] + os.environ.get("PATH","").split(os.pathsep)
-    for bin in ['git2.dll']:
+    for bin in libgit2_dlls:
         for look in look_dirs:
             f = os.path.join(look, bin)
             if os.path.isfile(f):
