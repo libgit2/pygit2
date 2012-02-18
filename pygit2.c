@@ -741,7 +741,7 @@ out:
 static PyObject *
 Repository_create_tag(Repository *self, PyObject *args)
 {
-    PyObject *py_oid, *py_result = NULL;
+    PyObject *py_oid;
     Signature *py_tagger;
     char *tag_name, *message;
     git_oid oid;
@@ -763,16 +763,12 @@ Repository_create_tag(Repository *self, PyObject *args)
 
     err = git_object_lookup_prefix(&target, self->repo, &oid,
                                    (unsigned int)len, target_type);
+    err = err < 0 ? err : git_tag_create(&oid, self->repo, tag_name, target,
+                         py_tagger->signature, message, 0);
+    git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);
-
-    err = git_tag_create(&oid, self->repo, tag_name, target,
-                         py_tagger->signature, message, 0);
-    if (err == 0)
-        py_result = git_oid_to_python(oid.id);
-
-    git_object_free(target);
-    return py_result;
+    return git_oid_to_python(oid.id);
 }
 
 static PyObject *
