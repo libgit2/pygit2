@@ -473,7 +473,6 @@ Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
     git_odb *odb;
     git_odb_object *obj;
     int err;
-    PyObject *aux;
 
     err = git_repository_odb(&odb, repo);
     if (err < 0) {
@@ -495,7 +494,6 @@ static PyObject *
 Repository_read(Repository *self, PyObject *py_hex)
 {
     git_oid oid;
-    int err;
     git_odb_object *obj;
     size_t len;
     PyObject* tuple;
@@ -921,7 +919,8 @@ static PyObject *
 Repository_status_file(Repository *self, PyObject *value)
 {
     char *path;
-    int status, err;
+    unsigned int status;
+    int err;
 
     path = py_path_to_c_str(value);
     if (!path)
@@ -1081,7 +1080,6 @@ Object_read_raw(Object *self)
 {
     const git_oid *oid;
     git_odb_object *obj;
-    int err;
     PyObject *aux;
 
     oid = git_object_id(self->obj);
