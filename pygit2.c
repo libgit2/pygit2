@@ -1660,11 +1660,39 @@ TreeBuilder_write(TreeBuilder *self)
     return git_oid_to_python(&oid);
 }
 
+static PyObject *
+TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
+{
+    char *filename;
+    int err;
+
+    filename = py_path_to_c_str(py_filename);
+    if (filename == NULL)
+        return NULL;
+
+    err = git_treebuilder_remove(self->bld, filename);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+TreeBuilder_clear(TreeBuilder *self)
+{
+    git_treebuilder_clear(self->bld);
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef TreeBuilder_methods[] = {
     {"insert", (PyCFunction)TreeBuilder_insert, METH_O,
      "Insert or replace an entry in the treebuilder"},
     {"write", (PyCFunction)TreeBuilder_write, METH_NOARGS,
      "Write the tree to the given repository"},
+    {"remove", (PyCFunction)TreeBuilder_remove, METH_O,
+     "Remove an entry from the builder"},
+    {"clear", (PyCFunction)TreeBuilder_clear, METH_NOARGS,
+     "Clear all the entries in the builder"},
     {NULL, NULL, 0, NULL}
 };
 
