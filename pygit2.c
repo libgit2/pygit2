@@ -28,6 +28,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <osdefs.h>
 #include <git2.h>
 
 /* Python 3 support */
@@ -2992,9 +2993,31 @@ init_repository(PyObject *self, PyObject *args)
     return NULL;
 };
 
+static PyObject *
+discover_repository(PyObject *self, PyObject *args)
+{
+    const char *path;
+    int across_fs = 0;
+    const char *ceiling_dirs = NULL;
+    char repo_path[MAXPATHLEN];
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s|Is", &path, &across_fs, &ceiling_dirs))
+        return NULL;
+
+    err = git_repository_discover(repo_path, sizeof(repo_path),
+            path, across_fs, ceiling_dirs);
+    if (err < 0)
+        return Error_set_str(err, path);
+
+    return to_path(repo_path);
+};
+
 static PyMethodDef module_methods[] = {
     {"init_repository", init_repository, METH_VARARGS,
      "Creates a new Git repository in the given folder."},
+    {"discover_repository", discover_repository, METH_VARARGS,
+     "Look for a git repository and return its path."},
     {NULL}
 };
 
