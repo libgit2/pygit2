@@ -1607,6 +1607,7 @@ static void
 TreeBuilder_dealloc(TreeBuilder* self)
 {
     git_treebuilder_free(self->bld);
+    PyObject_Del(self);
 }
 
 static PyObject *
