@@ -48,7 +48,7 @@ class CommitTest(utils.BareRepoTestCase):
         parents = commit.parents
         self.assertEqual(1, len(parents))
         self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
-                         parents[0].hex)
+                         utils.oid_to_hex(parents[0]))
         self.assertEqual(None, commit.message_encoding)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
@@ -93,7 +93,7 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqualSignature(author, commit.author)
         self.assertEqual(tree, commit.tree.hex)
         self.assertEqual(1, len(commit.parents))
-        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
+        self.assertEqual(COMMIT_SHA, utils.oid_to_hex(commit.parents[0]))
 
     def test_new_commit_encoding(self):
         repo = self.repo
@@ -119,7 +119,7 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqualSignature(author, commit.author)
         self.assertEqual(tree, commit.tree.hex)
         self.assertEqual(1, len(commit.parents))
-        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
+        self.assertEqual(COMMIT_SHA, utils.oid_to_hex(commit.parents[0]))
 
     def test_modify_commit(self):
         message = 'New commit.\n\nMessage.\n'
