@@ -29,7 +29,6 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from binascii import b2a_hex
 import os
 import unittest
 

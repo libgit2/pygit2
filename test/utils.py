@@ -27,6 +27,7 @@
 
 """Test utilities for libgit2."""
 
+from binascii import b2a_hex
 import os
 import shutil
 import stat
@@ -38,6 +39,10 @@ import pygit2
 
 
 __author__ = 'dborowitz@google.com (Dave Borowitz)'
+
+
+def oid_to_hex(oid):
+    return b2a_hex(oid).decode('ascii')
 
 
 def rmtree(path):

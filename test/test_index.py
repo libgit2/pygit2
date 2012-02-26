@@ -29,7 +29,6 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from binascii import b2a_hex
 import os
 import unittest
 
@@ -102,7 +101,7 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual(len(index), 1)
         # Test read-write returns the same oid
         oid = index.write_tree()
-        oid = b2a_hex(oid).decode('ascii')
+        oid = utils.oid_to_hex(oid)
         self.assertEqual(oid, tree_oid)
         # Test the index is only modified in memory
         index.read()
@@ -111,7 +110,7 @@ class IndexTest(utils.RepoTestCase):
 
     def test_write_tree(self):
         oid = self.repo.index.write_tree()
-        sha = b2a_hex(oid).decode('ascii')
+        sha = utils.oid_to_hex(oid)
         self.assertEqual(sha, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
     def test_iter(self):
