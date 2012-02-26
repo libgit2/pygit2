@@ -34,7 +34,8 @@ import unittest
 import os
 from os.path import join, realpath
 
-from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository
+from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository, \
+                   discover_repository
 from . import utils
 
 
@@ -57,7 +58,7 @@ class RepositoryTest(utils.BareRepoTestCase):
 
         a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
         self.assertEqual((GIT_OBJ_BLOB, 'a contents 2\n'), a2)
-        
+
         a_hex_prefix = A_HEX_SHA[:4]
         a3 = self.repo.read(a_hex_prefix)
         self.assertEqual((GIT_OBJ_BLOB, 'a contents\n'), a3)
@@ -144,6 +145,13 @@ class NewRepositoryTest(utils.NoRepoTestCase):
         self.assertEqual(len(oid), 20)
 
         assert os.path.exists(os.path.join(self._temp_dir, '.git'))
+
+class DiscoverRepositoryTest(utils.NoRepoTestCase):
+    def test_discover_repo(self):
+        repo = init_repository(self._temp_dir, False)
+        subdir = os.path.join(self._temp_dir, "test1","test2")
+        os.makedirs(subdir)
+        self.assertEqual(repo.path, discover_repository(subdir))
 
 if __name__ == '__main__':
     unittest.main()
