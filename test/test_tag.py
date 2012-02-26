@@ -43,13 +43,15 @@ TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 class TagTest(utils.BareRepoTestCase):
 
     def test_read_tag(self):
-        tag = self.repo[TAG_SHA]
+        repo = self.repo
+        tag = repo[TAG_SHA]
+        target = repo[tag.target]
         self.assertTrue(isinstance(tag, pygit2.Tag))
         self.assertEqual(pygit2.GIT_OBJ_TAG, tag.type)
-        self.assertEqual(pygit2.GIT_OBJ_COMMIT, tag.target.type)
+        self.assertEqual(pygit2.GIT_OBJ_COMMIT, target.type)
         self.assertEqual('root', tag.name)
         self.assertEqual('Tagged root commit.\n', tag.message)
-        self.assertEqual('Initial test data commit.\n', tag.target.message)
+        self.assertEqual('Initial test data commit.\n', target.message)
         self.assertEqualSignature(
             tag.tagger,
             pygit2.Signature('Dave Borowitz', 'dborowitz@google.com',
@@ -72,7 +74,7 @@ class TagTest(utils.BareRepoTestCase):
 
         self.assertEqual('3ee44658fd11660e828dfc96b9b5c5f38d5b49bb', tag.hex)
         self.assertEqual(name, tag.name)
-        self.assertEqual(target, tag.target.hex)
+        self.assertEqual(target, utils.oid_to_hex(tag.target))
         self.assertEqualSignature(tagger, tag.tagger)
         self.assertEqual(message, tag.message)
         self.assertEqual(name, self.repo[tag.hex].name)

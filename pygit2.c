@@ -1793,12 +1793,10 @@ static PyTypeObject BlobType = {
 static PyObject *
 Tag_get_target(Tag *self)
 {
-    const git_oid *target_oid;
-    git_otype target_type;
+    const git_oid *oid;
 
-    target_oid = git_tag_target_oid(self->tag);
-    target_type = git_tag_type(self->tag);
-    return lookup_object(self->repo, target_oid, target_type);
+    oid = git_tag_target_oid(self->tag);
+    return git_oid_to_python(oid->id);
 }
 
 static PyObject *
