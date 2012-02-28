@@ -262,6 +262,12 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
     return (PyObject*)py_obj;
 }
 
+static PyObject *
+lookup_object(Repository *repo, const git_oid *oid, git_otype type)
+{
+    return lookup_object_prefix(repo, oid, GIT_OID_HEXSZ, type);
+}
+
 static git_otype
 int_to_loose_object_type(int type_id)
 {
@@ -1248,7 +1254,7 @@ Commit_get_parents(Commit *commit)
             Error_set(GIT_ENOTFOUND);
             return NULL;
         }
-        obj = git_oid_to_python(parent_oid);
+        obj = lookup_object(commit->repo, parent_oid, GIT_OBJ_COMMIT);
         if (obj == NULL) {
             Py_DECREF(list);
             return NULL;
