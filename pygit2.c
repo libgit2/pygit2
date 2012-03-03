@@ -694,6 +694,8 @@ Repository_create_commit(Repository *self, PyObject *args)
         goto out;
 
     message = py_str_to_c_str(py_message, encoding);
+    if (message == NULL)
+        goto out;
 
     err = git_tree_lookup_prefix(&tree, self->repo, &oid, (unsigned int)len);
     if (err < 0) {
@@ -2811,6 +2813,8 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
         return -1;
 
     name = py_str_to_c_str(py_name, encoding);
+    if (name == NULL)
+        return -1;
 
     err = git_signature_new(&signature, name, email, time, offset);
     if (err < 0) {
