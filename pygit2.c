@@ -942,27 +942,36 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
 {
     TreeBuilder *builder;
     git_treebuilder *bld;
-    PyObject *py_oid = NULL;
+    PyObject *py_src = NULL;
     size_t oid_len;
     git_oid oid;
     git_tree *tree = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "|O", &py_oid))
+    if (!PyArg_ParseTuple(args, "|O", &py_src))
         return NULL;
 
-    if (py_oid) {
-        oid_len = py_str_to_git_oid(py_oid, &oid);
-        TODO_SUPPORT_SHORT_HEXS(oid_len)
-            if (oid_len == 0)
-                return NULL;
+    if (py_src) {
+        if (PyObject_TypeCheck(py_src, &TreeType)) {
+            Tree *py_tree = (Tree *)py_src;
+            if (py_tree->repo->repo != self->repo) {
+                return Error_set(GIT_EINVALIDARGS);
+            }
+	    tree = py_tree->tree;
+        } else {
+            oid_len = py_str_to_git_oid(py_src, &oid);
+            TODO_SUPPORT_SHORT_HEXS(oid_len)
+                if (oid_len == 0)
+                    return NULL;
 
-        err = git_tree_lookup(&tree, self->repo, &oid);
-        if (err < 0)
-            return Error_set(err);
+            err = git_tree_lookup(&tree, self->repo, &oid);
+            if (err < 0)
+                return Error_set(err);
+        }
     }
 
     err = git_treebuilder_create(&bld, tree);
+    git_tree_free(tree);
     if (err < 0)
         return Error_set(err);
 

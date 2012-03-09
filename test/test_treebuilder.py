@@ -50,9 +50,15 @@ class TreeBuilderTest(utils.BareRepoTestCase):
         result = bld.write()
         self.assertEqual(tree.oid, result)
 
+    def test_noop_treebuilder_from_tree(self):
+        tree = self.repo[TREE_SHA]
+        bld = self.repo.TreeBuilder(tree)
+        result = bld.write()
+        self.assertEqual(tree.oid, result)
+
     def test_rebuild_treebuilder(self):
         tree = self.repo[TREE_SHA]
-        bld = self.repo.TreeBuilder(TREE_SHA)
+        bld = self.repo.TreeBuilder()
         for e in tree:
             bld.insert(e)
 
