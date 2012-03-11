@@ -108,6 +108,7 @@ OBJECT_STRUCT(Walker, git_revwalk, walk)
 typedef struct {
     PyObject_HEAD
     const git_tree_entry *entry;
+    Tree *tree;
 } TreeEntry;
 
 typedef struct {
@@ -1328,6 +1329,7 @@ static PyTypeObject CommitType = {
 static void
 TreeEntry_dealloc(TreeEntry *self)
 {
+    Py_XDECREF(self->tree);
     PyObject_Del(self);
 }
 
@@ -1358,12 +1360,27 @@ TreeEntry_get_hex(TreeEntry *self)
     return git_oid_to_py_str(git_tree_entry_id(self->entry));
 }
 
+static PyObject *
+TreeEntry_to_object(TreeEntry *self)
+{
+    const git_oid *entry_oid;
+
+    entry_oid = git_tree_entry_id(self->entry);
+    return lookup_object(self->tree->repo, entry_oid, GIT_OBJ_ANY);
+}
+
 static PyGetSetDef TreeEntry_getseters[] = {
     {"attributes", (getter)TreeEntry_get_attributes, NULL, "attributes", NULL},
     {"name", (getter)TreeEntry_get_name, NULL, "name", NULL},
     {"oid", (getter)TreeEntry_get_oid, NULL, "object id", NULL},
     {"hex", (getter)TreeEntry_get_hex, NULL, "hex oid", NULL},
     {NULL}
+};
+
+static PyMethodDef TreeEntry_methods[] = {
+    {"to_object", (PyCFunction)TreeEntry_to_object, METH_NOARGS,
+     "Look up the corresponding object in the repo."},
+    {NULL, NULL, 0, NULL}
 };
 
 static PyTypeObject TreeEntryType = {
@@ -1394,7 +1411,7 @@ static PyTypeObject TreeEntryType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    TreeEntry_methods,                         /* tp_methods        */
     0,                                         /* tp_members        */
     TreeEntry_getseters,                       /* tp_getset         */
     0,                                         /* tp_base           */
@@ -1432,8 +1449,11 @@ wrap_tree_entry(const git_tree_entry *entry, Tree *tree)
     TreeEntry *py_entry;
 
     py_entry = PyObject_New(TreeEntry, &TreeEntryType);
-    if (py_entry)
+    if (py_entry) {
         py_entry->entry = entry;
+        py_entry->tree = tree;
+        Py_INCREF(tree);
+    }
     return py_entry;
 }
 

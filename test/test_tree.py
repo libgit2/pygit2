@@ -71,21 +71,20 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(tree['b'], sha, 'b', 0o0100644)
 
     def test_read_subtree(self):
-        repo = self.repo
-        tree = repo[TREE_SHA]
+        tree = self.repo[TREE_SHA]
         subtree_entry = tree['c']
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
 
-        subtree = repo[subtree_entry.oid]
+        subtree = subtree_entry.to_object()
         self.assertEqual(1, len(subtree))
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
-    # TODO This test worked with libgit2 v0.10.0, update to use the
-    # tree-builder
+    # XXX Creating new trees was removed from libgit2 by v0.11.0, we
+    # deactivate this test temporarily, since the feature may come back in
+    # a near feature (if it does not this test will be removed).
     def xtest_new_tree(self):
-        repo = self.repo
-        tree = pygit2.Tree(repo)
+        tree = pygit2.Tree(self.repo)
         self.assertEqual(0, len(tree))
         tree.add_entry('1' * 40, 'x', 0o0100644)
         tree.add_entry('2' * 40, 'y', 0o0100755)
@@ -104,7 +103,8 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertEqual(None, tree.hex)
         tree.write()
         contents = '100644 x\0%s100755 y\0%s' % ('\x11' * 20, '\x22' * 20)
-        self.assertEqual((pygit2.GIT_OBJ_TREE, contents), repo.read(tree.hex))
+        self.assertEqual((pygit2.GIT_OBJ_TREE, contents),
+                         self.repo.read(tree.hex))
 
     def test_modify_tree(self):
         tree = self.repo[TREE_SHA]
