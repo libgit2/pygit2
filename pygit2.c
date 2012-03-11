@@ -933,6 +933,54 @@ Repository_status_file(Repository *self, PyObject *value)
     return PyInt_FromLong(status);
 }
 
+static PyObject *
+Repository_TreeBuilder(Repository *self, PyObject *args)
+{
+    TreeBuilder *builder;
+    git_treebuilder *bld;
+    PyObject *py_src = NULL;
+    size_t oid_len;
+    git_oid oid;
+    git_tree *tree = NULL;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "|O", &py_src))
+        return NULL;
+
+    if (py_src) {
+        if (PyObject_TypeCheck(py_src, &TreeType)) {
+            Tree *py_tree = (Tree *)py_src;
+            if (py_tree->repo->repo != self->repo) {
+                return Error_set(GIT_EINVALIDARGS);
+            }
+	    tree = py_tree->tree;
+        } else {
+            oid_len = py_str_to_git_oid(py_src, &oid);
+            TODO_SUPPORT_SHORT_HEXS(oid_len)
+                if (oid_len == 0)
+                    return NULL;
+
+            err = git_tree_lookup(&tree, self->repo, &oid);
+            if (err < 0)
+                return Error_set(err);
+        }
+    }
+
+    err = git_treebuilder_create(&bld, tree);
+    git_tree_free(tree);
+    if (err < 0)
+        return Error_set(err);
+
+    builder = PyObject_New(TreeBuilder, &TreeBuilderType);
+    if (builder) {
+        builder->repo = self;
+        builder->bld = bld;
+        Py_INCREF(self);
+    }
+
+    return (PyObject*)builder;
+}
+
 static PyMethodDef Repository_methods[] = {
     {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
      "Create a new commit object, return its SHA."},
@@ -966,6 +1014,8 @@ static PyMethodDef Repository_methods[] = {
      "as keys and status flags as values.\nSee pygit2.GIT_STATUS_*."},
     {"status_file", (PyCFunction)Repository_status_file, METH_O,
      "Returns the status of the given file path."},
+    {"TreeBuilder", (PyCFunction)Repository_TreeBuilder, METH_VARARGS,
+     "Create a TreeBuilder object for this repository."},
     {NULL}
 };
 
@@ -1593,36 +1643,10 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_new            */
 };
 
-static int
-TreeBuilder_init(TreeBuilder *self, PyObject *args, PyObject *kwds)
-{
-    Tree *py_tree = NULL;
-    git_tree *tree;
-    int err;
-
-    if (kwds) {
-        PyErr_SetString(PyExc_TypeError,
-                        "TreeBuilder takes no keyword arguments");
-        return -1;
-    }
-
-    if (!PyArg_ParseTuple(args, "|O", &py_tree))
-        return -1;
-
-    tree = py_tree == NULL ? NULL : py_tree->tree;
-
-    err = git_treebuilder_create(&self->bld, tree);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-
-    return 0;
-}
-
 static void
 TreeBuilder_dealloc(TreeBuilder* self)
 {
+    Py_XDECREF(self->repo);
     git_treebuilder_free(self->bld);
     PyObject_Del(self);
 }
@@ -1648,24 +1672,51 @@ TreeBuilder_insert(TreeBuilder *self, TreeEntry *py_tentry)
 }
 
 static PyObject *
-TreeBuilder_write(TreeBuilder *self, Repository *py_repo)
+TreeBuilder_write(TreeBuilder *self)
 {
     int err;
     git_oid oid;
-    git_repository *repo = py_repo->repo;
 
-    err = git_treebuilder_write(&oid, repo, self->bld);
+    err = git_treebuilder_write(&oid, self->repo->repo, self->bld);
     if (err < 0)
         return Error_set(err);
 
     return git_oid_to_python(&oid);
 }
 
+static PyObject *
+TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
+{
+    char *filename;
+    int err;
+
+    filename = py_path_to_c_str(py_filename);
+    if (filename == NULL)
+        return NULL;
+
+    err = git_treebuilder_remove(self->bld, filename);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+TreeBuilder_clear(TreeBuilder *self)
+{
+    git_treebuilder_clear(self->bld);
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef TreeBuilder_methods[] = {
     {"insert", (PyCFunction)TreeBuilder_insert, METH_O,
      "Insert or replace an entry in the treebuilder"},
-    {"write", (PyCFunction)TreeBuilder_write, METH_O,
+    {"write", (PyCFunction)TreeBuilder_write, METH_NOARGS,
      "Write the tree to the given repository"},
+    {"remove", (PyCFunction)TreeBuilder_remove, METH_O,
+     "Remove an entry from the builder"},
+    {"clear", (PyCFunction)TreeBuilder_clear, METH_NOARGS,
+     "Clear all the entries in the builder"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -1705,7 +1756,7 @@ static PyTypeObject TreeBuilderType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    (initproc)TreeBuilder_init,                /* tp_init           */
+    0,                                         /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
@@ -3087,9 +3138,6 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&TreeType);
     PyModule_AddObject(m, "Tree", (PyObject *)&TreeType);
-
-    Py_INCREF(&TreeBuilderType);
-    PyModule_AddObject(m, "TreeBuilder", (PyObject *)&TreeBuilderType);
 
     Py_INCREF(&BlobType);
     PyModule_AddObject(m, "Blob", (PyObject *)&BlobType);
