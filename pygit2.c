@@ -104,12 +104,7 @@ OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
-
-typedef struct {
-    PyObject_HEAD
-    const git_tree_entry *entry;
-    Tree *tree;
-} TreeEntry;
+OBJECT_STRUCT(TreeEntry, git_tree_entry, entry)
 
 typedef struct {
     PyObject_HEAD
@@ -1329,7 +1324,7 @@ static PyTypeObject CommitType = {
 static void
 TreeEntry_dealloc(TreeEntry *self)
 {
-    Py_XDECREF(self->tree);
+    Py_XDECREF(self->repo);
     PyObject_Del(self);
 }
 
@@ -1366,7 +1361,7 @@ TreeEntry_to_object(TreeEntry *self)
     const git_oid *entry_oid;
 
     entry_oid = git_tree_entry_id(self->entry);
-    return lookup_object(self->tree->repo, entry_oid, GIT_OBJ_ANY);
+    return lookup_object(self->repo, entry_oid, GIT_OBJ_ANY);
 }
 
 static PyGetSetDef TreeEntry_getseters[] = {
@@ -1444,15 +1439,15 @@ Tree_contains(Tree *self, PyObject *py_name)
 }
 
 static TreeEntry *
-wrap_tree_entry(const git_tree_entry *entry, Tree *tree)
+wrap_tree_entry(const git_tree_entry *entry, Repository *repo)
 {
     TreeEntry *py_entry;
 
     py_entry = PyObject_New(TreeEntry, &TreeEntryType);
     if (py_entry) {
         py_entry->entry = entry;
-        py_entry->tree = tree;
-        Py_INCREF(tree);
+        py_entry->repo = repo;
+        Py_INCREF(repo);
     }
     return py_entry;
 }
@@ -1515,7 +1510,7 @@ Tree_getitem_by_index(Tree *self, PyObject *py_index)
         PyErr_SetObject(PyExc_IndexError, py_index);
         return NULL;
     }
-    return wrap_tree_entry(entry, self);
+    return wrap_tree_entry(entry, self->repo);
 }
 
 static TreeEntry *
@@ -1537,7 +1532,7 @@ Tree_getitem(Tree *self, PyObject *value)
         PyErr_SetObject(PyExc_KeyError, value);
         return NULL;
     }
-    return wrap_tree_entry(entry, self);
+    return wrap_tree_entry(entry, self->repo);
 }
 
 static PySequenceMethods Tree_as_sequence = {
@@ -1732,7 +1727,7 @@ TreeIter_iternext(TreeIter *self)
         return NULL;
 
     self->i += 1;
-    return (TreeEntry*)wrap_tree_entry(tree_entry, self->owner);
+    return (TreeEntry*)wrap_tree_entry(tree_entry, self->owner->repo);
 }
 
 static PyTypeObject TreeIterType = {

@@ -80,9 +80,8 @@ class TreeTest(utils.BareRepoTestCase):
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
-    # XXX Creating new trees was removed from libgit2 by v0.11.0, we
-    # deactivate this test temporarily, since the feature may come back in
-    # a near feature (if it does not this test will be removed).
+    # TODO This test worked with libgit2 v0.10.0, update to use the
+    # tree-builder
     def xtest_new_tree(self):
         tree = pygit2.Tree(self.repo)
         self.assertEqual(0, len(tree))
