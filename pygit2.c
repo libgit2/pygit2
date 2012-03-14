@@ -47,11 +47,17 @@
 
 /* Utilities */
 Py_LOCAL_INLINE(PyObject*)
-to_unicode(const char *value, const char *encoding, const char *errors)
+to_unicode_n(const char *value, size_t len, const char *encoding, const char *errors)
 {
     if (encoding == NULL)
         encoding = "utf-8";
-    return PyUnicode_Decode(value, strlen(value), encoding, errors);
+    return PyUnicode_Decode(value, len, encoding, errors);
+}
+
+Py_LOCAL_INLINE(PyObject*)
+to_unicode(const char *value, const char *encoding, const char *errors)
+{
+    return to_unicode_n(value, strlen(value), encoding, errors);
 }
 
 Py_LOCAL_INLINE(PyObject*)
@@ -1224,6 +1230,24 @@ Commit_get_message(Commit *commit)
 }
 
 static PyObject *
+Commit_get_subject(Commit *commit)
+{
+    const char *message, *encoding, *subj_end;
+    size_t len;
+
+    message = git_commit_message(commit->commit);
+    encoding = git_commit_message_encoding(commit->commit);
+    subj_end = strstr(message, "\n\n");
+
+    if (subj_end == NULL)
+	len = strlen(message);
+    else
+	len = subj_end - message;
+
+    return to_unicode_n(message, len, encoding, "strict");
+}
+
+static PyObject *
 Commit_get_commit_time(Commit *commit)
 {
     return PyLong_FromLong(git_commit_time(commit->commit));
@@ -1318,6 +1342,7 @@ static PyGetSetDef Commit_getseters[] = {
     {"message_encoding", (getter)Commit_get_message_encoding, NULL,
      "message encoding", NULL},
     {"message", (getter)Commit_get_message, NULL, "message", NULL},
+    {"subject", (getter)Commit_get_subject, NULL, "subject", NULL},
     {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
      NULL},
     {"commit_time_offset", (getter)Commit_get_commit_time_offset, NULL,

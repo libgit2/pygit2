@@ -53,6 +53,7 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)
+        self.assertEqual(('Second test data commit.'), commit.subject)
         commit_time = 1288481576
         self.assertEqual(commit_time, commit.commit_time)
         self.assertEqualSignature(
@@ -134,6 +135,19 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertRaises(AttributeError, setattr, commit, 'tree', None)
         self.assertRaises(AttributeError, setattr, commit, 'parents', None)
 
+    def test_subject_one_para(self):
+        message = 'New commit.'
+        committer = Signature('John Doe', 'jdoe@example.com', 12346, 0)
+        author = Signature('Jane Doe', 'jdoe2@example.com', 12345, 0)
+        tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+        tree_prefix = tree[:5]
+
+        parents = [COMMIT_SHA]
+        sha = self.repo.create_commit(None, author, committer, message,
+                                 tree, parents)
+        commit = self.repo[sha]
+        self.assertEqual(message, commit.message)
+        self.assertEqual(message, commit.subject)
 
 if __name__ == '__main__':
     unittest.main()
