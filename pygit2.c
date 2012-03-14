@@ -49,8 +49,14 @@
 Py_LOCAL_INLINE(PyObject*)
 to_unicode(const char *value, const char *encoding, const char *errors)
 {
-    if (encoding == NULL)
+    if (encoding == NULL) {
+        /* If the encoding is not explicit, it may not be UTF-8, so it
+         * is not safe to decode it strictly.  This is rare in the
+         * wild, but does occur in old commits to git itself
+         * (e.g. c31820c2). */
         encoding = "utf-8";
+        errors = "replace";
+    }
     return PyUnicode_Decode(value, strlen(value), encoding, errors);
 }
 
@@ -1224,6 +1230,12 @@ Commit_get_message(Commit *commit)
 }
 
 static PyObject *
+Commit_get_raw_message(Commit *commit)
+{
+    return PyString_FromString(git_commit_message(commit->commit));
+}
+
+static PyObject *
 Commit_get_commit_time(Commit *commit)
 {
     return PyLong_FromLong(git_commit_time(commit->commit));
@@ -1318,6 +1330,7 @@ static PyGetSetDef Commit_getseters[] = {
     {"message_encoding", (getter)Commit_get_message_encoding, NULL,
      "message encoding", NULL},
     {"message", (getter)Commit_get_message, NULL, "message", NULL},
+    {"_message", (getter)Commit_get_raw_message, NULL, "message (bytes)", NULL},
     {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
      NULL},
     {"commit_time_offset", (getter)Commit_get_commit_time_offset, NULL,
@@ -1897,12 +1910,18 @@ Tag_get_message(Tag *self)
     return to_unicode(message, "utf-8", "strict");
 }
 
+static PyObject *
+Tag_get_raw_message(Tag *self)
+{
+    return PyString_FromString(git_tag_message(self->tag));
+}
+
 static PyGetSetDef Tag_getseters[] = {
     {"target", (getter)Tag_get_target, NULL, "tagged object", NULL},
     {"name", (getter)Tag_get_name, NULL, "tag name", NULL},
     {"tagger", (getter)Tag_get_tagger, NULL, "tagger", NULL},
-    {"message", (getter)Tag_get_message, NULL, "tag message",
-     NULL},
+    {"message", (getter)Tag_get_message, NULL, "tag message", NULL},
+    {"_message", (getter)Tag_get_raw_message, NULL, "tag message (bytes)", NULL},
     {NULL}
 };
 
