@@ -84,6 +84,12 @@ class ReferencesTest(utils.RepoTestCase):
         reference.oid = NEW_COMMIT
         self.assertEqual(reference.hex, NEW_COMMIT)
 
+    def test_reference_set_sha_prefix(self):
+        NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
+        reference = self.repo.lookup_reference('refs/heads/master')
+        reference.oid = NEW_COMMIT[0:6]
+        self.assertEqual(reference.hex, NEW_COMMIT)
+
 
     def test_reference_get_type(self):
         reference = self.repo.lookup_reference('refs/heads/master')

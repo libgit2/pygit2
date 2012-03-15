@@ -76,7 +76,9 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
         self.assertTrue(A_BIN_SHA in self.repo)
         self.assertTrue(A_HEX_SHA in self.repo)
+        self.assertTrue(A_HEX_SHA[0:10] in self.repo)
         self.assertFalse('a' * 40 in self.repo)
+        self.assertFalse('a' * 20 in self.repo)
 
     def test_lookup_blob(self):
         self.assertRaises(TypeError, lambda: self.repo[123])

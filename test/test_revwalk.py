@@ -64,6 +64,11 @@ class WalkerTest(utils.RepoTestCase):
         walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
         self.assertEqual(len(list(walker)), 2)
 
+    def test_hide_prefix(self):
+        walker = self.repo.walk(log[0], GIT_SORT_TIME)
+        walker.hide('4ec4389a')
+        self.assertEqual(len(list(walker)), 2)
+
     def test_reset(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
         walker.reset()
