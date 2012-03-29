@@ -37,10 +37,6 @@ except ImportError:
     SETUPTOOLS = False
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
-libraries = ['git2', 'z', 'crypto']
-if os.name == 'nt':
-    libraries = ['git2']
-
 libgit2_path = os.getenv("LIBGIT2")
 if libgit2_path is None:
     if os.name == 'nt':
@@ -100,6 +96,6 @@ setup(name='pygit2',
           Extension('pygit2', ['pygit2.c'],
                     include_dirs=[libgit2_include],
                     library_dirs=[libgit2_lib],
-                    libraries=libraries),
+                    libraries=['git2']),
           ],
       **kwargs)

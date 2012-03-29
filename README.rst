@@ -16,11 +16,6 @@ You can find platform-specific instructions to build the library in the libgit2 
 
   http://libgit2.github.com
 
-Next, make sure you have the required library dependencies for pygit2: OpenSSL and ZLib.
-For instance, in Debian-based systems run::
-
-    $ sudo apt-get install zlib1g-dev libssl-dev
-
 Also, make sure you have Python 2.6+ installed together with the Python development headers.
 
 When those are installed, you can install pygit2::
