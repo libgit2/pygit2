@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2010 Google, Inc.
 #
@@ -83,24 +83,15 @@ class TreeTest(utils.BareRepoTestCase):
     # TODO This test worked with libgit2 v0.10.0, update to use the
     # tree-builder
     def xtest_new_tree(self):
-        tree = pygit2.Tree(self.repo)
-        self.assertEqual(0, len(tree))
-        tree.add_entry('1' * 40, 'x', 0o0100644)
-        tree.add_entry('2' * 40, 'y', 0o0100755)
-        self.assertEqual(2, len(tree))
+        b = self.repo.TreeBuilder()
+        b.insert('1' * 40, 'x', 0o0100644)
+        b.insert('2' * 40, 'y', 0o0100755)
+        tree = self.repo[b.write()]
+
         self.assertTrue('x' in tree)
         self.assertTrue('y' in tree)
         self.assertRaisesWithArg(KeyError, '1' * 40, tree['x'].to_object)
 
-        tree.add_entry('3' * 40, 'z1', 0o0100644)
-        tree.add_entry('4' * 40, 'z2', 0o0100644)
-        self.assertEqual(4, len(tree))
-        del tree['z1']
-        del tree[2]
-        self.assertEqual(2, len(tree))
-
-        self.assertEqual(None, tree.hex)
-        tree.write()
         contents = '100644 x\0%s100755 y\0%s' % ('\x11' * 20, '\x22' * 20)
         self.assertEqual((pygit2.GIT_OBJ_TREE, contents),
                          self.repo.read(tree.hex))
