@@ -1052,7 +1052,7 @@ static PyMethodDef Repository_methods[] = {
     {"packall_references", (PyCFunction)Repository_packall_references,
      METH_NOARGS, "Pack all the loose references in the repository."},
     {"status", (PyCFunction)Repository_status, METH_NOARGS, "Reads the "
-     "status of the repository and returns a dictionnary with file paths "
+     "status of the repository and returns a dictionary with file paths "
      "as keys and status flags as values.\nSee pygit2.GIT_STATUS_*."},
     {"status_file", (PyCFunction)Repository_status_file, METH_O,
      "Returns the status of the given file path."},
