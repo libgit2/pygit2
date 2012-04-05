@@ -1703,21 +1703,27 @@ TreeBuilder_dealloc(TreeBuilder* self)
 }
 
 static PyObject *
-TreeBuilder_insert(TreeBuilder *self, TreeEntry *py_tentry)
+TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 {
-    int err, attr;
-    const git_oid *oid;
+    PyObject *py_oid;
+    int len, err, attr;
+    git_oid oid;
     const char *fname;
-    const git_tree_entry *tentry;
 
-    tentry = py_tentry->entry;
-    fname = git_tree_entry_name(tentry);
-    oid = git_tree_entry_id(tentry);
-    attr = git_tree_entry_attributes(tentry);
+    if (!PyArg_ParseTuple(args, "sOi", &fname, &py_oid, &attr)) {
+        return NULL;
+    }
 
-    err = git_treebuilder_insert(NULL, self->bld, fname, oid, attr);
-    if (err < 0)
-        return Error_set(err);
+    len = py_str_to_git_oid(py_oid, &oid);
+    if (len < 0) {
+        return NULL;
+    }
+
+    err = git_treebuilder_insert(NULL, self->bld, fname, &oid, attr);
+    if (err < 0) {
+        Error_set(err);
+        return NULL;
+    }
 
     Py_RETURN_NONE;
 }
@@ -1760,7 +1766,7 @@ TreeBuilder_clear(TreeBuilder *self)
 }
 
 static PyMethodDef TreeBuilder_methods[] = {
-    {"insert", (PyCFunction)TreeBuilder_insert, METH_O,
+    {"insert", (PyCFunction)TreeBuilder_insert, METH_VARARGS,
      "Insert or replace an entry in the treebuilder"},
     {"write", (PyCFunction)TreeBuilder_write, METH_NOARGS,
      "Write the tree to the given repository"},
