@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+# coding: utf-8
 #
 # Copyright 2010 Google, Inc.
 # Copyright 2011 Itaapy
@@ -29,12 +30,7 @@
 """Setup file for pygit2."""
 
 import os
-try:
-    from setuptools import setup, Extension, Command
-    SETUPTOOLS = True
-except ImportError:
-    from distutils.core import setup, Extension, Command
-    SETUPTOOLS = False
+from distutils.core import setup, Extension, Command
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -66,11 +62,7 @@ class TestCommand(Command):
         test.main()
 
 
-kwargs = {}
-if SETUPTOOLS:
-    kwargs = {'test_suite': 'test.test_suite'}
-else:
-    kwargs = {'cmdclass': {'test': TestCommand}}
+kwargs = {'cmdclass': {'test': TestCommand}}
 
 
 classifiers = [
@@ -92,7 +84,7 @@ setup(name='pygit2',
       maintainer='J. David Ibáñez',
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
-      ext_modules = [
+      ext_modules=[
           Extension('pygit2', ['pygit2.c'],
                     include_dirs=[libgit2_include],
                     library_dirs=[libgit2_lib],
