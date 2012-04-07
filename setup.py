@@ -30,7 +30,10 @@
 """Setup file for pygit2."""
 
 import os
+import sys
+import logging
 from distutils.core import setup, Extension, Command
+from distutils.command.build import build
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -58,11 +61,47 @@ class TestCommand(Command):
 
     def run(self):
         self.run_command('build')
+        bld = self.distribution.get_command_obj('build')
+        sys.path = [os.path.abspath(bld.build_lib)] + sys.path
         import test
         test.main()
 
 
-kwargs = {'cmdclass': {'test': TestCommand}}
+class BuildWithDLLs(build):
+
+    # On Windows, we install the git2.dll too.
+    def _get_dlls(self):
+        # return a list of of (FQ-in-name, relative-out-name) tuples.
+        ret = []
+        bld_ext = self.distribution.get_command_obj('build_ext')
+        compiler_type = bld_ext.compiler.compiler_type
+        libgit2_dlls = []
+        if compiler_type == 'msvc':
+            libgit2_dlls.append('git2.dll')
+        elif compiler_type == 'mingw32':
+            libgit2_dlls.append('libgit2.dll')
+        look_dirs = [libgit2_bin] + os.environ.get("PATH","").split(os.pathsep)
+        target = os.path.abspath(self.build_lib)
+        for bin in libgit2_dlls:
+            for look in look_dirs:
+                f = os.path.join(look, bin)
+                if os.path.isfile(f):
+                    ret.append((f, target))
+                    break
+            else:
+                logging.warning("Could not find required DLL %r to copy, (looked in %s)",
+                    bin, look_dirs)
+        return ret
+
+    def run(self):
+        build.run(self)
+        if os.name == 'nt':
+            # On Windows we package up the dlls with the plugin.
+            for s, d in self._get_dlls():
+                self.copy_file(s, d)
+
+
+kwargs = {'cmdclass': {'test': TestCommand, 'build': BuildWithDLLs}}
 
 
 classifiers = [
