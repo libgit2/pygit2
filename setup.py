@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-# coding: utf-8
+# coding: UTF-8
 #
 # Copyright 2010 Google, Inc.
 # Copyright 2011 Itaapy
