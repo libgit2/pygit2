@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+# coding: UTF-8
 #
 # Copyright 2010 Google, Inc.
 # Copyright 2011 Itaapy
@@ -29,12 +30,10 @@
 """Setup file for pygit2."""
 
 import os
-try:
-    from setuptools import setup, Extension, Command
-    SETUPTOOLS = True
-except ImportError:
-    from distutils.core import setup, Extension, Command
-    SETUPTOOLS = False
+import sys
+from distutils.core import setup, Extension, Command
+from distutils.command.build import build
+from distutils import log
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -50,11 +49,14 @@ libgit2_include = os.path.join(libgit2_path, 'include')
 libgit2_lib =  os.path.join(libgit2_path, 'lib')
 
 class TestCommand(Command):
-    """Command for running pygit2 tests."""
+    """Command for running unittests without install."""
 
-    user_options = []
+    user_options = [("args=", None, '''The command args string passed to
+                                    unittest framework, such as 
+                                     --args="-v -f"''')]
 
     def initialize_options(self):
+        self.args = ''
         pass
 
     def finalize_options(self):
@@ -62,16 +64,60 @@ class TestCommand(Command):
 
     def run(self):
         self.run_command('build')
-        import test
-        test.main()
+        bld = self.distribution.get_command_obj('build')
+        #Add build_lib in to sys.path so that unittest can found DLLs and libs
+        sys.path = [os.path.abspath(bld.build_lib)] + sys.path
+
+        import shlex
+        import unittest
+        test_argv0 = [sys.argv[0] + ' test --args=']
+        #For transfering args to unittest, we have to split args
+        #by ourself, so that command like:
+        #python setup.py test --args="-v -f"
+        #can be executed, and the parameter '-v -f' can be
+        #transfering to unittest properly.
+        test_argv = test_argv0 + shlex.split(self.args)
+        unittest.main(module=None, defaultTest='test.test_suite', argv=test_argv)
 
 
-kwargs = {}
-if SETUPTOOLS:
-    kwargs = {'test_suite': 'test.test_suite'}
-else:
-    kwargs = {'cmdclass': {'test': TestCommand}}
+class BuildWithDLLs(build):
 
+    # On Windows, we install the git2.dll too.
+    def _get_dlls(self):
+        # return a list of of (FQ-in-name, relative-out-name) tuples.
+        ret = []
+        bld_ext = self.distribution.get_command_obj('build_ext')
+        compiler_type = bld_ext.compiler.compiler_type
+        libgit2_dlls = []
+        if compiler_type == 'msvc':
+            libgit2_dlls.append('git2.dll')
+        elif compiler_type == 'mingw32':
+            libgit2_dlls.append('libgit2.dll')
+        look_dirs = [libgit2_bin] + os.environ.get("PATH","").split(os.pathsep)
+        target = os.path.abspath(self.build_lib)
+        for bin in libgit2_dlls:
+            for look in look_dirs:
+                f = os.path.join(look, bin)
+                if os.path.isfile(f):
+                    ret.append((f, target))
+                    break
+            else:
+                log.warn("Could not find required DLL %r to include", bin)
+                log.debug("(looked in %s)", look_dirs)
+        return ret
+
+    def run(self):
+        build.run(self)
+        if os.name == 'nt':
+            # On Windows we package up the dlls with the plugin.
+            for s, d in self._get_dlls():
+                self.copy_file(s, d)
+
+
+cmdclass = {'test': TestCommand}
+if os.name == 'nt':
+    # BuildWithDLLs can copy external DLLs into source directory.
+    cmdclass['build'] = BuildWithDLLs
 
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -92,10 +138,10 @@ setup(name='pygit2',
       maintainer='J. David Ibáñez',
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
-      ext_modules = [
+      ext_modules=[
           Extension('pygit2', ['pygit2.c'],
                     include_dirs=[libgit2_include],
                     library_dirs=[libgit2_lib],
                     libraries=['git2']),
           ],
-      **kwargs)
+      cmdclass=cmdclass)
