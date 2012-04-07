@@ -31,9 +31,9 @@
 
 import os
 import sys
-import logging
 from distutils.core import setup, Extension, Command
 from distutils.command.build import build
+from distutils import log
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -49,11 +49,14 @@ libgit2_include = os.path.join(libgit2_path, 'include')
 libgit2_lib =  os.path.join(libgit2_path, 'lib')
 
 class TestCommand(Command):
-    """Command for running pygit2 tests."""
+    """Command for running unittests without install."""
 
-    user_options = []
+    user_options = [("args=", None, '''The command args string passed to
+                                    unittest framework, such as 
+                                     --args="-v -f"''')]
 
     def initialize_options(self):
+        self.args = ''
         pass
 
     def finalize_options(self):
@@ -62,9 +65,19 @@ class TestCommand(Command):
     def run(self):
         self.run_command('build')
         bld = self.distribution.get_command_obj('build')
+        #Add build_lib in to sys.path so that unittest can found DLLs and libs
         sys.path = [os.path.abspath(bld.build_lib)] + sys.path
-        import test
-        test.main()
+
+        import shlex
+        import unittest
+        test_argv0 = [sys.argv[0] + ' test --args=']
+        #For transfering args to unittest, we have to split args
+        #by ourself, so that command like:
+        #python setup.py test --args="-v -f"
+        #can be executed, and the parameter '-v -f' can be
+        #transfering to unittest properly.
+        test_argv = test_argv0 + shlex.split(self.args)
+        unittest.main(module=None, defaultTest='test.test_suite', argv=test_argv)
 
 
 class BuildWithDLLs(build):
@@ -89,8 +102,8 @@ class BuildWithDLLs(build):
                     ret.append((f, target))
                     break
             else:
-                logging.warning("Could not find required DLL %r to copy, (looked in %s)",
-                    bin, look_dirs)
+                log.warn("Could not find required DLL %r to include", bin)
+                log.debug("(looked in %s)", look_dirs)
         return ret
 
     def run(self):
@@ -101,8 +114,10 @@ class BuildWithDLLs(build):
                 self.copy_file(s, d)
 
 
-kwargs = {'cmdclass': {'test': TestCommand, 'build': BuildWithDLLs}}
-
+cmdclass = {'test': TestCommand}
+if os.name == 'nt':
+    # BuildWithDLLs can copy external DLLs into source directory.
+    cmdclass['build'] = BuildWithDLLs
 
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -129,4 +144,4 @@ setup(name='pygit2',
                     library_dirs=[libgit2_lib],
                     libraries=['git2']),
           ],
-      **kwargs)
+      cmdclass=cmdclass)
