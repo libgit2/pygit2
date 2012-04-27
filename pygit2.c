@@ -2742,6 +2742,20 @@ Config_open_system_config(Config *self)
     return PyString_FromString(path);
 }
 
+static PyObject *
+Config_getitem(Config *self, PyObject *key)
+{
+    int err;
+    char *value;
+    const char *ckey = PyString_AsString(key);
+
+    err = git_config_get_string(self->config, ckey, (const char **)&value);
+    if (err < 0) 
+        return Error_set(err);
+    
+    return PyString_FromString(value);
+}
+
 static PyMethodDef Config_methods[] = {
     {"find_system_config", (PyCFunction)Config_open_system_config,
      METH_NOARGS | METH_STATIC,
@@ -2750,6 +2764,12 @@ static PyMethodDef Config_methods[] = {
      METH_NOARGS | METH_STATIC,
      "Locate the path to the global configuration file."},
     {NULL}
+};
+
+static PyMappingMethods Config_as_mapping = {
+    0,                               /* mp_length */
+    (binaryfunc)Config_getitem,      /* mp_subscript */
+    0,                               /* mp_ass_subscript */
 };
 
 static PyTypeObject ConfigType = {
@@ -2765,7 +2785,7 @@ static PyTypeObject ConfigType = {
     0,                                         /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
-    0,                                         /* tp_as_mapping     */
+    &Config_as_mapping,                        /* tp_as_mapping     */
     0,                                         /* tp_hash           */
     0,                                         /* tp_call           */
     0,                                         /* tp_str            */
