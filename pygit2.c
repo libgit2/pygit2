@@ -2715,7 +2715,43 @@ Config_dealloc(Config *self)
     git_config_free(self->config);
     PyObject_Del(self);
 }
-    
+
+static PyObject *
+Config_open_global_config(Config *self)
+{
+    char path[GIT_PATH_MAX];
+    int err;
+
+    err = git_config_find_global(path);
+    if (err < 0)
+        return Error_set(err);
+
+    return PyString_FromString(path);
+}
+
+static PyObject *
+Config_open_system_config(Config *self)
+{
+    char path[GIT_PATH_MAX];
+    int err;
+
+    err = git_config_find_system(path);
+    if (err < 0)
+        return Error_set(err);
+
+    return PyString_FromString(path);
+}
+
+static PyMethodDef Config_methods[] = {
+    {"find_system_config", (PyCFunction)Config_open_system_config,
+     METH_NOARGS | METH_STATIC,
+     "Locate the path to the system configuration file."},
+    {"find_global_config", (PyCFunction)Config_open_global_config,
+     METH_NOARGS | METH_STATIC,
+     "Locate the path to the global configuration file."},
+    {NULL}
+};
+
 static PyTypeObject ConfigType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "pygit2.Config",                           /* tp_name           */
@@ -2744,7 +2780,7 @@ static PyTypeObject ConfigType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Config_methods,                            /* tp_methods        */
     0,                                         /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */
