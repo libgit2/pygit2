@@ -91,6 +91,7 @@ typedef struct {
     PyObject_HEAD
     git_repository *repo;
     PyObject *index; /* It will be None for a bare repository */
+    PyObject *config;
 } Repository;
 
 /* The structs for some of the object subtypes are identical except for
@@ -110,6 +111,8 @@ OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
+OBJECT_STRUCT(Config, git_config, config) /* repo will be None for global user 
+                                             and system config */
 
 typedef struct {
     PyObject_HEAD
@@ -159,6 +162,7 @@ static PyTypeObject IndexType;
 static PyTypeObject IndexEntryType;
 static PyTypeObject IndexIterType;
 static PyTypeObject WalkerType;
+static PyTypeObject ConfigType;
 static PyTypeObject ReferenceType;
 static PyTypeObject SignatureType;
 
@@ -647,6 +651,38 @@ Repository_get_workdir(Repository *self, void *closure)
 }
 
 static PyObject *
+Repository_get_config(Repository *self, void *closure)
+{
+    int err;
+    git_config *config;
+    Config *py_config;
+
+    assert(self->repo);
+
+    if (self->index == NULL) {
+        err = git_repository_config(&config, self->repo);
+        if (err < 0)
+            return Error_set(err);
+
+        py_config = PyObject_GC_New(Config, &ConfigType);
+        if (!py_config) {
+            git_config_free(config);
+            return NULL;
+        }
+
+        Py_INCREF(self);
+        py_config->repo = self;
+        py_config->config = config;
+        PyObject_GC_Track(py_config);
+        self->config = (PyObject*)py_config;
+    }
+
+    Py_INCREF(self->config);
+    return self->config;
+
+}
+
+static PyObject *
 Repository_walk(Repository *self, PyObject *args)
 {
     PyObject *value;
@@ -1065,6 +1101,11 @@ static PyGetSetDef Repository_getseters[] = {
     {"index", (getter)Repository_get_index, NULL, "index file. ", NULL},
     {"path", (getter)Repository_get_path, NULL,
      "The normalized path to the git repository.", NULL},
+    {"config", (getter)Repository_get_config, NULL,
+     "Get the configuration file for this repository.\n\n"
+     "If a configuration file has not been set, the default "
+     "config set for the repository will be returned, including "
+     "global and system configurations (if they are available).", NULL},
     {"workdir", (getter)Repository_get_workdir, NULL,
      "The normalized path to the working directory of the repository. "
      "If the repository is bare, None will be returned.", NULL},
@@ -2639,6 +2680,83 @@ static PyTypeObject WalkerType = {
     0,                                         /* tp_new            */
 };
 
+static int
+Config_init(Config *self, PyObject *args, PyObject *kwds)
+{
+    char *path;
+    int err;
+
+    if (kwds) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Repository takes no keyword arguments");
+        return -1;
+    }
+    
+    if (args) {        
+        if (!PyArg_ParseTuple(args, "s", &path)) {
+            err = git_config_open_global(&self->config);
+            if (err < 0) {
+                Error_set(err);
+                return -1;
+            }
+        }
+        err = git_config_open_ondisk(&self->config, path);
+        if (err < 0) {
+            Error_set_str(err, path);
+            return -1;
+        }
+    }
+    return 0;
+}
+
+static void
+Config_dealloc(Config *self)
+{
+    git_config_free(self->config);
+    PyObject_Del(self);
+}
+    
+static PyTypeObject ConfigType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pygit2.Config",                           /* tp_name           */
+    sizeof(Config),                            /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Config_dealloc,                /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    "Configuration management",                /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)Config_init,                     /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
 static void
 Reference_dealloc(Reference *self)
 {
@@ -3172,6 +3290,9 @@ moduleinit(PyObject* m)
     WalkerType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&WalkerType) < 0)
         return NULL;
+    ConfigType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&ConfigType) < 0)
+        return NULL;
     ReferenceType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&ReferenceType) < 0)
         return NULL;
@@ -3208,6 +3329,9 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&IndexEntryType);
     PyModule_AddObject(m, "IndexEntry", (PyObject *)&IndexEntryType);
+
+    Py_INCREF(&ConfigType);
+    PyModule_AddObject(m, "Config", (PyObject *)&ConfigType);
 
     Py_INCREF(&ReferenceType);
     PyModule_AddObject(m, "Reference", (PyObject *)&ReferenceType);
