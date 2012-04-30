@@ -322,10 +322,15 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         if (py_hex == NULL)
             return -1;
         err = PyString_AsStringAndSize(py_hex, &hex_or_bin, &len);
-        Py_DECREF(py_hex);
-        if (err)
+        if (err) {
+            Py_DECREF(py_hex);
             return -1;
+        }
+
         err = git_oid_fromstrn(oid, hex_or_bin, len);
+
+        Py_DECREF(py_hex);
+
         if (err < 0) {
             PyErr_SetObject(Error_type(err), py_str);
             return -1;
@@ -386,24 +391,26 @@ git_oid_to_py_str(const git_oid *oid)
     return PyUnicode_DecodeASCII(hex, GIT_OID_HEXSZ, "strict");
 }
 
+// py_str_to_c_str() returns a newly allocated C string holding
+// the string contained in the value argument.
 char *
 py_str_to_c_str(PyObject *value, const char *encoding)
 {
-    char *c_str;
-
     /* Case 1: byte string */
     if (PyString_Check(value))
-        return PyString_AsString(value);
+        return strdup(PyString_AsString(value));
 
     /* Case 2: text string */
     if (PyUnicode_Check(value)) {
+        char *c_str = NULL;
+
         if (encoding == NULL)
             value = PyUnicode_AsUTF8String(value);
         else
             value = PyUnicode_AsEncodedString(value, encoding, "strict");
         if (value == NULL)
             return NULL;
-        c_str = PyString_AsString(value);
+        c_str = strdup(PyString_AsString(value));
         Py_DECREF(value);
         return c_str;
     }
@@ -715,7 +722,9 @@ Repository_create_commit(Repository *self, PyObject *args)
     Signature *py_author, *py_committer;
     PyObject *py_oid, *py_message, *py_parents, *py_parent;
     PyObject *py_result = NULL;
-    char *message, *update_ref, *encoding = NULL;
+    char *message = NULL;
+    char *update_ref = NULL;
+    char *encoding = NULL;
     git_oid oid;
     git_tree *tree = NULL;
     int parent_count;
@@ -774,6 +783,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     py_result = git_oid_to_python(oid.id);
 
 out:
+    free(message);
     git_tree_free(tree);
     while (i > 0) {
         i--;
@@ -867,8 +877,11 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 
     /* 2- Lookup */
     err = git_reference_lookup(&c_reference, self->repo, c_name);
-    if (err < 0)
-        return Error_set_str(err, c_name);
+    if (err < 0)  {
+        PyObject *err_obj = Error_set_str(err, c_name);
+        free(c_name);
+        return err_obj;
+    }
 
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference);
@@ -971,9 +984,11 @@ Repository_status_file(Repository *self, PyObject *value)
         return NULL;
 
     err = git_status_file(&status, self->repo, path);
-    if (err < 0)
-        return Error_set_str(err, path);
-
+    if (err < 0) {
+        PyObject *err_obj =  Error_set_str(err, path);
+        free(path);
+        return err_obj;
+    }
     return PyInt_FromLong(status);
 }
 
@@ -1530,13 +1545,14 @@ Tree_len(Tree *self)
 static int
 Tree_contains(Tree *self, PyObject *py_name)
 {
-    char *name;
-
-    name = py_path_to_c_str(py_name);
+    int result = 0;
+    char *name = py_path_to_c_str(py_name);
     if (name == NULL)
         return -1;
 
-    return git_tree_entry_byname(self->tree, name) ? 1 : 0;
+    result = git_tree_entry_byname(self->tree, name) ? 1 : 0;
+    free(name);
+    return result;
 }
 
 static TreeEntry *
@@ -1629,6 +1645,7 @@ Tree_getitem(Tree *self, PyObject *value)
     if (name == NULL)
         return NULL;
     entry = git_tree_entry_byname(self->tree, name);
+    free(name);
     if (!entry) {
         PyErr_SetObject(PyExc_KeyError, value);
         return NULL;
@@ -1744,14 +1761,14 @@ TreeBuilder_write(TreeBuilder *self)
 static PyObject *
 TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
 {
-    char *filename;
-    int err;
+    char *filename = py_path_to_c_str(py_filename);
+    int err = 0;
 
-    filename = py_path_to_c_str(py_filename);
     if (filename == NULL)
         return NULL;
 
     err = git_treebuilder_remove(self->bld, filename);
+    free(filename);
     if (err < 0)
         return Error_set(err);
 
@@ -2141,6 +2158,7 @@ Index_get_position(Index *self, PyObject *value)
     idx = git_index_find(self->index, path);
     if (idx < 0) {
         Error_set_str(idx, path);
+        free(path);
         return -1;
     }
     return idx;
@@ -2160,6 +2178,7 @@ Index_contains(Index *self, PyObject *value)
         return 0;
     if (idx < 0) {
         Error_set_str(idx, path);
+        free(path);
         return -1;
     }
 
@@ -2677,6 +2696,7 @@ Reference_rename(Reference *self, PyObject *py_name)
 
     /* Rename */
     err = git_reference_rename(self->reference, c_name, 0);
+    free(c_name);
     if (err < 0)
         return Error_set(err);
 
@@ -2760,6 +2780,7 @@ Reference_set_target(Reference *self, PyObject *py_name)
 
     /* Set the new target */
     err = git_reference_set_target(self->reference, c_name);
+    free(c_name);
     if (err < 0) {
         Error_set(err);
         return -1;
@@ -2941,6 +2962,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
         return -1;
 
     err = git_signature_new(&signature, name, email, time, offset);
+    free(name);
     if (err < 0) {
         Error_set(err);
         return -1;
