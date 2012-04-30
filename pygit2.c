@@ -1000,6 +1000,7 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
     PyObject *py_src = NULL;
     git_oid oid;
     git_tree *tree = NULL;
+    git_tree *must_free = NULL;
     int err;
 
     if (!PyArg_ParseTuple(args, "|O", &py_src))
@@ -1020,11 +1021,15 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
             err = git_tree_lookup(&tree, self->repo, &oid);
             if (err < 0)
                 return Error_set(err);
+            must_free = tree;
         }
     }
 
     err = git_treebuilder_create(&bld, tree);
-    git_tree_free(tree);
+    if (must_free != NULL) {
+        git_tree_free(must_free);
+    }
+
     if (err < 0)
         return Error_set(err);
 
