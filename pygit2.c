@@ -190,11 +190,10 @@ Error_type(int err)
 static const char *
 git_last_error(void)
 {
-	const char *ret;
+    const char *ret;
 
-	ret = git_lasterror();
-
-	return ret != NULL ? ret : "(No error information given)";
+    ret = git_lasterror();
+    return ret != NULL ? ret : "(No error information given)";
 }
 
 static PyObject *
@@ -1012,10 +1011,10 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
             if (py_tree->repo->repo != self->repo) {
                 return Error_set(GIT_EINVALIDARGS);
             }
-	    tree = py_tree->tree;
+            tree = py_tree->tree;
         } else {
             err = py_str_to_git_oid_expand(self->repo, py_src, &oid);
-	    if (err < 0)
+            if (err < 0)
                 return NULL;
 
             err = git_tree_lookup(&tree, self->repo, &oid);
