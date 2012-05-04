@@ -685,7 +685,6 @@ Repository_get_config(Repository *self, void *closure)
 
     Py_INCREF(self->config);
     return self->config;
-
 }
 
 static PyObject *
@@ -2735,8 +2734,17 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
 static void
 Config_dealloc(Config *self)
 {
+    PyObject_GC_UnTrack(self);
+    Py_XDECREF(self->repo);
     git_config_free(self->config);
-    PyObject_Del(self);
+    PyObject_GC_Del(self);
+}
+
+static int
+Config_traverse(Config *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->repo);
+    return 0;
 }
 
 static PyObject *
@@ -2839,9 +2847,10 @@ static PyTypeObject ConfigType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    Py_TPFLAGS_DEFAULT | 
+    Py_TPFLAGS_HAVE_GC,                        /* tp_flags          */
     "Configuration management",                /* tp_doc            */
-    0,                                         /* tp_traverse       */
+    (traverseproc)Config_traverse,             /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
