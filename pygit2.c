@@ -2714,17 +2714,19 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
         return -1;
     }
     
-    if (args) {        
+    if (PySequence_Length(args) > 0) {
         if (!PyArg_ParseTuple(args, "s", &path)) {
-            err = git_config_open_global(&self->config);
-            if (err < 0) {
-                Error_set(err);
-                return -1;
-            }
+            return -1;
         }
         err = git_config_open_ondisk(&self->config, path);
         if (err < 0) {
             Error_set_str(err, path);
+            return -1;
+        }
+    } else {
+        err = git_config_new(&self->config);
+        if (err < 0) {
+            Error_set(err);
             return -1;
         }
     }
