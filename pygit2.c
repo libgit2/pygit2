@@ -2766,35 +2766,35 @@ Config_open_system_config(Config *self)
 }
 
 static PyObject *
-Config_getitem(Config *self, PyObject *key)
+Config_getitem(Config *self, PyObject *py_key)
 {
     int err;
-    char *value;
-    const char *ckey = PyString_AsString(key);
+    char *c_value;
+    const char *c_key = PyString_AsString(py_key);
 
-    err = git_config_get_string(self->config, ckey, (const char **)&value);
+    err = git_config_get_string(self->config, c_key, (const char **)&c_value);
     if (err < 0) 
         return Error_set(err);
     
-    return PyString_FromString(value);
+    return PyString_FromString(c_value);
 }
 
 static int
-Config_setitem(Config *self, PyObject *key, PyObject *value)
+Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 {
     int err;
-    const char *ckey = PyString_AsString(key);
+    const char *c_key = PyString_AsString(py_key);
     
-    if (PyBool_Check(value)) {
-        err = git_config_set_bool(self->config, ckey, 
-                (int)PyObject_IsTrue(value));
-    } else if (PyInt_Check(value)) {
-        err = git_config_set_int64(self->config, ckey, 
-                (int64_t)PyInt_AsLong(value));
+    if (PyBool_Check(py_value)) {
+        err = git_config_set_bool(self->config, c_key, 
+                (int)PyObject_IsTrue(py_value));
+    } else if (PyInt_Check(py_value)) {
+        err = git_config_set_int64(self->config, c_key, 
+                (int64_t)PyInt_AsLong(py_value));
     } else {
-        value = PyObject_Str(value);
-        err = git_config_set_string(self->config, ckey,
-                PyString_AsString(value));
+        py_value = PyObject_Str(py_value);
+        err = git_config_set_string(self->config, c_key,
+                PyString_AsString(py_value));
     }
     if (err < 0) {
         Error_set(err);
