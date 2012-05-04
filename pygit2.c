@@ -2857,6 +2857,25 @@ Config_foreach(Config *self, PyObject *args)
     return PyInt_FromLong((long)ret);
 }
 
+static PyObject *
+Config_add_file(Config *self, PyObject *args)
+{
+    int err;
+    char *path;
+    int priority;
+    
+    if (!PyArg_ParseTuple(args, "si", &path, &priority))
+        return NULL;
+
+    err = git_config_add_file_ondisk(self->config, path, priority);
+    if (err < 0) {
+        Error_set_str(err, path);
+        return NULL; 
+    }
+    
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef Config_methods[] = {
     {"find_system_config", (PyCFunction)Config_open_system_config,
      METH_NOARGS | METH_STATIC,
@@ -2870,6 +2889,8 @@ static PyMethodDef Config_methods[] = {
      "and value of each variable in the config backend, and an optional "
      "payload passed to this method. As soon as one of the callbacks returns "
      "an integer other than 0, this function returns that value."},
+    {"add_file", (PyCFunction)Config_add_file, METH_VARARGS,
+     "Add a config file instance to an existing config."},
     {NULL}
 };
 
