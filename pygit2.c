@@ -2813,6 +2813,48 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
     return 0;
 }
 
+static int
+Config_foreach_callback_wrapper(const char *c_name, const char *c_value, 
+        void *c_payload)
+{
+    PyObject *args = (PyObject *)c_payload;
+    PyObject *py_callback = NULL;
+    PyObject *py_payload = NULL;
+
+    if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
+        return 0;
+    
+    if (py_payload)
+        args = Py_BuildValue("ssO", c_name, c_value, py_payload);
+    else
+        args = Py_BuildValue("ss", c_name, c_value);
+    
+    return (int)PyLong_AsLong(PyObject_CallObject(py_callback,args));
+}
+
+static PyObject *
+Config_foreach(Config *self, PyObject *args)
+{
+    int ret;
+    PyObject *py_callback;
+    PyObject *py_payload;
+    
+
+    if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
+        return NULL;
+    
+
+    if (!PyCallable_Check(py_callback)) {
+        PyErr_SetString(PyExc_TypeError,"Argument 'callback' is not callable");
+        return NULL;
+    }
+        
+    ret = git_config_foreach(self->config, Config_foreach_callback_wrapper, 
+            (void *)args);
+
+    return PyInt_FromLong((long)ret);
+}
+
 static PyMethodDef Config_methods[] = {
     {"find_system_config", (PyCFunction)Config_open_system_config,
      METH_NOARGS | METH_STATIC,
@@ -2820,6 +2862,12 @@ static PyMethodDef Config_methods[] = {
     {"find_global_config", (PyCFunction)Config_open_global_config,
      METH_NOARGS | METH_STATIC,
      "Locate the path to the global configuration file."},
+    {"foreach", (PyCFunction)Config_foreach, METH_VARARGS,
+     "Perform an operation on each config variable.\n\n"
+     "The callback must be of type Callable and receives the normalized name "
+     "and value of each variable in the config backend, and an optional "
+     "payload passed to this method. As soon as one of the callbacks returns "
+     "an integer other than 0, this function returns that value."},
     {NULL}
 };
 
