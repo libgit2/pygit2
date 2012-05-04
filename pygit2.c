@@ -665,7 +665,7 @@ Repository_get_config(Repository *self, void *closure)
 
     assert(self->repo);
 
-    if (self->index == NULL) {
+    if (self->config == NULL) {
         err = git_repository_config(&config, self->repo);
         if (err < 0)
             return Error_set(err);
