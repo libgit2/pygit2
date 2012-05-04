@@ -2779,6 +2779,30 @@ Config_getitem(Config *self, PyObject *key)
     return PyString_FromString(value);
 }
 
+static int
+Config_setitem(Config *self, PyObject *key, PyObject *value)
+{
+    int err;
+    const char *ckey = PyString_AsString(key);
+    
+    if (PyBool_Check(value)) {
+        err = git_config_set_bool(self->config, ckey, 
+                (int)PyObject_IsTrue(value));
+    } else if (PyInt_Check(value)) {
+        err = git_config_set_int64(self->config, ckey, 
+                (int64_t)PyInt_AsLong(value));
+    } else {
+        value = PyObject_Str(value);
+        err = git_config_set_string(self->config, ckey,
+                PyString_AsString(value));
+    }
+    if (err < 0) {
+        Error_set(err);
+        return -1; 
+    }
+    return 0;
+}
+
 static PyMethodDef Config_methods[] = {
     {"find_system_config", (PyCFunction)Config_open_system_config,
      METH_NOARGS | METH_STATIC,
@@ -2792,7 +2816,7 @@ static PyMethodDef Config_methods[] = {
 static PyMappingMethods Config_as_mapping = {
     0,                               /* mp_length */
     (binaryfunc)Config_getitem,      /* mp_subscript */
-    0,                               /* mp_ass_subscript */
+    (objobjargproc)Config_setitem,   /* mp_ass_subscript */
 };
 
 static PyTypeObject ConfigType = {
