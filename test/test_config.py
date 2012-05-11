@@ -41,6 +41,17 @@ class IndexTest(utils.RepoTestCase):
     def test_config(self):
         self.assertNotEqual(None, self.repo.config)
 
+    def test_global_config(self):
+        try:
+            self.assertNotEqual(None, pygit2.Config.get_global_config())
+        except IOError:
+            pass
+
+    def test_system_config(self):
+        try:
+            self.assertNotEqual(None, pygit2.Config.get_system_config())
+        except IOError:
+            pass
 
 if __name__ == '__main__':
     unittest.main()
