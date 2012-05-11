@@ -2750,29 +2750,51 @@ Config_traverse(Config *self, visitproc visit, void *arg)
 }
 
 static PyObject *
-Config_find_global_config(Config *self)
+Config_open(char *c_path) {
+    PyObject *py_path = Py_BuildValue("(s)", c_path);
+    Config *config = PyObject_GC_New(Config, &ConfigType);
+    
+    Config_init(config, py_path, NULL);
+    
+    Py_INCREF(config);
+    
+    return (PyObject *)config;
+}
+
+static PyObject *
+Config_get_global_config(void)
 {
     char path[GIT_PATH_MAX];
     int err;
 
     err = git_config_find_global(path);
-    if (err < 0)
+    if (err < 0) {
+        if (err == GIT_ENOTFOUND) {
+            PyErr_SetString(PyExc_IOError, "Global config file not found.");
+            return NULL;
+        }
         return Error_set(err);
-
-    return PyString_FromString(path);
+    }
+    
+    return Config_open(path);
 }
 
 static PyObject *
-Config_find_system_config(Config *self)
+Config_get_system_config(void)
 {
     char path[GIT_PATH_MAX];
     int err;
 
     err = git_config_find_system(path);
-    if (err < 0)
+    if (err < 0) {
+        if (err == GIT_ENOTFOUND) {
+            PyErr_SetString(PyExc_IOError, "System config file not found.");
+            return NULL;
+        }
         return Error_set(err);
+    }
 
-    return PyString_FromString(path);
+    return Config_open(path);
 }
 
 static PyObject *
@@ -2877,12 +2899,12 @@ Config_add_file(Config *self, PyObject *args)
 }
 
 static PyMethodDef Config_methods[] = {
-    {"find_system_config", (PyCFunction)Config_find_system_config,
+    {"get_system_config", (PyCFunction)Config_get_system_config,
      METH_NOARGS | METH_STATIC,
-     "Locate the path to the system configuration file."},
-    {"find_global_config", (PyCFunction)Config_find_global_config,
+     "Return an object representing the system configuration file."},
+    {"get_global_config", (PyCFunction)Config_get_global_config,
      METH_NOARGS | METH_STATIC,
-     "Locate the path to the global configuration file."},
+     "Return an object representing the global configuration file."},
     {"foreach", (PyCFunction)Config_foreach, METH_VARARGS,
      "Perform an operation on each config variable.\n\n"
      "The callback must be of type Callable and receives the normalized name "
