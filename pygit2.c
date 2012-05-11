@@ -2797,6 +2797,24 @@ Config_get_system_config(void)
     return Config_open(path);
 }
 
+static int
+Config_contains(Config *self, PyObject *py_key) {
+    int err;
+    char *c_value;
+    const char *c_key = PyString_AsString(py_key);
+
+    err = git_config_get_string(self->config, c_key, (const char **)&c_value);
+
+    if (err == GIT_ENOTFOUND)
+        return 0;
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    return 1;
+}
+
 static PyObject *
 Config_getitem(Config *self, PyObject *py_key)
 {
@@ -2916,6 +2934,17 @@ static PyMethodDef Config_methods[] = {
     {NULL}
 };
 
+static PySequenceMethods Config_as_sequence = {
+    0,                          /* sq_length */
+    0,                          /* sq_concat */
+    0,                          /* sq_repeat */
+    0,                          /* sq_item */
+    0,                          /* sq_slice */
+    0,                          /* sq_ass_item */
+    0,                          /* sq_ass_slice */
+    (objobjproc)Config_contains,/* sq_contains */
+};
+
 static PyMappingMethods Config_as_mapping = {
     0,                               /* mp_length */
     (binaryfunc)Config_getitem,      /* mp_subscript */
@@ -2934,7 +2963,7 @@ static PyTypeObject ConfigType = {
     0,                                         /* tp_compare        */
     0,                                         /* tp_repr           */
     0,                                         /* tp_as_number      */
-    0,                                         /* tp_as_sequence    */
+    &Config_as_sequence,                       /* tp_as_sequence    */
     &Config_as_mapping,                        /* tp_as_mapping     */
     0,                                         /* tp_hash           */
     0,                                         /* tp_call           */
