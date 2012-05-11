@@ -2750,7 +2750,7 @@ Config_traverse(Config *self, visitproc visit, void *arg)
 }
 
 static PyObject *
-Config_open_global_config(Config *self)
+Config_find_global_config(Config *self)
 {
     char path[GIT_PATH_MAX];
     int err;
@@ -2763,7 +2763,7 @@ Config_open_global_config(Config *self)
 }
 
 static PyObject *
-Config_open_system_config(Config *self)
+Config_find_system_config(Config *self)
 {
     char path[GIT_PATH_MAX];
     int err;
@@ -2877,10 +2877,10 @@ Config_add_file(Config *self, PyObject *args)
 }
 
 static PyMethodDef Config_methods[] = {
-    {"find_system_config", (PyCFunction)Config_open_system_config,
+    {"find_system_config", (PyCFunction)Config_find_system_config,
      METH_NOARGS | METH_STATIC,
      "Locate the path to the system configuration file."},
-    {"find_global_config", (PyCFunction)Config_open_global_config,
+    {"find_global_config", (PyCFunction)Config_find_global_config,
      METH_NOARGS | METH_STATIC,
      "Locate the path to the global configuration file."},
     {"foreach", (PyCFunction)Config_foreach, METH_VARARGS,
