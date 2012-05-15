@@ -1,6 +1,6 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2010 Google, Inc.
+# Copyright 2012 Nico von Geyso
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -25,26 +25,5 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Pygit2 test definitions.
-
-These tests are run automatically with 'setup.py test', but can also be run
-manually.
-"""
-
-import sys
-import unittest
-
-
-names = ['blob', 'commit', 'index', 'refs', 'repository', 'revwalk', 'tag',
-         'tree', 'signature', 'status', 'treebuilder', 'utils']
-def test_suite():
-    modules = ['test.test_%s' % n for n in names]
-    return unittest.defaultTestLoader.loadTestsFromNames(modules)
-
-
-def main():
-    unittest.main(module=__name__, defaultTest='test_suite', argv=sys.argv[:1])
-
-
-if __name__ == '__main__':
-    main()
+from _pygit2 import *
+import pygit2.utils
