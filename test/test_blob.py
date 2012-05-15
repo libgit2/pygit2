@@ -38,7 +38,7 @@ from . import utils
 __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
 BLOB_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
-BLOB_NEW_CONTENT = 'foo bar\n'
+BLOB_NEW_CONTENT = b'foo bar\n'
 
 
 class BlobTest(utils.BareRepoTestCase):
@@ -67,7 +67,7 @@ class BlobTest(utils.BareRepoTestCase):
         )
 
         self.assertEqual(BLOB_NEW_CONTENT, blob.data)
-        self.assertEqual(BLOB_NEW_CONTENT.decode('ascii'), blob.read_raw())
+        self.assertEqual(BLOB_NEW_CONTENT, blob.read_raw())
 
 
 if __name__ == '__main__':

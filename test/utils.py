@@ -52,13 +52,12 @@ def oid_to_hex(oid):
     return b2a_hex(oid).decode('ascii')
 
 def gen_blob_sha1(data):
-    m = hashlib.sha1()
-
     # http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
-    git_sha1_format = 'blob %d\0%s' % (len(data), data)
-    m.update(git_sha1_format)
+    m = hashlib.sha1()
+    m.update(('blob %d\0' % len(data)).encode())
+    m.update(data)
 
-    return m.hexdigest().decode('ascii')
+    return m.hexdigest()
 
 def rmtree(path):
     """In Windows a read-only file cannot be removed, and shutil.rmtree fails.
