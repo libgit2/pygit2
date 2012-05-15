@@ -716,6 +716,25 @@ build_signature(Object *obj, const git_signature *signature,
 }
 
 static PyObject *
+Repository_create_blob(Repository *self, PyObject *args)
+{
+    git_oid oid;
+    const char* raw;
+    Py_ssize_t size;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s#", &raw, &size))
+      return NULL;
+    
+    err = git_blob_create_frombuffer(&oid, self->repo, (const void*)raw, size);
+
+    if (err < 0)
+      return Error_set(err);
+
+    return git_oid_to_python(oid.id);
+}
+
+static PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
 {
     Signature *py_author, *py_committer;
@@ -1060,6 +1079,9 @@ static PyMethodDef Repository_methods[] = {
       "Return a list with all the references in the repository."},
     {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
        "Lookup a reference by its name in a repository."},
+    {"create_blob", (PyCFunction)Repository_create_blob,
+     METH_VARARGS,
+     "Create a new blob from memory"},
     {"create_reference", (PyCFunction)Repository_create_reference,
      METH_VARARGS,
      "Create a new reference \"name\" that points to the object given by its "

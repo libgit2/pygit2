@@ -34,6 +34,7 @@ import stat
 import tarfile
 import tempfile
 import unittest
+import hashlib
 
 import pygit2
 
@@ -50,6 +51,13 @@ def force_rm_handle(remove_path, path, excinfo):
 def oid_to_hex(oid):
     return b2a_hex(oid).decode('ascii')
 
+def gen_blob_sha1(data):
+    # http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
+    m = hashlib.sha1()
+    m.update(('blob %d\0' % len(data)).encode())
+    m.update(data)
+
+    return m.hexdigest()
 
 def rmtree(path):
     """In Windows a read-only file cannot be removed, and shutil.rmtree fails.
