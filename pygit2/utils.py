@@ -29,7 +29,7 @@ import os
 
 def tree_insert_node(repo, root_oid, node_oid, path):
     """
-      Inserts a new node in a given tree and return oid new new root tree
+      Creates a new tree with a given node and path in an existing tree
 
       @param repo : instance of pygit2.Repository
       @param root_oid  : oid of root tree
@@ -58,10 +58,8 @@ def tree_insert_node(repo, root_oid, node_oid, path):
 # create node
     if len(entries) > 0:
         tmp = repo.TreeBuilder()
-    elif len(tree_path) > 0:
-        tmp = tree_path[-1][1]
     else:
-        tmp = root
+        tmp = tree_path[-1][1]
 
     filename = os.path.basename(path)
     tmp.insert(filename, node_oid, 0o100644)
