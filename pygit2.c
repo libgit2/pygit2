@@ -114,7 +114,6 @@ OBJECT_STRUCT(Walker, git_revwalk, walk)
 
 typedef struct {
     PyObject_HEAD
-    Repository *repo;
     Tree *t0;
     Tree *t1;
 } Diff;
@@ -1756,7 +1755,7 @@ static int diff_hunk_cb(
   const char *header,
   size_t header_len)
 {
-  PyObject *hunks, *entry;
+  PyObject *hunks;
   Hunk *hunk;
 
   hunks = PyDict_GetItemString(cb_data, "hunks");
@@ -1814,7 +1813,7 @@ Diff_changes(Diff *self)
     int err;
 
     err = git_diff_tree_to_tree(
-              self->repo->repo,
+              self->t0->repo->repo,
               &opts,
               self->t0->tree,
               self->t1->tree,
@@ -1863,7 +1862,7 @@ Diff_patch(Diff *self)
     int err;
 
     err = git_diff_tree_to_tree(
-              self->repo->repo,
+              self->t0->repo->repo,
               &opts,
               self->t0->tree,
               self->t1->tree,
@@ -1876,7 +1875,7 @@ Diff_patch(Diff *self)
 
     PyObject *patch = PyBytes_FromString("");
 
-    git_diff_print_patch(changes, &diff, &diff_print_cb);
+    git_diff_print_patch(changes, &patch, &diff_print_cb);
 
     return patch;
 }
@@ -1968,7 +1967,6 @@ static PyTypeObject HunkType = {
 static void
 Diff_dealloc(Diff *self)
 {
-    Py_XDECREF(self->repo);
     Py_XDECREF(self->t0);
     Py_XDECREF(self->t1);
     PyObject_Del(self);
@@ -2036,11 +2034,9 @@ Tree_diff_tree(Tree *self, PyObject *args)
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
         Py_INCREF(py_diff);
-        Py_INCREF(self->repo);
         Py_INCREF(py_tree);
         Py_INCREF(self);
 
-        py_diff->repo = self->repo;
         py_diff->t0 = self;
         py_diff->t1 = py_tree;
     }
