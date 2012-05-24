@@ -36,7 +36,7 @@ import unittest
 
 
 names = ['blob', 'commit', 'index', 'refs', 'repository', 'revwalk', 'tag',
-         'tree', 'signature', 'status', 'treebuilder']
+         'tree', 'signature', 'status', 'treebuilder', 'diff']
 def test_suite():
     modules = ['test.test_%s' % n for n in names]
     return unittest.defaultTestLoader.loadTestsFromNames(modules)
