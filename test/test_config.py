@@ -53,5 +53,21 @@ class ConfigTest(utils.RepoTestCase):
         except IOError:
             pass
 
+    def test_read(self):
+        config = self.repo.config
+
+        self.assertRaises(TypeError, lambda: config[()])
+        self.assertRaises(TypeError, lambda: config[-4])
+        self.assertRaisesWithArg(pygit2.GitError, 
+                "Invalid variable name: 'abc'", lambda: config['abc'])
+        self.assertRaisesWithArg(KeyError, 'abc.def', lambda: config['abc.def'])
+
+        self.assertTrue('core.bare' in config)
+        self.assertEqual(config['core.bare'], 'false')
+        self.assertTrue('core.editor' in config)
+        self.assertEqual(config['core.editor'], 'ed')
+        self.assertTrue('core.repositoryformatversion' in config)
+        self.assertEqual(config['core.repositoryformatversion'], '0')
+
 if __name__ == '__main__':
     unittest.main()
