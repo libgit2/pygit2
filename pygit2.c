@@ -1149,7 +1149,7 @@ static PyMappingMethods Repository_as_mapping = {
 
 static PyTypeObject RepositoryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Repository",                       /* tp_name           */
+    "_pygit2.Repository",                       /* tp_name           */
     sizeof(Repository),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Repository_dealloc,            /* tp_dealloc        */
@@ -1263,7 +1263,7 @@ static PyMethodDef Object_methods[] = {
 
 static PyTypeObject ObjectType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Object",                           /* tp_name           */
+    "_pygit2.Object",                           /* tp_name           */
     sizeof(Object),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Object_dealloc,                /* tp_dealloc        */
@@ -1440,7 +1440,7 @@ static PyGetSetDef Commit_getseters[] = {
 
 static PyTypeObject CommitType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Commit",                           /* tp_name           */
+    "_pygit2.Commit",                           /* tp_name           */
     sizeof(Commit),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -1540,7 +1540,7 @@ static PyMethodDef TreeEntry_methods[] = {
 
 static PyTypeObject TreeEntryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.TreeEntry",                        /* tp_name           */
+    "_pygit2.TreeEntry",                        /* tp_name           */
     sizeof(TreeEntry),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)TreeEntry_dealloc,             /* tp_dealloc        */
@@ -1716,7 +1716,7 @@ static PyMappingMethods Tree_as_mapping = {
 
 static PyTypeObject TreeType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Tree",                             /* tp_name           */
+    "_pygit2.Tree",                             /* tp_name           */
     sizeof(Tree),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -1840,7 +1840,7 @@ static PyMethodDef TreeBuilder_methods[] = {
 
 static PyTypeObject TreeBuilderType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.TreeBuilder",                      /* tp_name           */
+    "_pygit2.TreeBuilder",                      /* tp_name           */
     sizeof(TreeBuilder),                       /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)TreeBuilder_dealloc,           /* tp_dealloc        */
@@ -1901,7 +1901,7 @@ TreeIter_iternext(TreeIter *self)
 
 static PyTypeObject TreeIterType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.TreeIter",                       /* tp_name           */
+    "_pygit2.TreeIter",                       /* tp_name           */
     sizeof(TreeIter),                        /* tp_basicsize      */
     0,                                       /* tp_itemsize       */
     (destructor)TreeIter_dealloc ,           /* tp_dealloc        */
@@ -1937,7 +1937,7 @@ static PyGetSetDef Blob_getseters[] = {
 
 static PyTypeObject BlobType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Blob",                             /* tp_name           */
+    "_pygit2.Blob",                             /* tp_name           */
     sizeof(Blob),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -2032,7 +2032,7 @@ static PyGetSetDef Tag_getseters[] = {
 
 static PyTypeObject TagType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Tag",                              /* tp_name           */
+    "_pygit2.Tag",                              /* tp_name           */
     sizeof(Tag),                               /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -2381,7 +2381,7 @@ static PyMappingMethods Index_as_mapping = {
 
 static PyTypeObject IndexType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Index",                            /* tp_name           */
+    "_pygit2.Index",                            /* tp_name           */
     sizeof(Index),                             /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Index_dealloc,                 /* tp_dealloc        */
@@ -2445,7 +2445,7 @@ IndexIter_iternext(IndexIter *self)
 
 static PyTypeObject IndexIterType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.IndexIter",                      /* tp_name           */
+    "_pygit2.IndexIter",                      /* tp_name           */
     sizeof(IndexIter),                       /* tp_basicsize      */
     0,                                       /* tp_itemsize       */
     (destructor)IndexIter_dealloc ,          /* tp_dealloc        */
@@ -2514,7 +2514,7 @@ static PyGetSetDef IndexEntry_getseters[] = {
 
 static PyTypeObject IndexEntryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.IndexEntry",                       /* tp_name           */
+    "_pygit2.IndexEntry",                       /* tp_name           */
     sizeof(IndexEntry),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)IndexEntry_dealloc,            /* tp_dealloc        */
@@ -2663,7 +2663,7 @@ static PyMethodDef Walker_methods[] = {
 
 static PyTypeObject WalkerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Walker",                           /* tp_name           */
+    "_pygit2.Walker",                           /* tp_name           */
     sizeof(Walker),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Walker_dealloc,                /* tp_dealloc        */
@@ -2942,7 +2942,7 @@ static PyGetSetDef Reference_getseters[] = {
 
 static PyTypeObject ReferenceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Reference",                        /* tp_name           */
+    "_pygit2.Reference",                        /* tp_name           */
     sizeof(Reference),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Reference_dealloc,             /* tp_dealloc        */
@@ -3099,7 +3099,7 @@ static PyGetSetDef Signature_getseters[] = {
 
 static PyTypeObject SignatureType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Signature",                        /* tp_name           */
+    "_pygit2.Signature",                        /* tp_name           */
     sizeof(Signature),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Signature_dealloc,             /* tp_dealloc        */
@@ -3200,7 +3200,7 @@ moduleinit(PyObject* m)
     if (m == NULL)
         return NULL;
 
-    GitError = PyErr_NewException("pygit2.GitError", NULL, NULL);
+    GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
 
     RepositoryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&RepositoryType) < 0)
@@ -3315,17 +3315,17 @@ moduleinit(PyObject* m)
 
 #if PY_MAJOR_VERSION < 3
   PyMODINIT_FUNC
-  initpygit2(void)
+  init_pygit2(void)
   {
       PyObject* m;
-      m = Py_InitModule3("pygit2", module_methods,
+      m = Py_InitModule3("_pygit2", module_methods,
                          "Python bindings for libgit2.");
       moduleinit(m);
   }
 #else
   static struct PyModuleDef moduledef = {
       PyModuleDef_HEAD_INIT,
-      "pygit2",                        /* m_name */
+      "_pygit2",                        /* m_name */
       "Python bindings for libgit2.",  /* m_doc */
       -1,                              /* m_size */
       module_methods,                  /* m_methods */
@@ -3336,7 +3336,7 @@ moduleinit(PyObject* m)
   };
 
   PyMODINIT_FUNC
-  PyInit_pygit2(void)
+  PyInit__pygit2(void)
   {
       PyObject* m;
       m = PyModule_Create(&moduledef);
