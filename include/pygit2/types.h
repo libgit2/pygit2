@@ -1,6 +1,7 @@
 #ifndef INCLUDE_pygit2_objects_h
 #define INCLUDE_pygit2_objects_h
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
 
@@ -34,6 +35,24 @@ typedef struct {
     PyObject *owner; /* Tree or TreeBuilder */
     const git_tree_entry *entry;
 } TreeEntry;
+
+typedef struct {
+    PyObject_HEAD
+    Tree *t0;
+    Tree *t1;
+} Diff;
+
+typedef struct {
+    PyObject_HEAD
+    int old_start;
+    int old_lines;
+    char* old_file;
+    int new_start;
+    int new_lines;
+    char* new_file;
+    PyObject *old_data;
+    PyObject *new_data;
+} Hunk;
 
 typedef struct {
     PyObject_HEAD

@@ -1,6 +1,7 @@
 #ifndef INCLUDE_pygit2_commit_h
 #define INCLUDE_pygit2_commit_h
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
 

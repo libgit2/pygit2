@@ -1,10 +1,9 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <pygit2/error.h>
 #include <pygit2/utils.h>
 #include <pygit2/signature.h>
 #include <pygit2/commit.h>
-#include <pygit2/oid.h>
-#include <pygit2/repository.h>
 
 extern PyTypeObject TreeType;
 

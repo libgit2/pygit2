@@ -1,3 +1,4 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <pygit2/error.h>
 #include <pygit2/utils.h>
@@ -6,6 +7,7 @@
 #include <pygit2/tree.h>
 
 extern PyTypeObject TreeType;
+extern PyTypeObject DiffType;
 extern PyTypeObject TreeIterType;
 
 void
@@ -226,6 +228,29 @@ Tree_getitem(Tree *self, PyObject *value)
     return wrap_tree_entry(entry, self);
 }
 
+PyObject *
+Tree_diff_tree(Tree *self, PyObject *args)
+{
+    Diff *py_diff;
+    Tree *py_tree;
+
+    if (!PyArg_ParseTuple(args, "O!", &TreeType, &py_tree)) {
+        return NULL;
+    }
+
+    py_diff = PyObject_New(Diff, &DiffType);
+    if (py_diff) {
+        Py_INCREF(py_diff);
+        Py_INCREF(py_tree);
+        Py_INCREF(self);
+
+        py_diff->t0 = self;
+        py_diff->t1 = py_tree;
+    }
+
+    return (PyObject*) py_diff;
+}
+
 PySequenceMethods Tree_as_sequence = {
     0,                          /* sq_length */
     0,                          /* sq_concat */
@@ -241,6 +266,12 @@ PyMappingMethods Tree_as_mapping = {
     (lenfunc)Tree_len,            /* mp_length */
     (binaryfunc)Tree_getitem,     /* mp_subscript */
     0,                            /* mp_ass_subscript */
+};
+
+PyMethodDef Tree_methods[] = {
+    {"diff", (PyCFunction)Tree_diff_tree, METH_VARARGS,
+     "Diff two trees."},
+    {NULL}
 };
 
 PyTypeObject TreeType = {
@@ -271,7 +302,7 @@ PyTypeObject TreeType = {
     0,                                         /* tp_weaklistoffset */
     (getiterfunc)Tree_iter,                    /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Tree_methods,                              /* tp_methods        */
     0,                                         /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */

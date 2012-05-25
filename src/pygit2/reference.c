@@ -1,3 +1,4 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <pygit2/error.h>
 #include <pygit2/types.h>

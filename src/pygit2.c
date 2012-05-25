@@ -40,6 +40,8 @@ extern PyObject *GitError;
 PyTypeObject RepositoryType;
 PyTypeObject ObjectType;
 PyTypeObject CommitType;
+PyTypeObject DiffType;
+PyTypeObject HunkType;
 PyTypeObject TreeType;
 PyTypeObject TreeBuilderType;
 PyTypeObject TreeEntryType;
@@ -128,6 +130,12 @@ moduleinit(PyObject* m)
         return NULL;
     CommitType.tp_base = &ObjectType;
     if (PyType_Ready(&CommitType) < 0)
+        return NULL;
+    DiffType.tp_base = &ObjectType;
+    if (PyType_Ready(&DiffType) < 0)
+        return NULL;
+    HunkType.tp_base = &ObjectType;
+    if (PyType_Ready(&HunkType) < 0)
         return NULL;
     TreeType.tp_base = &ObjectType;
     if (PyType_Ready(&TreeType) < 0)
