@@ -3,5 +3,7 @@ dist
 pygit2.so
 test/*.pyc
 test/__pycache__
+pygit2/*.pyc
+pygit2/__pycache__
 *.egg-info
 *.swp
