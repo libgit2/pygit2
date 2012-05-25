@@ -2869,8 +2869,13 @@ Config_getitem(Config *self, PyObject *py_key)
         return NULL;
     
     err = git_config_get_string(&c_value, self->config, c_key);
-    if (err < 0) 
+    if (err < 0) {
+        if (err == GIT_ENOTFOUND) {
+            PyErr_SetObject(PyExc_KeyError, py_key);
+            return NULL;
+        }
         return Error_set(err);
+    }
     
     return PyUnicode_FromString(c_value);
 }
