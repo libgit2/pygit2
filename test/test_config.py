@@ -27,6 +27,7 @@
 
 """Tests for Index files."""
 
+import os
 import unittest
 
 import pygit2
@@ -35,6 +36,7 @@ from . import utils
 
 __author__ = 'mlenders@elegosoft.com (M. Lenders)'
 
+config_filename = "test_config"
 
 class ConfigTest(utils.RepoTestCase):
 
@@ -52,6 +54,20 @@ class ConfigTest(utils.RepoTestCase):
             self.assertNotEqual(None, pygit2.Config.get_system_config())
         except IOError:
             pass
+
+    def test_new(self):
+        config_write = pygit2.Config(config_filename)
+        
+        config_write['core.bare'] = False
+        config_write['core.editor'] = 'ed'
+        
+        config_read = pygit2.Config(config_filename)
+        self.assertTrue('core.bare' in config_write)
+        self.assertEqual(config_write['core.bare'], 'false')
+        self.assertTrue('core.editor' in config_write)
+        self.assertEqual(config_write['core.editor'], 'ed')
+
+        os.remove(config_filename)
 
     def test_read(self):
         config = self.repo.config
