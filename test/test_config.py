@@ -68,6 +68,22 @@ class ConfigTest(utils.RepoTestCase):
         self.assertEqual(config_write['core.editor'], 'ed')
 
         os.remove(config_filename)
+    
+    def test_add(self):
+        config = self.repo.config
+
+        new_file = open(config_filename, "w")
+        new_file.write("[this]\n\tthat = true\n")
+        new_file.write("[something \"other\"]\n\there = false")
+        new_file.close()
+
+        config.add_file(config_filename, 0)
+        self.assertTrue('this.that' in config)
+        self.assertEqual(config['this.that'], 'true')
+        self.assertTrue('something.other.here' in config)
+        self.assertEqual(config['something.other.here'], 'false')
+        
+        os.remove(config_filename)
 
     def test_read(self):
         config = self.repo.config
