@@ -169,46 +169,62 @@ static PyTypeObject SignatureType;
 static PyObject *GitError;
 
 static PyObject *
-Error_type(int err)
+Error_type(int type)
 {
-    switch (err) {
+    // Expected
+    switch (type) {
+        /** Input does not exist in the scope searched. */
         case GIT_ENOTFOUND:
             return PyExc_KeyError;
-        case GIT_EOSERR:
-            return PyExc_OSError;
-        case GIT_ENOTOID:
+
+        /** A reference with this name already exists */
+        case GIT_EEXISTS:
             return PyExc_ValueError;
-        case GIT_ENOMEM:
-            return PyExc_MemoryError;
-        case GIT_EREVWALKOVER:
+
+        /** The given short oid is ambiguous */
+        case GIT_EAMBIGUOUS:
+            return PyExc_ValueError;
+
+        /** The buffer is too short to satisfy the request */
+        case GIT_EBUFS:
+            return PyExc_ValueError;
+
+        /** Skip and passthrough the given ODB backend */
+        case GIT_PASSTHROUGH:
+            return GitError;
+
+        /** No entries left in ref walker */
+        case GIT_REVWALKOVER:
             return PyExc_StopIteration;
+    }
+
+    // Critical
+    const git_error* error = giterr_last();
+    switch (error->klass) {
+        case GITERR_NOMEMORY:
+            return PyExc_MemoryError;
+        case GITERR_OS:
+            return PyExc_OSError;
+        case GITERR_INVALID:
+            return PyExc_ValueError;
         default:
             return GitError;
     }
 }
 
-/*
- * Python doesn't like it when the error string is NULL. Not giving
- * back an error string could be a bug in the library
- */
-static const char *
-git_last_error(void)
-{
-    const char *ret;
-
-    ret = git_lasterror();
-    return ret != NULL ? ret : "(No error information given)";
-}
 
 static PyObject *
 Error_set(int err)
 {
     assert(err < 0);
 
-    if (err == GIT_EOSERR)
-        return PyErr_SetFromErrno(GitError);
+    if(err != GIT_ERROR) { //expected failure
+      PyErr_SetNone(Error_type(err));
+    } else { //critical failure
+      const git_error* error = giterr_last();
+      PyErr_SetString(Error_type(err), error->message);
+    }
 
-    PyErr_SetString(Error_type(err), git_last_error());
     return NULL;
 }
 
@@ -221,7 +237,8 @@ Error_set_str(int err, const char *str)
         return NULL;
     }
 
-    return PyErr_Format(Error_type(err), "%s: %s", str, git_last_error());
+    const git_error* error = giterr_last();
+    return PyErr_Format(Error_type(err), "%s: %s", str, error->message);
 }
 
 static PyObject *
@@ -751,6 +768,25 @@ build_signature(Object *obj, const git_signature *signature,
 }
 
 static PyObject *
+Repository_create_blob(Repository *self, PyObject *args)
+{
+    git_oid oid;
+    const char* raw;
+    Py_ssize_t size;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s#", &raw, &size))
+      return NULL;
+    
+    err = git_blob_create_frombuffer(&oid, self->repo, (const void*)raw, size);
+
+    if (err < 0)
+      return Error_set(err);
+
+    return git_oid_to_python(oid.id);
+}
+
+static PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
 {
     Signature *py_author, *py_committer;
@@ -873,7 +909,7 @@ Repository_listall_references(Repository *self, PyObject *args)
         return NULL;
 
     /* 2- Get the C result */
-    err = git_reference_listall(&c_result, self->repo, list_flags);
+    err = git_reference_list(&c_result, self->repo, list_flags);
     if (err < 0)
         return Error_set(err);
 
@@ -992,7 +1028,7 @@ read_status_cb(const char *path, unsigned int status_flags, void *payload)
     flags = PyInt_FromLong((long) status_flags);
     PyDict_SetItemString(payload, path, flags);
 
-    return GIT_SUCCESS;
+    return GIT_OK;
 }
 
 static PyObject *
@@ -1044,7 +1080,8 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
         if (PyObject_TypeCheck(py_src, &TreeType)) {
             Tree *py_tree = (Tree *)py_src;
             if (py_tree->repo->repo != self->repo) {
-                return Error_set(GIT_EINVALIDARGS);
+                //return Error_set(GIT_EINVALIDARGS);
+                return Error_set(GIT_ERROR);
             }
             tree = py_tree->tree;
         } else {
@@ -1095,6 +1132,9 @@ static PyMethodDef Repository_methods[] = {
       "Return a list with all the references in the repository."},
     {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
        "Lookup a reference by its name in a repository."},
+    {"create_blob", (PyCFunction)Repository_create_blob,
+     METH_VARARGS,
+     "Create a new blob from memory"},
     {"create_reference", (PyCFunction)Repository_create_reference,
      METH_VARARGS,
      "Create a new reference \"name\" that points to the object given by its "
@@ -2158,7 +2198,7 @@ Index_read(Index *self)
     int err;
 
     err = git_index_read(self->index);
-    if (err < GIT_SUCCESS)
+    if (err < GIT_OK)
         return Error_set(err);
 
     Py_RETURN_NONE;
@@ -2170,7 +2210,7 @@ Index_write(Index *self)
     int err;
 
     err = git_index_write(self->index);
-    if (err < GIT_SUCCESS)
+    if (err < GIT_OK)
         return Error_set(err);
 
     Py_RETURN_NONE;
@@ -3199,7 +3239,7 @@ Reference_get_hex(Reference *self)
 static PyObject *
 Reference_get_type(Reference *self)
 {
-    git_rtype c_type;
+    git_ref_t c_type;
 
     CHECK_REFERENCE(self);
     c_type = git_reference_type(self->reference);
