@@ -2841,7 +2841,10 @@ static int
 Config_contains(Config *self, PyObject *py_key) {
     int err;
     const char *c_value;
-    const char *c_key = PyString_AsString(py_key);
+    const char *c_key;
+   
+    if (!(c_key = py_str_to_c_str(py_key,NULL)))
+        return -1;
 
     err = git_config_get_string(&c_value, self->config, c_key);
 
@@ -2860,21 +2863,27 @@ Config_getitem(Config *self, PyObject *py_key)
 {
     int err;
     const char *c_value;
-    const char *c_key = PyString_AsString(py_key);
-
+    const char *c_key;
+     
+    if (!(c_key = py_str_to_c_str(py_key,NULL)))
+        return NULL;
+    
     err = git_config_get_string(&c_value, self->config, c_key);
     if (err < 0) 
         return Error_set(err);
     
-    return PyString_FromString(c_value);
+    return PyUnicode_FromString(c_value);
 }
 
 static int
 Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 {
     int err;
-    const char *c_key = PyString_AsString(py_key);
+    const char *c_key;
     
+    if (!(c_key = py_str_to_c_str(py_key,NULL)))
+        return -1;
+
     if (!py_value) {
         err = git_config_delete(self->config, c_key);
     } else if (PyBool_Check(py_value)) {
@@ -2886,7 +2895,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
     } else {
         py_value = PyObject_Str(py_value);
         err = git_config_set_string(self->config, c_key,
-                PyString_AsString(py_value));
+                py_str_to_c_str(py_value,NULL));
     }
     if (err < 0) {
         Error_set(err);
@@ -2902,6 +2911,8 @@ Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
     PyObject *args = (PyObject *)c_payload;
     PyObject *py_callback = NULL;
     PyObject *py_payload = NULL;
+    PyObject *py_result = NULL;
+    int c_result;
 
     if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
         return 0;
@@ -2911,7 +2922,13 @@ Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
     else
         args = Py_BuildValue("ss", c_name, c_value);
     
-    return (int)PyLong_AsLong(PyObject_CallObject(py_callback,args));
+    if (!(py_result = PyObject_CallObject(py_callback,args)))
+        return 0;
+
+    if (!(c_result == PyLong_AsLong(py_result)))
+        return 0;
+
+    return c_result;
 }
 
 static PyObject *
