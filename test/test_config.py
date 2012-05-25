@@ -36,7 +36,7 @@ from . import utils
 __author__ = 'mlenders@elegosoft.com (M. Lenders)'
 
 
-class IndexTest(utils.RepoTestCase):
+class ConfigTest(utils.RepoTestCase):
 
     def test_config(self):
         self.assertNotEqual(None, self.repo.config)
