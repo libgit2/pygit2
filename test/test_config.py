@@ -84,6 +84,34 @@ class ConfigTest(utils.RepoTestCase):
         self.assertEqual(config['core.editor'], 'ed')
         self.assertTrue('core.repositoryformatversion' in config)
         self.assertEqual(config['core.repositoryformatversion'], '0')
+    
+    def test_write(self):
+        config = self.repo.config
+
+        with self.assertRaises(TypeError):
+            config[()] = 'This should not work'
+
+        self.assertFalse('core.dummy1' in config)
+        config['core.dummy1'] = 42
+        self.assertTrue('core.dummy1' in config)
+        self.assertEqual(config['core.dummy1'], '42')
+        
+        self.assertFalse('core.dummy2' in config)
+        config['core.dummy2'] = 'foobar'
+        self.assertTrue('core.dummy2' in config)
+        self.assertEqual(config['core.dummy2'], 'foobar')
+        
+        self.assertFalse('core.dummy3' in config)
+        config['core.dummy3'] = True
+        self.assertTrue('core.dummy3' in config)
+        self.assertEqual(config['core.dummy3'], 'true')
+
+        del config['core.dummy1']
+        self.assertFalse('core.dummy1' in config)
+        del config['core.dummy2']
+        self.assertFalse('core.dummy2' in config)
+        del config['core.dummy3']
+        self.assertFalse('core.dummy3' in config)
 
 if __name__ == '__main__':
     unittest.main()
