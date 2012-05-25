@@ -1,3 +1,6 @@
+// with the following define PY_SSIZE_T_CLEAN
+// the length of PyArg_ParseTuple will be Py_ssize_t rather than int
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <pygit2/error.h>
 #include <pygit2/types.h>
