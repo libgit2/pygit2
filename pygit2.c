@@ -122,8 +122,10 @@ typedef struct {
     PyObject_HEAD
     int old_start;
     int old_lines;
+    char* old_file;
     int new_start;
     int new_lines;
+    char* new_file;
     PyObject *old_data;
     PyObject *new_data;
 } Hunk;
@@ -1771,6 +1773,19 @@ static int diff_hunk_cb(
   hunk->new_start = range->new_start;
   hunk->new_lines = range->new_lines;
 
+  int len;
+  char* old_path, *new_path;
+
+  len = strlen(delta->old_file.path) + 1;
+  old_path = malloc(sizeof(char) * len);
+  memcpy(old_path, delta->old_file.path, len);
+  hunk->old_file = old_path;
+
+  len = strlen(delta->new_file.path) + 1;
+  new_path = malloc(sizeof(char) * len);
+  memcpy(new_path, delta->new_file.path, len);
+  hunk->new_file = new_path;
+
 #if PY_MAJOR_VERSION >= 3
   hunk->old_data = Py_BuildValue("y", "");
   hunk->new_data = Py_BuildValue("y", "");
@@ -1915,9 +1930,11 @@ Hunk_dealloc(Hunk *self)
 static PyMemberDef Hunk_members[] = {
     {"old_start", T_INT, offsetof(Hunk, old_start), 0, "old start"},
     {"old_lines", T_INT, offsetof(Hunk, old_lines), 0, "old lines"},
+    {"old_file",  T_STRING, offsetof(Hunk, old_file), 0, "old file"},
     {"old_data",  T_OBJECT, offsetof(Hunk, old_data), 0, "old data"},
     {"new_start", T_INT, offsetof(Hunk, new_start), 0, "new start"},
     {"new_lines", T_INT, offsetof(Hunk, new_lines), 0, "new lines"},
+    {"new_file",  T_STRING, offsetof(Hunk, new_file), 0, "old file"},
     {"new_data",  T_OBJECT, offsetof(Hunk, new_data), 0, "new data"},
     {NULL}
 };

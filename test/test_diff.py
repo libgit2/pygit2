@@ -79,6 +79,9 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertEqual(hunk.new_start, 1)
         self.assertEqual(hunk.new_lines, 0)
 
+        self.assertEqual(hunk.old_file, 'a')
+        self.assertEqual(hunk.new_file, 'a')
+
         self.assertEqual(hunk.old_data, b'a contents 2\n')
         self.assertEqual(hunk.new_data, b'a contents\n')
 
