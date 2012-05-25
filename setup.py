@@ -142,7 +142,7 @@ setup(name='pygit2',
       maintainer='J. David Ibáñez',
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
-      package = ['pygit2'],
+      packages = ['pygit2'],
       ext_modules=[
           Extension('_pygit2', pygit2_exts,
                     include_dirs=[libgit2_include, 'include'],
