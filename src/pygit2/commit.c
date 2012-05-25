@@ -146,7 +146,7 @@ PyGetSetDef Commit_getseters[] = {
 
 PyTypeObject CommitType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Commit",                           /* tp_name           */
+    "_pygit2.Commit",                           /* tp_name           */
     sizeof(Commit),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */

@@ -247,7 +247,7 @@ PyGetSetDef Reference_getseters[] = {
 
 PyTypeObject ReferenceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Reference",                        /* tp_name           */
+    "_pygit2.Reference",                        /* tp_name           */
     sizeof(Reference),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Reference_dealloc,             /* tp_dealloc        */

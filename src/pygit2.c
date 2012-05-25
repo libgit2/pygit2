@@ -116,7 +116,7 @@ moduleinit(PyObject* m)
     if (m == NULL)
         return NULL;
 
-    GitError = PyErr_NewException("pygit2.GitError", NULL, NULL);
+    GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
 
     RepositoryType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&RepositoryType) < 0)
@@ -231,17 +231,17 @@ moduleinit(PyObject* m)
 
 #if PY_MAJOR_VERSION < 3
   PyMODINIT_FUNC
-  initpygit2(void)
+  init_pygit2(void)
   {
       PyObject* m;
-      m = Py_InitModule3("pygit2", module_methods,
+      m = Py_InitModule3("_pygit2", module_methods,
                          "Python bindings for libgit2.");
       moduleinit(m);
   }
 #else
   struct PyModuleDef moduledef = {
       PyModuleDef_HEAD_INIT,
-      "pygit2",                        /* m_name */
+      "_pygit2",                        /* m_name */
       "Python bindings for libgit2.",  /* m_doc */
       -1,                              /* m_size */
       module_methods,                  /* m_methods */
@@ -252,7 +252,7 @@ moduleinit(PyObject* m)
   };
 
   PyMODINIT_FUNC
-  PyInit_pygit2(void)
+  PyInit__pygit2(void)
   {
       PyObject* m;
       m = PyModule_Create(&moduledef);

@@ -123,7 +123,7 @@ PyGetSetDef Signature_getseters[] = {
 
 PyTypeObject SignatureType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Signature",                        /* tp_name           */
+    "_pygit2.Signature",                        /* tp_name           */
     sizeof(Signature),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Signature_dealloc,             /* tp_dealloc        */

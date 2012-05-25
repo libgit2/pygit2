@@ -8,7 +8,7 @@ PyGetSetDef Blob_getseters[] = {
 
 PyTypeObject BlobType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Blob",                             /* tp_name           */
+    "_pygit2.Blob",                             /* tp_name           */
     sizeof(Blob),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */

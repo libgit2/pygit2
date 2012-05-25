@@ -319,7 +319,7 @@ PyMappingMethods Index_as_mapping = {
 
 PyTypeObject IndexType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Index",                            /* tp_name           */
+    "_pygit2.Index",                            /* tp_name           */
     sizeof(Index),                             /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Index_dealloc,                 /* tp_dealloc        */
@@ -383,7 +383,7 @@ IndexIter_iternext(IndexIter *self)
 
 PyTypeObject IndexIterType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.IndexIter",                      /* tp_name           */
+    "_pygit2.IndexIter",                      /* tp_name           */
     sizeof(IndexIter),                       /* tp_basicsize      */
     0,                                       /* tp_itemsize       */
     (destructor)IndexIter_dealloc ,          /* tp_dealloc        */
@@ -452,7 +452,7 @@ PyGetSetDef IndexEntry_getseters[] = {
 
 PyTypeObject IndexEntryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.IndexEntry",                       /* tp_name           */
+    "_pygit2.IndexEntry",                       /* tp_name           */
     sizeof(IndexEntry),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)IndexEntry_dealloc,            /* tp_dealloc        */

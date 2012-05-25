@@ -79,7 +79,7 @@ PyMethodDef Object_methods[] = {
 
 PyTypeObject ObjectType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Object",                           /* tp_name           */
+    "_pygit2.Object",                           /* tp_name           */
     sizeof(Object),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Object_dealloc,                /* tp_dealloc        */

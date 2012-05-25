@@ -117,7 +117,7 @@ PyMethodDef Walker_methods[] = {
 
 PyTypeObject WalkerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Walker",                           /* tp_name           */
+    "_pygit2.Walker",                           /* tp_name           */
     sizeof(Walker),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Walker_dealloc,                /* tp_dealloc        */

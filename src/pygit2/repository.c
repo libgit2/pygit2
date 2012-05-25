@@ -764,7 +764,7 @@ PyMappingMethods Repository_as_mapping = {
 
 PyTypeObject RepositoryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Repository",                       /* tp_name           */
+    "_pygit2.Repository",                       /* tp_name           */
     sizeof(Repository),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Repository_dealloc,            /* tp_dealloc        */

@@ -69,7 +69,7 @@ PyMethodDef TreeEntry_methods[] = {
 
 PyTypeObject TreeEntryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.TreeEntry",                        /* tp_name           */
+    "_pygit2.TreeEntry",                        /* tp_name           */
     sizeof(TreeEntry),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)TreeEntry_dealloc,             /* tp_dealloc        */
@@ -245,7 +245,7 @@ PyMappingMethods Tree_as_mapping = {
 
 PyTypeObject TreeType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Tree",                             /* tp_name           */
+    "_pygit2.Tree",                             /* tp_name           */
     sizeof(Tree),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -371,7 +371,7 @@ PyMethodDef TreeBuilder_methods[] = {
 
 PyTypeObject TreeBuilderType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.TreeBuilder",                      /* tp_name           */
+    "_pygit2.TreeBuilder",                      /* tp_name           */
     sizeof(TreeBuilder),                       /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)TreeBuilder_dealloc,           /* tp_dealloc        */
@@ -432,7 +432,7 @@ TreeIter_iternext(TreeIter *self)
 
 PyTypeObject TreeIterType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.TreeIter",                       /* tp_name           */
+    "_pygit2.TreeIter",                       /* tp_name           */
     sizeof(TreeIter),                        /* tp_basicsize      */
     0,                                       /* tp_itemsize       */
     (destructor)TreeIter_dealloc ,           /* tp_dealloc        */

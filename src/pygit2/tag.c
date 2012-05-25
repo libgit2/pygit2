@@ -62,7 +62,7 @@ PyGetSetDef Tag_getseters[] = {
 
 PyTypeObject TagType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Tag",                              /* tp_name           */
+    "_pygit2.Tag",                              /* tp_name           */
     sizeof(Tag),                               /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
