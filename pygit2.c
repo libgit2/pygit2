@@ -2807,7 +2807,7 @@ Config_get_global_config(void)
     char path[GIT_PATH_MAX];
     int err;
 
-    err = git_config_find_global(path);
+    err = git_config_find_global(path, GIT_PATH_MAX);
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetString(PyExc_IOError, "Global config file not found.");
@@ -2825,7 +2825,7 @@ Config_get_system_config(void)
     char path[GIT_PATH_MAX];
     int err;
 
-    err = git_config_find_system(path);
+    err = git_config_find_system(path, GIT_PATH_MAX);
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetString(PyExc_IOError, "System config file not found.");
@@ -2840,10 +2840,10 @@ Config_get_system_config(void)
 static int
 Config_contains(Config *self, PyObject *py_key) {
     int err;
-    char *c_value;
+    const char *c_value;
     const char *c_key = PyString_AsString(py_key);
 
-    err = git_config_get_string(self->config, c_key, (const char **)&c_value);
+    err = git_config_get_string(&c_value, self->config, c_key);
 
     if (err == GIT_ENOTFOUND)
         return 0;
@@ -2859,10 +2859,10 @@ static PyObject *
 Config_getitem(Config *self, PyObject *py_key)
 {
     int err;
-    char *c_value;
+    const char *c_value;
     const char *c_key = PyString_AsString(py_key);
 
-    err = git_config_get_string(self->config, c_key, (const char **)&c_value);
+    err = git_config_get_string(&c_value, self->config, c_key);
     if (err < 0) 
         return Error_set(err);
     
