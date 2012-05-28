@@ -231,24 +231,36 @@ Tree_getitem(Tree *self, PyObject *value)
 PyObject *
 Tree_diff_tree(Tree *self, PyObject *args)
 {
+    git_diff_options opts = {0};
+    git_diff_list *diff;
+    int err;
+
     Diff *py_diff;
     Tree *py_tree;
 
-    if (!PyArg_ParseTuple(args, "O!", &TreeType, &py_tree)) {
+    if (!PyArg_ParseTuple(args, "O!", &TreeType, &py_tree))
         return NULL;
-    }
+    if (py_tree->repo->repo != self->repo->repo)
+        return Error_set(GIT_ERROR);
+
+    err = git_diff_tree_to_tree(
+              self->repo->repo,
+              &opts,
+              self->tree,
+              py_tree->tree,
+              &diff);
+    if (err < 0)
+        return Error_set(err);
 
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
         Py_INCREF(py_diff);
-        Py_INCREF(py_tree);
-        Py_INCREF(self);
-
-        py_diff->t0 = self;
-        py_diff->t1 = py_tree;
+        Py_INCREF(self->repo);
+        py_diff->repo = self->repo;
+        py_diff->diff = diff;
     }
 
-    return (PyObject*) py_diff;
+    return (PyObject*)py_diff;
 }
 
 PySequenceMethods Tree_as_sequence = {
