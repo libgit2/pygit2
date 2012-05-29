@@ -39,6 +39,7 @@ __author__ = 'Nico.Geyso@FU-Berlin.de (Nico von Geyso)'
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'
+COMMIT_SHA1_3 = '2cdae28389c059815e951d0bb9eed6533f61a46b'
 PATCH = b"""diff --git a/a b/a
 index 7f129fd..af431f2 100644
 --- a/a
@@ -84,6 +85,36 @@ class DiffTest(utils.BareRepoTestCase):
 
         self.assertEqual(hunk.old_data, b'a contents 2\n')
         self.assertEqual(hunk.new_data, b'a contents\n')
+
+    def test_diff_merge(self):
+        commit_a = self.repo[COMMIT_SHA1_1]
+        commit_b = self.repo[COMMIT_SHA1_2]
+        commit_c = self.repo[COMMIT_SHA1_3]
+
+        diff_b = commit_a.tree.diff(commit_b.tree)
+        self.assertIsNotNone(diff_b)
+
+        diff_c = commit_b.tree.diff(commit_c.tree)
+        self.assertIsNotNone(diff_c)
+
+        self.assertNotIn(('b','b', 3), diff_b.changes['files'])
+        self.assertIn(('b','b', 3), diff_c.changes['files'])
+
+        diff_b.merge(diff_c)
+
+        self.assertIn(('b','b', 3), diff_b.changes['files'])
+
+        hunk = diff_b.changes['hunks'][1]
+        self.assertEqual(hunk.old_start, 1)
+        self.assertEqual(hunk.old_lines, 0)
+        self.assertEqual(hunk.new_start, 1)
+        self.assertEqual(hunk.new_lines, 0)
+
+        self.assertEqual(hunk.old_file, 'b')
+        self.assertEqual(hunk.new_file, 'b')
+
+        self.assertEqual(hunk.old_data, b'b contents\n')
+        self.assertEqual(hunk.new_data, b'b contents 2\n')
 
     def test_diff_patch(self):
         commit_a = self.repo[COMMIT_SHA1_1]

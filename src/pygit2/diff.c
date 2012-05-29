@@ -53,8 +53,8 @@ static int diff_hunk_cb(
 
     hunks = PyDict_GetItemString(cb_data, "hunks");
     if(hunks == NULL) {
-    hunks = PyList_New(0);
-    PyDict_SetItemString(cb_data, "hunks", hunks);
+        hunks = PyList_New(0);
+        PyDict_SetItemString(cb_data, "hunks", hunks);
     }
 
     hunk = (Hunk*) PyType_GenericNew(&HunkType, NULL, NULL);
@@ -237,6 +237,24 @@ PyTypeObject HunkType = {
     0,                                         /* tp_new            */
 };
 
+PyObject *
+Diff_merge(Diff *self, PyObject *args)
+{
+    Diff *py_diff;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "O!", &DiffType, &py_diff))
+        return NULL;
+    if (py_diff->repo->repo != self->repo->repo)
+        return Error_set(GIT_ERROR);
+
+    err = git_diff_merge(self->diff, py_diff->diff);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
 static void
 Diff_dealloc(Diff *self)
 {
@@ -249,6 +267,12 @@ PyGetSetDef Diff_getseters[] = {
     {"changes", (getter)Diff_changes, NULL, "raw changes", NULL},
     {"patch", (getter)Diff_patch, NULL, "patch", NULL},
     {NULL}
+};
+
+static PyMethodDef Diff_methods[] = {
+    {"merge", (PyCFunction)Diff_merge, METH_VARARGS,
+     "Merge one diff into another."},
+    {NULL, NULL, 0, NULL}
 };
 
 PyTypeObject DiffType = {
@@ -279,7 +303,7 @@ PyTypeObject DiffType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Diff_methods,                              /* tp_methods        */
     0,                                         /* tp_members        */
     Diff_getseters,                            /* tp_getset         */
     0,                                         /* tp_base           */
