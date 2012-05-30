@@ -1,12 +1,17 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <string.h>
+#include <structmember.h>
 #include <pygit2/error.h>
 #include <pygit2/types.h>
 #include <pygit2/utils.h>
 #include <pygit2/oid.h>
+#include <pygit2/signature.h>
 #include <pygit2/reference.h>
 
 extern PyObject *GitError;
+
+extern PyTypeObject ReferenceLogEntryType;
 
 void
 Reference_dealloc(Reference *self)
@@ -221,6 +226,128 @@ Reference_get_type(Reference *self)
     return PyInt_FromLong(c_type);
 }
 
+PyObject *
+Reference_log(Reference *self)
+{
+    ReferenceLogEntry *py_entry;
+    PyObject *py_list;
+    git_reflog *reflog;
+    ssize_t i, size;
+
+    CHECK_REFERENCE(self);
+
+    git_reflog_read(&reflog, self->reference);
+
+    size = git_reflog_entrycount(reflog);
+
+    py_list = PyList_New(size);
+
+    for(i = 0; i < size; ++i) {
+        char oid_old[40], oid_new[40];
+        git_signature *signature = NULL;
+
+        const git_reflog_entry *entry = git_reflog_entry_byindex(reflog, i);
+
+        py_entry = (ReferenceLogEntry*) PyType_GenericNew(
+                        &ReferenceLogEntryType, NULL, NULL
+                    );
+
+        git_oid_fmt(oid_old, git_reflog_entry_oidold(entry));
+        git_oid_fmt(oid_new, git_reflog_entry_oidnew(entry));
+
+        py_entry->oid_new = PyUnicode_FromStringAndSize(oid_new, 40);
+        py_entry->oid_old = PyUnicode_FromStringAndSize(oid_old, 40);
+
+        py_entry->msg = strdup(git_reflog_entry_msg(entry));
+
+        signature = git_signature_dup(
+              git_reflog_entry_committer(entry)
+            );
+
+        if(signature != NULL)
+          py_entry->committer = build_signature(
+                (PyObject*)py_entry, signature, "utf-8"
+              );
+
+        PyList_SetItem(py_list, i, (PyObject*) py_entry);
+    }
+
+    git_reflog_free(reflog);
+
+    return py_list;
+}
+
+static int
+ReferenceLogEntry_init(ReferenceLogEntry *self, PyObject *args, PyObject *kwds)
+{
+    self->oid_old = Py_None;
+    self->oid_new = Py_None;
+    self->msg = "";
+    self->committer = Py_None;
+
+    return 0;
+}
+
+
+static void
+ReferenceLogEntry_dealloc(ReferenceLogEntry *self)
+{
+    Py_XDECREF(self->oid_old);
+    Py_XDECREF(self->oid_new);
+    Py_XDECREF(self->committer);
+    free(self->msg);
+    PyObject_Del(self);
+}
+
+PyMemberDef ReferenceLogEntry_members[] = {
+    {"oid_new", T_OBJECT, offsetof(ReferenceLogEntry, oid_new), 0, "new oid"},
+    {"oid_old", T_OBJECT, offsetof(ReferenceLogEntry, oid_old), 0, "old oid"},
+    {"message",  T_STRING, offsetof(ReferenceLogEntry, msg), 0, "message"},
+    {"committer",  T_OBJECT, offsetof(ReferenceLogEntry, committer), 0, "committer"},
+    {NULL}
+};
+
+PyTypeObject ReferenceLogEntryType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.ReferenceLogEntry",               /* tp_name           */
+    sizeof(ReferenceLogEntry),                 /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)ReferenceLogEntry_dealloc,     /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    "ReferenceLog object",                     /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    ReferenceLogEntry_members,                 /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)ReferenceLogEntry_init,          /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
 PyMethodDef Reference_methods[] = {
     {"delete", (PyCFunction)Reference_delete, METH_NOARGS,
      "Delete this reference. It will no longer be valid!"},
@@ -230,6 +357,8 @@ PyMethodDef Reference_methods[] = {
      "Reload the reference from the file-system."},
     {"resolve", (PyCFunction)Reference_resolve, METH_NOARGS,
       "Resolve a symbolic reference and return a direct reference."},
+    {"log", (PyCFunction)Reference_log, METH_NOARGS,
+      "Retrieves the current reference log."},
     {NULL}
 };
 

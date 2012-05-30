@@ -78,6 +78,14 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
+    PyObject *oid_old;
+    PyObject *oid_new;
+    PyObject *committer;
+    char *msg;
+} ReferenceLogEntry;
+
+typedef struct {
+    PyObject_HEAD
     Object *obj;
     const git_signature *signature;
     const char *encoding;
