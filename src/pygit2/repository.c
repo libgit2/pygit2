@@ -162,7 +162,7 @@ Repository_head(Repository *self)
 {
     git_reference *head;
     const git_oid *oid;
-    int err, len;
+    int err;
     
     err = git_repository_head(&head, self->repo);
     if(err < 0) {
