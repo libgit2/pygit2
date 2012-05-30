@@ -61,6 +61,9 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(repo.listall_references(GIT_REF_SYMBOLIC),
                          ('refs/tags/version1', ))
 
+    def test_head(self):
+        head = self.repo.head
+        self.assertEqual(LAST_COMMIT, self.repo[head.oid].hex)
 
     def test_lookup_reference(self):
         repo = self.repo
