@@ -45,8 +45,7 @@ typedef struct {
     int new_start;
     int new_lines;
     char* new_file;
-    PyObject *old_data;
-    PyObject *new_data;
+    PyObject *data;
 } Hunk;
 
 typedef struct {
@@ -70,6 +69,23 @@ typedef struct {
     PyObject_HEAD
     git_reference *reference;
 } Reference;
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *oid_old;
+    PyObject *oid_new;
+    PyObject *committer;
+    char *msg;
+} RefLogEntry;
+
+typedef struct {
+    PyObject_HEAD
+    Reference *reference;
+    git_reflog *reflog;
+    int i;
+    int size;
+} RefLogIter;
+
 
 typedef struct {
     PyObject_HEAD

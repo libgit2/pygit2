@@ -6,6 +6,10 @@
 #include <pygit2/utils.h>
 #include <pygit2/diff.h>
 
+extern PyObject *GitError;
+
+extern PyTypeObject TreeType;
+extern PyTypeObject IndexType;
 extern PyTypeObject DiffType;
 extern PyTypeObject HunkType;
 
@@ -13,30 +17,31 @@ static int diff_data_cb(
   void *cb_data,
   git_diff_delta *delta,
   git_diff_range *range,
-  char usage,
-  const char *line,
-  size_t line_len)
+  char line_origin,
+  const char *content,
+  size_t content_len)
 {
-    PyObject *hunks, *tmp;
+    PyObject *hunks, *data, *tmp;
     Hunk *hunk;
-    Py_ssize_t size; 
+    Py_ssize_t size;
 
     hunks = PyDict_GetItemString(cb_data, "hunks");
-    if(hunks == NULL)
+    if (hunks == NULL)
       return -1;
 
     size = PyList_Size(hunks);
-    hunk = (Hunk*) PyList_GetItem(hunks, size-1);
-    if(hunk == NULL)
+    hunk = (Hunk *)PyList_GetItem(hunks, size - 1);
+    if (hunk == NULL)
       return -1;
 
-    tmp = PyBytes_FromStringAndSize(line, line_len);
+    tmp = PyBytes_FromStringAndSize(content, content_len);
 
-    if(usage != GIT_DIFF_LINE_DELETION)
-        PyBytes_Concat(&hunk->new_data, tmp);
+    data = Py_BuildValue("(O,i)",
+        tmp,
+        line_origin
+    );
 
-    if(usage != GIT_DIFF_LINE_ADDITION)
-        PyBytes_Concat(&hunk->old_data, tmp);
+    PyList_Append(hunk->data, data);
 
     return 0;
 }
@@ -52,12 +57,14 @@ static int diff_hunk_cb(
     Hunk *hunk;
 
     hunks = PyDict_GetItemString(cb_data, "hunks");
-    if(hunks == NULL) {
+    if (hunks == NULL) {
         hunks = PyList_New(0);
         PyDict_SetItemString(cb_data, "hunks", hunks);
     }
 
-    hunk = (Hunk*) PyType_GenericNew(&HunkType, NULL, NULL);
+    hunk = (Hunk*)PyType_GenericNew(&HunkType, NULL, NULL);
+    if (hunk == NULL)
+        return -1;
 
     hunk->old_start = range->old_start;
     hunk->old_lines = range->old_lines;
@@ -67,25 +74,29 @@ static int diff_hunk_cb(
     int len;
     char* old_path, *new_path;
 
-    len = strlen(delta->old_file.path) + 1;
-    old_path = malloc(sizeof(char) * len);
-    memcpy(old_path, delta->old_file.path, len);
-    hunk->old_file = old_path;
+    if (delta->old_file.path != NULL) {
+        len = strlen(delta->old_file.path) + 1;
+        old_path = malloc(sizeof(char) * len);
+        memcpy(old_path, delta->old_file.path, len);
+        hunk->old_file = old_path;
+    } else {
+        hunk->old_file = "";
+    }
 
-    len = strlen(delta->new_file.path) + 1;
-    new_path = malloc(sizeof(char) * len);
-    memcpy(new_path, delta->new_file.path, len);
-    hunk->new_file = new_path;
+    if (delta->new_file.path != NULL) {
+        len = strlen(delta->new_file.path) + 1;
+        new_path = malloc(sizeof(char) * len);
+        memcpy(new_path, delta->new_file.path, len);
+        hunk->new_file = new_path;
+    } else {
+        hunk->new_file = "";
+    }
 
-#if PY_MAJOR_VERSION >= 3
-    hunk->old_data = Py_BuildValue("y", "");
-    hunk->new_data = Py_BuildValue("y", "");
-#else
-    hunk->old_data = Py_BuildValue("s", "");
-    hunk->new_data = Py_BuildValue("s", "");
-#endif
+    if (hunk->data == NULL) {
+      hunk->data = PyList_New(0);
+    }
 
-    PyList_Append(hunks, (PyObject*) hunk);
+    PyList_Append(hunks, (PyObject *)hunk);
 
     return 0;
 };
@@ -94,19 +105,22 @@ static int diff_file_cb(void *cb_data, git_diff_delta *delta, float progress)
 {
     PyObject *files, *file;
 
-    files = PyDict_GetItemString(cb_data, "files");
-    if(files == NULL) {
-      files = PyList_New(0);
-      PyDict_SetItemString(cb_data, "files", files);
+    if(delta->old_file.path != NULL && delta->new_file.path != NULL) {
+        files = PyDict_GetItemString(cb_data, "files");
+
+        if(files == NULL) {
+            files = PyList_New(0);
+            PyDict_SetItemString(cb_data, "files", files);
+        }
+
+        file = Py_BuildValue("(s,s,i)",
+            delta->old_file.path,
+            delta->new_file.path,
+            delta->status
+        );
+
+        PyList_Append(files, file);
     }
-
-    file = Py_BuildValue("(s,s,i)",
-        delta->old_file.path,
-        delta->new_file.path,
-        delta->status
-    );
-
-    PyList_Append(files, file);
 
     return 0;
 }
@@ -137,7 +151,7 @@ static int diff_print_cb(
     size_t line_len)
 {
     PyObject *data = PyBytes_FromStringAndSize(line, line_len);
-    PyBytes_ConcatAndDel((PyObject**) cb_data, data);
+    PyBytes_ConcatAndDel((PyObject **)cb_data, data);
 
     return 0;
 }
@@ -161,16 +175,10 @@ Hunk_init(Hunk *self, PyObject *args, PyObject *kwds)
       self->new_start = 0;
       self->new_lines = 0;
 
-      self->old_data = PyString_FromString("");
-      if (self->old_data == NULL) {
-        Py_DECREF(self);
-        return -1;
-      }
-
-      self->new_data = PyString_FromString("");
-      if (self->new_data == NULL) {
-        Py_DECREF(self);
-        return -1;
+      self->data = PyList_New(0);
+      if (self->data == NULL) {
+          Py_XDECREF(self);
+          return -1;
       }
 
       return 0;
@@ -179,8 +187,7 @@ Hunk_init(Hunk *self, PyObject *args, PyObject *kwds)
 static void
 Hunk_dealloc(Hunk *self)
 {
-    Py_XDECREF(self->old_data);
-    Py_XDECREF(self->new_data);
+    Py_XDECREF(self->data);
     PyObject_Del(self);
 }
 
@@ -188,17 +195,16 @@ PyMemberDef Hunk_members[] = {
     {"old_start", T_INT, offsetof(Hunk, old_start), 0, "old start"},
     {"old_lines", T_INT, offsetof(Hunk, old_lines), 0, "old lines"},
     {"old_file",  T_STRING, offsetof(Hunk, old_file), 0, "old file"},
-    {"old_data",  T_OBJECT, offsetof(Hunk, old_data), 0, "old data"},
     {"new_start", T_INT, offsetof(Hunk, new_start), 0, "new start"},
     {"new_lines", T_INT, offsetof(Hunk, new_lines), 0, "new lines"},
     {"new_file",  T_STRING, offsetof(Hunk, new_file), 0, "old file"},
-    {"new_data",  T_OBJECT, offsetof(Hunk, new_data), 0, "new data"},
+    {"data",      T_OBJECT, offsetof(Hunk, data), 0, "data"},
     {NULL}
 };
 
 PyTypeObject HunkType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Hunk",                             /* tp_name           */
+    "_pygit2.Hunk",                            /* tp_name           */
     sizeof(Hunk),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Hunk_dealloc,                  /* tp_dealloc        */
@@ -277,7 +283,7 @@ static PyMethodDef Diff_methods[] = {
 
 PyTypeObject DiffType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Diff",                             /* tp_name           */
+    "_pygit2.Diff",                             /* tp_name           */
     sizeof(Diff),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Diff_dealloc,                  /* tp_dealloc        */
