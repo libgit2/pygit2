@@ -131,12 +131,6 @@ moduleinit(PyObject* m)
     CommitType.tp_base = &ObjectType;
     if (PyType_Ready(&CommitType) < 0)
         return NULL;
-    DiffType.tp_base = &ObjectType;
-    if (PyType_Ready(&DiffType) < 0)
-        return NULL;
-    HunkType.tp_base = &ObjectType;
-    if (PyType_Ready(&HunkType) < 0)
-        return NULL;
     TreeType.tp_base = &ObjectType;
     if (PyType_Ready(&TreeType) < 0)
         return NULL;
@@ -145,6 +139,11 @@ moduleinit(PyObject* m)
         return NULL;
     TagType.tp_base = &ObjectType;
     if (PyType_Ready(&TagType) < 0)
+        return NULL;
+
+    if (PyType_Ready(&DiffType) < 0)
+        return NULL;
+    if (PyType_Ready(&HunkType) < 0)
         return NULL;
 
     TreeEntryType.tp_new = PyType_GenericNew;

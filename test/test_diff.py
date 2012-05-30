@@ -39,6 +39,7 @@ __author__ = 'Nico.Geyso@FU-Berlin.de (Nico von Geyso)'
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'
+
 PATCH = b"""diff --git a/a b/a
 index 7f129fd..af431f2 100644
 --- a/a
@@ -55,6 +56,45 @@ index 297efb8..0000000
 -c/d contents
 """
 
+DIFF_INDEX_EXPECTED = [
+ "staged_changes",
+ "staged_changes_file_deleted",
+ "staged_changes_file_modified",
+ "staged_delete",
+ "staged_delete_file_modified",
+ "staged_new",
+ "staged_new_file_deleted",
+ "staged_new_file_modified"
+]
+
+DIFF_WORKDIR_EXPECTED = [
+  'file_deleted',
+  'modified_file',
+  'staged_changes',
+  'staged_changes_file_deleted',
+  'staged_changes_file_modified',
+  'staged_delete',
+  'staged_delete_file_modified',
+  'subdir/deleted_file',
+  'subdir/modified_file'
+]
+
+class DiffDirtyTest(utils.DirtyRepoTestCase):
+    def test_diff_empty_index(self):
+        repo = self.repo
+        head = repo[repo.lookup_reference('HEAD').resolve().oid]
+        diff = head.tree.diff(repo.index)
+
+        files = [x[1] for x in diff.changes['files']]
+        self.assertEqual(DIFF_INDEX_EXPECTED, files)
+
+    def test_workdir_to_tree(self):
+        repo = self.repo
+        head = repo[repo.lookup_reference('HEAD').resolve().oid]
+        diff = head.tree.diff()
+
+        files = [x[1] for x in diff.changes['files']]
+        self.assertEqual(DIFF_WORKDIR_EXPECTED, files)
 
 class DiffTest(utils.BareRepoTestCase):
 
@@ -62,6 +102,14 @@ class DiffTest(utils.BareRepoTestCase):
         commit_a = self.repo[COMMIT_SHA1_1]
         commit_b = self.repo[COMMIT_SHA1_2]
         self.assertRaises(TypeError, commit_a.tree.diff, commit_b)
+
+    def test_diff_empty_index(self):
+        repo = self.repo
+        head = repo[repo.lookup_reference('HEAD').resolve().oid]
+        diff = head.tree.diff(repo.index)
+
+        files = [x[0].split('/')[0] for x in diff.changes['files']]
+        self.assertEqual([x.name for x in head.tree], files)
 
     def test_diff_tree(self):
         commit_a = self.repo[COMMIT_SHA1_1]
