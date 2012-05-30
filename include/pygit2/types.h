@@ -82,7 +82,16 @@ typedef struct {
     PyObject *oid_new;
     PyObject *committer;
     char *msg;
-} ReferenceLogEntry;
+} RefLogEntry;
+
+typedef struct {
+    PyObject_HEAD
+    Reference *reference;
+    git_reflog *reflog;
+    int i;
+    int size;
+} RefLogIter;
+
 
 typedef struct {
     PyObject_HEAD

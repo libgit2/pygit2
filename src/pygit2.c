@@ -53,7 +53,8 @@ PyTypeObject IndexEntryType;
 PyTypeObject IndexIterType;
 PyTypeObject WalkerType;
 PyTypeObject ReferenceType;
-PyTypeObject ReferenceLogEntryType;
+PyTypeObject RefLogIterType;
+PyTypeObject RefLogEntryType;
 PyTypeObject SignatureType;
 
 
@@ -165,7 +166,7 @@ moduleinit(PyObject* m)
     ReferenceType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&ReferenceType) < 0)
         return NULL;
-    if (PyType_Ready(&ReferenceLogEntryType) < 0)
+    if (PyType_Ready(&RefLogEntryType) < 0)
         return NULL;
     SignatureType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&SignatureType) < 0)
