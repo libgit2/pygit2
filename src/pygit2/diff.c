@@ -284,7 +284,7 @@ PyMemberDef Hunk_members[] = {
 
 PyTypeObject HunkType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Hunk",                             /* tp_name           */
+    "_pygit2.Hunk",                             /* tp_name           */
     sizeof(Hunk),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Hunk_dealloc,                  /* tp_dealloc        */
@@ -342,7 +342,7 @@ PyGetSetDef Diff_getseters[] = {
 
 PyTypeObject DiffType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pygit2.Diff",                             /* tp_name           */
+    "_pygit2.Diff",                             /* tp_name           */
     sizeof(Diff),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Diff_dealloc,                  /* tp_dealloc        */
