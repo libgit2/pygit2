@@ -33,16 +33,17 @@ PyObject * Error_type(int type)
 
     // Critical
     const git_error* error = giterr_last();
-    switch (error->klass) {
-        case GITERR_NOMEMORY:
-            return PyExc_MemoryError;
-        case GITERR_OS:
-            return PyExc_OSError;
-        case GITERR_INVALID:
-            return PyExc_ValueError;
-        default:
-            return GitError;
+    if(error != NULL) {
+        switch (error->klass) {
+            case GITERR_NOMEMORY:
+                return PyExc_MemoryError;
+            case GITERR_OS:
+                return PyExc_OSError;
+            case GITERR_INVALID:
+                return PyExc_ValueError;
+        }
     }
+    return GitError;
 }
 
 
@@ -51,10 +52,13 @@ PyObject* Error_set(int err)
     assert(err < 0);
 
     if(err != GIT_ERROR) { //expected failure
-      PyErr_SetNone(Error_type(err));
+        PyErr_SetNone(Error_type(err));
     } else { //critical failure
-      const git_error* error = giterr_last();
-      PyErr_SetString(Error_type(err), error->message);
+        const git_error* error = giterr_last();
+        char* message = (error == NULL) ? 
+                "(No error information given)" : error->message;
+        
+        PyErr_SetString(Error_type(err), message);
     }
 
     return NULL;

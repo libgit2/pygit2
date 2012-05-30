@@ -38,8 +38,8 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    Tree *t0;
-    Tree *t1;
+    PyObject *a;
+    PyObject *b;
 } Diff;
 
 typedef struct {

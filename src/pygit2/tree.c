@@ -9,6 +9,7 @@
 extern PyTypeObject TreeType;
 extern PyTypeObject DiffType;
 extern PyTypeObject TreeIterType;
+extern PyTypeObject IndexType;
 
 void
 TreeEntry_dealloc(TreeEntry *self)
@@ -232,20 +233,26 @@ PyObject *
 Tree_diff_tree(Tree *self, PyObject *args)
 {
     Diff *py_diff;
-    Tree *py_tree;
+    PyObject* py_obj = NULL;
 
-    if (!PyArg_ParseTuple(args, "O!", &TreeType, &py_tree)) {
+    if (!PyArg_ParseTuple(args, "|O", &py_obj))
         return NULL;
+
+    if (py_obj != NULL &&  !PyObject_TypeCheck(py_obj, &TreeType) &&
+        !PyObject_TypeCheck(py_obj, &IndexType)) {
+
+      PyErr_SetObject(PyExc_TypeError, py_obj);
+      return NULL;
     }
 
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
         Py_INCREF(py_diff);
-        Py_INCREF(py_tree);
         Py_INCREF(self);
+        Py_XINCREF(py_obj);
 
-        py_diff->t0 = self;
-        py_diff->t1 = py_tree;
+        py_diff->a = (PyObject*) self;
+        py_diff->b = (PyObject*) py_obj;
     }
 
     return (PyObject*) py_diff;
@@ -269,8 +276,14 @@ PyMappingMethods Tree_as_mapping = {
 };
 
 PyMethodDef Tree_methods[] = {
-    {"diff", (PyCFunction)Tree_diff_tree, METH_VARARGS,
-     "Diff two trees."},
+    {
+     "diff", (PyCFunction)Tree_diff_tree, METH_VARARGS,
+     "Get changes between current tree instance with another tree, an "
+     "index or the working dir.\n\n"
+     "@param obj : if not given compare diff against working dir. "
+     "Possible valid arguments are instances of Tree or Index.\n"
+     "@returns Diff instance"
+    },
     {NULL}
 };
 
