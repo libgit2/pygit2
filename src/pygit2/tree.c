@@ -232,30 +232,51 @@ Tree_getitem(Tree *self, PyObject *value)
 PyObject *
 Tree_diff_tree(Tree *self, PyObject *args)
 {
+    git_diff_options opts = {0};
+    git_diff_list *diff;
+    int err;
+
     Diff *py_diff;
-    PyObject* py_obj = NULL;
+    PyObject *py_obj = NULL;
 
     if (!PyArg_ParseTuple(args, "|O", &py_obj))
         return NULL;
 
-    if (py_obj != NULL &&  !PyObject_TypeCheck(py_obj, &TreeType) &&
-        !PyObject_TypeCheck(py_obj, &IndexType)) {
-
-      PyErr_SetObject(PyExc_TypeError, py_obj);
-      return NULL;
+    if (py_obj == NULL) {
+        err = git_diff_workdir_to_tree(
+                self->repo->repo,
+                &opts,
+                self->tree,
+                &diff);
+    } else if (PyObject_TypeCheck(py_obj, &TreeType)) {
+        err = git_diff_tree_to_tree(
+                self->repo->repo,
+                &opts,
+                self->tree,
+                ((Tree *)py_obj)->tree,
+                &diff);
+    } else if (PyObject_TypeCheck(py_obj, &IndexType)) {
+        err = git_diff_index_to_tree(
+                ((Index *)py_obj)->repo->repo,
+                &opts,
+                self->tree,
+                &diff);
+    } else {
+        PyErr_SetObject(PyExc_TypeError, py_obj);
+        return NULL;
     }
+    if (err < 0)
+        return Error_set(err);
 
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
         Py_INCREF(py_diff);
-        Py_INCREF(self);
-        Py_XINCREF(py_obj);
-
-        py_diff->a = (PyObject*) self;
-        py_diff->b = (PyObject*) py_obj;
+        Py_INCREF(self->repo);
+        py_diff->repo = self->repo;
+        py_diff->diff = diff;
     }
 
-    return (PyObject*) py_diff;
+    return (PyObject*)py_diff;
 }
 
 PySequenceMethods Tree_as_sequence = {
