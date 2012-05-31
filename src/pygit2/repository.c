@@ -17,6 +17,7 @@ extern PyTypeObject CommitType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 extern PyTypeObject TreeBuilderType;
+extern PyTypeObject DiffType;
 
 git_otype
 int_to_loose_object_type(int type_id)

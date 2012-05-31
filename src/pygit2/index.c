@@ -7,6 +7,8 @@
 #include <pygit2/index.h>
 
 extern PyTypeObject IndexType;
+extern PyTypeObject TreeType;
+extern PyTypeObject DiffType;
 extern PyTypeObject IndexIterType;
 extern PyTypeObject IndexEntryType;
 
@@ -72,6 +74,48 @@ Index_clear(Index *self)
 {
     git_index_clear(self->index);
     Py_RETURN_NONE;
+}
+
+PyObject *
+Index_diff_tree(Index *self, PyObject *args)
+{
+    git_diff_options opts = {0};
+    git_diff_list *diff;
+    int err;
+
+    Diff *py_diff;
+    PyObject *py_obj = NULL;
+
+    if (!PyArg_ParseTuple(args, "|O", &py_obj))
+        return NULL;
+
+    if (py_obj == NULL) {
+        err = git_diff_workdir_to_index(
+                self->repo->repo,
+                &opts,
+                &diff);
+    } else if (PyObject_TypeCheck(py_obj, &TreeType)) {
+        err = git_diff_index_to_tree(
+                self->repo->repo,
+                &opts,
+                ((Tree *)py_obj)->tree,
+                &diff);
+    } else {
+        PyErr_SetObject(PyExc_TypeError, py_obj);
+        return NULL;
+    }
+    if (err < 0)
+        return Error_set(err);
+
+    py_diff = PyObject_New(Diff, &DiffType);
+    if (py_diff) {
+        Py_INCREF(py_diff);
+        Py_INCREF(self->repo);
+        py_diff->repo = self->repo;
+        py_diff->diff = diff;
+    }
+
+    return (PyObject*)py_diff;
 }
 
 PyObject *
@@ -285,6 +329,8 @@ PyMethodDef Index_methods[] = {
      "Add or update an index entry from a file in disk."},
     {"clear", (PyCFunction)Index_clear, METH_NOARGS,
      "Clear the contents (all the entries) of an index object."},
+    {"diff", (PyCFunction)Index_diff_tree, METH_VARARGS,
+     "Diff index to tree."},
     {"_find", (PyCFunction)Index_find, METH_O,
      "Find the first index of any entries which point to given path in the"
      " Git index."},

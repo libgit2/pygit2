@@ -29,6 +29,7 @@ OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
+OBJECT_STRUCT(Diff, git_diff_list, diff)
 
 typedef struct {
     PyObject_HEAD
@@ -38,20 +39,13 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    PyObject *a;
-    PyObject *b;
-} Diff;
-
-typedef struct {
-    PyObject_HEAD
     int old_start;
     int old_lines;
     char* old_file;
     int new_start;
     int new_lines;
     char* new_file;
-    PyObject *old_data;
-    PyObject *new_data;
+    PyObject *data;
 } Hunk;
 
 typedef struct {
