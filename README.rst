@@ -55,9 +55,7 @@ called *objects*, there are four types (commits, trees, blobs and tags),
 for each type pygit2 has a Python class::
 
     # Get the last commit
-    >>> head = repo.lookup_reference('HEAD')
-    >>> head = head.resolve()
-    >>> commit = repo[head.oid]
+    >>> head = repo.head
 
     # Show commits and trees
     >>> commit
@@ -95,13 +93,15 @@ Objects can not be modified once they have been created.
 Commits
 -----------------
 
-::
+A commit is a snapshot of the working dir with meta informations like author,
+committer and others.::
 
     Commit.author    -- the author of the commit
     Commit.committer -- the committer of the commit
     Commit.message   -- the message, a text string
     Commit.tree      -- the tree object attached to the commit
     Commit.parents   -- the list of parent commits
+
 
 Signatures
 .............
@@ -162,17 +162,49 @@ This is the interface of a tree entry::
     TreeEntry.attributes  -- the Unix file attributes
     TreeEntry.to_object() -- returns the git object (equivalent to repo[entry.oid])
 
+
+Diff
+-----------------
+
+A diff shows the changes between trees, an index or the working dir::
+
+    # Diff two trees
+    >>> t0 = repo.head.tree
+    >>> t1 = repo.head.parents[0]
+    >>> diff = t0.diff(t1)
+    >>> diff
+
+    # Diff a tree with the index
+    >>> tree = repo.head.tree
+    >>> diff = tree.diff(repo.index)
+
+    # Diff a tree with the current working dir
+    >>> tree = repo.head.tree
+    >>> diff = tree.diff()
+
+The interface for a diff::
+
+    Diff.changes          -- Dict of 'files' and 'hunks' for every change
+    Diff.patch            -- a patch for every changeset
+    Diff.merge            -- Merge two Diffs
+
+
 Blobs
 -----------------
 
-A blob is equivalent to a file in a file system::
+A blob is equivalent to a file in a file system.::
+
+    # create a blob out of memory
+    >>> oid  = repo.create_blob('foo bar')
+    >>> blob = repo[oid]
 
     Blob.data -- the contents of the blob, a byte string
 
 Tags
 -----------------
 
-XXX
+A tag is a static label for a commit. See references for more information.
+
 
 
 References
@@ -180,18 +212,32 @@ References
 
 Reference lookup::
 
+    >>> all_refs = repo.listall_references()
     >>> master_ref = repo.lookup_reference("refs/heads/master")
     >>> commit = repo[master_ref.oid]
+
+Reference log::
+
+    >>> head = repo.lookup_reference('refs/heads/master')
+    >>> for entry in head.log():
+    ...     print(entry.message)
+
+The interface for RefLogEntry::
+
+    RefLogEntry.committer -- Signature of Committer
+    RefLogEntry.message   -- the message of the RefLogEntry
+    RefLogEntry.oid_old   -- oid of old reference
+    RefLogEntry.oid_new   -- oid of new reference
 
 
 Revision walking
 =================
 
-::
+You can iterate through the revision history with repo.walk::
 
     >>> from pygit2 import GIT_SORT_TIME
     >>> for commit in repo.walk(oid, GIT_SORT_TIME):
-    ...     print commit.hex
+    ...     print(commit.hex)
 
 The index file
 =================
@@ -236,15 +282,14 @@ for the topic), send a pull request.
 TODO
 ----------------
 
-XXX
-
+See issues
 
 
 AUTHORS
 ==============
 
 * David Borowitz <dborowitz@google.com>
-* J. David Ibáñez <jdavid@itaapy.com>
+* J David Ibáñez <jdavid@itaapy.com>
 
 
 LICENSE
