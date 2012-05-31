@@ -37,25 +37,25 @@
 
 extern PyObject *GitError;
 
-PyTypeObject RepositoryType;
-PyTypeObject ObjectType;
-PyTypeObject CommitType;
-PyTypeObject DiffType;
-PyTypeObject HunkType;
-PyTypeObject TreeType;
-PyTypeObject TreeBuilderType;
-PyTypeObject TreeEntryType;
-PyTypeObject TreeIterType;
-PyTypeObject BlobType;
-PyTypeObject TagType;
-PyTypeObject IndexType;
-PyTypeObject IndexEntryType;
-PyTypeObject IndexIterType;
-PyTypeObject WalkerType;
-PyTypeObject ReferenceType;
-PyTypeObject RefLogIterType;
-PyTypeObject RefLogEntryType;
-PyTypeObject SignatureType;
+extern PyTypeObject RepositoryType;
+extern PyTypeObject ObjectType;
+extern PyTypeObject CommitType;
+extern PyTypeObject DiffType;
+extern PyTypeObject HunkType;
+extern PyTypeObject TreeType;
+extern PyTypeObject TreeBuilderType;
+extern PyTypeObject TreeEntryType;
+extern PyTypeObject TreeIterType;
+extern PyTypeObject BlobType;
+extern PyTypeObject TagType;
+extern PyTypeObject IndexType;
+extern PyTypeObject IndexEntryType;
+extern PyTypeObject IndexIterType;
+extern PyTypeObject WalkerType;
+extern PyTypeObject ReferenceType;
+extern PyTypeObject RefLogIterType;
+extern PyTypeObject RefLogEntryType;
+extern PyTypeObject SignatureType;
 
 
 PyObject *
