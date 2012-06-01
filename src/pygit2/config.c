@@ -127,13 +127,25 @@ PyObject *
 Config_getitem(Config *self, PyObject *py_key)
 {
     int err;
-    const char *c_value;
-    const char *c_key;
+    int64_t       c_intvalue;
+    int           c_boolvalue;
+    const char   *c_charvalue;
+    const char   *c_key;
      
     if (!(c_key = py_str_to_c_str(py_key,NULL)))
         return NULL;
-    
-    err = git_config_get_string(&c_value, self->config, c_key);
+   
+    err = git_config_get_int64(&c_intvalue, self->config, c_key);
+    if (err == GIT_OK) {
+        return PyInt_FromLong((long)c_intvalue);
+    }
+
+    err = git_config_get_bool(&c_boolvalue, self->config, c_key);
+    if (err == GIT_OK) {
+        return PyBool_FromLong((long)c_boolvalue);
+    }
+
+    err = git_config_get_string(&c_charvalue, self->config, c_key);
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetObject(PyExc_KeyError, py_key);
@@ -142,7 +154,7 @@ Config_getitem(Config *self, PyObject *py_key)
         return Error_set(err);
     }
     
-    return PyUnicode_FromString(c_value);
+    return PyUnicode_FromString(c_charvalue);
 }
 
 int
