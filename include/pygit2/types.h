@@ -47,8 +47,7 @@ typedef struct {
     int new_start;
     int new_lines;
     char* new_file;
-    PyObject *old_data;
-    PyObject *new_data;
+    PyObject *data;
 } Hunk;
 
 typedef struct {

@@ -162,6 +162,9 @@ moduleinit(PyObject* m)
     TreeBuilderType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TreeBuilderType) < 0)
         return NULL;
+    ConfigType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&ConfigType) < 0)
+        return NULL;
     WalkerType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&WalkerType) < 0)
         return NULL;
@@ -189,6 +192,9 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&TreeType);
     PyModule_AddObject(m, "Tree", (PyObject *)&TreeType);
+
+    Py_INCREF(&ConfigType);
+    PyModule_AddObject(m, "Config", (PyObject *)&ConfigType); 
 
     Py_INCREF(&BlobType);
     PyModule_AddObject(m, "Blob", (PyObject *)&BlobType);
