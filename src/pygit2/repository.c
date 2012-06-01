@@ -7,6 +7,8 @@
 #include <pygit2/oid.h>
 #include <pygit2/repository.h>
 
+extern PyObject *GitError;
+
 extern PyTypeObject IndexType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject SignatureType;
@@ -16,6 +18,7 @@ extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
+extern PyTypeObject DiffType;
 
 git_otype
 int_to_loose_object_type(int type_id)
@@ -155,6 +158,29 @@ Repository_contains(Repository *self, PyObject *value)
     git_odb_free(odb);
     return exists;
 }
+
+PyObject *
+Repository_head(Repository *self)
+{
+    git_reference *head;
+    const git_oid *oid;
+    int err;
+    
+    err = git_repository_head(&head, self->repo);
+    if(err < 0) {
+      if(err == GIT_ENOTFOUND)
+        PyErr_SetString(GitError, "head reference does not exist");
+      else
+        Error_set(err);
+
+      return NULL;
+    }
+
+    oid = git_reference_oid(head);
+
+    return lookup_object(self, oid, GIT_OBJ_COMMIT);
+}
+
 
 PyObject *
 Repository_getitem(Repository *self, PyObject *value)
@@ -772,11 +798,13 @@ PyGetSetDef Repository_getseters[] = {
     {"index", (getter)Repository_get_index, NULL, "index file. ", NULL},
     {"path", (getter)Repository_get_path, NULL,
      "The normalized path to the git repository.", NULL},
+    {"head", (getter)Repository_head, NULL,
+      "Current head reference of the repository.", NULL},
     {"config", (getter)Repository_get_config, NULL,
      "Get the configuration file for this repository.\n\n"
      "If a configuration file has not been set, the default "
      "config set for the repository will be returned, including "
-     "global and system configurations (if they are available).", NULL},
+     "global and system configurations (if they are available).", NULL},    
     {"workdir", (getter)Repository_get_workdir, NULL,
      "The normalized path to the working directory of the repository. "
      "If the repository is bare, None will be returned.", NULL},

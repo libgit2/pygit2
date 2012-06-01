@@ -30,6 +30,7 @@ OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
+OBJECT_STRUCT(Diff, git_diff_list, diff)
 OBJECT_STRUCT(Config, git_config, config) 
 
 typedef struct {
@@ -37,12 +38,6 @@ typedef struct {
     PyObject *owner; /* Tree or TreeBuilder */
     const git_tree_entry *entry;
 } TreeEntry;
-
-typedef struct {
-    PyObject_HEAD
-    Tree *t0;
-    Tree *t1;
-} Diff;
 
 typedef struct {
     PyObject_HEAD
@@ -77,6 +72,23 @@ typedef struct {
     PyObject_HEAD
     git_reference *reference;
 } Reference;
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *oid_old;
+    PyObject *oid_new;
+    PyObject *committer;
+    char *msg;
+} RefLogEntry;
+
+typedef struct {
+    PyObject_HEAD
+    Reference *reference;
+    git_reflog *reflog;
+    int i;
+    int size;
+} RefLogIter;
+
 
 typedef struct {
     PyObject_HEAD

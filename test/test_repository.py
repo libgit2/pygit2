@@ -35,17 +35,23 @@ import os
 from os.path import join, realpath
 
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository, \
-                   discover_repository
+                   discover_repository, Commit
 from . import utils
 
 
 __author__ = 'dborowitz@google.com (Dave Borowitz)'
 
+HEAD_SHA  = '5fe808e8953c12735680c257f56600cb0de44b10'
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
 
 
 class RepositoryTest(utils.BareRepoTestCase):
+
+    def test_head(self):
+        head = self.repo.head
+        self.assertTrue(HEAD_SHA, head.hex)
+        self.assertTrue(type(head), Commit)
 
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)

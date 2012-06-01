@@ -37,24 +37,26 @@
 
 extern PyObject *GitError;
 
-PyTypeObject RepositoryType;
-PyTypeObject ObjectType;
-PyTypeObject CommitType;
-PyTypeObject DiffType;
-PyTypeObject HunkType;
-PyTypeObject TreeType;
-PyTypeObject TreeBuilderType;
-PyTypeObject TreeEntryType;
-PyTypeObject TreeIterType;
-PyTypeObject BlobType;
-PyTypeObject TagType;
-PyTypeObject IndexType;
-PyTypeObject IndexEntryType;
-PyTypeObject IndexIterType;
-PyTypeObject WalkerType;
-PyTypeObject ConfigType;
-PyTypeObject ReferenceType;
-PyTypeObject SignatureType;
+extern PyTypeObject RepositoryType;
+extern PyTypeObject ObjectType;
+extern PyTypeObject CommitType;
+extern PyTypeObject DiffType;
+extern PyTypeObject HunkType;
+extern PyTypeObject TreeType;
+extern PyTypeObject TreeBuilderType;
+extern PyTypeObject TreeEntryType;
+extern PyTypeObject TreeIterType;
+extern PyTypeObject BlobType;
+extern PyTypeObject TagType;
+extern PyTypeObject IndexType;
+extern PyTypeObject IndexEntryType;
+extern PyTypeObject IndexIterType;
+extern PyTypeObject WalkerType;
+extern PyTypeObject ConfigType;
+extern PyTypeObject ReferenceType;
+extern PyTypeObject RefLogIterType;
+extern PyTypeObject RefLogEntryType;
+extern PyTypeObject SignatureType;
 
 
 PyObject *
@@ -163,9 +165,6 @@ moduleinit(PyObject* m)
     WalkerType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&WalkerType) < 0)
         return NULL;
-    ConfigType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&ConfigType) < 0)
-        return NULL;
     ReferenceType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&ReferenceType) < 0)
         return NULL;
@@ -202,9 +201,6 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&IndexEntryType);
     PyModule_AddObject(m, "IndexEntry", (PyObject *)&IndexEntryType);
-
-    Py_INCREF(&ConfigType);
-    PyModule_AddObject(m, "Config", (PyObject *)&ConfigType);
 
     Py_INCREF(&ReferenceType);
     PyModule_AddObject(m, "Reference", (PyObject *)&ReferenceType);
