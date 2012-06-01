@@ -100,6 +100,17 @@ class ConfigTest(utils.RepoTestCase):
         self.assertEqual(config['core.editor'], 'ed')
         self.assertTrue('core.repositoryformatversion' in config)
         self.assertEqual(config['core.repositoryformatversion'], 0)
+
+        new_file = open(config_filename, "w")
+        new_file.write("[this]\n\tthat = foobar\nthat = foobeer\n")
+        new_file.close()
+
+        config.add_file(config_filename, 0)
+        self.assertTrue('this.that' in config)
+        self.assertEqual(len(config.get_multivar('that')), 2)
+        l = config.get_multivar('that', 'bar')
+        self.assertEqual(len(l),1)
+        self.assertEqual(l[0], 'foobar')
     
     def test_write(self):
         config = self.repo.config
