@@ -207,7 +207,7 @@ Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
     if (!(py_result = PyObject_CallObject(py_callback,args)))
         return 0;
 
-    if (!(c_result == PyLong_AsLong(py_result)))
+    if (!(c_result = PyLong_AsLong(py_result)))
         return 0;
 
     return c_result;
