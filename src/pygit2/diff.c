@@ -55,6 +55,9 @@ static int diff_hunk_cb(
 {
     PyObject *hunks;
     Hunk *hunk;
+    int len;
+    char* old_path, *new_path;
+
 
     hunks = PyDict_GetItemString(cb_data, "hunks");
     if (hunks == NULL) {
@@ -70,9 +73,6 @@ static int diff_hunk_cb(
     hunk->old_lines = range->old_lines;
     hunk->new_start = range->new_start;
     hunk->new_lines = range->new_lines;
-
-    int len;
-    char* old_path, *new_path;
 
     if (delta->old_file.path != NULL) {
         len = strlen(delta->old_file.path) + 1;

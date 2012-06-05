@@ -4,6 +4,7 @@ PyObject *GitError;
 
 PyObject * Error_type(int type)
 {
+    const git_error* error;
     // Expected
     switch (type) {
         /** Input does not exist in the scope searched. */
@@ -32,7 +33,7 @@ PyObject * Error_type(int type)
     }
 
     // Critical
-    const git_error* error = giterr_last();
+    error = giterr_last();
     if(error != NULL) {
         switch (error->klass) {
             case GITERR_NOMEMORY:
@@ -66,13 +67,14 @@ PyObject* Error_set(int err)
 
 PyObject* Error_set_str(int err, const char *str)
 {
+    const git_error* error;
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. */
         PyErr_SetString(PyExc_KeyError, str);
         return NULL;
     }
 
-    const git_error* error = giterr_last();
+    error = giterr_last();
     return PyErr_Format(Error_type(err), "%s: %s", str, error->message);
 }
 
