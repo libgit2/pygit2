@@ -118,8 +118,10 @@ class DiffTest(utils.BareRepoTestCase):
 
         diff = commit_a.tree.diff(commit_b.tree)
 
-        self.assertIsNotNone(diff)
-        self.assertIn(('a','a', 3), diff.changes['files'])
+        # self.assertIsNotNone is 2.7 only
+        self.assertTrue(diff is not None)
+        # self.assertIn is 2.7 only
+        self.assertTrue(('a','a', 3) in diff.changes['files'])
         self.assertEqual(2, len(diff.changes['hunks']))
 
         hunk = diff.changes['hunks'][0]
@@ -140,17 +142,21 @@ class DiffTest(utils.BareRepoTestCase):
         commit_c = self.repo[COMMIT_SHA1_3]
 
         diff_b = commit_a.tree.diff(commit_b.tree)
-        self.assertIsNotNone(diff_b)
+        # self.assertIsNotNone is 2.7 only
+        self.assertTrue(diff_b is not None)
 
         diff_c = commit_b.tree.diff(commit_c.tree)
-        self.assertIsNotNone(diff_c)
+        # self.assertIsNotNone is 2.7 only
+        self.assertTrue(diff_c is not None)
 
-        self.assertNotIn(('b','b', 3), diff_b.changes['files'])
-        self.assertIn(('b','b', 3), diff_c.changes['files'])
+        # assertIn / assertNotIn are 2.7 only
+        self.assertTrue(('b','b', 3) not in diff_b.changes['files'])
+        self.assertTrue(('b','b', 3) in diff_c.changes['files'])
 
         diff_b.merge(diff_c)
 
-        self.assertIn(('b','b', 3), diff_b.changes['files'])
+        # assertIn is 2.7 only
+        self.assertTrue(('b','b', 3) in diff_b.changes['files'])
 
         hunk = diff_b.changes['hunks'][1]
         self.assertEqual(hunk.old_start, 1)
