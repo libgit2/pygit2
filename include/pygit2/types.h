@@ -10,6 +10,7 @@ typedef struct {
     PyObject_HEAD
     git_repository *repo;
     PyObject *index; /* It will be None for a bare repository */
+    PyObject *config;
 } Repository;
 
 /* The structs for some of the object subtypes are identical except for

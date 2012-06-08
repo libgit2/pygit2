@@ -40,6 +40,9 @@ config_filename = "test_config"
 
 class ConfigTest(utils.RepoTestCase):
 
+    def test_config(self):
+        self.assertNotEqual(None, self.repo.config)
+
     def test_global_config(self):
         try:
             self.assertNotEqual(None, pygit2.Config.get_global_config())
