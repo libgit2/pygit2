@@ -7,5 +7,6 @@
 
 PyObject* Config_get_global_config(void);
 PyObject* Config_get_system_config(void);
+PyObject* Config_add_file(Config *self, PyObject *args);
 
 #endif
