@@ -5,4 +5,7 @@
 #include <Python.h>
 #include <git2.h>
 
+PyObject* Config_get_global_config(void);
+PyObject* Config_get_system_config(void);
+
 #endif

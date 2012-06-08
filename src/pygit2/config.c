@@ -54,6 +54,64 @@ Config_traverse(Config *self, visitproc visit, void *arg)
     return 0;
 }
 
+PyObject *
+Config_open(char *c_path) {
+    PyObject *py_path = Py_BuildValue("(s)", c_path);
+    Config *config = PyObject_GC_New(Config, &ConfigType);
+
+    Config_init(config, py_path, NULL);
+
+    Py_INCREF(config);
+
+    return (PyObject *)config;
+}
+
+PyObject *
+Config_get_global_config(void)
+{
+    char path[GIT_PATH_MAX];
+    int err;
+
+    err = git_config_find_global(path, GIT_PATH_MAX);
+    if (err < 0) {
+        if (err == GIT_ENOTFOUND) {
+            PyErr_SetString(PyExc_IOError, "Global config file not found.");
+            return NULL;
+        }
+        return Error_set(err);
+    }
+
+    return Config_open(path);
+}
+
+PyObject *
+Config_get_system_config(void)
+{
+    char path[GIT_PATH_MAX];
+    int err;
+
+    err = git_config_find_system(path, GIT_PATH_MAX);
+    if (err < 0) {
+        if (err == GIT_ENOTFOUND) {
+            PyErr_SetString(PyExc_IOError, "System config file not found.");
+            return NULL;
+        }
+        return Error_set(err);
+    }
+
+    return Config_open(path);
+}
+
+PyMethodDef Config_methods[] = {
+    {"get_system_config", (PyCFunction)Config_get_system_config,
+     METH_NOARGS | METH_STATIC,
+     "Return an object representing the system configuration file."},
+    {"get_global_config", (PyCFunction)Config_get_global_config,
+     METH_NOARGS | METH_STATIC,
+     "Return an object representing the global configuration file."},
+    {NULL}
+};
+
 PyTypeObject ConfigType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.Config",                          /* tp_name           */
@@ -83,7 +141,7 @@ PyTypeObject ConfigType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Config_methods,                            /* tp_methods        */
     0,                                         /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */

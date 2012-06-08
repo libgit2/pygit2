@@ -40,6 +40,18 @@ config_filename = "test_config"
 
 class ConfigTest(utils.RepoTestCase):
 
+    def test_global_config(self):
+        try:
+            self.assertNotEqual(None, pygit2.Config.get_global_config())
+        except IOError:
+            pass
+
+    def test_system_config(self):
+        try:
+            self.assertNotEqual(None, pygit2.Config.get_system_config())
+        except IOError:
+            pass
+
     def test_new(self):
         config_write = pygit2.Config(config_filename)
 
