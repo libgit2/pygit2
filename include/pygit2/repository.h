@@ -20,6 +20,7 @@ PyObject* Repository_write(Repository *self, PyObject *args);
 PyObject* Repository_get_index(Repository *self, void *closure);
 PyObject* Repository_get_path(Repository *self, void *closure);
 PyObject* Repository_get_workdir(Repository *self, void *closure);
+PyObject* Repository_get_config(Repository *self, void *closure);
 PyObject* Repository_walk(Repository *self, PyObject *args);
 PyObject* Repository_create_blob(Repository *self, PyObject *args);
 PyObject* Repository_create_commit(Repository *self, PyObject *args);

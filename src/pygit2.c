@@ -52,6 +52,7 @@ extern PyTypeObject IndexType;
 extern PyTypeObject IndexEntryType;
 extern PyTypeObject IndexIterType;
 extern PyTypeObject WalkerType;
+extern PyTypeObject ConfigType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
@@ -133,6 +134,12 @@ moduleinit(PyObject* m)
     CommitType.tp_base = &ObjectType;
     if (PyType_Ready(&CommitType) < 0)
         return NULL;
+    DiffType.tp_base = &ObjectType;
+    if (PyType_Ready(&DiffType) < 0)
+        return NULL;
+    HunkType.tp_base = &ObjectType;
+    if (PyType_Ready(&HunkType) < 0)
+        return NULL;
     TreeType.tp_base = &ObjectType;
     if (PyType_Ready(&TreeType) < 0)
         return NULL;
@@ -141,11 +148,6 @@ moduleinit(PyObject* m)
         return NULL;
     TagType.tp_base = &ObjectType;
     if (PyType_Ready(&TagType) < 0)
-        return NULL;
-
-    if (PyType_Ready(&DiffType) < 0)
-        return NULL;
-    if (PyType_Ready(&HunkType) < 0)
         return NULL;
 
     TreeEntryType.tp_new = PyType_GenericNew;
@@ -160,13 +162,14 @@ moduleinit(PyObject* m)
     TreeBuilderType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&TreeBuilderType) < 0)
         return NULL;
+    ConfigType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&ConfigType) < 0)
+        return NULL;
     WalkerType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&WalkerType) < 0)
         return NULL;
     ReferenceType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&ReferenceType) < 0)
-        return NULL;
-    if (PyType_Ready(&RefLogEntryType) < 0)
         return NULL;
     SignatureType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&SignatureType) < 0)
@@ -189,6 +192,9 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&TreeType);
     PyModule_AddObject(m, "Tree", (PyObject *)&TreeType);
+
+    Py_INCREF(&ConfigType);
+    PyModule_AddObject(m, "Config", (PyObject *)&ConfigType); 
 
     Py_INCREF(&BlobType);
     PyModule_AddObject(m, "Blob", (PyObject *)&BlobType);
@@ -235,67 +241,6 @@ moduleinit(PyObject* m)
 
     /* Flags for ignored files */
     PyModule_AddIntConstant(m, "GIT_STATUS_IGNORED", GIT_STATUS_IGNORED);
-
-    /* Git diff flags */
-    PyModule_AddIntConstant(m, "GIT_DIFF_NORMAL", GIT_DIFF_NORMAL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_REVERSE", GIT_DIFF_REVERSE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FORCE_TEXT", GIT_DIFF_FORCE_TEXT);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_WHITESPACE",
-                            GIT_DIFF_IGNORE_WHITESPACE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_WHITESPACE_CHANGE",
-                            GIT_DIFF_IGNORE_WHITESPACE_CHANGE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_WHITESPACE_EOL",
-                            GIT_DIFF_IGNORE_WHITESPACE_EOL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_SUBMODULES",
-                            GIT_DIFF_IGNORE_SUBMODULES);
-    PyModule_AddIntConstant(m, "GIT_DIFF_PATIENCE", GIT_DIFF_PATIENCE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_INCLUDE_IGNORED",
-                            GIT_DIFF_INCLUDE_IGNORED);
-    PyModule_AddIntConstant(m, "GIT_DIFF_INCLUDE_UNTRACKED",
-                            GIT_DIFF_INCLUDE_UNTRACKED);
-    PyModule_AddIntConstant(m, "GIT_DIFF_INCLUDE_UNMODIFIED",
-                            GIT_DIFF_INCLUDE_UNMODIFIED);
-    PyModule_AddIntConstant(m, "GIT_DIFF_RECURSE_UNTRACKED_DIRS",
-                            GIT_DIFF_RECURSE_UNTRACKED_DIRS);
-
-    /* Flags for diffed files */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_VALID_OID",
-                            GIT_DIFF_FILE_VALID_OID);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_FREE_PATH",
-                            GIT_DIFF_FILE_FREE_PATH);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_BINARY", GIT_DIFF_FILE_BINARY);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_NOT_BINARY",
-                            GIT_DIFF_FILE_NOT_BINARY);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_FREE_DATA",
-                            GIT_DIFF_FILE_FREE_DATA);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_UNMAP_DATA",
-                            GIT_DIFF_FILE_UNMAP_DATA);
-
-    /* Flags for diff deltas */
-    PyModule_AddIntConstant(m, "GIT_DELTA_UNMODIFIED", GIT_DELTA_UNMODIFIED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_ADDED", GIT_DELTA_ADDED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_DELETED", GIT_DELTA_DELETED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_MODIFIED", GIT_DELTA_MODIFIED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_RENAMED", GIT_DELTA_RENAMED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_COPIED", GIT_DELTA_COPIED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_IGNORED", GIT_DELTA_IGNORED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_UNTRACKED", GIT_DELTA_UNTRACKED);
-
-    /* Flags for diffed lines origin */
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_CONTEXT", GIT_DIFF_LINE_CONTEXT);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_ADDITION",
-                            GIT_DIFF_LINE_ADDITION);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_DELETION",
-                            GIT_DIFF_LINE_DELETION);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_ADD_EOFNL",
-                            GIT_DIFF_LINE_ADD_EOFNL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_DEL_EOFNL",
-                            GIT_DIFF_LINE_DEL_EOFNL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_FILE_HDR",
-                            GIT_DIFF_LINE_FILE_HDR);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_HUNK_HDR",
-                            GIT_DIFF_LINE_HUNK_HDR);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_BINARY", GIT_DIFF_LINE_BINARY);
 
     return m;
 }

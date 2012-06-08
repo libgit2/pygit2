@@ -17,6 +17,7 @@ extern PyTypeObject CommitType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 extern PyTypeObject TreeBuilderType;
+extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
 
 git_otype
@@ -324,6 +325,37 @@ Repository_get_workdir(Repository *self, void *closure)
         Py_RETURN_NONE;
 
     return to_path(c_path);
+}
+
+PyObject *
+Repository_get_config(Repository *self, void *closure)
+{
+    int err;
+    git_config *config;
+    Config *py_config;
+
+    assert(self->repo);
+
+    if (self->config == NULL) {
+        err = git_repository_config(&config, self->repo);
+        if (err < 0)
+            return Error_set(err);
+
+        py_config = PyObject_GC_New(Config, &ConfigType);
+        if (!py_config) {
+            git_config_free(config);
+            return NULL;
+        }
+
+        Py_INCREF(self);
+        py_config->repo = self;
+        py_config->config = config;
+        PyObject_GC_Track(py_config);
+        self->config = (PyObject*)py_config;
+    }
+
+    Py_INCREF(self->config);
+    return self->config;
 }
 
 PyObject *
@@ -768,6 +800,11 @@ PyGetSetDef Repository_getseters[] = {
      "The normalized path to the git repository.", NULL},
     {"head", (getter)Repository_head, NULL,
       "Current head reference of the repository.", NULL},
+    {"config", (getter)Repository_get_config, NULL,
+     "Get the configuration file for this repository.\n\n"
+     "If a configuration file has not been set, the default "
+     "config set for the repository will be returned, including "
+     "global and system configurations (if they are available).", NULL},    
     {"workdir", (getter)Repository_get_workdir, NULL,
      "The normalized path to the working directory of the repository. "
      "If the repository is bare, None will be returned.", NULL},
