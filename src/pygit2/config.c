@@ -186,6 +186,56 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
     return 0;
 }
 
+int
+Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
+        void *c_payload)
+{
+    PyObject *args = (PyObject *)c_payload;
+    PyObject *py_callback = NULL;
+    PyObject *py_payload = NULL;
+    PyObject *py_result = NULL;
+    int c_result;
+
+    if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
+        return 0;
+
+    if (py_payload)
+        args = Py_BuildValue("ssO", c_name, c_value, py_payload);
+    else
+        args = Py_BuildValue("ss", c_name, c_value);
+
+    if (!(py_result = PyObject_CallObject(py_callback,args)))
+        return 0;
+
+    if (!(c_result = PyLong_AsLong(py_result)))
+        return 0;
+
+    return c_result;
+}
+
+PyObject *
+Config_foreach(Config *self, PyObject *args)
+{
+    int ret;
+    PyObject *py_callback;
+    PyObject *py_payload;
+
+
+    if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
+        return NULL;
+
+
+    if (!PyCallable_Check(py_callback)) {
+        PyErr_SetString(PyExc_TypeError,"Argument 'callback' is not callable");
+        return NULL;
+    }
+
+    ret = git_config_foreach(self->config, Config_foreach_callback_wrapper,
+            (void *)args);
+
+    return PyInt_FromLong((long)ret);
+}
+
 PyObject *
 Config_add_file(Config *self, PyObject *args)
 {
@@ -212,6 +262,12 @@ PyMethodDef Config_methods[] = {
     {"get_global_config", (PyCFunction)Config_get_global_config,
      METH_NOARGS | METH_STATIC,
      "Return an object representing the global configuration file."},
+    {"foreach", (PyCFunction)Config_foreach, METH_VARARGS,
+     "Perform an operation on each config variable.\n\n"
+     "The callback must be of type Callable and receives the normalized name "
+     "and value of each variable in the config backend, and an optional "
+     "payload passed to this method. As soon as one of the callbacks returns "
+     "an integer other than 0, this function returns that value."},
     {"add_file", (PyCFunction)Config_add_file, METH_VARARGS,
      "Add a config file instance to an existing config."},
     {NULL}

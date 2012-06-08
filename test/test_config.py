@@ -38,6 +38,10 @@ __author__ = 'mlenders@elegosoft.com (M. Lenders)'
 
 config_filename = "test_config"
 
+def foreach_test_wrapper(key, name, lst):
+    lst[key] = name
+    return 1
+
 class ConfigTest(utils.RepoTestCase):
 
     def test_config(self):
@@ -135,6 +139,12 @@ class ConfigTest(utils.RepoTestCase):
         del config['core.dummy3']
         self.assertFalse('core.dummy3' in config)
 
+    def test_foreach(self):
+        config = self.repo.config
+        lst = {}
+        config.foreach(foreach_test_wrapper, lst)
+        self.assertTrue('core.bare' in lst)
+        self.assertTrue(lst['core.bare'])
 
 if __name__ == '__main__':
     unittest.main()
