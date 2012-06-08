@@ -111,6 +111,13 @@ class ConfigTest(utils.RepoTestCase):
         new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
         new_file.close()
 
+        config.add_file(config_filename, 0)
+        self.assertTrue('this.that' in config)
+        self.assertEqual(len(config.get_multivar('this.that')), 2)
+        l = config.get_multivar('this.that', 'bar')
+        self.assertEqual(len(l),1)
+        self.assertEqual(l[0], 'foobar')
+
     def test_write(self):
         config = self.repo.config
 
@@ -138,6 +145,21 @@ class ConfigTest(utils.RepoTestCase):
         self.assertFalse('core.dummy2' in config)
         del config['core.dummy3']
         self.assertFalse('core.dummy3' in config)
+
+        new_file = open(config_filename, "w")
+        new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
+        new_file.close()
+
+        config.add_file(config_filename, 0)
+        self.assertTrue('this.that' in config)
+        config.set_multivar('this.that', '^.*beer', 'fool')
+        l = config.get_multivar('this.that', 'fool')
+        self.assertEqual(len(l),1)
+        self.assertEqual(l[0], 'fool')
+        config.set_multivar('this.that', 'foo.*', '123456')
+        l = config.get_multivar('this.that', 'foo.*')
+        for i in l:
+            self.assertEqual(i, '123456')
 
     def test_foreach(self):
         config = self.repo.config

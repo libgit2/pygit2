@@ -255,6 +255,64 @@ Config_add_file(Config *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+int
+Config_get_multivar_fn_wrapper(const char *value, void *data)
+{
+    PyObject *list = (PyObject *)data;
+    PyObject *item = NULL;
+
+    if (!(item = PyUnicode_FromString(value)))
+        return -2;
+
+    PyList_Append(list, item);
+
+    return 0;
+}
+
+PyObject *
+Config_get_multivar(Config *self, PyObject *args)
+{
+    int err;
+    PyObject *list = PyList_New(0);
+    const char *name = NULL;
+    const char *regex = NULL;
+
+    if (!PyArg_ParseTuple(args, "s|s", &name, &regex))
+        return NULL;
+
+    if ((err = git_config_get_multivar(self->config, name, regex,
+            Config_get_multivar_fn_wrapper, (void *)list)) < 0) {
+        if (err == GIT_ENOTFOUND)
+            Error_set(err);
+        else
+            PyErr_SetNone(PyExc_TypeError);
+        return NULL;
+    }
+
+    return list;
+}
+
+PyObject *
+Config_set_multivar(Config *self, PyObject *args)
+{
+    int err;
+    const char *name;
+    const char *regex;
+    const char *value;
+
+    if (!PyArg_ParseTuple(args, "sss", &name, &regex, &value))
+        return NULL;
+    if ((err = git_config_set_multivar(self->config, name, regex, value)) < 0) {
+        if (err == GIT_ENOTFOUND)
+            Error_set(err);
+        else
+            PyErr_SetNone(PyExc_TypeError);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
 PyMethodDef Config_methods[] = {
     {"get_system_config", (PyCFunction)Config_get_system_config,
      METH_NOARGS | METH_STATIC,
@@ -270,6 +328,13 @@ PyMethodDef Config_methods[] = {
      "an integer other than 0, this function returns that value."},
     {"add_file", (PyCFunction)Config_add_file, METH_VARARGS,
      "Add a config file instance to an existing config."},
+    {"get_multivar", (PyCFunction)Config_get_multivar, METH_VARARGS,
+     "Get each value of a multivar ''name'' as a list. The optional ''regex'' "
+     "parameter is expected to be a regular expression to filter the which "
+     "variables we're interested in."},
+    {"set_multivar", (PyCFunction)Config_set_multivar, METH_VARARGS,
+     "Set a multivar ''name'' to ''value''. ''regexp'' is a regular expression "
+     "to indicate which values to replace"},
     {NULL}
 };
 
