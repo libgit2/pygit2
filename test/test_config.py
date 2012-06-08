@@ -60,6 +60,17 @@ class ConfigTest(utils.RepoTestCase):
 
         self.assertNotEqual(config_write, None)
 
+        config_write['core.bare'] = False
+        config_write['core.editor'] = 'ed'
+
+        config_read = pygit2.Config(config_filename)
+        self.assertTrue('core.bare' in config_write)
+        self.assertFalse(config_write['core.bare'])
+        self.assertTrue('core.editor' in config_write)
+        self.assertEqual(config_write['core.editor'], 'ed')
+
+        os.remove(config_filename)
+
     def test_add(self):
         config = pygit2.Config.get_global_config()
 
@@ -69,9 +80,60 @@ class ConfigTest(utils.RepoTestCase):
         new_file.close()
 
         config.add_file(config_filename, 0)
+        self.assertTrue('this.that' in config)
+        self.assertTrue(config['this.that'])
+        self.assertTrue('something.other.here' in config)
+        self.assertFalse(config['something.other.here'])
 
         os.remove(config_filename)
 
+    def test_read(self):
+        config = self.repo.config
+
+        self.assertRaises(TypeError, lambda: config[()])
+        self.assertRaises(TypeError, lambda: config[-4])
+        self.assertRaisesWithArg(pygit2.GitError,
+                "Invalid variable name: 'abc'", lambda: config['abc'])
+        self.assertRaisesWithArg(KeyError, 'abc.def', lambda: config['abc.def'])
+
+        self.assertTrue('core.bare' in config)
+        self.assertFalse(config['core.bare'])
+        self.assertTrue('core.editor' in config)
+        self.assertEqual(config['core.editor'], 'ed')
+        self.assertTrue('core.repositoryformatversion' in config)
+        self.assertEqual(config['core.repositoryformatversion'], 0)
+
+        new_file = open(config_filename, "w")
+        new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
+        new_file.close()
+
+    def test_write(self):
+        config = self.repo.config
+
+        with self.assertRaises(TypeError):
+            config[()] = 'This should not work'
+
+        self.assertFalse('core.dummy1' in config)
+        config['core.dummy1'] = 42
+        self.assertTrue('core.dummy1' in config)
+        self.assertEqual(config['core.dummy1'], 42)
+
+        self.assertFalse('core.dummy2' in config)
+        config['core.dummy2'] = 'foobar'
+        self.assertTrue('core.dummy2' in config)
+        self.assertEqual(config['core.dummy2'], 'foobar')
+
+        self.assertFalse('core.dummy3' in config)
+        config['core.dummy3'] = True
+        self.assertTrue('core.dummy3' in config)
+        self.assertTrue(config['core.dummy3'])
+
+        del config['core.dummy1']
+        self.assertFalse('core.dummy1' in config)
+        del config['core.dummy2']
+        self.assertFalse('core.dummy2' in config)
+        del config['core.dummy3']
+        self.assertFalse('core.dummy3' in config)
 
 
 if __name__ == '__main__':
