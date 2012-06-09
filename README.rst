@@ -25,6 +25,28 @@ When those are installed, you can install pygit2::
     $ python setup.py install
     $ python setup.py test
 
+Building on Windows
+-------------------
+
+pygit2 expects to find the libgit2 installed files in the directory specified
+in the ``LIBGIT2`` environment variable.
+
+In addition, make sure that libgit2 is build in "__cdecl" mode.
+The following recipe shows you how to do it, assuming you're working
+from a bash shell::
+
+    $ export LIBGIT2=C:/Dev/libgit2
+    $ git clone git://github.com/libgit2/libgit2.git
+    $ cd libgit2
+    $ mkdir build
+    $ cd build
+    $ cmake .. -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"
+    $ cmake --build . --config release --target install
+    $ ctest -v
+
+At this point, you're ready to execute the generic pygit2 installation
+steps described above.
+
 
 The repository
 =================
