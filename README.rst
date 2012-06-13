@@ -142,6 +142,25 @@ This is their interface::
     Signature.offset -- offset from utc in minutes
 
 
+Creating commits
+................
+
+Commits can be created by calling the ``create_commit`` method of the
+repository with the following parameters::
+
+    >>> from time import time
+    >>> author = Signature('Alice Author', 'alice@authors.tld', time(), 0)
+    >>> committer = Signature('Cecil Committer', 'cecil@committers.tld', time(), 0)
+    >>> tree = repo.TreeBuilder().write()
+    >>> repo.create_commit(
+    ... 'refs/heads/master', # the name of the reference to update
+    ... author, committer, 'one line commit message\n\ndetailed commit message',
+    ... tree, # binary string representing the tree object ID
+    ... [] # list of binary strings representing parents of the new commit
+    ... )
+    '#\xe4<u\xfe\xd6\x17\xa0\xe6\xa2\x8b\xb6\xdc35$\xcf-\x8b~'
+
+
 Trees
 -----------------
 
