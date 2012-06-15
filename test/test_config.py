@@ -76,7 +76,7 @@ class ConfigTest(utils.RepoTestCase):
         os.remove(config_filename)
 
     def test_add(self):
-        config = pygit2.Config.get_global_config()
+        config = pygit2.Config()
 
         new_file = open(config_filename, "w")
         new_file.write("[this]\n\tthat = true\n")

@@ -296,9 +296,9 @@ PyObject *
 Config_set_multivar(Config *self, PyObject *args)
 {
     int err;
-    const char *name;
-    const char *regex;
-    const char *value;
+    const char *name = NULL;
+    const char *regex = NULL;
+    const char *value = NULL;
 
     if (!PyArg_ParseTuple(args, "sss", &name, &regex, &value))
         return NULL;
