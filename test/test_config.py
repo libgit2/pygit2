@@ -44,6 +44,12 @@ def foreach_test_wrapper(key, name, lst):
 
 class ConfigTest(utils.RepoTestCase):
 
+    def tearDown(self):
+        try:
+            os.remove(config_filename)
+        except OSError:
+            pass
+
     def test_config(self):
         self.assertNotEqual(None, self.repo.config)
 
@@ -73,8 +79,6 @@ class ConfigTest(utils.RepoTestCase):
         self.assertTrue('core.editor' in config_write)
         self.assertEqual(config_write['core.editor'], 'ed')
 
-        os.remove(config_filename)
-
     def test_add(self):
         config = pygit2.Config()
 
@@ -88,8 +92,6 @@ class ConfigTest(utils.RepoTestCase):
         self.assertTrue(config['this.that'])
         self.assertTrue('something.other.here' in config)
         self.assertFalse(config['something.other.here'])
-
-        os.remove(config_filename)
 
     def test_read(self):
         config = self.repo.config
@@ -167,6 +169,7 @@ class ConfigTest(utils.RepoTestCase):
         config.foreach(foreach_test_wrapper, lst)
         self.assertTrue('core.bare' in lst)
         self.assertTrue(lst['core.bare'])
+
 
 if __name__ == '__main__':
     unittest.main()
