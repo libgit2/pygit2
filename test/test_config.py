@@ -121,8 +121,8 @@ class ConfigTest(utils.RepoTestCase):
     def test_write(self):
         config = self.repo.config
 
-        with self.assertRaises(TypeError):
-            config[()] = 'This should not work'
+        self.assertRaises(TypeError, config.__setitem__,
+                          (), 'This should not work')
 
         self.assertFalse('core.dummy1' in config)
         config['core.dummy1'] = 42
