@@ -65,7 +65,7 @@ class TagTest(utils.BareRepoTestCase):
 
         target_prefix = target[:5]
         too_short_prefix = target[:3]
-        self.assertRaises(ValueError, self.repo.create_tag, name, 
+        self.assertRaises(ValueError, self.repo.create_tag, name,
                           too_short_prefix, pygit2.GIT_OBJ_BLOB, tagger,
                           message)
         sha = self.repo.create_tag(name, target_prefix, pygit2.GIT_OBJ_BLOB,

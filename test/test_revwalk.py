@@ -59,10 +59,11 @@ REVLOGS = [
 
 class RevlogTestTest(utils.RepoTestCase):
     def test_log(self):
-      ref = self.repo.lookup_reference('HEAD')
-      for i,entry in enumerate(ref.log()):
-        self.assertEqual(entry.committer.name, REVLOGS[i][0]) 
-        self.assertEqual(entry.message, REVLOGS[i][1]) 
+        ref = self.repo.lookup_reference('HEAD')
+        for i,entry in enumerate(ref.log()):
+            self.assertEqual(entry.committer.name, REVLOGS[i][0])
+            self.assertEqual(entry.message, REVLOGS[i][1])
+
 
 class WalkerTest(utils.RepoTestCase):
 

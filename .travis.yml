@@ -12,5 +12,5 @@ before_install:
   - sudo apt-get install cmake
   - "./.travis.sh"
 
-script: 
+script:
   - python setup.py test

@@ -165,7 +165,7 @@ Repository_head(Repository *self)
     git_reference *head;
     const git_oid *oid;
     int err;
-    
+
     err = git_repository_head(&head, self->repo);
     if(err < 0) {
       if(err == GIT_ENOTFOUND)
@@ -416,7 +416,7 @@ Repository_create_blob(Repository *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s#", &raw, &size))
       return NULL;
-    
+
     err = git_blob_create_frombuffer(&oid, self->repo, (const void*)raw, size);
 
     if (err < 0)

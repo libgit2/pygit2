@@ -56,9 +56,9 @@ PyObject* Error_set(int err)
         PyErr_SetNone(Error_type(err));
     } else { //critical failure
         const git_error* error = giterr_last();
-        char* message = (error == NULL) ? 
+        char* message = (error == NULL) ?
                 "(No error information given)" : error->message;
-        
+
         PyErr_SetString(Error_type(err), message);
     }
 
