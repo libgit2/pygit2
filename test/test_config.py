@@ -74,10 +74,10 @@ class ConfigTest(utils.RepoTestCase):
         config_write['core.editor'] = 'ed'
 
         config_read = pygit2.Config(config_filename)
-        self.assertTrue('core.bare' in config_write)
-        self.assertFalse(config_write['core.bare'])
-        self.assertTrue('core.editor' in config_write)
-        self.assertEqual(config_write['core.editor'], 'ed')
+        self.assertTrue('core.bare' in config_read)
+        self.assertFalse(config_read['core.bare'])
+        self.assertTrue('core.editor' in config_read)
+        self.assertEqual(config_read['core.editor'], 'ed')
 
     def test_add(self):
         config = pygit2.Config()

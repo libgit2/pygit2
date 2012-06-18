@@ -51,8 +51,8 @@ class ReferencesTest(utils.RepoTestCase):
                          ['refs/heads/i18n', 'refs/heads/master'])
 
         # We add a symbolic reference
-        reference = repo.create_symbolic_reference('refs/tags/version1',
-                                                   'refs/heads/master')
+        repo.create_symbolic_reference('refs/tags/version1',
+                                       'refs/heads/master')
         self.assertEqual(sorted(repo.listall_references()),
                          ['refs/heads/i18n', 'refs/heads/master',
                           'refs/tags/version1'])

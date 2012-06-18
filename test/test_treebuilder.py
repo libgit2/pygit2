@@ -29,10 +29,8 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import os
 import unittest
 
-import pygit2
 from . import utils
 
 
@@ -41,8 +39,9 @@ __author__ = 'carlos@cmartin.tk (Carlos Martín Nieto)'
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
 class TreeBuilderTest(utils.BareRepoTestCase):
+
     def test_new_empty_treebuilder(self):
-        bld = self.repo.TreeBuilder()
+        self.repo.TreeBuilder()
 
     def test_noop_treebuilder(self):
         tree = self.repo[TREE_SHA]
@@ -64,6 +63,7 @@ class TreeBuilderTest(utils.BareRepoTestCase):
 
         result = bld.write()
         self.assertEqual(tree.oid, result)
+
 
 if __name__ == '__main__':
     unittest.main()
