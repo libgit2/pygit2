@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2011 Itaapy
+# Copyright 2010-2012 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -35,7 +35,7 @@ from pygit2 import GIT_SORT_TIME, GIT_SORT_REVERSE
 from . import utils
 
 
-__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
+__author__ = 'jdavid.ibp@gmail.com (J. David Ibáñez)'
 
 
 # In the order given by git log

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2011 Itaapy
+# Copyright 2010-2012 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -36,7 +36,7 @@ import pygit2
 from . import utils
 
 
-__author__ = 'jdavid@itaapy.com (J. David Ibáñez)'
+__author__ = 'jdavid.ibp@gmail.com (J. David Ibáñez)'
 
 
 class IndexBareTest(utils.BareRepoTestCase):

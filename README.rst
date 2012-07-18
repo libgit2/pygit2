@@ -330,7 +330,7 @@ AUTHORS
 ==============
 
 * David Borowitz <dborowitz@google.com>
-* J David Ibáñez <jdavid@itaapy.com>
+* J David Ibáñez <jdavid.ibp@gmail.com>
 
 
 LICENSE
