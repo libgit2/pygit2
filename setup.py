@@ -134,7 +134,7 @@ with open('README.rst') as readme:
 setup(name='pygit2',
       description='Python bindings for libgit2.',
       keywords='git',
-      version='0.17.0',
+      version='0.17.1',
       url='http://github.com/libgit2/pygit2',
       classifiers=classifiers,
       license='GPLv2',
