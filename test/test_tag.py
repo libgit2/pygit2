@@ -35,8 +35,6 @@ import pygit2
 from . import utils
 
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 
 

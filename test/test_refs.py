@@ -35,8 +35,6 @@ from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC
 from . import utils
 
 
-__author__ = 'david.versmisse@itaapy.com (David Versmisse)'
-
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 

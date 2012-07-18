@@ -33,8 +33,6 @@ import unittest
 
 from . import utils
 
-__author__ = 'Nico.Geyso@FU-Berlin.de (Nico von Geyso)'
-
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'

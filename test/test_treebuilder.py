@@ -34,8 +34,6 @@ import unittest
 from . import utils
 
 
-__author__ = 'carlos@cmartin.tk (Carlos Martín Nieto)'
-
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
 class TreeBuilderTest(utils.BareRepoTestCase):

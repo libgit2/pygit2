@@ -35,8 +35,6 @@ from pygit2 import GIT_OBJ_COMMIT, Signature
 from . import utils
 
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 
 

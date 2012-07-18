@@ -33,10 +33,6 @@ from pygit2 import Signature
 from .utils import NoRepoTestCase
 
 
-__author__ = 'jdavid.ibp@gmail.com (J. David Ibáñez)'
-
-
-
 class SignatureTest(NoRepoTestCase):
 
     def test_default(self):

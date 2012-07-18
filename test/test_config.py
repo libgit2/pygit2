@@ -34,8 +34,6 @@ import pygit2
 from . import utils
 
 
-__author__ = 'mlenders@elegosoft.com (M. Lenders)'
-
 config_filename = "test_config"
 
 def foreach_test_wrapper(key, name, lst):

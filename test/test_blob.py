@@ -35,8 +35,6 @@ import pygit2
 from . import utils
 
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
 BLOB_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_NEW_CONTENT = b'foo bar\n'
 

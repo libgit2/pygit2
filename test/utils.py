@@ -39,8 +39,6 @@ import hashlib
 import pygit2
 
 
-__author__ = 'dborowitz@google.com (Dave Borowitz)'
-
 def force_rm_handle(remove_path, path, excinfo):
     os.chmod(
         path,

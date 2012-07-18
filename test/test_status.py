@@ -35,8 +35,6 @@ import pygit2
 from . import utils
 
 
-__author__ = 'mike.perdide@gmail.com (Julien Miotte)'
-
 EXPECTED = {
  "current_file":                    pygit2.GIT_STATUS_CURRENT,
  "file_deleted":                    pygit2.GIT_STATUS_WT_DELETED,

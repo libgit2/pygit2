@@ -36,9 +36,6 @@ import pygit2
 from . import utils
 
 
-__author__ = 'jdavid.ibp@gmail.com (J. David Ibáñez)'
-
-
 class IndexBareTest(utils.BareRepoTestCase):
 
     def test_bare(self):
