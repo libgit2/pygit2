@@ -329,8 +329,36 @@ See issues
 AUTHORS
 ==============
 
-* David Borowitz <dborowitz@google.com>
-* J David Ibáñez <jdavid.ibp@gmail.com>
+The following people have contributed at least one patch to the
+pygit2 project (sorted alphabetically):
+
+- Amit Bakshi
+- András Veres-Szentkirályi
+- Benjamin Kircher
+- Bryan O'Sullivan
+- Carlos Martín Nieto
+- Christian Boos
+- David Borowitz (*Original author*)
+- David Versmisse
+- Erik van Zijst
+- Han-Wen Nienhuys
+- Hugh Cole-Baker
+- J David Ibáñez (*Current maintainer*)
+- Jared Flatow
+- John Szakmeister
+- Josh Bleecher Snyder
+- Julien Miotte
+- Martin Lenders
+- Nico von Geyso
+- Petr Hosek
+- Petr Viktorin
+- Rui Abreu Ferreira
+- Sarath Lakshman
+- Sebastian Thiel
+- Vicent Marti
+- Yonggang Luo
+- Zoran Zaric
+- pistacchio
 
 
 LICENSE
