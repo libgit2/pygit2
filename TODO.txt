@@ -18,3 +18,4 @@ Other
   PyObject_Del or similar) if the type is subclassable. So, go through the
   code and switch to tp_free, or make the type not subclassable, on a case by
   case basis.
+- Automatically generate the MANIFEST file using "git ls-files"
