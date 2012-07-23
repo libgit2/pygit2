@@ -56,7 +56,8 @@
 <dl class="class">
 <dt id="pygit2.Blob">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Blob</tt><a class="headerlink" href="#pygit2.Blob" title="Permalink to this definition">¶</a></dt>
-<dd><p>Blob objects</p>
+<dd><p>Bases: <a class="reference internal" href="#pygit2.Object" title="pygit2.Object"><tt class="xref py py-class docutils literal"><span class="pre">pygit2.Object</span></tt></a></p>
+<p>Blob objects</p>
 <dl class="attribute">
 <dt id="pygit2.Blob.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pygit2.Blob.data" title="Permalink to this definition">¶</a></dt>
@@ -68,7 +69,8 @@
 <dl class="class">
 <dt id="pygit2.Commit">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Commit</tt><a class="headerlink" href="#pygit2.Commit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Commit objects</p>
+<dd><p>Bases: <a class="reference internal" href="#pygit2.Object" title="pygit2.Object"><tt class="xref py py-class docutils literal"><span class="pre">pygit2.Object</span></tt></a></p>
+<p>Commit objects</p>
 <dl class="attribute">
 <dt id="pygit2.Commit.author">
 <tt class="descname">author</tt><a class="headerlink" href="#pygit2.Commit.author" title="Permalink to this definition">¶</a></dt>
@@ -122,7 +124,8 @@
 <dl class="class">
 <dt id="pygit2.Index">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Index</tt><a class="headerlink" href="#pygit2.Index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Index file</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Index file</p>
 <dl class="method">
 <dt id="pygit2.Index.add">
 <tt class="descname">add</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.Index.add" title="Permalink to this definition">¶</a></dt>
@@ -164,7 +167,8 @@
 <dl class="class">
 <dt id="pygit2.IndexEntry">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">IndexEntry</tt><a class="headerlink" href="#pygit2.IndexEntry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Index entry</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Index entry</p>
 <dl class="attribute">
 <dt id="pygit2.IndexEntry.hex">
 <tt class="descname">hex</tt><a class="headerlink" href="#pygit2.IndexEntry.hex" title="Permalink to this definition">¶</a></dt>
@@ -194,7 +198,8 @@
 <dl class="class">
 <dt id="pygit2.Object">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Object</tt><a class="headerlink" href="#pygit2.Object" title="Permalink to this definition">¶</a></dt>
-<dd><p>Object objects</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Object objects</p>
 <dl class="attribute">
 <dt id="pygit2.Object.hex">
 <tt class="descname">hex</tt><a class="headerlink" href="#pygit2.Object.hex" title="Permalink to this definition">¶</a></dt>
@@ -224,7 +229,8 @@
 <dl class="class">
 <dt id="pygit2.Reference">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Reference</tt><a class="headerlink" href="#pygit2.Reference" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reference</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Reference</p>
 <dl class="method">
 <dt id="pygit2.Reference.delete">
 <tt class="descname">delete</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.Reference.delete" title="Permalink to this definition">¶</a></dt>
@@ -284,7 +290,20 @@
 <dl class="class">
 <dt id="pygit2.Repository">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Repository</tt><a class="headerlink" href="#pygit2.Repository" title="Permalink to this definition">¶</a></dt>
-<dd><p>Git repository</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Git repository</p>
+<dl class="method">
+<dt id="pygit2.Repository.TreeBuilder">
+<tt class="descname">TreeBuilder</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.Repository.TreeBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a TreeBuilder object for this repository.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit2.Repository.create_blob">
+<tt class="descname">create_blob</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.Repository.create_blob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new blob from memory</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="pygit2.Repository.create_commit">
 <tt class="descname">create_commit</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.Repository.create_commit" title="Permalink to this definition">¶</a></dt>
@@ -349,8 +368,14 @@
 <dl class="method">
 <dt id="pygit2.Repository.status">
 <tt class="descname">status</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.Repository.status" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the status of the repository and returns a dictionnary with file paths as keys and status flags as values.
+<dd><p>Reads the status of the repository and returns a dictionary with file paths as keys and status flags as values.
 See pygit2.GIT_STATUS_*.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit2.Repository.status_file">
+<tt class="descname">status_file</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.Repository.status_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the status of the given file path.</p>
 </dd></dl>
 
 <dl class="method">
@@ -378,7 +403,8 @@ of the created object.</p>
 <dl class="class">
 <dt id="pygit2.Signature">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Signature</tt><a class="headerlink" href="#pygit2.Signature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Signature</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Signature</p>
 <dl class="attribute">
 <dt id="pygit2.Signature.email">
 <tt class="descname">email</tt><a class="headerlink" href="#pygit2.Signature.email" title="Permalink to this definition">¶</a></dt>
@@ -408,7 +434,8 @@ of the created object.</p>
 <dl class="class">
 <dt id="pygit2.Tag">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Tag</tt><a class="headerlink" href="#pygit2.Tag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tag objects</p>
+<dd><p>Bases: <a class="reference internal" href="#pygit2.Object" title="pygit2.Object"><tt class="xref py py-class docutils literal"><span class="pre">pygit2.Object</span></tt></a></p>
+<p>Tag objects</p>
 <dl class="attribute">
 <dt id="pygit2.Tag.message">
 <tt class="descname">message</tt><a class="headerlink" href="#pygit2.Tag.message" title="Permalink to this definition">¶</a></dt>
@@ -438,13 +465,15 @@ of the created object.</p>
 <dl class="class">
 <dt id="pygit2.Tree">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">Tree</tt><a class="headerlink" href="#pygit2.Tree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tree objects</p>
+<dd><p>Bases: <a class="reference internal" href="#pygit2.Object" title="pygit2.Object"><tt class="xref py py-class docutils literal"><span class="pre">pygit2.Object</span></tt></a></p>
+<p>Tree objects</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pygit2.TreeEntry">
 <em class="property">class </em><tt class="descclassname">pygit2.</tt><tt class="descname">TreeEntry</tt><a class="headerlink" href="#pygit2.TreeEntry" title="Permalink to this definition">¶</a></dt>
-<dd><p>TreeEntry objects</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>TreeEntry objects</p>
 <dl class="attribute">
 <dt id="pygit2.TreeEntry.attributes">
 <tt class="descname">attributes</tt><a class="headerlink" href="#pygit2.TreeEntry.attributes" title="Permalink to this definition">¶</a></dt>
@@ -475,6 +504,12 @@ of the created object.</p>
 <dd><p>Look up the corresponding object in the repo.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit2.discover_repository">
+<tt class="descclassname">pygit2.</tt><tt class="descname">discover_repository</tt><big>(</big><big>)</big><a class="headerlink" href="#pygit2.discover_repository" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look for a git repository and return its path.</p>
 </dd></dl>
 
 <dl class="function">

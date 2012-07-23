@@ -3,3 +3,4 @@
 
 .. automodule:: pygit2
    :members:
+   :show-inheritance:
