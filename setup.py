@@ -28,11 +28,16 @@
 
 """Setup file for pygit2."""
 
+from __future__ import print_function
+
 import os
+from subprocess import Popen, PIPE
 import sys
 from distutils.core import setup, Extension, Command
 from distutils.command.build import build
+from distutils.command.sdist import sdist
 from distutils import log
+
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -117,7 +122,31 @@ class BuildWithDLLs(build):
                 self.copy_file(s, d)
 
 
-cmdclass = {'test': TestCommand}
+class sdist_files_from_git(sdist):
+    def get_file_list(self):
+        popen = Popen(['git', 'ls-files'], stdout=PIPE, stderr=PIPE)
+        stdoutdata, stderrdata = popen.communicate()
+        if popen.returncode != 0:
+            print(stderrdata)
+            sys.exit()
+
+        for line in stdoutdata.splitlines():
+            # Skip hidden files at the root
+            if line[0] == '.':
+                continue
+            self.filelist.append(line)
+
+        # Ok
+        self.filelist.sort()
+        self.filelist.remove_duplicates()
+        self.write_manifest()
+
+
+
+cmdclass = {
+    'test': TestCommand,
+    'sdist': sdist_files_from_git}
+
 if os.name == 'nt':
     # BuildWithDLLs can copy external DLLs into source directory.
     cmdclass['build'] = BuildWithDLLs
