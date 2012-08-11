@@ -70,6 +70,7 @@ class TreeTest(utils.BareRepoTestCase):
 
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(tree['c/d'], sha, 'd', 0o0100644)
+        self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree['ab/cd'])
 
     def test_read_subtree(self):
         tree = self.repo[TREE_SHA]
