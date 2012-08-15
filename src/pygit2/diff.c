@@ -84,6 +84,7 @@ static int diff_hunk_cb(
     Hunk *hunk;
     int len;
     char* old_path, *new_path;
+    char oid[GIT_OID_HEXSZ];
 
 
     hunks = PyDict_GetItemString(cb_data, "hunks");
@@ -100,6 +101,11 @@ static int diff_hunk_cb(
     hunk->old_lines = range->old_lines;
     hunk->new_start = range->new_start;
     hunk->new_lines = range->new_lines;
+
+    git_oid_fmt(oid, &delta->old_file.oid);
+    hunk->old_oid = PyUnicode_FromStringAndSize(oid, GIT_OID_HEXSZ);
+    git_oid_fmt(oid, &delta->new_file.oid);
+    hunk->new_oid = PyUnicode_FromStringAndSize(oid, GIT_OID_HEXSZ);
 
     if (header) {
         hunk->header = malloc(header_len+1);
@@ -244,9 +250,11 @@ PyMemberDef Hunk_members[] = {
     {"old_start", T_INT, offsetof(Hunk, old_start), 0, "old start"},
     {"old_lines", T_INT, offsetof(Hunk, old_lines), 0, "old lines"},
     {"old_file",  T_STRING, offsetof(Hunk, old_file), 0, "old file"},
+    {"old_oid",   T_OBJECT, offsetof(Hunk, old_oid), 0, "old_oid"},
     {"new_start", T_INT, offsetof(Hunk, new_start), 0, "new start"},
     {"new_lines", T_INT, offsetof(Hunk, new_lines), 0, "new lines"},
     {"new_file",  T_STRING, offsetof(Hunk, new_file), 0, "old file"},
+    {"new_oid",   T_OBJECT, offsetof(Hunk, new_oid), 0, "new_oid"},
     {"data",      T_OBJECT, offsetof(Hunk, data), 0, "data"},
     {NULL}
 };
