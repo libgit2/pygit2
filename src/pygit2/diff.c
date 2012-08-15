@@ -102,6 +102,9 @@ static int diff_hunk_cb(
     hunk->new_start = range->new_start;
     hunk->new_lines = range->new_lines;
 
+    hunk->old_mode = delta->old_file.mode;
+    hunk->new_mode = delta->new_file.mode;
+
     git_oid_fmt(oid, &delta->old_file.oid);
     hunk->old_oid = PyUnicode_FromStringAndSize(oid, GIT_OID_HEXSZ);
     git_oid_fmt(oid, &delta->new_file.oid);
@@ -249,10 +252,12 @@ PyMemberDef Hunk_members[] = {
     {"header",    T_STRING, offsetof(Hunk, header), 0, "header"},
     {"old_start", T_INT, offsetof(Hunk, old_start), 0, "old start"},
     {"old_lines", T_INT, offsetof(Hunk, old_lines), 0, "old lines"},
+    {"old_mode",  T_INT, offsetof(Hunk, old_mode), 0, "old mode"},
     {"old_file",  T_STRING, offsetof(Hunk, old_file), 0, "old file"},
     {"old_oid",   T_OBJECT, offsetof(Hunk, old_oid), 0, "old_oid"},
     {"new_start", T_INT, offsetof(Hunk, new_start), 0, "new start"},
     {"new_lines", T_INT, offsetof(Hunk, new_lines), 0, "new lines"},
+    {"new_mode",  T_INT, offsetof(Hunk, new_mode), 0, "new mode"},
     {"new_file",  T_STRING, offsetof(Hunk, new_file), 0, "old file"},
     {"new_oid",   T_OBJECT, offsetof(Hunk, new_oid), 0, "new_oid"},
     {"data",      T_OBJECT, offsetof(Hunk, data), 0, "data"},
