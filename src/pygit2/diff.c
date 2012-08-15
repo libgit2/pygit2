@@ -101,6 +101,16 @@ static int diff_hunk_cb(
     hunk->new_start = range->new_start;
     hunk->new_lines = range->new_lines;
 
+    if (header) {
+        hunk->header = malloc(header_len+1);
+
+        if (hunk->header == NULL)
+            return -1;
+
+        memcpy(hunk->header, header, header_len);
+        hunk->header[header_len] = '\0';
+    }
+
     if (delta->old_file.path != NULL) {
         len = strlen(delta->old_file.path) + 1;
         old_path = malloc(sizeof(char) * len);
@@ -219,6 +229,7 @@ Hunk_dealloc(Hunk *self)
 }
 
 PyMemberDef Hunk_members[] = {
+    {"header",    T_STRING, offsetof(Hunk, header), 0, "header"},
     {"old_start", T_INT, offsetof(Hunk, old_start), 0, "old start"},
     {"old_lines", T_INT, offsetof(Hunk, old_lines), 0, "old lines"},
     {"old_file",  T_STRING, offsetof(Hunk, old_file), 0, "old file"},

@@ -174,6 +174,12 @@ class DiffTest(utils.BareRepoTestCase):
         diff = commit_a.tree.diff(commit_b.tree)
         self.assertEqual(diff.patch, PATCH)
 
+    def test_diff_header(self):
+        commit_a = self.repo[COMMIT_SHA1_1]
+        commit_b = self.repo[COMMIT_SHA1_2]
+        diff = commit_a.tree.diff(commit_b.tree)
+
+        self.assertEqual(diff.changes['hunks'][0].header, "@@ -1 +1 @@\n")
 
 if __name__ == '__main__':
     unittest.main()
