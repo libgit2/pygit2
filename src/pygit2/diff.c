@@ -114,6 +114,11 @@ static int diff_hunk_cb(
     if (delta->old_file.path != NULL) {
         len = strlen(delta->old_file.path) + 1;
         old_path = malloc(sizeof(char) * len);
+        if (old_path == NULL) {
+            free(hunk->header);
+            return -1;
+        }
+
         memcpy(old_path, delta->old_file.path, len);
         hunk->old_file = old_path;
     } else {
@@ -123,6 +128,12 @@ static int diff_hunk_cb(
     if (delta->new_file.path != NULL) {
         len = strlen(delta->new_file.path) + 1;
         new_path = malloc(sizeof(char) * len);
+        if (new_path == NULL) {
+            free(hunk->header);
+            free(old_path);
+            return -1;
+        }
+
         memcpy(new_path, delta->new_file.path, len);
         hunk->new_file = new_path;
     } else {
