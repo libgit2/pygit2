@@ -68,11 +68,16 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
+    char *header;
     int old_start;
     int old_lines;
+    PyObject *old_oid;
+    int old_mode;
     char* old_file;
     int new_start;
     int new_lines;
+    PyObject *new_oid;
+    int new_mode;
     char* new_file;
     PyObject *data;
 } Hunk;

@@ -84,6 +84,7 @@ static int diff_hunk_cb(
     Hunk *hunk;
     int len;
     char* old_path, *new_path;
+    char oid[GIT_OID_HEXSZ];
 
 
     hunks = PyDict_GetItemString(cb_data, "hunks");
@@ -101,9 +102,32 @@ static int diff_hunk_cb(
     hunk->new_start = range->new_start;
     hunk->new_lines = range->new_lines;
 
+    hunk->old_mode = delta->old_file.mode;
+    hunk->new_mode = delta->new_file.mode;
+
+    git_oid_fmt(oid, &delta->old_file.oid);
+    hunk->old_oid = PyUnicode_FromStringAndSize(oid, GIT_OID_HEXSZ);
+    git_oid_fmt(oid, &delta->new_file.oid);
+    hunk->new_oid = PyUnicode_FromStringAndSize(oid, GIT_OID_HEXSZ);
+
+    if (header) {
+        hunk->header = malloc(header_len+1);
+
+        if (hunk->header == NULL)
+            return -1;
+
+        memcpy(hunk->header, header, header_len);
+        hunk->header[header_len] = '\0';
+    }
+
     if (delta->old_file.path != NULL) {
         len = strlen(delta->old_file.path) + 1;
         old_path = malloc(sizeof(char) * len);
+        if (old_path == NULL) {
+            free(hunk->header);
+            return -1;
+        }
+
         memcpy(old_path, delta->old_file.path, len);
         hunk->old_file = old_path;
     } else {
@@ -113,6 +137,12 @@ static int diff_hunk_cb(
     if (delta->new_file.path != NULL) {
         len = strlen(delta->new_file.path) + 1;
         new_path = malloc(sizeof(char) * len);
+        if (new_path == NULL) {
+            free(hunk->header);
+            free(old_path);
+            return -1;
+        }
+
         memcpy(new_path, delta->new_file.path, len);
         hunk->new_file = new_path;
     } else {
@@ -219,12 +249,17 @@ Hunk_dealloc(Hunk *self)
 }
 
 PyMemberDef Hunk_members[] = {
+    {"header",    T_STRING, offsetof(Hunk, header), 0, "header"},
     {"old_start", T_INT, offsetof(Hunk, old_start), 0, "old start"},
     {"old_lines", T_INT, offsetof(Hunk, old_lines), 0, "old lines"},
+    {"old_mode",  T_INT, offsetof(Hunk, old_mode), 0, "old mode"},
     {"old_file",  T_STRING, offsetof(Hunk, old_file), 0, "old file"},
+    {"old_oid",   T_OBJECT, offsetof(Hunk, old_oid), 0, "old_oid"},
     {"new_start", T_INT, offsetof(Hunk, new_start), 0, "new start"},
     {"new_lines", T_INT, offsetof(Hunk, new_lines), 0, "new lines"},
+    {"new_mode",  T_INT, offsetof(Hunk, new_mode), 0, "new mode"},
     {"new_file",  T_STRING, offsetof(Hunk, new_file), 0, "old file"},
+    {"new_oid",   T_OBJECT, offsetof(Hunk, new_oid), 0, "new_oid"},
     {"data",      T_OBJECT, offsetof(Hunk, data), 0, "data"},
     {NULL}
 };
