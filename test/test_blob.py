@@ -30,16 +30,23 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
+import tempfile
+import os
 
 import pygit2
 from . import utils
 
 
-BLOB_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
+BLOB_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
+BLOB_CONTENT = """hello world
+hola mundo
+bonjour le monde
+""".encode()
 BLOB_NEW_CONTENT = b'foo bar\n'
+BLOB_FILE_CONTENT = b'bye world\n'
 
 
-class BlobTest(utils.BareRepoTestCase):
+class BlobTest(utils.RepoTestCase):
 
     def test_read_blob(self):
         blob = self.repo[BLOB_SHA]
@@ -48,8 +55,8 @@ class BlobTest(utils.BareRepoTestCase):
         self.assertEqual(sha, BLOB_SHA)
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
-        self.assertEqual(b'a contents\n', blob.data)
-        self.assertEqual(b'a contents\n', blob.read_raw())
+        self.assertEqual(BLOB_CONTENT, blob.data)
+        self.assertEqual(BLOB_CONTENT, blob.read_raw())
 
     def test_create_blob(self):
         blob_oid = self.repo.create_blob(BLOB_NEW_CONTENT)
@@ -67,6 +74,22 @@ class BlobTest(utils.BareRepoTestCase):
         self.assertEqual(BLOB_NEW_CONTENT, blob.data)
         self.assertEqual(BLOB_NEW_CONTENT, blob.read_raw())
 
+    def test_create_blob_fromfile(self):
+
+        blob_oid = self.repo.create_blob_fromfile("bye.txt")
+        blob = self.repo[blob_oid]
+
+        self.assertTrue(isinstance(blob, pygit2.Blob))
+        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+
+        self.assertEqual(blob_oid, blob.oid)
+        self.assertEqual(
+          utils.gen_blob_sha1(BLOB_FILE_CONTENT),
+          utils.oid_to_hex(blob_oid)
+        )
+
+        self.assertEqual(BLOB_FILE_CONTENT, blob.data)
+        self.assertEqual(BLOB_FILE_CONTENT, blob.read_raw())
 
 if __name__ == '__main__':
     unittest.main()
