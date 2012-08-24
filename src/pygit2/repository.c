@@ -453,6 +453,24 @@ Repository_create_blob(Repository *self, PyObject *args)
 }
 
 PyObject *
+Repository_create_blob_fromfile(Repository *self, PyObject *args)
+{
+    git_oid oid;
+    const char* path;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s", &path))
+      return NULL;
+
+    err = git_blob_create_fromfile(&oid, self->repo, path);
+
+    if (err < 0)
+      return Error_set(err);
+
+    return git_oid_to_python(oid.id);
+}
+
+PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
 {
     Signature *py_author, *py_committer;
@@ -801,6 +819,9 @@ PyMethodDef Repository_methods[] = {
     {"create_blob", (PyCFunction)Repository_create_blob,
      METH_VARARGS,
      "Create a new blob from memory"},
+    {"create_blob_fromfile", (PyCFunction)Repository_create_blob_fromfile,
+     METH_VARARGS,
+     "Create a new blob from file"},
     {"create_reference", (PyCFunction)Repository_create_reference,
      METH_VARARGS,
      "Create a new reference \"name\" that points to the object given by its "
