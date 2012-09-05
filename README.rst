@@ -212,7 +212,7 @@ A diff shows the changes between trees, an index or the working dir::
     # Diff two trees
     >>> t0 = repo.head.tree
     >>> t1 = repo.head.parents[0].tree
-    >>> diff = t0.diff(t1)
+    >>> diff = t1.diff(t0)
     >>> diff
 
     # Diff a tree with the index
