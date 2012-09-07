@@ -49,7 +49,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (!PyArg_ParseTuple(args, "OsLi|s",
+    if (!PyArg_ParseTuple(args, "Os|Lis",
                           &py_name, &email, &time, &offset, &encoding))
         return -1;
 
@@ -57,7 +57,14 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
     if (name == NULL)
         return -1;
 
-    err = git_signature_new(&signature, name, email, time, offset);
+    if (PySequence_Length(args) == 2) {
+        err = git_signature_now(&signature, name, email);
+    } else if (PySequence_Length(args) == 3) {
+        PyErr_SetString(PyExc_TypeError, "offset must be specified with time");
+        return -1;
+    } else {
+        err = git_signature_new(&signature, name, email, time, offset);
+    }
     free(name);
     if (err < 0) {
         Error_set(err);
