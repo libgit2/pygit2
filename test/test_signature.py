@@ -28,6 +28,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
+import time
 
 from pygit2 import Signature
 from .utils import NoRepoTestCase
@@ -49,6 +50,17 @@ class SignatureTest(NoRepoTestCase):
         self.assertEqual(encoding, signature._encoding)
         self.assertEqual(signature.name, signature._name.decode(encoding))
         self.assertEqual(signature.name.encode(encoding), signature._name)
+
+    def test_now(self):
+        self.assertRaises(TypeError, Signature, 'Foo Ibáñez',
+                          'foo@example.com', 1322174594)
+        signature = Signature('Foo Ibáñez', 'foo@example.com')
+        encoding = signature._encoding
+        self.assertEqual(encoding, 'utf-8')
+        self.assertEqual(encoding, signature._encoding)
+        self.assertEqual(signature.name, signature._name.decode(encoding))
+        self.assertEqual(signature.name.encode(encoding), signature._name)
+        self.assertTrue(abs(signature.time - time.time()) < 5)
 
 
 if __name__ == '__main__':
