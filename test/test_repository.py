@@ -39,7 +39,7 @@ from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository, \
 from . import utils
 
 
-HEAD_SHA  = '5fe808e8953c12735680c257f56600cb0de44b10'
+HEAD_SHA  = '2cdae28389c059815e951d0bb9eed6533f61a46b'
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
 
@@ -48,7 +48,7 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_head(self):
         head = self.repo.head
-        self.assertTrue(HEAD_SHA, head.hex)
+        self.assertEqual(HEAD_SHA, head.hex)
         self.assertTrue(type(head), Commit)
 
     def test_read(self):
