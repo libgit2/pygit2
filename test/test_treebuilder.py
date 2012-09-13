@@ -57,7 +57,7 @@ class TreeBuilderTest(utils.BareRepoTestCase):
         tree = self.repo[TREE_SHA]
         bld = self.repo.TreeBuilder()
         for e in tree:
-            bld.insert(e.name, e.hex, e.attributes)
+            bld.insert(e.name, e.hex, e.filemode)
 
         result = bld.write()
         self.assertEqual(tree.oid, result)
