@@ -36,32 +36,26 @@
 int
 Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 {
+    const char *keywords[] = {
+        "name", "email", "time", "offset", "encoding", NULL};
     PyObject *py_name;
-    char *name, *email, *encoding = NULL;
-    long long time;
-    int offset;
+    char *name, *email, *encoding = "ascii";
+    long long time = -1;
+    int offset = 0;
     int err;
     git_signature *signature;
 
-    if (kwds) {
-        PyErr_SetString(PyExc_TypeError,
-                        "Signature takes no keyword arguments");
-        return -1;
-    }
-
-    if (!PyArg_ParseTuple(args, "Os|Lis",
-                          &py_name, &email, &time, &offset, &encoding))
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "Os|Lis", keywords,
+            &py_name, &email, &time, &offset, &encoding))
         return -1;
 
     name = py_str_to_c_str(py_name, encoding);
     if (name == NULL)
         return -1;
 
-    if (PySequence_Length(args) == 2) {
+    if (time == -1) {
         err = git_signature_now(&signature, name, email);
-    } else if (PySequence_Length(args) == 3) {
-        PyErr_SetString(PyExc_TypeError, "offset must be specified with time");
-        return -1;
     } else {
         err = git_signature_new(&signature, name, email, time, offset);
     }
