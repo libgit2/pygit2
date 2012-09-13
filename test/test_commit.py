@@ -68,7 +68,9 @@ class CommitTest(utils.BareRepoTestCase):
         repo = self.repo
         message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
         committer = Signature('John Doe', 'jdoe@example.com', 12346, 0)
-        author = Signature('J. David Ibáñez', 'jdavid@example.com', 12345, 0)
+        author = Signature(
+            'J. David Ibáñez', 'jdavid@example.com', 12345, 0,
+            encoding='utf-8')
         tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
         tree_prefix = tree[:5]
         too_short_prefix = tree[:3]
