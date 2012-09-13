@@ -31,6 +31,7 @@
 #include <pygit2/types.h>
 #include <pygit2/reference.h>
 #include <pygit2/utils.h>
+#include <pygit2/object.h>
 #include <pygit2/oid.h>
 #include <pygit2/repository.h>
 
@@ -40,9 +41,6 @@ extern PyTypeObject IndexType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject SignatureType;
 extern PyTypeObject TreeType;
-extern PyTypeObject CommitType;
-extern PyTypeObject BlobType;
-extern PyTypeObject TagType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
@@ -72,29 +70,7 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
     if (err < 0)
         return Error_set_oid(err, oid, len);
 
-    switch (git_object_type(obj)) {
-        case GIT_OBJ_COMMIT:
-            py_obj = PyObject_New(Object, &CommitType);
-            break;
-        case GIT_OBJ_TREE:
-            py_obj = PyObject_New(Object, &TreeType);
-            break;
-        case GIT_OBJ_BLOB:
-            py_obj = PyObject_New(Object, &BlobType);
-            break;
-        case GIT_OBJ_TAG:
-            py_obj = PyObject_New(Object, &TagType);
-            break;
-        default:
-            assert(0);
-    }
-
-    if (py_obj) {
-        py_obj->obj = obj;
-        py_obj->repo = repo;
-        Py_INCREF(repo);
-    }
-    return (PyObject*)py_obj;
+    return wrap_object(obj, repo);
 }
 
 PyObject *
