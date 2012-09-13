@@ -40,6 +40,7 @@ from . import utils
 
 
 HEAD_SHA  = '2cdae28389c059815e951d0bb9eed6533f61a46b'
+PARENT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'  # HEAD^
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
 
@@ -127,6 +128,9 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_get_workdir(self):
         self.assertEqual(self.repo.workdir, None)
 
+    def test_revparse_single(self):
+        parent = self.repo.revparse_single('HEAD^')
+        self.assertEqual(parent.hex, PARENT_SHA)
 
 
 class RepositoryTest_II(utils.RepoTestCase):

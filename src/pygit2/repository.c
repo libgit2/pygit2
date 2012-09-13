@@ -198,6 +198,30 @@ Repository_getitem(Repository *self, PyObject *value)
     return lookup_object_prefix(self, &oid, len, GIT_OBJ_ANY);
 }
 
+PyObject *
+Repository_revparse_single(Repository *self, PyObject *py_spec)
+{
+    git_object *c_obj;
+    char *c_spec;
+		char *encoding = "ascii";
+    int err;
+
+    /* 1- Get the C revision spec */
+    c_spec = py_str_to_c_str(py_spec, encoding);
+    if (c_spec == NULL)
+        return NULL;
+
+    /* 2- Lookup */
+    err = git_revparse_single(&c_obj, self->repo, c_spec);
+    if (err < 0)  {
+        PyObject *err_obj = Error_set_str(err, c_spec);
+        free(c_spec);
+        return err_obj;
+    }
+
+    return wrap_object(c_obj, self);
+}
+
 git_odb_object *
 Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
 {
@@ -792,6 +816,10 @@ PyMethodDef Repository_methods[] = {
       "Return a list with all the references in the repository."},
     {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
        "Lookup a reference by its name in a repository."},
+    {"revparse_single", (PyCFunction)Repository_revparse_single, METH_O,
+     "Find an object, as specified by a revision string. See "
+     "`man gitrevisions`, or the documentation for `git rev-parse` for "
+     "information on the syntax accepted."},
     {"create_blob", (PyCFunction)Repository_create_blob,
      METH_VARARGS,
      "Create a new blob from memory"},

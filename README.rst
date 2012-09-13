@@ -270,6 +270,12 @@ The interface for RefLogEntry::
     RefLogEntry.oid_old   -- oid of old reference
     RefLogEntry.oid_new   -- oid of new reference
 
+Revision parsing
+================
+
+You can use any of the fancy `<rev>` forms supported by libgit2::
+
+    >>> commit = repo.revparse_single('HEAD^')
 
 Revision walking
 =================
