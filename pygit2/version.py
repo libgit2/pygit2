@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright 2010-2012 The pygit2 contributors
+# Copyright 2012 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -25,6 +23,4 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from .version import __version__
-from _pygit2 import *
-import pygit2.utils
+__version__ = '0.17.2'
