@@ -200,7 +200,7 @@ This is the interface of a tree entry::
     TreeEntry.name        -- name of the tree entry
     TreeEntry.oid         -- the id of the git object
     TreeEntry.hex         -- hexadecimal representation of the oid
-    TreeEntry.attributes  -- the Unix file attributes
+    TreeEntry.filemode    -- the Unix file attributes
     TreeEntry.to_object() -- returns the git object (equivalent to repo[entry.oid])
 
 

@@ -42,11 +42,11 @@ SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'
 
 class TreeTest(utils.BareRepoTestCase):
 
-    def assertTreeEntryEqual(self, entry, sha, name, attributes):
+    def assertTreeEntryEqual(self, entry, sha, name, filemode):
         self.assertEqual(entry.hex, sha)
         self.assertEqual(entry.name, name)
-        self.assertEqual(entry.attributes, attributes,
-                         '0%o != 0%o' % (entry.attributes, attributes))
+        self.assertEqual(entry.filemode, filemode,
+                         '0%o != 0%o' % (entry.filemode, filemode))
 
     def test_read_tree(self):
         tree = self.repo[TREE_SHA]

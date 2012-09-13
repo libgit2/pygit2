@@ -331,7 +331,7 @@ Index_read_tree(Index *self, PyObject *value)
     if (err < 0)
         return Error_set(err);
 
-    err = git_index_read_tree(self->index, tree);
+    err = git_index_read_tree(self->index, tree, NULL);
     if (err < 0)
         return Error_set(err);
 

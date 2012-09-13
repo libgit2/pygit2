@@ -33,7 +33,7 @@
 #include <git2.h>
 #include <pygit2/types.h>
 
-PyObject* TreeEntry_get_attributes(TreeEntry *self);
+PyObject* TreeEntry_get_filemode(TreeEntry *self);
 PyObject* TreeEntry_get_name(TreeEntry *self);
 PyObject* TreeEntry_get_oid(TreeEntry *self);
 PyObject* TreeEntry_get_hex(TreeEntry *self);

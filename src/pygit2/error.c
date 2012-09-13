@@ -55,7 +55,7 @@ PyObject * Error_type(int type)
             return GitError;
 
         /** No entries left in ref walker */
-        case GIT_REVWALKOVER:
+        case GIT_ITEROVER:
             return PyExc_StopIteration;
     }
 
