@@ -49,7 +49,7 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_head(self):
         head = self.repo.head
         self.assertEqual(HEAD_SHA, head.hex)
-        self.assertTrue(type(head), Commit)
+        self.assertEqual(type(head), Commit)
 
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)
