@@ -27,10 +27,20 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <pygit2/utils.h>
 #include <pygit2/object.h>
+#include <pygit2/blob.h>
+
+PyObject *
+Blob_get_size(Blob *self)
+{
+    return PyInt_FromLong(git_blob_rawsize(self->blob));
+}
+
 
 PyGetSetDef Blob_getseters[] = {
     {"data", (getter)Object_read_raw, NULL, "raw data", NULL},
+    {"size", (getter)Blob_get_size, NULL, "size", NULL},
     {NULL}
 };
 
