@@ -56,6 +56,7 @@ class BlobTest(utils.RepoTestCase):
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
         self.assertEqual(BLOB_CONTENT, blob.data)
+        self.assertEqual(len(BLOB_CONTENT), blob.size)
         self.assertEqual(BLOB_CONTENT, blob.read_raw())
 
     def test_create_blob(self):
@@ -72,6 +73,7 @@ class BlobTest(utils.RepoTestCase):
         )
 
         self.assertEqual(BLOB_NEW_CONTENT, blob.data)
+        self.assertEqual(len(BLOB_NEW_CONTENT), blob.size)
         self.assertEqual(BLOB_NEW_CONTENT, blob.read_raw())
 
     def test_create_blob_fromfile(self):
@@ -89,6 +91,7 @@ class BlobTest(utils.RepoTestCase):
         )
 
         self.assertEqual(BLOB_FILE_CONTENT, blob.data)
+        self.assertEqual(len(BLOB_FILE_CONTENT), blob.size)
         self.assertEqual(BLOB_FILE_CONTENT, blob.read_raw())
 
 if __name__ == '__main__':
