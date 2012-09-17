@@ -38,6 +38,11 @@ from distutils.command.build import build
 from distutils.command.sdist import sdist
 from distutils import log
 
+# read version from local pygit2/version.py without pulling in
+# pygit2/__init__.py
+sys.path.insert(0, 'pygit2')
+from version import __version__
+
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -163,7 +168,7 @@ with open('README.rst') as readme:
 setup(name='pygit2',
       description='Python bindings for libgit2.',
       keywords='git',
-      version='0.17.2',
+      version=__version__,
       url='http://github.com/libgit2/pygit2',
       classifiers=classifiers,
       license='GPLv2',
