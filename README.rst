@@ -148,9 +148,8 @@ Creating commits
 Commits can be created by calling the ``create_commit`` method of the
 repository with the following parameters::
 
-    >>> from time import time
-    >>> author = Signature('Alice Author', 'alice@authors.tld', time(), 0)
-    >>> committer = Signature('Cecil Committer', 'cecil@committers.tld', time(), 0)
+    >>> author = Signature('Alice Author', 'alice@authors.tld')
+    >>> committer = Signature('Cecil Committer', 'cecil@committers.tld')
     >>> tree = repo.TreeBuilder().write()
     >>> repo.create_commit(
     ... 'refs/heads/master', # the name of the reference to update

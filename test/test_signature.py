@@ -37,26 +37,29 @@ from .utils import NoRepoTestCase
 class SignatureTest(NoRepoTestCase):
 
     def test_default(self):
-        signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60)
+        signature = Signature(
+            'Foo', 'foo@example.com', 1322174594, 60)
         encoding = signature._encoding
-        self.assertEqual(encoding, 'utf-8')
+        self.assertEqual(encoding, 'ascii')
         self.assertEqual(signature.name, signature._name.decode(encoding))
         self.assertEqual(signature.name.encode(encoding), signature._name)
 
+    def test_ascii(self):
+        self.assertRaises(
+                UnicodeEncodeError, Signature, 'Foo Ibáñez', 'foo@example.com')
+
     def test_latin1(self):
         encoding = 'iso-8859-1'
-        signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60,
-                              encoding)
+        signature = Signature(
+            'Foo Ibáñez', 'foo@example.com', encoding=encoding)
         self.assertEqual(encoding, signature._encoding)
         self.assertEqual(signature.name, signature._name.decode(encoding))
         self.assertEqual(signature.name.encode(encoding), signature._name)
 
     def test_now(self):
-        self.assertRaises(TypeError, Signature, 'Foo Ibáñez',
-                          'foo@example.com', 1322174594)
-        signature = Signature('Foo Ibáñez', 'foo@example.com')
-        encoding = signature._encoding
-        self.assertEqual(encoding, 'utf-8')
+        encoding = 'utf-8'
+        signature = Signature(
+            'Foo Ibáñez', 'foo@example.com', encoding=encoding)
         self.assertEqual(encoding, signature._encoding)
         self.assertEqual(signature.name, signature._name.decode(encoding))
         self.assertEqual(signature.name.encode(encoding), signature._name)
