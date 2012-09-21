@@ -26,6 +26,7 @@
  */
 
 #define PY_SSIZE_T_CLEAN
+#include <string.h>
 #include <Python.h>
 #include <pygit2/error.h>
 #include <pygit2/utils.h>
@@ -238,6 +239,7 @@ Tree_getitem(Tree *self, PyObject *value)
 {
     char *name;
     const git_tree_entry *entry;
+    int err;
 
     /* Case 1: integer */
     if (PyInt_Check(value))
@@ -247,8 +249,22 @@ Tree_getitem(Tree *self, PyObject *value)
     name = py_path_to_c_str(value);
     if (name == NULL)
         return NULL;
-    entry = git_tree_entry_byname(self->tree, name);
+    
+    if (strchr(name, '/') != NULL) {
+        /* Case 2a: path string */
+        err = git_tree_entry_bypath(&entry, self->tree, name);
+        if (err == GIT_ENOTFOUND)
+            entry = NULL;
+        else if (err < 0)
+            return Error_set(err);
+
+    } else {
+        /* Case 2b: base name */
+        entry = git_tree_entry_byname(self->tree, name);
+    }
+
     free(name);
+
     if (!entry) {
         PyErr_SetObject(PyExc_KeyError, value);
         return NULL;
