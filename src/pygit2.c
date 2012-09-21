@@ -303,6 +303,15 @@ moduleinit(PyObject* m)
                             GIT_DIFF_LINE_HUNK_HDR);
     PyModule_AddIntConstant(m, "GIT_DIFF_LINE_BINARY", GIT_DIFF_LINE_BINARY);
 
+    /* Valid modes for index and tree entries. */
+    PyModule_AddIntConstant(m, "GIT_FILEMODE_NEW", GIT_FILEMODE_NEW);
+    PyModule_AddIntConstant(m, "GIT_FILEMODE_TREE", GIT_FILEMODE_TREE);
+    PyModule_AddIntConstant(m, "GIT_FILEMODE_BLOB", GIT_FILEMODE_BLOB);
+    PyModule_AddIntConstant(m, "GIT_FILEMODE_BLOB_EXECUTABLE",
+                            GIT_FILEMODE_BLOB_EXECUTABLE);
+    PyModule_AddIntConstant(m, "GIT_FILEMODE_LINK", GIT_FILEMODE_LINK);
+    PyModule_AddIntConstant(m, "GIT_FILEMODE_COMMIT", GIT_FILEMODE_COMMIT);
+
     return m;
 }
 
