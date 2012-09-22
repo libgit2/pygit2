@@ -38,6 +38,10 @@ import unittest
 names = ['blob', 'commit', 'config', 'index', 'refs', 'repository', 'revwalk',
          'tag', 'tree', 'signature', 'status', 'treebuilder', 'diff']
 def test_suite():
+    # Sometimes importing pygit2 fails, we try this first to get an
+    # informative traceback
+    import pygit2
+    # Go
     modules = ['test.test_%s' % n for n in names]
     return unittest.defaultTestLoader.loadTestsFromNames(modules)
 
