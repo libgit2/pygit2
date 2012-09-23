@@ -49,7 +49,7 @@ TreeEntry_dealloc(TreeEntry *self)
 PyObject *
 TreeEntry_get_attributes(TreeEntry *self)
 {
-    return PyInt_FromLong(git_tree_entry_attributes(self->entry));
+    return PyInt_FromLong(git_tree_entry_filemode(self->entry));
 }
 
 PyObject *
