@@ -26,8 +26,8 @@
  */
 
 #define PY_SSIZE_T_CLEAN
-#include <string.h>
 #include <Python.h>
+#include <string.h>
 #include <pygit2/error.h>
 #include <pygit2/utils.h>
 #include <pygit2/repository.h>
@@ -237,8 +237,8 @@ Tree_getitem_by_index(Tree *self, PyObject *py_index)
 TreeEntry *
 Tree_getitem(Tree *self, PyObject *value)
 {
-    char *name;
-    const git_tree_entry *entry;
+    char *path;
+    git_tree_entry *entry;
     int err;
 
     /* Case 1: integer */
@@ -246,29 +246,21 @@ Tree_getitem(Tree *self, PyObject *value)
         return Tree_getitem_by_index(self, value);
 
     /* Case 2: byte or text string */
-    name = py_path_to_c_str(value);
-    if (name == NULL)
+    path = py_path_to_c_str(value);
+    if (path == NULL)
         return NULL;
     
-    if (strchr(name, '/') != NULL) {
-        /* Case 2a: path string */
-        err = git_tree_entry_bypath(&entry, self->tree, name);
-        if (err == GIT_ENOTFOUND)
-            entry = NULL;
-        else if (err < 0)
-            return Error_set(err);
+    err = git_tree_entry_bypath(&entry, self->tree, path);
+    free(path);
 
-    } else {
-        /* Case 2b: base name */
-        entry = git_tree_entry_byname(self->tree, name);
-    }
-
-    free(name);
-
-    if (!entry) {
+    if (err == GIT_ENOTFOUND) {
         PyErr_SetObject(PyExc_KeyError, value);
         return NULL;
     }
+
+    if (err < 0)
+        return (TreeEntry*)Error_set(err);
+
     return wrap_tree_entry(entry, self);
 }
 
