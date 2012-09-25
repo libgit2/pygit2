@@ -199,7 +199,7 @@ This is the interface of a tree entry::
     TreeEntry.name        -- name of the tree entry
     TreeEntry.oid         -- the id of the git object
     TreeEntry.hex         -- hexadecimal representation of the oid
-    TreeEntry.attributes  -- the Unix file attributes
+    TreeEntry.filemode    -- the Unix file attributes
     TreeEntry.to_object() -- returns the git object (equivalent to repo[entry.oid])
 
 
@@ -269,6 +269,12 @@ The interface for RefLogEntry::
     RefLogEntry.oid_old   -- oid of old reference
     RefLogEntry.oid_new   -- oid of new reference
 
+Revision parsing
+================
+
+You can use any of the fancy `<rev>` forms supported by libgit2::
+
+    >>> commit = repo.revparse_single('HEAD^')
 
 Revision walking
 =================

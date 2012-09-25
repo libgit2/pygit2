@@ -47,7 +47,7 @@ TreeEntry_dealloc(TreeEntry *self)
 }
 
 PyObject *
-TreeEntry_get_attributes(TreeEntry *self)
+TreeEntry_get_filemode(TreeEntry *self)
 {
     return PyInt_FromLong(git_tree_entry_filemode(self->entry));
 }
@@ -85,7 +85,7 @@ TreeEntry_to_object(TreeEntry *self)
 }
 
 PyGetSetDef TreeEntry_getseters[] = {
-    {"attributes", (getter)TreeEntry_get_attributes, NULL, "attributes", NULL},
+    {"filemode", (getter)TreeEntry_get_filemode, NULL, "filemode", NULL},
     {"name", (getter)TreeEntry_get_name, NULL, "name", NULL},
     {"oid", (getter)TreeEntry_get_oid, NULL, "object id", NULL},
     {"hex", (getter)TreeEntry_get_hex, NULL, "hex oid", NULL},
