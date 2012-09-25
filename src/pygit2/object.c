@@ -34,6 +34,12 @@
 #include <pygit2/repository.h>
 #include <pygit2/object.h>
 
+extern PyTypeObject TreeType;
+extern PyTypeObject CommitType;
+extern PyTypeObject BlobType;
+extern PyTypeObject TagType;
+
+
 void
 Object_dealloc(Object* self)
 {
@@ -145,3 +151,35 @@ PyTypeObject ObjectType = {
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
+
+PyObject *
+wrap_object(git_object *c_object, Repository *repo)
+{
+    Object *py_obj = NULL;
+
+    switch (git_object_type(c_object)) {
+        case GIT_OBJ_COMMIT:
+            py_obj = PyObject_New(Object, &CommitType);
+            break;
+        case GIT_OBJ_TREE:
+            py_obj = PyObject_New(Object, &TreeType);
+            break;
+        case GIT_OBJ_BLOB:
+            py_obj = PyObject_New(Object, &BlobType);
+            break;
+        case GIT_OBJ_TAG:
+            py_obj = PyObject_New(Object, &TagType);
+            break;
+        default:
+            assert(0);
+    }
+
+    if (py_obj) {
+        py_obj->obj = c_object;
+				if (repo) {
+            py_obj->repo = repo;
+            Py_INCREF(repo);
+        }
+    }
+    return (PyObject *)py_obj;
+}

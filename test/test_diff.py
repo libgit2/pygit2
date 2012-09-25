@@ -123,9 +123,9 @@ class DiffTest(utils.BareRepoTestCase):
 
         hunk = diff.changes['hunks'][0]
         self.assertEqual(hunk.old_start, 1)
-        self.assertEqual(hunk.old_lines, 0)
+        self.assertEqual(hunk.old_lines, 1)
         self.assertEqual(hunk.new_start, 1)
-        self.assertEqual(hunk.new_lines, 0)
+        self.assertEqual(hunk.new_lines, 1)
 
         self.assertEqual(hunk.old_file, 'a')
         self.assertEqual(hunk.new_file, 'a')
@@ -157,9 +157,9 @@ class DiffTest(utils.BareRepoTestCase):
 
         hunk = diff_b.changes['hunks'][1]
         self.assertEqual(hunk.old_start, 1)
-        self.assertEqual(hunk.old_lines, 0)
+        self.assertEqual(hunk.old_lines, 1)
         self.assertEqual(hunk.new_start, 1)
-        self.assertEqual(hunk.new_lines, 0)
+        self.assertEqual(hunk.new_lines, 1)
 
         self.assertEqual(hunk.old_file, 'b')
         self.assertEqual(hunk.new_file, 'b')
