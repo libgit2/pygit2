@@ -77,7 +77,7 @@ class BlobTest(utils.RepoTestCase):
         self.assertEqual(BLOB_NEW_CONTENT, blob.read_raw())
 
     def test_create_blob_fromfile(self):
-
+        # relative path
         blob_oid = self.repo.create_blob_fromfile("bye.txt")
         blob = self.repo[blob_oid]
 
@@ -93,6 +93,16 @@ class BlobTest(utils.RepoTestCase):
         self.assertEqual(BLOB_FILE_CONTENT, blob.data)
         self.assertEqual(len(BLOB_FILE_CONTENT), blob.size)
         self.assertEqual(BLOB_FILE_CONTENT, blob.read_raw())
+
+        # absolute path
+        path = os.path.join(self.repo.workdir, "bye.txt")
+        blob_oid = self.repo.create_blob_fromfile(path, True)
+        blob = self.repo[blob_oid]
+
+        self.assertTrue(isinstance(blob, pygit2.Blob))
+        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+        self.assertEqual(blob_oid, blob.oid)
+
 
 if __name__ == '__main__':
     unittest.main()
