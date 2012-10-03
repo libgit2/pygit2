@@ -67,7 +67,7 @@ class ReferencesTest(utils.RepoTestCase):
         repo = self.repo
 
         # Raise KeyError ?
-        self.assertRaises(KeyError, repo.lookup_reference, 'foo')
+        self.assertRaises(KeyError, repo.lookup_reference, 'refs/foo')
 
         # Test a lookup
         reference = repo.lookup_reference('refs/heads/master')
