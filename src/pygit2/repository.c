@@ -458,11 +458,15 @@ Repository_create_blob_fromfile(Repository *self, PyObject *args)
     git_oid oid;
     const char* path;
     int err;
+    int is_absolute_path = 0;
 
-    if (!PyArg_ParseTuple(args, "s", &path))
+    if (!PyArg_ParseTuple(args, "s|i", &path, &is_absolute_path))
       return NULL;
 
-    err = git_blob_create_fromfile(&oid, self->repo, path);
+    if(is_absolute_path > 0)
+        err = git_blob_create_fromdisk(&oid, self->repo, path);
+    else
+        err = git_blob_create_fromfile(&oid, self->repo, path);
 
     if (err < 0)
       return Error_set(err);
