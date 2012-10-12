@@ -175,9 +175,11 @@ class ReferencesTest(utils.RepoTestCase):
         reference = self.repo.lookup_reference('refs/tags/version1')
         self.assertEqual(reference.hex, LAST_COMMIT)
 
-        self.assertRaises(GitError, self.repo.create_reference, 
+        # try to create existing reference 
+        self.assertRaises(ValueError, self.repo.create_reference, 
         'refs/tags/version1', LAST_COMMIT)
 
+        # try to create existing reference with force
         reference =  self.repo.create_reference('refs/tags/version1',
                         LAST_COMMIT, force=True)
         self.assertEqual(reference.hex, LAST_COMMIT)
@@ -191,9 +193,12 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
         self.assertEqual(reference.target, 'refs/heads/master')
 
-        self.assertRaises(GitError, self.repo.create_reference, 
+
+        # try to create existing symbolic reference
+        self.assertRaises(ValueError, self.repo.create_reference, 
         'refs/tags/beta','refs/heads/master', symbolic=True)
 
+        # try to create existing symbolic reference with force
         reference =  self.repo.create_reference('refs/tags/beta',
                         'refs/heads/master', force=True, symbolic=True)
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)

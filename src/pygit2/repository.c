@@ -661,7 +661,7 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
     git_reference *c_reference;
     char *c_name, *c_target;
     git_oid oid;
-    int err, symbolic = 0, force = 0;
+    int err = 0, symbolic = 0, force = 0;
 
     static char *kwlist[] = {"name", "source", "force", "symbolic", NULL};
 
@@ -669,7 +669,14 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
                                      &c_name, &py_obj, &force, &symbolic))
         return NULL;
 
-    if(symbolic) {
+    if(!symbolic) {
+        err = py_str_to_git_oid_expand(self->repo, py_obj, &oid);
+        if (err < 0) {
+            return Error_set(err);
+        }
+
+        err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid, force);
+    } else {
         #if PY_MAJOR_VERSION == 2
         c_target = PyString_AsString(py_obj);
         #else
@@ -680,12 +687,6 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
 
         err = git_reference_create_symbolic(&c_reference, self->repo, c_name,
                                             c_target, force);
-    } else {
-        err = py_str_to_git_oid_expand(self->repo, py_obj, &oid);
-        if (err < 0)
-            return Error_set(err);
-
-        err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid, force);
     }
 
     if (err < 0)
