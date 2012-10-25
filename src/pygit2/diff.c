@@ -42,8 +42,8 @@ extern PyTypeObject HunkType;
 
 static int diff_data_cb(
   void *cb_data,
-  git_diff_delta *delta,
-  git_diff_range *range,
+  const git_diff_delta *delta,
+  const git_diff_range *range,
   char line_origin,
   const char *content,
   size_t content_len)
@@ -75,8 +75,8 @@ static int diff_data_cb(
 
 static int diff_hunk_cb(
   void *cb_data,
-  git_diff_delta *delta,
-  git_diff_range *range,
+  const git_diff_delta *delta,
+  const git_diff_range *range,
   const char *header,
   size_t header_len)
 {
@@ -158,7 +158,8 @@ static int diff_hunk_cb(
     return 0;
 };
 
-static int diff_file_cb(void *cb_data, git_diff_delta *delta, float progress)
+static int diff_file_cb(void *cb_data, const git_diff_delta *delta,
+  float progress)
 {
     PyObject *files, *file;
 
@@ -201,8 +202,8 @@ Diff_changes(Diff *self)
 
 static int diff_print_cb(
     void *cb_data,
-    git_diff_delta *delta,
-    git_diff_range *range,
+    const git_diff_delta *delta,
+    const git_diff_range *range,
     char usage,
     const char *line,
     size_t line_len)
