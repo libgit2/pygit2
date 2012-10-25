@@ -263,14 +263,17 @@ Config_foreach(Config *self, PyObject *args)
 }
 
 PyObject *
-Config_add_file(Config *self, PyObject *args)
+Config_add_file(Config *self, PyObject *args, PyObject *kwds)
 {
+    char *keywords[] = {"path", "level", "force", NULL};
     int err;
     char *path;
-    unsigned int level;
-    int force;
+    unsigned int level = 0;
+    int force = 0;
 
-    if (!PyArg_ParseTuple(args, "sIi", &path, &level, &force))
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "s|Ii", keywords,
+            &path, &level, &force))
         return NULL;
 
     err = git_config_add_file_ondisk(self->config, path, level, force);
@@ -353,7 +356,7 @@ PyMethodDef Config_methods[] = {
      "and value of each variable in the config backend, and an optional "
      "payload passed to this method. As soon as one of the callbacks returns "
      "an integer other than 0, this function returns that value."},
-    {"add_file", (PyCFunction)Config_add_file, METH_VARARGS,
+    {"add_file", (PyCFunction)Config_add_file, METH_VARARGS | METH_KEYWORDS,
      "Add a config file instance to an existing config."},
     {"get_multivar", (PyCFunction)Config_get_multivar, METH_VARARGS,
      "Get each value of a multivar ''name'' as a list. The optional ''regex'' "

@@ -34,7 +34,7 @@
 
 PyObject* Config_get_global_config(void);
 PyObject* Config_get_system_config(void);
-PyObject* Config_add_file(Config *self, PyObject *args);
+PyObject* Config_add_file(Config *self, PyObject *args, PyObject *kwds);
 PyObject* Config_getitem(Config *self, PyObject *key);
 PyObject* Config_foreach(Config *self, PyObject *args);
 PyObject* Config_get_multivar(Config *self, PyObject *args);
