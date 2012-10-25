@@ -268,12 +268,13 @@ Config_add_file(Config *self, PyObject *args)
 {
     int err;
     char *path;
-    int priority;
+    unsigned int level;
+    int force;
 
-    if (!PyArg_ParseTuple(args, "si", &path, &priority))
+    if (!PyArg_ParseTuple(args, "sIi", &path, &level, &force))
         return NULL;
 
-    err = git_config_add_file_ondisk(self->config, path, priority);
+    err = git_config_add_file_ondisk(self->config, path, level, force);
     if (err < 0) {
         Error_set_str(err, path);
         return NULL;
