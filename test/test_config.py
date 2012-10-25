@@ -39,6 +39,7 @@ config_filename = "test_config"
 def foreach_test_wrapper(key, name, lst):
     lst[key] = name
     return 0
+foreach_test_wrapper.__test__ = False
 
 class ConfigTest(utils.RepoTestCase):
 
