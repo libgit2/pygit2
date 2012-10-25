@@ -214,8 +214,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 }
 
 int
-Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
-        void *c_payload)
+Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
 {
     PyObject *args = (PyObject *)c_payload;
     PyObject *py_callback = NULL;
@@ -227,9 +226,9 @@ Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
         return 0;
 
     if (py_payload)
-        args = Py_BuildValue("ssO", c_name, c_value, py_payload);
+        args = Py_BuildValue("ssO", entry->name, entry->value, py_payload);
     else
-        args = Py_BuildValue("ss", c_name, c_value);
+        args = Py_BuildValue("ss", entry->name, entry->value);
 
     if (!(py_result = PyObject_CallObject(py_callback,args)))
         return 0;
