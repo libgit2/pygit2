@@ -229,6 +229,8 @@ Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
         args = Py_BuildValue("ssO", entry->name, entry->value, py_payload);
     else
         args = Py_BuildValue("ss", entry->name, entry->value);
+    if (!args)
+        return 0;
 
     if (!(py_result = PyObject_CallObject(py_callback,args)))
         return 0;
