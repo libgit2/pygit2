@@ -223,20 +223,20 @@ Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
     int c_result;
 
     if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
-        return 0;
+        return -1;
 
     if (py_payload)
         args = Py_BuildValue("ssO", entry->name, entry->value, py_payload);
     else
         args = Py_BuildValue("ss", entry->name, entry->value);
     if (!args)
-        return 0;
+        return -1;
 
     if (!(py_result = PyObject_CallObject(py_callback,args)))
-        return 0;
+        return -1;
 
     if (!(c_result = PyLong_AsLong(py_result)))
-        return 0;
+        return -1;
 
     return c_result;
 }
