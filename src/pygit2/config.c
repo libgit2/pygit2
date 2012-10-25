@@ -283,12 +283,12 @@ Config_add_file(Config *self, PyObject *args)
 }
 
 int
-Config_get_multivar_fn_wrapper(const char *value, void *data)
+Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
 {
     PyObject *list = (PyObject *)data;
     PyObject *item = NULL;
 
-    if (!(item = PyUnicode_FromString(value)))
+    if (!(item = PyUnicode_FromString(value->value)))
         return -2;
 
     PyList_Append(list, item);
