@@ -30,6 +30,7 @@
 
 from __future__ import print_function
 
+import codecs
 import os
 from subprocess import Popen, PIPE
 import sys
@@ -162,7 +163,7 @@ classifiers = [
     "Topic :: Software Development :: Version Control"]
 
 
-with open('README.rst') as readme:
+with codecs.open('README.rst', 'r', 'utf-8') as readme:
     long_description = readme.read()
 
 setup(name='pygit2',
