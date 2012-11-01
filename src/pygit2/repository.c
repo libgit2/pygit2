@@ -186,15 +186,61 @@ Repository_head(Repository *self)
 
 
 PyDoc_STRVAR(
-  Repository_is_detached_doc,
+  Repository_head_is_detached_doc,
   "A repository's HEAD is detached when it points directly to a commit\n"
   "instead of a branch.\n"
 );
 
 PyObject *
-Repository_is_detached(Repository *self)
+Repository_head_is_detached(Repository *self)
 {
   if(git_repository_head_detached(self->repo) > 0)
+    return Py_True;
+
+  return Py_False;
+}
+
+
+PyDoc_STRVAR(
+  Repository_head_is_orphaned_doc,
+  "An orphan branch is one named from HEAD but which doesn't exist in\n"
+  "the refs namespace, because it doesn't have any commit to point to.\n"
+);
+
+PyObject *
+Repository_head_is_orphaned(Repository *self)
+{
+  if(git_repository_head_orphan(self->repo) > 0)
+    return Py_True;
+
+  return Py_False;
+}
+
+
+PyDoc_STRVAR(
+  Repository_is_empty_doc,
+  "Check if a repository is empty\n"
+);
+
+PyObject *
+Repository_is_empty(Repository *self)
+{
+  if(git_repository_is_empty(self->repo) > 0)
+    return Py_True;
+
+  return Py_False;
+}
+
+
+PyDoc_STRVAR(
+  Repository_is_bare_doc,
+  "Check if a repository is a bare repository.\n"
+);
+
+PyObject *
+Repository_is_bare(Repository *self)
+{
+  if(git_repository_is_bare(self->repo) > 0)
     return Py_True;
 
   return Py_False;
@@ -868,8 +914,14 @@ PyGetSetDef Repository_getseters[] = {
      "The normalized path to the git repository.", NULL},
     {"head", (getter)Repository_head, NULL,
       "Current head reference of the repository.", NULL},
-    {"is_detached", (getter)Repository_is_detached, NULL,
-     Repository_is_detached_doc},
+    {"head_is_detached", (getter)Repository_head_is_detached, NULL,
+     Repository_head_is_detached_doc},
+    {"head_is_orphaned", (getter)Repository_head_is_orphaned, NULL,
+     Repository_head_is_orphaned_doc},
+    {"is_empty", (getter)Repository_is_empty, NULL,
+     Repository_is_empty_doc},
+    {"is_bare", (getter)Repository_is_bare, NULL,
+     Repository_is_bare_doc},
     {"config", (getter)Repository_get_config, NULL,
      "Get the configuration file for this repository.\n\n"
      "If a configuration file has not been set, the default "

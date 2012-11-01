@@ -47,10 +47,18 @@ A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
 
 class RepositoryTest(utils.BareRepoTestCase):
 
+    def test_is_empty(self):
+        self.assertFalse(self.repo.is_empty)
+
+    def test_is_bare(self):
+        self.assertTrue(self.repo.is_bare)
+
     def test_head(self):
         head = self.repo.head
         self.assertEqual(HEAD_SHA, head.hex)
         self.assertEqual(type(head), Commit)
+        self.assertFalse(self.repo.head_is_orphaned)
+        self.assertFalse(self.repo.head_is_detached)
 
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)
@@ -135,6 +143,12 @@ class RepositoryTest(utils.BareRepoTestCase):
 
 class RepositoryTest_II(utils.RepoTestCase):
 
+    def test_is_empty(self):
+        self.assertFalse(self.repo.is_empty)
+
+    def test_is_bare(self):
+        self.assertFalse(self.repo.is_bare)
+
     def test_get_path(self):
         directory = realpath(self.repo.path)
         expected = realpath(join(self._temp_dir, 'testrepo', '.git'))
@@ -162,6 +176,19 @@ class DiscoverRepositoryTest(utils.NoRepoTestCase):
         subdir = os.path.join(self._temp_dir, "test1","test2")
         os.makedirs(subdir)
         self.assertEqual(repo.path, discover_repository(subdir))
+
+class EmptyRepositoryTest(utils.EmptyRepoTestCase):
+
+    def test_is_empty(self):
+        self.assertTrue(self.repo.is_empty)
+
+    def test_is_base(self):
+        self.assertFalse(self.repo.is_bare)
+
+    def test_head(self):
+        self.assertTrue(self.repo.head_is_orphaned)
+        self.assertFalse(self.repo.head_is_detached)
+
 
 if __name__ == '__main__':
     unittest.main()
