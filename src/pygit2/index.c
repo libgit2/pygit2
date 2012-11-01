@@ -84,12 +84,12 @@ Index_add(Index *self, PyObject *args)
 {
     int err;
     const char *path;
-    int stage=0;
+    git_index_entry* entry;
 
-    if (!PyArg_ParseTuple(args, "s|i", &path, &stage))
+    if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
 
-    err = git_index_add(self->index, path, stage);
+    err = git_index_add_from_workdir(self->index, path);
     if (err < 0)
         return Error_set_str(err, path);
 
@@ -281,7 +281,7 @@ Index_getitem(Index *self, PyObject *value)
     if (idx == -1)
         return NULL;
 
-    index_entry = git_index_get(self->index, idx);
+    index_entry = git_index_get_byindex(self->index, idx);
     if (!index_entry) {
         PyErr_SetObject(PyExc_KeyError, value);
         return NULL;
@@ -293,26 +293,9 @@ Index_getitem(Index *self, PyObject *value)
 int
 Index_setitem(Index *self, PyObject *key, PyObject *value)
 {
-    int err;
-    int idx;
-
-    if (value) {
-        PyErr_SetString(PyExc_NotImplementedError,
-                        "set item on index not yet implemented");
-        return -1;
-    }
-
-    idx = Index_get_position(self, key);
-    if (idx == -1)
-        return -1;
-
-    err = git_index_remove(self->index, idx);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-
-    return 0;
+    PyErr_SetString(PyExc_NotImplementedError,
+                    "set item on index not yet implemented");
+    return -1;
 }
 
 PyObject *
@@ -447,7 +430,7 @@ IndexIter_iternext(IndexIter *self)
 {
     git_index_entry *index_entry;
 
-    index_entry = git_index_get(self->owner->index, self->i);
+    index_entry = git_index_get_byindex(self->owner->index, self->i);
     if (!index_entry)
         return NULL;
 
