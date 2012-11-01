@@ -84,7 +84,6 @@ Index_add(Index *self, PyObject *args)
 {
     int err;
     const char *path;
-    git_index_entry* entry;
 
     if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;

@@ -151,7 +151,7 @@ class ConfigTest(utils.RepoTestCase):
         new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
         new_file.close()
 
-        config.add_file(config_filename, 0)
+        config.add_file(config_filename, 5)
         self.assertTrue('this.that' in config)
         config.set_multivar('this.that', '^.*beer', 'fool')
         l = config.get_multivar('this.that', 'fool')
