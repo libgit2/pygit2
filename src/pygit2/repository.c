@@ -185,6 +185,22 @@ Repository_head(Repository *self)
 }
 
 
+PyDoc_STRVAR(
+  Repository_is_detached_doc,
+  "A repository's HEAD is detached when it points directly to a commit\n"
+  "instead of a branch.\n"
+);
+
+PyObject *
+Repository_is_detached(Repository *self)
+{
+  if(git_repository_head_detached(self->repo) > 0)
+    return Py_True;
+
+  return Py_False;
+}
+
+
 PyObject *
 Repository_getitem(Repository *self, PyObject *value)
 {
@@ -852,6 +868,8 @@ PyGetSetDef Repository_getseters[] = {
      "The normalized path to the git repository.", NULL},
     {"head", (getter)Repository_head, NULL,
       "Current head reference of the repository.", NULL},
+    {"is_detached", (getter)Repository_is_detached, NULL,
+     Repository_is_detached_doc},
     {"config", (getter)Repository_get_config, NULL,
      "Get the configuration file for this repository.\n\n"
      "If a configuration file has not been set, the default "
