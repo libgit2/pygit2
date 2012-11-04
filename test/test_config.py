@@ -39,6 +39,7 @@ config_filename = "test_config"
 def foreach_test_wrapper(key, name, lst):
     lst[key] = name
     return 0
+foreach_test_wrapper.__test__ = False
 
 class ConfigTest(utils.RepoTestCase):
 
@@ -150,7 +151,7 @@ class ConfigTest(utils.RepoTestCase):
         new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
         new_file.close()
 
-        config.add_file(config_filename, 0)
+        config.add_file(config_filename, 5)
         self.assertTrue('this.that' in config)
         config.set_multivar('this.that', '^.*beer', 'fool')
         l = config.get_multivar('this.that', 'fool')

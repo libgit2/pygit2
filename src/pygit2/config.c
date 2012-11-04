@@ -214,8 +214,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 }
 
 int
-Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
-        void *c_payload)
+Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
 {
     PyObject *args = (PyObject *)c_payload;
     PyObject *py_callback = NULL;
@@ -224,18 +223,20 @@ Config_foreach_callback_wrapper(const char *c_name, const char *c_value,
     int c_result;
 
     if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
-        return 0;
+        return -1;
 
     if (py_payload)
-        args = Py_BuildValue("ssO", c_name, c_value, py_payload);
+        args = Py_BuildValue("ssO", entry->name, entry->value, py_payload);
     else
-        args = Py_BuildValue("ss", c_name, c_value);
+        args = Py_BuildValue("ss", entry->name, entry->value);
+    if (!args)
+        return -1;
 
     if (!(py_result = PyObject_CallObject(py_callback,args)))
-        return 0;
+        return -1;
 
-    if (!(c_result = PyLong_AsLong(py_result)))
-        return 0;
+    if ((c_result = PyLong_AsLong(py_result) == -1))
+        return -1;
 
     return c_result;
 }
@@ -264,16 +265,20 @@ Config_foreach(Config *self, PyObject *args)
 }
 
 PyObject *
-Config_add_file(Config *self, PyObject *args)
+Config_add_file(Config *self, PyObject *args, PyObject *kwds)
 {
+    char *keywords[] = {"path", "level", "force", NULL};
     int err;
     char *path;
-    int priority;
+    unsigned int level = 0;
+    int force = 0;
 
-    if (!PyArg_ParseTuple(args, "si", &path, &priority))
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "s|Ii", keywords,
+            &path, &level, &force))
         return NULL;
 
-    err = git_config_add_file_ondisk(self->config, path, priority);
+    err = git_config_add_file_ondisk(self->config, path, level, force);
     if (err < 0) {
         Error_set_str(err, path);
         return NULL;
@@ -283,12 +288,12 @@ Config_add_file(Config *self, PyObject *args)
 }
 
 int
-Config_get_multivar_fn_wrapper(const char *value, void *data)
+Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
 {
     PyObject *list = (PyObject *)data;
     PyObject *item = NULL;
 
-    if (!(item = PyUnicode_FromString(value)))
+    if (!(item = PyUnicode_FromString(value->value)))
         return -2;
 
     PyList_Append(list, item);
@@ -353,7 +358,7 @@ PyMethodDef Config_methods[] = {
      "and value of each variable in the config backend, and an optional "
      "payload passed to this method. As soon as one of the callbacks returns "
      "an integer other than 0, this function returns that value."},
-    {"add_file", (PyCFunction)Config_add_file, METH_VARARGS,
+    {"add_file", (PyCFunction)Config_add_file, METH_VARARGS | METH_KEYWORDS,
      "Add a config file instance to an existing config."},
     {"get_multivar", (PyCFunction)Config_get_multivar, METH_VARARGS,
      "Get each value of a multivar ''name'' as a list. The optional ''regex'' "

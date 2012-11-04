@@ -80,7 +80,7 @@ class IndexTest(utils.RepoTestCase):
 
     def test_write(self):
         index = self.repo.index
-        index.add('bye.txt', 0)
+        index.add('bye.txt')
         index.write()
 
         index.clear()
@@ -133,7 +133,15 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual([x.hex for x in index],
                 [x.hex for x in self.repo.index])
 
-        self.assertRaises(pygit2.GitError, lambda: index.add('bye.txt', 0))
+        self.assertRaises(pygit2.GitError, lambda: index.add('bye.txt'))
+
+    def test_del(self):
+        index = self.repo.index
+        del index['hello.txt']
+
+    def test_remove(self):
+        index = self.repo.index
+        index.remove('hello.txt')
 
 if __name__ == '__main__':
     unittest.main()
