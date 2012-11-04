@@ -63,7 +63,6 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
 {
     int err;
     git_object *obj;
-    Object *py_obj = NULL;
 
     err = git_object_lookup_prefix(&obj, repo->repo, oid,
                                    (unsigned int)len, type);
@@ -641,52 +640,60 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     return wrap_reference(c_reference);
 }
 
-PyObject *
-Repository_create_reference(Repository *self,  PyObject *args)
-{
-    PyObject *py_oid;
-    git_reference *c_reference;
-    char *c_name;
-    git_oid oid;
-    int err;
-
-    /* 1- Get the C variables */
-    if (!PyArg_ParseTuple(args, "sO", &c_name, &py_oid))
-        return NULL;
-
-    err = py_str_to_git_oid_expand(self->repo, py_oid, &oid);
-    if (err < 0)
-        return Error_set(err);
-
-    /* 2- Create the reference */
-    err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid, 0);
-    if (err < 0)
-        return Error_set(err);
-
-    /* 3- Make an instance of Reference and return it */
-    return wrap_reference(c_reference);
-}
+PyDoc_STRVAR(
+  Repository_create_reference_doc,
+  "Create a new reference \"name\" which points to a object or another reference\n\n"
+  "Arguments: (name, source, force=False, symbolic=False)\n\n"
+  "With force=True references will be overridden. Otherwise an exception is raised"
+  "You can create either a normal reference or a symbolic one:\n"
+  "  * normal reference: source has to be a valid sha hash\n"
+  "  * symbolic reference: source has to be a valid existing reference name\n\n"
+  "Examples:\n"
+  "   repo.create_reference('refs/heads/foo', repo.head.hex)\n"
+  "   repo.create_reference('refs/tags/foo', 'refs/heads/master', symbolic = True)\n"
+);
 
 PyObject *
-Repository_create_symbolic_reference(Repository *self,  PyObject *args)
+Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
 {
+    PyObject *py_obj;
     git_reference *c_reference;
     char *c_name, *c_target;
-    int err;
+    git_oid oid;
+    int err = 0, symbolic = 0, force = 0;
 
-    /* 1- Get the C variables */
-    if (!PyArg_ParseTuple(args, "ss", &c_name, &c_target))
+    static char *kwlist[] = {"name", "source", "force", "symbolic", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "sO|ii", kwlist,
+                                     &c_name, &py_obj, &force, &symbolic))
         return NULL;
 
-    /* 2- Create the reference */
-    err = git_reference_create_symbolic(&c_reference, self->repo, c_name,
-                                        c_target, 0);
+    if(!symbolic) {
+        err = py_str_to_git_oid_expand(self->repo, py_obj, &oid);
+        if (err < 0) {
+            return Error_set(err);
+        }
+
+        err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid, force);
+    } else {
+        #if PY_MAJOR_VERSION == 2
+        c_target = PyString_AsString(py_obj);
+        #else
+        c_target = PyString_AsString(PyUnicode_AsASCIIString(py_obj));
+        #endif
+        if(c_target == NULL)
+            return NULL;
+
+        err = git_reference_create_symbolic(&c_reference, self->repo, c_name,
+                                            c_target, force);
+    }
+
     if (err < 0)
         return Error_set(err);
 
-    /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference);
 }
+
 
 PyObject *
 Repository_packall_references(Repository *self,  PyObject *args)
@@ -827,13 +834,8 @@ PyMethodDef Repository_methods[] = {
      METH_VARARGS,
      "Create a new blob from file"},
     {"create_reference", (PyCFunction)Repository_create_reference,
-     METH_VARARGS,
-     "Create a new reference \"name\" that points to the object given by its "
-     "\"sha\"."},
-    {"create_symbolic_reference",
-      (PyCFunction)Repository_create_symbolic_reference, METH_VARARGS,
-     "Create a new symbolic reference \"name\" that points to the reference\n"
-     "\"target\"."},
+     METH_VARARGS|METH_KEYWORDS,
+     Repository_create_reference_doc},
     {"packall_references", (PyCFunction)Repository_packall_references,
      METH_NOARGS, "Pack all the loose references in the repository."},
     {"status", (PyCFunction)Repository_status, METH_NOARGS, "Reads the "

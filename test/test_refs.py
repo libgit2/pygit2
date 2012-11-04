@@ -49,8 +49,7 @@ class ReferencesTest(utils.RepoTestCase):
                          ['refs/heads/i18n', 'refs/heads/master'])
 
         # We add a symbolic reference
-        repo.create_symbolic_reference('refs/tags/version1',
-                                       'refs/heads/master')
+        repo.create_reference('refs/tags/version1','refs/heads/master', symbolic=True)
         self.assertEqual(sorted(repo.listall_references()),
                          ['refs/heads/i18n', 'refs/heads/master',
                           'refs/tags/version1'])
@@ -145,7 +144,7 @@ class ReferencesTest(utils.RepoTestCase):
     def test_reload(self):
         name = 'refs/tags/version1'
 
-        ref = self.repo.create_symbolic_reference(name, "refs/heads/master")
+        ref = self.repo.create_reference(name, "refs/heads/master", symbolic=True)
         ref2 = self.repo.lookup_reference(name)
         ref.delete()
         self.assertEqual(ref2.name, name)
@@ -176,12 +175,32 @@ class ReferencesTest(utils.RepoTestCase):
         reference = self.repo.lookup_reference('refs/tags/version1')
         self.assertEqual(reference.hex, LAST_COMMIT)
 
+        # try to create existing reference 
+        self.assertRaises(ValueError, self.repo.create_reference, 
+        'refs/tags/version1', LAST_COMMIT)
+
+        # try to create existing reference with force
+        reference =  self.repo.create_reference('refs/tags/version1',
+                        LAST_COMMIT, force=True)
+        self.assertEqual(reference.hex, LAST_COMMIT)
+
 
     def test_create_symbolic_reference(self):
         # We add a tag as a new symbolic reference that always points to
         # "refs/heads/master"
-        reference = self.repo.create_symbolic_reference('refs/tags/beta',
-                                                        'refs/heads/master')
+        reference = self.repo.create_reference('refs/tags/beta',
+                        'refs/heads/master', symbolic=True)
+        self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
+        self.assertEqual(reference.target, 'refs/heads/master')
+
+
+        # try to create existing symbolic reference
+        self.assertRaises(ValueError, self.repo.create_reference, 
+        'refs/tags/beta','refs/heads/master', symbolic=True)
+
+        # try to create existing symbolic reference with force
+        reference =  self.repo.create_reference('refs/tags/beta',
+                        'refs/heads/master', force=True, symbolic=True)
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
         self.assertEqual(reference.target, 'refs/heads/master')
 
