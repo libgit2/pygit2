@@ -63,7 +63,6 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
 {
     int err;
     git_object *obj;
-    Object *py_obj = NULL;
 
     err = git_object_lookup_prefix(&obj, repo->repo, oid,
                                    (unsigned int)len, type);
