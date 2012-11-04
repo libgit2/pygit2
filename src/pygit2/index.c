@@ -351,7 +351,7 @@ Index_write_tree(Index *self)
     git_oid oid;
     int err;
 
-    err = git_tree_create_fromindex(&oid, self->index);
+    err = git_index_write_tree(&oid, self->index);
     if (err < 0)
         return Error_set(err);
 
