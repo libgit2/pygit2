@@ -289,12 +289,37 @@ Index_getitem(Index *self, PyObject *value)
     return wrap_index_entry(index_entry, self);
 }
 
+PyObject *
+Index_remove(Index *self, PyObject *args)
+{
+    int err;
+    const char *path;
+
+    if (!PyArg_ParseTuple(args, "s", &path))
+        return NULL;
+
+    err = git_index_remove(self->index, path, 0);
+    if (err < 0) {
+        Error_set(err);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
 int
 Index_setitem(Index *self, PyObject *key, PyObject *value)
 {
-    PyErr_SetString(PyExc_NotImplementedError,
-                    "set item on index not yet implemented");
-    return -1;
+    if (value != NULL) {
+        PyErr_SetString(PyExc_NotImplementedError,
+                        "set item on index not yet implemented");
+        return -1;
+    }
+
+    if(Index_remove(self, Py_BuildValue("(N)", key)) == NULL)
+      return -1;
+
+    return 0;
 }
 
 PyObject *
@@ -336,6 +361,8 @@ Index_write_tree(Index *self)
 PyMethodDef Index_methods[] = {
     {"add", (PyCFunction)Index_add, METH_VARARGS,
      "Add or update an index entry from a file in disk."},
+    {"remove", (PyCFunction)Index_remove, METH_VARARGS,
+     "Removes an entry from index."},
     {"clear", (PyCFunction)Index_clear, METH_NOARGS,
      "Clear the contents (all the entries) of an index object."},
     {"diff", (PyCFunction)Index_diff_tree, METH_VARARGS,
