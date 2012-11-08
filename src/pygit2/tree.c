@@ -43,6 +43,7 @@ void
 TreeEntry_dealloc(TreeEntry *self)
 {
     Py_XDECREF(self->owner);
+    git_tree_entry_free(self->entry);
     PyObject_Del(self);
 }
 
@@ -231,7 +232,7 @@ Tree_getitem_by_index(Tree *self, PyObject *py_index)
         PyErr_SetObject(PyExc_IndexError, py_index);
         return NULL;
     }
-    return wrap_tree_entry(entry, self);
+    return wrap_tree_entry(git_tree_entry_dup(entry), self);
 }
 
 TreeEntry *
@@ -261,6 +262,7 @@ Tree_getitem(Tree *self, PyObject *value)
     if (err < 0)
         return (TreeEntry*)Error_set(err);
 
+    // git_tree_entry_dup is already done in git_tree_entry_bypath
     return wrap_tree_entry(entry, self);
 }
 
@@ -527,7 +529,7 @@ TreeIter_iternext(TreeIter *self)
         return NULL;
 
     self->i += 1;
-    return (TreeEntry*)wrap_tree_entry(tree_entry, self->owner);
+    return (TreeEntry*)wrap_tree_entry(git_tree_entry_dup(tree_entry), self->owner);
 }
 
 PyTypeObject TreeIterType = {
