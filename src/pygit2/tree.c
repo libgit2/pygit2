@@ -307,10 +307,10 @@ Tree_diff_tree(Tree *self, PyObject *args)
 
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
-        Py_INCREF(py_diff);
         Py_INCREF(self->repo);
         py_diff->repo = self->repo;
         py_diff->diff = diff;
+        py_diff->diff_changes = NULL;
     }
 
     return (PyObject*)py_diff;
