@@ -224,17 +224,20 @@ Index_contains(Index *self, PyObject *value)
     char *path;
     int idx;
 
-    path = PyString_AsString(value);
+    path = py_path_to_c_str(value);
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);
-    if (idx == GIT_ENOTFOUND)
+    if (idx == GIT_ENOTFOUND) {
+        free(path);
         return 0;
+    }
     if (idx < 0) {
+        free(path);
         Error_set_str(idx, path);
         return -1;
     }
-
+    free(path);
     return 1;
 }
 
