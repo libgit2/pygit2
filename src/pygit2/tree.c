@@ -274,7 +274,7 @@ Tree_diff_tree(Tree *self, PyObject *args)
     Diff *py_diff;
     PyObject *py_obj = NULL;
 
-    if (!PyArg_ParseTuple(args, "|O", &py_obj))
+    if (!PyArg_ParseTuple(args, "|Oi", &py_obj, &opts.flags))
         return NULL;
 
     if (py_obj == NULL) {
