@@ -140,7 +140,7 @@ class DiffTest(utils.BareRepoTestCase):
 
         for opt in [pygit2.GIT_DIFF_IGNORE_WHITESPACE,
                 pygit2.GIT_DIFF_IGNORE_WHITESPACE_EOL]:
-            diff = commit_c.tree.diff(commit_d.tree, pygit2.GIT_DIFF_IGNORE_WHITESPACE)
+            diff = commit_c.tree.diff(commit_d.tree, opt)
             self.assertTrue(diff is not None)
             self.assertEqual(0, len(diff.changes.get('hunks', list())))
 
