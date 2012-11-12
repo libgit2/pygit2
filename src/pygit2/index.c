@@ -214,6 +214,7 @@ Index_get_position(Index *self, PyObject *value)
         free(path);
         return -1;
     }
+    free(path);
     return idx;
 }
 
@@ -227,14 +228,16 @@ Index_contains(Index *self, PyObject *value)
     if (!path)
         return -1;
     idx = git_index_find(self->index, path);
-    if (idx == GIT_ENOTFOUND)
+    if (idx == GIT_ENOTFOUND) {
+        free(path);
         return 0;
+    }
     if (idx < 0) {
         Error_set_str(idx, path);
         free(path);
         return -1;
     }
-
+    free(path);
     return 1;
 }
 
@@ -339,6 +342,7 @@ Index_read_tree(Index *self, PyObject *value)
         return Error_set(err);
 
     err = git_index_read_tree(self->index, tree);
+    git_tree_free(tree);
     if (err < 0)
         return Error_set(err);
 
