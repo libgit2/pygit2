@@ -233,8 +233,8 @@ Index_contains(Index *self, PyObject *value)
         return 0;
     }
     if (idx < 0) {
-        free(path);
         Error_set_str(idx, path);
+        free(path);
         return -1;
     }
     free(path);
