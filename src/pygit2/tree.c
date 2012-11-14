@@ -43,7 +43,7 @@ void
 TreeEntry_dealloc(TreeEntry *self)
 {
     Py_XDECREF(self->owner);
-    git_tree_entry_free(self->entry);
+    git_tree_entry_free((git_tree_entry*)self->entry);
     PyObject_Del(self);
 }
 

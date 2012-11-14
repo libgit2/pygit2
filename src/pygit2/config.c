@@ -133,9 +133,10 @@ int
 Config_contains(Config *self, PyObject *py_key) {
     int err;
     const char *c_value;
-    const char *c_key;
+    char *c_key;
 
-    if (!(c_key = py_str_to_c_str(py_key,NULL)))
+    c_key = py_str_to_c_str(py_key,NULL);
+    if (c_key == NULL)
         return -1;
 
     err = git_config_get_string(&c_value, self->config, c_key);
@@ -154,10 +155,10 @@ PyObject *
 Config_getitem(Config *self, PyObject *py_key)
 {
     int err;
-    int64_t       c_intvalue;
-    int           c_boolvalue;
-    const char   *c_charvalue;
-    const char   *c_key;
+    int64_t c_intvalue;
+    int c_boolvalue;
+    const char *c_charvalue;
+    char *c_key;
 
     if (!(c_key = py_str_to_c_str(py_key,NULL)))
         return NULL;
@@ -191,8 +192,8 @@ int
 Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 {
     int err;
-    const char *c_key;
-    const char *py_str;
+    char *c_key;
+    char *py_str;
 
     if (!(c_key = py_str_to_c_str(py_key,NULL)))
         return -1;
@@ -208,8 +209,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
     } else {
         py_value = PyObject_Str(py_value);
         py_str = py_str_to_c_str(py_value,NULL);
-        err = git_config_set_string(self->config, c_key,
-                py_str);
+        err = git_config_set_string(self->config, c_key, py_str);
         free(py_str);
     }
 
