@@ -48,7 +48,7 @@ static int diff_data_cb(
   const char *content,
   size_t content_len)
 {
-    PyObject *hunks, *data, *tmp;
+    PyObject *hunks, *data;
     Hunk *hunk;
     Py_ssize_t size;
 
@@ -61,14 +61,12 @@ static int diff_data_cb(
     if (hunk == NULL)
       return -1;
 
-    tmp = PyBytes_FromStringAndSize(content, content_len);
-
-    data = Py_BuildValue("(O,i)",
-        tmp,
+    data = Py_BuildValue("(s#,i)",
+        content, content_len,
         line_origin
     );
-
     PyList_Append(hunk->data, data);
+    Py_DECREF(data);
 
     return 0;
 }
@@ -91,6 +89,7 @@ static int diff_hunk_cb(
     if (hunks == NULL) {
         hunks = PyList_New(0);
         PyDict_SetItemString(cb_data, "hunks", hunks);
+        Py_DECREF(hunks);
     }
 
     hunk = (Hunk*)PyType_GenericNew(&HunkType, NULL, NULL);
@@ -125,6 +124,7 @@ static int diff_hunk_cb(
         old_path = malloc(sizeof(char) * len);
         if (old_path == NULL) {
             free(hunk->header);
+            hunk->header = NULL;
             return -1;
         }
 
@@ -153,7 +153,12 @@ static int diff_hunk_cb(
       hunk->data = PyList_New(0);
     }
 
-    PyList_Append(hunks, (PyObject *)hunk);
+    if(PyList_Append(hunks, (PyObject *)hunk) == 0) {
+        Py_DECREF(hunk);
+    }
+    else {
+        return -1;
+    }
 
     return 0;
 };
@@ -169,6 +174,7 @@ static int diff_file_cb(void *cb_data, const git_diff_delta *delta,
         if(files == NULL) {
             files = PyList_New(0);
             PyDict_SetItemString(cb_data, "files", files);
+            Py_DECREF(files);
         }
 
         file = Py_BuildValue("(s,s,i)",
@@ -177,7 +183,10 @@ static int diff_file_cb(void *cb_data, const git_diff_delta *delta,
             delta->status
         );
 
-        PyList_Append(files, file);
+        if (PyList_Append(files, file) == 0) {
+            // If success
+            Py_DECREF(file);
+        }
     }
 
     return 0;
@@ -186,18 +195,20 @@ static int diff_file_cb(void *cb_data, const git_diff_delta *delta,
 PyObject *
 Diff_changes(Diff *self)
 {
-    PyObject *payload;
-    payload = PyDict_New();
 
-    git_diff_foreach(
-        self->diff,
-        payload,
-        &diff_file_cb,
-        &diff_hunk_cb,
-        &diff_data_cb
-    );
+    if (self->diff_changes == NULL){
+        self->diff_changes = PyDict_New();
+        
+        git_diff_foreach(
+            self->diff,
+            self->diff_changes,
+            &diff_file_cb,
+            &diff_hunk_cb,
+            &diff_data_cb
+        );
+    }
 
-    return payload;
+    return PyDict_Copy(self->diff_changes);
 }
 
 static int diff_print_cb(
@@ -227,24 +238,42 @@ Diff_patch(Diff *self)
 static int
 Hunk_init(Hunk *self, PyObject *args, PyObject *kwds)
 {
-      self->old_start = 0;
-      self->old_lines = 0;
+    self->header = NULL;
+    
+    self->old_file = NULL;
+    self->old_start = 0;
+    self->old_lines = 0;
 
-      self->new_start = 0;
-      self->new_lines = 0;
+    self->new_file = NULL;
+    self->new_start = 0;
+    self->new_lines = 0;
 
-      self->data = PyList_New(0);
-      if (self->data == NULL) {
-          Py_XDECREF(self);
-          return -1;
-      }
+    self->old_oid = NULL;
+    self->new_oid = NULL;
+    
+    self->data = PyList_New(0);
+    if (self->data == NULL) {
+        Py_XDECREF(self);
+        return -1;
+    }
 
-      return 0;
+    return 0;
 }
 
 static void
 Hunk_dealloc(Hunk *self)
 {
+    if (self->header != NULL) {
+        free(self->header);
+    }
+    if (self->new_file != NULL) {
+        free(self->new_file);
+    }
+    if (self->old_file != NULL) {
+        free(self->old_file);
+    }
+    Py_XDECREF(self->old_oid);
+    Py_XDECREF(self->new_oid);
     Py_XDECREF(self->data);
     PyObject_Del(self);
 }
@@ -321,6 +350,8 @@ Diff_merge(Diff *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
+    Py_XDECREF(self->diff_changes);
+    self->diff_changes = NULL;
     Py_RETURN_NONE;
 }
 
@@ -329,6 +360,7 @@ Diff_dealloc(Diff *self)
 {
     git_diff_list_free(self->diff);
     Py_XDECREF(self->repo);
+    Py_XDECREF(self->diff_changes);
     PyObject_Del(self);
 }
 

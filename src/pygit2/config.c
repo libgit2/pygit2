@@ -139,7 +139,7 @@ Config_contains(Config *self, PyObject *py_key) {
         return -1;
 
     err = git_config_get_string(&c_value, self->config, c_key);
-
+    free(c_key);
     if (err == GIT_ENOTFOUND)
         return 0;
     if (err < 0) {
@@ -164,15 +164,18 @@ Config_getitem(Config *self, PyObject *py_key)
 
     err = git_config_get_int64(&c_intvalue, self->config, c_key);
     if (err == GIT_OK) {
+        free(c_key);
         return PyInt_FromLong((long)c_intvalue);
     }
 
     err = git_config_get_bool(&c_boolvalue, self->config, c_key);
     if (err == GIT_OK) {
+        free(c_key);
         return PyBool_FromLong((long)c_boolvalue);
     }
 
     err = git_config_get_string(&c_charvalue, self->config, c_key);
+    free(c_key);
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetObject(PyExc_KeyError, py_key);
@@ -189,6 +192,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 {
     int err;
     const char *c_key;
+    const char *py_str;
 
     if (!(c_key = py_str_to_c_str(py_key,NULL)))
         return -1;
@@ -203,9 +207,13 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
                 (int64_t)PyInt_AsLong(py_value));
     } else {
         py_value = PyObject_Str(py_value);
+        py_str = py_str_to_c_str(py_value,NULL);
         err = git_config_set_string(self->config, c_key,
-                py_str_to_c_str(py_value,NULL));
+                py_str);
+        free(py_str);
     }
+
+    free(c_key);
     if (err < 0) {
         Error_set(err);
         return -1;

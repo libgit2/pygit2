@@ -166,6 +166,7 @@ Repository_head(Repository *self)
 {
     git_reference *head;
     const git_oid *oid;
+    PyObject *pyobj;
     int err;
 
     err = git_repository_head(&head, self->repo);
@@ -179,8 +180,9 @@ Repository_head(Repository *self)
     }
 
     oid = git_reference_oid(head);
-
-    return lookup_object(self, oid, GIT_OBJ_COMMIT);
+    pyobj = lookup_object(self, oid, GIT_OBJ_COMMIT);
+    git_reference_free(head);
+    return pyobj; 
 }
 
 
@@ -202,7 +204,7 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 {
     git_object *c_obj;
     char *c_spec;
-		char *encoding = "ascii";
+    char *encoding = "ascii";
     int err;
 
     /* 1- Get the C revision spec */
@@ -212,12 +214,14 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 
     /* 2- Lookup */
     err = git_revparse_single(&c_obj, self->repo, c_spec);
+    
     if (err < 0)  {
         PyObject *err_obj = Error_set_str(err, c_spec);
         free(c_spec);
         return err_obj;
     }
-
+    free(c_spec);
+    
     return wrap_object(c_obj, self);
 }
 
@@ -635,7 +639,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
         free(c_name);
         return err_obj;
     }
-
+    free(c_name);
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference);
 }
