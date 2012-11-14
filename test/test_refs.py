@@ -175,9 +175,9 @@ class ReferencesTest(utils.RepoTestCase):
         reference = self.repo.lookup_reference('refs/tags/version1')
         self.assertEqual(reference.hex, LAST_COMMIT)
 
-        # try to create existing reference 
-        self.assertRaises(ValueError, self.repo.create_reference, 
-        'refs/tags/version1', LAST_COMMIT)
+        # try to create existing reference
+        self.assertRaises(ValueError, self.repo.create_reference,
+                          'refs/tags/version1', LAST_COMMIT)
 
         # try to create existing reference with force
         reference =  self.repo.create_reference('refs/tags/version1',
@@ -195,8 +195,8 @@ class ReferencesTest(utils.RepoTestCase):
 
 
         # try to create existing symbolic reference
-        self.assertRaises(ValueError, self.repo.create_reference, 
-        'refs/tags/beta','refs/heads/master', symbolic=True)
+        self.assertRaises(ValueError, self.repo.create_reference,
+                          'refs/tags/beta','refs/heads/master', symbolic=True)
 
         # try to create existing symbolic reference with force
         reference =  self.repo.create_reference('refs/tags/beta',

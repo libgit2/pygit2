@@ -196,9 +196,9 @@ PyObject *
 Diff_changes(Diff *self)
 {
 
-    if (self->diff_changes == NULL){
+    if (self->diff_changes == NULL) {
         self->diff_changes = PyDict_New();
-        
+
         git_diff_foreach(
             self->diff,
             self->diff_changes,
@@ -239,7 +239,7 @@ static int
 Hunk_init(Hunk *self, PyObject *args, PyObject *kwds)
 {
     self->header = NULL;
-    
+
     self->old_file = NULL;
     self->old_start = 0;
     self->old_lines = 0;
@@ -250,7 +250,7 @@ Hunk_init(Hunk *self, PyObject *args, PyObject *kwds)
 
     self->old_oid = NULL;
     self->new_oid = NULL;
-    
+
     self->data = PyList_New(0);
     if (self->data == NULL) {
         Py_XDECREF(self);

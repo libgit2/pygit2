@@ -250,7 +250,7 @@ Tree_getitem(Tree *self, PyObject *value)
     path = py_path_to_c_str(value);
     if (path == NULL)
         return NULL;
-    
+
     err = git_tree_entry_bypath(&entry, self->tree, path);
     free(path);
 

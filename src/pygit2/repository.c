@@ -182,7 +182,7 @@ Repository_head(Repository *self)
     oid = git_reference_oid(head);
     pyobj = lookup_object(self, oid, GIT_OBJ_COMMIT);
     git_reference_free(head);
-    return pyobj; 
+    return pyobj;
 }
 
 
@@ -214,14 +214,14 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 
     /* 2- Lookup */
     err = git_revparse_single(&c_obj, self->repo, c_spec);
-    
-    if (err < 0)  {
+
+    if (err < 0) {
         PyObject *err_obj = Error_set_str(err, c_spec);
         free(c_spec);
         return err_obj;
     }
     free(c_spec);
-    
+
     return wrap_object(c_obj, self);
 }
 
@@ -634,7 +634,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 
     /* 2- Lookup */
     err = git_reference_lookup(&c_reference, self->repo, c_name);
-    if (err < 0)  {
+    if (err < 0) {
         PyObject *err_obj = Error_set_str(err, c_name);
         free(c_name);
         return err_obj;
