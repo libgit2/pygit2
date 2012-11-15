@@ -195,9 +195,9 @@ PyObject *
 Repository_head_is_detached(Repository *self)
 {
   if(git_repository_head_detached(self->repo) > 0)
-    return Py_True;
+    Py_RETURN_TRUE;
 
-  return Py_False;
+  Py_RETURN_FALSE;
 }
 
 
@@ -211,9 +211,9 @@ PyObject *
 Repository_head_is_orphaned(Repository *self)
 {
   if(git_repository_head_orphan(self->repo) > 0)
-    return Py_True;
+    Py_RETURN_TRUE;
 
-  return Py_False;
+  Py_RETURN_FALSE;
 }
 
 
@@ -226,9 +226,9 @@ PyObject *
 Repository_is_empty(Repository *self)
 {
   if(git_repository_is_empty(self->repo) > 0)
-    return Py_True;
+    Py_RETURN_TRUE;
 
-  return Py_False;
+  Py_RETURN_FALSE;
 }
 
 
@@ -241,9 +241,9 @@ PyObject *
 Repository_is_bare(Repository *self)
 {
   if(git_repository_is_bare(self->repo) > 0)
-    return Py_True;
+    Py_RETURN_TRUE;
 
-  return Py_False;
+  Py_RETURN_FALSE;
 }
 
 
