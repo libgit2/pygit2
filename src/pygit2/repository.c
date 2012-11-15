@@ -194,10 +194,10 @@ PyDoc_STRVAR(
 PyObject *
 Repository_head_is_detached(Repository *self)
 {
-  if(git_repository_head_detached(self->repo) > 0)
-    Py_RETURN_TRUE;
+    if (git_repository_head_detached(self->repo) > 0)
+        Py_RETURN_TRUE;
 
-  Py_RETURN_FALSE;
+    Py_RETURN_FALSE;
 }
 
 
@@ -210,10 +210,10 @@ PyDoc_STRVAR(
 PyObject *
 Repository_head_is_orphaned(Repository *self)
 {
-  if(git_repository_head_orphan(self->repo) > 0)
-    Py_RETURN_TRUE;
+    if (git_repository_head_orphan(self->repo) > 0)
+        Py_RETURN_TRUE;
 
-  Py_RETURN_FALSE;
+    Py_RETURN_FALSE;
 }
 
 
@@ -225,10 +225,10 @@ PyDoc_STRVAR(
 PyObject *
 Repository_is_empty(Repository *self)
 {
-  if(git_repository_is_empty(self->repo) > 0)
-    Py_RETURN_TRUE;
+    if (git_repository_is_empty(self->repo) > 0)
+        Py_RETURN_TRUE;
 
-  Py_RETURN_FALSE;
+    Py_RETURN_FALSE;
 }
 
 
@@ -240,10 +240,10 @@ PyDoc_STRVAR(
 PyObject *
 Repository_is_bare(Repository *self)
 {
-  if(git_repository_is_bare(self->repo) > 0)
-    Py_RETURN_TRUE;
+    if (git_repository_is_bare(self->repo) > 0)
+        Py_RETURN_TRUE;
 
-  Py_RETURN_FALSE;
+    Py_RETURN_FALSE;
 }
 
 
