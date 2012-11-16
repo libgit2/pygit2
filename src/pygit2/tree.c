@@ -43,6 +43,7 @@ void
 TreeEntry_dealloc(TreeEntry *self)
 {
     Py_XDECREF(self->owner);
+    git_tree_entry_free((git_tree_entry*)self->entry);
     PyObject_Del(self);
 }
 
@@ -231,7 +232,7 @@ Tree_getitem_by_index(Tree *self, PyObject *py_index)
         PyErr_SetObject(PyExc_IndexError, py_index);
         return NULL;
     }
-    return wrap_tree_entry(entry, self);
+    return wrap_tree_entry(git_tree_entry_dup(entry), self);
 }
 
 TreeEntry *
@@ -249,7 +250,7 @@ Tree_getitem(Tree *self, PyObject *value)
     path = py_path_to_c_str(value);
     if (path == NULL)
         return NULL;
-    
+
     err = git_tree_entry_bypath(&entry, self->tree, path);
     free(path);
 
@@ -261,6 +262,7 @@ Tree_getitem(Tree *self, PyObject *value)
     if (err < 0)
         return (TreeEntry*)Error_set(err);
 
+    // git_tree_entry_dup is already done in git_tree_entry_bypath
     return wrap_tree_entry(entry, self);
 }
 
@@ -274,7 +276,7 @@ Tree_diff_tree(Tree *self, PyObject *args)
     Diff *py_diff;
     PyObject *py_obj = NULL;
 
-    if (!PyArg_ParseTuple(args, "|O", &py_obj))
+    if (!PyArg_ParseTuple(args, "|Oi", &py_obj, &opts.flags))
         return NULL;
 
     if (py_obj == NULL) {
@@ -306,10 +308,10 @@ Tree_diff_tree(Tree *self, PyObject *args)
 
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
-        Py_INCREF(py_diff);
         Py_INCREF(self->repo);
         py_diff->repo = self->repo;
         py_diff->diff = diff;
+        py_diff->diff_changes = NULL;
     }
 
     return (PyObject*)py_diff;
@@ -528,7 +530,7 @@ TreeIter_iternext(TreeIter *self)
         return NULL;
 
     self->i += 1;
-    return (TreeEntry*)wrap_tree_entry(tree_entry, self->owner);
+    return (TreeEntry*)wrap_tree_entry(git_tree_entry_dup(tree_entry), self->owner);
 }
 
 PyTypeObject TreeIterType = {

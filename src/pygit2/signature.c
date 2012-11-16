@@ -85,7 +85,7 @@ Signature_dealloc(Signature *self)
         Py_DECREF(self->obj);
     else {
         git_signature_free((git_signature*)self->signature);
-        free((void*)self->encoding);
+        free((char*)self->encoding);
     }
     Py_TYPE(self)->tp_free((PyObject*)self);
 }

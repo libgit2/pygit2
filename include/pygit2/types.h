@@ -57,8 +57,15 @@ OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
-OBJECT_STRUCT(Diff, git_diff_list, diff)
 OBJECT_STRUCT(Config, git_config, config)
+
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_diff_list *diff;
+    PyObject *diff_changes;
+} Diff;
+
 
 typedef struct {
     PyObject_HEAD

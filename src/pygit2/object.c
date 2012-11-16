@@ -176,7 +176,7 @@ wrap_object(git_object *c_object, Repository *repo)
 
     if (py_obj) {
         py_obj->obj = c_object;
-				if (repo) {
+        if (repo) {
             py_obj->repo = repo;
             Py_INCREF(repo);
         }

@@ -30,13 +30,14 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
-
+import pygit2
 from . import utils
 
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'
 COMMIT_SHA1_3 = '2cdae28389c059815e951d0bb9eed6533f61a46b'
+COMMIT_SHA1_4 = 'ccca47fbb26183e71a7a46d165299b84e2e6c0b3'
 
 PATCH = b"""diff --git a/a b/a
 index 7f129fd..af431f2 100644
@@ -132,6 +133,20 @@ class DiffTest(utils.BareRepoTestCase):
 
         #self.assertEqual(hunk.data[0][0], b'a contents 2\n')
         #self.assertEqual(hunk.data[1][0], b'a contents\n')
+
+    def test_diff_tree_opts(self):
+        commit_c = self.repo[COMMIT_SHA1_3]
+        commit_d = self.repo[COMMIT_SHA1_4]
+
+        for opt in [pygit2.GIT_DIFF_IGNORE_WHITESPACE,
+                pygit2.GIT_DIFF_IGNORE_WHITESPACE_EOL]:
+            diff = commit_c.tree.diff(commit_d.tree, opt)
+            self.assertTrue(diff is not None)
+            self.assertEqual(0, len(diff.changes.get('hunks', list())))
+
+        diff = commit_c.tree.diff(commit_d.tree)
+        self.assertTrue(diff is not None)
+        self.assertEqual(1, len(diff.changes.get('hunks', list())))
 
     def test_diff_merge(self):
         commit_a = self.repo[COMMIT_SHA1_1]
