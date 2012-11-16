@@ -279,23 +279,24 @@ Tree_diff_tree(Tree *self, PyObject *args)
 
     if (py_obj == NULL) {
         err = git_diff_workdir_to_tree(
+                &diff,
                 self->repo->repo,
-                &opts,
                 self->tree,
-                &diff);
+                &opts);
     } else if (PyObject_TypeCheck(py_obj, &TreeType)) {
         err = git_diff_tree_to_tree(
+                &diff,
                 self->repo->repo,
-                &opts,
                 self->tree,
                 ((Tree *)py_obj)->tree,
-                &diff);
+                &opts);
     } else if (PyObject_TypeCheck(py_obj, &IndexType)) {
         err = git_diff_index_to_tree(
-                ((Index *)py_obj)->repo->repo,
-                &opts,
+                &diff,
+                self->repo->repo,
                 self->tree,
-                &diff);
+                ((Index *)py_obj)->index,
+                &opts);
     } else {
         PyErr_SetObject(PyExc_TypeError, py_obj);
         return NULL;
