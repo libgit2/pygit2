@@ -128,3 +128,8 @@ class RepoTestCase(NoRepoTestCase):
 class DirtyRepoTestCase(RepoTestCase):
 
     repo_dir = 'dirtyrepo'
+
+
+class EmptyRepoTestCase(RepoTestCase):
+
+    repo_dir = 'emptyrepo'
