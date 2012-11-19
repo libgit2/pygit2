@@ -52,7 +52,7 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
         }
         err = git_config_open_ondisk(&self->config, path);
         if (err < 0) {
-            Error_set_str(err, path);
+            Error_set_exc(PyExc_IOError);
             return -1;
         }
     } else {
