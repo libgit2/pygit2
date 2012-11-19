@@ -65,6 +65,7 @@ class ConfigTest(utils.RepoTestCase):
             pass
 
     def test_new(self):
+        open(config_filename, 'w').close() # touch file
         config_write = pygit2.Config(config_filename)
 
         self.assertNotEqual(config_write, None)
