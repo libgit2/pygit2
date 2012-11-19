@@ -92,6 +92,17 @@ PyObject* Error_set(int err)
     return NULL;
 }
 
+PyObject* Error_set_exc(PyObject* exception)
+{
+    const git_error* error = giterr_last();
+    char* message = (error == NULL) ?
+            "(No error information given)" : error->message;
+    PyErr_SetString(exception, message);
+
+    return NULL;
+}
+
+
 PyObject* Error_set_str(int err, const char *str)
 {
     const git_error* error;
