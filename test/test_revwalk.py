@@ -44,13 +44,13 @@ log = [
     'acecd5ea2924a4b900e7e149496e1f4b57976e51']
 
 REVLOGS = [
-  ('J. David Ibañez', 'commit (initial): First commit'),
-  ('J. David Ibañez', 'checkout: moving from master to i18n'),
-  ('J. David Ibañez', 'commit: Say hello in Spanish'),
-  ('J. David Ibañez', 'commit: Say hello in French'),
-  ('J. David Ibañez', 'checkout: moving from i18n to master'),
+  ('J. David Ibañez', 'merge i18n: Merge made by recursive.'),
   ('J. David Ibañez', 'commit: Add .gitignore file'),
-  ('J. David Ibañez', 'merge i18n: Merge made by recursive.')
+  ('J. David Ibañez', 'checkout: moving from i18n to master'),
+  ('J. David Ibañez', 'commit: Say hello in French'),
+  ('J. David Ibañez', 'commit: Say hello in Spanish'),
+  ('J. David Ibañez', 'checkout: moving from master to i18n'),
+  ('J. David Ibañez', 'commit (initial): First commit')
 ]
 
 
