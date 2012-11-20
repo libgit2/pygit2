@@ -50,18 +50,23 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
         if (!PyArg_ParseTuple(args, "s", &path)) {
             return -1;
         }
+
         err = git_config_open_ondisk(&self->config, path);
-        if (err < 0) {
-            Error_set_str(err, path);
-            return -1;
-        }
+
     } else {
         err = git_config_new(&self->config);
-        if (err < 0) {
-            Error_set(err);
-            return -1;
-        }
     }
+
+    if (err < 0) {
+        if (err == GIT_ENOTFOUND) {
+            Error_set_exc(PyExc_IOError);
+        } else {
+            Error_set(err);
+        }
+
+        return -1;
+    }
+
     return 0;
 }
 
