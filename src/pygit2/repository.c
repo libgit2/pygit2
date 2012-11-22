@@ -886,7 +886,7 @@ PyMethodDef Repository_methods[] = {
      "as keys and status flags as values.\nSee pygit2.GIT_STATUS_*."},
     {"status_file", (PyCFunction)Repository_status_file, METH_O,
      "Returns the status of the given file path."},
-    {"TreeBuilder", (PyCFunction)Repository_TreeBuilder, METH_VARARGS,
+    {"create_tree_from_builder", (PyCFunction)Repository_TreeBuilder, METH_VARARGS,
      "Create a TreeBuilder object for this repository."},
     {NULL}
 };

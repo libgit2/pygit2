@@ -39,23 +39,23 @@ TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 class TreeBuilderTest(utils.BareRepoTestCase):
 
     def test_new_empty_treebuilder(self):
-        self.repo.TreeBuilder()
+        self.repo.create_tree_from_builder()
 
     def test_noop_treebuilder(self):
         tree = self.repo[TREE_SHA]
-        bld = self.repo.TreeBuilder(TREE_SHA)
+        bld = self.repo.create_tree_from_builder(TREE_SHA)
         result = bld.write()
         self.assertEqual(tree.oid, result)
 
     def test_noop_treebuilder_from_tree(self):
         tree = self.repo[TREE_SHA]
-        bld = self.repo.TreeBuilder(tree)
+        bld = self.repo.create_tree_from_builder(tree)
         result = bld.write()
         self.assertEqual(tree.oid, result)
 
     def test_rebuild_treebuilder(self):
         tree = self.repo[TREE_SHA]
-        bld = self.repo.TreeBuilder()
+        bld = self.repo.create_tree_from_builder()
         for e in tree:
             bld.insert(e.name, e.hex, e.filemode)
 
