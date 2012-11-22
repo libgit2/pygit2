@@ -113,7 +113,7 @@ PyObject* Error_set_str(int err, const char *str)
     }
 
     error = giterr_last();
-    if (error == NULL) //exptected error - no error msg set
+    if (error == NULL) //expected error - no error msg set
         return PyErr_Format(Error_type(err), "%s", str);
 
     return PyErr_Format(Error_type(err), "%s: %s", str, error->message);
