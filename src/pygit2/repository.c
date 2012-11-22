@@ -287,31 +287,8 @@ Repository_lookup_object(Repository *self, PyObject *py_spec)
     return wrap_object(c_obj, self);
 }
 
-git_odb_object *
-Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
-{
-    git_odb *odb;
-    git_odb_object *obj;
-    int err;
-
-    err = git_repository_odb(&odb, repo);
-    if (err < 0) {
-        Error_set(err);
-        return NULL;
-    }
-
-    err = git_odb_read_prefix(&obj, odb, oid, (unsigned int)len);
-    git_odb_free(odb);
-    if (err < 0) {
-        Error_set_oid(err, oid, len);
-        return NULL;
-    }
-
-    return obj;
-}
-
 PyObject *
-Repository_read(Repository *self, PyObject *py_hex)
+Repository_read_raw(Repository *self, PyObject *py_hex)
 {
     git_oid oid;
     git_odb_object *obj;
@@ -322,7 +299,7 @@ Repository_read(Repository *self, PyObject *py_hex)
     if (len < 0)
         return NULL;
 
-    obj = Repository_read_raw(self->repo, &oid, len);
+    obj = git_object_read(self->repo, &oid, len);
     if (obj == NULL)
         return NULL;
 
@@ -337,7 +314,7 @@ Repository_read(Repository *self, PyObject *py_hex)
 }
 
 PyObject *
-Repository_write(Repository *self, PyObject *args)
+Repository_write_raw(Repository *self, PyObject *args)
 {
     int err;
     git_oid oid;
@@ -878,9 +855,9 @@ PyMethodDef Repository_methods[] = {
      "Create a new tag object, return its SHA."},
     {"walk", (PyCFunction)Repository_walk, METH_VARARGS,
      "Generator that traverses the history starting from the given commit."},
-    {"read", (PyCFunction)Repository_read, METH_O,
+    {"read_raw", (PyCFunction)Repository_read_raw, METH_O,
      "Read raw object data from the repository."},
-    {"write", (PyCFunction)Repository_write, METH_VARARGS,
+    {"write_raw", (PyCFunction)Repository_write_raw, METH_VARARGS,
      "Write raw object data into the repository. First arg is the object\n"
      "type, the second one a buffer with data. Return the object id (sha)\n"
      "of the created object."},

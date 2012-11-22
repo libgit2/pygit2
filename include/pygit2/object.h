@@ -39,4 +39,6 @@ PyObject* Object_get_type(Object *self);
 PyObject* Object_read_raw(Object *self);
 PyObject* wrap_object(git_object *c_object, Repository *repo);
 
+git_odb_object * git_object_read(git_repository *repo, const git_oid *oid, size_t len);
+
 #endif
