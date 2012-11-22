@@ -136,8 +136,8 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_get_workdir(self):
         self.assertEqual(self.repo.workdir, None)
 
-    def test_revparse_single(self):
-        parent = self.repo.revparse_single('HEAD^')
+    def test_lookup_object(self):
+        parent = self.repo.lookup_object('HEAD^')
         self.assertEqual(parent.hex, PARENT_SHA)
 
 

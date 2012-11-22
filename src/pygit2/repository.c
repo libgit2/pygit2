@@ -262,7 +262,7 @@ Repository_getitem(Repository *self, PyObject *value)
 }
 
 PyObject *
-Repository_revparse_single(Repository *self, PyObject *py_spec)
+Repository_lookup_object(Repository *self, PyObject *py_spec)
 {
     git_object *c_obj;
     char *c_spec;
@@ -889,7 +889,7 @@ PyMethodDef Repository_methods[] = {
       "Return a list with all the references in the repository."},
     {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
        "Lookup a reference by its name in a repository."},
-    {"revparse_single", (PyCFunction)Repository_revparse_single, METH_O,
+    {"lookup_object", (PyCFunction)Repository_lookup_object, METH_O,
      "Find an object, as specified by a revision string. See "
      "`man gitrevisions`, or the documentation for `git rev-parse` for "
      "information on the syntax accepted."},
