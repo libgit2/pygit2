@@ -161,6 +161,40 @@ Repository_contains(Repository *self, PyObject *value)
     return exists;
 }
 
+PyDoc_STRVAR(
+  Repository_tags_doc,
+  "Lists all tags of a repository\n"
+);
+PyObject *
+Repository_tags(Repository *self)
+{
+    int err, i;
+    git_strarray c_result;
+    PyObject *py_result, *py_string;
+
+    err = git_tag_list(&c_result, self->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    py_result = PyList_New(c_result.count);
+    if (py_result == NULL)
+        goto out;
+
+    for (i=0; i < c_result.count; ++i){
+        py_string = to_path((c_result.strings)[i]);
+        if (py_string == NULL) {
+            Py_CLEAR(py_result);
+            goto out;
+        }
+        PyList_SET_ITEM(py_result, i, py_string);
+    }
+
+out:
+    git_strarray_free(&c_result);
+    return py_result;
+
+}
+
 PyObject *
 Repository_head(Repository *self)
 {
@@ -927,7 +961,9 @@ PyGetSetDef Repository_getseters[] = {
     {"is_empty", (getter)Repository_is_empty, NULL,
      Repository_is_empty_doc},
     {"is_bare", (getter)Repository_is_bare, NULL,
-     Repository_is_bare_doc},
+     Repository_is_empty_doc},
+    {"tags", (getter)Repository_tags, NULL,
+     Repository_tags_doc},
     {"config", (getter)Repository_get_config, NULL,
      "Get the configuration file for this repository.\n\n"
      "If a configuration file has not been set, the default "

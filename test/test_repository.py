@@ -43,6 +43,7 @@ HEAD_SHA  = 'ccca47fbb26183e71a7a46d165299b84e2e6c0b3'
 PARENT_SHA = '2cdae28389c059815e951d0bb9eed6533f61a46b'  # HEAD^
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
+TAGS = ['root']
 
 
 class RepositoryTest(utils.BareRepoTestCase):
@@ -52,6 +53,10 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_is_bare(self):
         self.assertTrue(self.repo.is_bare)
+
+    def test_tags(self):
+        tags = self.repo.tags
+        self.assertEqual(TAGS, tags)
 
     def test_head(self):
         head = self.repo.head
@@ -178,6 +183,9 @@ class DiscoverRepositoryTest(utils.NoRepoTestCase):
         self.assertEqual(repo.path, discover_repository(subdir))
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
+    def test_tags(self):
+        tags = self.repo.tags
+        self.assertEqual([], tags)
 
     def test_is_empty(self):
         self.assertTrue(self.repo.is_empty)
