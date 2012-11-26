@@ -264,6 +264,18 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_DIFF_RECURSE_UNTRACKED_DIRS",
                             GIT_DIFF_RECURSE_UNTRACKED_DIRS);
 
+    /* Flags for diff find similar */
+    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_RENAMES",                // --find-renames
+                            GIT_DIFF_FIND_RENAMES);
+    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_RENAMES_FROM_REWRITES",  // --break-rewrites=N
+                            GIT_DIFF_FIND_RENAMES_FROM_REWRITES);
+    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_COPIES",                 // --find-copies
+                            GIT_DIFF_FIND_COPIES);
+    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED", // --find-copies-harder
+                            GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED);
+    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_AND_BREAK_REWRITES",     // --break-rewrites=/M
+                            GIT_DIFF_FIND_AND_BREAK_REWRITES);
+
     /* Flags for diffed files */
     PyModule_AddIntConstant(m, "GIT_DIFF_FILE_VALID_OID",
                             GIT_DIFF_FILE_VALID_OID);

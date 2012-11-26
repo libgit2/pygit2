@@ -38,6 +38,7 @@ COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'
 COMMIT_SHA1_3 = '2cdae28389c059815e951d0bb9eed6533f61a46b'
 COMMIT_SHA1_4 = 'ccca47fbb26183e71a7a46d165299b84e2e6c0b3'
+COMMIT_SHA1_5 = '056e626e51b1fc1ee2182800e399ed8d84c8f082'
 
 PATCH = b"""diff --git a/a b/a
 index 7f129fd..af431f2 100644
@@ -119,7 +120,7 @@ class DiffTest(utils.BareRepoTestCase):
         # self.assertIsNotNone is 2.7 only
         self.assertTrue(diff is not None)
         # self.assertIn is 2.7 only
-        self.assertTrue(('a','a', 3) in diff.changes['files'])
+        self.assertTrue(('a','a', 3, 0) in diff.changes['files'])
         self.assertEqual(2, len(diff.changes['hunks']))
 
         hunk = diff.changes['hunks'][0]
@@ -162,13 +163,13 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertTrue(diff_c is not None)
 
         # assertIn / assertNotIn are 2.7 only
-        self.assertTrue(('b','b', 3) not in diff_b.changes['files'])
-        self.assertTrue(('b','b', 3) in diff_c.changes['files'])
+        self.assertTrue(('b','b', 3, 0) not in diff_b.changes['files'])
+        self.assertTrue(('b','b', 3, 0) in diff_c.changes['files'])
 
         diff_b.merge(diff_c)
 
         # assertIn is 2.7 only
-        self.assertTrue(('b','b', 3) in diff_b.changes['files'])
+        self.assertTrue(('b','b', 3, 0) in diff_b.changes['files'])
 
         hunk = diff_b.changes['hunks'][1]
         self.assertEqual(hunk.old_start, 1)
@@ -202,6 +203,17 @@ class DiffTest(utils.BareRepoTestCase):
         diff = commit_a.tree.diff(commit_b.tree)
         self.assertEqual(diff.changes['hunks'][0].old_oid, '7f129fd57e31e935c6d60a0c794efe4e6927664b')
         self.assertEqual(diff.changes['hunks'][0].new_oid, 'af431f20fc541ed6d5afede3e2dc7160f6f01f16')
+
+    def test_find_similar(self):
+        commit_a = self.repo[COMMIT_SHA1_4]
+        commit_b = self.repo[COMMIT_SHA1_5]
+        
+        #~ Must pass GIT_DIFF_INCLUDE_UNMODIFIED if you expect to emulate
+        #~ --find-copies-harder during rename transformion...
+        diff = commit_a.tree.diff(commit_b.tree, pygit2.GIT_DIFF_INCLUDE_UNMODIFIED)
+        self.assertFalse(('a', 'a.copy', 5, 100) in diff.changes['files'])
+        diff.find_similar(pygit2.GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED)
+        self.assertTrue(('a', 'a.copy', 5, 100) in diff.changes['files'])
 
 if __name__ == '__main__':
     unittest.main()

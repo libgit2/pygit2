@@ -78,7 +78,7 @@ class ConfigTest(utils.RepoTestCase):
         self.assertFalse(config_read['core.bare'])
         self.assertTrue('core.editor' in config_read)
         self.assertEqual(config_read['core.editor'], 'ed')
-
+        
     def test_add(self):
         config = pygit2.Config()
 

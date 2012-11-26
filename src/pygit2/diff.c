@@ -177,10 +177,11 @@ static int diff_file_cb(void *cb_data, const git_diff_delta *delta,
             Py_DECREF(files);
         }
 
-        file = Py_BuildValue("(s,s,i)",
+        file = Py_BuildValue("(s,s,i,i)",
             delta->old_file.path,
             delta->new_file.path,
-            delta->status
+            delta->status,
+            delta->similarity
         );
 
         if (PyList_Append(files, file) == 0) {
@@ -355,6 +356,24 @@ Diff_merge(Diff *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+PyObject *
+Diff_find_similar(Diff *self, PyObject *args)
+{
+    int err;
+    git_diff_options opts = {0};
+
+    if (!PyArg_ParseTuple(args, "|i", &opts.flags))
+        return NULL;
+
+    err = git_diff_find_similar(self->diff, &opts);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_XDECREF(self->diff_changes);
+    self->diff_changes = NULL;
+    Py_RETURN_NONE;
+}
+
 static void
 Diff_dealloc(Diff *self)
 {
@@ -373,6 +392,8 @@ PyGetSetDef Diff_getseters[] = {
 static PyMethodDef Diff_methods[] = {
     {"merge", (PyCFunction)Diff_merge, METH_VARARGS,
      "Merge one diff into another."},
+     {"find_similar", (PyCFunction)Diff_find_similar, METH_VARARGS,
+     "Find renamed files in diff."},
     {NULL, NULL, 0, NULL}
 };
 
