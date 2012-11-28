@@ -63,13 +63,13 @@ PyObject* RefLogIter_iternext(PyObject *self)
                         &RefLogEntryType, NULL, NULL
                     );
 
-        git_oid_fmt(oid_old, git_reflog_entry_oidold(entry));
-        git_oid_fmt(oid_new, git_reflog_entry_oidnew(entry));
+        git_oid_fmt(oid_old, git_reflog_entry_id_old(entry));
+        git_oid_fmt(oid_new, git_reflog_entry_id_new(entry));
 
         py_entry->oid_new = PyUnicode_FromStringAndSize(oid_new, 40);
         py_entry->oid_old = PyUnicode_FromStringAndSize(oid_old, 40);
 
-        py_entry->msg = strdup(git_reflog_entry_msg(entry));
+        py_entry->msg = strdup(git_reflog_entry_message(entry));
 
         signature = git_signature_dup(
               git_reflog_entry_committer(entry)
@@ -220,10 +220,14 @@ Reference_get_target(Reference *self)
     CHECK_REFERENCE(self);
 
     /* Get the target */
-    c_name = git_reference_target(self->reference);
-    if (c_name == NULL) {
-        PyErr_SetString(PyExc_ValueError, "no target available");
-        return NULL;
+    if (GIT_REF_OID == git_reference_type(self->reference)) {
+        return git_oid_to_py_str(git_reference_target(self->reference));
+    } else {
+        c_name = git_reference_symbolic_target(self->reference);
+        if (c_name == NULL) {
+            PyErr_SetString(PyExc_ValueError, "no target available");
+            return NULL;
+        }
     }
 
     /* Make a PyString and return it */
@@ -244,7 +248,7 @@ Reference_set_target(Reference *self, PyObject *py_name)
         return -1;
 
     /* Set the new target */
-    err = git_reference_set_target(self->reference, c_name);
+    err = git_reference_symbolic_set_target(self->reference, c_name);
     free(c_name);
     if (err < 0) {
         Error_set(err);
@@ -269,7 +273,7 @@ Reference_get_oid(Reference *self)
     CHECK_REFERENCE(self);
 
     /* Get the oid (only for "direct" references) */
-    oid = git_reference_oid(self->reference);
+    oid = git_reference_target(self->reference);
     if (oid == NULL) {
         PyErr_SetString(PyExc_ValueError,
                         "oid is only available if the reference is direct "
@@ -297,7 +301,7 @@ Reference_set_oid(Reference *self, PyObject *py_hex)
     }
 
     /* Set the oid */
-    err = git_reference_set_oid(self->reference, &oid);
+    err = git_reference_set_target(self->reference, &oid);
     if (err < 0) {
         Error_set(err);
         return -1;
@@ -314,7 +318,7 @@ Reference_get_hex(Reference *self)
     CHECK_REFERENCE(self);
 
     /* Get the oid (only for "direct" references) */
-    oid = git_reference_oid(self->reference);
+    oid = git_reference_target(self->reference);
     if (oid == NULL) {
         PyErr_SetString(PyExc_ValueError,
                         "oid is only available if the reference is direct "
