@@ -81,7 +81,7 @@ static int diff_hunk_cb(
     PyObject *hunks;
     Hunk *hunk;
     int len;
-    char* old_path, *new_path;
+    char* old_path = NULL, *new_path = NULL;
     char oid[GIT_OID_HEXSZ];
 
 
