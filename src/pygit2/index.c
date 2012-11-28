@@ -264,7 +264,7 @@ Index_len(Index *self)
 }
 
 PyObject *
-wrap_index_entry(git_index_entry *entry, Index *index)
+wrap_index_entry(const git_index_entry *entry, Index *index)
 {
     IndexEntry *py_entry;
 
@@ -278,8 +278,8 @@ wrap_index_entry(git_index_entry *entry, Index *index)
 PyObject *
 Index_getitem(Index *self, PyObject *value)
 {
-    int idx;
-    git_index_entry *index_entry;
+    size_t idx;
+    const git_index_entry *index_entry;
 
     idx = Index_get_position(self, value);
     if (idx == -1)
@@ -460,7 +460,7 @@ IndexIter_dealloc(IndexIter *self)
 PyObject *
 IndexIter_iternext(IndexIter *self)
 {
-    git_index_entry *index_entry;
+    const git_index_entry *index_entry;
 
     index_entry = git_index_get_byindex(self->owner->index, self->i);
     if (!index_entry)

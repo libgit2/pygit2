@@ -204,7 +204,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
         return -1;
 
     if (!py_value) {
-        err = git_config_delete(self->config, c_key);
+        err = git_config_delete_entry(self->config, c_key);
     } else if (PyBool_Check(py_value)) {
         err = git_config_set_bool(self->config, c_key,
                 (int)PyObject_IsTrue(py_value));

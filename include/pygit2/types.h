@@ -97,7 +97,7 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    git_index_entry *entry;
+    const git_index_entry *entry;
 } IndexEntry;
 
 typedef struct {

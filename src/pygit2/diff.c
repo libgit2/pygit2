@@ -41,12 +41,12 @@ extern PyTypeObject DiffType;
 extern PyTypeObject HunkType;
 
 static int diff_data_cb(
-  void *cb_data,
   const git_diff_delta *delta,
   const git_diff_range *range,
   char line_origin,
   const char *content,
-  size_t content_len)
+  size_t content_len,
+  void *cb_data)
 {
     PyObject *hunks, *data;
     Hunk *hunk;
@@ -72,11 +72,11 @@ static int diff_data_cb(
 }
 
 static int diff_hunk_cb(
-  void *cb_data,
   const git_diff_delta *delta,
   const git_diff_range *range,
   const char *header,
-  size_t header_len)
+  size_t header_len,
+  void *cb_data)
 {
     PyObject *hunks;
     Hunk *hunk;
@@ -163,8 +163,8 @@ static int diff_hunk_cb(
     return 0;
 };
 
-static int diff_file_cb(void *cb_data, const git_diff_delta *delta,
-  float progress)
+static int diff_file_cb(const git_diff_delta *delta, float progress, 
+void *cb_data) 
 {
     PyObject *files, *file;
 
@@ -202,10 +202,10 @@ Diff_changes(Diff *self)
 
         git_diff_foreach(
             self->diff,
-            self->diff_changes,
             &diff_file_cb,
             &diff_hunk_cb,
-            &diff_data_cb
+            &diff_data_cb,
+            self->diff_changes
         );
     }
 
@@ -213,12 +213,12 @@ Diff_changes(Diff *self)
 }
 
 static int diff_print_cb(
-    void *cb_data,
     const git_diff_delta *delta,
     const git_diff_range *range,
     char usage,
     const char *line,
-    size_t line_len)
+    size_t line_len,
+    void *cb_data)
 {
     PyObject *data = PyBytes_FromStringAndSize(line, line_len);
     PyBytes_ConcatAndDel((PyObject **)cb_data, data);
@@ -231,7 +231,7 @@ Diff_patch(Diff *self)
 {
     PyObject *patch = PyBytes_FromString("");
 
-    git_diff_print_patch(self->diff, &patch, &diff_print_cb);
+    git_diff_print_patch(self->diff, &diff_print_cb, (void*) &patch);
 
     return patch;
 }
@@ -360,7 +360,7 @@ PyObject *
 Diff_find_similar(Diff *self, PyObject *args)
 {
     int err;
-    git_diff_options opts = {0};
+    git_diff_find_options opts = {0};
 
     if (!PyArg_ParseTuple(args, "|i", &opts.flags))
         return NULL;
