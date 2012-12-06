@@ -135,7 +135,7 @@ Commit_get_parents(Commit *commit)
         return NULL;
 
     for (i=0; i < parent_count; i++) {
-        parent_oid = git_commit_parent_id(commit->commit, i);
+        parent_oid = git_commit_parent_oid(commit->commit, i);
         if (parent_oid == NULL) {
             Py_DECREF(list);
             Error_set(GIT_ENOTFOUND);

@@ -527,7 +527,7 @@ Repository_create_blob_fromfile(Repository *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &path))
       return NULL;
 
-    err = git_blob_create_fromworkdir(&oid, self->repo, path);
+    err = git_blob_create_fromfile(&oid, self->repo, path);
 
     if (err < 0)
       return Error_set(err);
@@ -740,7 +740,7 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
             return Error_set(err);
         }
 
-        err = git_reference_create(&c_reference, self->repo, c_name, &oid, force);
+        err = git_reference_create_oid(&c_reference, self->repo, c_name, &oid, force);
     } else {
         #if PY_MAJOR_VERSION == 2
         c_target = PyString_AsString(py_obj);
@@ -750,7 +750,7 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
         if(c_target == NULL)
             return NULL;
 
-        err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
+        err = git_reference_create_symbolic(&c_reference, self->repo, c_name,
                                             c_target, force);
     }
 
