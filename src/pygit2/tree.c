@@ -269,7 +269,7 @@ Tree_getitem(Tree *self, PyObject *value)
 PyObject *
 Tree_diff_tree(Tree *self, PyObject *args)
 {
-    git_diff_options opts = {0};
+    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
     int err;
 

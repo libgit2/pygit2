@@ -360,7 +360,7 @@ PyObject *
 Diff_find_similar(Diff *self, PyObject *args)
 {
     int err;
-    git_diff_find_options opts = {0};
+    git_diff_find_options opts = GIT_DIFF_FIND_OPTIONS_INIT;
 
     if (!PyArg_ParseTuple(args, "|i", &opts.flags))
         return NULL;

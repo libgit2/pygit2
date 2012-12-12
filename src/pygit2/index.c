@@ -105,7 +105,7 @@ Index_clear(Index *self)
 PyObject *
 Index_diff_tree(Index *self, PyObject *args)
 {
-    git_diff_options opts = {0};
+    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
     int err;
 
