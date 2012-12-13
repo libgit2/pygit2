@@ -56,7 +56,7 @@ if libgit2_path is None:
 
 libgit2_bin = os.path.join(libgit2_path, 'bin')
 libgit2_include = os.path.join(libgit2_path, 'include')
-libgit2_lib =  os.path.join(libgit2_path, 'lib')
+libgit2_lib = os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib'))
 pygit2_exts = [os.path.join('src', 'pygit2.c')] + [
                 os.path.join('src', 'pygit2', entry)
                 for entry in os.listdir('src/pygit2')
