@@ -116,13 +116,13 @@ Index_diff_tree(Index *self, PyObject *args)
         return NULL;
 
     if (py_obj == NULL) {
-        err = git_diff_workdir_to_index(
+        err = git_diff_index_to_workdir(
                 &diff,
                 self->repo->repo,
                 self->index,
                 &opts);
     } else if (PyObject_TypeCheck(py_obj, &TreeType)) {
-        err = git_diff_index_to_tree(
+        err = git_diff_tree_to_index(
                 &diff,
                 self->repo->repo,
                 ((Tree *)py_obj)->tree,
