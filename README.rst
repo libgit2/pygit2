@@ -43,7 +43,7 @@ using the default installation procedure (e.g. without specifying
 ``CMAKE_INSTALL_PREFIX``), you probably installed it under
 ``/usr/local/lib``.  On some distributions (e.g. Ubuntu),
 ``/usr/local/lib`` is not in the linker's default search path (see the
-`ld man page`_ for details), and you will get errors like:
+`ld man page`_ for details), and you will get errors like::
 
   $ python -c 'import pygit2'
   Traceback (most recent call last):
@@ -66,7 +66,7 @@ instructions in the libgit2 ``README.md``)::
 
 Now, download and install pygit2.  You will probably have to set the
 ``LIBGIT2`` environment variable so the compiler can find the libgit2
-headers and libraries.
+headers and libraries::
 
   $ git clone git://github.com/libgit2/pygit2.git
   $ cd pygit2
