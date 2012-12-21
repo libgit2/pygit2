@@ -7,6 +7,8 @@ pygit2 - libgit2 bindings in Python
 pygit2 is a set of Python bindings to the libgit2 linkable C Git library.
 The supported versions of Python are 2.6, 2.7, 3.1 and 3.2
 
+You can find an up-to-date api documentation at http://libgit2.github.com/pygit2.
+
 Through this text Python 3 is used for the inline examples. Also, the Python
 3 terminology is used (for instance we say text strings instead of unicode
 strings).
