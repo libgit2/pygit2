@@ -161,6 +161,35 @@ Repository_contains(Repository *self, PyObject *value)
     return exists;
 }
 
+static int
+Repository_build_as_iter(git_oid *oid, PyObject *accum)
+{
+    PyList_Append(accum, git_oid_to_py_str(oid));
+    return 0;
+}
+
+PyObject *
+Repository_as_iter(Repository *self)
+{
+    git_odb *odb;
+    int err;
+    PyObject *accum = PyList_New(0);
+
+    err = git_repository_odb(&odb, self->repo);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+    err = git_odb_foreach(odb, Repository_build_as_iter, accum);
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    git_odb_free(odb);
+    return PyObject_GetIter(accum);
+}
+
 PyObject *
 Repository_head(Repository *self)
 {
@@ -984,7 +1013,7 @@ PyTypeObject RepositoryType = {
     (inquiry)Repository_clear,                 /* tp_clear          */
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter           */
+    (getiterfunc)Repository_as_iter,           /* tp_iter           */
     0,                                         /* tp_iternext       */
     Repository_methods,                        /* tp_methods        */
     0,                                         /* tp_members        */
