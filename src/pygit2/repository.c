@@ -164,7 +164,13 @@ Repository_contains(Repository *self, PyObject *value)
 static int
 Repository_build_as_iter(git_oid *oid, PyObject *accum)
 {
-    PyList_Append(accum, git_oid_to_py_str(oid));
+    int err;
+
+    err = PyList_Append(accum, git_oid_to_py_str(oid));
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
     return 0;
 }
 
@@ -181,7 +187,10 @@ Repository_as_iter(Repository *self)
         return -1;
     }
     err = git_odb_foreach(odb, Repository_build_as_iter, accum);
-    if (err < 0) {
+    if (err == GIT_EUSER) {
+        git_odb_free(odb);
+        return -1;
+    } else if (err < 0) {
         git_odb_free(odb);
         Error_set(err);
         return -1;
