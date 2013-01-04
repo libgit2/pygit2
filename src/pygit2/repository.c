@@ -182,6 +182,7 @@ Repository_as_iter(Repository *self)
     }
     err = git_odb_foreach(odb, Repository_build_as_iter, accum);
     if (err < 0) {
+        git_odb_free(odb);
         Error_set(err);
         return -1;
     }
