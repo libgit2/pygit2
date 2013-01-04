@@ -165,12 +165,14 @@ static int
 Repository_build_as_iter(git_oid *oid, PyObject *accum)
 {
     int err;
+    PyObject *oid_str = git_oid_to_py_str(oid);
 
-    err = PyList_Append(accum, git_oid_to_py_str(oid));
+    err = PyList_Append(accum, oid_str);
     if (err < 0) {
         Error_set(err);
         return -1;
     }
+    Py_XDECREF(oid_str);
     return 0;
 }
 
