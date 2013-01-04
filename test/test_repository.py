@@ -93,6 +93,13 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertFalse('a' * 40 in self.repo)
         self.assertFalse('a' * 20 in self.repo)
 
+    def test_iterable(self):
+        l = []
+        for obj in self.repo:
+            l.append(obj)
+
+        self.assertTrue(A_HEX_SHA in l)
+
     def test_lookup_blob(self):
         self.assertRaises(TypeError, lambda: self.repo[123])
         self.assertEqual(self.repo[A_BIN_SHA].hex, A_HEX_SHA)
