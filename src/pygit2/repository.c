@@ -180,21 +180,17 @@ Repository_as_iter(Repository *self)
     PyObject *accum = PyList_New(0);
 
     err = git_repository_odb(&odb, self->repo);
-    if (err < 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err < 0)
+        return Error_set(err);
+
     err = git_odb_foreach(odb, Repository_build_as_iter, (void*)accum);
+    git_odb_free(odb);
     if (err == GIT_EUSER) {
-        git_odb_free(odb);
         return NULL;
     } else if (err < 0) {
-        git_odb_free(odb);
-        Error_set(err);
-        return NULL;
+        return Error_set(err);
     }
 
-    git_odb_free(odb);
     return PyObject_GetIter(accum);
 }
 
