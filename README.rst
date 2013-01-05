@@ -423,6 +423,7 @@ pygit2 project (sorted alphabetically):
 - Nico von Geyso
 - Petr Hosek
 - Petr Viktorin
+- Richo Healey
 - Rui Abreu Ferreira
 - Sarath Lakshman
 - Sebastian Thiel
