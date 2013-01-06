@@ -86,7 +86,7 @@ Object_read_raw(Object *self)
     oid = git_object_id(self->obj);
     assert(oid);
 
-    obj = Repository_read_raw(self->repo->repo, oid, GIT_OID_HEXSZ);
+    obj = git_object_read(self->repo->repo, oid, GIT_OID_HEXSZ);
     if (obj == NULL)
         return NULL;
 
@@ -183,3 +183,27 @@ wrap_object(git_object *c_object, Repository *repo)
     }
     return (PyObject *)py_obj;
 }
+
+git_odb_object *
+git_object_read(git_repository *repo, const git_oid *oid, size_t len)
+{
+    git_odb *odb;
+    git_odb_object *obj;
+    int err;
+
+    err = git_repository_odb(&odb, repo);
+    if (err < 0) {
+        Error_set(err);
+        return NULL;
+    }
+
+    err = git_odb_read_prefix(&obj, odb, oid, (unsigned int)len);
+    git_odb_free(odb);
+    if (err < 0) {
+        Error_set_oid(err, oid, len);
+        return NULL;
+    }
+
+    return obj;
+}
+

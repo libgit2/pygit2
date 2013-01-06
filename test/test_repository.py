@@ -60,28 +60,28 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertFalse(self.repo.head_is_orphaned)
         self.assertFalse(self.repo.head_is_detached)
 
-    def test_read(self):
-        self.assertRaises(TypeError, self.repo.read, 123)
-        self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read, '1' * 40)
+    def test_read_raw(self):
+        self.assertRaises(TypeError, self.repo.read_raw, 123)
+        self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read_raw, '1' * 40)
 
-        ab = self.repo.read(A_BIN_SHA)
-        a = self.repo.read(A_HEX_SHA)
+        ab = self.repo.read_raw(A_BIN_SHA)
+        a = self.repo.read_raw(A_HEX_SHA)
         self.assertEqual(ab, a)
         self.assertEqual((GIT_OBJ_BLOB, 'a contents\n'), a)
 
-        a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
+        a2 = self.repo.read_raw('7f129fd57e31e935c6d60a0c794efe4e6927664b')
         self.assertEqual((GIT_OBJ_BLOB, 'a contents 2\n'), a2)
 
         a_hex_prefix = A_HEX_SHA[:4]
-        a3 = self.repo.read(a_hex_prefix)
+        a3 = self.repo.read_raw(a_hex_prefix)
         self.assertEqual((GIT_OBJ_BLOB, 'a contents\n'), a3)
 
-    def test_write(self):
+    def test_write_raw(self):
         data = b"hello world"
         # invalid object type
-        self.assertRaises(ValueError, self.repo.write, GIT_OBJ_ANY, data)
+        self.assertRaises(ValueError, self.repo.write_raw, GIT_OBJ_ANY, data)
 
-        oid = self.repo.write(GIT_OBJ_BLOB, data)
+        oid = self.repo.write_raw(GIT_OBJ_BLOB, data)
         self.assertEqual(type(oid), bytes)
         self.assertEqual(len(oid), 20)
 
@@ -143,8 +143,8 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_get_workdir(self):
         self.assertEqual(self.repo.workdir, None)
 
-    def test_revparse_single(self):
-        parent = self.repo.revparse_single('HEAD^')
+    def test_lookup_object(self):
+        parent = self.repo.lookup_object('HEAD^')
         self.assertEqual(parent.hex, PARENT_SHA)
 
 
@@ -171,7 +171,7 @@ class NewRepositoryTest(utils.NoRepoTestCase):
     def test_new_repo(self):
         repo = init_repository(self._temp_dir, False)
 
-        oid = repo.write(GIT_OBJ_BLOB, "Test")
+        oid = repo.write_raw(GIT_OBJ_BLOB, "Test")
         self.assertEqual(type(oid), bytes)
         self.assertEqual(len(oid), 20)
 
