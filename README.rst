@@ -1,5 +1,7 @@
+
+######################################################################
 pygit2 - libgit2 bindings in Python
-=====================================
+######################################################################
 
 .. image:: https://secure.travis-ci.org/libgit2/pygit2.png
    :target: http://travis-ci.org/libgit2/pygit2
@@ -13,8 +15,11 @@ Through this text Python 3 is used for the inline examples. Also, the Python
 3 terminology is used (for instance we say text strings instead of unicode
 strings).
 
-INSTALLING AND RUNNING
-========================
+.. contents::
+
+**********************************************************************
+Installing and running
+**********************************************************************
 
 First you need to install the latest version of libgit2.
 You can find platform-specific instructions to build the library in the libgit2 website:
@@ -31,7 +36,7 @@ When those are installed, you can install pygit2::
     $ python setup.py test
 
 Building on \*nix (including OS X)
-----------------------------------
+===================================
 
 If you installed libgit2 and pygit2 in one of the usual places, you
 should be able to skip this section and just use the generic pygit2
@@ -92,7 +97,7 @@ with readelf_::
 .. _readelf: http://www.gnu.org/software/binutils/
 
 Building on Windows
--------------------
+===================================
 
 pygit2 expects to find the libgit2 installed files in the directory specified
 in the ``LIBGIT2`` environment variable.
@@ -113,6 +118,10 @@ from a bash shell::
 At this point, you're ready to execute the generic pygit2 installation
 steps described above.
 
+
+**********************************************************************
+Usage
+**********************************************************************
 
 The repository
 =================
@@ -384,20 +393,21 @@ Inspect the status of the repository::
     ...         print "Filepath %s isn't clean" % filepath
 
 
-CONTRIBUTING
-==============
+**********************************************************************
+Contributing
+**********************************************************************
 
 Fork libgit2/pygit2 on GitHub, make it awesomer (preferably in a branch named
 for the topic), send a pull request.
 
 
 TODO
-----------------
+=================
 
 See issues
 
 
-AUTHORS
+Authors
 ==============
 
 The following people have contributed at least one patch to the
@@ -433,7 +443,7 @@ pygit2 project (sorted alphabetically):
 - pistacchio
 
 
-LICENSE
+License
 ==============
 
 GPLv2 with linking exception. See COPYING for more details.
