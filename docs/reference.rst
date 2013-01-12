@@ -1,4 +1,4 @@
-:mod:`pygit2`
+Reference
 =============
 
 .. Util functions
