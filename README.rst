@@ -46,15 +46,21 @@ Authors
 The following people have contributed at least one patch to the
 pygit2 project (sorted alphabetically):
 
+- Alex Chamberlain
 - Amit Bakshi
 - András Veres-Szentkirályi
+- Ben Davis
 - Benjamin Kircher
 - Bryan O'Sullivan
 - Carlos Martín Nieto
 - Christian Boos
 - David Borowitz (*Original author*)
+- David Sanders
 - David Versmisse
+- Eric Davis
+- Eric Schrijver
 - Erik van Zijst
+- Ferengee
 - Han-Wen Nienhuys
 - Hugh Cole-Baker
 - J David Ibáñez (*Current maintainer*)
@@ -67,10 +73,13 @@ pygit2 project (sorted alphabetically):
 - Petr Hosek
 - Petr Viktorin
 - Richo Healey
+- Ridge Kennedy
 - Rui Abreu Ferreira
 - Sarath Lakshman
 - Sebastian Thiel
 - Vicent Marti
+- W Trevor King
+- Xavier Delannoy
 - Yonggang Luo
 - Zoran Zaric
 - pistacchio
