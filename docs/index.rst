@@ -9,11 +9,16 @@ Welcome to pygit2's documentation!
 .. image:: https://secure.travis-ci.org/libgit2/pygit2.png
    :target: http://travis-ci.org/libgit2/pygit2
 
-pygit2 is a set of Python bindings to the libgit2 linkable C Git library.
-The supported versions of Python are 2.6, 2.7, 3.1 and 3.2
+Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
+implements the core of Git.  Pygit2 works with Python 2.6, 2.7, 3.1 and 3.2
 
+Pygit2 links:
 
-Contents:
+- http://github.com/libgit2/pygit2 -- Source code and issue tracker
+- http://www.pygit2.org/ -- Documentation
+- http://pypi.python.org/pypi/pygit2 -- Download
+
+Table of Contents:
 
 .. toctree::
    :maxdepth: 2
