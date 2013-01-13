@@ -1,0 +1,22 @@
+**********************************************************************
+References
+**********************************************************************
+
+Reference lookup::
+
+    >>> all_refs = repo.listall_references()
+    >>> master_ref = repo.lookup_reference("refs/heads/master")
+    >>> commit = repo[master_ref.oid]
+
+Reference log::
+
+    >>> head = repo.lookup_reference('refs/heads/master')
+    >>> for entry in head.log():
+    ...     print(entry.message)
+
+The interface for RefLogEntry::
+
+    RefLogEntry.committer -- Signature of Committer
+    RefLogEntry.message   -- the message of the RefLogEntry
+    RefLogEntry.oid_old   -- oid of old reference
+    RefLogEntry.oid_new   -- oid of new reference

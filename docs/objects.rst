@@ -1,33 +1,10 @@
 **********************************************************************
-Usage samples
+Git objects
 **********************************************************************
 
-.. contents::
+.. contents:: Contents
+   :local:
 
-
-The repository
-=================
-
-Everything starts by opening an existing repository::
-
-    >>> from pygit2 import Repository
-    >>> repo = Repository('pygit2/.git')
-
-Or by creating a new one::
-
-    >>> from pygit2 import init_repository
-    >>> bare = False
-    >>> repo = init_repository('test', bare)
-
-These are the basic attributes of a repository::
-
-    Repository.path    -- path to the Git repository
-    Repository.workdir -- path to the working directory, None in the case of
-                          a bare repo
-
-
-Git objects
-===========
 
 In the first place Git is a key-value storage system. The values stored are
 called *objects*, there are four types (commits, trees, blobs and tags),
@@ -201,75 +178,3 @@ Tags
 -----------------
 
 A tag is a static label for a commit. See references for more information.
-
-
-
-References
-=================
-
-Reference lookup::
-
-    >>> all_refs = repo.listall_references()
-    >>> master_ref = repo.lookup_reference("refs/heads/master")
-    >>> commit = repo[master_ref.oid]
-
-Reference log::
-
-    >>> head = repo.lookup_reference('refs/heads/master')
-    >>> for entry in head.log():
-    ...     print(entry.message)
-
-The interface for RefLogEntry::
-
-    RefLogEntry.committer -- Signature of Committer
-    RefLogEntry.message   -- the message of the RefLogEntry
-    RefLogEntry.oid_old   -- oid of old reference
-    RefLogEntry.oid_new   -- oid of new reference
-
-Revision parsing
-================
-
-You can use any of the fancy `<rev>` forms supported by libgit2::
-
-    >>> commit = repo.revparse_single('HEAD^')
-
-Revision walking
-=================
-
-You can iterate through the revision history with repo.walk::
-
-    >>> from pygit2 import GIT_SORT_TIME
-    >>> for commit in repo.walk(oid, GIT_SORT_TIME):
-    ...     print(commit.hex)
-
-The index file
-=================
-
-Index read::
-
-    >>> index = repo.index
-    >>> index.read()
-    >>> oid = index['path/to/file'].oid    # from path to object id
-    >>> blob = repo[oid]                   # from object id to object
-
-Iterate over all entries of the index::
-
-    >>> for entry in index:
-    ...     print entry.path, entry.hex
-
-Index write::
-
-    >>> index.add('path/to/file')          # git add
-    >>> del index['path/to/file']          # git rm
-    >>> index.write()                      # don't forget to save the changes
-
-Status
-=================
-
-Inspect the status of the repository::
-
-    >>> from pygit2 import GIT_STATUS_CURRENT
-    >>> status = repo.status()
-    >>> for filepath, flags in status.items():
-    ...     if flags != GIT_STATUS_CURRENT:
-    ...         print "Filepath %s isn't clean" % filepath

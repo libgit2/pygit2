@@ -1,4 +1,4 @@
-Reference
+API Reference
 =============
 
 .. Util functions
