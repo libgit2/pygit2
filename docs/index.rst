@@ -18,28 +18,35 @@ Pygit2 links:
 - http://www.pygit2.org/ -- Documentation
 - http://pypi.python.org/pypi/pygit2 -- Download
 
-Topics:
-
+Start:
 
 .. toctree::
    :maxdepth: 2
 
    install
-   autodoc
 
 Usage guide:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    repository
    objects
    references
    revparse
    log
+   diff
    index-file
    status
+   config
+   errors
 
+More:
+
+.. toctree::
+   :maxdepth: 1
+
+   utils
 
 
 Indices and tables

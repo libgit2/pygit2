@@ -33,30 +33,24 @@ The API of pygit2 accepts both the raw object id and its hexadecimal
 representation, the difference is done based on its type (a byte or a text
 string).
 
-This is the common interface for all Git objects::
-
-    Object.type       -- one of the GIT_OBJ_COMMIT, GIT_OBJ_TREE,
-                         GIT_OBJ_BLOB or GIT_OBJ_TAG constants
-    Object.oid        -- the object id, a byte string 20 bytes long
-    Object.hex        -- hexadecimal representation of the object id, a text
-                         string 40 chars long
-    Object.read_raw() -- returns the byte string with the raw contents of the
-                         of the object
-
 Objects can not be modified once they have been created.
+
+This is the common interface for all Git objects:
+
+.. autoclass:: pygit2.Object
+   :members: type, oid, hex, read_raw
 
 
 Commits
 -----------------
 
 A commit is a snapshot of the working dir with meta informations like author,
-committer and others.::
+committer and others.
 
-    Commit.author    -- the author of the commit
-    Commit.committer -- the committer of the commit
-    Commit.message   -- the message, a text string
-    Commit.tree      -- the tree object attached to the commit
-    Commit.parents   -- the list of parent commits
+.. autoclass:: pygit2.Commit
+   :members: author, committer, message, message_encoding, tree, parents,
+             commit_time, commit_time_offset
+   :show-inheritance:
 
 
 Signatures
@@ -68,12 +62,8 @@ objects::
     >>> commit.author
     <pygit2.Signature object at 0x7f75e9b1f5f8>
 
-This is their interface::
-
-    Signature.name   -- person's name
-    Signature.email  -- person's email address
-    Signature.time   -- unix time
-    Signature.offset -- offset from utc in minutes
+.. autoclass:: pygit2.Signature
+   :members: name, email, time, offset
 
 
 Creating commits
@@ -137,30 +127,15 @@ This is the interface of a tree entry::
     TreeEntry.to_object() -- returns the git object (equivalent to repo[entry.oid])
 
 
-Diff
------------------
+.. autoclass:: pygit2.Tree
+   :members:
+   :show-inheritance:
+   :undoc-members:
 
-A diff shows the changes between trees, an index or the working dir::
-
-    # Diff two trees
-    >>> t0 = repo.head.tree
-    >>> t1 = repo.head.parents[0].tree
-    >>> diff = t1.diff(t0)
-    >>> diff
-
-    # Diff a tree with the index
-    >>> tree = repo.head.tree
-    >>> diff = tree.diff(repo.index)
-
-    # Diff a tree with the current working dir
-    >>> tree = repo.head.tree
-    >>> diff = tree.diff()
-
-The interface for a diff::
-
-    Diff.changes          -- Dict of 'files' and 'hunks' for every change
-    Diff.patch            -- a patch for every changeset
-    Diff.merge            -- Merge two Diffs
+.. autoclass:: pygit2.TreeEntry
+   :members:
+   :show-inheritance:
+   :undoc-members:
 
 
 Blobs
@@ -174,7 +149,20 @@ A blob is equivalent to a file in a file system.::
 
     Blob.data -- the contents of the blob, a byte string
 
+
+.. autoclass:: pygit2.Blob
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+
 Tags
 -----------------
 
 A tag is a static label for a commit. See references for more information.
+
+
+.. autoclass:: pygit2.Tag
+   :members:
+   :show-inheritance:
+   :undoc-members:

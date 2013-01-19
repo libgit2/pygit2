@@ -2,12 +2,10 @@
 The repository
 **********************************************************************
 
-
 Everything starts by opening an existing repository::
 
     >>> from pygit2 import Repository
     >>> repo = Repository('pygit2/.git')
-
 
 Or by creating a new one::
 
@@ -16,9 +14,9 @@ Or by creating a new one::
     >>> repo = init_repository('test', bare)
 
 
+.. autofunction:: pygit2.init_repository
 
-These are the basic attributes of a repository::
+.. autofunction:: pygit2.discover_repository
 
-    Repository.path    -- path to the Git repository
-    Repository.workdir -- path to the working directory, None in the case of
-                          a bare repo
+.. autoclass:: pygit2.Repository
+   :members:

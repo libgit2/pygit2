@@ -143,9 +143,10 @@ PyGetSetDef Signature_getseters[] = {
     {"_name", (getter)Signature_get_raw_name, NULL, "Name (bytes)", NULL},
     {"_email", (getter)Signature_get_raw_email, NULL, "Email (bytes)", NULL},
     {"name", (getter)Signature_get_name, NULL, "Name", NULL},
-    {"email", (getter)Signature_get_email, NULL, "Email", NULL},
-    {"time", (getter)Signature_get_time, NULL, "Time", NULL},
-    {"offset", (getter)Signature_get_offset, NULL, "Offset", NULL},
+    {"email", (getter)Signature_get_email, NULL, "Email address", NULL},
+    {"time", (getter)Signature_get_time, NULL, "Unix time", NULL},
+    {"offset", (getter)Signature_get_offset, NULL,
+     "Offset from UTC in minutes", NULL},
     {NULL}
 };
 

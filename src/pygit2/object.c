@@ -99,15 +99,22 @@ Object_read_raw(Object *self)
 }
 
 PyGetSetDef Object_getseters[] = {
-    {"oid", (getter)Object_get_oid, NULL, "object id", NULL},
-    {"hex", (getter)Object_get_hex, NULL, "hex oid", NULL},
-    {"type", (getter)Object_get_type, NULL, "type number", NULL},
+    {"oid", (getter)Object_get_oid, NULL,
+     "The object id, a byte string 20 bytes long.", NULL},
+    {"hex", (getter)Object_get_hex, NULL,
+     "Hexadecimal representation of the object id, a text string 40 chars "
+     "long.",
+     NULL},
+    {"type", (getter)Object_get_type, NULL,
+     "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or "
+     "GIT_OBJ_TAG constants.",
+     NULL},
     {NULL}
 };
 
 PyMethodDef Object_methods[] = {
     {"read_raw", (PyCFunction)Object_read_raw, METH_NOARGS,
-     "Read the raw contents of the object from the repo."},
+     "Returns the byte string with the raw contents of the of the object."},
     {NULL}
 };
 
