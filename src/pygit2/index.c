@@ -88,7 +88,7 @@ Index_add(Index *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
 
-    err = git_index_add_from_workdir(self->index, path);
+    err = git_index_add_bypath(self->index, path);
     if (err < 0)
         return Error_set_str(err, path);
 
