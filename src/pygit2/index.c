@@ -79,6 +79,10 @@ Index_traverse(Index *self, visitproc visit, void *arg)
     return 0;
 }
 
+PyDoc_STRVAR(Index_add__doc__,
+  "add(path)\n\n"
+  "Add or update an index entry from a file in disk.");
+
 PyObject *
 Index_add(Index *self, PyObject *args)
 {
@@ -95,6 +99,10 @@ Index_add(Index *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Index_clear__doc__,
+  "clear()\n\n"
+  "Clear the contents (all the entries) of an index object.");
+
 PyObject *
 Index_clear(Index *self)
 {
@@ -102,8 +110,15 @@ Index_clear(Index *self)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(Index_diff__doc__,
+  "diff([tree]) -> Diff\n\n"
+  "Return a :py:class:`~pygit2.Diff` object with the differences between the "
+  "index and the working copy. If a :py:class:`~pygit2.Tree` object is "
+  "passed, return the diferences between the index and the given tree.");
+
 PyObject *
-Index_diff_tree(Index *self, PyObject *args)
+Index_diff(Index *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
@@ -137,7 +152,6 @@ Index_diff_tree(Index *self, PyObject *args)
 
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
-        Py_INCREF(py_diff);
         Py_INCREF(self->repo);
         py_diff->repo = self->repo;
         py_diff->diff = diff;
@@ -145,6 +159,11 @@ Index_diff_tree(Index *self, PyObject *args)
 
     return (PyObject*)py_diff;
 }
+
+PyDoc_STRVAR(Index_find__doc__,
+  "_find(path) -> integer\n\n"
+  "Find the first index of any entries which point to given path in the "
+  "index file.");
 
 PyObject *
 Index_find(Index *self, PyObject *py_path)
@@ -163,6 +182,12 @@ Index_find(Index *self, PyObject *py_path)
     return PyInt_FromLong(idx);
 }
 
+
+PyDoc_STRVAR(Index_read__doc__,
+  "read()\n\n"
+  "Update the contents of an existing index object in memory by reading from "
+  "the hard disk.");
+
 PyObject *
 Index_read(Index *self)
 {
@@ -174,6 +199,12 @@ Index_read(Index *self)
 
     Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Index_write__doc__,
+  "write()\n\n"
+  "Write an existing index object from memory back to disk using an atomic "
+  "file lock.");
 
 PyObject *
 Index_write(Index *self)
@@ -294,6 +325,11 @@ Index_getitem(Index *self, PyObject *value)
     return wrap_index_entry(index_entry, self);
 }
 
+
+PyDoc_STRVAR(Index_remove__doc__,
+  "remove(path)\n\n"
+  "Removes an entry from index.");
+
 PyObject *
 Index_remove(Index *self, PyObject *args)
 {
@@ -327,6 +363,11 @@ Index_setitem(Index *self, PyObject *key, PyObject *value)
     return 0;
 }
 
+
+PyDoc_STRVAR(Index_read_tree__doc__,
+  "read_tree(tree)\n\n"
+  "Update the index file from the tree identified by the given oid.");
+
 PyObject *
 Index_read_tree(Index *self, PyObject *value)
 {
@@ -351,6 +392,11 @@ Index_read_tree(Index *self, PyObject *value)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(Index_write_tree__doc__,
+  "write_tree() -> str\n\n"
+  "Create a tree object from the index file, return its oid.");
+
 PyObject *
 Index_write_tree(Index *self)
 {
@@ -365,27 +411,17 @@ Index_write_tree(Index *self)
 }
 
 PyMethodDef Index_methods[] = {
-    {"add", (PyCFunction)Index_add, METH_VARARGS,
-     "Add or update an index entry from a file in disk."},
-    {"remove", (PyCFunction)Index_remove, METH_VARARGS,
-     "Removes an entry from index."},
-    {"clear", (PyCFunction)Index_clear, METH_NOARGS,
-     "Clear the contents (all the entries) of an index object."},
-    {"diff", (PyCFunction)Index_diff_tree, METH_VARARGS,
-     "Diff index to tree."},
-    {"_find", (PyCFunction)Index_find, METH_O,
-     "Find the first index of any entries which point to given path in the"
-     " Git index."},
-    {"read", (PyCFunction)Index_read, METH_NOARGS,
-     "Update the contents of an existing index object in memory by reading"
-     " from the hard disk."},
-    {"write", (PyCFunction)Index_write, METH_NOARGS,
-     "Write an existing index object from memory back to disk using an"
-     " atomic file lock."},
+    {"add", (PyCFunction)Index_add, METH_VARARGS, Index_add__doc__},
+    {"remove", (PyCFunction)Index_remove, METH_VARARGS, Index_remove__doc__},
+    {"clear", (PyCFunction)Index_clear, METH_NOARGS, Index_clear__doc__},
+    {"diff", (PyCFunction)Index_diff, METH_VARARGS, Index_diff__doc__},
+    {"_find", (PyCFunction)Index_find, METH_O, Index_find__doc__},
+    {"read", (PyCFunction)Index_read, METH_NOARGS, Index_read__doc__},
+    {"write", (PyCFunction)Index_write, METH_NOARGS, Index_write__doc__},
     {"read_tree", (PyCFunction)Index_read_tree, METH_O,
-     "Update the index file from the given tree object."},
+     Index_read_tree__doc__},
     {"write_tree", (PyCFunction)Index_write_tree, METH_NOARGS,
-     "Create a tree object from the index file, return its oid."},
+     Index_write_tree__doc__},
     {NULL}
 };
 
@@ -405,6 +441,8 @@ PyMappingMethods Index_as_mapping = {
     (binaryfunc)Index_getitem,       /* mp_subscript */
     (objobjargproc)Index_setitem,    /* mp_ass_subscript */
 };
+
+PyDoc_STRVAR(Index__doc__, "Index file.");
 
 PyTypeObject IndexType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -429,7 +467,7 @@ PyTypeObject IndexType = {
     Py_TPFLAGS_DEFAULT |
     Py_TPFLAGS_BASETYPE |
     Py_TPFLAGS_HAVE_GC,                        /* tp_flags          */
-    "Index file",                              /* tp_doc            */
+    Index__doc__,                              /* tp_doc            */
     (traverseproc)Index_traverse,              /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
@@ -507,11 +545,15 @@ IndexEntry_dealloc(IndexEntry *self)
     PyObject_Del(self);
 }
 
+PyDoc_STRVAR(IndexEntry_mode__doc__, "Mode.");
+
 PyObject *
 IndexEntry_get_mode(IndexEntry *self)
 {
     return PyInt_FromLong(self->entry->mode);
 }
+
+PyDoc_STRVAR(IndexEntry_path__doc__, "Path.");
 
 PyObject *
 IndexEntry_get_path(IndexEntry *self)
@@ -519,11 +561,15 @@ IndexEntry_get_path(IndexEntry *self)
     return to_path(self->entry->path);
 }
 
+PyDoc_STRVAR(IndexEntry_oid__doc__, "Object id.");
+
 PyObject *
 IndexEntry_get_oid(IndexEntry *self)
 {
     return git_oid_to_python(self->entry->oid.id);
 }
+
+PyDoc_STRVAR(IndexEntry_hex__doc__, "Hex id.");
 
 PyObject *
 IndexEntry_get_hex(IndexEntry *self)
@@ -532,12 +578,14 @@ IndexEntry_get_hex(IndexEntry *self)
 }
 
 PyGetSetDef IndexEntry_getseters[] = {
-    {"mode", (getter)IndexEntry_get_mode, NULL, "mode", NULL},
-    {"path", (getter)IndexEntry_get_path, NULL, "path", NULL},
-    {"oid", (getter)IndexEntry_get_oid, NULL, "object id",  NULL},
-    {"hex", (getter)IndexEntry_get_hex, NULL, "hex oid",  NULL},
+    {"mode", (getter)IndexEntry_get_mode, NULL, IndexEntry_mode__doc__, NULL},
+    {"path", (getter)IndexEntry_get_path, NULL, IndexEntry_path__doc__, NULL},
+    {"oid", (getter)IndexEntry_get_oid, NULL, IndexEntry_oid__doc__,  NULL},
+    {"hex", (getter)IndexEntry_get_hex, NULL, IndexEntry_hex__doc__,  NULL},
     {NULL},
 };
+
+PyDoc_STRVAR(IndexEntry__doc__, "Index entry.");
 
 PyTypeObject IndexEntryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -560,7 +608,7 @@ PyTypeObject IndexEntryType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
-    "Index entry",                             /* tp_doc            */
+    IndexEntry__doc__,                         /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */

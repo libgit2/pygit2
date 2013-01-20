@@ -24,3 +24,7 @@ The interface for a diff::
     Diff.changes          -- Dict of 'files' and 'hunks' for every change
     Diff.patch            -- a patch for every changeset
     Diff.merge            -- Merge two Diffs
+
+
+.. autoclass:: pygit2.Diff
+   :members:
