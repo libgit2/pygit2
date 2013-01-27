@@ -58,6 +58,11 @@ extern PyTypeObject RefLogEntryType;
 extern PyTypeObject SignatureType;
 
 
+
+PyDoc_STRVAR(init_repository__doc__,
+  "init_repository(path, bare) -> Repository\n\n"
+  "Creates a new Git repository in the given path.");
+
 PyObject *
 init_repository(PyObject *self, PyObject *args)
 {
@@ -86,6 +91,11 @@ init_repository(PyObject *self, PyObject *args)
     return NULL;
 };
 
+
+PyDoc_STRVAR(discover_repository__doc__,
+  "discover_repository(path[, across_fs[, ceiling_dirs]]) -> str\n\n"
+  "Look for a git repository and return its path.");
+
 PyObject *
 discover_repository(PyObject *self, PyObject *args)
 {
@@ -107,10 +117,9 @@ discover_repository(PyObject *self, PyObject *args)
 };
 
 PyMethodDef module_methods[] = {
-    {"init_repository", init_repository, METH_VARARGS,
-     "Creates a new Git repository in the given folder."},
+    {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
-     "Look for a git repository and return its path."},
+     discover_repository__doc__},
     {NULL}
 };
 

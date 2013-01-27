@@ -194,8 +194,12 @@ Repository_as_iter(Repository *self)
     return PyObject_GetIter(accum);
 }
 
+
+PyDoc_STRVAR(Repository_head__doc__,
+  "Current head reference of the repository.");
+
 PyObject *
-Repository_head(Repository *self)
+Repository_get_head(Repository *self)
 {
     git_reference *head;
     const git_oid *oid;
@@ -219,11 +223,9 @@ Repository_head(Repository *self)
 }
 
 
-PyDoc_STRVAR(
-  Repository_head_is_detached_doc,
-  "A repository's HEAD is detached when it points directly to a commit\n"
-  "instead of a branch.\n"
-);
+PyDoc_STRVAR(Repository_head_is_detached__doc__,
+  "A repository's HEAD is detached when it points directly to a commit "
+  "instead of a branch.");
 
 PyObject *
 Repository_head_is_detached(Repository *self)
@@ -235,11 +237,9 @@ Repository_head_is_detached(Repository *self)
 }
 
 
-PyDoc_STRVAR(
-  Repository_head_is_orphaned_doc,
-  "An orphan branch is one named from HEAD but which doesn't exist in\n"
-  "the refs namespace, because it doesn't have any commit to point to.\n"
-);
+PyDoc_STRVAR(Repository_head_is_orphaned__doc__,
+  "An orphan branch is one named from HEAD but which doesn't exist in the "
+  "refs namespace, because it doesn't have any commit to point to.");
 
 PyObject *
 Repository_head_is_orphaned(Repository *self)
@@ -251,10 +251,8 @@ Repository_head_is_orphaned(Repository *self)
 }
 
 
-PyDoc_STRVAR(
-  Repository_is_empty_doc,
-  "Check if a repository is empty\n"
-);
+PyDoc_STRVAR(Repository_is_empty__doc__,
+  "Check if a repository is empty.");
 
 PyObject *
 Repository_is_empty(Repository *self)
@@ -266,10 +264,8 @@ Repository_is_empty(Repository *self)
 }
 
 
-PyDoc_STRVAR(
-  Repository_is_bare_doc,
-  "Check if a repository is a bare repository.\n"
-);
+PyDoc_STRVAR(Repository_is_bare__doc__,
+  "Check if a repository is a bare repository.");
 
 PyObject *
 Repository_is_bare(Repository *self)
@@ -403,6 +399,9 @@ Repository_write(Repository *self, PyObject *args)
     return git_oid_to_python(oid.id);
 }
 
+
+PyDoc_STRVAR(Repository_index__doc__, "Index file.");
+
 PyObject *
 Repository_get_index(Repository *self, void *closure)
 {
@@ -434,11 +433,20 @@ Repository_get_index(Repository *self, void *closure)
     return self->index;
 }
 
+
+PyDoc_STRVAR(Repository_path__doc__,
+  "The normalized path to the git repository.");
+
 PyObject *
 Repository_get_path(Repository *self, void *closure)
 {
     return to_path(git_repository_path(self->repo));
 }
+
+
+PyDoc_STRVAR(Repository_workdir__doc__,
+  "The normalized path to the working directory of the repository. "
+  "If the repository is bare, None will be returned.");
 
 PyObject *
 Repository_get_workdir(Repository *self, void *closure)
@@ -451,6 +459,13 @@ Repository_get_workdir(Repository *self, void *closure)
 
     return to_path(c_path);
 }
+
+
+PyDoc_STRVAR(Repository_config__doc__,
+  "Get the configuration file for this repository.\n\n"
+  "If a configuration file has not been set, the default config set for the "
+  "repository will be returned, including global and system configurations "
+  "(if they are available).");
 
 PyObject *
 Repository_get_config(Repository *self, void *closure)
@@ -567,6 +582,12 @@ Repository_create_blob_fromfile(Repository *self, PyObject *args)
 
     return git_oid_to_python(oid.id);
 }
+
+
+PyDoc_STRVAR(Repository_create_commit__doc__,
+  "create_commit(reference, author, committer, message, tree, parents"
+  "[, encoding]) -> bytes\n\n"
+  "Create a new commit object, return its SHA.");
 
 PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
@@ -906,7 +927,7 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
 
 PyMethodDef Repository_methods[] = {
     {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
-     "Create a new commit object, return its SHA."},
+     Repository_create_commit__doc__},
     {"create_tag", (PyCFunction)Repository_create_tag, METH_VARARGS,
      "Create a new tag object, return its SHA."},
     {"walk", (PyCFunction)Repository_walk, METH_VARARGS,
@@ -948,27 +969,21 @@ PyMethodDef Repository_methods[] = {
 };
 
 PyGetSetDef Repository_getseters[] = {
-    {"index", (getter)Repository_get_index, NULL, "index file. ", NULL},
-    {"path", (getter)Repository_get_path, NULL,
-     "The normalized path to the git repository.", NULL},
-    {"head", (getter)Repository_head, NULL,
-      "Current head reference of the repository.", NULL},
+    {"index", (getter)Repository_get_index, NULL, Repository_index__doc__,
+     NULL},
+    {"path", (getter)Repository_get_path, NULL, Repository_path__doc__, NULL},
+    {"head", (getter)Repository_get_head, NULL, Repository_head__doc__, NULL},
     {"head_is_detached", (getter)Repository_head_is_detached, NULL,
-     Repository_head_is_detached_doc},
+     Repository_head_is_detached__doc__},
     {"head_is_orphaned", (getter)Repository_head_is_orphaned, NULL,
-     Repository_head_is_orphaned_doc},
+     Repository_head_is_orphaned__doc__},
     {"is_empty", (getter)Repository_is_empty, NULL,
-     Repository_is_empty_doc},
-    {"is_bare", (getter)Repository_is_bare, NULL,
-     Repository_is_bare_doc},
-    {"config", (getter)Repository_get_config, NULL,
-     "Get the configuration file for this repository.\n\n"
-     "If a configuration file has not been set, the default "
-     "config set for the repository will be returned, including "
-     "global and system configurations (if they are available).", NULL},
+     Repository_is_empty__doc__},
+    {"is_bare", (getter)Repository_is_bare, NULL, Repository_is_bare__doc__},
+    {"config", (getter)Repository_get_config, NULL, Repository_config__doc__,
+     NULL},
     {"workdir", (getter)Repository_get_workdir, NULL,
-     "The normalized path to the working directory of the repository. "
-     "If the repository is bare, None will be returned.", NULL},
+     Repository_workdir__doc__, NULL},
     {NULL}
 };
 
@@ -988,6 +1003,11 @@ PyMappingMethods Repository_as_mapping = {
     (binaryfunc)Repository_getitem,  /* mp_subscript */
     0,                               /* mp_ass_subscript */
 };
+
+
+PyDoc_STRVAR(Repository__doc__,
+    "Repository(path) -> Repository\n\n"
+    "Git repository.");
 
 PyTypeObject RepositoryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -1012,7 +1032,7 @@ PyTypeObject RepositoryType = {
     Py_TPFLAGS_DEFAULT |
     Py_TPFLAGS_BASETYPE |
     Py_TPFLAGS_HAVE_GC,                        /* tp_flags          */
-    "Git repository",                          /* tp_doc            */
+    Repository__doc__,                         /* tp_doc            */
     (traverseproc)Repository_traverse,         /* tp_traverse       */
     (inquiry)Repository_clear,                 /* tp_clear          */
     0,                                         /* tp_richcompare    */
