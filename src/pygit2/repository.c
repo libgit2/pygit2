@@ -339,6 +339,11 @@ Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
     return obj;
 }
 
+
+PyDoc_STRVAR(Repository_read__doc__,
+  "read(oid) -> type, data, size\n\n"
+  "Read raw object data from the repository.");
+
 PyObject *
 Repository_read(Repository *self, PyObject *py_hex)
 {
@@ -364,6 +369,13 @@ Repository_read(Repository *self, PyObject *py_hex)
     git_odb_object_free(obj);
     return tuple;
 }
+
+
+PyDoc_STRVAR(Repository_write__doc__,
+  "write(type, data) -> oid\n\n"
+  "Write raw object data into the repository. First arg is the object "
+  "type, the second one a buffer with data. Return the object id (sha) "
+  "of the created object.");
 
 PyObject *
 Repository_write(Repository *self, PyObject *args)
@@ -497,6 +509,11 @@ Repository_get_config(Repository *self, void *closure)
     Py_INCREF(self->config);
     return self->config;
 }
+
+
+PyDoc_STRVAR(Repository_walk__doc__,
+  "walk(oid, sort_mode) -> iterator\n\n"
+  "Generator that traverses the history starting from the given commit.");
 
 PyObject *
 Repository_walk(Repository *self, PyObject *args)
@@ -665,6 +682,11 @@ out:
     free(parents);
     return py_result;
 }
+
+
+PyDoc_STRVAR(Repository_create_tag__doc__,
+  "create_tag(name, oid, type, tagger, message) -> bytes\n\n"
+  "Create a new tag object, return its SHA.");
 
 PyObject *
 Repository_create_tag(Repository *self, PyObject *args)
@@ -929,15 +951,12 @@ PyMethodDef Repository_methods[] = {
     {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
      Repository_create_commit__doc__},
     {"create_tag", (PyCFunction)Repository_create_tag, METH_VARARGS,
-     "Create a new tag object, return its SHA."},
+     Repository_create_tag__doc__},
     {"walk", (PyCFunction)Repository_walk, METH_VARARGS,
-     "Generator that traverses the history starting from the given commit."},
-    {"read", (PyCFunction)Repository_read, METH_O,
-     "Read raw object data from the repository."},
+     Repository_walk__doc__},
+    {"read", (PyCFunction)Repository_read, METH_O, Repository_read__doc__},
     {"write", (PyCFunction)Repository_write, METH_VARARGS,
-     "Write raw object data into the repository. First arg is the object\n"
-     "type, the second one a buffer with data. Return the object id (sha)\n"
-     "of the created object."},
+     Repository_write__doc__},
     {"listall_references", (PyCFunction)Repository_listall_references,
       METH_VARARGS,
       "Return a list with all the references in the repository."},
