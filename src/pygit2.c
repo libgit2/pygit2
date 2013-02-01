@@ -238,6 +238,7 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_REF_OID", GIT_REF_OID);
     PyModule_AddIntConstant(m, "GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
     PyModule_AddIntConstant(m, "GIT_REF_PACKED", GIT_REF_PACKED);
+    PyModule_AddIntConstant(m, "GIT_REF_LISTALL", GIT_REF_LISTALL);
 
     /* Git status flags */
     PyModule_AddIntConstant(m, "GIT_STATUS_CURRENT", GIT_STATUS_CURRENT);

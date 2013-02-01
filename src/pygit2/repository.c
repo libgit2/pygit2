@@ -290,6 +290,13 @@ Repository_getitem(Repository *self, PyObject *value)
     return lookup_object_prefix(self, &oid, len, GIT_OBJ_ANY);
 }
 
+
+PyDoc_STRVAR(Repository_revparse_single__doc__,
+  "revparse_single(revision) -> Object\n\n"
+  "Find an object, as specified by a revision string. See "
+  "`man gitrevisions`, or the documentation for `git rev-parse` for "
+  "information on the syntax accepted.");
+
 PyObject *
 Repository_revparse_single(Repository *self, PyObject *py_spec)
 {
@@ -563,39 +570,42 @@ Repository_walk(Repository *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Repository_create_blob__doc__,
+  "create_blob(data) -> bytes\n\n"
+  "Create a new blob from memory.");
+
 PyObject *
-Repository_create_blob(Repository *self, PyObject *args)
+Repository_create_blob(Repository *self, PyObject *data)
 {
     git_oid oid;
-    const char* raw;
+    char *raw;
     Py_ssize_t size;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s#", &raw, &size))
-      return NULL;
+    if (PyString_AsStringAndSize(data, &raw, &size))
+        return NULL;
 
     err = git_blob_create_frombuffer(&oid, self->repo, (const void*)raw, size);
-
     if (err < 0)
-      return Error_set(err);
+        return Error_set(err);
 
     return git_oid_to_python(oid.id);
 }
 
 PyObject *
-Repository_create_blob_fromfile(Repository *self, PyObject *args)
+Repository_create_blob_fromfile(Repository *self, PyObject *py_path)
 {
     git_oid oid;
     const char* path;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s", &path))
-      return NULL;
+    path = PyString_AsString(py_path);
+    if (path == NULL)
+        return NULL;
 
     err = git_blob_create_fromworkdir(&oid, self->repo, path);
-
     if (err < 0)
-      return Error_set(err);
+        return Error_set(err);
 
     return git_oid_to_python(oid.id);
 }
@@ -720,6 +730,11 @@ Repository_create_tag(Repository *self, PyObject *args)
     return git_oid_to_python(oid.id);
 }
 
+
+PyDoc_STRVAR(Repository_listall_references__doc__,
+  "listall_references([flags]) -> (str, ...)\n\n"
+  "Return a tuple with all the references in the repository.");
+
 PyObject *
 Repository_listall_references(Repository *self, PyObject *args)
 {
@@ -757,6 +772,11 @@ out:
     git_strarray_free(&c_result);
     return py_result;
 }
+
+
+PyDoc_STRVAR(Repository_lookup_reference__doc__,
+  "lookup_reference(name) -> Reference\n\n"
+  "Lookup a reference by its name in a repository.");
 
 PyObject *
 Repository_lookup_reference(Repository *self, PyObject *py_name)
@@ -958,19 +978,15 @@ PyMethodDef Repository_methods[] = {
     {"write", (PyCFunction)Repository_write, METH_VARARGS,
      Repository_write__doc__},
     {"listall_references", (PyCFunction)Repository_listall_references,
-      METH_VARARGS,
-      "Return a list with all the references in the repository."},
+      METH_VARARGS, Repository_listall_references__doc__},
     {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
-       "Lookup a reference by its name in a repository."},
+     Repository_lookup_reference__doc__},
     {"revparse_single", (PyCFunction)Repository_revparse_single, METH_O,
-     "Find an object, as specified by a revision string. See "
-     "`man gitrevisions`, or the documentation for `git rev-parse` for "
-     "information on the syntax accepted."},
-    {"create_blob", (PyCFunction)Repository_create_blob,
-     METH_VARARGS,
-     "Create a new blob from memory"},
+     Repository_revparse_single__doc__},
+    {"create_blob", (PyCFunction)Repository_create_blob, METH_O,
+     Repository_create_blob__doc__},
     {"create_blob_fromfile", (PyCFunction)Repository_create_blob_fromfile,
-     METH_VARARGS,
+     METH_O,
      "Create a new blob from file"},
     {"create_reference", (PyCFunction)Repository_create_reference,
      METH_VARARGS|METH_KEYWORDS,
