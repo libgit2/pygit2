@@ -51,6 +51,7 @@
 #if PY_MAJOR_VERSION == 2
   #define to_path(x) to_bytes(x)
   #define to_encoding(x) to_bytes(x)
+  #define PyLong_FromSize_t PyInt_FromSize_t
 #else
   #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
