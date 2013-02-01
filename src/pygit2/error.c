@@ -50,6 +50,10 @@ PyObject * Error_type(int type)
         case GIT_EBUFS:
             return PyExc_ValueError;
 
+        /** Invalid input spec */
+        case GIT_EINVALIDSPEC:
+            return PyExc_ValueError;
+
         /** Skip and passthrough the given ODB backend */
         case GIT_PASSTHROUGH:
             return GitError;
@@ -79,17 +83,7 @@ PyObject* Error_set(int err)
 {
     assert(err < 0);
 
-    if(err != GIT_ERROR) { //expected failure
-        PyErr_SetNone(Error_type(err));
-    } else { //critical failure
-        const git_error* error = giterr_last();
-        char* message = (error == NULL) ?
-                "(No error information given)" : error->message;
-
-        PyErr_SetString(Error_type(err), message);
-    }
-
-    return NULL;
+    return Error_set_exc(Error_type(err));
 }
 
 PyObject* Error_set_exc(PyObject* exception)
