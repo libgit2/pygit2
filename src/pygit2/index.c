@@ -169,17 +169,18 @@ PyObject *
 Index_find(Index *self, PyObject *py_path)
 {
     char *path;
-    long idx;
+    size_t idx;
+    int err;
 
     path = PyString_AsString(py_path);
     if (!path)
         return NULL;
 
-    idx = (long)git_index_find(self->index, path);
-    if (idx < 0)
-        return Error_set_str(idx, path);
+    err = git_index_find(&idx, self->index, path);
+    if (err < 0)
+        return Error_set_str(err, path);
 
-    return PyInt_FromLong(idx);
+    return PyLong_FromSize_t(idx);
 }
 
 
@@ -219,35 +220,39 @@ Index_write(Index *self)
 }
 
 /* This is an internal function, used by Index_getitem and Index_setitem */
-int
+size_t
 Index_get_position(Index *self, PyObject *value)
 {
     char *path;
-    int idx;
+    size_t idx;
+    int err;
 
     /* Case 1: integer */
     if (PyInt_Check(value)) {
-        idx = (int)PyInt_AsLong(value);
-        if (idx == -1 && PyErr_Occurred())
+        err = (int)PyInt_AsLong(value);
+        if (err == -1 && PyErr_Occurred())
             return -1;
-        if (idx < 0) {
+        if (err < 0) {
             PyErr_SetObject(PyExc_ValueError, value);
             return -1;
         }
-        return idx;
+        return err;
     }
 
     /* Case 2: byte or text string */
     path = py_path_to_c_str(value);
     if (!path)
         return -1;
-    idx = git_index_find(self->index, path);
-    if (idx < 0) {
-        Error_set_str(idx, path);
+
+    err = git_index_find(&idx, self->index, path);
+    if (err < 0) {
+        Error_set_str(err, path);
         free(path);
         return -1;
     }
+
     free(path);
+
     return idx;
 }
 
@@ -255,18 +260,18 @@ int
 Index_contains(Index *self, PyObject *value)
 {
     char *path;
-    int idx;
+    int err;
 
     path = py_path_to_c_str(value);
     if (!path)
         return -1;
-    idx = git_index_find(self->index, path);
-    if (idx == GIT_ENOTFOUND) {
+    err = git_index_find(NULL, self->index, path);
+    if (err == GIT_ENOTFOUND) {
         free(path);
         return 0;
     }
-    if (idx < 0) {
-        Error_set_str(idx, path);
+    if (err < 0) {
+        Error_set_str(err, path);
         free(path);
         return -1;
     }
