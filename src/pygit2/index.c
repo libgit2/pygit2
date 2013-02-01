@@ -260,18 +260,18 @@ int
 Index_contains(Index *self, PyObject *value)
 {
     char *path;
-    int idx;
+    int err;
 
     path = py_path_to_c_str(value);
     if (!path)
         return -1;
-    idx = git_index_find(NULL, self->index, path);
-    if (idx == GIT_ENOTFOUND) {
+    err = git_index_find(NULL, self->index, path);
+    if (err == GIT_ENOTFOUND) {
         free(path);
         return 0;
     }
-    if (idx < 0) {
-        Error_set_str(idx, path);
+    if (err < 0) {
+        Error_set_str(err, path);
         free(path);
         return -1;
     }
