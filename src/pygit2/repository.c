@@ -593,14 +593,13 @@ Repository_create_blob(Repository *self, PyObject *data)
 }
 
 PyObject *
-Repository_create_blob_fromfile(Repository *self, PyObject *py_path)
+Repository_create_blob_fromfile(Repository *self, PyObject *args)
 {
     git_oid oid;
     const char* path;
     int err;
 
-    path = PyString_AsString(py_path);
-    if (path == NULL)
+    if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
 
     err = git_blob_create_fromworkdir(&oid, self->repo, path);
@@ -986,7 +985,7 @@ PyMethodDef Repository_methods[] = {
     {"create_blob", (PyCFunction)Repository_create_blob, METH_O,
      Repository_create_blob__doc__},
     {"create_blob_fromfile", (PyCFunction)Repository_create_blob_fromfile,
-     METH_O,
+     METH_VARARGS,
      "Create a new blob from file"},
     {"create_reference", (PyCFunction)Repository_create_reference,
      METH_VARARGS|METH_KEYWORDS,
