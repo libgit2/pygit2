@@ -48,6 +48,10 @@ Object_dealloc(Object* self)
     PyObject_Del(self);
 }
 
+
+PyDoc_STRVAR(Object_get_oid__doc__,
+  "The object id, a byte string 20 bytes long.");
+
 PyObject *
 Object_get_oid(Object *self)
 {
@@ -58,6 +62,10 @@ Object_get_oid(Object *self)
 
     return git_oid_to_python(oid->id);
 }
+
+
+PyDoc_STRVAR(Object_get_hex__doc__,
+  "Hexadecimal representation of the object id, a text string 40 chars long.");
 
 PyObject *
 Object_get_hex(Object *self)
@@ -70,11 +78,20 @@ Object_get_hex(Object *self)
     return git_oid_to_py_str(oid);
 }
 
+
+PyDoc_STRVAR(Object_get_type__doc__,
+  "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or GIT_OBJ_TAG "
+  "constants.");
+
 PyObject *
 Object_get_type(Object *self)
 {
     return PyInt_FromLong(git_object_type(self->obj));
 }
+
+
+PyDoc_STRVAR(Object_read_raw__doc__,
+  "Returns the byte string with the raw contents of the of the object.");
 
 PyObject *
 Object_read_raw(Object *self)
@@ -99,28 +116,24 @@ Object_read_raw(Object *self)
 }
 
 PyGetSetDef Object_getseters[] = {
-    {"oid", (getter)Object_get_oid, NULL,
-     "The object id, a byte string 20 bytes long.", NULL},
-    {"hex", (getter)Object_get_hex, NULL,
-     "Hexadecimal representation of the object id, a text string 40 chars "
-     "long.",
-     NULL},
-    {"type", (getter)Object_get_type, NULL,
-     "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or "
-     "GIT_OBJ_TAG constants.",
-     NULL},
+    {"oid", (getter)Object_get_oid, NULL, Object_get_oid__doc__, NULL},
+    {"hex", (getter)Object_get_hex, NULL, Object_get_hex__doc__, NULL},
+    {"type", (getter)Object_get_type, NULL, Object_get_type__doc__, NULL},
     {NULL}
 };
 
 PyMethodDef Object_methods[] = {
     {"read_raw", (PyCFunction)Object_read_raw, METH_NOARGS,
-     "Returns the byte string with the raw contents of the of the object."},
+     Object_read_raw__doc__},
     {NULL}
 };
 
+
+PyDoc_STRVAR(Object__doc__, "Base class for Git objects.");
+
 PyTypeObject ObjectType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Object",                           /* tp_name           */
+    "_pygit2.Object",                          /* tp_name           */
     sizeof(Object),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Object_dealloc,                /* tp_dealloc        */
@@ -139,7 +152,7 @@ PyTypeObject ObjectType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "Object objects",                          /* tp_doc            */
+    Object__doc__,                             /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
