@@ -592,6 +592,11 @@ Repository_create_blob(Repository *self, PyObject *args)
     return git_oid_to_python(oid.id);
 }
 
+
+PyDoc_STRVAR(Repository_create_blob_fromfile__doc__,
+  "create_blob_fromfile(path) -> bytes\n\n"
+  "Create a new blob from file.");
+
 PyObject *
 Repository_create_blob_fromfile(Repository *self, PyObject *args)
 {
@@ -801,21 +806,29 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     return wrap_reference(c_reference);
 }
 
-PyDoc_STRVAR(
-  Repository_create_reference_doc,
-  "Create a new reference \"name\" which points to a object or another reference\n\n"
-  "Arguments: (name, source, force=False, symbolic=False)\n\n"
-  "With force=True references will be overridden. Otherwise an exception is raised"
-  "You can create either a normal reference or a symbolic one:\n"
-  "  * normal reference: source has to be a valid sha hash\n"
-  "  * symbolic reference: source has to be a valid existing reference name\n\n"
-  "Examples:\n"
-  "   repo.create_reference('refs/heads/foo', repo.head.hex)\n"
-  "   repo.create_reference('refs/tags/foo', 'refs/heads/master', symbolic = True)\n"
-);
+PyDoc_STRVAR(Repository_create_reference__doc__,
+  "create_reference(name, source, force=False, symbolic=False) -> Reference\n"
+  "\n"
+  "Create a new reference \"name\" which points to a object or another "
+  "reference\n"
+  "\n"
+  "Keyword arguments:\n"
+  "\n"
+  "force -- if True references will be overridden, otherwise (the default)"
+  "         an exception is raised.\n"
+  "\n"
+  "symbolic -- if True a symbolic reference will be created, then source has"
+  "            to be a valid existing reference name; if False (the default)"
+  "            a normal reference will be created, then source must has to be"
+  "            a valid SHA hash.\n"
+  "\n"
+  "Examples::\n"
+  "\n"
+  "  repo.create_reference('refs/heads/foo', repo.head.hex)\n"
+  "  repo.create_reference('refs/tags/foo', 'refs/heads/master', symbolic=True)\n");
 
 PyObject *
-Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
+Repository_create_reference(Repository *self,  PyObject *args, PyObject *kw)
 {
     PyObject *py_obj;
     git_reference *c_reference;
@@ -825,7 +838,7 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
 
     static char *kwlist[] = {"name", "source", "force", "symbolic", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "sO|ii", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ii", kwlist,
                                      &c_name, &py_obj, &force, &symbolic))
         return NULL;
 
@@ -856,19 +869,27 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds)
 }
 
 
+PyDoc_STRVAR(Repository_packall_references__doc__,
+   "packall_references()\n\n"
+   "Pack all the loose references in the repository.");
+
 PyObject *
-Repository_packall_references(Repository *self,  PyObject *args)
+Repository_packall_references(Repository *self, PyObject *args)
 {
     int err;
 
-    /* 1- Pack */
     err = git_reference_packall(self->repo);
     if (err < 0)
         return Error_set(err);
 
-    /* 2- Return None */
     Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Repository_status__doc__,
+  "status() -> {str: int}\n\n"
+  "Reads the status of the repository and returns a dictionary with file "
+  "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.");
 
 int
 read_status_cb(const char *path, unsigned int status_flags, void *payload)
@@ -894,6 +915,11 @@ Repository_status(Repository *self, PyObject *args)
     return payload_dict;
 }
 
+
+PyDoc_STRVAR(Repository_status_file__doc__,
+  "status_file(path) -> int\n\n"
+  "Returns the status of the given file path.");
+
 PyObject *
 Repository_status_file(Repository *self, PyObject *value)
 {
@@ -913,6 +939,11 @@ Repository_status_file(Repository *self, PyObject *value)
     }
     return PyInt_FromLong(status);
 }
+
+
+PyDoc_STRVAR(Repository_TreeBuilder__doc__,
+  "TreeBuilder([tree]) -> TreeBuilder\n\n"
+  "Create a TreeBuilder object for this repository.");
 
 PyObject *
 Repository_TreeBuilder(Repository *self, PyObject *args)
@@ -985,20 +1016,17 @@ PyMethodDef Repository_methods[] = {
     {"create_blob", (PyCFunction)Repository_create_blob, METH_VARARGS,
      Repository_create_blob__doc__},
     {"create_blob_fromfile", (PyCFunction)Repository_create_blob_fromfile,
-     METH_VARARGS,
-     "Create a new blob from file"},
+     METH_VARARGS, Repository_create_blob_fromfile__doc__},
     {"create_reference", (PyCFunction)Repository_create_reference,
-     METH_VARARGS|METH_KEYWORDS,
-     Repository_create_reference_doc},
+     METH_VARARGS|METH_KEYWORDS, Repository_create_reference__doc__},
     {"packall_references", (PyCFunction)Repository_packall_references,
-     METH_NOARGS, "Pack all the loose references in the repository."},
-    {"status", (PyCFunction)Repository_status, METH_NOARGS, "Reads the "
-     "status of the repository and returns a dictionary with file paths "
-     "as keys and status flags as values.\nSee pygit2.GIT_STATUS_*."},
+     METH_NOARGS, Repository_packall_references__doc__},
+    {"status", (PyCFunction)Repository_status, METH_NOARGS,
+     Repository_status__doc__},
     {"status_file", (PyCFunction)Repository_status_file, METH_O,
-     "Returns the status of the given file path."},
+     Repository_status_file__doc__},
     {"TreeBuilder", (PyCFunction)Repository_TreeBuilder, METH_VARARGS,
-     "Create a TreeBuilder object for this repository."},
+     Repository_TreeBuilder__doc__},
     {NULL}
 };
 
@@ -1045,7 +1073,7 @@ PyDoc_STRVAR(Repository__doc__,
 
 PyTypeObject RepositoryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Repository",                       /* tp_name           */
+    "_pygit2.Repository",                      /* tp_name           */
     sizeof(Repository),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Repository_dealloc,            /* tp_dealloc        */

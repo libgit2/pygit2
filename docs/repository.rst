@@ -16,11 +16,10 @@ The repository
 
 .. autoclass:: pygit2.Repository
    :members: path, workdir, is_bare, is_empty, revparse_single, read, write,
-             create_blob, create_blob_fromfile, create_commit,
-             create_reference, create_tag, TreeBuilder, walk,
-             listall_references, lookup_reference, packall_references, head,
-             head_is_detached, head_is_orphaned, index, status, status_file,
-             config
+             create_blob, create_blob_fromfile, create_commit, create_tag,
+             TreeBuilder, walk, create_reference, listall_references,
+             lookup_reference, packall_references, head, head_is_detached,
+             head_is_orphaned, index, status, status_file, config
 
    To open an existing repository::
 
