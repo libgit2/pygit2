@@ -575,14 +575,14 @@ PyDoc_STRVAR(Repository_create_blob__doc__,
   "Create a new blob from memory.");
 
 PyObject *
-Repository_create_blob(Repository *self, PyObject *data)
+Repository_create_blob(Repository *self, PyObject *args)
 {
     git_oid oid;
-    char *raw;
+    const char *raw;
     Py_ssize_t size;
     int err;
 
-    if (PyString_AsStringAndSize(data, &raw, &size))
+    if (!PyArg_ParseTuple(args, "s#", &raw, &size))
         return NULL;
 
     err = git_blob_create_frombuffer(&oid, self->repo, (const void*)raw, size);
@@ -982,7 +982,7 @@ PyMethodDef Repository_methods[] = {
      Repository_lookup_reference__doc__},
     {"revparse_single", (PyCFunction)Repository_revparse_single, METH_O,
      Repository_revparse_single__doc__},
-    {"create_blob", (PyCFunction)Repository_create_blob, METH_O,
+    {"create_blob", (PyCFunction)Repository_create_blob, METH_VARARGS,
      Repository_create_blob__doc__},
     {"create_blob_fromfile", (PyCFunction)Repository_create_blob_fromfile,
      METH_VARARGS,
