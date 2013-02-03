@@ -49,11 +49,11 @@ Object_dealloc(Object* self)
 }
 
 
-PyDoc_STRVAR(Object_get_oid__doc__,
+PyDoc_STRVAR(Object_oid__doc__,
   "The object id, a byte string 20 bytes long.");
 
 PyObject *
-Object_get_oid(Object *self)
+Object_oid__get__(Object *self)
 {
     const git_oid *oid;
 
@@ -64,11 +64,11 @@ Object_get_oid(Object *self)
 }
 
 
-PyDoc_STRVAR(Object_get_hex__doc__,
+PyDoc_STRVAR(Object_hex__doc__,
   "Hexadecimal representation of the object id, a text string 40 chars long.");
 
 PyObject *
-Object_get_hex(Object *self)
+Object_hex__get__(Object *self)
 {
     const git_oid *oid;
 
@@ -79,12 +79,12 @@ Object_get_hex(Object *self)
 }
 
 
-PyDoc_STRVAR(Object_get_type__doc__,
+PyDoc_STRVAR(Object_type__doc__,
   "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or GIT_OBJ_TAG "
   "constants.");
 
 PyObject *
-Object_get_type(Object *self)
+Object_type__get__(Object *self)
 {
     return PyInt_FromLong(git_object_type(self->obj));
 }
@@ -116,15 +116,14 @@ Object_read_raw(Object *self)
 }
 
 PyGetSetDef Object_getseters[] = {
-    {"oid", (getter)Object_get_oid, NULL, Object_get_oid__doc__, NULL},
-    {"hex", (getter)Object_get_hex, NULL, Object_get_hex__doc__, NULL},
-    {"type", (getter)Object_get_type, NULL, Object_get_type__doc__, NULL},
+    GETTER(Object, oid),
+    GETTER(Object, hex),
+    GETTER(Object, type),
     {NULL}
 };
 
 PyMethodDef Object_methods[] = {
-    {"read_raw", (PyCFunction)Object_read_raw, METH_NOARGS,
-     Object_read_raw__doc__},
+    METHOD(Object, read_raw, METH_NOARGS),
     {NULL}
 };
 

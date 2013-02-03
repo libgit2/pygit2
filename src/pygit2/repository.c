@@ -199,7 +199,7 @@ PyDoc_STRVAR(Repository_head__doc__,
   "Current head reference of the repository.");
 
 PyObject *
-Repository_get_head(Repository *self)
+Repository_head__get__(Repository *self)
 {
     git_reference *head;
     const git_oid *oid;
@@ -228,7 +228,7 @@ PyDoc_STRVAR(Repository_head_is_detached__doc__,
   "instead of a branch.");
 
 PyObject *
-Repository_head_is_detached(Repository *self)
+Repository_head_is_detached__get__(Repository *self)
 {
     if (git_repository_head_detached(self->repo) > 0)
         Py_RETURN_TRUE;
@@ -242,7 +242,7 @@ PyDoc_STRVAR(Repository_head_is_orphaned__doc__,
   "refs namespace, because it doesn't have any commit to point to.");
 
 PyObject *
-Repository_head_is_orphaned(Repository *self)
+Repository_head_is_orphaned__get__(Repository *self)
 {
     if (git_repository_head_orphan(self->repo) > 0)
         Py_RETURN_TRUE;
@@ -255,7 +255,7 @@ PyDoc_STRVAR(Repository_is_empty__doc__,
   "Check if a repository is empty.");
 
 PyObject *
-Repository_is_empty(Repository *self)
+Repository_is_empty__get__(Repository *self)
 {
     if (git_repository_is_empty(self->repo) > 0)
         Py_RETURN_TRUE;
@@ -268,7 +268,7 @@ PyDoc_STRVAR(Repository_is_bare__doc__,
   "Check if a repository is a bare repository.");
 
 PyObject *
-Repository_is_bare(Repository *self)
+Repository_is_bare__get__(Repository *self)
 {
     if (git_repository_is_bare(self->repo) > 0)
         Py_RETURN_TRUE;
@@ -422,7 +422,7 @@ Repository_write(Repository *self, PyObject *args)
 PyDoc_STRVAR(Repository_index__doc__, "Index file.");
 
 PyObject *
-Repository_get_index(Repository *self, void *closure)
+Repository_index__get__(Repository *self, void *closure)
 {
     int err;
     git_index *index;
@@ -457,7 +457,7 @@ PyDoc_STRVAR(Repository_path__doc__,
   "The normalized path to the git repository.");
 
 PyObject *
-Repository_get_path(Repository *self, void *closure)
+Repository_path__get__(Repository *self, void *closure)
 {
     return to_path(git_repository_path(self->repo));
 }
@@ -468,7 +468,7 @@ PyDoc_STRVAR(Repository_workdir__doc__,
   "If the repository is bare, None will be returned.");
 
 PyObject *
-Repository_get_workdir(Repository *self, void *closure)
+Repository_workdir__get__(Repository *self, void *closure)
 {
     const char *c_path;
 
@@ -487,7 +487,7 @@ PyDoc_STRVAR(Repository_config__doc__,
   "(if they are available).");
 
 PyObject *
-Repository_get_config(Repository *self, void *closure)
+Repository_config__get__(Repository *self, void *closure)
 {
     int err;
     git_config *config;
@@ -998,54 +998,34 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
 }
 
 PyMethodDef Repository_methods[] = {
-    {"create_commit", (PyCFunction)Repository_create_commit, METH_VARARGS,
-     Repository_create_commit__doc__},
-    {"create_tag", (PyCFunction)Repository_create_tag, METH_VARARGS,
-     Repository_create_tag__doc__},
-    {"walk", (PyCFunction)Repository_walk, METH_VARARGS,
-     Repository_walk__doc__},
-    {"read", (PyCFunction)Repository_read, METH_O, Repository_read__doc__},
-    {"write", (PyCFunction)Repository_write, METH_VARARGS,
-     Repository_write__doc__},
-    {"listall_references", (PyCFunction)Repository_listall_references,
-      METH_VARARGS, Repository_listall_references__doc__},
-    {"lookup_reference", (PyCFunction)Repository_lookup_reference, METH_O,
-     Repository_lookup_reference__doc__},
-    {"revparse_single", (PyCFunction)Repository_revparse_single, METH_O,
-     Repository_revparse_single__doc__},
-    {"create_blob", (PyCFunction)Repository_create_blob, METH_VARARGS,
-     Repository_create_blob__doc__},
-    {"create_blob_fromfile", (PyCFunction)Repository_create_blob_fromfile,
-     METH_VARARGS, Repository_create_blob_fromfile__doc__},
-    {"create_reference", (PyCFunction)Repository_create_reference,
-     METH_VARARGS|METH_KEYWORDS, Repository_create_reference__doc__},
-    {"packall_references", (PyCFunction)Repository_packall_references,
-     METH_NOARGS, Repository_packall_references__doc__},
-    {"status", (PyCFunction)Repository_status, METH_NOARGS,
-     Repository_status__doc__},
-    {"status_file", (PyCFunction)Repository_status_file, METH_O,
-     Repository_status_file__doc__},
-    {"TreeBuilder", (PyCFunction)Repository_TreeBuilder, METH_VARARGS,
-     Repository_TreeBuilder__doc__},
+    METHOD(Repository, create_blob, METH_VARARGS),
+    METHOD(Repository, create_blob_fromfile, METH_VARARGS),
+    METHOD(Repository, create_commit, METH_VARARGS),
+    METHOD(Repository, create_tag, METH_VARARGS),
+    METHOD(Repository, TreeBuilder, METH_VARARGS),
+    METHOD(Repository, walk, METH_VARARGS),
+    METHOD(Repository, read, METH_O),
+    METHOD(Repository, write, METH_VARARGS),
+    METHOD(Repository, create_reference, METH_VARARGS|METH_KEYWORDS),
+    METHOD(Repository, listall_references, METH_VARARGS),
+    METHOD(Repository, lookup_reference, METH_O),
+    METHOD(Repository, packall_references, METH_NOARGS),
+    METHOD(Repository, revparse_single, METH_O),
+    METHOD(Repository, status, METH_NOARGS),
+    METHOD(Repository, status_file, METH_O),
     {NULL}
 };
 
 PyGetSetDef Repository_getseters[] = {
-    {"index", (getter)Repository_get_index, NULL, Repository_index__doc__,
-     NULL},
-    {"path", (getter)Repository_get_path, NULL, Repository_path__doc__, NULL},
-    {"head", (getter)Repository_get_head, NULL, Repository_head__doc__, NULL},
-    {"head_is_detached", (getter)Repository_head_is_detached, NULL,
-     Repository_head_is_detached__doc__},
-    {"head_is_orphaned", (getter)Repository_head_is_orphaned, NULL,
-     Repository_head_is_orphaned__doc__},
-    {"is_empty", (getter)Repository_is_empty, NULL,
-     Repository_is_empty__doc__},
-    {"is_bare", (getter)Repository_is_bare, NULL, Repository_is_bare__doc__},
-    {"config", (getter)Repository_get_config, NULL, Repository_config__doc__,
-     NULL},
-    {"workdir", (getter)Repository_get_workdir, NULL,
-     Repository_workdir__doc__, NULL},
+    GETTER(Repository, index),
+    GETTER(Repository, path),
+    GETTER(Repository, head),
+    GETTER(Repository, head_is_detached),
+    GETTER(Repository, head_is_orphaned),
+    GETTER(Repository, is_empty),
+    GETTER(Repository, is_bare),
+    GETTER(Repository, config),
+    GETTER(Repository, workdir),
     {NULL}
 };
 

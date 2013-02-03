@@ -46,8 +46,7 @@ Index_init(Index *self, PyObject *args, PyObject *kwds)
     int err;
 
     if (kwds) {
-        PyErr_SetString(PyExc_TypeError,
-                        "Index takes no keyword arguments");
+        PyErr_SetString(PyExc_TypeError, "Index takes no keyword arguments");
         return -1;
     }
 
@@ -79,6 +78,7 @@ Index_traverse(Index *self, visitproc visit, void *arg)
     return 0;
 }
 
+
 PyDoc_STRVAR(Index_add__doc__,
   "add(path)\n\n"
   "Add or update an index entry from a file in disk.");
@@ -98,6 +98,7 @@ Index_add(Index *self, PyObject *args)
 
     Py_RETURN_NONE;
 }
+
 
 PyDoc_STRVAR(Index_clear__doc__,
   "clear()\n\n"
@@ -160,13 +161,14 @@ Index_diff(Index *self, PyObject *args)
     return (PyObject*)py_diff;
 }
 
-PyDoc_STRVAR(Index_find__doc__,
+
+PyDoc_STRVAR(Index__find__doc__,
   "_find(path) -> integer\n\n"
   "Find the first index of any entries which point to given path in the "
   "index file.");
 
 PyObject *
-Index_find(Index *self, PyObject *py_path)
+Index__find(Index *self, PyObject *py_path)
 {
     char *path;
     size_t idx;
@@ -416,17 +418,15 @@ Index_write_tree(Index *self)
 }
 
 PyMethodDef Index_methods[] = {
-    {"add", (PyCFunction)Index_add, METH_VARARGS, Index_add__doc__},
-    {"remove", (PyCFunction)Index_remove, METH_VARARGS, Index_remove__doc__},
-    {"clear", (PyCFunction)Index_clear, METH_NOARGS, Index_clear__doc__},
-    {"diff", (PyCFunction)Index_diff, METH_VARARGS, Index_diff__doc__},
-    {"_find", (PyCFunction)Index_find, METH_O, Index_find__doc__},
-    {"read", (PyCFunction)Index_read, METH_NOARGS, Index_read__doc__},
-    {"write", (PyCFunction)Index_write, METH_NOARGS, Index_write__doc__},
-    {"read_tree", (PyCFunction)Index_read_tree, METH_O,
-     Index_read_tree__doc__},
-    {"write_tree", (PyCFunction)Index_write_tree, METH_NOARGS,
-     Index_write_tree__doc__},
+    METHOD(Index, add, METH_VARARGS),
+    METHOD(Index, remove, METH_VARARGS),
+    METHOD(Index, clear, METH_NOARGS),
+    METHOD(Index, diff, METH_VARARGS),
+    METHOD(Index, _find, METH_O),
+    METHOD(Index, read, METH_NOARGS),
+    METHOD(Index, write, METH_NOARGS),
+    METHOD(Index, read_tree, METH_O),
+    METHOD(Index, write_tree, METH_NOARGS),
     {NULL}
 };
 
@@ -550,43 +550,47 @@ IndexEntry_dealloc(IndexEntry *self)
     PyObject_Del(self);
 }
 
+
 PyDoc_STRVAR(IndexEntry_mode__doc__, "Mode.");
 
 PyObject *
-IndexEntry_get_mode(IndexEntry *self)
+IndexEntry_mode__get__(IndexEntry *self)
 {
     return PyInt_FromLong(self->entry->mode);
 }
 
+
 PyDoc_STRVAR(IndexEntry_path__doc__, "Path.");
 
 PyObject *
-IndexEntry_get_path(IndexEntry *self)
+IndexEntry_path__get__(IndexEntry *self)
 {
     return to_path(self->entry->path);
 }
 
+
 PyDoc_STRVAR(IndexEntry_oid__doc__, "Object id.");
 
 PyObject *
-IndexEntry_get_oid(IndexEntry *self)
+IndexEntry_oid__get__(IndexEntry *self)
 {
     return git_oid_to_python(self->entry->oid.id);
 }
 
+
 PyDoc_STRVAR(IndexEntry_hex__doc__, "Hex id.");
 
 PyObject *
-IndexEntry_get_hex(IndexEntry *self)
+IndexEntry_hex__get__(IndexEntry *self)
 {
     return git_oid_to_py_str(&self->entry->oid);
 }
 
 PyGetSetDef IndexEntry_getseters[] = {
-    {"mode", (getter)IndexEntry_get_mode, NULL, IndexEntry_mode__doc__, NULL},
-    {"path", (getter)IndexEntry_get_path, NULL, IndexEntry_path__doc__, NULL},
-    {"oid", (getter)IndexEntry_get_oid, NULL, IndexEntry_oid__doc__,  NULL},
-    {"hex", (getter)IndexEntry_get_hex, NULL, IndexEntry_hex__doc__,  NULL},
+    GETTER(IndexEntry, mode),
+    GETTER(IndexEntry, path),
+    GETTER(IndexEntry, oid),
+    GETTER(IndexEntry, hex),
     {NULL},
 };
 

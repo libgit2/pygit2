@@ -96,7 +96,10 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 
 
-/* Helpers to make shorter PyGetSetDef blocks */
+/* Helpers to make shorter PyMethodDef and PyGetSetDef blocks */
+#define METHOD(type, name, args)\
+  {#name, (PyCFunction) type ## _ ## name, args, type ## _ ## name ## __doc__}
+
 #define GETTER(type, attr)\
   {#attr, (getter) type ## _ ## attr ## __get__, NULL,\
    type ## _ ## attr ## __doc__, NULL}
