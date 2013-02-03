@@ -95,4 +95,11 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 
+
+/* Helpers to make shorter PyGetSetDef blocks */
+#define GETTER(type, attr)\
+  {#attr, (getter) type ## _ ## attr ## __get__, NULL,\
+   type ## _ ## attr ## __doc__, NULL}
+
+
 #endif

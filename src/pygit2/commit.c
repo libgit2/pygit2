@@ -34,8 +34,11 @@
 
 extern PyTypeObject TreeType;
 
+
+PyDoc_STRVAR(Commit_message_encoding__doc__, "Message encoding.");
+
 PyObject *
-Commit_get_message_encoding(Commit *commit)
+Commit_message_encoding__get__(Commit *commit)
 {
     const char *encoding;
 
@@ -46,8 +49,11 @@ Commit_get_message_encoding(Commit *commit)
     return to_encoding(encoding);
 }
 
+
+PyDoc_STRVAR(Commit_message__doc__, "The commit message, a text string.");
+
 PyObject *
-Commit_get_message(Commit *commit)
+Commit_message__get__(Commit *commit)
 {
     const char *message, *encoding;
 
@@ -56,26 +62,38 @@ Commit_get_message(Commit *commit)
     return to_unicode(message, encoding, "strict");
 }
 
+
+PyDoc_STRVAR(Commit__message__doc__, "Message (bytes).");
+
 PyObject *
-Commit_get_raw_message(Commit *commit)
+Commit__message__get__(Commit *commit)
 {
     return PyString_FromString(git_commit_message(commit->commit));
 }
 
+
+PyDoc_STRVAR(Commit_commit_time__doc__, "Commit time.");
+
 PyObject *
-Commit_get_commit_time(Commit *commit)
+Commit_commit_time__get__(Commit *commit)
 {
     return PyLong_FromLong(git_commit_time(commit->commit));
 }
 
+
+PyDoc_STRVAR(Commit_commit_time_offset__doc__, "Commit time offset.");
+
 PyObject *
-Commit_get_commit_time_offset(Commit *commit)
+Commit_commit_time_offset__get__(Commit *commit)
 {
     return PyLong_FromLong(git_commit_time_offset(commit->commit));
 }
 
+
+PyDoc_STRVAR(Commit_committer__doc__, "The committer of the commit.");
+
 PyObject *
-Commit_get_committer(Commit *self)
+Commit_committer__get__(Commit *self)
 {
     const git_signature *signature;
     const char *encoding;
@@ -86,8 +104,11 @@ Commit_get_committer(Commit *self)
     return build_signature((Object*)self, signature, encoding);
 }
 
+
+PyDoc_STRVAR(Commit_author__doc__, "The author of the commit.");
+
 PyObject *
-Commit_get_author(Commit *self)
+Commit_author__get__(Commit *self)
 {
     const git_signature *signature;
     const char *encoding;
@@ -98,8 +119,11 @@ Commit_get_author(Commit *self)
     return build_signature((Object*)self, signature, encoding);
 }
 
+
+PyDoc_STRVAR(Commit_tree__doc__, "The tree object attached to the commit.");
+
 PyObject *
-Commit_get_tree(Commit *commit)
+Commit_tree__get__(Commit *commit)
 {
     git_tree *tree;
     Tree *py_tree;
@@ -121,8 +145,11 @@ Commit_get_tree(Commit *commit)
     return (PyObject*)py_tree;
 }
 
+
+PyDoc_STRVAR(Commit_parents__doc__, "The list of parent commits.");
+
 PyObject *
-Commit_get_parents(Commit *commit)
+Commit_parents__get__(Commit *commit)
 {
     unsigned int i, parent_count;
     const git_oid *parent_oid;
@@ -154,30 +181,24 @@ Commit_get_parents(Commit *commit)
 }
 
 PyGetSetDef Commit_getseters[] = {
-    {"message_encoding", (getter)Commit_get_message_encoding, NULL,
-     "message encoding", NULL},
-    {"message", (getter)Commit_get_message, NULL,
-     "The commit message, a text string.", NULL},
-    {"_message", (getter)Commit_get_raw_message, NULL, "message (bytes)",
-     NULL},
-    {"commit_time", (getter)Commit_get_commit_time, NULL, "commit time",
-     NULL},
-    {"commit_time_offset", (getter)Commit_get_commit_time_offset, NULL,
-     "commit time offset", NULL},
-    {"committer", (getter)Commit_get_committer, NULL,
-     "The committer of the commit.", NULL},
-    {"author", (getter)Commit_get_author, NULL,
-     "The author of the commit.", NULL},
-    {"tree", (getter)Commit_get_tree, NULL,
-     "The tree object attached to the commit.", NULL},
-    {"parents", (getter)Commit_get_parents, NULL,
-     "The list of parent commits.", NULL},
+    GETTER(Commit, message_encoding),
+    GETTER(Commit, message),
+    GETTER(Commit, _message),
+    GETTER(Commit, commit_time),
+    GETTER(Commit, commit_time_offset),
+    GETTER(Commit, committer),
+    GETTER(Commit, author),
+    GETTER(Commit, tree),
+    GETTER(Commit, parents),
     {NULL}
 };
 
+
+PyDoc_STRVAR(Commit__doc__, "Commit objects.");
+
 PyTypeObject CommitType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Commit",                           /* tp_name           */
+    "_pygit2.Commit",                          /* tp_name           */
     sizeof(Commit),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -196,7 +217,7 @@ PyTypeObject CommitType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "Commit objects",                          /* tp_doc            */
+    Commit__doc__,                             /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
