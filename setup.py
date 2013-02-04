@@ -57,10 +57,8 @@ if libgit2_path is None:
 libgit2_bin = os.path.join(libgit2_path, 'bin')
 libgit2_include = os.path.join(libgit2_path, 'include')
 libgit2_lib = os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib'))
-pygit2_exts = [os.path.join('src', 'pygit2.c')] + [
-                os.path.join('src', 'pygit2', entry)
-                for entry in os.listdir('src/pygit2')
-                if entry.endswith('.c')]
+pygit2_exts = [ os.path.join('src', name) for name in os.listdir('src')
+                if name.endswith('.c') ]
 
 class TestCommand(Command):
     """Command for running unittests without install."""
