@@ -513,35 +513,37 @@ IndexIter_iternext(IndexIter *self)
     return wrap_index_entry(index_entry, self->owner);
 }
 
+
+PyDoc_STRVAR(IndexIter__doc__, "Index iterator.");
+
 PyTypeObject IndexIterType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.IndexIter",                      /* tp_name           */
-    sizeof(IndexIter),                       /* tp_basicsize      */
-    0,                                       /* tp_itemsize       */
-    (destructor)IndexIter_dealloc ,          /* tp_dealloc        */
-    0,                                       /* tp_print          */
-    0,                                       /* tp_getattr        */
-    0,                                       /* tp_setattr        */
-    0,                                       /* tp_compare        */
-    0,                                       /* tp_repr           */
-    0,                                       /* tp_as_number      */
-    0,                                       /* tp_as_sequence    */
-    0,                                       /* tp_as_mapping     */
-    0,                                       /* tp_hash           */
-    0,                                       /* tp_call           */
-    0,                                       /* tp_str            */
-    PyObject_GenericGetAttr,                 /* tp_getattro       */
-    0,                                       /* tp_setattro       */
-    0,                                       /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT |
-    Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
-    0,                                       /* tp_doc            */
-    0,                                       /* tp_traverse       */
-    0,                                       /* tp_clear          */
-    0,                                       /* tp_richcompare    */
-    0,                                       /* tp_weaklistoffset */
-    PyObject_SelfIter,                       /* tp_iter           */
-    (iternextfunc)IndexIter_iternext,        /* tp_iternext       */
+    "_pygit2.IndexIter",                       /* tp_name           */
+    sizeof(IndexIter),                         /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)IndexIter_dealloc ,            /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    PyObject_GenericGetAttr,                   /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    IndexIter__doc__,                          /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    PyObject_SelfIter,                         /* tp_iter           */
+    (iternextfunc)IndexIter_iternext,          /* tp_iternext       */
 };
 
 void

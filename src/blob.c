@@ -31,22 +31,31 @@
 #include <pygit2/object.h>
 #include <pygit2/blob.h>
 
+
+PyDoc_STRVAR(Blob_size__doc__, "Size.");
+
 PyObject *
-Blob_get_size(Blob *self)
+Blob_size__get__(Blob *self)
 {
     return PyInt_FromLong(git_blob_rawsize(self->blob));
 }
 
 
+PyDoc_STRVAR(Blob_data__doc__,
+  "Raw data. This is the same as Blob.read_raw()");
+
 PyGetSetDef Blob_getseters[] = {
-    {"data", (getter)Object_read_raw, NULL, "raw data", NULL},
-    {"size", (getter)Blob_get_size, NULL, "size", NULL},
+    GETTER(Blob, size),
+    {"data", (getter)Object_read_raw, NULL, Blob_data__doc__, NULL},
     {NULL}
 };
 
+
+PyDoc_STRVAR(Blob__doc__, "Blob objects.");
+
 PyTypeObject BlobType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Blob",                             /* tp_name           */
+    "_pygit2.Blob",                            /* tp_name           */
     sizeof(Blob),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -65,7 +74,7 @@ PyTypeObject BlobType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "Blob objects",                            /* tp_doc            */
+    Blob__doc__,                               /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
@@ -84,4 +93,3 @@ PyTypeObject BlobType = {
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
-

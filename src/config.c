@@ -98,6 +98,11 @@ Config_open(char *c_path) {
     return (PyObject *)config;
 }
 
+
+PyDoc_STRVAR(Config_get_global_config__doc__,
+  "get_global_config() -> Config\n\n"
+  "Return an object representing the global configuration file.");
+
 PyObject *
 Config_get_global_config(void)
 {
@@ -115,6 +120,11 @@ Config_get_global_config(void)
 
     return Config_open(path);
 }
+
+
+PyDoc_STRVAR(Config_get_system_config__doc__,
+  "get_system_config() -> Config\n\n"
+  "Return an object representing the system configuration file.");
 
 PyObject *
 Config_get_system_config(void)
@@ -254,6 +264,15 @@ Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
     return c_result;
 }
 
+
+PyDoc_STRVAR(Config_foreach__doc__,
+  "foreach(callback[, payload]) -> int\n\n"
+  "Perform an operation on each config variable.\n\n"
+  "The callback must be of type Callable and receives the normalized name "
+  "and value of each variable in the config backend, and an optional payload "
+  "passed to this method. As soon as one of the callbacks returns an integer "
+  "other than 0, this function returns that value.");
+
 PyObject *
 Config_foreach(Config *self, PyObject *args)
 {
@@ -261,13 +280,12 @@ Config_foreach(Config *self, PyObject *args)
     PyObject *py_callback;
     PyObject *py_payload;
 
-
     if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
         return NULL;
 
-
     if (!PyCallable_Check(py_callback)) {
-        PyErr_SetString(PyExc_TypeError,"Argument 'callback' is not callable");
+        PyErr_SetString(PyExc_TypeError,
+                        "Argument 'callback' is not callable");
         return NULL;
     }
 
@@ -276,6 +294,11 @@ Config_foreach(Config *self, PyObject *args)
 
     return PyInt_FromLong((long)ret);
 }
+
+
+PyDoc_STRVAR(Config_add_file__doc__,
+  "add_file(path, level=0, force=0)\n\n"
+  "Add a config file instance to an existing config.");
 
 PyObject *
 Config_add_file(Config *self, PyObject *args, PyObject *kwds)
@@ -286,9 +309,8 @@ Config_add_file(Config *self, PyObject *args, PyObject *kwds)
     unsigned int level = 0;
     int force = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwds, "s|Ii", keywords,
-            &path, &level, &force))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|Ii", keywords,
+                                     &path, &level, &force))
         return NULL;
 
     err = git_config_add_file_ondisk(self->config, path, level, force);
@@ -299,6 +321,13 @@ Config_add_file(Config *self, PyObject *args, PyObject *kwds)
 
     Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Config_get_multivar__doc__,
+  "get_multivar(name[, regex]) -> [str, ...]\n\n"
+  "Get each value of a multivar ''name'' as a list. The optional ''regex'' "
+  "parameter is expected to be a regular expression to filter the variables "
+  " we're interested in.");
 
 int
 Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
@@ -325,8 +354,10 @@ Config_get_multivar(Config *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|s", &name, &regex))
         return NULL;
 
-    if ((err = git_config_get_multivar(self->config, name, regex,
-            Config_get_multivar_fn_wrapper, (void *)list)) < 0) {
+    err = git_config_get_multivar(self->config, name, regex,
+                                  Config_get_multivar_fn_wrapper,
+                                  (void *)list);
+    if (err  < 0) {
         if (err == GIT_ENOTFOUND)
             Error_set(err);
         else
@@ -336,6 +367,12 @@ Config_get_multivar(Config *self, PyObject *args)
 
     return list;
 }
+
+
+PyDoc_STRVAR(Config_set_multivar__doc__,
+  "set_multivar(name, regex, value)\n\n"
+  "Set a multivar ''name'' to ''value''. ''regexp'' is a regular expression "
+  "to indicate which values to replace");
 
 PyObject *
 Config_set_multivar(Config *self, PyObject *args)
@@ -347,7 +384,9 @@ Config_set_multivar(Config *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "sss", &name, &regex, &value))
         return NULL;
-    if ((err = git_config_set_multivar(self->config, name, regex, value)) < 0) {
+
+    err = git_config_set_multivar(self->config, name, regex, value);
+    if (err < 0) {
         if (err == GIT_ENOTFOUND)
             Error_set(err);
         else
@@ -359,27 +398,12 @@ Config_set_multivar(Config *self, PyObject *args)
 }
 
 PyMethodDef Config_methods[] = {
-    {"get_system_config", (PyCFunction)Config_get_system_config,
-     METH_NOARGS | METH_STATIC,
-     "Return an object representing the system configuration file."},
-    {"get_global_config", (PyCFunction)Config_get_global_config,
-     METH_NOARGS | METH_STATIC,
-     "Return an object representing the global configuration file."},
-    {"foreach", (PyCFunction)Config_foreach, METH_VARARGS,
-     "Perform an operation on each config variable.\n\n"
-     "The callback must be of type Callable and receives the normalized name "
-     "and value of each variable in the config backend, and an optional "
-     "payload passed to this method. As soon as one of the callbacks returns "
-     "an integer other than 0, this function returns that value."},
-    {"add_file", (PyCFunction)Config_add_file, METH_VARARGS | METH_KEYWORDS,
-     "Add a config file instance to an existing config."},
-    {"get_multivar", (PyCFunction)Config_get_multivar, METH_VARARGS,
-     "Get each value of a multivar ''name'' as a list. The optional ''regex'' "
-     "parameter is expected to be a regular expression to filter the which "
-     "variables we're interested in."},
-    {"set_multivar", (PyCFunction)Config_set_multivar, METH_VARARGS,
-     "Set a multivar ''name'' to ''value''. ''regexp'' is a regular expression "
-     "to indicate which values to replace"},
+    METHOD(Config, get_system_config, METH_NOARGS | METH_STATIC),
+    METHOD(Config, get_global_config, METH_NOARGS | METH_STATIC),
+    METHOD(Config, foreach, METH_VARARGS),
+    METHOD(Config, add_file, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Config, get_multivar, METH_VARARGS),
+    METHOD(Config, set_multivar, METH_VARARGS),
     {NULL}
 };
 
@@ -399,6 +423,9 @@ PyMappingMethods Config_as_mapping = {
     (binaryfunc)Config_getitem,      /* mp_subscript */
     (objobjargproc)Config_setitem,   /* mp_ass_subscript */
 };
+
+
+PyDoc_STRVAR(Config__doc__, "Configuration management.");
 
 PyTypeObject ConfigType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -420,9 +447,8 @@ PyTypeObject ConfigType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT |
-    Py_TPFLAGS_HAVE_GC,                        /* tp_flags          */
-    "Configuration management",                /* tp_doc            */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,   /* tp_flags          */
+    Config__doc__,                             /* tp_doc            */
     (traverseproc)Config_traverse,             /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */

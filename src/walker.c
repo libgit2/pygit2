@@ -43,6 +43,11 @@ Walker_dealloc(Walker *self)
     PyObject_Del(self);
 }
 
+
+PyDoc_STRVAR(Walker_hide__doc__,
+  "hide(oid)\n\n"
+  "Mark a commit (and its ancestors) uninteresting for the output.");
+
 PyObject *
 Walker_hide(Walker *self, PyObject *py_hex)
 {
@@ -50,7 +55,6 @@ Walker_hide(Walker *self, PyObject *py_hex)
     git_oid oid;
 
     err = py_str_to_git_oid_expand(self->repo->repo, py_hex, &oid);
-
     if (err < 0)
         return Error_set(err);
 
@@ -60,6 +64,11 @@ Walker_hide(Walker *self, PyObject *py_hex)
 
     Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Walker_push__doc__,
+  "push(oid)\n\n"
+  "Mark a commit to start traversal from.");
 
 PyObject *
 Walker_push(Walker *self, PyObject *py_hex)
@@ -78,6 +87,11 @@ Walker_push(Walker *self, PyObject *py_hex)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(Walker_sort__doc__,
+  "sort(mode)\n\n"
+  "Change the sorting mode (this resets the walker).");
+
 PyObject *
 Walker_sort(Walker *self, PyObject *py_sort_mode)
 {
@@ -91,6 +105,11 @@ Walker_sort(Walker *self, PyObject *py_sort_mode)
 
     Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Walker_reset__doc__,
+  "reset()\n\n"
+  "Reset the walking machinery for reuse.");
 
 PyObject *
 Walker_reset(Walker *self)
@@ -132,16 +151,15 @@ Walker_iternext(Walker *self)
 }
 
 PyMethodDef Walker_methods[] = {
-    {"hide", (PyCFunction)Walker_hide, METH_O,
-     "Mark a commit (and its ancestors) uninteresting for the output."},
-    {"push", (PyCFunction)Walker_push, METH_O,
-     "Mark a commit to start traversal from."},
-    {"reset", (PyCFunction)Walker_reset, METH_NOARGS,
-     "Reset the walking machinery for reuse."},
-    {"sort", (PyCFunction)Walker_sort, METH_O,
-     "Change the sorting mode (this resets the walker)."},
+    METHOD(Walker, hide, METH_O),
+    METHOD(Walker, push, METH_O),
+    METHOD(Walker, reset, METH_NOARGS),
+    METHOD(Walker, sort, METH_O),
     {NULL}
 };
+
+
+PyDoc_STRVAR(Walker__doc__, "Revision walker.");
 
 PyTypeObject WalkerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -164,7 +182,7 @@ PyTypeObject WalkerType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
-    "Revision walker",                         /* tp_doc            */
+    Walker__doc__,                             /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */

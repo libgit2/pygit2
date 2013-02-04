@@ -116,7 +116,7 @@ typedef struct {
     PyObject *oid_old;
     PyObject *oid_new;
     PyObject *committer;
-    char *msg;
+    char *message;
 } RefLogEntry;
 
 typedef struct {

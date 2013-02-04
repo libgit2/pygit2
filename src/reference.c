@@ -51,17 +51,16 @@ void RefLogIter_dealloc(RefLogIter *self)
 PyObject* RefLogIter_iternext(PyObject *self)
 {
     RefLogIter *p = (RefLogIter *) self;
+    const git_reflog_entry *entry;
+    char oid_old[40], oid_new[40];
 
     if (p->i < p->size) {
-        char oid_old[40], oid_new[40];
         RefLogEntry *py_entry;
         git_signature *signature;
 
-        const git_reflog_entry *entry = git_reflog_entry_byindex(p->reflog, p->i);
-
-        py_entry = (RefLogEntry*) PyType_GenericNew(
-                        &RefLogEntryType, NULL, NULL
-                    );
+        entry = git_reflog_entry_byindex(p->reflog, p->i);
+        py_entry = (RefLogEntry*) PyType_GenericNew(&RefLogEntryType, NULL,
+                                                    NULL);
 
         git_oid_fmt(oid_old, git_reflog_entry_id_old(entry));
         git_oid_fmt(oid_new, git_reflog_entry_id_new(entry));
@@ -69,7 +68,7 @@ PyObject* RefLogIter_iternext(PyObject *self)
         py_entry->oid_new = PyUnicode_FromStringAndSize(oid_new, 40);
         py_entry->oid_old = PyUnicode_FromStringAndSize(oid_old, 40);
 
-        py_entry->msg = strdup(git_reflog_entry_message(entry));
+        py_entry->message = strdup(git_reflog_entry_message(entry));
 
         signature = git_signature_dup(
               git_reflog_entry_committer(entry)
@@ -90,37 +89,37 @@ PyObject* RefLogIter_iternext(PyObject *self)
     return NULL;
 }
 
+
+PyDoc_STRVAR(RefLogIterType__doc__, "Internal reflog iterator object.");
+
 PyTypeObject RefLogIterType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_libgit2.RefLogIter",            /*tp_name*/
-    sizeof(RefLogIter),       /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    (destructor)RefLogIter_dealloc,     /* tp_dealloc        */
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    0,                         /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT |
-    Py_TPFLAGS_BASETYPE,                     /* tp_flags          */
-      /* tp_flags: Py_TPFLAGS_HAVE_ITER tells python to
-         use tp_iter and tp_iternext fields. */
-    "Internal reflog iterator object.",           /* tp_doc */
-    0,  /* tp_traverse */
-    0,  /* tp_clear */
-    0,  /* tp_richcompare */
-    0,  /* tp_weaklistoffset */
-    PyObject_SelfIter,  /* tp_iter: __iter__() method */
-    (iternextfunc) RefLogIter_iternext  /* tp_iternext: next() method */
+    "_libgit2.RefLogIter",                     /* tp_name           */
+    sizeof(RefLogIter),                        /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)RefLogIter_dealloc,            /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    RefLogIterType__doc__,                     /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    PyObject_SelfIter,                         /* tp_iter           */
+    (iternextfunc)RefLogIter_iternext          /* tp_iternext       */
 };
 
 void
@@ -129,6 +128,11 @@ Reference_dealloc(Reference *self)
     git_reference_free(self->reference);
     PyObject_Del(self);
 }
+
+
+PyDoc_STRVAR(Reference_delete__doc__,
+  "delete()\n\n"
+  "Delete this reference. It will no longer be valid!");
 
 PyObject *
 Reference_delete(Reference *self, PyObject *args)
@@ -143,8 +147,13 @@ Reference_delete(Reference *self, PyObject *args)
         return Error_set(err);
 
     self->reference = NULL; /* Invalidate the pointer */
-    Py_RETURN_NONE;         /* Return None */
+    Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Reference_rename__doc__,
+  "rename(new_name)\n\n"
+  "Rename the reference.");
 
 PyObject *
 Reference_rename(Reference *self, PyObject *py_name)
@@ -165,8 +174,13 @@ Reference_rename(Reference *self, PyObject *py_name)
     if (err < 0)
         return Error_set(err);
 
-    Py_RETURN_NONE; /* Return None */
+    Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Reference_reload__doc__,
+  "reload()\n\n"
+  "Reload the reference from the file-system.");
 
 PyObject *
 Reference_reload(Reference *self)
@@ -184,6 +198,10 @@ Reference_reload(Reference *self)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(Reference_resolve__doc__,
+  "resolve() -> Reference\n\n"
+  "Resolve a symbolic reference and return a direct reference.");
 
 PyObject *
 Reference_resolve(Reference *self, PyObject *args)
@@ -212,8 +230,11 @@ Reference_resolve(Reference *self, PyObject *args)
     return wrap_reference(c_reference);
 }
 
+
+PyDoc_STRVAR(Reference_target__doc__, "Target.");
+
 PyObject *
-Reference_get_target(Reference *self)
+Reference_target__get__(Reference *self)
 {
     const char * c_name;
 
@@ -235,7 +256,7 @@ Reference_get_target(Reference *self)
 }
 
 int
-Reference_set_target(Reference *self, PyObject *py_name)
+Reference_target__set__(Reference *self, PyObject *py_name)
 {
     char *c_name;
     int err;
@@ -258,15 +279,21 @@ Reference_set_target(Reference *self, PyObject *py_name)
     return 0;
 }
 
+
+PyDoc_STRVAR(Reference_name__doc__, "The full name of a reference.");
+
 PyObject *
-Reference_get_name(Reference *self)
+Reference_name__get__(Reference *self)
 {
     CHECK_REFERENCE(self);
     return to_path(git_reference_name(self->reference));
 }
 
+
+PyDoc_STRVAR(Reference_oid__doc__, "Object id.");
+
 PyObject *
-Reference_get_oid(Reference *self)
+Reference_oid__get__(Reference *self)
 {
     const git_oid *oid;
 
@@ -286,7 +313,7 @@ Reference_get_oid(Reference *self)
 }
 
 int
-Reference_set_oid(Reference *self, PyObject *py_hex)
+Reference_oid__set__(Reference *self, PyObject *py_hex)
 {
     git_oid oid;
     int err;
@@ -294,7 +321,8 @@ Reference_set_oid(Reference *self, PyObject *py_hex)
     CHECK_REFERENCE_INT(self);
 
     /* Get the oid */
-    err = py_str_to_git_oid_expand(git_reference_owner(self->reference), py_hex, &oid);
+    err = py_str_to_git_oid_expand(git_reference_owner(self->reference),
+                                                       py_hex, &oid);
     if (err < 0) {
         Error_set(err);
         return -1;
@@ -310,8 +338,11 @@ Reference_set_oid(Reference *self, PyObject *py_hex)
     return 0;
 }
 
+
+PyDoc_STRVAR(Reference_hex__doc__, "Hex oid.");
+
 PyObject *
-Reference_get_hex(Reference *self)
+Reference_hex__get__(Reference *self)
 {
     const git_oid *oid;
 
@@ -330,8 +361,12 @@ Reference_get_hex(Reference *self)
     return git_oid_to_py_str(oid);
 }
 
+
+PyDoc_STRVAR(Reference_type__doc__,
+  "Type (GIT_REF_OID, GIT_REF_SYMBOLIC or GIT_REF_PACKED).");
+
 PyObject *
-Reference_get_type(Reference *self)
+Reference_type__get__(Reference *self)
 {
     git_ref_t c_type;
 
@@ -339,6 +374,11 @@ Reference_get_type(Reference *self)
     c_type = git_reference_type(self->reference);
     return PyInt_FromLong(c_type);
 }
+
+
+PyDoc_STRVAR(Reference_log__doc__,
+  "log() -> RefLogIter\n\n"
+  "Retrieves the current reference log.");
 
 PyObject *
 Reference_log(Reference *self)
@@ -365,7 +405,7 @@ RefLogEntry_init(RefLogEntry *self, PyObject *args, PyObject *kwds)
 {
     self->oid_old = Py_None;
     self->oid_new = Py_None;
-    self->msg = "";
+    self->message = "";
     self->committer = Py_None;
 
     return 0;
@@ -378,24 +418,27 @@ RefLogEntry_dealloc(RefLogEntry *self)
     Py_XDECREF(self->oid_old);
     Py_XDECREF(self->oid_new);
     Py_XDECREF(self->committer);
-    free(self->msg);
+    free(self->message);
     PyObject_Del(self);
 }
 
 PyMemberDef RefLogEntry_members[] = {
-    {"oid_new", T_OBJECT, offsetof(RefLogEntry, oid_new), 0, "new oid"},
-    {"oid_old", T_OBJECT, offsetof(RefLogEntry, oid_old), 0, "old oid"},
-    {"message",  T_STRING, offsetof(RefLogEntry, msg), 0, "message"},
-    {"committer",  T_OBJECT, offsetof(RefLogEntry, committer), 0, "committer"},
+    MEMBER(RefLogEntry, oid_new, T_OBJECT, "New oid."),
+    MEMBER(RefLogEntry, oid_old, T_OBJECT, "Old oid."),
+    MEMBER(RefLogEntry, message, T_STRING, "Message."),
+    MEMBER(RefLogEntry, committer, T_OBJECT, "Committer."),
     {NULL}
 };
 
+
+PyDoc_STRVAR(RefLogEntry__doc__, "Reference log object.");
+
 PyTypeObject RefLogEntryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.RefLogEntry",               /* tp_name           */
-    sizeof(RefLogEntry),                 /* tp_basicsize      */
+    "_pygit2.RefLogEntry",                     /* tp_name           */
+    sizeof(RefLogEntry),                       /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    (destructor)RefLogEntry_dealloc,     /* tp_dealloc        */
+    (destructor)RefLogEntry_dealloc,           /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
@@ -411,7 +454,7 @@ PyTypeObject RefLogEntryType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
-    "ReferenceLog object",                     /* tp_doc            */
+    RefLogEntry__doc__,                        /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
@@ -419,48 +462,42 @@ PyTypeObject RefLogEntryType = {
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
-    RefLogEntry_members,                 /* tp_members        */
+    RefLogEntry_members,                       /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    (initproc)RefLogEntry_init,          /* tp_init           */
+    (initproc)RefLogEntry_init,                /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
 
 PyMethodDef Reference_methods[] = {
-    {"delete", (PyCFunction)Reference_delete, METH_NOARGS,
-     "Delete this reference. It will no longer be valid!"},
-    {"rename", (PyCFunction)Reference_rename, METH_O,
-      "Rename the reference."},
-    {"reload", (PyCFunction)Reference_reload, METH_NOARGS,
-     "Reload the reference from the file-system."},
-    {"resolve", (PyCFunction)Reference_resolve, METH_NOARGS,
-      "Resolve a symbolic reference and return a direct reference."},
-    {"log", (PyCFunction)Reference_log, METH_NOARGS,
-      "Retrieves the current reference log."},
+    METHOD(Reference, delete, METH_NOARGS),
+    METHOD(Reference, rename, METH_O),
+    METHOD(Reference, reload, METH_NOARGS),
+    METHOD(Reference, resolve, METH_NOARGS),
+    METHOD(Reference, log, METH_NOARGS),
     {NULL}
 };
 
 PyGetSetDef Reference_getseters[] = {
-    {"name", (getter)Reference_get_name, NULL,
-     "The full name of a reference.", NULL},
-    {"oid", (getter)Reference_get_oid, (setter)Reference_set_oid, "object id",
-     NULL},
-    {"hex", (getter)Reference_get_hex, NULL, "hex oid", NULL},
-    {"target", (getter)Reference_get_target, (setter)Reference_set_target,
-     "target", NULL},
-    {"type", (getter)Reference_get_type, NULL,
-     "type (GIT_REF_OID, GIT_REF_SYMBOLIC or GIT_REF_PACKED).", NULL},
+    GETTER(Reference, name),
+    GETSET(Reference, oid),
+    GETTER(Reference, hex),
+    GETSET(Reference, target),
+    GETTER(Reference, type),
     {NULL}
 };
 
+
+PyDoc_STRVAR(Reference__doc__, "Reference.");
+
 PyTypeObject ReferenceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Reference",                        /* tp_name           */
+    "_pygit2.Reference",                       /* tp_name           */
     sizeof(Reference),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Reference_dealloc,             /* tp_dealloc        */
@@ -479,7 +516,7 @@ PyTypeObject ReferenceType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
-    "Reference",                               /* tp_doc            */
+    Reference__doc__,                          /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */

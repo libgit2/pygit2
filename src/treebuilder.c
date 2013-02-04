@@ -42,6 +42,11 @@ TreeBuilder_dealloc(TreeBuilder *self)
     PyObject_Del(self);
 }
 
+
+PyDoc_STRVAR(TreeBuilder_insert__doc__,
+  "insert(name, oid, attr)\n\n"
+  "Insert or replace an entry in the treebuilder.");
+
 PyObject *
 TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 {
@@ -68,6 +73,11 @@ TreeBuilder_insert(TreeBuilder *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(TreeBuilder_write__doc__,
+  "write() -> bytes\n\n"
+  "Write the tree to the given repository.");
+
 PyObject *
 TreeBuilder_write(TreeBuilder *self)
 {
@@ -80,6 +90,11 @@ TreeBuilder_write(TreeBuilder *self)
 
     return git_oid_to_python(&oid);
 }
+
+
+PyDoc_STRVAR(TreeBuilder_remove__doc__,
+  "remove(name)\n\n"
+  "Remove an entry from the builder.");
 
 PyObject *
 TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
@@ -98,6 +113,11 @@ TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(TreeBuilder_clear__doc__,
+  "clear()\n\n"
+  "Clear all the entries in the builder.");
+
 PyObject *
 TreeBuilder_clear(TreeBuilder *self)
 {
@@ -106,16 +126,15 @@ TreeBuilder_clear(TreeBuilder *self)
 }
 
 PyMethodDef TreeBuilder_methods[] = {
-    {"insert", (PyCFunction)TreeBuilder_insert, METH_VARARGS,
-     "Insert or replace an entry in the treebuilder"},
-    {"write", (PyCFunction)TreeBuilder_write, METH_NOARGS,
-     "Write the tree to the given repository"},
-    {"remove", (PyCFunction)TreeBuilder_remove, METH_O,
-     "Remove an entry from the builder"},
-    {"clear", (PyCFunction)TreeBuilder_clear, METH_NOARGS,
-     "Clear all the entries in the builder"},
-    {NULL, NULL, 0, NULL}
+    METHOD(TreeBuilder, insert, METH_VARARGS),
+    METHOD(TreeBuilder, write, METH_NOARGS),
+    METHOD(TreeBuilder, remove, METH_O),
+    METHOD(TreeBuilder, clear, METH_NOARGS),
+    {NULL}
 };
+
+
+PyDoc_STRVAR(TreeBuilder__doc__, "TreeBuilder objects");
 
 PyTypeObject TreeBuilderType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -138,7 +157,7 @@ PyTypeObject TreeBuilderType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "TreeBuilder objects",                     /* tp_doc            */
+    TreeBuilder__doc__,                        /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */

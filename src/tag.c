@@ -34,8 +34,11 @@
 #include <pygit2/oid.h>
 #include <pygit2/tag.h>
 
+
+PyDoc_STRVAR(Tag_target__doc__, "Tagged object.");
+
 PyObject *
-Tag_get_target(Tag *self)
+Tag_target__get__(Tag *self)
 {
     const git_oid *oid;
 
@@ -43,8 +46,11 @@ Tag_get_target(Tag *self)
     return git_oid_to_python(oid->id);
 }
 
+
+PyDoc_STRVAR(Tag_name__doc__, "Tag name.");
+
 PyObject *
-Tag_get_name(Tag *self)
+Tag_name__get__(Tag *self)
 {
     const char *name;
     name = git_tag_name(self->tag);
@@ -53,8 +59,11 @@ Tag_get_name(Tag *self)
     return to_unicode(name, "utf-8", "strict");
 }
 
+
+PyDoc_STRVAR(Tag_tagger__doc__, "Tagger.");
+
 PyObject *
-Tag_get_tagger(Tag *self)
+Tag_tagger__get__(Tag *self)
 {
     const git_signature *signature = git_tag_tagger(self->tag);
     if (!signature)
@@ -63,8 +72,11 @@ Tag_get_tagger(Tag *self)
     return build_signature((Object*)self, signature, "utf-8");
 }
 
+
+PyDoc_STRVAR(Tag_message__doc__, "Tag message.");
+
 PyObject *
-Tag_get_message(Tag *self)
+Tag_message__get__(Tag *self)
 {
     const char *message;
     message = git_tag_message(self->tag);
@@ -73,24 +85,30 @@ Tag_get_message(Tag *self)
     return to_unicode(message, "utf-8", "strict");
 }
 
+
+PyDoc_STRVAR(Tag__message__doc__, "Tag message (bytes).");
+
 PyObject *
-Tag_get_raw_message(Tag *self)
+Tag__message__get__(Tag *self)
 {
     return PyString_FromString(git_tag_message(self->tag));
 }
 
 PyGetSetDef Tag_getseters[] = {
-    {"target", (getter)Tag_get_target, NULL, "tagged object", NULL},
-    {"name", (getter)Tag_get_name, NULL, "tag name", NULL},
-    {"tagger", (getter)Tag_get_tagger, NULL, "tagger", NULL},
-    {"message", (getter)Tag_get_message, NULL, "tag message", NULL},
-    {"_message", (getter)Tag_get_raw_message, NULL, "tag message (bytes)", NULL},
+    GETTER(Tag, target),
+    GETTER(Tag, name),
+    GETTER(Tag, tagger),
+    GETTER(Tag, message),
+    GETTER(Tag, _message),
     {NULL}
 };
 
+
+PyDoc_STRVAR(Tag__doc__, "Tag objects.");
+
 PyTypeObject TagType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Tag",                              /* tp_name           */
+    "_pygit2.Tag",                             /* tp_name           */
     sizeof(Tag),                               /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     0,                                         /* tp_dealloc        */
@@ -109,7 +127,7 @@ PyTypeObject TagType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "Tag objects",                             /* tp_doc            */
+    Tag__doc__,                                /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */

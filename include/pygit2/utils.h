@@ -101,8 +101,21 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
   {#name, (PyCFunction) type ## _ ## name, args, type ## _ ## name ## __doc__}
 
 #define GETTER(type, attr)\
-  {#attr, (getter) type ## _ ## attr ## __get__, NULL,\
-   type ## _ ## attr ## __doc__, NULL}
+  {         #attr,\
+   (getter) type ## _ ## attr ## __get__,\
+            NULL,\
+            type ## _ ## attr ## __doc__,\
+            NULL}
+
+#define GETSET(type, attr)\
+  {         #attr,\
+   (getter) type ## _ ## attr ## __get__,\
+   (setter) type ## _ ## attr ## __set__,\
+            type ## _ ## attr ## __doc__,\
+            NULL}
+
+#define MEMBER(type, attr, attr_type, docstr)\
+  {#attr, attr_type, offsetof(type, attr), 0, PyDoc_STR(docstr)}
 
 
 #endif

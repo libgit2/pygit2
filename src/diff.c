@@ -163,8 +163,8 @@ static int diff_hunk_cb(
     return 0;
 };
 
-static int diff_file_cb(const git_diff_delta *delta, float progress, 
-void *cb_data) 
+static int
+diff_file_cb(const git_diff_delta *delta, float progress, void *cb_data)
 {
     PyObject *files, *file;
 
@@ -193,8 +193,11 @@ void *cb_data)
     return 0;
 }
 
+
+PyDoc_STRVAR(Diff_changes__doc__, "Raw changes.");
+
 PyObject *
-Diff_changes(Diff *self)
+Diff_changes__get__(Diff *self)
 {
 
     if (self->diff_changes == NULL) {
@@ -226,8 +229,11 @@ static int diff_print_cb(
     return 0;
 }
 
+
+PyDoc_STRVAR(Diff_patch__doc__, "Patch.");
+
 PyObject *
-Diff_patch(Diff *self)
+Diff_patch__get__(Diff *self)
 {
     PyObject *patch = PyBytes_FromString("");
 
@@ -280,20 +286,23 @@ Hunk_dealloc(Hunk *self)
 }
 
 PyMemberDef Hunk_members[] = {
-    {"header",    T_STRING, offsetof(Hunk, header), 0, "header"},
-    {"old_start", T_INT, offsetof(Hunk, old_start), 0, "old start"},
-    {"old_lines", T_INT, offsetof(Hunk, old_lines), 0, "old lines"},
-    {"old_mode",  T_INT, offsetof(Hunk, old_mode), 0, "old mode"},
-    {"old_file",  T_STRING, offsetof(Hunk, old_file), 0, "old file"},
-    {"old_oid",   T_OBJECT, offsetof(Hunk, old_oid), 0, "old_oid"},
-    {"new_start", T_INT, offsetof(Hunk, new_start), 0, "new start"},
-    {"new_lines", T_INT, offsetof(Hunk, new_lines), 0, "new lines"},
-    {"new_mode",  T_INT, offsetof(Hunk, new_mode), 0, "new mode"},
-    {"new_file",  T_STRING, offsetof(Hunk, new_file), 0, "old file"},
-    {"new_oid",   T_OBJECT, offsetof(Hunk, new_oid), 0, "new_oid"},
-    {"data",      T_OBJECT, offsetof(Hunk, data), 0, "data"},
+    MEMBER(Hunk, header, T_STRING, "Header."),
+    MEMBER(Hunk, old_start, T_INT, "Old start."),
+    MEMBER(Hunk, old_lines, T_INT, "Old lines."),
+    MEMBER(Hunk, old_mode, T_INT, "Old mode."),
+    MEMBER(Hunk, old_file, T_STRING, "Old file."),
+    MEMBER(Hunk, old_oid, T_OBJECT, "Old oid."),
+    MEMBER(Hunk, new_start, T_INT, "New start."),
+    MEMBER(Hunk, new_lines, T_INT, "New lines."),
+    MEMBER(Hunk, new_mode, T_INT, "New mode."),
+    MEMBER(Hunk, new_file, T_STRING, "New file."),
+    MEMBER(Hunk, new_oid, T_OBJECT, "New oid."),
+    MEMBER(Hunk, data, T_OBJECT, "Data."),
     {NULL}
 };
+
+
+PyDoc_STRVAR(Hunk__doc__, "Hunk object.");
 
 PyTypeObject HunkType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -316,7 +325,7 @@ PyTypeObject HunkType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "Hunk object",                             /* tp_doc            */
+    Hunk__doc__,                               /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
@@ -335,6 +344,11 @@ PyTypeObject HunkType = {
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
+
+
+PyDoc_STRVAR(Diff_merge__doc__,
+  "merge(diff)\n\n"
+  "Merge one diff into another.");
 
 PyObject *
 Diff_merge(Diff *self, PyObject *args)
@@ -355,6 +369,11 @@ Diff_merge(Diff *self, PyObject *args)
     self->diff_changes = NULL;
     Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(Diff_find_similar__doc__,
+  "find_similar([flags])\n\n"
+  "Find renamed files in diff.");
 
 PyObject *
 Diff_find_similar(Diff *self, PyObject *args)
@@ -384,22 +403,23 @@ Diff_dealloc(Diff *self)
 }
 
 PyGetSetDef Diff_getseters[] = {
-    {"changes", (getter)Diff_changes, NULL, "raw changes", NULL},
-    {"patch", (getter)Diff_patch, NULL, "patch", NULL},
+    GETTER(Diff, changes),
+    GETTER(Diff, patch),
     {NULL}
 };
 
 static PyMethodDef Diff_methods[] = {
-    {"merge", (PyCFunction)Diff_merge, METH_VARARGS,
-     "Merge one diff into another."},
-     {"find_similar", (PyCFunction)Diff_find_similar, METH_VARARGS,
-     "Find renamed files in diff."},
-    {NULL, NULL, 0, NULL}
+    METHOD(Diff, merge, METH_VARARGS),
+    METHOD(Diff, find_similar, METH_VARARGS),
+    {NULL}
 };
+
+
+PyDoc_STRVAR(Diff__doc__, "Diff objects.");
 
 PyTypeObject DiffType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Diff",                             /* tp_name           */
+    "_pygit2.Diff",                            /* tp_name           */
     sizeof(Diff),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Diff_dealloc,                  /* tp_dealloc        */
@@ -418,7 +438,7 @@ PyTypeObject DiffType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "Diff objects",                            /* tp_doc            */
+    Diff__doc__,                               /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
