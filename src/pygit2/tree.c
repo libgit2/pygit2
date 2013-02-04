@@ -47,20 +47,29 @@ TreeEntry_dealloc(TreeEntry *self)
     PyObject_Del(self);
 }
 
+
+PyDoc_STRVAR(TreeEntry_filemode__doc__, "Filemode.");
+
 PyObject *
-TreeEntry_get_filemode(TreeEntry *self)
+TreeEntry_filemode__get__(TreeEntry *self)
 {
     return PyInt_FromLong(git_tree_entry_filemode(self->entry));
 }
 
+
+PyDoc_STRVAR(TreeEntry_name__doc__, "Name.");
+
 PyObject *
-TreeEntry_get_name(TreeEntry *self)
+TreeEntry_name__get__(TreeEntry *self)
 {
     return to_path(git_tree_entry_name(self->entry));
 }
 
+
+PyDoc_STRVAR(TreeEntry_oid__doc__, "Object id.");
+
 PyObject *
-TreeEntry_get_oid(TreeEntry *self)
+TreeEntry_oid__get__(TreeEntry *self)
 {
     const git_oid *oid;
 
@@ -68,11 +77,19 @@ TreeEntry_get_oid(TreeEntry *self)
     return git_oid_to_python(oid->id);
 }
 
+
+PyDoc_STRVAR(TreeEntry_hex__doc__, "Hex oid.");
+
 PyObject *
-TreeEntry_get_hex(TreeEntry *self)
+TreeEntry_hex__get__(TreeEntry *self)
 {
     return git_oid_to_py_str(git_tree_entry_id(self->entry));
 }
+
+
+PyDoc_STRVAR(TreeEntry_to_object__doc__,
+  "to_object() -> Object\n\n"
+  "Look up the corresponding object in the repo.");
 
 PyObject *
 TreeEntry_to_object(TreeEntry *self)
@@ -86,18 +103,20 @@ TreeEntry_to_object(TreeEntry *self)
 }
 
 PyGetSetDef TreeEntry_getseters[] = {
-    {"filemode", (getter)TreeEntry_get_filemode, NULL, "filemode", NULL},
-    {"name", (getter)TreeEntry_get_name, NULL, "name", NULL},
-    {"oid", (getter)TreeEntry_get_oid, NULL, "object id", NULL},
-    {"hex", (getter)TreeEntry_get_hex, NULL, "hex oid", NULL},
+    GETTER(TreeEntry, filemode),
+    GETTER(TreeEntry, name),
+    GETTER(TreeEntry, oid),
+    GETTER(TreeEntry, hex),
     {NULL}
 };
 
 PyMethodDef TreeEntry_methods[] = {
-    {"to_object", (PyCFunction)TreeEntry_to_object, METH_NOARGS,
-     "Look up the corresponding object in the repo."},
-    {NULL, NULL, 0, NULL}
+    METHOD(TreeEntry, to_object, METH_NOARGS),
+    {NULL}
 };
+
+
+PyDoc_STRVAR(TreeEntry__doc__, "TreeEntry objects.");
 
 PyTypeObject TreeEntryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -120,7 +139,7 @@ PyTypeObject TreeEntryType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "TreeEntry objects",                       /* tp_doc            */
+    TreeEntry__doc__,                          /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
@@ -266,8 +285,21 @@ Tree_getitem(Tree *self, PyObject *value)
     return wrap_tree_entry(entry, self);
 }
 
+
+PyDoc_STRVAR(Tree_diff__doc__,
+    "diff([obj, flags]) -> Diff\n\n"
+    "Get changes between current tree instance with another tree, an index "
+    "or the working dir.\n"
+    "\n"
+    "Arguments:\n"
+    "\n"
+    "obj -- if not given compare diff against working dir. "
+    "       Possible valid arguments are instances of Tree or Index.\n"
+    "\n"
+    "flags -- ");
+
 PyObject *
-Tree_diff_tree(Tree *self, PyObject *args)
+Tree_diff(Tree *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
@@ -335,16 +367,12 @@ PyMappingMethods Tree_as_mapping = {
 };
 
 PyMethodDef Tree_methods[] = {
-    {
-     "diff", (PyCFunction)Tree_diff_tree, METH_VARARGS,
-     "Get changes between current tree instance with another tree, an "
-     "index or the working dir.\n\n"
-     "@param obj : if not given compare diff against working dir. "
-     "Possible valid arguments are instances of Tree or Index.\n"
-     "@returns Diff instance"
-    },
+    METHOD(Tree, diff, METH_VARARGS),
     {NULL}
 };
+
+
+PyDoc_STRVAR(Tree__doc__, "Tree objects.");
 
 PyTypeObject TreeType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -367,7 +395,7 @@ PyTypeObject TreeType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    "Tree objects",                            /* tp_doc            */
+    Tree__doc__,                               /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
