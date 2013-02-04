@@ -90,8 +90,11 @@ Signature_dealloc(Signature *self)
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
+
+PyDoc_STRVAR(Signature__encoding__doc__, "Encoding.");
+
 PyObject *
-Signature_get_encoding(Signature *self)
+Signature__encoding__get__(Signature *self)
 {
     const char *encoding;
 
@@ -102,57 +105,77 @@ Signature_get_encoding(Signature *self)
     return to_encoding(encoding);
 }
 
+
+PyDoc_STRVAR(Signature__name__doc__, "Name (bytes).");
+
 PyObject *
-Signature_get_raw_name(Signature *self)
+Signature__name__get__(Signature *self)
 {
     return to_bytes(self->signature->name);
 }
 
+
+PyDoc_STRVAR(Signature__email__doc__, "Email (bytes).");
+
 PyObject *
-Signature_get_raw_email(Signature *self)
+Signature__email__get__(Signature *self)
 {
     return to_bytes(self->signature->email);
 }
 
+
+PyDoc_STRVAR(Signature_name__doc__, "Name.");
+
 PyObject *
-Signature_get_name(Signature *self)
+Signature_name__get__(Signature *self)
 {
     return to_unicode(self->signature->name, self->encoding, "strict");
 }
 
+
+PyDoc_STRVAR(Signature_email__doc__, "Email address.");
+
 PyObject *
-Signature_get_email(Signature *self)
+Signature_email__get__(Signature *self)
 {
     return to_unicode(self->signature->email, self->encoding, "strict");
 }
 
+
+PyDoc_STRVAR(Signature_time__doc__, "Unix time.");
+
 PyObject *
-Signature_get_time(Signature *self)
+Signature_time__get__(Signature *self)
 {
     return PyInt_FromLong(self->signature->when.time);
 }
 
+
+PyDoc_STRVAR(Signature_offset__doc__, "Offset from UTC in minutes");
+
 PyObject *
-Signature_get_offset(Signature *self)
+Signature_offset__get__(Signature *self)
 {
     return PyInt_FromLong(self->signature->when.offset);
 }
 
 PyGetSetDef Signature_getseters[] = {
-    {"_encoding", (getter)Signature_get_encoding, NULL, "encoding", NULL},
-    {"_name", (getter)Signature_get_raw_name, NULL, "Name (bytes)", NULL},
-    {"_email", (getter)Signature_get_raw_email, NULL, "Email (bytes)", NULL},
-    {"name", (getter)Signature_get_name, NULL, "Name", NULL},
-    {"email", (getter)Signature_get_email, NULL, "Email address", NULL},
-    {"time", (getter)Signature_get_time, NULL, "Unix time", NULL},
-    {"offset", (getter)Signature_get_offset, NULL,
-     "Offset from UTC in minutes", NULL},
+    GETTER(Signature, _encoding),
+    GETTER(Signature, _name),
+    GETTER(Signature, _email),
+    GETTER(Signature, name),
+    GETTER(Signature, email),
+    GETTER(Signature, time),
+    GETTER(Signature, offset),
     {NULL}
 };
 
+
+PyDoc_STRVAR(Signature__doc__, "Signature.");
+
 PyTypeObject SignatureType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Signature",                        /* tp_name           */
+    "_pygit2.Signature",                       /* tp_name           */
     sizeof(Signature),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Signature_dealloc,             /* tp_dealloc        */
@@ -171,7 +194,7 @@ PyTypeObject SignatureType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
-    "Signature",                               /* tp_doc            */
+    Signature__doc__,                          /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
