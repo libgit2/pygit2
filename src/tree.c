@@ -88,7 +88,8 @@ TreeEntry_hex__get__(TreeEntry *self)
 
 
 PyDoc_STRVAR(TreeEntry_to_object__doc__,
-  "to_object() -> Object\n\n"
+  "to_object() -> Object\n"
+  "\n"
   "Look up the corresponding object in the repo.");
 
 PyObject *
@@ -287,16 +288,19 @@ Tree_getitem(Tree *self, PyObject *value)
 
 
 PyDoc_STRVAR(Tree_diff__doc__,
-    "diff([obj, flags]) -> Diff\n\n"
-    "Get changes between current tree instance with another tree, an index "
-    "or the working dir.\n"
-    "\n"
-    "Arguments:\n"
-    "\n"
-    "obj -- if not given compare diff against working dir. "
-    "       Possible valid arguments are instances of Tree or Index.\n"
-    "\n"
-    "flags -- ");
+  "diff([obj, flags]) -> Diff\n"
+  "\n"
+  "Get changes between current tree instance with another tree, an index or\n"
+  "the working dir.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "obj\n"
+  "    If not given compare diff against working dir. Possible valid\n"
+  "    arguments are instances of Tree or Index.\n"
+  "\n"
+  "flags\n"
+  "    TODO");
 
 PyObject *
 Tree_diff(Tree *self, PyObject *args)

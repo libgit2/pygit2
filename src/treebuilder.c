@@ -44,7 +44,8 @@ TreeBuilder_dealloc(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_insert__doc__,
-  "insert(name, oid, attr)\n\n"
+  "insert(name, oid, attr)\n"
+  "\n"
   "Insert or replace an entry in the treebuilder.");
 
 PyObject *
@@ -75,7 +76,8 @@ TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 
 
 PyDoc_STRVAR(TreeBuilder_write__doc__,
-  "write() -> bytes\n\n"
+  "write() -> bytes\n"
+  "\n"
   "Write the tree to the given repository.");
 
 PyObject *
@@ -93,7 +95,8 @@ TreeBuilder_write(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_remove__doc__,
-  "remove(name)\n\n"
+  "remove(name)\n"
+  "\n"
   "Remove an entry from the builder.");
 
 PyObject *
@@ -115,7 +118,8 @@ TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
 
 
 PyDoc_STRVAR(TreeBuilder_clear__doc__,
-  "clear()\n\n"
+  "clear()\n"
+  "\n"
   "Clear all the entries in the builder.");
 
 PyObject *
@@ -134,7 +138,7 @@ PyMethodDef TreeBuilder_methods[] = {
 };
 
 
-PyDoc_STRVAR(TreeBuilder__doc__, "TreeBuilder objects");
+PyDoc_STRVAR(TreeBuilder__doc__, "TreeBuilder objects.");
 
 PyTypeObject TreeBuilderType = {
     PyVarObject_HEAD_INIT(NULL, 0)

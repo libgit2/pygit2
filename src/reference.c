@@ -131,7 +131,8 @@ Reference_dealloc(Reference *self)
 
 
 PyDoc_STRVAR(Reference_delete__doc__,
-  "delete()\n\n"
+  "delete()\n"
+  "\n"
   "Delete this reference. It will no longer be valid!");
 
 PyObject *
@@ -152,7 +153,8 @@ Reference_delete(Reference *self, PyObject *args)
 
 
 PyDoc_STRVAR(Reference_rename__doc__,
-  "rename(new_name)\n\n"
+  "rename(new_name)\n"
+  "\n"
   "Rename the reference.");
 
 PyObject *
@@ -179,7 +181,8 @@ Reference_rename(Reference *self, PyObject *py_name)
 
 
 PyDoc_STRVAR(Reference_reload__doc__,
-  "reload()\n\n"
+  "reload()\n"
+  "\n"
   "Reload the reference from the file-system.");
 
 PyObject *
@@ -200,7 +203,8 @@ Reference_reload(Reference *self)
 
 
 PyDoc_STRVAR(Reference_resolve__doc__,
-  "resolve() -> Reference\n\n"
+  "resolve() -> Reference\n"
+  "\n"
   "Resolve a symbolic reference and return a direct reference.");
 
 PyObject *
@@ -377,7 +381,8 @@ Reference_type__get__(Reference *self)
 
 
 PyDoc_STRVAR(Reference_log__doc__,
-  "log() -> RefLogIter\n\n"
+  "log() -> RefLogIter\n"
+  "\n"
   "Retrieves the current reference log.");
 
 PyObject *

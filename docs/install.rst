@@ -53,7 +53,7 @@ instructions in the libgit2 ``README.md``)::
   $ cd libgit2/build
   $ cmake ..
   $ cmake --build .
-	$ sudo cmake --build . --target install
+  $ sudo cmake --build . --target install
   $ cd ../..
 
 Now, download and install pygit2.  You will probably have to set the

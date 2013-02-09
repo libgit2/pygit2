@@ -60,7 +60,8 @@ extern PyTypeObject SignatureType;
 
 
 PyDoc_STRVAR(init_repository__doc__,
-  "init_repository(path, bare) -> Repository\n\n"
+  "init_repository(path, bare) -> Repository\n"
+  "\n"
   "Creates a new Git repository in the given path.");
 
 PyObject *
@@ -93,7 +94,8 @@ init_repository(PyObject *self, PyObject *args)
 
 
 PyDoc_STRVAR(discover_repository__doc__,
-  "discover_repository(path[, across_fs[, ceiling_dirs]]) -> str\n\n"
+  "discover_repository(path[, across_fs[, ceiling_dirs]]) -> str\n"
+  "\n"
   "Look for a git repository and return its path.");
 
 PyObject *

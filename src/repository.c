@@ -208,12 +208,12 @@ Repository_head__get__(Repository *self)
 
     err = git_repository_head(&head, self->repo);
     if(err < 0) {
-      if(err == GIT_ENOTFOUND)
-        PyErr_SetString(GitError, "head reference does not exist");
-      else
-        Error_set(err);
+        if(err == GIT_ENOTFOUND)
+            PyErr_SetString(GitError, "head reference does not exist");
+        else
+            Error_set(err);
 
-      return NULL;
+        return NULL;
     }
 
     oid = git_reference_target(head);
@@ -224,7 +224,7 @@ Repository_head__get__(Repository *self)
 
 
 PyDoc_STRVAR(Repository_head_is_detached__doc__,
-  "A repository's HEAD is detached when it points directly to a commit "
+  "A repository's HEAD is detached when it points directly to a commit\n"
   "instead of a branch.");
 
 PyObject *
@@ -238,7 +238,7 @@ Repository_head_is_detached__get__(Repository *self)
 
 
 PyDoc_STRVAR(Repository_head_is_orphaned__doc__,
-  "An orphan branch is one named from HEAD but which doesn't exist in the "
+  "An orphan branch is one named from HEAD but which doesn't exist in the\n"
   "refs namespace, because it doesn't have any commit to point to.");
 
 PyObject *
@@ -292,9 +292,10 @@ Repository_getitem(Repository *self, PyObject *value)
 
 
 PyDoc_STRVAR(Repository_revparse_single__doc__,
-  "revparse_single(revision) -> Object\n\n"
-  "Find an object, as specified by a revision string. See "
-  "`man gitrevisions`, or the documentation for `git rev-parse` for "
+  "revparse_single(revision) -> Object\n"
+  "\n"
+  "Find an object, as specified by a revision string. See\n"
+  "`man gitrevisions`, or the documentation for `git rev-parse` for\n"
   "information on the syntax accepted.");
 
 PyObject *
@@ -348,7 +349,8 @@ Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
 
 
 PyDoc_STRVAR(Repository_read__doc__,
-  "read(oid) -> type, data, size\n\n"
+  "read(oid) -> type, data, size\n"
+  "\n"
   "Read raw object data from the repository.");
 
 PyObject *
@@ -379,10 +381,11 @@ Repository_read(Repository *self, PyObject *py_hex)
 
 
 PyDoc_STRVAR(Repository_write__doc__,
-  "write(type, data) -> oid\n\n"
-  "Write raw object data into the repository. First arg is the object "
-  "type, the second one a buffer with data. Return the object id (sha) "
-  "of the created object.");
+  "write(type, data) -> oid\n"
+  "\n"
+  "Write raw object data into the repository. First arg is the object type,\n"
+  "the second one a buffer with data. Return the object id (sha) of of the\n"
+  "created object.");
 
 PyObject *
 Repository_write(Repository *self, PyObject *args)
@@ -464,8 +467,8 @@ Repository_path__get__(Repository *self, void *closure)
 
 
 PyDoc_STRVAR(Repository_workdir__doc__,
-  "The normalized path to the working directory of the repository. "
-  "If the repository is bare, None will be returned.");
+  "The normalized path to the working directory of the repository. If the\n"
+  "repository is bare, None will be returned.");
 
 PyObject *
 Repository_workdir__get__(Repository *self, void *closure)
@@ -481,9 +484,10 @@ Repository_workdir__get__(Repository *self, void *closure)
 
 
 PyDoc_STRVAR(Repository_config__doc__,
-  "Get the configuration file for this repository.\n\n"
-  "If a configuration file has not been set, the default config set for the "
-  "repository will be returned, including global and system configurations "
+  "Get the configuration file for this repository.\n"
+  "\n"
+  "If a configuration file has not been set, the default config set for the\n"
+  "repository will be returned, including global and system configurations\n"
   "(if they are available).");
 
 PyObject *
@@ -519,7 +523,8 @@ Repository_config__get__(Repository *self, void *closure)
 
 
 PyDoc_STRVAR(Repository_walk__doc__,
-  "walk(oid, sort_mode) -> iterator\n\n"
+  "walk(oid, sort_mode) -> iterator\n"
+  "\n"
   "Generator that traverses the history starting from the given commit.");
 
 PyObject *
@@ -571,7 +576,8 @@ Repository_walk(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_blob__doc__,
-  "create_blob(data) -> bytes\n\n"
+  "create_blob(data) -> bytes\n"
+  "\n"
   "Create a new blob from memory.");
 
 PyObject *
@@ -594,7 +600,8 @@ Repository_create_blob(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_blob_fromfile__doc__,
-  "create_blob_fromfile(path) -> bytes\n\n"
+  "create_blob_fromfile(path) -> bytes\n"
+  "\n"
   "Create a new blob from file.");
 
 PyObject *
@@ -616,8 +623,8 @@ Repository_create_blob_fromfile(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_commit__doc__,
-  "create_commit(reference, author, committer, message, tree, parents"
-  "[, encoding]) -> bytes\n\n"
+  "create_commit(reference, author, committer, message, tree, parents[, encoding]) -> bytes\n"
+  "\n"
   "Create a new commit object, return its SHA.");
 
 PyObject *
@@ -699,7 +706,8 @@ out:
 
 
 PyDoc_STRVAR(Repository_create_tag__doc__,
-  "create_tag(name, oid, type, tagger, message) -> bytes\n\n"
+  "create_tag(name, oid, type, tagger, message) -> bytes\n"
+  "\n"
   "Create a new tag object, return its SHA.");
 
 PyObject *
@@ -736,7 +744,8 @@ Repository_create_tag(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_listall_references__doc__,
-  "listall_references([flags]) -> (str, ...)\n\n"
+  "listall_references([flags]) -> (str, ...)\n"
+  "\n"
   "Return a tuple with all the references in the repository.");
 
 PyObject *
@@ -779,7 +788,8 @@ out:
 
 
 PyDoc_STRVAR(Repository_lookup_reference__doc__,
-  "lookup_reference(name) -> Reference\n\n"
+  "lookup_reference(name) -> Reference\n"
+  "\n"
   "Lookup a reference by its name in a repository.");
 
 PyObject *
@@ -809,23 +819,25 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 PyDoc_STRVAR(Repository_create_reference__doc__,
   "create_reference(name, source, force=False, symbolic=False) -> Reference\n"
   "\n"
-  "Create a new reference \"name\" which points to a object or another "
-  "reference\n"
+  "Create a new reference \"name\" which points to a object or another\n"
+  "reference.\n"
   "\n"
   "Keyword arguments:\n"
   "\n"
-  "force -- if True references will be overridden, otherwise (the default)"
-  "         an exception is raised.\n"
+  "force\n"
+  "    If True references will be overridden, otherwise (the default) an\n"
+  "    exception is raised.\n"
   "\n"
-  "symbolic -- if True a symbolic reference will be created, then source has"
-  "            to be a valid existing reference name; if False (the default)"
-  "            a normal reference will be created, then source must has to be"
-  "            a valid SHA hash.\n"
+  "symbolic\n"
+  "    If True a symbolic reference will be created, then source has to be a\n"
+  "    valid existing reference name; if False (the default) a normal\n"
+  "    reference will be created, then source must has to be a valid SHA\n"
+  "    hash.\n"
   "\n"
   "Examples::\n"
   "\n"
   "  repo.create_reference('refs/heads/foo', repo.head.hex)\n"
-  "  repo.create_reference('refs/tags/foo', 'refs/heads/master', symbolic=True)\n");
+  "  repo.create_reference('refs/tags/foo', 'refs/heads/master', symbolic=True)");
 
 PyObject *
 Repository_create_reference(Repository *self,  PyObject *args, PyObject *kw)
@@ -870,8 +882,9 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject *kw)
 
 
 PyDoc_STRVAR(Repository_packall_references__doc__,
-   "packall_references()\n\n"
-   "Pack all the loose references in the repository.");
+  "packall_references()\n"
+  "\n"
+  "Pack all the loose references in the repository.");
 
 PyObject *
 Repository_packall_references(Repository *self, PyObject *args)
@@ -887,8 +900,9 @@ Repository_packall_references(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_status__doc__,
-  "status() -> {str: int}\n\n"
-  "Reads the status of the repository and returns a dictionary with file "
+  "status() -> {str: int}\n"
+  "\n"
+  "Reads the status of the repository and returns a dictionary with file\n"
   "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.");
 
 int
@@ -917,7 +931,8 @@ Repository_status(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_status_file__doc__,
-  "status_file(path) -> int\n\n"
+  "status_file(path) -> int\n"
+  "\n"
   "Returns the status of the given file path.");
 
 PyObject *
@@ -942,7 +957,8 @@ Repository_status_file(Repository *self, PyObject *value)
 
 
 PyDoc_STRVAR(Repository_TreeBuilder__doc__,
-  "TreeBuilder([tree]) -> TreeBuilder\n\n"
+  "TreeBuilder([tree]) -> TreeBuilder\n"
+  "\n"
   "Create a TreeBuilder object for this repository.");
 
 PyObject *
@@ -1048,8 +1064,9 @@ PyMappingMethods Repository_as_mapping = {
 
 
 PyDoc_STRVAR(Repository__doc__,
-    "Repository(path) -> Repository\n\n"
-    "Git repository.");
+  "Repository(path) -> Repository\n"
+  "\n"
+  "Git repository.");
 
 PyTypeObject RepositoryType = {
     PyVarObject_HEAD_INIT(NULL, 0)

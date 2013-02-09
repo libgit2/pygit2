@@ -347,7 +347,8 @@ PyTypeObject HunkType = {
 
 
 PyDoc_STRVAR(Diff_merge__doc__,
-  "merge(diff)\n\n"
+  "merge(diff)\n"
+  "\n"
   "Merge one diff into another.");
 
 PyObject *
@@ -372,7 +373,8 @@ Diff_merge(Diff *self, PyObject *args)
 
 
 PyDoc_STRVAR(Diff_find_similar__doc__,
-  "find_similar([flags])\n\n"
+  "find_similar([flags])\n"
+  "\n"
   "Find renamed files in diff.");
 
 PyObject *

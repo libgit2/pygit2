@@ -151,7 +151,7 @@ Signature_time__get__(Signature *self)
 }
 
 
-PyDoc_STRVAR(Signature_offset__doc__, "Offset from UTC in minutes");
+PyDoc_STRVAR(Signature_offset__doc__, "Offset from UTC in minutes.");
 
 PyObject *
 Signature_offset__get__(Signature *self)

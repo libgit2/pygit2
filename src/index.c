@@ -80,7 +80,8 @@ Index_traverse(Index *self, visitproc visit, void *arg)
 
 
 PyDoc_STRVAR(Index_add__doc__,
-  "add(path)\n\n"
+  "add(path)\n"
+  "\n"
   "Add or update an index entry from a file in disk.");
 
 PyObject *
@@ -101,7 +102,8 @@ Index_add(Index *self, PyObject *args)
 
 
 PyDoc_STRVAR(Index_clear__doc__,
-  "clear()\n\n"
+  "clear()\n"
+  "\n"
   "Clear the contents (all the entries) of an index object.");
 
 PyObject *
@@ -113,9 +115,10 @@ Index_clear(Index *self)
 
 
 PyDoc_STRVAR(Index_diff__doc__,
-  "diff([tree]) -> Diff\n\n"
-  "Return a :py:class:`~pygit2.Diff` object with the differences between the "
-  "index and the working copy. If a :py:class:`~pygit2.Tree` object is "
+  "diff([tree]) -> Diff\n"
+  "\n"
+  "Return a :py:class:`~pygit2.Diff` object with the differences between the\n"
+  "index and the working copy. If a :py:class:`~pygit2.Tree` object is\n"
   "passed, return the diferences between the index and the given tree.");
 
 PyObject *
@@ -163,8 +166,9 @@ Index_diff(Index *self, PyObject *args)
 
 
 PyDoc_STRVAR(Index__find__doc__,
-  "_find(path) -> integer\n\n"
-  "Find the first index of any entries which point to given path in the "
+  "_find(path) -> integer\n"
+  "\n"
+  "Find the first index of any entries which point to given path in the\n"
   "index file.");
 
 PyObject *
@@ -187,8 +191,9 @@ Index__find(Index *self, PyObject *py_path)
 
 
 PyDoc_STRVAR(Index_read__doc__,
-  "read()\n\n"
-  "Update the contents of an existing index object in memory by reading from "
+  "read()\n"
+  "\n"
+  "Update the contents of an existing index object in memory by reading from\n"
   "the hard disk.");
 
 PyObject *
@@ -205,8 +210,9 @@ Index_read(Index *self)
 
 
 PyDoc_STRVAR(Index_write__doc__,
-  "write()\n\n"
-  "Write an existing index object from memory back to disk using an atomic "
+  "write()\n"
+  "\n"
+  "Write an existing index object from memory back to disk using an atomic\n"
   "file lock.");
 
 PyObject *
@@ -334,7 +340,8 @@ Index_getitem(Index *self, PyObject *value)
 
 
 PyDoc_STRVAR(Index_remove__doc__,
-  "remove(path)\n\n"
+  "remove(path)\n"
+  "\n"
   "Removes an entry from index.");
 
 PyObject *
@@ -372,7 +379,8 @@ Index_setitem(Index *self, PyObject *key, PyObject *value)
 
 
 PyDoc_STRVAR(Index_read_tree__doc__,
-  "read_tree(tree)\n\n"
+  "read_tree(tree)\n"
+  "\n"
   "Update the index file from the tree identified by the given oid.");
 
 PyObject *
@@ -401,7 +409,8 @@ Index_read_tree(Index *self, PyObject *value)
 
 
 PyDoc_STRVAR(Index_write_tree__doc__,
-  "write_tree() -> str\n\n"
+  "write_tree() -> str\n"
+  "\n"
   "Create a tree object from the index file, return its oid.");
 
 PyObject *

@@ -45,7 +45,8 @@ Walker_dealloc(Walker *self)
 
 
 PyDoc_STRVAR(Walker_hide__doc__,
-  "hide(oid)\n\n"
+  "hide(oid)\n"
+  "\n"
   "Mark a commit (and its ancestors) uninteresting for the output.");
 
 PyObject *
@@ -67,7 +68,8 @@ Walker_hide(Walker *self, PyObject *py_hex)
 
 
 PyDoc_STRVAR(Walker_push__doc__,
-  "push(oid)\n\n"
+  "push(oid)\n"
+  "\n"
   "Mark a commit to start traversal from.");
 
 PyObject *
@@ -89,7 +91,8 @@ Walker_push(Walker *self, PyObject *py_hex)
 
 
 PyDoc_STRVAR(Walker_sort__doc__,
-  "sort(mode)\n\n"
+  "sort(mode)\n"
+  "\n"
   "Change the sorting mode (this resets the walker).");
 
 PyObject *
@@ -108,7 +111,8 @@ Walker_sort(Walker *self, PyObject *py_sort_mode)
 
 
 PyDoc_STRVAR(Walker_reset__doc__,
-  "reset()\n\n"
+  "reset()\n"
+  "\n"
   "Reset the walking machinery for reuse.");
 
 PyObject *

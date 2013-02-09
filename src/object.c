@@ -80,7 +80,7 @@ Object_hex__get__(Object *self)
 
 
 PyDoc_STRVAR(Object_type__doc__,
-  "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or GIT_OBJ_TAG "
+  "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or GIT_OBJ_TAG\n"
   "constants.");
 
 PyObject *

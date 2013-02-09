@@ -100,7 +100,8 @@ Config_open(char *c_path) {
 
 
 PyDoc_STRVAR(Config_get_global_config__doc__,
-  "get_global_config() -> Config\n\n"
+  "get_global_config() -> Config\n"
+  "\n"
   "Return an object representing the global configuration file.");
 
 PyObject *
@@ -123,7 +124,8 @@ Config_get_global_config(void)
 
 
 PyDoc_STRVAR(Config_get_system_config__doc__,
-  "get_system_config() -> Config\n\n"
+  "get_system_config() -> Config\n"
+  "\n"
   "Return an object representing the system configuration file.");
 
 PyObject *
@@ -266,11 +268,13 @@ Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
 
 
 PyDoc_STRVAR(Config_foreach__doc__,
-  "foreach(callback[, payload]) -> int\n\n"
-  "Perform an operation on each config variable.\n\n"
-  "The callback must be of type Callable and receives the normalized name "
-  "and value of each variable in the config backend, and an optional payload "
-  "passed to this method. As soon as one of the callbacks returns an integer "
+  "foreach(callback[, payload]) -> int\n"
+  "\n"
+  "Perform an operation on each config variable.\n"
+  "\n"
+  "The callback must be of type Callable and receives the normalized name\n"
+  "and value of each variable in the config backend, and an optional payload\n"
+  "passed to this method. As soon as one of the callbacks returns an integer\n"
   "other than 0, this function returns that value.");
 
 PyObject *
@@ -297,7 +301,8 @@ Config_foreach(Config *self, PyObject *args)
 
 
 PyDoc_STRVAR(Config_add_file__doc__,
-  "add_file(path, level=0, force=0)\n\n"
+  "add_file(path, level=0, force=0)\n"
+  "\n"
   "Add a config file instance to an existing config.");
 
 PyObject *
@@ -324,10 +329,11 @@ Config_add_file(Config *self, PyObject *args, PyObject *kwds)
 
 
 PyDoc_STRVAR(Config_get_multivar__doc__,
-  "get_multivar(name[, regex]) -> [str, ...]\n\n"
-  "Get each value of a multivar ''name'' as a list. The optional ''regex'' "
-  "parameter is expected to be a regular expression to filter the variables "
-  " we're interested in.");
+  "get_multivar(name[, regex]) -> [str, ...]\n"
+  "\n"
+  "Get each value of a multivar ''name'' as a list. The optional ''regex''\n"
+  "parameter is expected to be a regular expression to filter the variables\n"
+  "we're interested in.");
 
 int
 Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
@@ -370,8 +376,9 @@ Config_get_multivar(Config *self, PyObject *args)
 
 
 PyDoc_STRVAR(Config_set_multivar__doc__,
-  "set_multivar(name, regex, value)\n\n"
-  "Set a multivar ''name'' to ''value''. ''regexp'' is a regular expression "
+  "set_multivar(name, regex, value)\n"
+  "\n"
+  "Set a multivar ''name'' to ''value''. ''regexp'' is a regular expression\n"
   "to indicate which values to replace");
 
 PyObject *
