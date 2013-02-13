@@ -141,11 +141,37 @@ hashfile(PyObject *self, PyObject *args)
     return git_oid_to_python(oid.id);
 }
 
+PyDoc_STRVAR(hash__doc__,
+  "hash(data) -> bytes\n"
+  "\n"
+  "Returns the oid of a new blob from a string without actually writing to \n"
+  "the odb.");
+PyObject *
+hash(PyObject *self, PyObject *args)
+{
+    git_oid oid;
+    const char *data;
+    Py_ssize_t size;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s#", &data, &size))
+        return NULL;
+
+    err = git_odb_hash(&oid, data, size, GIT_OBJ_BLOB);
+    if (err < 0) {
+        return Error_set(err);
+    }
+
+    return git_oid_to_python(oid.id);
+}
+
+
 PyMethodDef module_methods[] = {
     {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
+    {"hash", hash, METH_VARARGS, hash__doc__},
     {NULL}
 };
 
