@@ -31,11 +31,12 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import binascii
 import unittest
+import tempfile
 import os
 from os.path import join, realpath
 
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository, \
-                   discover_repository, Commit
+                   discover_repository, Commit, hashfile
 from . import utils
 
 
@@ -146,6 +147,16 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_revparse_single(self):
         parent = self.repo.revparse_single('HEAD^')
         self.assertEqual(parent.hex, PARENT_SHA)
+
+
+    def test_hashfile(self):
+        data = "bazbarfoo"
+        tempfile_path = tempfile.mkstemp()[1]
+        with open(tempfile_path, 'w') as fh:
+            fh.write(data)
+        hashed_sha1 = hashfile(tempfile_path)
+        written_sha1 = self.repo.create_blob(data)
+        self.assertEqual(hashed_sha1, written_sha1)
 
 
 class RepositoryTest_II(utils.RepoTestCase):

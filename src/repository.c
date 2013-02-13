@@ -956,6 +956,7 @@ Repository_status_file(Repository *self, PyObject *value)
 }
 
 
+
 PyDoc_STRVAR(Repository_TreeBuilder__doc__,
   "TreeBuilder([tree]) -> TreeBuilder\n"
   "\n"
