@@ -36,7 +36,7 @@ import os
 from os.path import join, realpath
 
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository, \
-                   discover_repository, Commit
+                   discover_repository, Commit, hashfile
 from . import utils
 
 
@@ -154,7 +154,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         tempfile_path = tempfile.mkstemp()[1]
         with open(tempfile_path, 'w') as fh:
             fh.write(data)
-        hashed_sha1 = self.repo.hashfile(tempfile_path)
+        hashed_sha1 = hashfile(tempfile_path)
         written_sha1 = self.repo.create_blob(data)
         self.assertEqual(hashed_sha1, written_sha1)
 

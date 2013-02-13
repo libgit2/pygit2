@@ -956,29 +956,6 @@ Repository_status_file(Repository *self, PyObject *value)
 }
 
 
-PyDoc_STRVAR(Repository_hashfile__doc__,
-  "hash(path) -> bytes\n"
-  "\n"
-  "Returns the oid of a new blob from a file path without actually writing to "
-  "the odb.");
-PyObject *
-Repository_hashfile(Repository *self, PyObject *args)
-{
-    git_oid oid;
-    const char* path;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "s", &path))
-        return NULL;
-
-    err = git_odb_hashfile(&oid, path, GIT_OBJ_BLOB);
-    if (err < 0)
-        return Error_set(err);
-
-    return git_oid_to_python(oid.id);
-}
-
-
 
 PyDoc_STRVAR(Repository_TreeBuilder__doc__,
   "TreeBuilder([tree]) -> TreeBuilder\n"
@@ -1053,7 +1030,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
-    METHOD(Repository, hashfile, METH_VARARGS),
     {NULL}
 };
 
