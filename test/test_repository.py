@@ -37,6 +37,8 @@ from os.path import join, realpath
 
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository, \
                    discover_repository, Commit, hashfile
+import pygit2
+
 from . import utils
 
 
@@ -148,6 +150,11 @@ class RepositoryTest(utils.BareRepoTestCase):
         parent = self.repo.revparse_single('HEAD^')
         self.assertEqual(parent.hex, PARENT_SHA)
 
+    def test_hash(self):
+        data = "foobarbaz"
+        hashed_sha1 = pygit2.hash(data)
+        written_sha1 = self.repo.create_blob(data)
+        self.assertEqual(hashed_sha1, written_sha1)
 
     def test_hashfile(self):
         data = "bazbarfoo"
