@@ -32,6 +32,7 @@
 #include <pygit2/types.h>
 #include <pygit2/utils.h>
 #include <pygit2/repository.h>
+#include <pygit2/oid.h>
 #include <git2.h>
 
 extern PyObject *GitError;
@@ -118,10 +119,59 @@ discover_repository(PyObject *self, PyObject *args)
     return to_path(repo_path);
 };
 
+PyDoc_STRVAR(hashfile__doc__,
+  "hash(path) -> bytes\n"
+  "\n"
+  "Returns the oid of a new blob from a file path without actually writing \n"
+  "to the odb.");
+PyObject *
+hashfile(PyObject *self, PyObject *args)
+{
+    git_oid oid;
+    const char* path;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s", &path))
+        return NULL;
+
+    err = git_odb_hashfile(&oid, path, GIT_OBJ_BLOB);
+    if (err < 0)
+        return Error_set(err);
+
+    return git_oid_to_python(oid.id);
+}
+
+PyDoc_STRVAR(hash__doc__,
+  "hash(data) -> bytes\n"
+  "\n"
+  "Returns the oid of a new blob from a string without actually writing to \n"
+  "the odb.");
+PyObject *
+hash(PyObject *self, PyObject *args)
+{
+    git_oid oid;
+    const char *data;
+    Py_ssize_t size;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s#", &data, &size))
+        return NULL;
+
+    err = git_odb_hash(&oid, data, size, GIT_OBJ_BLOB);
+    if (err < 0) {
+        return Error_set(err);
+    }
+
+    return git_oid_to_python(oid.id);
+}
+
+
 PyMethodDef module_methods[] = {
     {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
+    {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
+    {"hash", hash, METH_VARARGS, hash__doc__},
     {NULL}
 };
 
