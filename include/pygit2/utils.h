@@ -95,6 +95,8 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 
+#define INSTANCIATE_CLASS(type, arglist) \
+    PyObject_CallObject(PyType_GenericNew(&type, NULL, NULL), arglist);
 
 /* Helpers to make shorter PyMethodDef and PyGetSetDef blocks */
 #define METHOD(type, name, args)\

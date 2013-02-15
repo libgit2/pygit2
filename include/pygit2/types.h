@@ -58,6 +58,7 @@ OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
 OBJECT_STRUCT(Config, git_config, config)
+OBJECT_STRUCT(Remote, git_remote, remote)
 
 typedef struct {
     PyObject_HEAD

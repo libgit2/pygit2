@@ -57,6 +57,7 @@ extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
 extern PyTypeObject SignatureType;
+extern PyTypeObject RemoteType;
 
 
 
@@ -236,6 +237,9 @@ moduleinit(PyObject* m)
     if (PyType_Ready(&SignatureType) < 0)
         return NULL;
 
+    if (PyType_Ready(&RemoteType) < 0)
+        return NULL;
+
     Py_INCREF(GitError);
     PyModule_AddObject(m, "GitError", GitError);
 
@@ -277,6 +281,9 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&SignatureType);
     PyModule_AddObject(m, "Signature", (PyObject *)&SignatureType);
+
+    Py_INCREF(&RemoteType);
+    PyModule_AddObject(m, "Remote", (PyObject *)&RemoteType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);

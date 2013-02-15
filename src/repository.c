@@ -44,6 +44,7 @@ extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
+extern PyTypeObject RemoteType;
 
 git_otype
 int_to_loose_object_type(int type_id)
@@ -1013,6 +1014,53 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
     return (PyObject*)builder;
 }
 
+
+PyDoc_STRVAR(Repository_remote_create__doc__,
+  "remote_create(name, url) -> Remote\n"
+  "\n"
+  "Creates a new remote.");
+
+PyObject *
+Repository_remote_create(Repository *self, PyObject *args)
+{
+    git_remote *remote;
+    char *name = NULL, *url = NULL;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "ss", &name, &url))
+        return NULL;
+
+    err = git_remote_create(&remote, self->repo, name, url);
+    if (err < 0)
+        return Error_set(err);
+
+    return INSTANCIATE_CLASS(RemoteType, Py_BuildValue("Os", self, name));
+}
+
+
+PyDoc_STRVAR(Repository_remotes__doc__, "returns all configured remotes");
+
+PyObject *
+Repository_remotes__get__(Repository *self)
+{
+    git_strarray remotes;
+    PyObject* py_list = NULL, *py_tmp;
+    size_t i;
+
+    git_remote_list(&remotes, self->repo);
+
+    py_list = PyList_New(remotes.count);
+    for (i=0; i < remotes.count; ++i) {
+        py_tmp = INSTANCIATE_CLASS(RemoteType, Py_BuildValue("Os", self, remotes.strings[i]));
+        PyList_SetItem(py_list, i, py_tmp);
+    }
+
+    git_strarray_free(&remotes);
+
+    return py_list;
+}
+
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromfile, METH_VARARGS),
@@ -1029,6 +1077,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
+    METHOD(Repository, remote_create, METH_VARARGS),
     {NULL}
 };
 
@@ -1042,6 +1091,7 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, is_bare),
     GETTER(Repository, config),
     GETTER(Repository, workdir),
+    GETTER(Repository, remotes),
     {NULL}
 };
 
