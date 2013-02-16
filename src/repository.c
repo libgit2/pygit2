@@ -1023,6 +1023,7 @@ PyDoc_STRVAR(Repository_remote_create__doc__,
 PyObject *
 Repository_remote_create(Repository *self, PyObject *args)
 {
+    Remote *py_remote;
     git_remote *remote;
     char *name = NULL, *url = NULL;
     int err;
@@ -1034,7 +1035,11 @@ Repository_remote_create(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return INSTANCIATE_CLASS(RemoteType, Py_BuildValue("Os", self, name));
+    py_remote = (Remote*) PyType_GenericNew(&RemoteType, NULL, NULL);
+    py_remote->repo = self;
+    py_remote->remote = remote;
+
+    return (PyObject*) py_remote;
 }
 
 
