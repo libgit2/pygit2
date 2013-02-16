@@ -177,7 +177,6 @@ Remote_fetchspec__set__(Remote *self, PyObject* py_tuple)
 PyGetSetDef Remote_getseters[] = {
     GETSET(Remote, name),
     GETSET(Remote, url),
-    GETSET(Remote, url),
     GETSET(Remote, fetchspec),
     {NULL}
 };
