@@ -174,6 +174,47 @@ Remote_fetchspec__set__(Remote *self, PyObject* py_tuple)
 }
 
 
+PyDoc_STRVAR(Remote_fetch__doc__,
+  "fetch() -> {'indexed_objects': int, 'received_objects' : int,"
+  "            'received_bytesa' : int}\n"
+  "\n"
+  "Negotiate what objects should be downloaded and download the\n"
+  "packfile with those objects");
+
+PyObject *
+Remote_fetch(Remote *self, PyObject *args)
+{
+  PyObject* py_stats;
+  const git_transfer_progress *stats;
+  int err;
+
+  err = git_remote_connect(self->remote, GIT_DIRECTION_FETCH);
+  if (err == GIT_OK) {
+      err = git_remote_download(self->remote, NULL, NULL);
+      if (err == GIT_OK) {
+          stats = git_remote_stats(self->remote);
+          py_stats = Py_BuildValue("{s:i,s:i,s:i}",
+              "indexed_objects", stats->indexed_objects,
+              "received_objects", stats->received_objects,
+              "received_bytes", stats->received_bytes);
+
+          err = git_remote_update_tips(self->remote);
+      }
+      git_remote_disconnect(self->remote);
+  }
+
+  if (err < 0)
+    return Error_set(err);
+
+  return (PyObject*) py_stats;
+}
+
+
+PyMethodDef Remote_methods[] = {
+    METHOD(Remote, fetch, METH_NOARGS),
+    {NULL}
+};
+
 PyGetSetDef Remote_getseters[] = {
     GETSET(Remote, name),
     GETSET(Remote, url),
@@ -211,7 +252,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Remote_methods,                            /* tp_methods        */
     0,                                         /* tp_members        */
     Remote_getseters,                          /* tp_getset         */
     0,                                         /* tp_base           */
