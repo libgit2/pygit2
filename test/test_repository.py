@@ -184,26 +184,6 @@ class RepositoryTest_II(utils.RepoTestCase):
         expected = realpath(join(self._temp_dir, 'testrepo'))
         self.assertEqual(directory, expected)
 
-    def test_remote_create(self):
-        name = 'upstream'
-        url = 'git://github.com/libgit2/pygit2.git'
-
-        remote = self.repo.remote_create(name, url);
-
-        self.assertEqual(type(remote), pygit2.Remote)
-        self.assertEqual(name, remote.name)
-        self.assertEqual(url, remote.url)
-
-        self.assertRaises(ValueError,self.repo.remote_create, *(name, url))
-
-    def test_remote_list(self):
-        self.assertEqual(0, len(self.repo.remotes))
-
-        name = 'upstream'
-        url = 'git://github.com/libgit2/pygit2.git'
-        remote = self.repo.remote_create(name, url);
-        self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
-
 
 class NewRepositoryTest(utils.NoRepoTestCase):
     def test_new_repo(self):
