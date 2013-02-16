@@ -58,6 +58,17 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertRaisesAssign(ValueError, remote, 'name', '')
 
 
+    def test_remote_set_url(self):
+        remote = self.repo.remotes[0]
+
+        self.assertEqual(REMOTE_URL, remote.url)
+        new_url = 'git://github.com/cholin/pygit2.git'
+        remote.url = new_url
+        self.assertEqual(new_url, remote.url)
+
+        self.assertRaisesAssign(ValueError, remote, 'url', '')
+
+
     def test_remote_list(self):
         self.assertEqual(1, len(self.repo.remotes))
         remote = self.repo.remotes[0]

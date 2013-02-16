@@ -100,9 +100,29 @@ Remote_url__get__(Remote *self)
 }
 
 
+int
+Remote_url__set__(Remote *self, PyObject* py_url)
+{
+    int err;
+    char* url;
+
+    url = py_str_to_c_str(py_url, NULL);
+    if (url != NULL) {
+        err = git_remote_set_url(self->remote, url);
+
+        if (err == GIT_OK)
+          return 0;
+
+        Error_set(err);
+    }
+
+    return -1;
+}
+
+
 PyGetSetDef Remote_getseters[] = {
     GETSET(Remote, name),
-    GETTER(Remote, url),
+    GETSET(Remote, url),
     {NULL}
 };
 
