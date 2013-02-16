@@ -1015,14 +1015,15 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Repository_remote_create__doc__,
+PyDoc_STRVAR(Repository_create_remote__doc__,
   "remote_create(name, url) -> Remote\n"
   "\n"
   "Creates a new remote.");
 
 PyObject *
-Repository_remote_create(Repository *self, PyObject *args)
+Repository_create_remote(Repository *self, PyObject *args)
 {
+    Remote *py_remote;
     git_remote *remote;
     char *name = NULL, *url = NULL;
     int err;
@@ -1034,7 +1035,11 @@ Repository_remote_create(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return INSTANCIATE_CLASS(RemoteType, Py_BuildValue("Os", self, name));
+    py_remote = (Remote*) PyType_GenericNew(&RemoteType, NULL, NULL);
+    py_remote->repo = self;
+    py_remote->remote = remote;
+
+    return (PyObject*) py_remote;
 }
 
 
@@ -1077,7 +1082,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
-    METHOD(Repository, remote_create, METH_VARARGS),
+    METHOD(Repository, create_remote, METH_VARARGS),
     {NULL}
 };
 

@@ -58,6 +58,7 @@ Remote_call(Remote *self, PyObject *args, PyObject *kwds)
 static void
 Remote_dealloc(Remote *self)
 {
+    git_remote_free(self->remote);
     PyObject_Del(self);
 }
 
@@ -70,8 +71,27 @@ Remote_name__get__(Remote *self)
     return PyUnicode_FromString(git_remote_name(self->remote));
 }
 
+int
+Remote_name__set__(Remote *self, PyObject* py_name)
+{
+    int err;
+    char* name;
 
-PyDoc_STRVAR(Remote_url__doc__, "Url of the remote refspec");
+    name = py_str_to_c_str(py_name, NULL);
+    if (name != NULL) {
+        err = git_remote_rename(self->remote, name, NULL, NULL);
+
+        if (err == GIT_OK)
+          return 0;
+
+        Error_set(err);
+    }
+
+    return -1;
+}
+
+
+PyDoc_STRVAR(Remote_url__doc__, "Url of the remote");
 
 PyObject *
 Remote_url__get__(Remote *self)
@@ -80,9 +100,125 @@ Remote_url__get__(Remote *self)
 }
 
 
+int
+Remote_url__set__(Remote *self, PyObject* py_url)
+{
+    int err;
+    char* url;
+
+    url = py_str_to_c_str(py_url, NULL);
+    if (url != NULL) {
+        err = git_remote_set_url(self->remote, url);
+
+        if (err == GIT_OK)
+          return 0;
+
+        Error_set(err);
+    }
+
+    return -1;
+}
+
+
+PyDoc_STRVAR(Remote_fetchspec__doc__,
+  "= (source:str, destination:str)\n"
+  "\n"
+  "Name of the remote source and destination fetch refspecs\n");
+
+
+PyObject *
+Remote_fetchspec__get__(Remote *self)
+{
+    PyObject* py_tuple = NULL;
+    const git_refspec * refspec;
+
+    refspec = git_remote_fetchspec(self->remote);
+    if  (refspec != NULL) {
+        py_tuple = Py_BuildValue(
+            "(ss)",
+            git_refspec_src(refspec),
+            git_refspec_dst(refspec)
+        );
+
+        return py_tuple;
+    }
+
+    return Error_set(GIT_ENOTFOUND);
+}
+
+int
+Remote_fetchspec__set__(Remote *self, PyObject* py_tuple)
+{
+    int err;
+    size_t length = 0;
+    char* src = NULL, *dst = NULL, *buf = NULL;
+
+    if (!PyArg_ParseTuple(py_tuple, "ss", &src, &dst))
+        return -1;
+
+    // length is strlen('+' + src + ':' + dst) and Null-Byte
+    length = strlen(src) + strlen(dst) + 3; 
+    buf = (char*) calloc(length, sizeof(char));
+    if (buf != NULL) {
+        sprintf(buf, "+%s:%s", src, dst);
+        err = git_remote_set_fetchspec(self->remote, buf);
+        free(buf);
+
+        if (err == GIT_OK)
+          return 0;
+
+        Error_set_exc(PyExc_ValueError);
+    }
+
+    return -1;
+}
+
+
+PyDoc_STRVAR(Remote_fetch__doc__,
+  "fetch() -> {'indexed_objects': int, 'received_objects' : int,"
+  "            'received_bytesa' : int}\n"
+  "\n"
+  "Negotiate what objects should be downloaded and download the\n"
+  "packfile with those objects");
+
+PyObject *
+Remote_fetch(Remote *self, PyObject *args)
+{
+  PyObject* py_stats;
+  const git_transfer_progress *stats;
+  int err;
+
+  err = git_remote_connect(self->remote, GIT_DIRECTION_FETCH);
+  if (err == GIT_OK) {
+      err = git_remote_download(self->remote, NULL, NULL);
+      if (err == GIT_OK) {
+          stats = git_remote_stats(self->remote);
+          py_stats = Py_BuildValue("{s:I,s:I,s:n}",
+              "indexed_objects", stats->indexed_objects,
+              "received_objects", stats->received_objects,
+              "received_bytes", stats->received_bytes);
+
+          err = git_remote_update_tips(self->remote);
+      }
+      git_remote_disconnect(self->remote);
+  }
+
+  if (err < 0)
+    return Error_set(err);
+
+  return (PyObject*) py_stats;
+}
+
+
+PyMethodDef Remote_methods[] = {
+    METHOD(Remote, fetch, METH_NOARGS),
+    {NULL}
+};
+
 PyGetSetDef Remote_getseters[] = {
-    GETTER(Remote, name),
-    GETTER(Remote, url),
+    GETSET(Remote, name),
+    GETSET(Remote, url),
+    GETSET(Remote, fetchspec),
     {NULL}
 };
 
@@ -116,7 +252,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Remote_methods,                            /* tp_methods        */
     0,                                         /* tp_members        */
     Remote_getseters,                          /* tp_getset         */
     0,                                         /* tp_base           */

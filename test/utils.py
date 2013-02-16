@@ -28,6 +28,7 @@
 """Test utilities for libgit2."""
 
 from binascii import b2a_hex
+import sys
 import os
 import shutil
 import stat
@@ -74,6 +75,13 @@ class NoRepoTestCase(unittest.TestCase):
     def tearDown(self):
         del self.repo
         rmtree(self._temp_dir)
+
+    def assertRaisesAssign(self, exc_class, instance, name, value):
+        try:
+            setattr(instance, name, value)
+        except:
+            self.assertEqual(exc_class, sys.exc_info()[0])
+
 
     def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
         try:
