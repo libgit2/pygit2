@@ -71,6 +71,25 @@ Remote_name__get__(Remote *self)
     return PyUnicode_FromString(git_remote_name(self->remote));
 }
 
+int
+Remote_name__set__(Remote *self, PyObject* py_name)
+{
+    int err;
+    char* name;
+
+    name = py_str_to_c_str(py_name, NULL);
+    if (name != NULL) {
+        err = git_remote_rename(self->remote, name, NULL, NULL);
+
+        if (err == GIT_OK)
+          return 0;
+
+        Error_set(err);
+    }
+
+    return -1;
+}
+
 
 PyDoc_STRVAR(Remote_url__doc__, "Url of the remote refspec");
 
@@ -82,7 +101,7 @@ Remote_url__get__(Remote *self)
 
 
 PyGetSetDef Remote_getseters[] = {
-    GETTER(Remote, name),
+    GETSET(Remote, name),
     GETTER(Remote, url),
     {NULL}
 };

@@ -48,6 +48,16 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertRaises(ValueError,self.repo.remote_create, *(name, url))
 
 
+    def test_remote_rename(self):
+        remote = self.repo.remotes[0]
+
+        self.assertEqual(REMOTE_NAME, remote.name)
+        remote.name = 'new'
+        self.assertEqual('new', remote.name)
+
+        self.assertRaisesAssign(ValueError, remote, 'name', '')
+
+
     def test_remote_list(self):
         self.assertEqual(1, len(self.repo.remotes))
         remote = self.repo.remotes[0]
