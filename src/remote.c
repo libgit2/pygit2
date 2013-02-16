@@ -193,7 +193,7 @@ Remote_fetch(Remote *self, PyObject *args)
       err = git_remote_download(self->remote, NULL, NULL);
       if (err == GIT_OK) {
           stats = git_remote_stats(self->remote);
-          py_stats = Py_BuildValue("{s:i,s:i,s:i}",
+          py_stats = Py_BuildValue("{s:I,s:I,s:n}",
               "indexed_objects", stats->indexed_objects,
               "received_objects", stats->received_objects,
               "received_bytes", stats->received_bytes);

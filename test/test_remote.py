@@ -35,6 +35,8 @@ REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'
 REMOTE_FETCHSPEC_SRC = 'refs/heads/*'
 REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
+REMOTE_REPO_OBJECTS = 19
+REMOTE_REPO_BYTES = 1586
 
 class RepositoryTest(utils.RepoTestCase):
     def test_remote_create(self):
@@ -93,3 +95,12 @@ class RepositoryTest(utils.RepoTestCase):
         url = 'git://github.com/libgit2/pygit2.git'
         remote = self.repo.remote_create(name, url);
         self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
+
+
+class EmptyRepositoryTest(utils.EmptyRepoTestCase):
+    def test_fetch(self):
+        remote = self.repo.remotes[0]
+        stats = remote.fetch()
+        self.assertEqual(stats['received_bytes'], REMOTE_REPO_BYTES)
+        self.assertEqual(stats['indexed_objects'], REMOTE_REPO_OBJECTS)
+        self.assertEqual(stats['received_objects'], REMOTE_REPO_OBJECTS)
