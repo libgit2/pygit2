@@ -91,7 +91,7 @@ Remote_name__set__(Remote *self, PyObject* py_name)
 }
 
 
-PyDoc_STRVAR(Remote_url__doc__, "Url of the remote refspec");
+PyDoc_STRVAR(Remote_url__doc__, "Url of the remote");
 
 PyObject *
 Remote_url__get__(Remote *self)
@@ -120,9 +120,38 @@ Remote_url__set__(Remote *self, PyObject* py_url)
 }
 
 
+PyDoc_STRVAR(Remote_fetchspec__doc__,
+  "= (source:str, destination:str)\n"
+  "\n"
+  "Name of the remote source and destination refspecs\n");
+
+
+PyObject *
+Remote_fetchspec__get__(Remote *self)
+{
+    PyObject* py_tuple = NULL;
+    const git_refspec * refspec;
+
+    refspec = git_remote_fetchspec(self->remote);
+    if  (refspec != NULL) {
+        py_tuple = Py_BuildValue(
+            "(ss)",
+            git_refspec_src(refspec),
+            git_refspec_dst(refspec)
+        );
+
+        return py_tuple;
+    }
+
+    return Error_set(GIT_ENOTFOUND);
+}
+
+
 PyGetSetDef Remote_getseters[] = {
     GETSET(Remote, name),
     GETSET(Remote, url),
+    GETSET(Remote, url),
+    GETTER(Remote, fetchspec),
     {NULL}
 };
 

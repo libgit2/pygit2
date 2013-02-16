@@ -33,6 +33,8 @@ from . import utils
 
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'
+REMOTE_FETCHSPEC_SRC = 'refs/heads/*'
+REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
 
 class RepositoryTest(utils.RepoTestCase):
     def test_remote_create(self):
@@ -68,6 +70,12 @@ class RepositoryTest(utils.RepoTestCase):
 
         self.assertRaisesAssign(ValueError, remote, 'url', '')
 
+
+    def test_remote_fetchspec(self):
+        remote = self.repo.remotes[0]
+
+        self.assertEqual(REMOTE_FETCHSPEC_SRC, remote.fetchspec[0])
+        self.assertEqual(REMOTE_FETCHSPEC_DST, remote.fetchspec[1])
 
     def test_remote_list(self):
         self.assertEqual(1, len(self.repo.remotes))
