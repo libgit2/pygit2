@@ -58,6 +58,7 @@ Remote_call(Remote *self, PyObject *args, PyObject *kwds)
 static void
 Remote_dealloc(Remote *self)
 {
+    git_remote_free(self->remote);
     PyObject_Del(self);
 }
 
