@@ -179,8 +179,6 @@ PyMethodDef module_methods[] = {
 PyObject*
 moduleinit(PyObject* m)
 {
-    int libgit2_major, libgit2_minor, libgit2_rev;
-
     if (m == NULL)
         return NULL;
 
@@ -404,10 +402,10 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_FILEMODE_COMMIT", GIT_FILEMODE_COMMIT);
 
     /* libgit2 version info */
-    git_libgit2_version(&libgit2_major, &libgit2_minor, &libgit2_rev);
-    PyModule_AddIntConstant(m, "LIBGIT2_VERSION_MAJOR", libgit2_major);
-    PyModule_AddIntConstant(m, "LIBGIT2_VERSION_MINOR", libgit2_minor);
-    PyModule_AddIntConstant(m, "LIBGIT2_VERSION_REV", libgit2_rev);
+    PyModule_AddIntConstant(m, "LIBGIT2_VER_MAJOR", LIBGIT2_VER_MAJOR);
+    PyModule_AddIntConstant(m, "LIBGIT2_VER_MINOR", LIBGIT2_VER_MINOR);
+    PyModule_AddIntConstant(m, "LIBGIT2_VER_REVISION", LIBGIT2_VER_REVISION);
+    PyModule_AddStringConstant(m, "LIBGIT2_VERSION", LIBGIT2_VERSION);
 
     return m;
 }
