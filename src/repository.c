@@ -1082,12 +1082,12 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
     Reference* ref = NULL;
     git_object* object;
     const git_oid* id;
-    int err;
+    int err, head = 0;
 
-    static char *kwlist[] = {"strategy", "reference", NULL};
+    static char *kwlist[] = {"strategy", "reference", "head", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|IO!", kwlist,
-                                     &strategy, &ReferenceType, &ref))
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|IO!i", kwlist,
+                                     &strategy, &ReferenceType, &ref, &head))
         return NULL;
 
     if (ref != NULL) { // checkout from treeish
@@ -1101,9 +1101,10 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
                           git_reference_name(ref->reference));
             }
         }
-    } else { // checkout from head
+    } else { // checkout from head / index
         opts.checkout_strategy = strategy;
-        err = git_checkout_head(self->repo, &opts);
+        err = (!head) ? git_checkout_index(self->repo, NULL, &opts) :
+                        git_checkout_head(self->repo, &opts);
     }
 
     if(err < 0)
