@@ -184,6 +184,19 @@ class RepositoryTest_II(utils.RepoTestCase):
         expected = realpath(join(self._temp_dir, 'testrepo'))
         self.assertEqual(directory, expected)
 
+    def test_checkout(self):
+        ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
+
+        self.assertRaises(pygit2.GitError, self.repo.checkout, ref_i18n)
+
+        self.repo.checkout(ref_i18n, pygit2.GIT_CHECKOUT_FORCE)
+        self.assertEqual(self.repo.head.hex, self.repo[ref_i18n.target].hex)
+        self.assertTrue('new' in self.repo.head.tree)
+        self.assertTrue('bye.txt' not in self.repo.status())
+
+        ref_master = self.repo.lookup_reference('refs/heads/master')
+        self.repo.checkout(ref_master, pygit2.GIT_CHECKOUT_FORCE)
+        self.assertTrue('new' not in self.repo.head.tree)
 
 class NewRepositoryTest(utils.NoRepoTestCase):
     def test_new_repo(self):
