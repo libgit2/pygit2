@@ -1068,34 +1068,42 @@ Repository_remotes__get__(Repository *self)
 
 
 PyDoc_STRVAR(Repository_checkout__doc__,
-  "checkout(reference:Reference, [strategy:int])\n"
+  "checkout([strategy:int, reference:Reference])\n"
   "\n"
-  "Checks out a tree by a given reference and modifies the HEAD pointer.\n"
-  "Standard checkout strategy is pygit2.GIT_CHECKOUT_SAFE_CREATE");
+  "Checks out a tree by a given reference and modifies the HEAD pointer\n"
+  "Standard checkout strategy is pygit2.GIT_CHECKOUT_SAFE_CREATE\n"
+  "If no reference is given, checkout will use HEAD instead.");
 
 PyObject *
-Repository_checkout(Repository *self, PyObject *args)
+Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
 {
     git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
     unsigned int strategy = GIT_CHECKOUT_SAFE_CREATE;
-    Reference* ref;
+    Reference* ref = NULL;
     git_object* object;
     const git_oid* id;
     int err;
 
-    if (!PyArg_ParseTuple(args, "O!|I", &ReferenceType, &ref, &strategy))
+    static char *kwlist[] = {"strategy", "reference", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|IO!", kwlist,
+                                     &strategy, &ReferenceType, &ref))
         return NULL;
 
-    CHECK_REFERENCE(ref);
-
-    id = git_reference_target(ref->reference);
-    err = git_object_lookup(&object, self->repo, id, GIT_OBJ_COMMIT);
-    if(err == GIT_OK) {
+    if (ref != NULL) { // checkout from treeish
+        id = git_reference_target(ref->reference);
+        err = git_object_lookup(&object, self->repo, id, GIT_OBJ_COMMIT);
+        if(err == GIT_OK) {
+            opts.checkout_strategy = strategy;
+            err = git_checkout_tree(self->repo, object, &opts);
+            if (err == GIT_OK) {
+                err = git_repository_set_head(self->repo,
+                          git_reference_name(ref->reference));
+            }
+        }
+    } else { // checkout from head
         opts.checkout_strategy = strategy;
-        err = git_checkout_tree(self->repo, object, &opts);
-        if (err == GIT_OK)
-            err = git_repository_set_head(self->repo,
-                      git_reference_name(ref->reference));
+        err = git_checkout_head(self->repo, &opts);
     }
 
     if(err < 0)
@@ -1122,7 +1130,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, create_remote, METH_VARARGS),
-    METHOD(Repository, checkout, METH_VARARGS),
+    METHOD(Repository, checkout, METH_VARARGS|METH_KEYWORDS),
     {NULL}
 };
 

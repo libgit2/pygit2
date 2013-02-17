@@ -187,16 +187,26 @@ class RepositoryTest_II(utils.RepoTestCase):
     def test_checkout(self):
         ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
 
-        self.assertRaises(pygit2.GitError, self.repo.checkout, ref_i18n)
+        # checkout i18n with conflicts and default strategy should
+        # not be possible
+        self.assertRaises(pygit2.GitError,
+                          lambda: self.repo.checkout(reference=ref_i18n))
 
-        self.repo.checkout(ref_i18n, pygit2.GIT_CHECKOUT_FORCE)
+        # checkout i18n with GIT_CHECKOUT_FORCE
+        self.assertTrue('new' not in self.repo.head.tree)
+        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, ref_i18n)
         self.assertEqual(self.repo.head.hex, self.repo[ref_i18n.target].hex)
         self.assertTrue('new' in self.repo.head.tree)
         self.assertTrue('bye.txt' not in self.repo.status())
 
-        ref_master = self.repo.lookup_reference('refs/heads/master')
-        self.repo.checkout(ref_master, pygit2.GIT_CHECKOUT_FORCE)
-        self.assertTrue('new' not in self.repo.head.tree)
+        # some changes to working dir
+        with open(os.path.join(self.repo.workdir, 'bye.txt'), 'w') as f:
+          f.write('new content')
+
+        # checkout head
+        self.assertTrue('bye.txt' in self.repo.status())
+        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE)
+        self.assertTrue('bye.txt' not in self.repo.status())
 
 class NewRepositoryTest(utils.NoRepoTestCase):
     def test_new_repo(self):
