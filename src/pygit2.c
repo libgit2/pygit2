@@ -401,6 +401,12 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_FILEMODE_LINK", GIT_FILEMODE_LINK);
     PyModule_AddIntConstant(m, "GIT_FILEMODE_COMMIT", GIT_FILEMODE_COMMIT);
 
+    /* libgit2 version info */
+    PyModule_AddIntConstant(m, "LIBGIT2_VER_MAJOR", LIBGIT2_VER_MAJOR);
+    PyModule_AddIntConstant(m, "LIBGIT2_VER_MINOR", LIBGIT2_VER_MINOR);
+    PyModule_AddIntConstant(m, "LIBGIT2_VER_REVISION", LIBGIT2_VER_REVISION);
+    PyModule_AddStringConstant(m, "LIBGIT2_VERSION", LIBGIT2_VERSION);
+
     return m;
 }
 
