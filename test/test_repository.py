@@ -184,6 +184,45 @@ class RepositoryTest_II(utils.RepoTestCase):
         expected = realpath(join(self._temp_dir, 'testrepo'))
         self.assertEqual(directory, expected)
 
+    def test_checkout_ref(self):
+        ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
+
+        # checkout i18n with conflicts and default strategy should
+        # not be possible
+        self.assertRaises(pygit2.GitError,
+                          lambda: self.repo.checkout(reference=ref_i18n))
+
+        # checkout i18n with GIT_CHECKOUT_FORCE
+        self.assertTrue('new' not in self.repo.head.tree)
+        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, ref_i18n)
+        self.assertEqual(self.repo.head.hex, self.repo[ref_i18n.target].hex)
+        self.assertTrue('new' in self.repo.head.tree)
+        self.assertTrue('bye.txt' not in self.repo.status())
+
+    def test_checkout_index(self):
+        # some changes to working dir
+        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
+          f.write('new content')
+
+        # checkout index
+        self.assertTrue('hello.txt' in self.repo.status())
+        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE)
+        self.assertTrue('hello.txt' not in self.repo.status())
+
+    def test_checkout_head(self):
+        # some changes to the index
+        with open(os.path.join(self.repo.workdir, 'bye.txt'), 'w') as f:
+          f.write('new content')
+        self.repo.index.add('bye.txt')
+
+        # checkout from index should not change anything
+        self.assertTrue('bye.txt' in self.repo.status())
+        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE)
+        self.assertTrue('bye.txt' in self.repo.status())
+
+        # checkout from head will reset index as well
+        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, head=True)
+        self.assertTrue('bye.txt' not in self.repo.status())
 
 class NewRepositoryTest(utils.NoRepoTestCase):
     def test_new_repo(self):

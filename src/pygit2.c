@@ -401,6 +401,27 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_FILEMODE_LINK", GIT_FILEMODE_LINK);
     PyModule_AddIntConstant(m, "GIT_FILEMODE_COMMIT", GIT_FILEMODE_COMMIT);
 
+    /* Different checkout strategies */
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_NONE", GIT_CHECKOUT_NONE);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_SAFE", GIT_CHECKOUT_SAFE);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_SAFE_CREATE",
+                            GIT_CHECKOUT_SAFE_CREATE);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_FORCE", GIT_CHECKOUT_FORCE);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_ALLOW_CONFLICTS",
+                            GIT_CHECKOUT_ALLOW_CONFLICTS);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_REMOVE_UNTRACKED",
+                            GIT_CHECKOUT_REMOVE_UNTRACKED);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_REMOVE_IGNORED",
+                            GIT_CHECKOUT_REMOVE_IGNORED);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_UPDATE_ONLY",
+                            GIT_CHECKOUT_UPDATE_ONLY);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_DONT_UPDATE_INDEX",
+                            GIT_CHECKOUT_DONT_UPDATE_INDEX);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_NO_REFRESH",
+                            GIT_CHECKOUT_NO_REFRESH);
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_DISABLE_PATHSPEC_MATC",
+                            GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH);
+
     return m;
 }
 

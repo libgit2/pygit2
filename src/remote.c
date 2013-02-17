@@ -184,7 +184,7 @@ PyDoc_STRVAR(Remote_fetch__doc__,
 PyObject *
 Remote_fetch(Remote *self, PyObject *args)
 {
-  PyObject* py_stats;
+  PyObject* py_stats = NULL;
   const git_transfer_progress *stats;
   int err;
 
