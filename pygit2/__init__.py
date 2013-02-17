@@ -28,5 +28,3 @@
 from .version import __version__
 from _pygit2 import *
 import pygit2.utils
-
-__libgit2_version__ = LIBGIT2_VERSION
