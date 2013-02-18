@@ -44,6 +44,8 @@ from distutils import log
 sys.path.insert(0, 'pygit2')
 from version import __version__
 
+u = lambda s: s if sys.version_info[0] > 2 else unicode(s, 'utf-8')
+
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -171,7 +173,7 @@ setup(name='pygit2',
       url='http://github.com/libgit2/pygit2',
       classifiers=classifiers,
       license='GPLv2',
-      maintainer=u'J. David Ibáñez',
+      maintainer=u('J. David Ibáñez'),
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
       packages = ['pygit2'],
