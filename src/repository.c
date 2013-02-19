@@ -45,6 +45,7 @@ extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
 extern PyTypeObject RemoteType;
+extern PyTypeObject ReferenceType;
 
 git_otype
 int_to_loose_object_type(int type_id)
@@ -1066,6 +1067,53 @@ Repository_remotes__get__(Repository *self)
 }
 
 
+PyDoc_STRVAR(Repository_checkout__doc__,
+  "checkout([strategy:int, reference:Reference])\n"
+  "\n"
+  "Checks out a tree by a given reference and modifies the HEAD pointer\n"
+  "Standard checkout strategy is pygit2.GIT_CHECKOUT_SAFE_CREATE\n"
+  "If no reference is given, checkout will use HEAD instead.");
+
+PyObject *
+Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
+{
+    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    unsigned int strategy = GIT_CHECKOUT_SAFE_CREATE;
+    Reference* ref = NULL;
+    git_object* object;
+    const git_oid* id;
+    int err, head = 0;
+
+    static char *kwlist[] = {"strategy", "reference", "head", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|IO!i", kwlist,
+                                     &strategy, &ReferenceType, &ref, &head))
+        return NULL;
+
+    if (ref != NULL) { // checkout from treeish
+        id = git_reference_target(ref->reference);
+        err = git_object_lookup(&object, self->repo, id, GIT_OBJ_COMMIT);
+        if(err == GIT_OK) {
+            opts.checkout_strategy = strategy;
+            err = git_checkout_tree(self->repo, object, &opts);
+            if (err == GIT_OK) {
+                err = git_repository_set_head(self->repo,
+                          git_reference_name(ref->reference));
+            }
+        }
+    } else { // checkout from head / index
+        opts.checkout_strategy = strategy;
+        err = (!head) ? git_checkout_index(self->repo, NULL, &opts) :
+                        git_checkout_head(self->repo, &opts);
+    }
+
+    if(err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromfile, METH_VARARGS),
@@ -1083,6 +1131,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, create_remote, METH_VARARGS),
+    METHOD(Repository, checkout, METH_VARARGS|METH_KEYWORDS),
     {NULL}
 };
 
