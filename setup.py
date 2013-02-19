@@ -39,12 +39,17 @@ from distutils.command.build import build
 from distutils.command.sdist import sdist
 from distutils import log
 
-# read version from local pygit2/version.py without pulling in
+# Read version from local pygit2/version.py without pulling in
 # pygit2/__init__.py
 sys.path.insert(0, 'pygit2')
 from version import __version__
 
-u = lambda s: s if sys.version_info[0] > 2 else unicode(s, 'utf-8')
+# Python 2 support
+# See https://github.com/libgit2/pygit2/pull/180 for a discussion about this.
+if sys.version_info[0] == 2:
+    u = lambda s: unicode(s, 'utf-8')
+else:
+    u = str
 
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
