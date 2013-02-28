@@ -10,10 +10,10 @@ In the first place Git is a key-value storage system. The values stored are
 called *objects*, there are four types (commits, trees, blobs and tags),
 for each type pygit2 has a Python class::
 
-    # Get the last commit
+    >>> # Get the last commit
     >>> head = repo.head
 
-    # Show commits and trees
+    >>> # Show commits and trees
     >>> commit
     <pygit2.Commit object at 0x7f9d2f3000b0>
     >>> commit.tree
@@ -92,12 +92,12 @@ directory in a file system. Each entry points to another tree or a blob.  A
 tree can be iterated, and partially implements the sequence and mapping
 interfaces::
 
-    # Number of entries
+    >>> # Number of entries
     >>> tree = commit.tree
     >>> len(tree)
     6
 
-    # Iteration
+    >>> # Iteration
     >>> for entry in tree:
     ...     print(entry.hex, entry.name)
     ...
@@ -108,12 +108,12 @@ interfaces::
     85a67270a49ef16cdd3d328f06a3e4b459f09b27 setup.py
     3d8985bbec338eb4d47c5b01b863ee89d044bd53 test
 
-    # Get an entry by name
+    >>> # Get an entry by name
     >>> entry = tree['pygit2.c']
     >>> entry
     <pygit2.TreeEntry object at 0xcc10f0>
 
-    # Get the object the entry points to
+    >>> # Get the object the entry points to
     >>> blob = repo[entry.oid]
     >>> blob
     <pygit2.Blob object at 0xcc12d0>
@@ -143,7 +143,7 @@ Blobs
 
 A blob is equivalent to a file in a file system.::
 
-    # create a blob out of memory
+    >>> # create a blob out of memory
     >>> oid  = repo.create_blob('foo bar')
     >>> blob = repo[oid]
 
