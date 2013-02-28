@@ -146,9 +146,10 @@ A blob is equivalent to a file in a file system.::
     >>> # create a blob out of memory
     >>> oid  = repo.create_blob('foo bar')
     >>> blob = repo[oid]
-
-    Blob.data -- the contents of the blob, a byte string
-
+    >>> blob.data
+    'foo bar'
+    >>> oid
+    '\x96\xc9\x06um{\x91\xc4S"a|\x92\x95\xe4\xa8\rR\xd1\xc5'
 
 .. autoclass:: pygit2.Blob
    :members:
