@@ -62,20 +62,20 @@ extern PyTypeObject RemoteType;
 
 
 PyDoc_STRVAR(init_repository__doc__,
-  "init_repository(path, bare) -> Repository\n"
+  "init_repository(path, bare=False) -> Repository\n"
   "\n"
   "Creates a new Git repository in the given path.");
 
 PyObject *
-init_repository(PyObject *self, PyObject *args)
-{
+init_repository(PyObject *self, PyObject *args, PyObject *kw) {
     git_repository *repo;
     Repository *py_repo;
     const char *path;
-    unsigned int bare;
+    unsigned int bare = 0;
     int err;
+    static char * kwlist[] = {"path", "bare", NULL};
 
-    if (!PyArg_ParseTuple(args, "sI", &path, &bare))
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "s|I", kwlist, &path, &bare))
         return NULL;
 
     err = git_repository_init(&repo, path, bare);
@@ -168,7 +168,7 @@ hash(PyObject *self, PyObject *args)
 
 
 PyMethodDef module_methods[] = {
-    {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
+    {"init_repository", init_repository, METH_VARARGS|METH_KEYWORDS, init_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
