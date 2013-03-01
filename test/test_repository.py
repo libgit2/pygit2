@@ -234,6 +234,29 @@ class NewRepositoryTest(utils.NoRepoTestCase):
 
         assert os.path.exists(os.path.join(self._temp_dir, '.git'))
 
+class InitRepositoryTest(utils.NoRepoTestCase):
+    # under the assumption that repo.is_bare works
+
+    def test_no_arg(self):
+        repo = init_repository(self._temp_dir)
+        self.assertFalse(repo.is_bare)
+
+    def test_pos_arg_false(self):
+        repo = init_repository(self._temp_dir, False)
+        self.assertFalse(repo.is_bare)
+
+    def test_pos_arg_true(self):
+        repo = init_repository(self._temp_dir, True)
+        self.assertTrue(repo.is_bare)
+
+    def test_keyword_arg_false(self):
+        repo = init_repository(self._temp_dir, bare=False)
+        self.assertFalse(repo.is_bare)
+
+    def test_keyword_arg_true(self):
+        repo = init_repository(self._temp_dir, bare=True)
+        self.assertTrue(repo.is_bare)
+
 class DiscoverRepositoryTest(utils.NoRepoTestCase):
     def test_discover_repo(self):
         repo = init_repository(self._temp_dir, False)
