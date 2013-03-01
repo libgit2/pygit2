@@ -354,17 +354,11 @@ moduleinit(PyObject* m)
                             GIT_DIFF_FIND_AND_BREAK_REWRITES);
 
     /* Flags for diffed files */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_VALID_OID",
-                            GIT_DIFF_FILE_VALID_OID);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_FREE_PATH",
-                            GIT_DIFF_FILE_FREE_PATH);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_BINARY", GIT_DIFF_FILE_BINARY);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_NOT_BINARY",
-                            GIT_DIFF_FILE_NOT_BINARY);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_FREE_DATA",
-                            GIT_DIFF_FILE_FREE_DATA);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FILE_UNMAP_DATA",
-                            GIT_DIFF_FILE_UNMAP_DATA);
+    PyModule_AddIntConstant(m, "GIT_DIFF_FLAG_BINARY", GIT_DIFF_FLAG_BINARY);
+    PyModule_AddIntConstant(m, "GIT_DIFF_FLAG_NOT_BINARY",
+                            GIT_DIFF_FLAG_NOT_BINARY);
+    PyModule_AddIntConstant(m, "GIT_DIFF_FLAG_VALID_OID",
+                            GIT_DIFF_FLAG_VALID_OID);
 
     /* Flags for diff deltas */
     PyModule_AddIntConstant(m, "GIT_DELTA_UNMODIFIED", GIT_DELTA_UNMODIFIED);
