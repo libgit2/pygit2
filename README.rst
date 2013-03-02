@@ -78,6 +78,7 @@ pygit2 project (sorted alphabetically):
 - Rui Abreu Ferreira
 - Sarath Lakshman
 - Sebastian Thiel
+- Valentin Haenel
 - Vicent Marti
 - W Trevor King
 - Xavier Delannoy
