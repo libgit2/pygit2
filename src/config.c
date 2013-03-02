@@ -152,7 +152,7 @@ Config_contains(Config *self, PyObject *py_key) {
     const char *c_value;
     char *c_key;
 
-    c_key = py_str_to_c_str(py_key,NULL);
+    c_key = py_str_to_c_str(py_key, NULL);
     if (c_key == NULL)
         return -1;
 
@@ -177,7 +177,7 @@ Config_getitem(Config *self, PyObject *py_key)
     const char *c_charvalue;
     char *c_key;
 
-    if (!(c_key = py_str_to_c_str(py_key,NULL)))
+    if (!(c_key = py_str_to_c_str(py_key, NULL)))
         return NULL;
 
     err = git_config_get_int64(&c_intvalue, self->config, c_key);
@@ -212,7 +212,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
     char *c_key;
     char *py_str;
 
-    if (!(c_key = py_str_to_c_str(py_key,NULL)))
+    if (!(c_key = py_str_to_c_str(py_key, NULL)))
         return -1;
 
     if (!py_value) {
@@ -225,7 +225,7 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
                 (int64_t)PyInt_AsLong(py_value));
     } else {
         py_value = PyObject_Str(py_value);
-        py_str = py_str_to_c_str(py_value,NULL);
+        py_str = py_str_to_c_str(py_value, NULL);
         err = git_config_set_string(self->config, c_key, py_str);
         free(py_str);
     }
@@ -257,7 +257,7 @@ Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
     if (!args)
         return -1;
 
-    if (!(py_result = PyObject_CallObject(py_callback,args)))
+    if (!(py_result = PyObject_CallObject(py_callback, args)))
         return -1;
 
     if ((c_result = PyLong_AsLong(py_result) == -1))
@@ -415,14 +415,14 @@ PyMethodDef Config_methods[] = {
 };
 
 PySequenceMethods Config_as_sequence = {
-    0,                          /* sq_length */
-    0,                          /* sq_concat */
-    0,                          /* sq_repeat */
-    0,                          /* sq_item */
-    0,                          /* sq_slice */
-    0,                          /* sq_ass_item */
-    0,                          /* sq_ass_slice */
-    (objobjproc)Config_contains,/* sq_contains */
+    0,                               /* sq_length */
+    0,                               /* sq_concat */
+    0,                               /* sq_repeat */
+    0,                               /* sq_item */
+    0,                               /* sq_slice */
+    0,                               /* sq_ass_item */
+    0,                               /* sq_ass_slice */
+    (objobjproc)Config_contains,     /* sq_contains */
 };
 
 PyMappingMethods Config_as_mapping = {

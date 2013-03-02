@@ -118,22 +118,13 @@ interfaces::
     >>> blob
     <pygit2.Blob object at 0xcc12d0>
 
-This is the interface of a tree entry::
-
-    TreeEntry.name        -- name of the tree entry
-    TreeEntry.oid         -- the id of the git object
-    TreeEntry.hex         -- hexadecimal representation of the oid
-    TreeEntry.filemode    -- the Unix file attributes
-    TreeEntry.to_object() -- returns the git object (equivalent to repo[entry.oid])
-
-
 .. autoclass:: pygit2.Tree
    :members:
    :show-inheritance:
    :undoc-members:
 
 .. autoclass:: pygit2.TreeEntry
-   :members:
+   :members: name, oid, hex, filemode, to_object
    :show-inheritance:
    :undoc-members:
 

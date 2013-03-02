@@ -38,7 +38,8 @@ int  Repository_traverse(Repository *self, visitproc visit, void *arg);
 int  Repository_clear(Repository *self);
 int  Repository_contains(Repository *self, PyObject *value);
 
-git_odb_object* Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len);
+git_odb_object*
+Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len);
 
 PyObject* Repository_head(Repository *self);
 PyObject* Repository_getitem(Repository *self, PyObject *value);
@@ -55,7 +56,10 @@ PyObject* Repository_create_commit(Repository *self, PyObject *args);
 PyObject* Repository_create_tag(Repository *self, PyObject *args);
 PyObject* Repository_listall_references(Repository *self, PyObject *args);
 PyObject* Repository_lookup_reference(Repository *self, PyObject *py_name);
-PyObject* Repository_create_reference(Repository *self,  PyObject *args, PyObject* keywds);
+
+PyObject*
+Repository_create_reference(Repository *self, PyObject *args, PyObject* kw);
+
 PyObject* Repository_packall_references(Repository *self,  PyObject *args);
 PyObject* Repository_status(Repository *self, PyObject *args);
 PyObject* Repository_status_file(Repository *self, PyObject *value);

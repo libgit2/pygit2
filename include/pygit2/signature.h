@@ -40,6 +40,9 @@ PyObject* Signature_get_name(Signature *self);
 PyObject* Signature_get_email(Signature *self);
 PyObject* Signature_get_time(Signature *self);
 PyObject* Signature_get_offset(Signature *self);
-PyObject* build_signature(Object *obj, const git_signature *signature, const char *encoding);
+
+PyObject*
+build_signature(Object *obj, const git_signature *signature,
+                const char *encoding);
 
 #endif

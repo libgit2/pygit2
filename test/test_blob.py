@@ -30,8 +30,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
-import tempfile
-import os
 
 import pygit2
 from . import utils

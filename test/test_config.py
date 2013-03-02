@@ -78,7 +78,7 @@ class ConfigTest(utils.RepoTestCase):
         self.assertFalse(config_read['core.bare'])
         self.assertTrue('core.editor' in config_read)
         self.assertEqual(config_read['core.editor'], 'ed')
-        
+
     def test_add(self):
         config = pygit2.Config()
 
@@ -98,9 +98,10 @@ class ConfigTest(utils.RepoTestCase):
 
         self.assertRaises(TypeError, lambda: config[()])
         self.assertRaises(TypeError, lambda: config[-4])
-        self.assertRaisesWithArg(ValueError,
-                "Invalid config item name 'abc'", lambda: config['abc'])
-        self.assertRaisesWithArg(KeyError, 'abc.def', lambda: config['abc.def'])
+        self.assertRaisesWithArg(ValueError, "Invalid config item name 'abc'",
+                                 lambda: config['abc'])
+        self.assertRaisesWithArg(KeyError, 'abc.def',
+                                 lambda: config['abc.def'])
 
         self.assertTrue('core.bare' in config)
         self.assertFalse(config['core.bare'])
@@ -117,7 +118,7 @@ class ConfigTest(utils.RepoTestCase):
         self.assertTrue('this.that' in config)
         self.assertEqual(len(config.get_multivar('this.that')), 2)
         l = config.get_multivar('this.that', 'bar')
-        self.assertEqual(len(l),1)
+        self.assertEqual(len(l), 1)
         self.assertEqual(l[0], 'foobar')
 
     def test_write(self):
@@ -156,7 +157,7 @@ class ConfigTest(utils.RepoTestCase):
         self.assertTrue('this.that' in config)
         config.set_multivar('this.that', '^.*beer', 'fool')
         l = config.get_multivar('this.that', 'fool')
-        self.assertEqual(len(l),1)
+        self.assertEqual(len(l), 1)
         self.assertEqual(l[0], 'fool')
         config.set_multivar('this.that', 'foo.*', '123456')
         l = config.get_multivar('this.that', 'foo.*')

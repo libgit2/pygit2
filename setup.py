@@ -90,13 +90,15 @@ class TestCommand(Command):
         import shlex
         import unittest
         test_argv0 = [sys.argv[0] + ' test --args=']
-        #For transfering args to unittest, we have to split args
-        #by ourself, so that command like:
-        #python setup.py test --args="-v -f"
-        #can be executed, and the parameter '-v -f' can be
-        #transfering to unittest properly.
+        # For transfering args to unittest, we have to split args by ourself,
+        # so that command like:
+        #
+        #   python setup.py test --args="-v -f"
+        #
+        # can be executed, and the parameter '-v -f' can be transfering to
+        # unittest properly.
         test_argv = test_argv0 + shlex.split(self.args)
-        unittest.main(module=None, defaultTest='test.test_suite', argv=test_argv)
+        unittest.main(None, defaultTest='test.test_suite', argv=test_argv)
 
 
 class BuildWithDLLs(build):
@@ -112,7 +114,7 @@ class BuildWithDLLs(build):
             libgit2_dlls.append('git2.dll')
         elif compiler_type == 'mingw32':
             libgit2_dlls.append('libgit2.dll')
-        look_dirs = [libgit2_bin] + os.environ.get("PATH","").split(os.pathsep)
+        look_dirs = [libgit2_bin] + os.getenv("PATH", "").split(os.pathsep)
         target = os.path.abspath(self.build_lib)
         for bin in libgit2_dlls:
             for look in look_dirs:

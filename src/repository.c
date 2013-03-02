@@ -209,8 +209,8 @@ Repository_head__get__(Repository *self)
     int err;
 
     err = git_repository_head(&head, self->repo);
-    if(err < 0) {
-        if(err == GIT_ENOTFOUND)
+    if (err < 0) {
+        if (err == GIT_ENOTFOUND)
             PyErr_SetString(GitError, "head reference does not exist");
         else
             Error_set(err);
@@ -856,20 +856,20 @@ Repository_create_reference(Repository *self,  PyObject *args, PyObject *kw)
                                      &c_name, &py_obj, &force, &symbolic))
         return NULL;
 
-    if(!symbolic) {
+    if (!symbolic) {
         err = py_str_to_git_oid_expand(self->repo, py_obj, &oid);
-        if (err < 0) {
+        if (err < 0)
             return Error_set(err);
-        }
 
-        err = git_reference_create(&c_reference, self->repo, c_name, &oid, force);
+        err = git_reference_create(&c_reference, self->repo, c_name, &oid,
+                                   force);
     } else {
         #if PY_MAJOR_VERSION == 2
         c_target = PyString_AsString(py_obj);
         #else
         c_target = PyString_AsString(PyUnicode_AsASCIIString(py_obj));
         #endif
-        if(c_target == NULL)
+        if (c_target == NULL)
             return NULL;
 
         err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
@@ -981,7 +981,7 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
         if (PyObject_TypeCheck(py_src, &TreeType)) {
             Tree *py_tree = (Tree *)py_src;
             if (py_tree->repo->repo != self->repo) {
-                //return Error_set(GIT_EINVALIDARGS);
+                /* return Error_set(GIT_EINVALIDARGS); */
                 return Error_set(GIT_ERROR);
             }
             tree = py_tree->tree;
@@ -998,9 +998,8 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
     }
 
     err = git_treebuilder_create(&bld, tree);
-    if (must_free != NULL) {
+    if (must_free != NULL)
         git_tree_free(must_free);
-    }
 
     if (err < 0)
         return Error_set(err);
@@ -1090,10 +1089,10 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
                                      &strategy, &ReferenceType, &ref, &head))
         return NULL;
 
-    if (ref != NULL) { // checkout from treeish
+    if (ref != NULL) { /* checkout from treeish */
         id = git_reference_target(ref->reference);
         err = git_object_lookup(&object, self->repo, id, GIT_OBJ_COMMIT);
-        if(err == GIT_OK) {
+        if (err == GIT_OK) {
             opts.checkout_strategy = strategy;
             err = git_checkout_tree(self->repo, object, &opts);
             if (err == GIT_OK) {
@@ -1101,13 +1100,13 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
                           git_reference_name(ref->reference));
             }
         }
-    } else { // checkout from head / index
+    } else { /* checkout from head / index */
         opts.checkout_strategy = strategy;
         err = (!head) ? git_checkout_index(self->repo, NULL, &opts) :
                         git_checkout_head(self->repo, &opts);
     }
 
-    if(err < 0)
+    if (err < 0)
         return Error_set(err);
 
     Py_RETURN_NONE;

@@ -156,8 +156,8 @@ Remote_fetchspec__set__(Remote *self, PyObject* py_tuple)
     if (!PyArg_ParseTuple(py_tuple, "ss", &src, &dst))
         return -1;
 
-    // length is strlen('+' + src + ':' + dst) and Null-Byte
-    length = strlen(src) + strlen(dst) + 3; 
+    /* length is strlen('+' + src + ':' + dst) and Null-Byte */
+    length = strlen(src) + strlen(dst) + 3;
     buf = (char*) calloc(length, sizeof(char));
     if (buf != NULL) {
         sprintf(buf, "+%s:%s", src, dst);
@@ -165,7 +165,7 @@ Remote_fetchspec__set__(Remote *self, PyObject* py_tuple)
         free(buf);
 
         if (err == GIT_OK)
-          return 0;
+            return 0;
 
         Error_set_exc(PyExc_ValueError);
     }
@@ -184,29 +184,29 @@ PyDoc_STRVAR(Remote_fetch__doc__,
 PyObject *
 Remote_fetch(Remote *self, PyObject *args)
 {
-  PyObject* py_stats = NULL;
-  const git_transfer_progress *stats;
-  int err;
+    PyObject* py_stats = NULL;
+    const git_transfer_progress *stats;
+    int err;
 
-  err = git_remote_connect(self->remote, GIT_DIRECTION_FETCH);
-  if (err == GIT_OK) {
-      err = git_remote_download(self->remote, NULL, NULL);
-      if (err == GIT_OK) {
-          stats = git_remote_stats(self->remote);
-          py_stats = Py_BuildValue("{s:I,s:I,s:n}",
-              "indexed_objects", stats->indexed_objects,
-              "received_objects", stats->received_objects,
-              "received_bytes", stats->received_bytes);
+    err = git_remote_connect(self->remote, GIT_DIRECTION_FETCH);
+    if (err == GIT_OK) {
+        err = git_remote_download(self->remote, NULL, NULL);
+        if (err == GIT_OK) {
+            stats = git_remote_stats(self->remote);
+            py_stats = Py_BuildValue("{s:I,s:I,s:n}",
+                "indexed_objects", stats->indexed_objects,
+                "received_objects", stats->received_objects,
+                "received_bytes", stats->received_bytes);
 
-          err = git_remote_update_tips(self->remote);
-      }
-      git_remote_disconnect(self->remote);
-  }
+            err = git_remote_update_tips(self->remote);
+        }
+        git_remote_disconnect(self->remote);
+    }
 
-  if (err < 0)
-    return Error_set(err);
+    if (err < 0)
+        return Error_set(err);
 
-  return (PyObject*) py_stats;
+    return (PyObject*) py_stats;
 }
 
 
@@ -239,7 +239,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
-    (ternaryfunc) Remote_call,                               /* tp_call           */
+    (ternaryfunc) Remote_call,                 /* tp_call           */
     0,                                         /* tp_str            */
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */

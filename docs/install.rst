@@ -6,12 +6,13 @@ How to Install
 .. contents::
 
 
-First you need to install the latest version of libgit2.
-You can find platform-specific instructions to build the library in the libgit2 website:
+First you need to install the latest version of libgit2.  You can find
+platform-specific instructions to build the library in the libgit2 website:
 
   http://libgit2.github.com
 
-Also, make sure you have Python 2.6+ installed together with the Python development headers.
+Also, make sure you have Python 2.6+ installed together with the Python
+development headers.
 
 When those are installed, you can install pygit2::
 

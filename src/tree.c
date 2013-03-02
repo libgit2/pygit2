@@ -282,7 +282,7 @@ Tree_getitem(Tree *self, PyObject *value)
     if (err < 0)
         return (TreeEntry*)Error_set(err);
 
-    // git_tree_entry_dup is already done in git_tree_entry_bypath
+    /* git_tree_entry_dup is already done in git_tree_entry_bypath */
     return wrap_tree_entry(entry, self);
 }
 

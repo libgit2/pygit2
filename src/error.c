@@ -32,40 +32,40 @@ PyObject *GitError;
 PyObject * Error_type(int type)
 {
     const git_error* error;
-    // Expected
+    /* Expected */
     switch (type) {
-        /** Input does not exist in the scope searched. */
+        /* Input does not exist in the scope searched. */
         case GIT_ENOTFOUND:
             return PyExc_KeyError;
 
-        /** A reference with this name already exists */
+        /* A reference with this name already exists */
         case GIT_EEXISTS:
             return PyExc_ValueError;
 
-        /** The given short oid is ambiguous */
+        /* The given short oid is ambiguous */
         case GIT_EAMBIGUOUS:
             return PyExc_ValueError;
 
-        /** The buffer is too short to satisfy the request */
+        /* The buffer is too short to satisfy the request */
         case GIT_EBUFS:
             return PyExc_ValueError;
 
-        /** Invalid input spec */
+        /* Invalid input spec */
         case GIT_EINVALIDSPEC:
             return PyExc_ValueError;
 
-        /** Skip and passthrough the given ODB backend */
+        /* Skip and passthrough the given ODB backend */
         case GIT_PASSTHROUGH:
             return GitError;
 
-        /** No entries left in ref walker */
+        /* No entries left in ref walker */
         case GIT_ITEROVER:
             return PyExc_StopIteration;
     }
 
-    // Critical
+    /* Critical */
     error = giterr_last();
-    if(error != NULL) {
+    if (error != NULL) {
         switch (error->klass) {
             case GITERR_NOMEMORY:
                 return PyExc_MemoryError;
@@ -107,7 +107,7 @@ PyObject* Error_set_str(int err, const char *str)
     }
 
     error = giterr_last();
-    if (error == NULL) //expected error - no error msg set
+    if (error == NULL) /* Expected error - no error msg set */
         return PyErr_Format(Error_type(err), "%s", str);
 
     return PyErr_Format(Error_type(err), "%s: %s", str, error->message);

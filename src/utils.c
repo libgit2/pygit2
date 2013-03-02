@@ -32,8 +32,8 @@
 
 extern PyTypeObject ReferenceType;
 
-// py_str_to_c_str() returns a newly allocated C string holding
-// the string contained in the value argument.
+/* py_str_to_c_str() returns a newly allocated C string holding
+ * the string contained in the value argument. */
 char * py_str_to_c_str(PyObject *value, const char *encoding)
 {
     /* Case 1: byte string */

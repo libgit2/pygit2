@@ -45,8 +45,8 @@ class SignatureTest(NoRepoTestCase):
         self.assertEqual(signature.name.encode(encoding), signature._name)
 
     def test_ascii(self):
-        self.assertRaises(
-                UnicodeEncodeError, Signature, 'Foo Ibáñez', 'foo@example.com')
+        self.assertRaises(UnicodeEncodeError,
+                          Signature, 'Foo Ibáñez', 'foo@example.com')
 
     def test_latin1(self):
         encoding = 'iso-8859-1'

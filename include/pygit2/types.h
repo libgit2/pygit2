@@ -137,8 +137,10 @@ typedef struct {
 } Signature;
 
 
-PyObject* lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
+PyObject*
+lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
                      git_otype type);
+
 PyObject* lookup_object(Repository *repo, const git_oid *oid, git_otype type);
 
 #endif

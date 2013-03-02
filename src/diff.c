@@ -54,12 +54,12 @@ static int diff_data_cb(
 
     hunks = PyDict_GetItemString(cb_data, "hunks");
     if (hunks == NULL)
-      return -1;
+        return -1;
 
     size = PyList_Size(hunks);
     hunk = (Hunk *)PyList_GetItem(hunks, size - 1);
     if (hunk == NULL)
-      return -1;
+        return -1;
 
     data = Py_BuildValue("(s#,i)",
         content, content_len,
@@ -149,11 +149,10 @@ static int diff_hunk_cb(
         hunk->new_file = "";
     }
 
-    if (hunk->data == NULL) {
-      hunk->data = PyList_New(0);
-    }
+    if (hunk->data == NULL)
+        hunk->data = PyList_New(0);
 
-    if(PyList_Append(hunks, (PyObject *)hunk) == 0) {
+    if (PyList_Append(hunks, (PyObject *)hunk) == 0) {
         Py_DECREF(hunk);
     }
     else {
@@ -168,10 +167,10 @@ diff_file_cb(const git_diff_delta *delta, float progress, void *cb_data)
 {
     PyObject *files, *file;
 
-    if(delta->old_file.path != NULL && delta->new_file.path != NULL) {
+    if (delta->old_file.path != NULL && delta->new_file.path != NULL) {
         files = PyDict_GetItemString(cb_data, "files");
 
-        if(files == NULL) {
+        if (files == NULL) {
             files = PyList_New(0);
             PyDict_SetItemString(cb_data, "files", files);
             Py_DECREF(files);
@@ -184,10 +183,9 @@ diff_file_cb(const git_diff_delta *delta, float progress, void *cb_data)
             delta->similarity
         );
 
-        if (PyList_Append(files, file) == 0) {
-            // If success
+        /* If success */
+        if (PyList_Append(files, file) == 0)
             Py_DECREF(file);
-        }
     }
 
     return 0;

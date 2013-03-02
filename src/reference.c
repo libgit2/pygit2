@@ -74,10 +74,9 @@ PyObject* RefLogIter_iternext(PyObject *self)
               git_reflog_entry_committer(entry)
             );
 
-        if(signature != NULL)
-          py_entry->committer = build_signature(
-                (Object*)py_entry, signature, "utf-8"
-              );
+        if (signature != NULL)
+            py_entry->committer = build_signature(
+                (Object*)py_entry, signature, "utf-8");
 
         ++(p->i);
 

@@ -35,8 +35,8 @@ import tempfile
 import os
 from os.path import join, realpath
 
-from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT, init_repository, \
-                   discover_repository, Commit, hashfile
+from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
+from pygit2 import init_repository, discover_repository, Commit, hashfile
 import pygit2
 
 from . import utils
@@ -260,7 +260,7 @@ class InitRepositoryTest(utils.NoRepoTestCase):
 class DiscoverRepositoryTest(utils.NoRepoTestCase):
     def test_discover_repo(self):
         repo = init_repository(self._temp_dir, False)
-        subdir = os.path.join(self._temp_dir, "test1","test2")
+        subdir = os.path.join(self._temp_dir, "test1", "test2")
         os.makedirs(subdir)
         self.assertEqual(repo.path, discover_repository(subdir))
 

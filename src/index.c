@@ -371,8 +371,8 @@ Index_setitem(Index *self, PyObject *key, PyObject *value)
         return -1;
     }
 
-    if(Index_remove(self, Py_BuildValue("(N)", key)) == NULL)
-      return -1;
+    if (Index_remove(self, Py_BuildValue("(N)", key)) == NULL)
+        return -1;
 
     return 0;
 }

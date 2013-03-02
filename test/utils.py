@@ -63,7 +63,8 @@ def rmtree(path):
     So we implement our own version of rmtree to address this issue.
     """
     if os.path.exists(path):
-        shutil.rmtree(path, onerror=lambda func, path, e: force_rm_handle(func, path, e))
+        onerror = lambda func, path, e: force_rm_handle(func, path, e)
+        shutil.rmtree(path, onerror=onerror)
 
 
 class NoRepoTestCase(unittest.TestCase):

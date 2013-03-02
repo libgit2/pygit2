@@ -168,7 +168,8 @@ hash(PyObject *self, PyObject *args)
 
 
 PyMethodDef module_methods[] = {
-    {"init_repository", init_repository, METH_VARARGS|METH_KEYWORDS, init_repository__doc__},
+    {"init_repository", init_repository, METH_VARARGS|METH_KEYWORDS,
+     init_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
@@ -337,19 +338,19 @@ moduleinit(PyObject* m)
                             GIT_DIFF_RECURSE_UNTRACKED_DIRS);
 
     /* Flags for diff find similar */
-    // --find-renames
+    /* --find-renames */
     PyModule_AddIntConstant(m, "GIT_DIFF_FIND_RENAMES",
                             GIT_DIFF_FIND_RENAMES);
-    // --break-rewrites=N
+    /* --break-rewrites=N */
     PyModule_AddIntConstant(m, "GIT_DIFF_FIND_RENAMES_FROM_REWRITES",
                             GIT_DIFF_FIND_RENAMES_FROM_REWRITES);
-    // --find-copies
+    /* --find-copies */
     PyModule_AddIntConstant(m, "GIT_DIFF_FIND_COPIES",
                             GIT_DIFF_FIND_COPIES);
-    // --find-copies-harder
+    /* --find-copies-harder */
     PyModule_AddIntConstant(m, "GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED",
                             GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED);
-    // --break-rewrites=/M
+    /* --break-rewrites=/M */
     PyModule_AddIntConstant(m, "GIT_DIFF_FIND_AND_BREAK_REWRITES",
                             GIT_DIFF_FIND_AND_BREAK_REWRITES);
 
@@ -427,32 +428,32 @@ moduleinit(PyObject* m)
 
 
 #if PY_MAJOR_VERSION < 3
-  PyMODINIT_FUNC
-  init_pygit2(void)
-  {
-      PyObject* m;
-      m = Py_InitModule3("_pygit2", module_methods,
-                         "Python bindings for libgit2.");
-      moduleinit(m);
-  }
+    PyMODINIT_FUNC
+    init_pygit2(void)
+    {
+        PyObject* m;
+        m = Py_InitModule3("_pygit2", module_methods,
+                           "Python bindings for libgit2.");
+        moduleinit(m);
+    }
 #else
-  struct PyModuleDef moduledef = {
-      PyModuleDef_HEAD_INIT,
-      "_pygit2",                        /* m_name */
-      "Python bindings for libgit2.",  /* m_doc */
-      -1,                              /* m_size */
-      module_methods,                  /* m_methods */
-      NULL,                            /* m_reload */
-      NULL,                            /* m_traverse */
-      NULL,                            /* m_clear */
-      NULL,                            /* m_free */
-  };
+    struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "_pygit2",                       /* m_name */
+        "Python bindings for libgit2.",  /* m_doc */
+        -1,                              /* m_size */
+        module_methods,                  /* m_methods */
+        NULL,                            /* m_reload */
+        NULL,                            /* m_traverse */
+        NULL,                            /* m_clear */
+        NULL,                            /* m_free */
+    };
 
-  PyMODINIT_FUNC
-  PyInit__pygit2(void)
-  {
-      PyObject* m;
-      m = PyModule_Create(&moduledef);
-      return moduleinit(m);
-  }
+    PyMODINIT_FUNC
+    PyInit__pygit2(void)
+    {
+        PyObject* m;
+        m = PyModule_Create(&moduledef);
+        return moduleinit(m);
+    }
 #endif

@@ -31,6 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 import pygit2
+from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
 from . import utils
 
 
@@ -57,26 +58,26 @@ index 297efb8..0000000
 """
 
 DIFF_INDEX_EXPECTED = [
-  'staged_changes',
-  'staged_changes_file_deleted',
-  'staged_changes_file_modified',
-  'staged_delete',
-  'staged_delete_file_modified',
-  'staged_new',
-  'staged_new_file_deleted',
-  'staged_new_file_modified'
+    'staged_changes',
+    'staged_changes_file_deleted',
+    'staged_changes_file_modified',
+    'staged_delete',
+    'staged_delete_file_modified',
+    'staged_new',
+    'staged_new_file_deleted',
+    'staged_new_file_modified'
 ]
 
 DIFF_WORKDIR_EXPECTED = [
-  'file_deleted',
-  'modified_file',
-  'staged_changes',
-  'staged_changes_file_deleted',
-  'staged_changes_file_modified',
-  'staged_delete',
-  'staged_delete_file_modified',
-  'subdir/deleted_file',
-  'subdir/modified_file'
+    'file_deleted',
+    'modified_file',
+    'staged_changes',
+    'staged_changes_file_deleted',
+    'staged_changes_file_modified',
+    'staged_delete',
+    'staged_delete_file_modified',
+    'subdir/deleted_file',
+    'subdir/modified_file'
 ]
 
 class DiffDirtyTest(utils.DirtyRepoTestCase):
@@ -120,7 +121,7 @@ class DiffTest(utils.BareRepoTestCase):
         # self.assertIsNotNone is 2.7 only
         self.assertTrue(diff is not None)
         # self.assertIn is 2.7 only
-        self.assertTrue(('a','a', 3, 0) in diff.changes['files'])
+        self.assertTrue(('a', 'a', 3, 0) in diff.changes['files'])
         self.assertEqual(2, len(diff.changes['hunks']))
 
         hunk = diff.changes['hunks'][0]
@@ -140,7 +141,7 @@ class DiffTest(utils.BareRepoTestCase):
         commit_d = self.repo[COMMIT_SHA1_4]
 
         for opt in [pygit2.GIT_DIFF_IGNORE_WHITESPACE,
-                pygit2.GIT_DIFF_IGNORE_WHITESPACE_EOL]:
+                    pygit2.GIT_DIFF_IGNORE_WHITESPACE_EOL]:
             diff = commit_c.tree.diff(commit_d.tree, opt)
             self.assertTrue(diff is not None)
             self.assertEqual(0, len(diff.changes.get('hunks', list())))
@@ -163,13 +164,13 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertTrue(diff_c is not None)
 
         # assertIn / assertNotIn are 2.7 only
-        self.assertTrue(('b','b', 3, 0) not in diff_b.changes['files'])
-        self.assertTrue(('b','b', 3, 0) in diff_c.changes['files'])
+        self.assertTrue(('b', 'b', 3, 0) not in diff_b.changes['files'])
+        self.assertTrue(('b', 'b', 3, 0) in diff_c.changes['files'])
 
         diff_b.merge(diff_c)
 
         # assertIn is 2.7 only
-        self.assertTrue(('b','b', 3, 0) in diff_b.changes['files'])
+        self.assertTrue(('b', 'b', 3, 0) in diff_b.changes['files'])
 
         hunk = diff_b.changes['hunks'][1]
         self.assertEqual(hunk.old_start, 1)
@@ -201,16 +202,19 @@ class DiffTest(utils.BareRepoTestCase):
         commit_a = self.repo[COMMIT_SHA1_1]
         commit_b = self.repo[COMMIT_SHA1_2]
         diff = commit_a.tree.diff(commit_b.tree)
-        self.assertEqual(diff.changes['hunks'][0].old_oid, '7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        self.assertEqual(diff.changes['hunks'][0].new_oid, 'af431f20fc541ed6d5afede3e2dc7160f6f01f16')
+        hunk = diff.changes['hunks'][0]
+        self.assertEqual(hunk.old_oid,
+                         '7f129fd57e31e935c6d60a0c794efe4e6927664b')
+        self.assertEqual(hunk.new_oid,
+                         'af431f20fc541ed6d5afede3e2dc7160f6f01f16')
 
     def test_find_similar(self):
         commit_a = self.repo[COMMIT_SHA1_4]
         commit_b = self.repo[COMMIT_SHA1_5]
-        
+
         #~ Must pass GIT_DIFF_INCLUDE_UNMODIFIED if you expect to emulate
         #~ --find-copies-harder during rename transformion...
-        diff = commit_a.tree.diff(commit_b.tree, pygit2.GIT_DIFF_INCLUDE_UNMODIFIED)
+        diff = commit_a.tree.diff(commit_b.tree, GIT_DIFF_INCLUDE_UNMODIFIED)
         self.assertFalse(('a', 'a.copy', 5, 100) in diff.changes['files'])
         diff.find_similar(pygit2.GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED)
         self.assertTrue(('a', 'a.copy', 5, 100) in diff.changes['files'])

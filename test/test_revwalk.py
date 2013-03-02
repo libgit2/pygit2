@@ -44,23 +44,23 @@ log = [
     'acecd5ea2924a4b900e7e149496e1f4b57976e51']
 
 REVLOGS = [
-  ('Nico von Geyso','checkout: moving from i18n to master'),
-  ('Nico von Geyso','commit: added bye.txt and new'),
-  ('Nico von Geyso','checkout: moving from master to i18n'),
-  ('J. David Ibañez', 'merge i18n: Merge made by recursive.'),
-  ('J. David Ibañez', 'commit: Add .gitignore file'),
-  ('J. David Ibañez', 'checkout: moving from i18n to master'),
-  ('J. David Ibañez', 'commit: Say hello in French'),
-  ('J. David Ibañez', 'commit: Say hello in Spanish'),
-  ('J. David Ibañez', 'checkout: moving from master to i18n'),
-  ('J. David Ibañez', 'commit (initial): First commit')
+    ('Nico von Geyso', 'checkout: moving from i18n to master'),
+    ('Nico von Geyso', 'commit: added bye.txt and new'),
+    ('Nico von Geyso', 'checkout: moving from master to i18n'),
+    ('J. David Ibañez', 'merge i18n: Merge made by recursive.'),
+    ('J. David Ibañez', 'commit: Add .gitignore file'),
+    ('J. David Ibañez', 'checkout: moving from i18n to master'),
+    ('J. David Ibañez', 'commit: Say hello in French'),
+    ('J. David Ibañez', 'commit: Say hello in Spanish'),
+    ('J. David Ibañez', 'checkout: moving from master to i18n'),
+    ('J. David Ibañez', 'commit (initial): First commit')
 ]
 
 
 class RevlogTestTest(utils.RepoTestCase):
     def test_log(self):
         ref = self.repo.lookup_reference('HEAD')
-        for i,entry in enumerate(ref.log()):
+        for i, entry in enumerate(ref.log()):
             self.assertEqual(entry.committer.name, REVLOGS[i][0])
             self.assertEqual(entry.message, REVLOGS[i][1])
 
