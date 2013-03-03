@@ -818,8 +818,8 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     return wrap_reference(c_reference);
 }
 
-PyDoc_STRVAR(Repository_create_direct_reference__doc__,
-  "create_reference(name, target, force) -> Reference\n"
+PyDoc_STRVAR(Repository_git_reference_create__doc__,
+  "git_reference_create(name, target, force) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to an object.\n"
   "\n"
@@ -831,11 +831,11 @@ PyDoc_STRVAR(Repository_create_direct_reference__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.create_direct_reference('refs/heads/foo', repo.head.hex, False)");
+  "    repo.git_reference_create('refs/heads/foo', repo.head.hex, False)");
 
 PyObject *
-Repository_create_direct_reference(Repository *self,  PyObject *args,
-                                   PyObject *kw)
+Repository_git_reference_create(Repository *self,  PyObject *args,
+                                PyObject *kw)
 {
     PyObject *py_obj;
     git_reference *c_reference;
@@ -857,8 +857,8 @@ Repository_create_direct_reference(Repository *self,  PyObject *args,
     return wrap_reference(c_reference);
 }
 
-PyDoc_STRVAR(Repository_create_symbolic_reference__doc__,
-  "create_symbolic_reference(name, source, force) -> Reference\n"
+PyDoc_STRVAR(Repository_git_reference_symbolic_create__doc__,
+  "git_reference_symbolic_create(name, source, force) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to another reference.\n"
   "\n"
@@ -870,11 +870,11 @@ PyDoc_STRVAR(Repository_create_symbolic_reference__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.create_reference('refs/tags/foo', 'refs/heads/master', False)");
+  "    repo.git_reference_symbolic_create('refs/tags/foo', 'refs/heads/master', False)");
 
 PyObject *
-Repository_create_symbolic_reference(Repository *self,  PyObject *args,
-                                     PyObject *kw)
+Repository_git_reference_symbolic_create(Repository *self,  PyObject *args,
+                                         PyObject *kw)
 {
     PyObject *py_obj;
     git_reference *c_reference;
@@ -1141,8 +1141,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, read, METH_O),
     METHOD(Repository, write, METH_VARARGS),
-    METHOD(Repository, create_direct_reference, METH_VARARGS),
-    METHOD(Repository, create_symbolic_reference, METH_VARARGS),
+    METHOD(Repository, git_reference_create, METH_VARARGS),
+    METHOD(Repository, git_reference_symbolic_create, METH_VARARGS),
     METHOD(Repository, listall_references, METH_VARARGS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, packall_references, METH_NOARGS),

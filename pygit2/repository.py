@@ -55,6 +55,6 @@ class Repository(_Repository):
                                   symbolic=True)
         """
         if symbolic:
-            return self.create_symbolic_reference(name, target, force)
+            return self.git_reference_symbolic_create(name, target, force)
 
-        return self.create_direct_reference(name, target, force)
+        return self.git_reference_create(name, target, force)
