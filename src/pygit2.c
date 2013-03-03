@@ -62,36 +62,26 @@ extern PyTypeObject RemoteType;
 
 
 PyDoc_STRVAR(init_repository__doc__,
-  "init_repository(path, bare=False) -> Repository\n"
+  "init_repository(path, bare)\n"
   "\n"
   "Creates a new Git repository in the given path.");
 
 PyObject *
 init_repository(PyObject *self, PyObject *args, PyObject *kw) {
     git_repository *repo;
-    Repository *py_repo;
     const char *path;
-    unsigned int bare = 0;
+    unsigned int bare;
     int err;
-    static char * kwlist[] = {"path", "bare", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "s|I", kwlist, &path, &bare))
+    if (!PyArg_ParseTuple(args, "sI", &path, &bare))
         return NULL;
 
     err = git_repository_init(&repo, path, bare);
     if (err < 0)
         return Error_set_str(err, path);
 
-    py_repo = PyObject_GC_New(Repository, &RepositoryType);
-    if (py_repo) {
-        py_repo->repo = repo;
-        py_repo->index = NULL;
-        PyObject_GC_Track(py_repo);
-        return (PyObject*)py_repo;
-    }
-
     git_repository_free(repo);
-    return NULL;
+    Py_RETURN_NONE;
 };
 
 

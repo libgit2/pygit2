@@ -818,64 +818,83 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     return wrap_reference(c_reference);
 }
 
-PyDoc_STRVAR(Repository_create_reference__doc__,
-  "create_reference(name, source, force=False, symbolic=False) -> Reference\n"
+PyDoc_STRVAR(Repository_create_direct_reference__doc__,
+  "create_reference(name, target, force) -> Reference\n"
   "\n"
-  "Create a new reference \"name\" which points to a object or another\n"
-  "reference.\n"
+  "Create a new reference \"name\" which points to an object.\n"
   "\n"
-  "Keyword arguments:\n"
+  "Arguments:\n"
   "\n"
   "force\n"
   "    If True references will be overridden, otherwise (the default) an\n"
   "    exception is raised.\n"
   "\n"
-  "symbolic\n"
-  "    If True a symbolic reference will be created, then source has to be a\n"
-  "    valid existing reference name; if False (the default) a normal\n"
-  "    reference will be created, then source must has to be a valid SHA\n"
-  "    hash.\n"
-  "\n"
   "Examples::\n"
   "\n"
-  "  repo.create_reference('refs/heads/foo', repo.head.hex)\n"
-  "  repo.create_reference('refs/tags/foo', 'refs/heads/master', symbolic=True)");
+  "    repo.create_direct_reference('refs/heads/foo', repo.head.hex, False)");
 
 PyObject *
-Repository_create_reference(Repository *self,  PyObject *args, PyObject *kw)
+Repository_create_direct_reference(Repository *self,  PyObject *args,
+                                   PyObject *kw)
 {
     PyObject *py_obj;
     git_reference *c_reference;
     char *c_name, *c_target;
     git_oid oid;
-    int err = 0, symbolic = 0, force = 0;
+    int err, force;
 
-    static char *kwlist[] = {"name", "source", "force", "symbolic", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ii", kwlist,
-                                     &c_name, &py_obj, &force, &symbolic))
+    if (!PyArg_ParseTuple(args, "sOi", &c_name, &py_obj, &force))
         return NULL;
 
-    if (!symbolic) {
-        err = py_str_to_git_oid_expand(self->repo, py_obj, &oid);
-        if (err < 0)
-            return Error_set(err);
+    err = py_str_to_git_oid_expand(self->repo, py_obj, &oid);
+    if (err < 0)
+        return Error_set(err);
 
-        err = git_reference_create(&c_reference, self->repo, c_name, &oid,
-                                   force);
-    } else {
-        #if PY_MAJOR_VERSION == 2
-        c_target = PyString_AsString(py_obj);
-        #else
-        c_target = PyString_AsString(PyUnicode_AsASCIIString(py_obj));
-        #endif
-        if (c_target == NULL)
-            return NULL;
+    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force);
+    if (err < 0)
+        return Error_set(err);
 
-        err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
-                                            c_target, force);
-    }
+    return wrap_reference(c_reference);
+}
 
+PyDoc_STRVAR(Repository_create_symbolic_reference__doc__,
+  "create_symbolic_reference(name, source, force) -> Reference\n"
+  "\n"
+  "Create a new reference \"name\" which points to another reference.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "force\n"
+  "    If True references will be overridden, otherwise (the default) an\n"
+  "    exception is raised.\n"
+  "\n"
+  "Examples::\n"
+  "\n"
+  "    repo.create_reference('refs/tags/foo', 'refs/heads/master', False)");
+
+PyObject *
+Repository_create_symbolic_reference(Repository *self,  PyObject *args,
+                                     PyObject *kw)
+{
+    PyObject *py_obj;
+    git_reference *c_reference;
+    char *c_name, *c_target;
+    git_oid oid;
+    int err, force;
+
+    if (!PyArg_ParseTuple(args, "sOi", &c_name, &py_obj, &force))
+        return NULL;
+
+    #if PY_MAJOR_VERSION == 2
+    c_target = PyString_AsString(py_obj);
+    #else
+    c_target = PyString_AsString(PyUnicode_AsASCIIString(py_obj));
+    #endif
+    if (c_target == NULL)
+        return NULL;
+
+    err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
+                                        c_target, force);
     if (err < 0)
         return Error_set(err);
 
@@ -1122,7 +1141,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, read, METH_O),
     METHOD(Repository, write, METH_VARARGS),
-    METHOD(Repository, create_reference, METH_VARARGS|METH_KEYWORDS),
+    METHOD(Repository, create_direct_reference, METH_VARARGS),
+    METHOD(Repository, create_symbolic_reference, METH_VARARGS),
     METHOD(Repository, listall_references, METH_VARARGS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, packall_references, METH_NOARGS),

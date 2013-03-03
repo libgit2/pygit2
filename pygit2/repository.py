@@ -25,20 +25,36 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from .version import __version__
-
-# Low level API
-import _pygit2
-from _pygit2 import *
-
-# High level API
-from repository import Repository
-import pygit2.utils
+# Import from pygit2
+from _pygit2 import Repository as _Repository
 
 
-def init_repository(path, bare=False):
-    """
-    Creates a new Git repository in the given path.
-    """
-    _pygit2.init_repository(path, bare)
-    return Repository(path)
+class Repository(_Repository):
+
+    def create_reference(self, name, target, force=False, symbolic=False):
+        """
+        Create a new reference "name" which points to a object or another
+        reference.
+
+        Keyword arguments:
+
+        force
+            If True references will be overridden, otherwise (the default) an
+            exception is raised.
+
+        symbolic
+            If True a symbolic reference will be created, then source has to
+            be a valid existing reference name; if False (the default) a
+            normal reference will be created, then source must has to be a
+            valid SHA hash.
+
+        Examples::
+
+            repo.create_reference('refs/heads/foo', repo.head.hex)
+            repo.create_reference('refs/tags/foo', 'refs/heads/master',
+                                  symbolic=True)
+        """
+        if symbolic:
+            return self.create_symbolic_reference(name, target, force)
+
+        return self.create_direct_reference(name, target, force)
