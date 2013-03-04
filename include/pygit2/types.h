@@ -59,14 +59,20 @@ OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
 OBJECT_STRUCT(Config, git_config, config)
 OBJECT_STRUCT(Remote, git_remote, remote)
+OBJECT_STRUCT(Diff, git_diff_list, list)
 
 typedef struct {
     PyObject_HEAD
-    Repository *repo;
-    git_diff_list *diff;
-    PyObject *diff_changes;
-} Diff;
+    git_diff_list* list;
+    size_t i;
+    size_t n;
+} DiffIter;
 
+typedef struct {
+    PyObject_HEAD
+    PyObject* files;
+    PyObject* hunks;
+} DiffEntry;
 
 typedef struct {
     PyObject_HEAD

@@ -41,6 +41,8 @@ extern PyTypeObject RepositoryType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
 extern PyTypeObject DiffType;
+extern PyTypeObject DiffIterType;
+extern PyTypeObject DiffEntryType;
 extern PyTypeObject HunkType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
@@ -196,6 +198,10 @@ moduleinit(PyObject* m)
         return NULL;
 
     if (PyType_Ready(&DiffType) < 0)
+        return NULL;
+    if (PyType_Ready(&DiffIterType) < 0)
+        return NULL;
+    if (PyType_Ready(&DiffEntryType) < 0)
         return NULL;
     if (PyType_Ready(&HunkType) < 0)
         return NULL;
