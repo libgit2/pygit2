@@ -40,191 +40,82 @@ extern PyTypeObject IndexType;
 extern PyTypeObject DiffType;
 extern PyTypeObject HunkType;
 
-static int diff_data_cb(
-  const git_diff_delta *delta,
-  const git_diff_range *range,
-  char line_origin,
-  const char *content,
-  size_t content_len,
-  void *cb_data)
-{
-    PyObject *hunks, *data;
-    Hunk *hunk;
-    Py_ssize_t size;
-
-    hunks = PyDict_GetItemString(cb_data, "hunks");
-    if (hunks == NULL)
-        return -1;
-
-    size = PyList_Size(hunks);
-    hunk = (Hunk *)PyList_GetItem(hunks, size - 1);
-    if (hunk == NULL)
-        return -1;
-
-    data = Py_BuildValue("(s#,i)",
-        content, content_len,
-        line_origin
-    );
-    PyList_Append(hunk->data, data);
-    Py_DECREF(data);
-
-    return 0;
-}
-
-static int diff_hunk_cb(
-  const git_diff_delta *delta,
-  const git_diff_range *range,
-  const char *header,
-  size_t header_len,
-  void *cb_data)
-{
-    PyObject *hunks;
-    Hunk *hunk;
-    int len;
-    char* old_path = NULL, *new_path = NULL;
-    char oid[GIT_OID_HEXSZ];
-
-
-    hunks = PyDict_GetItemString(cb_data, "hunks");
-    if (hunks == NULL) {
-        hunks = PyList_New(0);
-        PyDict_SetItemString(cb_data, "hunks", hunks);
-        Py_DECREF(hunks);
-    }
-
-    hunk = (Hunk*)PyType_GenericNew(&HunkType, NULL, NULL);
-    if (hunk == NULL)
-        return -1;
-
-    hunk->old_start = range->old_start;
-    hunk->old_lines = range->old_lines;
-    hunk->new_start = range->new_start;
-    hunk->new_lines = range->new_lines;
-
-    hunk->old_mode = delta->old_file.mode;
-    hunk->new_mode = delta->new_file.mode;
-
-    git_oid_fmt(oid, &delta->old_file.oid);
-    hunk->old_oid = PyUnicode_FromStringAndSize(oid, GIT_OID_HEXSZ);
-    git_oid_fmt(oid, &delta->new_file.oid);
-    hunk->new_oid = PyUnicode_FromStringAndSize(oid, GIT_OID_HEXSZ);
-
-    if (header) {
-        hunk->header = malloc(header_len+1);
-
-        if (hunk->header == NULL)
-            return -1;
-
-        memcpy(hunk->header, header, header_len);
-        hunk->header[header_len] = '\0';
-    }
-
-    if (delta->old_file.path != NULL) {
-        len = strlen(delta->old_file.path) + 1;
-        old_path = malloc(sizeof(char) * len);
-        if (old_path == NULL) {
-            free(hunk->header);
-            hunk->header = NULL;
-            return -1;
-        }
-
-        memcpy(old_path, delta->old_file.path, len);
-        hunk->old_file = old_path;
-    } else {
-        hunk->old_file = "";
-    }
-
-    if (delta->new_file.path != NULL) {
-        len = strlen(delta->new_file.path) + 1;
-        new_path = malloc(sizeof(char) * len);
-        if (new_path == NULL) {
-            free(hunk->header);
-            free(old_path);
-            return -1;
-        }
-
-        memcpy(new_path, delta->new_file.path, len);
-        hunk->new_file = new_path;
-    } else {
-        hunk->new_file = "";
-    }
-
-    if (hunk->data == NULL)
-        hunk->data = PyList_New(0);
-
-    if (PyList_Append(hunks, (PyObject *)hunk) == 0) {
-        Py_DECREF(hunk);
-    }
-    else {
-        return -1;
-    }
-
-    return 0;
-};
-
-static int
-diff_file_cb(const git_diff_delta *delta, float progress, void *cb_data)
-{
-    PyObject *files, *file;
-
-    if (delta->old_file.path != NULL && delta->new_file.path != NULL) {
-        files = PyDict_GetItemString(cb_data, "files");
-
-        if (files == NULL) {
-            files = PyList_New(0);
-            PyDict_SetItemString(cb_data, "files", files);
-            Py_DECREF(files);
-        }
-
-        file = Py_BuildValue("(s,s,i,i)",
-            delta->old_file.path,
-            delta->new_file.path,
-            delta->status,
-            delta->similarity
-        );
-
-        /* If success */
-        if (PyList_Append(files, file) == 0)
-            Py_DECREF(file);
-    }
-
-    return 0;
-}
-
 
 PyDoc_STRVAR(Diff_changes__doc__, "Raw changes.");
 
 PyObject *
 Diff_changes__get__(Diff *self)
 {
+    const git_diff_delta* delta;
+    const git_diff_range* range;
+    git_diff_patch* patch;
+    char buffer[41];
+    const char* hunk_content;
+    size_t amounts, hunk_amounts, i, j, hunk_header_len, hunk_lines;
+    PyObject *file, *files, *hunks;
+    Hunk *py_hunk;
+    int err;
 
     if (self->diff_changes == NULL) {
         self->diff_changes = PyDict_New();
 
-        git_diff_foreach(
-            self->diff,
-            &diff_file_cb,
-            &diff_hunk_cb,
-            &diff_data_cb,
-            self->diff_changes
-        );
+        files = PyList_New(0);
+        PyDict_SetItemString(self->diff_changes, "files", files);
+
+        hunks = PyList_New(0);
+        PyDict_SetItemString(self->diff_changes, "hunks", hunks);
+
+        amounts = git_diff_num_deltas(self->diff);
+        for (i = 0; i < amounts ; ++i) {
+            err = git_diff_get_patch(&patch, &delta, self->diff, i);
+
+            if (err == GIT_OK) {
+                file = Py_BuildValue("(s,s,i,i)",
+                    delta->old_file.path,
+                    delta->new_file.path,
+                    delta->status,
+                    delta->similarity
+                );
+
+                PyList_Append(files, file);
+            }
+
+            hunk_amounts = git_diff_patch_num_hunks(patch);
+
+            for (j=0; j < hunk_amounts; ++j) {
+                err = git_diff_patch_get_hunk(&range, &hunk_content,
+                          &hunk_header_len, &hunk_lines, patch, j);
+
+                if (err == GIT_OK) {
+                    py_hunk = (Hunk*)PyType_GenericNew(&HunkType, NULL, NULL);
+                    if (py_hunk != NULL) {
+                        py_hunk->old_file  = delta->old_file.path;
+                        py_hunk->new_file  = delta->new_file.path;
+                        py_hunk->header    = hunk_content;
+                        py_hunk->old_start = range->old_start;
+                        py_hunk->old_lines = range->old_lines;
+                        py_hunk->new_start = range->new_start;
+                        py_hunk->new_lines = range->new_lines;
+
+                        git_oid_fmt(buffer, &delta->old_file.oid);
+                        py_hunk->old_oid = calloc(41, sizeof(char));
+                        memcpy(py_hunk->old_oid, buffer, 40);
+
+                        git_oid_fmt(buffer, &delta->new_file.oid);
+                        py_hunk->new_oid = calloc(41, sizeof(char));
+                        memcpy(py_hunk->new_oid, buffer, 40);
+
+                        py_hunk->data = Py_BuildValue("(s#,i)",
+                                            hunk_content, hunk_header_len,
+                                            hunk_lines);
+                        PyList_Append(hunks, (PyObject*) py_hunk);
+                    }
+                }
+            }
+        }
     }
 
     return PyDict_Copy(self->diff_changes);
-}
-
-static int diff_print_cb(
-    const git_diff_delta *delta,
-    const git_diff_range *range,
-    char usage,
-    const char *line,
-    size_t line_len,
-    void *cb_data)
-{
-    PyObject *data = PyBytes_FromStringAndSize(line, line_len);
-    PyBytes_ConcatAndDel((PyObject **)cb_data, data);
-
-    return 0;
 }
 
 
@@ -233,11 +124,41 @@ PyDoc_STRVAR(Diff_patch__doc__, "Patch.");
 PyObject *
 Diff_patch__get__(Diff *self)
 {
-    PyObject *patch = PyBytes_FromString("");
+    const git_diff_delta* delta;
+    git_diff_patch* patch;
+    char* str = NULL, *buffer = NULL;
+    int err;
+    size_t i, len, num, size;
+    PyObject *py_patch;
 
-    git_diff_print_patch(self->diff, &diff_print_cb, (void*) &patch);
+    num = git_diff_num_deltas(self->diff);
+    for (i = 0; i < num ; ++i) {
+        err = git_diff_get_patch(&patch, &delta, self->diff, i);
 
-    return patch;
+        if (err < 0 || git_diff_patch_to_str(&str, patch) < 0)
+            return Error_set(err);
+
+        len = strlen(str) + 1;
+        size = (buffer == NULL) ? len : strlen(buffer) + len;
+        buffer = realloc(buffer, size * sizeof(char)); 
+
+        if (len == size)
+            strcpy(buffer, str);
+        else
+            strcat(buffer, str);
+
+        free(str);
+    }
+
+    py_patch = PyUnicode_FromString(buffer);
+
+    if (buffer != NULL)
+      free(buffer);
+
+    if (patch != NULL)
+      git_diff_patch_free;
+
+    return py_patch;
 }
 
 static int
@@ -269,13 +190,13 @@ static void
 Hunk_dealloc(Hunk *self)
 {
     if (self->header != NULL) {
-        free(self->header);
+        free((void*) self->header);
     }
     if (self->new_file != NULL) {
-        free(self->new_file);
+        free((void*) self->new_file);
     }
     if (self->old_file != NULL) {
-        free(self->old_file);
+        free((void*) self->old_file);
     }
     Py_XDECREF(self->old_oid);
     Py_XDECREF(self->new_oid);
@@ -289,12 +210,12 @@ PyMemberDef Hunk_members[] = {
     MEMBER(Hunk, old_lines, T_INT, "Old lines."),
     MEMBER(Hunk, old_mode, T_INT, "Old mode."),
     MEMBER(Hunk, old_file, T_STRING, "Old file."),
-    MEMBER(Hunk, old_oid, T_OBJECT, "Old oid."),
+    MEMBER(Hunk, old_oid, T_STRING, "Old oid."),
     MEMBER(Hunk, new_start, T_INT, "New start."),
     MEMBER(Hunk, new_lines, T_INT, "New lines."),
     MEMBER(Hunk, new_mode, T_INT, "New mode."),
     MEMBER(Hunk, new_file, T_STRING, "New file."),
-    MEMBER(Hunk, new_oid, T_OBJECT, "New oid."),
+    MEMBER(Hunk, new_oid, T_STRING, "New oid."),
     MEMBER(Hunk, data, T_OBJECT, "Data."),
     {NULL}
 };

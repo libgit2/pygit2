@@ -41,7 +41,7 @@ COMMIT_SHA1_3 = '2cdae28389c059815e951d0bb9eed6533f61a46b'
 COMMIT_SHA1_4 = 'ccca47fbb26183e71a7a46d165299b84e2e6c0b3'
 COMMIT_SHA1_5 = '056e626e51b1fc1ee2182800e399ed8d84c8f082'
 
-PATCH = b"""diff --git a/a b/a
+PATCH = """diff --git a/a b/a
 index 7f129fd..af431f2 100644
 --- a/a
 +++ b/a
