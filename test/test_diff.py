@@ -41,6 +41,9 @@ COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'
 COMMIT_SHA1_3 = '2cdae28389c059815e951d0bb9eed6533f61a46b'
 COMMIT_SHA1_4 = 'ccca47fbb26183e71a7a46d165299b84e2e6c0b3'
 COMMIT_SHA1_5 = '056e626e51b1fc1ee2182800e399ed8d84c8f082'
+COMMIT_SHA1_6 = 'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87'
+COMMIT_SHA1_7 = '784855caf26449a1914d2cf62d12b9374d76ae78'
+
 
 PATCH = """diff --git a/a b/a
 index 7f129fd..af431f2 100644
@@ -210,15 +213,15 @@ class DiffTest(utils.BareRepoTestCase):
                          'af431f20fc541ed6d5afede3e2dc7160f6f01f16')
 
     def test_find_similar(self):
-        commit_a = self.repo[COMMIT_SHA1_4]
-        commit_b = self.repo[COMMIT_SHA1_5]
+        commit_a = self.repo[COMMIT_SHA1_6]
+        commit_b = self.repo[COMMIT_SHA1_7]
 
         #~ Must pass GIT_DIFF_INCLUDE_UNMODIFIED if you expect to emulate
         #~ --find-copies-harder during rename transformion...
         diff = commit_a.tree.diff(commit_b.tree, GIT_DIFF_INCLUDE_UNMODIFIED)
-        self.assertFalse(('a', 'a.copy', 5, 100) in diff[0].files)
-        diff.find_similar(pygit2.GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED)
-        self.assertAny(lambda x:('a', 'a.copy', 5, 100) in x.files, diff)
+        self.assertFalse(('lorem', 'ipsum', 4, 100) in diff[0].files)
+        diff.find_similar()
+        self.assertAny(lambda x: ('lorem', 'ipsum', 4, 100) in x.files, diff)
 
 if __name__ == '__main__':
     unittest.main()
