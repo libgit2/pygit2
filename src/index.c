@@ -158,7 +158,7 @@ Index_diff(Index *self, PyObject *args)
     if (py_diff) {
         Py_INCREF(self->repo);
         py_diff->repo = self->repo;
-        py_diff->diff = diff;
+        py_diff->list = diff;
     }
 
     return (PyObject*)py_diff;

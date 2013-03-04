@@ -42,8 +42,8 @@ import pygit2
 from . import utils
 
 
-HEAD_SHA  = '056e626e51b1fc1ee2182800e399ed8d84c8f082'
-PARENT_SHA = 'ccca47fbb26183e71a7a46d165299b84e2e6c0b3'  # HEAD^
+HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
+PARENT_SHA = 'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87'  # HEAD^
 A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
 
