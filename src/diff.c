@@ -127,7 +127,7 @@ Diff_patch__get__(Diff *self)
     const git_diff_delta* delta;
     git_diff_patch* patch;
     char* str = NULL, *buffer = NULL;
-    int err;
+    int err = 0;
     size_t i, len, num, size;
     PyObject *py_patch;
 
@@ -135,30 +135,29 @@ Diff_patch__get__(Diff *self)
     for (i = 0; i < num ; ++i) {
         err = git_diff_get_patch(&patch, &delta, self->diff, i);
 
-        if (err < 0 || git_diff_patch_to_str(&str, patch) < 0)
-            return Error_set(err);
+        if (err < 0 || (err = git_diff_patch_to_str(&str, patch)) < 0)
+            goto error;
 
         len = strlen(str) + 1;
         size = (buffer == NULL) ? len : strlen(buffer) + len;
-        buffer = realloc(buffer, size * sizeof(char)); 
+        MALLOC(buffer, size, error);
 
         if (len == size)
             strcpy(buffer, str);
         else
             strcat(buffer, str);
 
-        free(str);
+        FREE(str);
     }
 
     py_patch = PyUnicode_FromString(buffer);
 
-    if (buffer != NULL)
-      free(buffer);
+error:
+    FREE(str);
+    FREE(buffer);
+    FREE_FUNC(patch, git_diff_patch_free);
 
-    if (patch != NULL)
-      git_diff_patch_free;
-
-    return py_patch;
+    return (err < 0) ? Error_set(err) : py_patch;
 }
 
 static int
