@@ -839,7 +839,7 @@ Repository_create_direct_reference(Repository *self,  PyObject *args,
 {
     PyObject *py_obj;
     git_reference *c_reference;
-    char *c_name, *c_target;
+    char *c_name;
     git_oid oid;
     int err, force;
 
@@ -879,7 +879,6 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args,
     PyObject *py_obj;
     git_reference *c_reference;
     char *c_name, *c_target;
-    git_oid oid;
     int err, force;
 
     if (!PyArg_ParseTuple(args, "sOi", &c_name, &py_obj, &force))
