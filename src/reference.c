@@ -161,6 +161,7 @@ Reference_rename(Reference *self, PyObject *py_name)
 {
     char *c_name;
     int err;
+    git_reference *new_reference;
 
     CHECK_REFERENCE(self);
 
@@ -170,33 +171,12 @@ Reference_rename(Reference *self, PyObject *py_name)
         return NULL;
 
     /* Rename */
-    err = git_reference_rename(self->reference, c_name, 0);
+    err = git_reference_rename(&new_reference, self->reference, c_name, 0);
     free(c_name);
     if (err < 0)
         return Error_set(err);
 
-    Py_RETURN_NONE;
-}
-
-
-PyDoc_STRVAR(Reference_reload__doc__,
-  "reload()\n"
-  "\n"
-  "Reload the reference from the file-system.");
-
-PyObject *
-Reference_reload(Reference *self)
-{
-    int err;
-
-    CHECK_REFERENCE(self);
-
-    err = git_reference_reload(self->reference);
-    if (err < 0) {
-        self->reference = NULL;
-        return Error_set(err);
-    }
-
+    self->reference = new_reference;
     Py_RETURN_NONE;
 }
 
@@ -214,13 +194,8 @@ Reference_resolve(Reference *self, PyObject *args)
 
     CHECK_REFERENCE(self);
 
-    /* Direct: reload */
+    /* Direct: return myself */
     if (git_reference_type(self->reference) == GIT_REF_OID) {
-        err = git_reference_reload(self->reference);
-        if (err < 0) {
-            self->reference = NULL;
-            return Error_set(err);
-        }
         Py_INCREF(self);
         return (PyObject *)self;
     }
@@ -263,6 +238,7 @@ Reference_target__set__(Reference *self, PyObject *py_name)
 {
     char *c_name;
     int err;
+    git_reference *new_ref;
 
     CHECK_REFERENCE_INT(self);
 
@@ -272,13 +248,14 @@ Reference_target__set__(Reference *self, PyObject *py_name)
         return -1;
 
     /* Set the new target */
-    err = git_reference_symbolic_set_target(self->reference, c_name);
+    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name);
     free(c_name);
     if (err < 0) {
         Error_set(err);
         return -1;
     }
 
+    self->reference = new_ref;
     return 0;
 }
 
@@ -320,6 +297,7 @@ Reference_oid__set__(Reference *self, PyObject *py_hex)
 {
     git_oid oid;
     int err;
+    git_reference *new_ref;
 
     CHECK_REFERENCE_INT(self);
 
@@ -332,12 +310,13 @@ Reference_oid__set__(Reference *self, PyObject *py_hex)
     }
 
     /* Set the oid */
-    err = git_reference_set_target(self->reference, &oid);
+    err = git_reference_set_target(&new_ref, self->reference, &oid);
     if (err < 0) {
         Error_set(err);
         return -1;
     }
 
+    self->reference = new_ref;
     return 0;
 }
 
@@ -366,7 +345,7 @@ Reference_hex__get__(Reference *self)
 
 
 PyDoc_STRVAR(Reference_type__doc__,
-  "Type (GIT_REF_OID, GIT_REF_SYMBOLIC or GIT_REF_PACKED).");
+  "Type (GIT_REF_OID or GIT_REF_SYMBOLIC).");
 
 PyObject *
 Reference_type__get__(Reference *self)
@@ -481,7 +460,6 @@ PyTypeObject RefLogEntryType = {
 PyMethodDef Reference_methods[] = {
     METHOD(Reference, delete, METH_NOARGS),
     METHOD(Reference, rename, METH_O),
-    METHOD(Reference, reload, METH_NOARGS),
     METHOD(Reference, resolve, METH_NOARGS),
     METHOD(Reference, log, METH_NOARGS),
     {NULL}

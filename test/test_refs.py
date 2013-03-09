@@ -142,16 +142,16 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.name, 'refs/tags/version2')
 
 
-    def test_reload(self):
-        name = 'refs/tags/version1'
+#   def test_reload(self):
+#       name = 'refs/tags/version1'
 
-        repo = self.repo
-        ref = repo.create_reference(name, "refs/heads/master", symbolic=True)
-        ref2 = repo.lookup_reference(name)
-        ref.delete()
-        self.assertEqual(ref2.name, name)
-        self.assertRaises(KeyError, ref2.reload)
-        self.assertRaises(GitError, getattr, ref2, 'name')
+#       repo = self.repo
+#       ref = repo.create_reference(name, "refs/heads/master", symbolic=True)
+#       ref2 = repo.lookup_reference(name)
+#       ref.delete()
+#       self.assertEqual(ref2.name, name)
+#       self.assertRaises(KeyError, ref2.reload)
+#       self.assertRaises(GitError, getattr, ref2, 'name')
 
 
     def test_reference_resolve(self):
@@ -209,8 +209,8 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.target, 'refs/heads/master')
 
 
-    def test_packall_references(self):
-        self.repo.packall_references()
+#   def test_packall_references(self):
+#       self.repo.packall_references()
 
 
 if __name__ == '__main__':

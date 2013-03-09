@@ -290,9 +290,9 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_SORT_TOPOLOGICAL", GIT_SORT_TOPOLOGICAL);
     PyModule_AddIntConstant(m, "GIT_SORT_TIME", GIT_SORT_TIME);
     PyModule_AddIntConstant(m, "GIT_SORT_REVERSE", GIT_SORT_REVERSE);
+    PyModule_AddIntConstant(m, "GIT_REF_INVALID", GIT_REF_INVALID);
     PyModule_AddIntConstant(m, "GIT_REF_OID", GIT_REF_OID);
     PyModule_AddIntConstant(m, "GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
-    PyModule_AddIntConstant(m, "GIT_REF_PACKED", GIT_REF_PACKED);
     PyModule_AddIntConstant(m, "GIT_REF_LISTALL", GIT_REF_LISTALL);
 
     /* Git status flags */
