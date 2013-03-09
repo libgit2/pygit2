@@ -64,8 +64,9 @@ if libgit2_path is None:
 libgit2_bin = os.path.join(libgit2_path, 'bin')
 libgit2_include = os.path.join(libgit2_path, 'include')
 libgit2_lib = os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib'))
-pygit2_exts = [ os.path.join('src', name) for name in os.listdir('src')
-                if name.endswith('.c') ]
+pygit2_exts = [os.path.join('src', name) for name in os.listdir('src')
+               if name.endswith('.c')]
+
 
 class TestCommand(Command):
     """Command for running unittests without install."""
@@ -155,7 +156,6 @@ class sdist_files_from_git(sdist):
         self.write_manifest()
 
 
-
 cmdclass = {
     'test': TestCommand,
     'sdist': sdist_files_from_git}
@@ -183,11 +183,11 @@ setup(name='pygit2',
       maintainer=u('J. David Ibáñez'),
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
-      packages = ['pygit2'],
+      packages=['pygit2'],
       ext_modules=[
           Extension('_pygit2', pygit2_exts,
                     include_dirs=[libgit2_include, 'include'],
                     library_dirs=[libgit2_lib],
                     libraries=['git2']),
-          ],
+      ],
       cmdclass=cmdclass)

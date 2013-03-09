@@ -41,6 +41,8 @@ extern PyTypeObject RepositoryType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
 extern PyTypeObject DiffType;
+extern PyTypeObject DiffIterType;
+extern PyTypeObject DiffEntryType;
 extern PyTypeObject HunkType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
@@ -197,6 +199,10 @@ moduleinit(PyObject* m)
 
     if (PyType_Ready(&DiffType) < 0)
         return NULL;
+    if (PyType_Ready(&DiffIterType) < 0)
+        return NULL;
+    if (PyType_Ready(&DiffEntryType) < 0)
+        return NULL;
     if (PyType_Ready(&HunkType) < 0)
         return NULL;
 
@@ -284,9 +290,9 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_SORT_TOPOLOGICAL", GIT_SORT_TOPOLOGICAL);
     PyModule_AddIntConstant(m, "GIT_SORT_TIME", GIT_SORT_TIME);
     PyModule_AddIntConstant(m, "GIT_SORT_REVERSE", GIT_SORT_REVERSE);
+    PyModule_AddIntConstant(m, "GIT_REF_INVALID", GIT_REF_INVALID);
     PyModule_AddIntConstant(m, "GIT_REF_OID", GIT_REF_OID);
     PyModule_AddIntConstant(m, "GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
-    PyModule_AddIntConstant(m, "GIT_REF_PACKED", GIT_REF_PACKED);
     PyModule_AddIntConstant(m, "GIT_REF_LISTALL", GIT_REF_LISTALL);
 
     /* Git status flags */
@@ -342,13 +348,6 @@ moduleinit(PyObject* m)
     /* --break-rewrites=/M */
     PyModule_AddIntConstant(m, "GIT_DIFF_FIND_AND_BREAK_REWRITES",
                             GIT_DIFF_FIND_AND_BREAK_REWRITES);
-
-    /* Flags for diffed files */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FLAG_BINARY", GIT_DIFF_FLAG_BINARY);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FLAG_NOT_BINARY",
-                            GIT_DIFF_FLAG_NOT_BINARY);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FLAG_VALID_OID",
-                            GIT_DIFF_FLAG_VALID_OID);
 
     /* Flags for diff deltas */
     PyModule_AddIntConstant(m, "GIT_DELTA_UNMODIFIED", GIT_DELTA_UNMODIFIED);

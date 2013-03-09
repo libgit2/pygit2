@@ -83,6 +83,11 @@ class NoRepoTestCase(unittest.TestCase):
         except:
             self.assertEqual(exc_class, sys.exc_info()[0])
 
+    def assertAll(self, func, entries):
+        return self.assertTrue(all(func(x) for x in entries))
+
+    def assertAny(self, func, entries):
+        return self.assertTrue(any(func(x) for x in entries))
 
     def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
         try:
