@@ -31,6 +31,28 @@ from _pygit2 import Repository as _Repository
 
 class Repository(_Repository):
 
+    #
+    # Mapping interface
+    #
+    def get(self, key, default=None):
+        value = self.git_object_lookup_prefix(key)
+        return value if (value is not None) else default
+
+
+    def __getitem__(self, key):
+        value = self.git_object_lookup_prefix(key)
+        if value is None:
+            raise KeyError(key)
+        return value
+
+
+    def __contains__(self, key):
+        return self.git_object_lookup_prefix(key) is not None
+
+
+    #
+    # References
+    #
     def create_reference(self, name, target, force=False, symbolic=False):
         """
         Create a new reference "name" which points to a object or another

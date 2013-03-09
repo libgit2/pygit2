@@ -60,24 +60,17 @@ int_to_loose_object_type(int type_id)
 }
 
 PyObject *
-lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
-                     git_otype type)
+lookup_object(Repository *repo, const git_oid *oid, git_otype type)
 {
     int err;
     git_object *obj;
 
-    err = git_object_lookup_prefix(&obj, repo->repo, oid,
-                                   (unsigned int)len, type);
+    err = git_object_lookup_prefix(&obj, repo->repo, oid, GIT_OID_HEXSZ,
+                                   type);
     if (err < 0)
-        return Error_set_oid(err, oid, len);
+        return Error_set_oid(err, oid, GIT_OID_HEXSZ);
 
     return wrap_object(obj, repo);
-}
-
-PyObject *
-lookup_object(Repository *repo, const git_oid *oid, git_otype type)
-{
-    return lookup_object_prefix(repo, oid, GIT_OID_HEXSZ, type);
 }
 
 int
@@ -125,42 +118,6 @@ Repository_clear(Repository *self)
 {
     Py_CLEAR(self->index);
     return 0;
-}
-
-int
-Repository_contains(Repository *self, PyObject *value)
-{
-    git_oid oid;
-    git_odb *odb;
-    int err, len, exists;
-
-    len = py_str_to_git_oid(value, &oid);
-    if (len < 0)
-        return -1;
-
-    err = git_repository_odb(&odb, self->repo);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-
-    if (len < GIT_OID_HEXSZ) {
-        git_odb_object *obj = NULL;
-        err = git_odb_read_prefix(&obj, odb, &oid, len);
-        if (err < 0 && err != GIT_ENOTFOUND) {
-            Error_set(err);
-            exists = -1;
-        } else {
-            exists = (err == 0);
-            if (obj)
-                git_odb_object_free(obj);
-        }
-    } else {
-        exists = git_odb_exists(odb, &oid);
-    }
-
-    git_odb_free(odb);
-    return exists;
 }
 
 static int
@@ -279,17 +236,31 @@ Repository_is_bare__get__(Repository *self)
 }
 
 
-PyObject *
-Repository_getitem(Repository *self, PyObject *value)
-{
-    git_oid oid;
-    int len;
+PyDoc_STRVAR(Repository_git_object_lookup_prefix__doc__,
+  "git_object_lookup_prefix(oid) -> Object\n"
+  "\n"
+  "Returns the Git object with the given oid.");
 
-    len = py_str_to_git_oid(value, &oid);
+PyObject *
+Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
+{
+    int err, len;
+    git_oid oid;
+    git_object *obj;
+
+    len = py_str_to_git_oid(key, &oid);
     if (len < 0)
         return NULL;
 
-    return lookup_object_prefix(self, &oid, len, GIT_OBJ_ANY);
+    err = git_object_lookup_prefix(&obj, self->repo, &oid,
+                                   (unsigned int)len, GIT_OBJ_ANY);
+    if (err == 0)
+        return wrap_object(obj, self);
+
+    if (err == GIT_ENOTFOUND)
+        Py_RETURN_NONE;
+
+    return Error_set_oid(err, &oid, len);
 }
 
 
@@ -1132,6 +1103,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, create_remote, METH_VARARGS),
     METHOD(Repository, checkout, METH_VARARGS|METH_KEYWORDS),
+    METHOD(Repository, git_object_lookup_prefix, METH_O),
     {NULL}
 };
 
@@ -1147,23 +1119,6 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, workdir),
     GETTER(Repository, remotes),
     {NULL}
-};
-
-PySequenceMethods Repository_as_sequence = {
-    0,                               /* sq_length */
-    0,                               /* sq_concat */
-    0,                               /* sq_repeat */
-    0,                               /* sq_item */
-    0,                               /* sq_slice */
-    0,                               /* sq_ass_item */
-    0,                               /* sq_ass_slice */
-    (objobjproc)Repository_contains, /* sq_contains */
-};
-
-PyMappingMethods Repository_as_mapping = {
-    0,                               /* mp_length */
-    (binaryfunc)Repository_getitem,  /* mp_subscript */
-    0,                               /* mp_ass_subscript */
 };
 
 
@@ -1184,8 +1139,8 @@ PyTypeObject RepositoryType = {
     0,                                         /* tp_compare        */
     0,                                         /* tp_repr           */
     0,                                         /* tp_as_number      */
-    &Repository_as_sequence,                   /* tp_as_sequence    */
-    &Repository_as_mapping,                    /* tp_as_mapping     */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
     0,                                         /* tp_call           */
     0,                                         /* tp_str            */
