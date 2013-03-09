@@ -34,10 +34,27 @@
 
 extern PyTypeObject ConfigType;
 
+PyObject *
+wrap_config(char *c_path) {
+    int err;
+    PyObject *py_path;
+    Config *py_config;
+
+    py_path = Py_BuildValue("(s)", c_path);
+    py_config = PyObject_New(Config, &ConfigType);
+
+    err = Config_init(py_config, py_path, NULL);
+    if (err < 0)
+        return  NULL;
+
+    return (PyObject*) py_config;
+}
+
+
 int
 Config_init(Config *self, PyObject *args, PyObject *kwds)
 {
-    char *path;
+    char *path = NULL;
     int err;
 
     if (kwds) {
@@ -46,18 +63,17 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (PySequence_Length(args) > 0) {
-        if (!PyArg_ParseTuple(args, "s", &path)) {
-            return -1;
-        }
+    if (!PyArg_ParseTuple(args, "|s", &path))
+        return -1;
 
+    if (path == NULL)
+        err = git_config_new(&self->config);
+    else
         err = git_config_open_ondisk(&self->config, path);
 
-    } else {
-        err = git_config_new(&self->config);
-    }
-
     if (err < 0) {
+        git_config_free(self->config);
+
         if (err == GIT_ENOTFOUND) {
             Error_set_exc(PyExc_IOError);
         } else {
@@ -70,32 +86,12 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+
 void
 Config_dealloc(Config *self)
 {
-    PyObject_GC_UnTrack(self);
-    Py_XDECREF(self->repo);
     git_config_free(self->config);
-    PyObject_GC_Del(self);
-}
-
-int
-Config_traverse(Config *self, visitproc visit, void *arg)
-{
-    Py_VISIT(self->repo);
-    return 0;
-}
-
-PyObject *
-Config_open(char *c_path) {
-    PyObject *py_path = Py_BuildValue("(s)", c_path);
-    Config *config = PyObject_GC_New(Config, &ConfigType);
-
-    Config_init(config, py_path, NULL);
-
-    Py_INCREF(config);
-
-    return (PyObject *)config;
+    PyObject_Del(self);
 }
 
 
@@ -116,10 +112,11 @@ Config_get_global_config(void)
             PyErr_SetString(PyExc_IOError, "Global config file not found.");
             return NULL;
         }
+
         return Error_set(err);
     }
 
-    return Config_open(path);
+    return wrap_config(path);
 }
 
 
@@ -143,8 +140,9 @@ Config_get_system_config(void)
         return Error_set(err);
     }
 
-    return Config_open(path);
+    return wrap_config(path);
 }
+
 
 int
 Config_contains(Config *self, PyObject *py_key) {
@@ -158,9 +156,11 @@ Config_contains(Config *self, PyObject *py_key) {
 
     err = git_config_get_string(&c_value, self->config, c_key);
     free(c_key);
-    if (err == GIT_ENOTFOUND)
-        return 0;
+
     if (err < 0) {
+        if (err == GIT_ENOTFOUND)
+            return 0;
+
         Error_set(err);
         return -1;
     }
@@ -168,69 +168,71 @@ Config_contains(Config *self, PyObject *py_key) {
     return 1;
 }
 
+
 PyObject *
 Config_getitem(Config *self, PyObject *py_key)
 {
-    int err;
-    int64_t c_intvalue;
-    int c_boolvalue;
-    const char *c_charvalue;
-    char *c_key;
+    long value_int;
+    int err, value_bool;
+    const char *value_str;
+    char *key;
+    PyObject* py_value;
 
-    if (!(c_key = py_str_to_c_str(py_key, NULL)))
+    key = py_str_to_c_str(py_key, NULL);
+    if (key == NULL)
         return NULL;
 
-    err = git_config_get_int64(&c_intvalue, self->config, c_key);
-    if (err == GIT_OK) {
-        free(c_key);
-        return PyInt_FromLong((long)c_intvalue);
-    }
+    err = git_config_get_string(&value_str, self->config, key);
+    if (err < 0)
+        goto cleanup;
 
-    err = git_config_get_bool(&c_boolvalue, self->config, c_key);
-    if (err == GIT_OK) {
-        free(c_key);
-        return PyBool_FromLong((long)c_boolvalue);
-    }
+    if (git_config_parse_int64(&value_int, value_str) == 0)
+      py_value = PyLong_FromLong(value_int);
+    else if(git_config_parse_bool(&value_bool, value_str) == 0)
+      py_value = PyBool_FromLong(value_bool);
+    else
+      py_value = PyUnicode_FromString(value_str);
 
-    err = git_config_get_string(&c_charvalue, self->config, c_key);
-    free(c_key);
+cleanup:
+    free(key);
+
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetObject(PyExc_KeyError, py_key);
             return NULL;
         }
+
         return Error_set(err);
     }
 
-    return PyUnicode_FromString(c_charvalue);
+    return py_value;
 }
 
 int
 Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 {
     int err;
-    char *c_key;
-    char *py_str;
+    char *key, *value;
 
-    if (!(c_key = py_str_to_c_str(py_key, NULL)))
+    key = py_str_to_c_str(py_key, NULL);
+    if (key == NULL)
         return -1;
 
-    if (!py_value) {
-        err = git_config_delete_entry(self->config, c_key);
-    } else if (PyBool_Check(py_value)) {
-        err = git_config_set_bool(self->config, c_key,
+    if (py_value == NULL)
+        err = git_config_delete_entry(self->config, key);
+    else if (PyBool_Check(py_value)) {
+        err = git_config_set_bool(self->config, key,
                 (int)PyObject_IsTrue(py_value));
     } else if (PyInt_Check(py_value)) {
-        err = git_config_set_int64(self->config, c_key,
+        err = git_config_set_int64(self->config, key,
                 (int64_t)PyInt_AsLong(py_value));
     } else {
-        py_value = PyObject_Str(py_value);
-        py_str = py_str_to_c_str(py_value, NULL);
-        err = git_config_set_string(self->config, c_key, py_str);
-        free(py_str);
+        value = py_str_to_c_str(py_value, NULL);
+        err = git_config_set_string(self->config, key, value);
+        free(value);
     }
 
-    free(c_key);
+    free(key);
     if (err < 0) {
         Error_set(err);
         return -1;
@@ -263,6 +265,8 @@ Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
     if ((c_result = PyLong_AsLong(py_result) == -1))
         return -1;
 
+    Py_CLEAR(args);
+
     return c_result;
 }
 
@@ -282,7 +286,7 @@ Config_foreach(Config *self, PyObject *args)
 {
     int ret;
     PyObject *py_callback;
-    PyObject *py_payload;
+    PyObject *py_payload = NULL;
 
     if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
         return NULL;
@@ -338,13 +342,12 @@ PyDoc_STRVAR(Config_get_multivar__doc__,
 int
 Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
 {
-    PyObject *list = (PyObject *)data;
     PyObject *item = NULL;
 
     if (!(item = PyUnicode_FromString(value->value)))
         return -2;
 
-    PyList_Append(list, item);
+    PyList_Append((PyObject *)data, item);
 
     return 0;
 }
@@ -353,17 +356,20 @@ PyObject *
 Config_get_multivar(Config *self, PyObject *args)
 {
     int err;
-    PyObject *list = PyList_New(0);
+    PyObject *list;
     const char *name = NULL;
     const char *regex = NULL;
 
     if (!PyArg_ParseTuple(args, "s|s", &name, &regex))
         return NULL;
 
+    list = PyList_New(0);
     err = git_config_get_multivar(self->config, name, regex,
                                   Config_get_multivar_fn_wrapper,
                                   (void *)list);
     if (err  < 0) {
+        Py_CLEAR(list);
+
         if (err == GIT_ENOTFOUND)
             Error_set(err);
         else
@@ -454,9 +460,9 @@ PyTypeObject ConfigType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,   /* tp_flags          */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
     Config__doc__,                             /* tp_doc            */
-    (traverseproc)Config_traverse,             /* tp_traverse       */
+    0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
