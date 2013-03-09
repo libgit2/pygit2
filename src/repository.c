@@ -901,25 +901,6 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args,
     return wrap_reference(c_reference);
 }
 
-
-PyDoc_STRVAR(Repository_packall_references__doc__,
-  "packall_references()\n"
-  "\n"
-  "Pack all the loose references in the repository.");
-
-PyObject *
-Repository_packall_references(Repository *self, PyObject *args)
-{
-    int err;
-
-    err = git_reference_packall(self->repo);
-    if (err < 0)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
-
 PyDoc_STRVAR(Repository_status__doc__,
   "status() -> {str: int}\n"
   "\n"
@@ -1145,7 +1126,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_symbolic_reference, METH_VARARGS),
     METHOD(Repository, listall_references, METH_VARARGS),
     METHOD(Repository, lookup_reference, METH_O),
-    METHOD(Repository, packall_references, METH_NOARGS),
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),

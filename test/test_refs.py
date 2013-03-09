@@ -82,13 +82,13 @@ class ReferencesTest(utils.RepoTestCase):
     def test_reference_set_sha(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
-        reference.oid = NEW_COMMIT
+        reference = reference.set_oid(NEW_COMMIT)
         self.assertEqual(reference.hex, NEW_COMMIT)
 
     def test_reference_set_sha_prefix(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
-        reference.oid = NEW_COMMIT[0:6]
+        reference = reference.set_oid(NEW_COMMIT[0:6])
         self.assertEqual(reference.hex, NEW_COMMIT)
 
 
@@ -105,7 +105,7 @@ class ReferencesTest(utils.RepoTestCase):
     def test_set_target(self):
         reference = self.repo.lookup_reference('HEAD')
         self.assertEqual(reference.target, 'refs/heads/master')
-        reference.target = 'refs/heads/i18n'
+        reference = reference.set_target('refs/heads/i18n')
         self.assertEqual(reference.target, 'refs/heads/i18n')
 
 
@@ -120,38 +120,13 @@ class ReferencesTest(utils.RepoTestCase):
         reference.delete()
         self.assertFalse('refs/tags/version1' in repo.listall_references())
 
-        # Access the deleted reference
-        self.assertRaises(GitError, getattr, reference, 'name')
-        self.assertRaises(GitError, getattr, reference, 'type')
-        self.assertRaises(GitError, getattr, reference, 'oid')
-        self.assertRaises(GitError, setattr, reference, 'oid', LAST_COMMIT)
-        self.assertRaises(GitError, getattr, reference, 'hex')
-        self.assertRaises(GitError, getattr, reference, 'target')
-        self.assertRaises(GitError, setattr, reference, 'target', "a/b/c")
-        self.assertRaises(GitError, reference.delete)
-        self.assertRaises(GitError, reference.resolve)
-        self.assertRaises(GitError, reference.rename, "refs/tags/version2")
-
-
     def test_rename(self):
         # We add a tag as a new reference that points to "origin/master"
         reference = self.repo.create_reference('refs/tags/version1',
                                                LAST_COMMIT)
         self.assertEqual(reference.name, 'refs/tags/version1')
-        reference.rename('refs/tags/version2')
+        reference = reference.rename('refs/tags/version2')
         self.assertEqual(reference.name, 'refs/tags/version2')
-
-
-    def test_reload(self):
-        name = 'refs/tags/version1'
-
-        repo = self.repo
-        ref = repo.create_reference(name, "refs/heads/master", symbolic=True)
-        ref2 = repo.lookup_reference(name)
-        ref.delete()
-        self.assertEqual(ref2.name, name)
-        self.assertRaises(KeyError, ref2.reload)
-        self.assertRaises(GitError, getattr, ref2, 'name')
 
 
     def test_reference_resolve(self):
@@ -208,9 +183,6 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
         self.assertEqual(reference.target, 'refs/heads/master')
 
-
-    def test_packall_references(self):
-        self.repo.packall_references()
 
 
 if __name__ == '__main__':

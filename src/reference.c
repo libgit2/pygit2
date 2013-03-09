@@ -146,7 +146,6 @@ Reference_delete(Reference *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    self->reference = NULL; /* Invalidate the pointer */
     Py_RETURN_NONE;
 }
 
@@ -159,6 +158,7 @@ PyDoc_STRVAR(Reference_rename__doc__,
 PyObject *
 Reference_rename(Reference *self, PyObject *py_name)
 {
+    git_reference *c_reference;
     char *c_name;
     int err;
 
@@ -170,34 +170,12 @@ Reference_rename(Reference *self, PyObject *py_name)
         return NULL;
 
     /* Rename */
-    err = git_reference_rename(self->reference, c_name, 0);
+    err = git_reference_rename(&c_reference, self->reference, c_name, 0);
     free(c_name);
     if (err < 0)
         return Error_set(err);
 
-    Py_RETURN_NONE;
-}
-
-
-PyDoc_STRVAR(Reference_reload__doc__,
-  "reload()\n"
-  "\n"
-  "Reload the reference from the file-system.");
-
-PyObject *
-Reference_reload(Reference *self)
-{
-    int err;
-
-    CHECK_REFERENCE(self);
-
-    err = git_reference_reload(self->reference);
-    if (err < 0) {
-        self->reference = NULL;
-        return Error_set(err);
-    }
-
-    Py_RETURN_NONE;
+    return wrap_reference(c_reference);
 }
 
 
@@ -214,13 +192,8 @@ Reference_resolve(Reference *self, PyObject *args)
 
     CHECK_REFERENCE(self);
 
-    /* Direct: reload */
+    /* Direct: return the same one */
     if (git_reference_type(self->reference) == GIT_REF_OID) {
-        err = git_reference_reload(self->reference);
-        if (err < 0) {
-            self->reference = NULL;
-            return Error_set(err);
-        }
         Py_INCREF(self);
         return (PyObject *)self;
     }
@@ -258,28 +231,31 @@ Reference_target__get__(Reference *self)
     return to_path(c_name);
 }
 
-int
-Reference_target__set__(Reference *self, PyObject *py_name)
+PyDoc_STRVAR(Reference_set_target__doc__, "Set the reference's target");
+
+PyObject *
+Reference_set_target(Reference *self, PyObject *py_name)
 {
+    git_reference *c_reference;
     char *c_name;
     int err;
 
-    CHECK_REFERENCE_INT(self);
+    CHECK_REFERENCE(self);
 
     /* Get the C name */
     c_name = py_path_to_c_str(py_name);
     if (c_name == NULL)
-        return -1;
+        return NULL;
 
     /* Set the new target */
-    err = git_reference_symbolic_set_target(self->reference, c_name);
+    err = git_reference_symbolic_set_target(&c_reference, self->reference, c_name);
     free(c_name);
     if (err < 0) {
         Error_set(err);
-        return -1;
+        return NULL;
     }
 
-    return 0;
+    return wrap_reference(c_reference);
 }
 
 
@@ -315,30 +291,33 @@ Reference_oid__get__(Reference *self)
     return git_oid_to_python(oid->id);
 }
 
-int
-Reference_oid__set__(Reference *self, PyObject *py_hex)
+PyDoc_STRVAR(Reference_set_oid__doc__, "Hex oid.");
+
+PyObject *
+Reference_set_oid(Reference *self, PyObject *py_hex)
 {
+    git_reference *ref;
     git_oid oid;
     int err;
 
-    CHECK_REFERENCE_INT(self);
+    CHECK_REFERENCE(self);
 
     /* Get the oid */
     err = py_str_to_git_oid_expand(git_reference_owner(self->reference),
                                                        py_hex, &oid);
     if (err < 0) {
         Error_set(err);
-        return -1;
+        return NULL;
     }
 
     /* Set the oid */
-    err = git_reference_set_target(self->reference, &oid);
+    err = git_reference_set_target(&ref, self->reference, &oid);
     if (err < 0) {
         Error_set(err);
-        return -1;
+        return NULL;
     }
 
-    return 0;
+    return wrap_reference(ref);
 }
 
 
@@ -481,17 +460,18 @@ PyTypeObject RefLogEntryType = {
 PyMethodDef Reference_methods[] = {
     METHOD(Reference, delete, METH_NOARGS),
     METHOD(Reference, rename, METH_O),
-    METHOD(Reference, reload, METH_NOARGS),
     METHOD(Reference, resolve, METH_NOARGS),
     METHOD(Reference, log, METH_NOARGS),
+    METHOD(Reference, set_target, METH_O),
+    METHOD(Reference, set_oid, METH_O),
     {NULL}
 };
 
 PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, name),
-    GETSET(Reference, oid),
+    GETTER(Reference, oid),
     GETTER(Reference, hex),
-    GETSET(Reference, target),
+    GETTER(Reference, target),
     GETTER(Reference, type),
     {NULL}
 };
