@@ -109,6 +109,7 @@ Repository_dealloc(Repository *self)
 {
     PyObject_GC_UnTrack(self);
     Py_XDECREF(self->index);
+    Py_CLEAR(self->config);
     git_repository_free(self->repo);
     PyObject_GC_Del(self);
 }
@@ -493,7 +494,7 @@ PyDoc_STRVAR(Repository_config__doc__,
   "(if they are available).");
 
 PyObject *
-Repository_config__get__(Repository *self, void *closure)
+Repository_config__get__(Repository *self)
 {
     int err;
     git_config *config;
@@ -506,20 +507,18 @@ Repository_config__get__(Repository *self, void *closure)
         if (err < 0)
             return Error_set(err);
 
-        py_config = PyObject_GC_New(Config, &ConfigType);
-        if (!py_config) {
+        py_config = PyObject_New(Config, &ConfigType);
+        if (py_config == NULL) {
             git_config_free(config);
             return NULL;
         }
 
-        Py_INCREF(self);
-        py_config->repo = self;
         py_config->config = config;
-        PyObject_GC_Track(py_config);
         self->config = (PyObject*)py_config;
+    } else {
+        Py_INCREF(self->config);
     }
 
-    Py_INCREF(self->config);
     return self->config;
 }
 
