@@ -43,8 +43,8 @@ extern PyTypeObject TagType;
 void
 Object_dealloc(Object* self)
 {
+    Py_CLEAR(self->repo);
     git_object_free(self->obj);
-    Py_XDECREF(self->repo);
     PyObject_Del(self);
 }
 
