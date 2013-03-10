@@ -67,6 +67,20 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
+    Repository *repo;
+    git_note *note;
+    char* annotated_id;
+} Note;
+
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_note_iterator* iter;
+    char* ref;
+} NoteIter;
+
+typedef struct {
+    PyObject_HEAD
     git_diff_list* list;
     size_t i;
     size_t n;

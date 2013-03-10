@@ -33,6 +33,7 @@
 #include <pygit2/utils.h>
 #include <pygit2/object.h>
 #include <pygit2/oid.h>
+#include <pygit2/note.h>
 #include <pygit2/repository.h>
 
 extern PyObject *GitError;
@@ -46,6 +47,8 @@ extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
 extern PyTypeObject RemoteType;
 extern PyTypeObject ReferenceType;
+extern PyTypeObject NoteType;
+extern PyTypeObject NoteIterType;
 
 git_otype
 int_to_loose_object_type(int type_id)
@@ -1112,6 +1115,87 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
 }
 
 
+PyDoc_STRVAR(Repository_notes__doc__, "");
+
+PyObject *
+Repository_notes(Repository *self, PyObject* args)
+{
+    NoteIter *iter = NULL;
+    char *ref = "refs/notes/commits";
+    int err = GIT_ERROR;
+
+    if (!PyArg_ParseTuple(args, "|s", &ref))
+        return NULL;
+
+    iter = PyObject_New(NoteIter, &NoteIterType);
+    if (iter != NULL) {
+        iter->repo = self;
+        iter->ref = ref;
+
+        err = git_note_iterator_new(&iter->iter, self->repo, iter->ref);
+        if (err == GIT_OK) {
+            Py_INCREF(self);
+            return (PyObject*)iter;
+        }
+    }
+
+    return Error_set(err);
+
+}
+
+
+PyDoc_STRVAR(Repository_create_note__doc__, "");
+
+PyObject *
+Repository_create_note(Repository *self, PyObject* args)
+{
+    git_oid note_id, annotated_id;
+    char *annotated = NULL, *message = NULL, *ref = "refs/notes/commits";
+    int err = GIT_ERROR;
+    unsigned int force = 0;
+    Signature *py_author, *py_committer;
+
+    if (!PyArg_ParseTuple(args, "sO!O!|ssi",
+                          &message,
+                          &SignatureType, &py_author,
+                          &SignatureType, &py_committer,
+                          &annotated, &ref, &force))
+        return NULL;
+
+    err = git_oid_fromstr(&annotated_id, annotated);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_note_create(&note_id, self->repo, py_author->signature,
+                          py_committer->signature, ref,
+                          &annotated_id, message, force);
+    if (err < 0)
+        return Error_set(err);
+
+    return (PyObject*) wrap_note(self, &annotated_id, ref);
+}
+
+
+PyDoc_STRVAR(Repository_lookup_note__doc__, "");
+
+/* TODO: Memory leak */
+PyObject *
+Repository_lookup_note(Repository *self, PyObject* args)
+{
+    git_oid annotated_id;
+    char* annotated = NULL, *ref = "refs/notes/commits";
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s|s", &annotated, &ref))
+        return NULL;
+
+    err = git_oid_fromstr(&annotated_id, annotated);
+    if (err < 0)
+        return Error_set(err);
+
+    return (PyObject*) wrap_note(self, &annotated_id, ref);
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromfile, METH_VARARGS),
@@ -1130,6 +1214,9 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, create_remote, METH_VARARGS),
     METHOD(Repository, checkout, METH_VARARGS|METH_KEYWORDS),
+    METHOD(Repository, notes, METH_VARARGS),
+    METHOD(Repository, create_note, METH_VARARGS),
+    METHOD(Repository, lookup_note, METH_VARARGS),
     {NULL}
 };
 
