@@ -34,6 +34,7 @@
 #include <pygit2/object.h>
 #include <pygit2/oid.h>
 #include <pygit2/repository.h>
+#include <pygit2/remote.h>
 
 extern PyObject *GitError;
 
@@ -1049,20 +1050,23 @@ PyObject *
 Repository_remotes__get__(Repository *self)
 {
     git_strarray remotes;
-    PyObject* py_list = NULL, *py_tmp;
+    PyObject* py_list = NULL, *py_args = NULL;
+    Remote *py_remote;
     size_t i;
 
     git_remote_list(&remotes, self->repo);
 
     py_list = PyList_New(remotes.count);
     for (i=0; i < remotes.count; ++i) {
-        py_tmp = INSTANCIATE_CLASS(RemoteType, Py_BuildValue("Os", self, remotes.strings[i]));
-        PyList_SetItem(py_list, i, py_tmp);
+        py_remote = PyObject_New(Remote, &RemoteType);
+        py_args = Py_BuildValue("Os", self, remotes.strings[i]);
+        Remote_init(py_remote, py_args, NULL);
+        PyList_SetItem(py_list, i, (PyObject*) py_remote);
     }
 
     git_strarray_free(&remotes);
 
-    return py_list;
+    return (PyObject*) py_list;
 }
 
 

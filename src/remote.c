@@ -31,12 +31,13 @@
 #include <pygit2/error.h>
 #include <pygit2/utils.h>
 #include <pygit2/types.h>
+#include <pygit2/remote.h>
 
 extern PyObject *GitError;
 extern PyTypeObject RepositoryType;
 
 PyObject *
-Remote_call(Remote *self, PyObject *args, PyObject *kwds)
+Remote_init(Remote *self, PyObject *args, PyObject *kwds)
 {
     Repository* py_repo = NULL;
     char *name = NULL;
@@ -239,7 +240,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
-    (ternaryfunc) Remote_call,                 /* tp_call           */
+    0,                                         /* tp_call           */
     0,                                         /* tp_str            */
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
@@ -260,7 +261,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    0,                                         /* tp_init           */
+    (initproc)Remote_init,                     /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
