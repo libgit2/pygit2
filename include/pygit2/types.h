@@ -67,16 +67,21 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    git_diff_list* list;
+    Diff* diff;
     size_t i;
     size_t n;
 } DiffIter;
 
 typedef struct {
     PyObject_HEAD
-    PyObject* files;
     PyObject* hunks;
-} DiffEntry;
+    const char * old_file_path;
+    const char * new_file_path;
+    char* old_oid;
+    char* new_oid;
+    unsigned status;
+    unsigned similarity;
+} Patch;
 
 typedef struct {
     PyObject_HEAD
@@ -86,18 +91,11 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    const char *header;
+    PyObject* lines;
     int old_start;
     int old_lines;
-    char* old_oid;
-    int old_mode;
-    const char* old_file;
     int new_start;
     int new_lines;
-    char* new_oid;
-    int new_mode;
-    const char* new_file;
-    PyObject *data;
 } Hunk;
 
 typedef struct {
