@@ -42,11 +42,11 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
 
     /* Case 1: raw sha */
     if (PyString_Check(py_str)) {
-        hex_or_bin = PyString_AsString(py_str);
-        if (hex_or_bin == NULL)
+        err = PyString_AsStringAndSize(py_str, &hex_or_bin, &len);
+        if (err)
             return -1;
-        git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
-        return GIT_OID_HEXSZ;
+        memcpy(oid->id, (const unsigned char*)hex_or_bin, len);
+        return len;
     }
 
     /* Case 2: hex sha */
