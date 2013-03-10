@@ -69,7 +69,7 @@ PyDoc_STRVAR(init_repository__doc__,
   "Creates a new Git repository in the given path.");
 
 PyObject *
-init_repository(PyObject *self, PyObject *args, PyObject *kw) {
+init_repository(PyObject *self, PyObject *args) {
     git_repository *repo;
     const char *path;
     unsigned int bare;
