@@ -37,7 +37,7 @@ import unittest
 
 names = ['blob', 'commit', 'config', 'diff', 'index', 'refs', 'remote',
          'repository', 'revwalk', 'signature', 'status', 'tag', 'tree',
-         'treebuilder']
+         'treebuilder', 'note']
 
 def test_suite():
     # Sometimes importing pygit2 fails, we try this first to get an

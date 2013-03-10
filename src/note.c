@@ -1,0 +1,237 @@
+/*
+ * Copyright 2010-2013 The pygit2 contributors
+ *
+ * This file is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2,
+ * as published by the Free Software Foundation.
+ *
+ * In addition to the permissions in the GNU General Public License,
+ * the authors give you unlimited permission to link the compiled
+ * version of this file into combinations with other programs,
+ * and to distribute those combinations without any restriction
+ * coming from the use of this file.  (The General Public License
+ * restrictions do apply in other respects; for example, they cover
+ * modification of the file, and distribution when not linked into
+ * a combined executable.)
+ *
+ * This file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <structmember.h>
+#include <pygit2/error.h>
+#include <pygit2/utils.h>
+#include <pygit2/types.h>
+#include <pygit2/oid.h>
+#include <pygit2/note.h>
+
+extern PyTypeObject SignatureType;
+
+PyDoc_STRVAR(Note_remove__doc__,
+    "Removes a note for an annotated object");
+
+PyObject*
+Note_remove(Note *self, PyObject* args)
+{
+    char *ref = "refs/notes/commits";
+    int err = GIT_ERROR;
+    git_oid annotated_id;
+    Signature *py_author, *py_committer;
+
+    if (!PyArg_ParseTuple(args, "O!O!|s",
+                          &SignatureType, &py_author,
+                          &SignatureType, &py_committer,
+                          &ref))
+        return NULL;
+
+    err = git_oid_fromstr(&annotated_id, self->annotated_id);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_note_remove(self->repo->repo, ref, py_author->signature,
+        py_committer->signature, &annotated_id);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_CLEAR(self->repo);
+    Py_RETURN_NONE;
+}
+
+
+PyDoc_STRVAR(Note_git_note_oid__doc__,
+  "Gets the id of the blob containing the note message\n");
+
+PyObject *
+Note_git_note_oid__get__(Note *self)
+{
+  return git_oid_to_py_str(git_note_oid(self->note));
+}
+
+
+PyDoc_STRVAR(Note_git_note_message__doc__,
+  "Gets message of the note\n");
+
+PyObject *
+Note_git_note_message__get__(Note *self)
+{
+  return PyUnicode_FromString(git_note_message(self->note));
+}
+
+
+static void
+Note_dealloc(Note *self)
+{
+    Py_CLEAR(self->repo);
+    free(self->annotated_id);
+    git_note_free(self->note);
+    PyObject_Del(self);
+}
+
+
+PyMethodDef Note_methods[] = {
+    METHOD(Note, remove, METH_VARARGS),
+    {NULL}
+};
+
+PyMemberDef Note_members[] = {
+    MEMBER(Note, annotated_id, T_STRING, "id of the annotated object."),
+    {NULL}
+};
+
+PyGetSetDef Note_getseters[] = {
+    GETTER(Note, git_note_message),
+    GETTER(Note, git_note_oid),
+    {NULL}
+};
+
+PyDoc_STRVAR(Note__doc__, "Note object.");
+
+PyTypeObject NoteType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.Note",                            /* tp_name           */
+    sizeof(Note),                              /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)Note_dealloc,                  /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    Note__doc__,                               /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    Note_methods,                              /* tp_methods        */
+    Note_members,                              /* tp_members        */
+    Note_getseters,                            /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
+
+PyObject *
+NoteIter_iternext(NoteIter *self)
+{
+    int err;
+    git_oid note_id, annotated_id;
+
+    err = git_note_next(&note_id, &annotated_id, self->iter);
+    if (err < 0)
+        return Error_set(err);
+
+    return (PyObject*) wrap_note(self->repo, &annotated_id, self->ref);
+}
+
+void
+NoteIter_dealloc(NoteIter *self)
+{
+    git_note_iterator_free(self->iter);
+    PyObject_Del(self);
+}
+
+
+PyDoc_STRVAR(NoteIter__doc__, "Note iterator object.");
+
+PyTypeObject NoteIterType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.NoteIter",                        /* tp_name           */
+    sizeof(NoteIter),                          /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)NoteIter_dealloc,              /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    NoteIter__doc__,                           /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    PyObject_SelfIter,                         /* tp_iter           */
+   (iternextfunc) NoteIter_iternext,           /* tp_iternext       */
+};
+
+
+PyObject*
+wrap_note(Repository* repo, git_oid* annotated_id, const char* ref)
+{
+    Note* py_note = NULL;
+    int err = GIT_ERROR;
+
+    py_note = (Note*) PyType_GenericNew(&NoteType, NULL, NULL);
+    if (py_note == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    err = git_note_read(&py_note->note, repo->repo, ref, annotated_id);
+    if (err < 0)
+        return Error_set(err);
+
+    py_note->repo = repo;
+    Py_INCREF(repo);
+    py_note->annotated_id = git_oid_allocfmt(annotated_id);
+
+    return (PyObject*) py_note;
+}
+
+

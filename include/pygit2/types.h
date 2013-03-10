@@ -57,9 +57,27 @@ OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
-OBJECT_STRUCT(Config, git_config, config)
 OBJECT_STRUCT(Remote, git_remote, remote)
 OBJECT_STRUCT(Diff, git_diff_list, list)
+
+typedef struct {
+    PyObject_HEAD
+    git_config* config;
+} Config;
+
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_note *note;
+    char* annotated_id;
+} Note;
+
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_note_iterator* iter;
+    char* ref;
+} NoteIter;
 
 typedef struct {
     PyObject_HEAD
