@@ -109,7 +109,8 @@ void
 Repository_dealloc(Repository *self)
 {
     PyObject_GC_UnTrack(self);
-    Py_XDECREF(self->index);
+    Py_CLEAR(self->index);
+    Py_CLEAR(self->config);
     git_repository_free(self->repo);
     PyObject_GC_Del(self);
 }
@@ -914,9 +915,14 @@ read_status_cb(const char *path, unsigned int status_flags, void *payload)
     /* This is the callback that will be called in git_status_foreach. It
      * will be called for every path.*/
     PyObject *flags;
+    int err;
 
     flags = PyInt_FromLong((long) status_flags);
-    PyDict_SetItemString(payload, path, flags);
+    err = PyDict_SetItemString(payload, path, flags);
+    Py_CLEAR(flags);
+
+    if (err < 0)
+        return GIT_ERROR;
 
     return GIT_OK;
 }
@@ -1103,6 +1109,7 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
                 err = git_repository_set_head(self->repo,
                           git_reference_name(ref->reference));
             }
+            git_object_free(object);
         }
     } else { /* checkout from head / index */
         opts.checkout_strategy = strategy;

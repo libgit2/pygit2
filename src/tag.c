@@ -94,6 +94,16 @@ Tag__message__get__(Tag *self)
     return PyString_FromString(git_tag_message(self->tag));
 }
 
+
+void
+Tag_dealloc(Tag *self)
+{
+    Py_CLEAR(self->repo);
+    git_tag_free(self->tag);
+    PyObject_Del(self);
+}
+
+
 PyGetSetDef Tag_getseters[] = {
     GETTER(Tag, target),
     GETTER(Tag, name),
@@ -111,7 +121,7 @@ PyTypeObject TagType = {
     "_pygit2.Tag",                             /* tp_name           */
     sizeof(Tag),                               /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                         /* tp_dealloc        */
+    (destructor)Tag_dealloc,                   /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */

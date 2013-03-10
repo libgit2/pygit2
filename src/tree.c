@@ -42,7 +42,7 @@ extern PyTypeObject IndexType;
 void
 TreeEntry_dealloc(TreeEntry *self)
 {
-    Py_XDECREF(self->owner);
+    Py_CLEAR(self->owner);
     git_tree_entry_free((git_tree_entry*)self->entry);
     PyObject_Del(self);
 }
@@ -339,6 +339,7 @@ Tree_diff(Tree *self, PyObject *args)
         PyErr_SetObject(PyExc_TypeError, py_obj);
         return NULL;
     }
+
     if (err < 0)
         return Error_set(err);
 
@@ -350,6 +351,14 @@ Tree_diff(Tree *self, PyObject *args)
     }
 
     return (PyObject*)py_diff;
+}
+
+static void
+Tree_dealloc(Tree *self)
+{
+    Py_CLEAR(self->repo);
+    git_tree_free(self->tree);
+    PyObject_Del(self);
 }
 
 PySequenceMethods Tree_as_sequence = {
@@ -382,7 +391,7 @@ PyTypeObject TreeType = {
     "_pygit2.Tree",                            /* tp_name           */
     sizeof(Tree),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                         /* tp_dealloc        */
+    (destructor)&Tree_dealloc,                 /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */

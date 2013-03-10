@@ -43,7 +43,7 @@ extern PyTypeObject RefLogEntryType;
 
 void RefLogIter_dealloc(RefLogIter *self)
 {
-    Py_XDECREF(self->reference);
+    Py_CLEAR(self->reference);
     git_reflog_free(self->reflog);
     PyObject_GC_Del(self);
 }
@@ -371,7 +371,7 @@ Reference_log(Reference *self)
     CHECK_REFERENCE(self);
 
     iter = PyObject_New(RefLogIter, &RefLogIterType);
-    if (iter) {
+    if (iter != NULL) {
         iter->reference = self;
         git_reflog_read(&iter->reflog, self->reference);
         iter->size = git_reflog_entrycount(iter->reflog);
