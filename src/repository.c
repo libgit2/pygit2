@@ -34,6 +34,7 @@
 #include <pygit2/object.h>
 #include <pygit2/oid.h>
 #include <pygit2/repository.h>
+#include <pygit2/remote.h>
 
 extern PyObject *GitError;
 
@@ -108,7 +109,8 @@ void
 Repository_dealloc(Repository *self)
 {
     PyObject_GC_UnTrack(self);
-    Py_XDECREF(self->index);
+    Py_CLEAR(self->index);
+    Py_CLEAR(self->config);
     git_repository_free(self->repo);
     PyObject_GC_Del(self);
 }
@@ -839,7 +841,7 @@ Repository_create_direct_reference(Repository *self,  PyObject *args,
 {
     PyObject *py_obj;
     git_reference *c_reference;
-    char *c_name, *c_target;
+    char *c_name;
     git_oid oid;
     int err, force;
 
@@ -879,7 +881,6 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args,
     PyObject *py_obj;
     git_reference *c_reference;
     char *c_name, *c_target;
-    git_oid oid;
     int err, force;
 
     if (!PyArg_ParseTuple(args, "sOi", &c_name, &py_obj, &force))
@@ -914,9 +915,14 @@ read_status_cb(const char *path, unsigned int status_flags, void *payload)
     /* This is the callback that will be called in git_status_foreach. It
      * will be called for every path.*/
     PyObject *flags;
+    int err;
 
     flags = PyInt_FromLong((long) status_flags);
-    PyDict_SetItemString(payload, path, flags);
+    err = PyDict_SetItemString(payload, path, flags);
+    Py_CLEAR(flags);
+
+    if (err < 0)
+        return GIT_ERROR;
 
     return GIT_OK;
 }
@@ -1050,20 +1056,23 @@ PyObject *
 Repository_remotes__get__(Repository *self)
 {
     git_strarray remotes;
-    PyObject* py_list = NULL, *py_tmp;
+    PyObject* py_list = NULL, *py_args = NULL;
+    Remote *py_remote;
     size_t i;
 
     git_remote_list(&remotes, self->repo);
 
     py_list = PyList_New(remotes.count);
     for (i=0; i < remotes.count; ++i) {
-        py_tmp = INSTANCIATE_CLASS(RemoteType, Py_BuildValue("Os", self, remotes.strings[i]));
-        PyList_SetItem(py_list, i, py_tmp);
+        py_remote = PyObject_New(Remote, &RemoteType);
+        py_args = Py_BuildValue("Os", self, remotes.strings[i]);
+        Remote_init(py_remote, py_args, NULL);
+        PyList_SetItem(py_list, i, (PyObject*) py_remote);
     }
 
     git_strarray_free(&remotes);
 
-    return py_list;
+    return (PyObject*) py_list;
 }
 
 
@@ -1100,6 +1109,7 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
                 err = git_repository_set_head(self->repo,
                           git_reference_name(ref->reference));
             }
+            git_object_free(object);
         }
     } else { /* checkout from head / index */
         opts.checkout_strategy = strategy;

@@ -44,7 +44,7 @@ void
 Object_dealloc(Object* self)
 {
     git_object_free(self->obj);
-    Py_XDECREF(self->repo);
+    Py_CLEAR(self->repo);
     PyObject_Del(self);
 }
 

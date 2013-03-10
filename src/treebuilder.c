@@ -37,7 +37,7 @@
 void
 TreeBuilder_dealloc(TreeBuilder *self)
 {
-    Py_XDECREF(self->repo);
+    Py_CLEAR(self->repo);
     git_treebuilder_free(self->bld);
     PyObject_Del(self);
 }

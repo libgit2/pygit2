@@ -40,6 +40,14 @@ Blob_size__get__(Blob *self)
     return PyInt_FromLong(git_blob_rawsize(self->blob));
 }
 
+void
+Blob_dealloc(Blob *self)
+{
+    Py_CLEAR(self->repo);
+    git_blob_free(self->blob);
+    PyObject_Del(self);
+}
+
 
 PyDoc_STRVAR(Blob_data__doc__,
   "Raw data. This is the same as Blob.read_raw()");
@@ -58,7 +66,7 @@ PyTypeObject BlobType = {
     "_pygit2.Blob",                            /* tp_name           */
     sizeof(Blob),                              /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                         /* tp_dealloc        */
+    (destructor)Blob_dealloc,                  /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */

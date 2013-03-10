@@ -31,12 +31,13 @@
 #include <pygit2/error.h>
 #include <pygit2/utils.h>
 #include <pygit2/types.h>
+#include <pygit2/remote.h>
 
 extern PyObject *GitError;
 extern PyTypeObject RepositoryType;
 
 PyObject *
-Remote_call(Remote *self, PyObject *args, PyObject *kwds)
+Remote_init(Remote *self, PyObject *args, PyObject *kwds)
 {
     Repository* py_repo = NULL;
     char *name = NULL;
@@ -46,6 +47,7 @@ Remote_call(Remote *self, PyObject *args, PyObject *kwds)
         return NULL;
 
     self->repo = py_repo;
+    Py_INCREF(self->repo);
     err = git_remote_load(&self->remote, py_repo->repo, name);
 
     if (err < 0)
@@ -58,6 +60,7 @@ Remote_call(Remote *self, PyObject *args, PyObject *kwds)
 static void
 Remote_dealloc(Remote *self)
 {
+    Py_CLEAR(self->repo);
     git_remote_free(self->remote);
     PyObject_Del(self);
 }
@@ -80,6 +83,7 @@ Remote_name__set__(Remote *self, PyObject* py_name)
     name = py_str_to_c_str(py_name, NULL);
     if (name != NULL) {
         err = git_remote_rename(self->remote, name, NULL, NULL);
+        free(name);
 
         if (err == GIT_OK)
           return 0;
@@ -104,11 +108,12 @@ int
 Remote_url__set__(Remote *self, PyObject* py_url)
 {
     int err;
-    char* url;
+    char* url = NULL;
 
     url = py_str_to_c_str(py_url, NULL);
     if (url != NULL) {
         err = git_remote_set_url(self->remote, url);
+        free(url);
 
         if (err == GIT_OK)
           return 0;
@@ -239,7 +244,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
-    (ternaryfunc) Remote_call,                 /* tp_call           */
+    0,                                         /* tp_call           */
     0,                                         /* tp_str            */
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
@@ -260,7 +265,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    0,                                         /* tp_init           */
+    (initproc)Remote_init,                     /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };

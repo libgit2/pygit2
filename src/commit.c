@@ -180,6 +180,15 @@ Commit_parents__get__(Commit *commit)
     return list;
 }
 
+
+void
+Commit_dealloc(Commit *self)
+{
+    Py_CLEAR(self->repo);
+    git_commit_free(self->commit);
+    PyObject_Del(self);
+}
+
 PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, message_encoding),
     GETTER(Commit, message),
@@ -201,7 +210,7 @@ PyTypeObject CommitType = {
     "_pygit2.Commit",                          /* tp_name           */
     sizeof(Commit),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                         /* tp_dealloc        */
+    (destructor)Commit_dealloc,                /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
