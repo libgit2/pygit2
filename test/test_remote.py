@@ -35,8 +35,8 @@ REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'
 REMOTE_FETCHSPEC_SRC = 'refs/heads/*'
 REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
-REMOTE_REPO_OBJECTS = 24
-REMOTE_REPO_BYTES = 2253
+REMOTE_REPO_OBJECTS = 30
+REMOTE_REPO_BYTES = 2758
 
 class RepositoryTest(utils.RepoTestCase):
     def test_remote_create(self):
