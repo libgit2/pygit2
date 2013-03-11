@@ -57,22 +57,31 @@ OBJECT_STRUCT(Blob, git_blob, blob)
 OBJECT_STRUCT(Tag, git_tag, tag)
 OBJECT_STRUCT(Index, git_index, index)
 OBJECT_STRUCT(Walker, git_revwalk, walk)
-OBJECT_STRUCT(Config, git_config, config)
 OBJECT_STRUCT(Remote, git_remote, remote)
 OBJECT_STRUCT(Diff, git_diff_list, list)
 
 typedef struct {
     PyObject_HEAD
-    git_diff_list* list;
+    git_config* config;
+} Config;
+
+typedef struct {
+    PyObject_HEAD
+    Diff* diff;
     size_t i;
     size_t n;
 } DiffIter;
 
 typedef struct {
     PyObject_HEAD
-    PyObject* files;
     PyObject* hunks;
-} DiffEntry;
+    const char * old_file_path;
+    const char * new_file_path;
+    char* old_oid;
+    char* new_oid;
+    unsigned status;
+    unsigned similarity;
+} Patch;
 
 typedef struct {
     PyObject_HEAD
@@ -82,18 +91,11 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    const char *header;
+    PyObject* lines;
     int old_start;
     int old_lines;
-    char* old_oid;
-    int old_mode;
-    const char* old_file;
     int new_start;
     int new_lines;
-    char* new_oid;
-    int new_mode;
-    const char* new_file;
-    PyObject *data;
 } Hunk;
 
 typedef struct {
@@ -128,7 +130,6 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    Reference *reference;
     git_reflog *reflog;
     int i;
     int size;
