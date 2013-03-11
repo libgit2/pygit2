@@ -95,9 +95,6 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 
-#define INSTANCIATE_CLASS(type, arglist) \
-    PyObject_CallObject(PyType_GenericNew(&type, NULL, NULL), arglist);
-
 /* Helpers to make shorter PyMethodDef and PyGetSetDef blocks */
 #define METHOD(type, name, args)\
   {#name, (PyCFunction) type ## _ ## name, args, type ## _ ## name ## __doc__}
@@ -119,21 +116,22 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
 #define MEMBER(type, attr, attr_type, docstr)\
   {#attr, attr_type, offsetof(type, attr), 0, PyDoc_STR(docstr)}
 
+
 /* Helpers for memory allocation */
-
-
-#define MALLOC(ptr, size, label) \
-        ptr = realloc(ptr, size * sizeof(char));\
+#define CALLOC(ptr, num, size, label) \
+        ptr = calloc((num), size);\
         if (ptr == NULL) {\
             err = GIT_ERROR;\
             giterr_set_oom();\
             goto label;\
-        }\
+        }
 
-#define FREE(to_free)\
-  if (to_free != NULL) { free(to_free); to_free = NULL; }
-#define FREE_FUNC(to_free, fnct)\
-  if (to_free != NULL) { fnct(to_free); to_free = NULL; }
-
+#define MALLOC(ptr, size, label) \
+        ptr = malloc(size);\
+        if (ptr == NULL) {\
+            err = GIT_ERROR;\
+            giterr_set_oom();\
+            goto label;\
+        }
 
 #endif

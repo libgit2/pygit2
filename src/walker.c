@@ -38,8 +38,8 @@ extern PyTypeObject CommitType;
 void
 Walker_dealloc(Walker *self)
 {
+    Py_CLEAR(self->repo);
     git_revwalk_free(self->walk);
-    Py_DECREF(self->repo);
     PyObject_Del(self);
 }
 

@@ -102,6 +102,9 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
+    self->config = NULL;
+    self->index = NULL;
+
     return 0;
 }
 
@@ -109,7 +112,8 @@ void
 Repository_dealloc(Repository *self)
 {
     PyObject_GC_UnTrack(self);
-    Py_XDECREF(self->index);
+    Py_CLEAR(self->index);
+    Py_CLEAR(self->config);
     git_repository_free(self->repo);
     PyObject_GC_Del(self);
 }
@@ -494,7 +498,7 @@ PyDoc_STRVAR(Repository_config__doc__,
   "(if they are available).");
 
 PyObject *
-Repository_config__get__(Repository *self, void *closure)
+Repository_config__get__(Repository *self)
 {
     int err;
     git_config *config;
@@ -507,20 +511,18 @@ Repository_config__get__(Repository *self, void *closure)
         if (err < 0)
             return Error_set(err);
 
-        py_config = PyObject_GC_New(Config, &ConfigType);
-        if (!py_config) {
+        py_config = PyObject_New(Config, &ConfigType);
+        if (py_config == NULL) {
             git_config_free(config);
             return NULL;
         }
 
-        Py_INCREF(self);
-        py_config->repo = self;
         py_config->config = config;
-        PyObject_GC_Track(py_config);
         self->config = (PyObject*)py_config;
+    } else {
+        Py_INCREF(self->config);
     }
 
-    Py_INCREF(self->config);
     return self->config;
 }
 
@@ -815,6 +817,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
         return err_obj;
     }
     free(c_name);
+
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference);
 }
@@ -888,13 +891,19 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args,
     #if PY_MAJOR_VERSION == 2
     c_target = PyString_AsString(py_obj);
     #else
-    c_target = PyString_AsString(PyUnicode_AsASCIIString(py_obj));
+    // increases ref counter, so we have to release it afterwards
+    PyObject* py_str = PyUnicode_AsASCIIString(py_obj);
+    c_target = PyString_AsString(py_str);
     #endif
     if (c_target == NULL)
         return NULL;
 
     err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
                                         c_target, force);
+    #if PY_MAJOR_VERSION > 2
+      Py_CLEAR(py_str);
+    #endif
+
     if (err < 0)
         return Error_set(err);
 
@@ -914,9 +923,14 @@ read_status_cb(const char *path, unsigned int status_flags, void *payload)
     /* This is the callback that will be called in git_status_foreach. It
      * will be called for every path.*/
     PyObject *flags;
+    int err;
 
     flags = PyInt_FromLong((long) status_flags);
-    PyDict_SetItemString(payload, path, flags);
+    err = PyDict_SetItemString(payload, path, flags);
+    Py_CLEAR(flags);
+
+    if (err < 0)
+        return GIT_ERROR;
 
     return GIT_OK;
 }
@@ -1103,6 +1117,7 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
                 err = git_repository_set_head(self->repo,
                           git_reference_name(ref->reference));
             }
+            git_object_free(object);
         }
     } else { /* checkout from head / index */
         opts.checkout_strategy = strategy;
