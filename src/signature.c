@@ -82,12 +82,13 @@ void
 Signature_dealloc(Signature *self)
 {
     if (self->obj)
-        Py_DECREF(self->obj);
+        Py_CLEAR(self->obj);
     else {
         git_signature_free((git_signature*)self->signature);
         free((char*)self->encoding);
     }
-    Py_TYPE(self)->tp_free((PyObject*)self);
+
+    PyObject_Del(self);
 }
 
 
@@ -221,6 +222,7 @@ build_signature(Object *obj, const git_signature *signature,
     Signature *py_signature;
 
     py_signature = PyObject_New(Signature, &SignatureType);
+
     if (py_signature) {
         Py_INCREF(obj);
         py_signature->obj = obj;

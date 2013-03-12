@@ -43,9 +43,8 @@ extern PyTypeObject RefLogEntryType;
 
 void RefLogIter_dealloc(RefLogIter *self)
 {
-    Py_XDECREF(self->reference);
     git_reflog_free(self->reflog);
-    PyObject_GC_Del(self);
+    PyObject_Del(self);
 }
 
 PyObject* RefLogIter_iternext(PyObject *self)
@@ -146,7 +145,9 @@ Reference_delete(Reference *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
+    git_reference_free(self->reference);
     self->reference = NULL; /* Invalidate the pointer */
+
     Py_RETURN_NONE;
 }
 
@@ -172,6 +173,7 @@ Reference_rename(Reference *self, PyObject *py_name)
 
     /* Rename */
     err = git_reference_rename(&new_reference, self->reference, c_name, 0);
+    git_reference_free(self->reference);
     free(c_name);
     if (err < 0)
         return Error_set(err);
@@ -255,6 +257,7 @@ Reference_target__set__(Reference *self, PyObject *py_name)
         return -1;
     }
 
+    git_reference_free(self->reference);
     self->reference = new_ref;
     return 0;
 }
@@ -316,6 +319,7 @@ Reference_oid__set__(Reference *self, PyObject *py_hex)
         return -1;
     }
 
+    git_reference_free(self->reference);
     self->reference = new_ref;
     return 0;
 }
@@ -371,14 +375,10 @@ Reference_log(Reference *self)
     CHECK_REFERENCE(self);
 
     iter = PyObject_New(RefLogIter, &RefLogIterType);
-    if (iter) {
-        iter->reference = self;
+    if (iter != NULL) {
         git_reflog_read(&iter->reflog, self->reference);
         iter->size = git_reflog_entrycount(iter->reflog);
         iter->i = 0;
-
-        Py_INCREF(self);
-        Py_INCREF(iter);
     }
     return (PyObject*)iter;
 }
@@ -398,9 +398,9 @@ RefLogEntry_init(RefLogEntry *self, PyObject *args, PyObject *kwds)
 static void
 RefLogEntry_dealloc(RefLogEntry *self)
 {
-    Py_XDECREF(self->oid_old);
-    Py_XDECREF(self->oid_new);
-    Py_XDECREF(self->committer);
+    Py_CLEAR(self->oid_old);
+    Py_CLEAR(self->oid_new);
+    Py_CLEAR(self->committer);
     free(self->message);
     PyObject_Del(self);
 }

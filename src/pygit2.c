@@ -42,7 +42,7 @@ extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
 extern PyTypeObject DiffType;
 extern PyTypeObject DiffIterType;
-extern PyTypeObject DiffEntryType;
+extern PyTypeObject PatchType;
 extern PyTypeObject HunkType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
@@ -60,6 +60,8 @@ extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
 extern PyTypeObject SignatureType;
 extern PyTypeObject RemoteType;
+extern PyTypeObject NoteType;
+extern PyTypeObject NoteIterType;
 
 
 
@@ -69,7 +71,7 @@ PyDoc_STRVAR(init_repository__doc__,
   "Creates a new Git repository in the given path.");
 
 PyObject *
-init_repository(PyObject *self, PyObject *args, PyObject *kw) {
+init_repository(PyObject *self, PyObject *args) {
     git_repository *repo;
     const char *path;
     unsigned int bare;
@@ -201,7 +203,7 @@ moduleinit(PyObject* m)
         return NULL;
     if (PyType_Ready(&DiffIterType) < 0)
         return NULL;
-    if (PyType_Ready(&DiffEntryType) < 0)
+    if (PyType_Ready(&PatchType) < 0)
         return NULL;
     if (PyType_Ready(&HunkType) < 0)
         return NULL;
@@ -234,6 +236,11 @@ moduleinit(PyObject* m)
         return NULL;
 
     if (PyType_Ready(&RemoteType) < 0)
+        return NULL;
+
+    if (PyType_Ready(&NoteType) < 0)
+        return NULL;
+    if (PyType_Ready(&NoteIterType) < 0)
         return NULL;
 
     Py_INCREF(GitError);
@@ -280,6 +287,9 @@ moduleinit(PyObject* m)
 
     Py_INCREF(&RemoteType);
     PyModule_AddObject(m, "Remote", (PyObject *)&RemoteType);
+
+    Py_INCREF(&NoteType);
+    PyModule_AddObject(m, "Note", (PyObject *)&NoteType);
 
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);

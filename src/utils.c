@@ -36,13 +36,13 @@ extern PyTypeObject ReferenceType;
  * the string contained in the value argument. */
 char * py_str_to_c_str(PyObject *value, const char *encoding)
 {
+    char *c_str = NULL;
     /* Case 1: byte string */
     if (PyString_Check(value))
         return strdup(PyString_AsString(value));
 
     /* Case 2: text string */
     if (PyUnicode_Check(value)) {
-        char *c_str = NULL;
 
         if (encoding == NULL)
             value = PyUnicode_AsUTF8String(value);
