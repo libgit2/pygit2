@@ -892,11 +892,11 @@ Repository_create_symbolic_reference(Repository *self,  PyObject *args,
         return NULL;
 
     #if PY_MAJOR_VERSION == 2
-    c_target = PyString_AsString(py_obj);
+    c_target = PyBytes_AsString(py_obj);
     #else
     // increases ref counter, so we have to release it afterwards
     PyObject* py_str = PyUnicode_AsASCIIString(py_obj);
-    c_target = PyString_AsString(py_str);
+    c_target = PyBytes_AsString(py_str);
     #endif
     if (c_target == NULL)
         return NULL;
@@ -928,7 +928,7 @@ read_status_cb(const char *path, unsigned int status_flags, void *payload)
     PyObject *flags;
     int err;
 
-    flags = PyInt_FromLong((long) status_flags);
+    flags = PyLong_FromLong((long) status_flags);
     err = PyDict_SetItemString(payload, path, flags);
     Py_CLEAR(flags);
 
@@ -972,7 +972,7 @@ Repository_status_file(Repository *self, PyObject *value)
         free(path);
         return err_obj;
     }
-    return PyInt_FromLong(status);
+    return PyLong_FromLong(status);
 }
 
 
@@ -1053,7 +1053,7 @@ Repository_create_remote(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    py_remote = (Remote*) PyType_GenericNew(&RemoteType, NULL, NULL);
+    py_remote = PyObject_New(Remote, &RemoteType);
     py_remote->repo = self;
     py_remote->remote = remote;
 

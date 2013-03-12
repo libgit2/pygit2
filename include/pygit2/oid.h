@@ -38,6 +38,6 @@ int py_str_to_git_oid_expand(git_repository *repo, PyObject *py_str,
 PyObject* git_oid_to_py_str(const git_oid *oid);
 
 #define git_oid_to_python(id) \
-        PyString_FromStringAndSize((const char*)id, GIT_OID_RAWSZ)
+        PyBytes_FromStringAndSize((const char*)id, GIT_OID_RAWSZ)
 
 #endif

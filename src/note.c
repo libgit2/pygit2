@@ -82,7 +82,7 @@ PyDoc_STRVAR(Note_message__doc__,
 PyObject *
 Note_message__get__(Note *self)
 {
-  return PyUnicode_FromString(git_note_message(self->note));
+  return to_unicode(git_note_message(self->note), NULL, NULL);
 }
 
 
@@ -172,6 +172,7 @@ NoteIter_iternext(NoteIter *self)
 void
 NoteIter_dealloc(NoteIter *self)
 {
+    Py_CLEAR(self->repo);
     git_note_iterator_free(self->iter);
     PyObject_Del(self);
 }
@@ -216,7 +217,7 @@ wrap_note(Repository* repo, git_oid* annotated_id, const char* ref)
     Note* py_note = NULL;
     int err = GIT_ERROR;
 
-    py_note = (Note*) PyType_GenericNew(&NoteType, NULL, NULL);
+    py_note = PyObject_New(Note, &NoteType);
     if (py_note == NULL) {
         PyErr_NoMemory();
         return NULL;

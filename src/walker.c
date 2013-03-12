@@ -100,7 +100,7 @@ Walker_sort(Walker *self, PyObject *py_sort_mode)
 {
     int sort_mode;
 
-    sort_mode = (int)PyInt_AsLong(py_sort_mode);
+    sort_mode = (int)PyLong_AsLong(py_sort_mode);
     if (sort_mode == -1 && PyErr_Occurred())
         return NULL;
 

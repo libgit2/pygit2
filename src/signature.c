@@ -148,7 +148,7 @@ PyDoc_STRVAR(Signature_time__doc__, "Unix time.");
 PyObject *
 Signature_time__get__(Signature *self)
 {
-    return PyInt_FromLong(self->signature->when.time);
+    return PyLong_FromLong(self->signature->when.time);
 }
 
 
@@ -157,7 +157,7 @@ PyDoc_STRVAR(Signature_offset__doc__, "Offset from UTC in minutes.");
 PyObject *
 Signature_offset__get__(Signature *self)
 {
-    return PyInt_FromLong(self->signature->when.offset);
+    return PyLong_FromLong(self->signature->when.offset);
 }
 
 PyGetSetDef Signature_getseters[] = {

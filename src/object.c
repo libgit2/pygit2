@@ -86,7 +86,7 @@ PyDoc_STRVAR(Object_type__doc__,
 PyObject *
 Object_type__get__(Object *self)
 {
-    return PyInt_FromLong(git_object_type(self->obj));
+    return PyLong_FromLong(git_object_type(self->obj));
 }
 
 
@@ -107,7 +107,7 @@ Object_read_raw(Object *self)
     if (obj == NULL)
         return NULL;
 
-    aux = PyString_FromStringAndSize(
+    aux = PyBytes_FromStringAndSize(
         git_odb_object_data(obj),
         git_odb_object_size(obj));
 
