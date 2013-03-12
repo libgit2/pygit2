@@ -58,7 +58,7 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
     if (err < 0)
         return Error_set(err);
 
-    py_patch = (Patch*) PyType_GenericNew(&PatchType, NULL, NULL);
+    py_patch = PyObject_New(Patch, &PatchType);
     if (py_patch != NULL) {
         py_patch->old_file_path = delta->old_file.path;
         py_patch->new_file_path = delta->new_file.path;
@@ -77,7 +77,7 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
             if (err < 0)
                 goto cleanup;
 
-            py_hunk = (Hunk*)PyType_GenericNew(&HunkType, NULL, NULL);
+            py_hunk = PyObject_New(Hunk, &HunkType);
             if (py_hunk != NULL) {
                 py_hunk->old_start = range->old_start;
                 py_hunk->old_lines = range->old_lines;
