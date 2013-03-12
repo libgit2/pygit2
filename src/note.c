@@ -82,7 +82,7 @@ PyDoc_STRVAR(Note_message__doc__,
 PyObject *
 Note_message__get__(Note *self)
 {
-  return PyUnicode_FromString(git_note_message(self->note));
+  return to_unicode(git_note_message(self->note), NULL, NULL);
 }
 
 

@@ -85,8 +85,8 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
                 py_hunk->new_lines = range->new_lines;
 
                 py_hunk->lines = PyList_New(lines_in_hunk + 1);
-                PyList_SetItem(py_hunk->lines, 0, 
-                    PyUnicode_FromStringAndSize(header, header_len));
+                PyList_SetItem(py_hunk->lines, 0,
+                    to_unicode_n(header, header_len, NULL, NULL));
                 for (j=1; j < lines_in_hunk + 1; ++j) {
                     err = git_diff_patch_get_line_in_hunk(NULL, &line,
                               &line_len, NULL, NULL, patch, i, j - 1);
@@ -95,7 +95,7 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
                       goto cleanup;
 
                     PyList_SetItem(py_hunk->lines, j,
-                        PyUnicode_FromStringAndSize(line, line_len));
+                        to_unicode_n(line, line_len, NULL, NULL));
                 }
 
                 PyList_SetItem((PyObject*) py_patch->hunks, i,
@@ -247,7 +247,7 @@ Diff_patch__get__(Diff *self)
         err = git_diff_get_patch(&patch, &delta, self->list, i);
         if (err < 0)
             goto cleanup;
-        
+
         err = git_diff_patch_to_str(&(strings[i]), patch);
         if (err < 0)
             goto cleanup;
@@ -263,7 +263,7 @@ Diff_patch__get__(Diff *self)
     }
     free(strings);
 
-    py_patch = PyUnicode_FromString(buffer);
+    py_patch = to_unicode(buffer, NULL, NULL);
     free(buffer);
 
 cleanup:

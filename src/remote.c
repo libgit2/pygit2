@@ -71,7 +71,7 @@ PyDoc_STRVAR(Remote_name__doc__, "Name of the remote refspec");
 PyObject *
 Remote_name__get__(Remote *self)
 {
-    return PyUnicode_FromString(git_remote_name(self->remote));
+    return to_unicode(git_remote_name(self->remote), NULL, NULL);
 }
 
 int
@@ -100,7 +100,7 @@ PyDoc_STRVAR(Remote_url__doc__, "Url of the remote");
 PyObject *
 Remote_url__get__(Remote *self)
 {
-    return PyUnicode_FromString(git_remote_url(self->remote));
+    return to_unicode(git_remote_url(self->remote), NULL, NULL);
 }
 
 

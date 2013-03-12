@@ -178,7 +178,7 @@ Index__find(Index *self, PyObject *py_path)
     size_t idx;
     int err;
 
-    path = PyString_AsString(py_path);
+    path = PyBytes_AsString(py_path);
     if (!path)
         return NULL;
 
@@ -236,8 +236,8 @@ Index_get_position(Index *self, PyObject *value)
     int err;
 
     /* Case 1: integer */
-    if (PyInt_Check(value)) {
-        err = (int)PyInt_AsLong(value);
+    if (PyLong_Check(value)) {
+        err = (int)PyLong_AsLong(value);
         if (err == -1 && PyErr_Occurred())
             return -1;
         if (err < 0) {
@@ -567,7 +567,7 @@ PyDoc_STRVAR(IndexEntry_mode__doc__, "Mode.");
 PyObject *
 IndexEntry_mode__get__(IndexEntry *self)
 {
-    return PyInt_FromLong(self->entry->mode);
+    return PyLong_FromLong(self->entry->mode);
 }
 
 

@@ -191,7 +191,7 @@ Config_getitem(Config *self, PyObject *py_key)
     else if(git_config_parse_bool(&value_bool, value_str) == 0)
       py_value = PyBool_FromLong(value_bool);
     else
-      py_value = PyUnicode_FromString(value_str);
+      py_value = to_unicode(value_str, NULL, NULL);
 
 cleanup:
     free(key);
@@ -223,9 +223,9 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
     else if (PyBool_Check(py_value)) {
         err = git_config_set_bool(self->config, key,
                 (int)PyObject_IsTrue(py_value));
-    } else if (PyInt_Check(py_value)) {
+    } else if (PyLong_Check(py_value)) {
         err = git_config_set_int64(self->config, key,
-                (int64_t)PyInt_AsLong(py_value));
+                (int64_t)PyLong_AsLong(py_value));
     } else {
         value = py_str_to_c_str(py_value, NULL);
         err = git_config_set_string(self->config, key, value);
@@ -300,7 +300,7 @@ Config_foreach(Config *self, PyObject *args)
     ret = git_config_foreach(self->config, Config_foreach_callback_wrapper,
             (void *)args);
 
-    return PyInt_FromLong((long)ret);
+    return PyLong_FromLong((long)ret);
 }
 
 
@@ -344,7 +344,7 @@ Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
 {
     PyObject *item = NULL;
 
-    if (!(item = PyUnicode_FromString(value->value)))
+    if (!(item = to_unicode(value->value, NULL, NULL)))
         return -2;
 
     PyList_Append((PyObject *)data, item);

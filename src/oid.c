@@ -41,8 +41,8 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
     Py_ssize_t len;
 
     /* Case 1: raw sha */
-    if (PyString_Check(py_str)) {
-        hex_or_bin = PyString_AsString(py_str);
+    if (PyBytes_Check(py_str)) {
+        hex_or_bin = PyBytes_AsString(py_str);
         if (hex_or_bin == NULL)
             return -1;
         git_oid_fromraw(oid, (const unsigned char*)hex_or_bin);
@@ -54,7 +54,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         py_hex = PyUnicode_AsASCIIString(py_str);
         if (py_hex == NULL)
             return -1;
-        err = PyString_AsStringAndSize(py_hex, &hex_or_bin, &len);
+        err = PyBytes_AsStringAndSize(py_hex, &hex_or_bin, &len);
         if (err) {
             Py_DECREF(py_hex);
             return -1;
@@ -118,6 +118,6 @@ git_oid_to_py_str(const git_oid *oid)
     char hex[GIT_OID_HEXSZ];
 
     git_oid_fmt(hex, oid);
-    return PyUnicode_DecodeASCII(hex, GIT_OID_HEXSZ, "strict");
+    return to_unicode_n(hex, GIT_OID_HEXSZ, "utf-8", "strict");
 }
 

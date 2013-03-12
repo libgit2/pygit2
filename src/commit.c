@@ -68,7 +68,7 @@ PyDoc_STRVAR(Commit__message__doc__, "Message (bytes).");
 PyObject *
 Commit__message__get__(Commit *commit)
 {
-    return PyString_FromString(git_commit_message(commit->commit));
+    return PyBytes_FromString(git_commit_message(commit->commit));
 }
 
 

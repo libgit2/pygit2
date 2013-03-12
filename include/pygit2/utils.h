@@ -33,25 +33,22 @@
 #include <git2.h>
 #include <pygit2/types.h>
 
-
-/* Python 3 support */
-#if PY_MAJOR_VERSION >= 3
-  #define PyInt_AsLong PyLong_AsLong
-  #define PyInt_Check PyLong_Check
-  #define PyInt_FromLong PyLong_FromLong
-  #define PyString_AS_STRING PyBytes_AS_STRING
-  #define PyString_AsString PyBytes_AsString
-  #define PyString_AsStringAndSize PyBytes_AsStringAndSize
-  #define PyString_Check PyBytes_Check
-  #define PyString_FromString PyBytes_FromString
-  #define PyString_FromStringAndSize PyBytes_FromStringAndSize
-  #define PyString_Size PyBytes_Size
-#endif
-
+/* Python 2 support */
 #if PY_MAJOR_VERSION == 2
+  #define PyLong_FromSize_t PyInt_FromSize_t
+  #define PyLong_AsLong PyInt_AsLong
+  #undef PyLong_Check
+  #define PyLong_Check PyInt_Check
+  #define PyLong_FromLong PyInt_FromLong
+  #define PyBytes_AS_STRING PyString_AS_STRING
+  #define PyBytes_AsString PyString_AsString
+  #define PyBytes_AsStringAndSize PyString_AsStringAndSize
+  #define PyBytes_Check PyString_Check
+  #define PyBytes_FromString PyString_FromString
+  #define PyBytes_FromStringAndSize PyString_FromStringAndSize
+  #define PyBytes_Size PyString_Size
   #define to_path(x) to_bytes(x)
   #define to_encoding(x) to_bytes(x)
-  #define PyLong_FromSize_t PyInt_FromSize_t
 #else
   #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
@@ -69,9 +66,12 @@
         return -1;\
     }
 
+
 /* Utilities */
+#define to_unicode(x, encoding, errors) to_unicode_n(x, strlen(x), encoding, errors)
+
 Py_LOCAL_INLINE(PyObject*)
-to_unicode(const char *value, const char *encoding, const char *errors)
+to_unicode_n(const char *value, size_t len, const char *encoding, const char *errors)
 {
     if (encoding == NULL) {
         /* If the encoding is not explicit, it may not be UTF-8, so it
@@ -81,13 +81,14 @@ to_unicode(const char *value, const char *encoding, const char *errors)
         encoding = "utf-8";
         errors = "replace";
     }
-    return PyUnicode_Decode(value, strlen(value), encoding, errors);
+
+    return PyUnicode_Decode(value, len, encoding, errors);
 }
 
 Py_LOCAL_INLINE(PyObject*)
 to_bytes(const char * value)
 {
-    return PyString_FromString(value);
+    return PyBytes_FromString(value);
 }
 
 char * py_str_to_c_str(PyObject *value, const char *encoding);
