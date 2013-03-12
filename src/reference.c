@@ -446,7 +446,7 @@ PyTypeObject RefLogEntryType = {
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
     RefLogEntry_members,                       /* tp_members        */
-    0,                                         /* tp_getset         */
+    RefLogEntry_getseters,                     /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
