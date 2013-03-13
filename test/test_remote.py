@@ -28,6 +28,7 @@
 """Tests for Remote objects."""
 
 
+import unittest
 import pygit2
 from . import utils
 
@@ -104,3 +105,7 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         self.assertEqual(stats['received_bytes'], REMOTE_REPO_BYTES)
         self.assertEqual(stats['indexed_objects'], REMOTE_REPO_OBJECTS)
         self.assertEqual(stats['received_objects'], REMOTE_REPO_OBJECTS)
+
+
+if __name__ == '__main__':
+    unittest.main()
