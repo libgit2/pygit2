@@ -27,12 +27,14 @@
 
 from .version import __version__
 
-# Low level API
-import _pygit2
-from _pygit2 import *
-
 # High level API
-from repository import Repository
+#   for the moment use low level api if there is no equivalent highlevel one
+from _pygit2 import Blob, Commit, Config, Diff, GitError, Index, IndexEntry,\
+    Note, Object, Reference, Remote, Signature, Tag, Tree, TreeEntry,\
+    discover_repository, hashfile, hash
+
+from pygit2.repository import Repository
+
 import pygit2.utils
 
 
