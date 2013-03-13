@@ -32,7 +32,7 @@ import _pygit2
 from _pygit2 import *
 
 # High level API
-from repository import Repository
+from pygit2.repository import Repository
 import pygit2.utils
 
 
