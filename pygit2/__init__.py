@@ -33,8 +33,8 @@ import _pygit2
 from _pygit2 import *
 
 # High level API
+from .repository import Repository
 from .version import __version__
-from repository import Repository
 import pygit2.utils
 
 
