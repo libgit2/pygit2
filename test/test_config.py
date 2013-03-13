@@ -55,13 +55,13 @@ class ConfigTest(utils.RepoTestCase):
     def test_global_config(self):
         try:
             self.assertNotEqual(None, pygit2.Config.get_global_config())
-        except IOError:
+        except IOError: # there is no user config
             pass
 
     def test_system_config(self):
         try:
             self.assertNotEqual(None, pygit2.Config.get_system_config())
-        except IOError:
+        except IOError:  # there is no system config
             pass
 
     def test_new(self):
@@ -155,14 +155,19 @@ class ConfigTest(utils.RepoTestCase):
 
         config.add_file(config_filename, 5)
         self.assertTrue('this.that' in config)
+        l = config.get_multivar('this.that', 'foo.*')
+        self.assertEqual(len(l), 2)
+
         config.set_multivar('this.that', '^.*beer', 'fool')
         l = config.get_multivar('this.that', 'fool')
         self.assertEqual(len(l), 1)
         self.assertEqual(l[0], 'fool')
-        config.set_multivar('this.that', 'foo.*', '123456')
+
+        config.set_multivar('this.that', 'foo.*', 'foo-123456')
         l = config.get_multivar('this.that', 'foo.*')
+        self.assertEqual(len(l), 2)
         for i in l:
-            self.assertEqual(i, '123456')
+            self.assertEqual(i, 'foo-123456')
 
     def test_foreach(self):
         config = self.repo.config
