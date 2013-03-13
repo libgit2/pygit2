@@ -41,6 +41,7 @@ Usage guide:
    status
    config
    errors
+   c-api
 
 More:
 

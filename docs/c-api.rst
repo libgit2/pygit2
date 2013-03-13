@@ -1,5 +1,8 @@
 **********************************************************************
-Utilities
+C API Documentation
 **********************************************************************
 
-There are no utility functions yet.
+.. automodule:: _pygit2
+   :members:
+   :show-inheritance:
+   :undoc-members:
