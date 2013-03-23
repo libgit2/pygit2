@@ -32,7 +32,6 @@ from __future__ import unicode_literals
 import operator
 import unittest
 
-import pygit2
 from . import utils
 
 
@@ -82,21 +81,26 @@ class TreeTest(utils.BareRepoTestCase):
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
-    # TODO This test worked with libgit2 v0.10.0, update to use the
-    # tree-builder
-    def xtest_new_tree(self):
-        b = self.repo.TreeBuilder()
-        b.insert('1' * 40, 'x', 0o0100644)
-        b.insert('2' * 40, 'y', 0o0100755)
-        tree = self.repo[b.write()]
+    def test_new_tree(self):
+        b0 = self.repo.create_blob('1')
+        b1 = self.repo.create_blob('2')
+        t = self.repo.TreeBuilder()
+        t.insert('x', b0, 0o0100644)
+        t.insert('y', b1, 0o0100755)
+        tree = self.repo[t.write()]
 
         self.assertTrue('x' in tree)
         self.assertTrue('y' in tree)
-        self.assertRaisesWithArg(KeyError, '1' * 40, tree['x'].to_object)
 
-        contents = '100644 x\0%s100755 y\0%s' % ('\x11' * 20, '\x22' * 20)
-        self.assertEqual((pygit2.GIT_OBJ_TREE, contents),
-                         self.repo.read(tree.hex))
+        x = tree['x']
+        y = tree['y']
+        self.assertEqual(x.filemode, 0o0100644)
+        self.assertEqual(y.filemode, 0o0100755)
+
+        self.assertEqual(x.to_object().oid, b0)
+        self.assertEqual(y.to_object().oid, b1)
+
+
 
     def test_modify_tree(self):
         tree = self.repo[TREE_SHA]

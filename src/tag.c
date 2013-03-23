@@ -91,7 +91,7 @@ PyDoc_STRVAR(Tag__message__doc__, "Tag message (bytes).");
 PyObject *
 Tag__message__get__(Tag *self)
 {
-    return PyString_FromString(git_tag_message(self->tag));
+    return PyBytes_FromString(git_tag_message(self->tag));
 }
 
 PyGetSetDef Tag_getseters[] = {

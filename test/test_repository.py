@@ -70,14 +70,14 @@ class RepositoryTest(utils.BareRepoTestCase):
         ab = self.repo.read(A_BIN_SHA)
         a = self.repo.read(A_HEX_SHA)
         self.assertEqual(ab, a)
-        self.assertEqual((GIT_OBJ_BLOB, 'a contents\n'), a)
+        self.assertEqual((GIT_OBJ_BLOB, b'a contents\n'), a)
 
         a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        self.assertEqual((GIT_OBJ_BLOB, 'a contents 2\n'), a2)
+        self.assertEqual((GIT_OBJ_BLOB, b'a contents 2\n'), a2)
 
         a_hex_prefix = A_HEX_SHA[:4]
         a3 = self.repo.read(a_hex_prefix)
-        self.assertEqual((GIT_OBJ_BLOB, 'a contents\n'), a3)
+        self.assertEqual((GIT_OBJ_BLOB, b'a contents\n'), a3)
 
     def test_write(self):
         data = b"hello world"

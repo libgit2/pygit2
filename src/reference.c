@@ -47,40 +47,24 @@ void RefLogIter_dealloc(RefLogIter *self)
     PyObject_Del(self);
 }
 
-PyObject* RefLogIter_iternext(PyObject *self)
+PyObject* RefLogIter_iternext(RefLogIter *self)
 {
-    RefLogIter *p = (RefLogIter *) self;
     const git_reflog_entry *entry;
-    char oid_old[40], oid_new[40];
+    RefLogEntry *py_entry;
 
-    if (p->i < p->size) {
-        RefLogEntry *py_entry;
-        git_signature *signature;
+    if (self->i < self->size) {
+        entry = git_reflog_entry_byindex(self->reflog, self->i);
+        py_entry = PyObject_New(RefLogEntry, &RefLogEntryType);
 
-        entry = git_reflog_entry_byindex(p->reflog, p->i);
-        py_entry = (RefLogEntry*) PyType_GenericNew(&RefLogEntryType, NULL,
-                                                    NULL);
-
-        git_oid_fmt(oid_old, git_reflog_entry_id_old(entry));
-        git_oid_fmt(oid_new, git_reflog_entry_id_new(entry));
-
-        py_entry->oid_new = PyUnicode_FromStringAndSize(oid_new, 40);
-        py_entry->oid_old = PyUnicode_FromStringAndSize(oid_old, 40);
-
+        py_entry->oid_old = git_oid_allocfmt(git_reflog_entry_id_old(entry));
+        py_entry->oid_new = git_oid_allocfmt(git_reflog_entry_id_new(entry));
         py_entry->message = strdup(git_reflog_entry_message(entry));
+        py_entry->signature = git_signature_dup(
+            git_reflog_entry_committer(entry));
 
-        signature = git_signature_dup(
-              git_reflog_entry_committer(entry)
-            );
-
-        if (signature != NULL)
-            py_entry->committer = build_signature(
-                (Object*)py_entry, signature, "utf-8");
-
-        ++(p->i);
+        ++(self->i);
 
         return (PyObject*) py_entry;
-
     }
 
     PyErr_SetNone(PyExc_StopIteration);
@@ -358,7 +342,7 @@ Reference_type__get__(Reference *self)
 
     CHECK_REFERENCE(self);
     c_type = git_reference_type(self->reference);
-    return PyInt_FromLong(c_type);
+    return PyLong_FromLong(c_type);
 }
 
 
@@ -383,13 +367,23 @@ Reference_log(Reference *self)
     return (PyObject*)iter;
 }
 
+
+PyDoc_STRVAR(RefLogEntry_committer__doc__, "Committer.");
+
+PyObject *
+RefLogEntry_committer__get__(RefLogEntry *self)
+{
+    return build_signature((Object*) self, self->signature, "utf-8");
+}
+
+
 static int
 RefLogEntry_init(RefLogEntry *self, PyObject *args, PyObject *kwds)
 {
-    self->oid_old = Py_None;
-    self->oid_new = Py_None;
-    self->message = "";
-    self->committer = Py_None;
+    self->oid_old   = NULL;
+    self->oid_new   = NULL;
+    self->message   = NULL;
+    self->signature = NULL;
 
     return 0;
 }
@@ -398,18 +392,22 @@ RefLogEntry_init(RefLogEntry *self, PyObject *args, PyObject *kwds)
 static void
 RefLogEntry_dealloc(RefLogEntry *self)
 {
-    Py_CLEAR(self->oid_old);
-    Py_CLEAR(self->oid_new);
-    Py_CLEAR(self->committer);
+    free(self->oid_old);
+    free(self->oid_new);
     free(self->message);
+    git_signature_free(self->signature);
     PyObject_Del(self);
 }
 
 PyMemberDef RefLogEntry_members[] = {
-    MEMBER(RefLogEntry, oid_new, T_OBJECT, "New oid."),
-    MEMBER(RefLogEntry, oid_old, T_OBJECT, "Old oid."),
+    MEMBER(RefLogEntry, oid_new, T_STRING, "New oid."),
+    MEMBER(RefLogEntry, oid_old, T_STRING, "Old oid."),
     MEMBER(RefLogEntry, message, T_STRING, "Message."),
-    MEMBER(RefLogEntry, committer, T_OBJECT, "Committer."),
+    {NULL}
+};
+
+PyGetSetDef RefLogEntry_getseters[] = {
+    GETTER(RefLogEntry, committer),
     {NULL}
 };
 
@@ -446,7 +444,7 @@ PyTypeObject RefLogEntryType = {
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
     RefLogEntry_members,                       /* tp_members        */
-    0,                                         /* tp_getset         */
+    RefLogEntry_getseters,                     /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
