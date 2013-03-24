@@ -42,7 +42,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
 
     /* Case 1: raw sha */
     if (PyBytes_Check(py_str)) {
-        err = PyString_AsStringAndSize(py_str, &hex_or_bin, &len);
+        err = PyBytes_AsStringAndSize(py_str, &hex_or_bin, &len);
         if (err)
             return -1;
         memcpy(oid->id, (const unsigned char*)hex_or_bin, len);
