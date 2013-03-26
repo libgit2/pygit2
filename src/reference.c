@@ -75,8 +75,8 @@ PyObject* RefLogIter_iternext(RefLogIter *self)
 PyDoc_STRVAR(RefLogIterType__doc__, "Internal reflog iterator object.");
 
 PyTypeObject RefLogIterType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "_libgit2.RefLogIter",                     /* tp_name           */
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    "_pygit2.RefLogIter",                      /* tp_name           */
     sizeof(RefLogIter),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)RefLogIter_dealloc,            /* tp_dealloc        */
@@ -101,7 +101,7 @@ PyTypeObject RefLogIterType = {
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     PyObject_SelfIter,                         /* tp_iter           */
-    (iternextfunc)RefLogIter_iternext          /* tp_iternext       */
+    (iternextfunc)RefLogIter_iternext,         /* tp_iternext       */
 };
 
 void

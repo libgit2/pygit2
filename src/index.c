@@ -460,7 +460,7 @@ PyDoc_STRVAR(Index__doc__, "Index file.");
 
 PyTypeObject IndexType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Index",                            /* tp_name           */
+    "_pygit2.Index",                           /* tp_name           */
     sizeof(Index),                             /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Index_dealloc,                 /* tp_dealloc        */
@@ -526,7 +526,7 @@ IndexIter_iternext(IndexIter *self)
 PyDoc_STRVAR(IndexIter__doc__, "Index iterator.");
 
 PyTypeObject IndexIterType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "_pygit2.IndexIter",                       /* tp_name           */
     sizeof(IndexIter),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
