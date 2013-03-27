@@ -46,7 +46,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         if (err)
             return -1;
         memcpy(oid->id, (const unsigned char*)hex_or_bin, len);
-        return len;
+        return len * 2;
     }
 
     /* Case 2: hex sha */
