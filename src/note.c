@@ -181,7 +181,7 @@ NoteIter_dealloc(NoteIter *self)
 PyDoc_STRVAR(NoteIter__doc__, "Note iterator object.");
 
 PyTypeObject NoteIterType = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.NoteIter",                        /* tp_name           */
     sizeof(NoteIter),                          /* tp_basicsize      */
     0,                                         /* tp_itemsize       */

@@ -446,7 +446,7 @@ TreeIter_iternext(TreeIter *self)
 PyDoc_STRVAR(TreeIter__doc__, "Tree iterator.");
 
 PyTypeObject TreeIterType = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.TreeIter",                        /* tp_name           */
     sizeof(TreeIter),                          /* tp_basicsize      */
     0,                                         /* tp_itemsize       */

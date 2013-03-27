@@ -197,7 +197,7 @@ DiffIter_dealloc(DiffIter *self)
 PyDoc_STRVAR(DiffIter__doc__, "Diff iterator object.");
 
 PyTypeObject DiffIterType = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.DiffIter",                        /* tp_name           */
     sizeof(DiffIter),                          /* tp_basicsize      */
     0,                                         /* tp_itemsize       */

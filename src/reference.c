@@ -75,7 +75,7 @@ PyObject* RefLogIter_iternext(RefLogIter *self)
 PyDoc_STRVAR(RefLogIterType__doc__, "Internal reflog iterator object.");
 
 PyTypeObject RefLogIterType = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.RefLogIter",                      /* tp_name           */
     sizeof(RefLogIter),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
