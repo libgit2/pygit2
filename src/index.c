@@ -460,7 +460,7 @@ PyDoc_STRVAR(Index__doc__, "Index file.");
 
 PyTypeObject IndexType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Index",                            /* tp_name           */
+    "_pygit2.Index",                           /* tp_name           */
     sizeof(Index),                             /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Index_dealloc,                 /* tp_dealloc        */

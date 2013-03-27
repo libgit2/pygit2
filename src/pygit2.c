@@ -178,70 +178,40 @@ moduleinit(PyObject* m)
 
     GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
 
-    RepositoryType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&RepositoryType) < 0)
-        return NULL;
-
-    /* Do not set 'tp_new' for Git objects. To create Git objects use the
-     * Repository.create_XXX methods */
-    if (PyType_Ready(&ObjectType) < 0)
-        return NULL;
-    CommitType.tp_base = &ObjectType;
-    if (PyType_Ready(&CommitType) < 0)
-        return NULL;
-    TreeType.tp_base = &ObjectType;
-    if (PyType_Ready(&TreeType) < 0)
-        return NULL;
-    BlobType.tp_base = &ObjectType;
-    if (PyType_Ready(&BlobType) < 0)
-        return NULL;
-    TagType.tp_base = &ObjectType;
-    if (PyType_Ready(&TagType) < 0)
-        return NULL;
-
-    if (PyType_Ready(&DiffType) < 0)
-        return NULL;
-    if (PyType_Ready(&DiffIterType) < 0)
-        return NULL;
-    if (PyType_Ready(&PatchType) < 0)
-        return NULL;
-    if (PyType_Ready(&HunkType) < 0)
-        return NULL;
-
-    TreeEntryType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&TreeEntryType) < 0)
-        return NULL;
-    IndexType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&IndexType) < 0)
-        return NULL;
-    IndexEntryType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&IndexEntryType) < 0)
-        return NULL;
-    TreeBuilderType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&TreeBuilderType) < 0)
-        return NULL;
-    ConfigType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&ConfigType) < 0)
-        return NULL;
-    WalkerType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&WalkerType) < 0)
-        return NULL;
-    ReferenceType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&ReferenceType) < 0)
-        return NULL;
-    if (PyType_Ready(&RefLogEntryType) < 0)
-        return NULL;
-    SignatureType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&SignatureType) < 0)
-        return NULL;
-
-    if (PyType_Ready(&RemoteType) < 0)
-        return NULL;
-
-    if (PyType_Ready(&NoteType) < 0)
-        return NULL;
-    if (PyType_Ready(&NoteIterType) < 0)
-        return NULL;
+    /* Repository */
+    INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
+    /* Objects (make them with the Repository.create_XXX methods). */
+    INIT_TYPE(ObjectType, NULL, NULL)
+    INIT_TYPE(CommitType, &ObjectType, NULL)
+    INIT_TYPE(SignatureType, NULL, PyType_GenericNew)
+    INIT_TYPE(TreeType, &ObjectType, NULL)
+    INIT_TYPE(TreeEntryType, NULL, PyType_GenericNew)
+    INIT_TYPE(TreeIterType, NULL, NULL)
+    INIT_TYPE(TreeBuilderType, NULL, PyType_GenericNew)
+    INIT_TYPE(BlobType, &ObjectType, NULL)
+    INIT_TYPE(TagType, &ObjectType, NULL)
+    /* References */
+    INIT_TYPE(ReferenceType, NULL, PyType_GenericNew)
+    INIT_TYPE(RefLogEntryType, NULL, NULL)
+    INIT_TYPE(RefLogIterType, NULL, NULL)
+    /* Index */
+    INIT_TYPE(IndexType, NULL, PyType_GenericNew)
+    INIT_TYPE(IndexEntryType, NULL, PyType_GenericNew)
+    INIT_TYPE(IndexIterType, NULL, NULL)
+    /* Diff */
+    INIT_TYPE(DiffType, NULL, NULL)
+    INIT_TYPE(DiffIterType, NULL, NULL)
+    INIT_TYPE(PatchType, NULL, NULL)
+    INIT_TYPE(HunkType, NULL, NULL)
+    /* Log */
+    INIT_TYPE(WalkerType, NULL, PyType_GenericNew)
+    /* Config */
+    INIT_TYPE(ConfigType, NULL, PyType_GenericNew)
+    /* Remote */
+    INIT_TYPE(RemoteType, NULL, NULL)
+    /* Notes */
+    INIT_TYPE(NoteType, NULL, NULL)
+    INIT_TYPE(NoteIterType, NULL, NULL)
 
     Py_INCREF(GitError);
     PyModule_AddObject(m, "GitError", GitError);
