@@ -25,18 +25,20 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDE_pygit2_object_h
-#define INCLUDE_pygit2_object_h
+#ifndef INCLUDE_pygit2_walker_h
+#define INCLUDE_pygit2_walker_h
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
-#include <pygit2/types.h>
+#include "types.h"
 
-PyObject* Object_get_oid(Object *self);
-PyObject* Object_get_hex(Object *self);
-PyObject* Object_get_type(Object *self);
-PyObject* Object_read_raw(Object *self);
-PyObject* wrap_object(git_object *c_object, Repository *repo);
+void Walker_dealloc(Walker *self);
+PyObject* Walker_hide(Walker *self, PyObject *py_hex);
+PyObject* Walker_push(Walker *self, PyObject *py_hex);
+PyObject* Walker_sort(Walker *self, PyObject *py_sort_mode);
+PyObject* Walker_reset(Walker *self);
+PyObject* Walker_iter(Walker *self);
+PyObject* Walker_iternext(Walker *self);
 
 #endif

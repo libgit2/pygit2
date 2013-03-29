@@ -27,10 +27,10 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include <pygit2/error.h>
-#include <pygit2/types.h>
-#include <pygit2/utils.h>
-#include <pygit2/config.h>
+#include "error.h"
+#include "types.h"
+#include "utils.h"
+#include "config.h"
 
 extern PyTypeObject ConfigType;
 

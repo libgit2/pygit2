@@ -28,9 +28,9 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
-#include <pygit2/utils.h>
-#include <pygit2/error.h>
-#include <pygit2/oid.h>
+#include "utils.h"
+#include "error.h"
+#include "oid.h"
 
 int
 py_str_to_git_oid(PyObject *py_str, git_oid *oid)

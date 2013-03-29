@@ -27,12 +27,12 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include <pygit2/error.h>
-#include <pygit2/types.h>
-#include <pygit2/utils.h>
-#include <pygit2/signature.h>
-#include <pygit2/oid.h>
-#include <pygit2/tag.h>
+#include "error.h"
+#include "types.h"
+#include "utils.h"
+#include "signature.h"
+#include "oid.h"
+#include "tag.h"
 
 
 PyDoc_STRVAR(Tag_target__doc__, "Tagged object.");

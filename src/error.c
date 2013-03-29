@@ -25,7 +25,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <pygit2/error.h>
+#include "error.h"
 
 PyObject *GitError;
 

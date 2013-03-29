@@ -25,14 +25,18 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDE_pygit2_blob_h
-#define INCLUDE_pygit2_blob_h
+#ifndef INCLUDE_pygit2_object_h
+#define INCLUDE_pygit2_object_h
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
-#include <pygit2/types.h>
+#include "types.h"
 
-PyObject* Blob_get_size(Blob *self);
+PyObject* Object_get_oid(Object *self);
+PyObject* Object_get_hex(Object *self);
+PyObject* Object_get_type(Object *self);
+PyObject* Object_read_raw(Object *self);
+PyObject* wrap_object(git_object *c_object, Repository *repo);
 
 #endif

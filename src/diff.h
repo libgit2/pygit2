@@ -25,18 +25,20 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDE_pygit2_tag_h
-#define INCLUDE_pygit2_tag_h
+#ifndef INCLUDE_pygit2_diff_h
+#define INCLUDE_pygit2_diff_h
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
-#include <pygit2/types.h>
+#include "types.h"
 
-PyObject* Tag_get_target(Tag *self);
-PyObject* Tag_get_name(Tag *self);
-PyObject* Tag_get_tagger(Tag *self);
-PyObject* Tag_get_message(Tag *self);
-PyObject* Tag_get_raw_message(Tag *self);
+#define DIFF_CHECK_TYPES(_x, _y, _type_x, _type_y) \
+                  PyObject_TypeCheck(_x, _type_x) && \
+                  PyObject_TypeCheck(_y, _type_y)
+
+
+PyObject* Diff_changes(Diff *self);
+PyObject* Diff_patch(Diff *self);
 
 #endif

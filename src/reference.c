@@ -29,12 +29,12 @@
 #include <Python.h>
 #include <string.h>
 #include <structmember.h>
-#include <pygit2/error.h>
-#include <pygit2/types.h>
-#include <pygit2/utils.h>
-#include <pygit2/oid.h>
-#include <pygit2/signature.h>
-#include <pygit2/reference.h>
+#include "error.h"
+#include "types.h"
+#include "utils.h"
+#include "oid.h"
+#include "signature.h"
+#include "reference.h"
 
 
 extern PyObject *GitError;

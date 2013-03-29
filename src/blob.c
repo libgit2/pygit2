@@ -27,9 +27,9 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include <pygit2/utils.h>
-#include <pygit2/object.h>
-#include <pygit2/blob.h>
+#include "utils.h"
+#include "object.h"
+#include "blob.h"
 
 
 PyDoc_STRVAR(Blob_size__doc__, "Size.");

@@ -28,11 +28,11 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <string.h>
-#include <pygit2/error.h>
-#include <pygit2/utils.h>
-#include <pygit2/repository.h>
-#include <pygit2/oid.h>
-#include <pygit2/tree.h>
+#include "error.h"
+#include "utils.h"
+#include "repository.h"
+#include "oid.h"
+#include "tree.h"
 
 extern PyTypeObject TreeType;
 extern PyTypeObject DiffType;

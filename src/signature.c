@@ -27,11 +27,11 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include <pygit2/error.h>
-#include <pygit2/types.h>
-#include <pygit2/utils.h>
-#include <pygit2/oid.h>
-#include <pygit2/signature.h>
+#include "error.h"
+#include "types.h"
+#include "utils.h"
+#include "oid.h"
+#include "signature.h"
 
 int
 Signature_init(Signature *self, PyObject *args, PyObject *kwds)

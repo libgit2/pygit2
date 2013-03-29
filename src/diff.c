@@ -28,10 +28,10 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <structmember.h>
-#include <pygit2/error.h>
-#include <pygit2/types.h>
-#include <pygit2/utils.h>
-#include <pygit2/diff.h>
+#include "error.h"
+#include "types.h"
+#include "utils.h"
+#include "diff.h"
 
 extern PyObject *GitError;
 

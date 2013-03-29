@@ -25,24 +25,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDE_pygit2_signature_h
-#define INCLUDE_pygit2_signature_h
+#ifndef INCLUDE_pygit2_tree_h
+#define INCLUDE_pygit2_tree_h
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
-#include <pygit2/types.h>
+#include "types.h"
 
-PyObject* Signature_get_encoding(Signature *self);
-PyObject* Signature_get_raw_name(Signature *self);
-PyObject* Signature_get_raw_email(Signature *self);
-PyObject* Signature_get_name(Signature *self);
-PyObject* Signature_get_email(Signature *self);
-PyObject* Signature_get_time(Signature *self);
-PyObject* Signature_get_offset(Signature *self);
+PyObject* TreeEntry_get_filemode(TreeEntry *self);
+PyObject* TreeEntry_get_name(TreeEntry *self);
+PyObject* TreeEntry_get_oid(TreeEntry *self);
+PyObject* TreeEntry_get_hex(TreeEntry *self);
+PyObject* TreeEntry_to_object(TreeEntry *self);
 
-PyObject*
-build_signature(Object *obj, const git_signature *signature,
-                const char *encoding);
+TreeEntry* Tree_getitem_by_index(Tree *self, PyObject *py_index);
+TreeEntry* Tree_getitem(Tree *self, PyObject *value);
+PyObject* Tree_diff_tree(Tree *self, PyObject *args);
 
 #endif

@@ -28,11 +28,11 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <structmember.h>
-#include <pygit2/error.h>
-#include <pygit2/utils.h>
-#include <pygit2/types.h>
-#include <pygit2/oid.h>
-#include <pygit2/note.h>
+#include "error.h"
+#include "utils.h"
+#include "types.h"
+#include "oid.h"
+#include "note.h"
 
 extern PyTypeObject SignatureType;
 
