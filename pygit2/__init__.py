@@ -41,6 +41,14 @@ import pygit2.utils
 def init_repository(path, bare=False):
     """
     Creates a new Git repository in the given path.
+
+    Arguments:
+
+    path
+      Path where to create the repository.
+
+    bare
+      Whether the repository will be bare or not.
     """
     _pygit2.init_repository(path, bare)
     return Repository(path)

@@ -37,24 +37,30 @@ Objects can not be modified once they have been created.
 
 This is the common interface for all Git objects:
 
-.. autoclass:: pygit2.Object
-   :members: type, oid, hex, read_raw
+.. autoattribute:: pygit2.Object.oid
+.. autoattribute:: pygit2.Object.hex
+.. autoattribute:: pygit2.Object.type
+.. automethod:: pygit2.Object.read_raw
 
 
 Commits
------------------
+=================
 
 A commit is a snapshot of the working dir with meta informations like author,
 committer and others.
 
-.. autoclass:: pygit2.Commit
-   :members: author, committer, message, message_encoding, tree, parents,
-             commit_time, commit_time_offset
-   :show-inheritance:
+.. autoattribute:: pygit2.Commit.author
+.. autoattribute:: pygit2.Commit.committer
+.. autoattribute:: pygit2.Commit.message
+.. autoattribute:: pygit2.Commit.message_encoding
+.. autoattribute:: pygit2.Commit.tree
+.. autoattribute:: pygit2.Commit.parents
+.. autoattribute:: pygit2.Commit.commit_time
+.. autoattribute:: pygit2.Commit.commit_time_offset
 
 
 Signatures
-.............
+-------------
 
 The author and committer attributes of commit objects are ``Signature``
 objects::
@@ -62,12 +68,16 @@ objects::
     >>> commit.author
     <pygit2.Signature object at 0x7f75e9b1f5f8>
 
-.. autoclass:: pygit2.Signature
-   :members: name, email, time, offset
+.. autoattribute:: pygit2.Signature.name
+.. autoattribute:: pygit2.Signature.email
+.. autoattribute:: pygit2.Signature.time
+.. autoattribute:: pygit2.Signature.offset
 
 
 Creating commits
-................
+----------------
+
+.. automethod:: pygit2.Repository.create_commit
 
 Commits can be created by calling the ``create_commit`` method of the
 repository with the following parameters::
@@ -85,7 +95,7 @@ repository with the following parameters::
 
 
 Trees
------------------
+=================
 
 A tree is a sorted collection of tree entries. It is similar to a folder or
 directory in a file system. Each entry points to another tree or a blob.  A
@@ -118,19 +128,28 @@ interfaces::
     >>> blob
     <pygit2.Blob object at 0xcc12d0>
 
-.. autoclass:: pygit2.Tree
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. automethod:: pygit2.Tree.diff
 
-.. autoclass:: pygit2.TreeEntry
-   :members: name, oid, hex, filemode, to_object
-   :show-inheritance:
-   :undoc-members:
+.. autoattribute:: pygit2.TreeEntry.name
+.. autoattribute:: pygit2.TreeEntry.oid
+.. autoattribute:: pygit2.TreeEntry.hex
+.. autoattribute:: pygit2.TreeEntry.filemode
+.. automethod:: pygit2.TreeEntry.to_object
+
+
+Creating trees
+--------------------
+
+.. automethod:: pygit2.Repository.TreeBuilder
+
+.. automethod:: pygit2.TreeBuilder.insert
+.. automethod:: pygit2.TreeBuilder.remove
+.. automethod:: pygit2.TreeBuilder.clear
+.. automethod:: pygit2.TreeBuilder.write
 
 
 Blobs
------------------
+=================
 
 A blob is equivalent to a file in a file system.::
 
@@ -142,19 +161,28 @@ A blob is equivalent to a file in a file system.::
     >>> oid
     '\x96\xc9\x06um{\x91\xc4S"a|\x92\x95\xe4\xa8\rR\xd1\xc5'
 
-.. autoclass:: pygit2.Blob
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. autoattribute:: pygit2.Blob.data
+.. autoattribute:: pygit2.Blob.size
+
+Creating blobs
+--------------------
+
+.. automethod:: pygit2.Repository.create_blob
+.. automethod:: pygit2.Repository.create_blob_fromfile
 
 
 Tags
------------------
+=================
 
 A tag is a static label for a commit. See references for more information.
 
+.. autoattribute:: pygit2.Tag.name
+.. autoattribute:: pygit2.Tag.target
+.. autoattribute:: pygit2.Tag.tagger
+.. autoattribute:: pygit2.Tag.message
 
-.. autoclass:: pygit2.Tag
-   :members:
-   :show-inheritance:
-   :undoc-members:
+
+Creating tags
+--------------------
+
+.. automethod:: pygit2.Repository.create_tag

@@ -2,34 +2,45 @@
 The repository
 **********************************************************************
 
+Everything starts either by creating a new repository, or by opening an
+existing one.
+
+
+Creating a repository
+===================================
+
 .. autofunction:: pygit2.init_repository
 
-   This is how to create non-bare repository::
+This is how to create non-bare repository::
 
-    >>> from pygit2 import init_repository
-    >>> repo = init_repository('test')
+  >>> from pygit2 import init_repository
+  >>> repo = init_repository('test')
 
-   And this is how to create a bare repository::
+And this is how to create a bare repository::
 
-    >>> from pygit2 import init_repository
-    >>> repo = init_repository('test', bare=True)
+  >>> from pygit2 import init_repository
+  >>> repo = init_repository('test', bare=True)
 
-   But one can also do::
+But one can also do::
 
-    >>> from pygit2 import init_repository
-    >>> repo = init_repository('test', True)
-
-.. autofunction:: pygit2.discover_repository
+  >>> from pygit2 import init_repository
+  >>> repo = init_repository('test', True)
 
 
-.. autoclass:: pygit2.Repository
-   :members: path, workdir, is_bare, is_empty, revparse_single, read, write,
-             create_blob, create_blob_fromfile, create_commit, create_tag,
-             TreeBuilder, walk, create_reference, listall_references,
-             lookup_reference, packall_references, head, head_is_detached,
-             head_is_orphaned, index, status, status_file, config
+The Repository class
+===================================
 
-   To open an existing repository::
+To open an existing repository::
 
-    >>> from pygit2 import Repository
-    >>> repo = Repository('pygit2/.git')
+  >>> from pygit2 import Repository
+  >>> repo = Repository('pygit2/.git')
+
+.. autoattribute:: pygit2.Repository.path
+.. autoattribute:: pygit2.Repository.workdir
+.. autoattribute:: pygit2.Repository.is_bare
+.. autoattribute:: pygit2.Repository.is_empty
+.. automethod:: pygit2.Repository.read
+.. automethod:: pygit2.Repository.write
+.. autoattribute:: pygit2.Repository.head
+.. autoattribute:: pygit2.Repository.head_is_detached
+.. autoattribute:: pygit2.Repository.head_is_orphaned

@@ -1009,7 +1009,7 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_remote__doc__,
-  "remote_create(name, url) -> Remote\n"
+  "create_remote(name, url) -> Remote\n"
   "\n"
   "Creates a new remote.");
 
@@ -1036,7 +1036,7 @@ Repository_create_remote(Repository *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Repository_remotes__doc__, "returns all configured remotes");
+PyDoc_STRVAR(Repository_remotes__doc__, "Returns all configured remotes.");
 
 PyObject *
 Repository_remotes__get__(Repository *self)

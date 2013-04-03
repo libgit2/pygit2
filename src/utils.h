@@ -141,5 +141,9 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
     if (new != NULL) type.tp_new = new; \
     if (PyType_Ready(&type) < 0) return NULL;
 
+#define ADD_TYPE(module, type) \
+    Py_INCREF(& type ## Type); \
+    PyModule_AddObject(module, #type, (PyObject *) & type ## Type);
+
 
 #endif

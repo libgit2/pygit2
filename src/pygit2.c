@@ -66,9 +66,17 @@ extern PyTypeObject NoteIterType;
 
 
 PyDoc_STRVAR(init_repository__doc__,
-  "init_repository(path, bare)\n"
-  "\n"
-  "Creates a new Git repository in the given path.");
+    "init_repository(path, bare)\n"
+    "\n"
+    "Creates a new Git repository in the given path.\n"
+    "\n"
+    "Arguments:\n"
+    "\n"
+    "path\n"
+    "  Path where to create the repository.\n"
+    "\n"
+    "bare\n"
+    "  Whether the repository will be bare or not.\n");
 
 PyObject *
 init_repository(PyObject *self, PyObject *args) {
@@ -115,7 +123,7 @@ discover_repository(PyObject *self, PyObject *args)
 };
 
 PyDoc_STRVAR(hashfile__doc__,
-  "hash(path) -> bytes\n"
+  "hashfile(path) -> bytes\n"
   "\n"
   "Returns the oid of a new blob from a file path without actually writing \n"
   "to the odb.");
@@ -176,10 +184,15 @@ moduleinit(PyObject* m)
     if (m == NULL)
         return NULL;
 
+    /* Errors */
     GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
+    Py_INCREF(GitError);
+    PyModule_AddObject(m, "GitError", GitError);
 
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Repository);
+
     /* Objects (make them with the Repository.create_XXX methods). */
     INIT_TYPE(ObjectType, NULL, NULL)
     INIT_TYPE(CommitType, &ObjectType, NULL)
@@ -190,77 +203,53 @@ moduleinit(PyObject* m)
     INIT_TYPE(TreeBuilderType, NULL, PyType_GenericNew)
     INIT_TYPE(BlobType, &ObjectType, NULL)
     INIT_TYPE(TagType, &ObjectType, NULL)
+    ADD_TYPE(m, Object);
+    ADD_TYPE(m, Commit);
+    ADD_TYPE(m, Signature);
+    ADD_TYPE(m, Tree);
+    ADD_TYPE(m, TreeEntry);
+    ADD_TYPE(m, TreeBuilder);
+    ADD_TYPE(m, Blob);
+    ADD_TYPE(m, Tag);
+
     /* References */
     INIT_TYPE(ReferenceType, NULL, PyType_GenericNew)
     INIT_TYPE(RefLogEntryType, NULL, NULL)
     INIT_TYPE(RefLogIterType, NULL, NULL)
+    INIT_TYPE(NoteType, NULL, NULL)
+    INIT_TYPE(NoteIterType, NULL, NULL)
+    ADD_TYPE(m, Reference);
+    ADD_TYPE(m, RefLogEntry);
+    ADD_TYPE(m, Note);
+
     /* Index */
     INIT_TYPE(IndexType, NULL, PyType_GenericNew)
     INIT_TYPE(IndexEntryType, NULL, PyType_GenericNew)
     INIT_TYPE(IndexIterType, NULL, NULL)
+    ADD_TYPE(m, Index);
+    ADD_TYPE(m, IndexEntry);
+
     /* Diff */
     INIT_TYPE(DiffType, NULL, NULL)
     INIT_TYPE(DiffIterType, NULL, NULL)
     INIT_TYPE(PatchType, NULL, NULL)
     INIT_TYPE(HunkType, NULL, NULL)
+    ADD_TYPE(m, Diff);
+    ADD_TYPE(m, Patch);
+    ADD_TYPE(m, Hunk);
+
     /* Log */
     INIT_TYPE(WalkerType, NULL, PyType_GenericNew)
+
     /* Config */
     INIT_TYPE(ConfigType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Config);
+
     /* Remote */
     INIT_TYPE(RemoteType, NULL, NULL)
-    /* Notes */
-    INIT_TYPE(NoteType, NULL, NULL)
-    INIT_TYPE(NoteIterType, NULL, NULL)
+    ADD_TYPE(m, Remote);
 
-    Py_INCREF(GitError);
-    PyModule_AddObject(m, "GitError", GitError);
-
-    Py_INCREF(&RepositoryType);
-    PyModule_AddObject(m, "Repository", (PyObject *)&RepositoryType);
-
-    Py_INCREF(&ObjectType);
-    PyModule_AddObject(m, "Object", (PyObject *)&ObjectType);
-
-    Py_INCREF(&CommitType);
-    PyModule_AddObject(m, "Commit", (PyObject *)&CommitType);
-
-    Py_INCREF(&TreeEntryType);
-    PyModule_AddObject(m, "TreeEntry", (PyObject *)&TreeEntryType);
-
-    Py_INCREF(&TreeType);
-    PyModule_AddObject(m, "Tree", (PyObject *)&TreeType);
-
-    Py_INCREF(&ConfigType);
-    PyModule_AddObject(m, "Config", (PyObject *)&ConfigType);
-
-    Py_INCREF(&BlobType);
-    PyModule_AddObject(m, "Blob", (PyObject *)&BlobType);
-
-    Py_INCREF(&TagType);
-    PyModule_AddObject(m, "Tag", (PyObject *)&TagType);
-
-    Py_INCREF(&IndexType);
-    PyModule_AddObject(m, "Index", (PyObject *)&IndexType);
-
-    Py_INCREF(&IndexEntryType);
-    PyModule_AddObject(m, "IndexEntry", (PyObject *)&IndexEntryType);
-
-    Py_INCREF(&DiffType);
-    PyModule_AddObject(m, "Diff", (PyObject *)&DiffType);
-
-    Py_INCREF(&ReferenceType);
-    PyModule_AddObject(m, "Reference", (PyObject *)&ReferenceType);
-
-    Py_INCREF(&SignatureType);
-    PyModule_AddObject(m, "Signature", (PyObject *)&SignatureType);
-
-    Py_INCREF(&RemoteType);
-    PyModule_AddObject(m, "Remote", (PyObject *)&RemoteType);
-
-    Py_INCREF(&NoteType);
-    PyModule_AddObject(m, "Note", (PyObject *)&NoteType);
-
+    /* Constants */
     PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
     PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
     PyModule_AddIntConstant(m, "GIT_OBJ_TREE", GIT_OBJ_TREE);

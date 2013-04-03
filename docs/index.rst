@@ -36,10 +36,10 @@ Usage guide:
    references
    revparse
    log
+   working-copy
    diff
-   index-file
-   status
    config
+   remotes
    errors
 
 More:

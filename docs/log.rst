@@ -2,6 +2,8 @@
 Commit log
 **********************************************************************
 
+.. automethod:: pygit2.Repository.walk
+
 You can iterate through the revision history with repo.walk::
 
     >>> from pygit2 import GIT_SORT_TIME
