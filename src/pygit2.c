@@ -377,7 +377,7 @@ moduleinit(PyObject* m)
                             GIT_CHECKOUT_DONT_UPDATE_INDEX);
     PyModule_AddIntConstant(m, "GIT_CHECKOUT_NO_REFRESH",
                             GIT_CHECKOUT_NO_REFRESH);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_DISABLE_PATHSPEC_MATC",
+    PyModule_AddIntConstant(m, "GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH",
                             GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH);
 
     return m;
