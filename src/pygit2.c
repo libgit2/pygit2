@@ -380,6 +380,9 @@ moduleinit(PyObject* m)
     PyModule_AddIntConstant(m, "GIT_CHECKOUT_DISABLE_PATHSPEC_MATC",
                             GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH);
 
+    /* Global initialization of libgit2 */
+    git_threads_init();
+
     return m;
 }
 
