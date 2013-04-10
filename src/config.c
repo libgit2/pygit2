@@ -60,7 +60,7 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
 
     if (kwds) {
         PyErr_SetString(PyExc_TypeError,
-                        "Repository takes no keyword arguments");
+                        "Config takes no keyword arguments");
         return -1;
     }
 
