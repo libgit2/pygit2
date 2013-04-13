@@ -45,6 +45,10 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         err = PyBytes_AsStringAndSize(py_str, &hex_or_bin, &len);
         if (err)
             return -1;
+        if (len > GIT_OID_RAWSZ) {
+            PyErr_SetObject(PyExc_ValueError, py_str);
+            return -1;
+        }
         memcpy(oid->id, (const unsigned char*)hex_or_bin, len);
         return len * 2;
     }
