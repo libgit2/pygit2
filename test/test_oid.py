@@ -25,32 +25,46 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Pygit2 test definitions.
+"""Tests for Object ids."""
 
-These tests are run automatically with 'setup.py test', but can also be run
-manually.
-"""
+# Import from the future
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
-import sys
+# Import from the Standard Library
+from binascii import unhexlify
 import unittest
 
-
-names = ['blob', 'commit', 'config', 'diff', 'index', 'note', 'oid', 'refs',
-         'remote', 'repository', 'revwalk', 'signature', 'status', 'tag',
-         'tree', 'treebuilder']
-
-def test_suite():
-    # Sometimes importing pygit2 fails, we try this first to get an
-    # informative traceback
-    import pygit2
-    # Go
-    modules = ['test.test_%s' % n for n in names]
-    return unittest.defaultTestLoader.loadTestsFromNames(modules)
+# Import from pygit2
+from pygit2 import Oid
+from . import utils
 
 
-def main():
-    unittest.main(module=__name__, defaultTest='test_suite', argv=sys.argv[:1])
+HEX = "15b648aec6ed045b5ca6f57f8b7831a8b4757298"
+RAW = unhexlify(HEX.encode('ascii'))
+
+class OidTest(utils.BareRepoTestCase):
+
+    def test_raw(self):
+        oid = Oid(raw=RAW)
+        self.assertEqual(oid.raw, RAW)
+        self.assertEqual(oid.hex, HEX)
+
+    def test_hex(self):
+        oid = Oid(hex=HEX)
+        self.assertEqual(oid.raw, RAW)
+        self.assertEqual(oid.hex, HEX)
+
+    def test_none(self):
+        self.assertRaises(ValueError, Oid)
+
+    def test_both(self):
+        self.assertRaises(ValueError, Oid, raw=RAW, hex=HEX)
+
+    def test_long(self):
+        self.assertRaises(ValueError, Oid, raw=RAW + b'a')
+        self.assertRaises(ValueError, Oid, hex=HEX + 'a')
 
 
 if __name__ == '__main__':
-    main()
+    unittest.main()

@@ -46,6 +46,12 @@ typedef struct {
 } Repository;
 
 
+typedef struct {
+    PyObject_HEAD
+    git_oid oid;
+} Oid;
+
+
 #define SIMPLE_TYPE(_name, _ptr_type, _ptr_name) \
         typedef struct {\
             PyObject_HEAD\

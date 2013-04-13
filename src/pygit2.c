@@ -38,6 +38,7 @@
 extern PyObject *GitError;
 
 extern PyTypeObject RepositoryType;
+extern PyTypeObject OidType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
 extern PyTypeObject DiffType;
@@ -192,6 +193,10 @@ moduleinit(PyObject* m)
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Repository);
+
+    /* Oid */
+    INIT_TYPE(OidType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Oid);
 
     /* Objects (make them with the Repository.create_XXX methods). */
     INIT_TYPE(ObjectType, NULL, NULL)

@@ -125,3 +125,102 @@ git_oid_to_py_str(const git_oid *oid)
     return to_unicode_n(hex, GIT_OID_HEXSZ, "utf-8", "strict");
 }
 
+
+int
+Oid_init(Oid *self, PyObject *args, PyObject *kw)
+{
+    char *keywords[] = {"raw", "hex", NULL};
+    PyObject *raw = NULL, *hex = NULL;
+    int err;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|OO", keywords, &raw, &hex))
+        return -1;
+
+    /* We expect one or the other, but not both. */
+    if (raw == NULL && hex == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Expected raw or hex.");
+        return -1;
+    }
+    if (raw != NULL && hex != NULL) {
+        PyErr_SetString(PyExc_ValueError, "Expected raw or hex, not both.");
+        return -1;
+    }
+
+    /* Get the oid. */
+    if (raw != NULL)
+        err = py_str_to_git_oid(raw, &self->oid);
+    else
+        err = py_str_to_git_oid(hex, &self->oid);
+
+    if (err < 0)
+        return -1;
+
+    return 0;
+}
+
+
+PyDoc_STRVAR(Oid_raw__doc__, "Raw oid.");
+
+PyObject *
+Oid_raw__get__(Oid *self)
+{
+    return git_oid_to_python(self->oid.id);
+}
+
+
+PyDoc_STRVAR(Oid_hex__doc__, "Hex oid.");
+
+PyObject *
+Oid_hex__get__(Oid *self)
+{
+    return git_oid_to_py_str(&self->oid);
+}
+
+PyGetSetDef Oid_getseters[] = {
+    GETTER(Oid, raw),
+    GETTER(Oid, hex),
+    {NULL},
+};
+
+PyDoc_STRVAR(Oid__doc__, "Object id.");
+
+PyTypeObject OidType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.Oid",                             /* tp_name           */
+    sizeof(Oid),                               /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    0,                                         /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    Oid__doc__,                                /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    Oid_getseters,                             /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)Oid_init,                        /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
