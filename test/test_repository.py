@@ -27,18 +27,22 @@
 
 """Tests for Repository objects."""
 
+# Import from the future
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
+# Import from the Standard Library
 import binascii
 import unittest
 import tempfile
 import os
 from os.path import join, realpath
 
+# Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
 from pygit2 import init_repository, discover_repository, Commit, hashfile
+from pygit2 import Oid
 import pygit2
-
 from . import utils
 
 
@@ -85,8 +89,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertRaises(ValueError, self.repo.write, GIT_OBJ_ANY, data)
 
         oid = self.repo.write(GIT_OBJ_BLOB, data)
-        self.assertEqual(type(oid), bytes)
-        self.assertEqual(len(oid), 20)
+        self.assertEqual(type(oid), Oid)
 
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
@@ -222,15 +225,17 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, head=True)
         self.assertTrue('bye.txt' not in self.repo.status())
 
+
 class NewRepositoryTest(utils.NoRepoTestCase):
+
     def test_new_repo(self):
         repo = init_repository(self._temp_dir, False)
 
         oid = repo.write(GIT_OBJ_BLOB, "Test")
-        self.assertEqual(type(oid), bytes)
-        self.assertEqual(len(oid), 20)
+        self.assertEqual(type(oid), Oid)
 
         assert os.path.exists(os.path.join(self._temp_dir, '.git'))
+
 
 class InitRepositoryTest(utils.NoRepoTestCase):
     # under the assumption that repo.is_bare works

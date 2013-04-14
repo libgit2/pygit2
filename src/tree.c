@@ -74,7 +74,7 @@ TreeEntry_oid__get__(TreeEntry *self)
     const git_oid *oid;
 
     oid = git_tree_entry_id(self->entry);
-    return git_oid_to_python(oid->id);
+    return git_oid_to_python(oid);
 }
 
 

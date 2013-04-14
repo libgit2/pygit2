@@ -32,6 +32,20 @@
 #include "error.h"
 #include "oid.h"
 
+PyTypeObject OidType;
+
+
+PyObject *
+git_oid_to_python(const git_oid *oid)
+{
+    Oid *py_oid;
+
+    py_oid = PyObject_New(Oid, &OidType);
+    git_oid_cpy(&(py_oid->oid), oid);
+    return (PyObject*)py_oid;
+}
+
+
 int
 py_str_to_git_oid(PyObject *py_str, git_oid *oid)
 {
@@ -40,7 +54,13 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
     int err;
     Py_ssize_t len;
 
-    /* Case 1: raw sha */
+    /* Case 1: Git Oid */
+    if (PyObject_TypeCheck(py_str, (PyTypeObject*)&OidType)) {
+        git_oid_cpy(oid, &((Oid*)py_str)->oid);
+        return GIT_OID_RAWSZ;
+    }
+
+    /* Case 2: raw sha (bytes) */
     if (PyBytes_Check(py_str)) {
         err = PyBytes_AsStringAndSize(py_str, &hex_or_bin, &len);
         if (err)
@@ -53,7 +73,7 @@ py_str_to_git_oid(PyObject *py_str, git_oid *oid)
         return len * 2;
     }
 
-    /* Case 2: hex sha */
+    /* Case 3: hex sha (unicode) */
     if (PyUnicode_Check(py_str)) {
         py_hex = PyUnicode_AsASCIIString(py_str);
         if (py_hex == NULL)
@@ -159,12 +179,19 @@ Oid_init(Oid *self, PyObject *args, PyObject *kw)
 }
 
 
+int
+Oid_compare(PyObject *o1, PyObject *o2)
+{
+    return git_oid_cmp(&((Oid*)o1)->oid, &((Oid*)o2)->oid);
+}
+
+
 PyDoc_STRVAR(Oid_raw__doc__, "Raw oid.");
 
 PyObject *
 Oid_raw__get__(Oid *self)
 {
-    return git_oid_to_python(self->oid.id);
+    return PyBytes_FromStringAndSize((const char*)self->oid.id, GIT_OID_RAWSZ);
 }
 
 
@@ -193,7 +220,7 @@ PyTypeObject OidType = {
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
-    0,                                         /* tp_compare        */
+    (cmpfunc)Oid_compare,                      /* tp_compare        */
     0,                                         /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */

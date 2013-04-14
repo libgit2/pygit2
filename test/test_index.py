@@ -98,8 +98,7 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual(len(index), 1)
         # Test read-write returns the same oid
         oid = index.write_tree()
-        oid = utils.oid_to_hex(oid)
-        self.assertEqual(oid, tree_oid)
+        self.assertEqual(oid.hex, tree_oid)
         # Test the index is only modified in memory
         index.read()
         self.assertEqual(len(index), 2)
@@ -107,8 +106,7 @@ class IndexTest(utils.RepoTestCase):
 
     def test_write_tree(self):
         oid = self.repo.index.write_tree()
-        sha = utils.oid_to_hex(oid)
-        self.assertEqual(sha, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+        self.assertEqual(oid.hex, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
     def test_iter(self):
         index = self.repo.index

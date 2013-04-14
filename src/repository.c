@@ -403,7 +403,7 @@ Repository_write(Repository *self, PyObject *args)
     stream->write(stream, buffer, buflen);
     err = stream->finalize_write(&oid, stream);
     stream->free(stream);
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -578,7 +578,7 @@ Repository_create_blob(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -601,7 +601,7 @@ Repository_create_blob_fromfile(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -674,7 +674,7 @@ Repository_create_commit(Repository *self, PyObject *args)
         goto out;
     }
 
-    py_result = git_oid_to_python(oid.id);
+    py_result = git_oid_to_python(&oid);
 
 out:
     free(message);
@@ -722,7 +722,7 @@ Repository_create_tag(Repository *self, PyObject *args)
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -1171,7 +1171,7 @@ Repository_create_note(Repository *self, PyObject* args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(note_id.id);
+    return git_oid_to_python(&note_id);
 }
 
 

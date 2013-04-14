@@ -47,8 +47,6 @@ def force_rm_handle(remove_path, path, excinfo):
     )
     remove_path(path)
 
-def oid_to_hex(oid):
-    return b2a_hex(oid).decode('ascii')
 
 def gen_blob_sha1(data):
     # http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
@@ -57,6 +55,7 @@ def gen_blob_sha1(data):
     m.update(data)
 
     return m.hexdigest()
+
 
 def rmtree(path):
     """In Windows a read-only file cannot be removed, and shutil.rmtree fails.

@@ -276,7 +276,7 @@ Reference_oid__get__(Reference *self)
     }
 
     /* Convert and return it */
-    return git_oid_to_python(oid->id);
+    return git_oid_to_python(oid);
 }
 
 int

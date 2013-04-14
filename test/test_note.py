@@ -38,9 +38,9 @@ NOTE = ('6c8980ba963cad8b25a9bcaf68d4023ee57370d8', 'note message')
 
 NOTES = [
   ('ab533997b80705767be3dae8cbb06a0740809f79', 'First Note - HEAD\n',
-    '784855caf26449a1914d2cf62d12b9374d76ae78'),
+   '784855caf26449a1914d2cf62d12b9374d76ae78'),
   ('d879714d880671ed84f8aaed8b27fca23ba01f27', 'Second Note - HEAD~1\n',
-    'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87')
+   'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87')
 ]
 
 class NotesTest(utils.BareRepoTestCase):
@@ -49,7 +49,7 @@ class NotesTest(utils.BareRepoTestCase):
         annotated_id = self.repo.revparse_single('HEAD~3').hex
         author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
         note_id = self.repo.create_note(NOTE[1], author, committer, annotated_id)
-        self.assertEqual(NOTE[0], utils.oid_to_hex(note_id))
+        self.assertEqual(NOTE[0], note_id.hex)
 
         # check the note blob
         self.assertEqual(NOTE[1].encode(), self.repo[note_id].data)
