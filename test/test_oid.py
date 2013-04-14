@@ -67,11 +67,20 @@ class OidTest(utils.BareRepoTestCase):
 
     def test_cmp(self):
         oid1 = Oid(raw=RAW)
+
+        # Equal
         oid2 = Oid(hex=HEX)
         self.assertEqual(oid1, oid2)
 
+        # Not equal
         oid2 = Oid(hex="15b648aec6ed045b5ca6f57f8b7831a8b4757299")
         self.assertNotEqual(oid1, oid2)
+
+        # Other
+        with self.assertRaises(TypeError): oid1 < oid2
+        with self.assertRaises(TypeError): oid1 <= oid2
+        with self.assertRaises(TypeError): oid1 > oid2
+        with self.assertRaises(TypeError): oid1 >= oid2
 
 
 if __name__ == '__main__':

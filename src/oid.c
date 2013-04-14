@@ -179,10 +179,31 @@ Oid_init(Oid *self, PyObject *args, PyObject *kw)
 }
 
 
-int
-Oid_compare(PyObject *o1, PyObject *o2)
+PyObject *
+Oid_richcompare(PyObject *o1, PyObject *o2, int op)
 {
-    return git_oid_cmp(&((Oid*)o1)->oid, &((Oid*)o2)->oid);
+    PyObject *res;
+
+    /* Support only equual (and not-equal). */
+    if (op != Py_EQ && op != Py_NE) {
+        PyErr_SetNone(PyExc_TypeError);
+        return NULL;
+    }
+
+    /* Comparing to something else than an Oid is not supported. */
+    if (!PyObject_TypeCheck(o2, &OidType)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    /* Ok go. */
+    if (git_oid_cmp(&((Oid*)o1)->oid, &((Oid*)o2)->oid) == 0)
+        res = (op == Py_EQ) ? Py_True : Py_False;
+    else
+        res = (op == Py_EQ) ? Py_False : Py_True;
+
+    Py_INCREF(res);
+    return res;
 }
 
 
@@ -220,7 +241,7 @@ PyTypeObject OidType = {
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
-    (cmpfunc)Oid_compare,                      /* tp_compare        */
+    0,                                         /* tp_compare        */
     0,                                         /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
@@ -235,7 +256,7 @@ PyTypeObject OidType = {
     Oid__doc__,                                /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
-    0,                                         /* tp_richcompare    */
+    (richcmpfunc)Oid_richcompare,              /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
