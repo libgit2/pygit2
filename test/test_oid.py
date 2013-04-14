@@ -77,10 +77,11 @@ class OidTest(utils.BareRepoTestCase):
         self.assertNotEqual(oid1, oid2)
 
         # Other
-        with self.assertRaises(TypeError): oid1 < oid2
-        with self.assertRaises(TypeError): oid1 <= oid2
-        with self.assertRaises(TypeError): oid1 > oid2
-        with self.assertRaises(TypeError): oid1 >= oid2
+        self.assertTrue(oid1 < oid2)
+        self.assertTrue(oid1 <= oid2)
+        self.assertFalse(oid1 == oid2)
+        self.assertFalse(oid1 > oid2)
+        self.assertFalse(oid1 >= oid2)
 
 
 if __name__ == '__main__':

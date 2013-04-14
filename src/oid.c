@@ -183,12 +183,7 @@ PyObject *
 Oid_richcompare(PyObject *o1, PyObject *o2, int op)
 {
     PyObject *res;
-
-    /* Support only equual (and not-equal). */
-    if (op != Py_EQ && op != Py_NE) {
-        PyErr_SetNone(PyExc_TypeError);
-        return NULL;
-    }
+    int cmp;
 
     /* Comparing to something else than an Oid is not supported. */
     if (!PyObject_TypeCheck(o2, &OidType)) {
@@ -197,10 +192,27 @@ Oid_richcompare(PyObject *o1, PyObject *o2, int op)
     }
 
     /* Ok go. */
-    if (git_oid_cmp(&((Oid*)o1)->oid, &((Oid*)o2)->oid) == 0)
-        res = (op == Py_EQ) ? Py_True : Py_False;
-    else
-        res = (op == Py_EQ) ? Py_False : Py_True;
+    cmp = git_oid_cmp(&((Oid*)o1)->oid, &((Oid*)o2)->oid);
+    switch (op) {
+        case Py_LT:
+            res = (cmp <= 0) ? Py_True: Py_False;
+            break;
+        case Py_LE:
+            res = (cmp < 0) ? Py_True: Py_False;
+            break;
+        case Py_EQ:
+            res = (cmp == 0) ? Py_True: Py_False;
+            break;
+        case Py_NE:
+            res = (cmp != 0) ? Py_True: Py_False;
+            break;
+        case Py_GT:
+            res = (cmp > 0) ? Py_True: Py_False;
+            break;
+        case Py_GE:
+            res = (cmp >= 0) ? Py_True: Py_False;
+            break;
+    }
 
     Py_INCREF(res);
     return res;
