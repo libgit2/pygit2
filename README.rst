@@ -20,11 +20,12 @@ Pygit2 links:
 Quick install guide
 ===================
 
-1. Download libgit2 v0.17.0
-   https://github.com/downloads/libgit2/libgit2/libgit2-0.17.0.tar.gz
+1. Checkout libgi2 v0.18.0::
+
+   $ git clone git://github.com/libgit2/libgit2.git -b v0.18.0
 
 2. Build and install libgit2
-   http://libgit2.github.com/#install
+   https://github.com/libgit2/libgit2/#building-libgit2---using-cmake
 
 3. Install pygit2 with *pip*::
 
@@ -52,6 +53,7 @@ pygit2 project (sorted alphabetically):
 - András Veres-Szentkirályi
 - Ben Davis
 - Benjamin Kircher
+- Benjamin Pollack
 - Bryan O'Sullivan
 - Carlos Martín Nieto
 - Christian Boos
