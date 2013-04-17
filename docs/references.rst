@@ -17,12 +17,11 @@ Reference log::
     >>> for entry in head.log():
     ...     print(entry.message)
 
-The interface for RefLogEntry::
+Shortcuts::
 
-    RefLogEntry.committer -- Signature of Committer
-    RefLogEntry.message   -- the message of the RefLogEntry
-    RefLogEntry.oid_old   -- oid of old reference
-    RefLogEntry.oid_new   -- oid of new reference
+    >>> # These two lines are equivalent
+    >>> head = repo.head
+    >>> head = repo.lookup_reference('HEAD').resolve()
 
 
 The Reference type
@@ -40,6 +39,14 @@ The Reference type
 .. automethod:: pygit2.Reference.log
 
 
+The HEAD
+--------------------
+
+.. autoattribute:: pygit2.Repository.head
+.. autoattribute:: pygit2.Repository.head_is_detached
+.. autoattribute:: pygit2.Repository.head_is_orphaned
+
+
 The reference log
 --------------------
 
@@ -47,7 +54,6 @@ The reference log
 .. autoattribute:: pygit2.RefLogEntry.oid_old
 .. autoattribute:: pygit2.RefLogEntry.message
 .. autoattribute:: pygit2.RefLogEntry.committer
-
 
 Notes
 ====================

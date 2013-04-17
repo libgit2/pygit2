@@ -41,6 +41,3 @@ To open an existing repository::
 .. autoattribute:: pygit2.Repository.is_empty
 .. automethod:: pygit2.Repository.read
 .. automethod:: pygit2.Repository.write
-.. autoattribute:: pygit2.Repository.head
-.. autoattribute:: pygit2.Repository.head_is_detached
-.. autoattribute:: pygit2.Repository.head_is_orphaned

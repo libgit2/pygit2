@@ -183,10 +183,7 @@ Repository_head__get__(Repository *self)
         return NULL;
     }
 
-    oid = git_reference_target(head);
-    pyobj = lookup_object(self, oid, GIT_OBJ_COMMIT);
-    git_reference_free(head);
-    return pyobj;
+    return wrap_reference(head);
 }
 
 

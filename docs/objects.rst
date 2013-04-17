@@ -10,9 +10,6 @@ In the first place Git is a key-value storage system. The values stored are
 called *objects*, there are four types (commits, trees, blobs and tags),
 for each type pygit2 has a Python class::
 
-    >>> # Get the last commit
-    >>> head = repo.head
-
     >>> # Show commits and trees
     >>> commit
     <pygit2.Commit object at 0x7f9d2f3000b0>
