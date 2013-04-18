@@ -57,7 +57,7 @@ class OidTest(utils.BareRepoTestCase):
         self.assertEqual(oid.hex, HEX)
 
     def test_hex_bytes(self):
-        if version_info.major == 2:
+        if version_info[0] == 2:
             hex = bytes(HEX)
             oid = Oid(hex=hex)
             self.assertEqual(oid.raw, RAW)
