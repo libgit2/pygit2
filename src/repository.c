@@ -183,10 +183,7 @@ Repository_head__get__(Repository *self)
         return NULL;
     }
 
-    oid = git_reference_target(head);
-    pyobj = lookup_object(self, oid, GIT_OBJ_COMMIT);
-    git_reference_free(head);
-    return pyobj;
+    return wrap_reference(head);
 }
 
 
@@ -284,11 +281,10 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 {
     git_object *c_obj;
     char *c_spec;
-    char *encoding = "ascii";
     int err;
 
     /* 1- Get the C revision spec */
-    c_spec = py_str_to_c_str(py_spec, encoding);
+    c_spec = py_str_to_c_str(py_spec, NULL);
     if (c_spec == NULL)
         return NULL;
 

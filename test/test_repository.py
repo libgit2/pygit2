@@ -40,7 +40,7 @@ from os.path import join, realpath
 
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
-from pygit2 import init_repository, discover_repository, Commit, hashfile
+from pygit2 import init_repository, discover_repository, Reference, hashfile
 from pygit2 import Oid
 import pygit2
 from . import utils
@@ -63,7 +63,7 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_head(self):
         head = self.repo.head
         self.assertEqual(HEAD_SHA, head.hex)
-        self.assertEqual(type(head), Commit)
+        self.assertEqual(type(head), Reference)
         self.assertFalse(self.repo.head_is_orphaned)
         self.assertFalse(self.repo.head_is_detached)
 
@@ -194,10 +194,15 @@ class RepositoryTest_II(utils.RepoTestCase):
                           lambda: self.repo.checkout(reference=ref_i18n))
 
         # checkout i18n with GIT_CHECKOUT_FORCE
-        self.assertTrue('new' not in self.repo.head.tree)
+        head = self.repo.head
+        head = self.repo[head.target]
+        self.assertTrue('new' not in head.tree)
         self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, ref_i18n)
-        self.assertEqual(self.repo.head.hex, self.repo[ref_i18n.target].hex)
-        self.assertTrue('new' in self.repo.head.tree)
+
+        head = self.repo.head
+        head = self.repo[head.target]
+        self.assertEqual(head.hex, self.repo[ref_i18n.target].hex)
+        self.assertTrue('new' in head.tree)
         self.assertTrue('bye.txt' not in self.repo.status())
 
     def test_checkout_index(self):
