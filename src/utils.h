@@ -54,6 +54,11 @@
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
 #endif
 
+#ifndef Py_hash_t
+  #define Py_hash_t long
+#endif
+
+
 #define CHECK_REFERENCE(self)\
     if (self->reference == NULL) {\
         PyErr_SetString(GitError, "deleted reference");\

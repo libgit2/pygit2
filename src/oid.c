@@ -200,6 +200,14 @@ Oid_init(Oid *self, PyObject *args, PyObject *kw)
 }
 
 
+Py_hash_t
+Oid_hash(PyObject *oid)
+{
+    /* TODO Randomize (use _Py_HashSecret) to avoid collission DoS attacks? */
+    return *(Py_hash_t*) ((Oid*)oid)->oid.id;
+}
+
+
 PyObject *
 Oid_richcompare(PyObject *o1, PyObject *o2, int op)
 {
@@ -279,7 +287,7 @@ PyTypeObject OidType = {
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
-    0,                                         /* tp_hash           */
+    (hashfunc)Oid_hash,                        /* tp_hash           */
     0,                                         /* tp_call           */
     0,                                         /* tp_str            */
     0,                                         /* tp_getattro       */

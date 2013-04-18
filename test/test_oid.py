@@ -94,6 +94,16 @@ class OidTest(utils.BareRepoTestCase):
         self.assertFalse(oid1 > oid2)
         self.assertFalse(oid1 >= oid2)
 
+    def test_hash(self):
+        s = set()
+        s.add(Oid(raw=RAW))
+        s.add(Oid(hex=HEX))
+        self.assertEqual(len(s), 1)
+
+        s.add(Oid(hex="0000000000000000000000000000000000000000"))
+        s.add(Oid(hex="0000000000000000000000000000000000000001"))
+        self.assertEqual(len(s), 3)
+
 
 if __name__ == '__main__':
     unittest.main()
