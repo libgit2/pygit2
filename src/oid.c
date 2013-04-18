@@ -45,61 +45,69 @@ git_oid_to_python(const git_oid *oid)
     return (PyObject*)py_oid;
 }
 
-
 int
-py_str_to_git_oid(PyObject *py_str, git_oid *oid)
+_oid_from_hex(PyObject *py_oid, git_oid *oid)
 {
     PyObject *py_hex;
-    char *hex_or_bin;
     int err;
+    char *hex;
     Py_ssize_t len;
 
-    /* Case 1: Git Oid */
-    if (PyObject_TypeCheck(py_str, (PyTypeObject*)&OidType)) {
-        git_oid_cpy(oid, &((Oid*)py_str)->oid);
-        return GIT_OID_RAWSZ;
-    }
-
-    /* Case 2: raw sha (bytes) */
-    if (PyBytes_Check(py_str)) {
-        err = PyBytes_AsStringAndSize(py_str, &hex_or_bin, &len);
+#if PY_MAJOR_VERSION == 2
+    /* Bytes (only supported in Python 2) */
+    if (PyBytes_Check(py_oid)) {
+        err = PyBytes_AsStringAndSize(py_oid, &hex, &len);
         if (err)
             return -1;
-        if (len > GIT_OID_RAWSZ) {
-            PyErr_SetObject(PyExc_ValueError, py_str);
+
+        err = git_oid_fromstrn(oid, hex, len);
+        if (err < 0) {
+            PyErr_SetObject(Error_type(err), py_oid);
             return -1;
         }
-        memcpy(oid->id, (const unsigned char*)hex_or_bin, len);
-        return len * 2;
-    }
 
-    /* Case 3: hex sha (unicode) */
-    if (PyUnicode_Check(py_str)) {
-        py_hex = PyUnicode_AsASCIIString(py_str);
+        return len;
+    }
+#endif
+
+    /* Unicode */
+    if (PyUnicode_Check(py_oid)) {
+        py_hex = PyUnicode_AsASCIIString(py_oid);
         if (py_hex == NULL)
             return -1;
-        err = PyBytes_AsStringAndSize(py_hex, &hex_or_bin, &len);
+
+        err = PyBytes_AsStringAndSize(py_hex, &hex, &len);
         if (err) {
             Py_DECREF(py_hex);
             return -1;
         }
 
-        err = git_oid_fromstrn(oid, hex_or_bin, len);
-
+        err = git_oid_fromstrn(oid, hex, len);
         Py_DECREF(py_hex);
-
         if (err < 0) {
-            PyErr_SetObject(Error_type(err), py_str);
+            PyErr_SetObject(Error_type(err), py_oid);
             return -1;
         }
+
         return len;
     }
 
     /* Type error */
-    PyErr_Format(PyExc_TypeError,
-                 "Git object id must be byte or a text string, not: %.200s",
-                 Py_TYPE(py_str)->tp_name);
+    PyErr_SetObject(PyExc_TypeError, py_oid);
     return -1;
+}
+
+int
+py_str_to_git_oid(PyObject *py_oid, git_oid *oid)
+{
+    /* Oid */
+    if (PyObject_TypeCheck(py_oid, (PyTypeObject*)&OidType)) {
+        git_oid_cpy(oid, &((Oid*)py_oid)->oid);
+        return GIT_OID_RAWSZ;
+    }
+
+    /* Hex */
+    return _oid_from_hex(py_oid, oid);
 }
 
 int
@@ -152,6 +160,8 @@ Oid_init(Oid *self, PyObject *args, PyObject *kw)
     char *keywords[] = {"raw", "hex", NULL};
     PyObject *raw = NULL, *hex = NULL;
     int err;
+    char *bytes;
+    Py_ssize_t len;
 
     if (!PyArg_ParseTupleAndKeywords(args, kw, "|OO", keywords, &raw, &hex))
         return -1;
@@ -166,12 +176,23 @@ Oid_init(Oid *self, PyObject *args, PyObject *kw)
         return -1;
     }
 
-    /* Get the oid. */
-    if (raw != NULL)
-        err = py_str_to_git_oid(raw, &self->oid);
-    else
-        err = py_str_to_git_oid(hex, &self->oid);
+    /* Case 1: raw */
+    if (raw != NULL) {
+        err = PyBytes_AsStringAndSize(raw, &bytes, &len);
+        if (err)
+            return -1;
 
+        if (len > GIT_OID_RAWSZ) {
+            PyErr_SetObject(PyExc_ValueError, raw);
+            return -1;
+        }
+
+        memcpy(self->oid.id, (const unsigned char*)bytes, len);
+        return 0;
+    }
+
+    /* Case 2: hex */
+    err = _oid_from_hex(hex, &self->oid);
     if (err < 0)
         return -1;
 

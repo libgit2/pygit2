@@ -33,6 +33,7 @@ from __future__ import unicode_literals
 
 # Import from the Standard Library
 from binascii import unhexlify
+from sys import version_info
 import unittest
 
 # Import from pygit2
@@ -54,6 +55,16 @@ class OidTest(utils.BareRepoTestCase):
         oid = Oid(hex=HEX)
         self.assertEqual(oid.raw, RAW)
         self.assertEqual(oid.hex, HEX)
+
+    def test_hex_bytes(self):
+        if version_info.major == 2:
+            hex = bytes(HEX)
+            oid = Oid(hex=hex)
+            self.assertEqual(oid.raw, RAW)
+            self.assertEqual(oid.hex, HEX)
+        else:
+            hex = bytes(HEX, "ascii")
+            self.assertRaises(TypeError, Oid, hex=hex)
 
     def test_none(self):
         self.assertRaises(ValueError, Oid)
