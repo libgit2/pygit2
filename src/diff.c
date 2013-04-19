@@ -227,7 +227,7 @@ PyTypeObject DiffIterType = {
 };
 
 
-PyDoc_STRVAR(Diff_patch__doc__, "Patch.");
+PyDoc_STRVAR(Diff_patch__doc__, "Patch diff string.");
 
 PyObject *
 Diff_patch__get__(Diff *self)
