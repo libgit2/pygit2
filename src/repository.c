@@ -854,30 +854,15 @@ PyObject *
 Repository_git_reference_symbolic_create(Repository *self,  PyObject *args,
                                          PyObject *kw)
 {
-    PyObject *py_obj;
     git_reference *c_reference;
     char *c_name, *c_target;
     int err, force;
 
-    if (!PyArg_ParseTuple(args, "sOi", &c_name, &py_obj, &force))
-        return NULL;
-
-    #if PY_MAJOR_VERSION == 2
-    c_target = PyBytes_AsString(py_obj);
-    #else
-    // increases ref counter, so we have to release it afterwards
-    PyObject* py_str = PyUnicode_AsASCIIString(py_obj);
-    c_target = PyBytes_AsString(py_str);
-    #endif
-    if (c_target == NULL)
+    if (!PyArg_ParseTuple(args, "ssi", &c_name, &c_target, &force))
         return NULL;
 
     err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
                                         c_target, force);
-    #if PY_MAJOR_VERSION > 2
-      Py_CLEAR(py_str);
-    #endif
-
     if (err < 0)
         return Error_set(err);
 
