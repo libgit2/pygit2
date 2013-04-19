@@ -1028,6 +1028,7 @@ Repository_create_remote(Repository *self, PyObject *args)
         return Error_set(err);
 
     py_remote = PyObject_New(Remote, &RemoteType);
+    Py_INCREF(self);
     py_remote->repo = self;
     py_remote->remote = remote;
 
