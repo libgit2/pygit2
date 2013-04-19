@@ -45,47 +45,48 @@ for the topic), send a pull request.
 Authors
 ==============
 
-The following people have contributed at least one patch to the
-pygit2 project (sorted alphabetically):
+This is the list of authors of pygit2, sorted by number of commits (as shown by
+``git shortlog -sn``):
 
+- J David Ibáñez
+- Nico von Geyso
+- W Trevor King
+- Dave Borowitz
+- Carlos Martín Nieto
+- Christian Boos
+- Julien Miotte
+- Richo Healey
+- Martin Lenders
+- Xavier Delannoy
+- Yonggang Luo
+- Valentin Haenel
+- John Szakmeister
+- David Versmisse
+- Petr Hosek
+- Sebastian Thiel
+- Han-Wen Nienhuys
+- Petr Viktorin
 - Alex Chamberlain
 - Amit Bakshi
-- András Veres-Szentkirályi
 - Ben Davis
+- Jared Flatow
+- Sarath Lakshman
+- Vicent Marti
+- Zoran Zaric
+- András Veres-Szentkirályi
 - Benjamin Kircher
 - Benjamin Pollack
 - Bryan O'Sullivan
-- Carlos Martín Nieto
-- Christian Boos
-- David Borowitz (*Original author*)
 - David Sanders
-- David Versmisse
 - Eric Davis
 - Eric Schrijver
 - Erik van Zijst
 - Ferengee
-- Han-Wen Nienhuys
 - Hugh Cole-Baker
-- J David Ibáñez (*Current maintainer*)
-- Jared Flatow
-- John Szakmeister
 - Josh Bleecher Snyder
-- Julien Miotte
-- Martin Lenders
-- Nico von Geyso
-- Petr Hosek
-- Petr Viktorin
-- Richo Healey
+- Jun Omae
 - Ridge Kennedy
 - Rui Abreu Ferreira
-- Sarath Lakshman
-- Sebastian Thiel
-- Valentin Haenel
-- Vicent Marti
-- W Trevor King
-- Xavier Delannoy
-- Yonggang Luo
-- Zoran Zaric
 - pistacchio
 
 

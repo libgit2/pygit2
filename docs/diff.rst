@@ -17,6 +17,12 @@ A diff shows the changes between trees, an index or the working dir::
     # Diff a tree with the current working dir
     >>> diff = head.tree.diff()
 
+    # Get all patches for a diff
+    >>> t0 = repo.revparse_single('HEAD^').tree
+    >>> t1 = repo.revparse_single('HEAD~3').tree
+    >>> diff = t0.diff(t1)
+    >>> patches = [p for p in diff]
+
 
 The Diff type
 ====================
