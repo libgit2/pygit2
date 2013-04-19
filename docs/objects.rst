@@ -5,10 +5,66 @@ Git objects
 .. contents:: Contents
    :local:
 
+In the first place Git is a key-value storage system. The keys are called
+OIDs, for Object id, and the  values stored are called Objects.
 
-In the first place Git is a key-value storage system. The values stored are
-called *objects*, there are four types (commits, trees, blobs and tags),
-for each type pygit2 has a Python class::
+Oids
+=================
+
+The oid is the `SHA-1 <http://en.wikipedia.org/wiki/SHA-1>`_ hash of an
+object. It is 20 bytes long:
+
+- When we represent an oid as a 20 bytes Python string, we say it is a raw
+  oid.
+
+- When we represent an oid as a 40 chars Python string, we sayt it is a hex
+  oid.
+
+However, most of the time we will use the Oid type. We can explicetly create
+an Oid object from its raw or hexadecimal form::
+
+  >>> hex = "cff3ceaefc955f0dbe1957017db181bc49913781"
+  >>> oid1 = Oid(hex=hex)
+
+  >>> from binascii import unhexlify
+  >>> raw = unhexlify(hex)
+  >>> oid2 = Oid(raw=raw)
+
+  >>> print oid1 == oid2
+  True
+
+And in the opposite direction, we can get the raw or hexadecimal form from
+an Oid object:
+
+.. autoattribute:: pygit2.Oid.raw
+.. autoattribute:: pygit2.Oid.hex
+
+The Oid type supports:
+
+- rich comparisons, not just for equality, also: lesser-than, lesser-or-equal,
+  etc.
+
+- hashing, so Oid objects can be used as keys in a dictionary
+
+
+Python 2 and Python 3
+---------------------
+
+There is a difference on how the library handles hex oids, depending on
+whether we are using Python 2 or 3.
+
+- In Python 2, we can represent an hexadecimal oid using a bytes string
+  (``str``) or a text string (``unicode``)
+
+- In Python 3, hexadecimal oids can only be represented using unicode
+  strings.
+
+
+Objects
+=================
+
+There are four types (commits, trees, blobs and tags), for each type pygit2
+has a Python class::
 
     >>> # Show commits and trees
     >>> commit
