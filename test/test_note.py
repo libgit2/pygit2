@@ -37,18 +37,19 @@ from . import utils
 NOTE = ('6c8980ba963cad8b25a9bcaf68d4023ee57370d8', 'note message')
 
 NOTES = [
-  ('ab533997b80705767be3dae8cbb06a0740809f79', 'First Note - HEAD\n',
-   '784855caf26449a1914d2cf62d12b9374d76ae78'),
-  ('d879714d880671ed84f8aaed8b27fca23ba01f27', 'Second Note - HEAD~1\n',
-   'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87')
-]
+    ('ab533997b80705767be3dae8cbb06a0740809f79', 'First Note - HEAD\n',
+     '784855caf26449a1914d2cf62d12b9374d76ae78'),
+    ('d879714d880671ed84f8aaed8b27fca23ba01f27', 'Second Note - HEAD~1\n',
+     'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87')
+    ]
 
 class NotesTest(utils.BareRepoTestCase):
-    
+
     def test_create_note(self):
         annotated_id = self.repo.revparse_single('HEAD~3').hex
         author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
-        note_id = self.repo.create_note(NOTE[1], author, committer, annotated_id)
+        note_id = self.repo.create_note(NOTE[1], author, committer,
+                                        annotated_id)
         self.assertEqual(NOTE[0], note_id.hex)
 
         # check the note blob
@@ -57,22 +58,23 @@ class NotesTest(utils.BareRepoTestCase):
     def test_lookup_note(self):
         annotated_id = self.repo.head.hex
         note = self.repo.lookup_note(annotated_id)
-        self.assertEqual(NOTES[0][0], note.oid)
+        self.assertEqual(NOTES[0][0], note.oid.hex)
         self.assertEqual(NOTES[0][1], note.message)
 
     def test_remove_note(self):
         note = self.repo.lookup_note(self.repo.head.hex)
         author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
         note.remove(author, committer)
-        self.assertRaises(KeyError, lambda: self.repo.lookup_note(self.repo.head.hex))
+        self.assertRaises(KeyError, self.repo.lookup_note, self.repo.head.hex)
 
     def test_iterate_notes(self):
         for i, note in enumerate(self.repo.notes()):
-            entry = (note.oid, note.message, note.annotated_id)
-            self.assertEqual(NOTES[i],entry) 
+            entry = (note.oid.hex, note.message, note.annotated_id)
+            self.assertEqual(NOTES[i], entry)
 
     def test_iterate_non_existing_ref(self):
-        self.assertRaises(KeyError, lambda: self.repo.notes("refs/notes/bad_ref"))
+        self.assertRaises(KeyError, self.repo.notes, "refs/notes/bad_ref")
+
 
 if __name__ == '__main__':
     unittest.main()
