@@ -150,7 +150,12 @@ git_oid_to_py_str(const git_oid *oid)
     char hex[GIT_OID_HEXSZ];
 
     git_oid_fmt(hex, oid);
+
+    #if PY_MAJOR_VERSION == 2
+    return PyBytes_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    #else
     return to_unicode_n(hex, GIT_OID_HEXSZ, "utf-8", "strict");
+    #endif
 }
 
 
