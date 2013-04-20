@@ -32,54 +32,82 @@
 #include "error.h"
 #include "oid.h"
 
+PyTypeObject OidType;
+
+
+PyObject *
+git_oid_to_python(const git_oid *oid)
+{
+    Oid *py_oid;
+
+    py_oid = PyObject_New(Oid, &OidType);
+    git_oid_cpy(&(py_oid->oid), oid);
+    return (PyObject*)py_oid;
+}
+
 int
-py_str_to_git_oid(PyObject *py_str, git_oid *oid)
+_oid_from_hex(PyObject *py_oid, git_oid *oid)
 {
     PyObject *py_hex;
-    char *hex_or_bin;
     int err;
+    char *hex;
     Py_ssize_t len;
 
-    /* Case 1: raw sha */
-    if (PyBytes_Check(py_str)) {
-        err = PyBytes_AsStringAndSize(py_str, &hex_or_bin, &len);
+#if PY_MAJOR_VERSION == 2
+    /* Bytes (only supported in Python 2) */
+    if (PyBytes_Check(py_oid)) {
+        err = PyBytes_AsStringAndSize(py_oid, &hex, &len);
         if (err)
             return -1;
-        if (len > GIT_OID_RAWSZ) {
-            PyErr_SetObject(PyExc_ValueError, py_str);
+
+        err = git_oid_fromstrn(oid, hex, len);
+        if (err < 0) {
+            PyErr_SetObject(Error_type(err), py_oid);
             return -1;
         }
-        memcpy(oid->id, (const unsigned char*)hex_or_bin, len);
-        return len * 2;
-    }
 
-    /* Case 2: hex sha */
-    if (PyUnicode_Check(py_str)) {
-        py_hex = PyUnicode_AsASCIIString(py_str);
+        return len;
+    }
+#endif
+
+    /* Unicode */
+    if (PyUnicode_Check(py_oid)) {
+        py_hex = PyUnicode_AsASCIIString(py_oid);
         if (py_hex == NULL)
             return -1;
-        err = PyBytes_AsStringAndSize(py_hex, &hex_or_bin, &len);
+
+        err = PyBytes_AsStringAndSize(py_hex, &hex, &len);
         if (err) {
             Py_DECREF(py_hex);
             return -1;
         }
 
-        err = git_oid_fromstrn(oid, hex_or_bin, len);
-
+        err = git_oid_fromstrn(oid, hex, len);
         Py_DECREF(py_hex);
-
         if (err < 0) {
-            PyErr_SetObject(Error_type(err), py_str);
+            PyErr_SetObject(Error_type(err), py_oid);
             return -1;
         }
+
         return len;
     }
 
     /* Type error */
-    PyErr_Format(PyExc_TypeError,
-                 "Git object id must be byte or a text string, not: %.200s",
-                 Py_TYPE(py_str)->tp_name);
+    PyErr_SetObject(PyExc_TypeError, py_oid);
     return -1;
+}
+
+int
+py_str_to_git_oid(PyObject *py_oid, git_oid *oid)
+{
+    /* Oid */
+    if (PyObject_TypeCheck(py_oid, (PyTypeObject*)&OidType)) {
+        git_oid_cpy(oid, &((Oid*)py_oid)->oid);
+        return GIT_OID_RAWSZ;
+    }
+
+    /* Hex */
+    return _oid_from_hex(py_oid, oid);
 }
 
 int
@@ -122,6 +150,171 @@ git_oid_to_py_str(const git_oid *oid)
     char hex[GIT_OID_HEXSZ];
 
     git_oid_fmt(hex, oid);
+
+    #if PY_MAJOR_VERSION == 2
+    return PyBytes_FromStringAndSize(hex, GIT_OID_HEXSZ);
+    #else
     return to_unicode_n(hex, GIT_OID_HEXSZ, "utf-8", "strict");
+    #endif
 }
 
+
+int
+Oid_init(Oid *self, PyObject *args, PyObject *kw)
+{
+    char *keywords[] = {"raw", "hex", NULL};
+    PyObject *raw = NULL, *hex = NULL;
+    int err;
+    char *bytes;
+    Py_ssize_t len;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|OO", keywords, &raw, &hex))
+        return -1;
+
+    /* We expect one or the other, but not both. */
+    if (raw == NULL && hex == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Expected raw or hex.");
+        return -1;
+    }
+    if (raw != NULL && hex != NULL) {
+        PyErr_SetString(PyExc_ValueError, "Expected raw or hex, not both.");
+        return -1;
+    }
+
+    /* Case 1: raw */
+    if (raw != NULL) {
+        err = PyBytes_AsStringAndSize(raw, &bytes, &len);
+        if (err)
+            return -1;
+
+        if (len > GIT_OID_RAWSZ) {
+            PyErr_SetObject(PyExc_ValueError, raw);
+            return -1;
+        }
+
+        memcpy(self->oid.id, (const unsigned char*)bytes, len);
+        return 0;
+    }
+
+    /* Case 2: hex */
+    err = _oid_from_hex(hex, &self->oid);
+    if (err < 0)
+        return -1;
+
+    return 0;
+}
+
+
+Py_hash_t
+Oid_hash(PyObject *oid)
+{
+    /* TODO Randomize (use _Py_HashSecret) to avoid collission DoS attacks? */
+    return *(Py_hash_t*) ((Oid*)oid)->oid.id;
+}
+
+
+PyObject *
+Oid_richcompare(PyObject *o1, PyObject *o2, int op)
+{
+    PyObject *res;
+    int cmp;
+
+    /* Comparing to something else than an Oid is not supported. */
+    if (!PyObject_TypeCheck(o2, &OidType)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    /* Ok go. */
+    cmp = git_oid_cmp(&((Oid*)o1)->oid, &((Oid*)o2)->oid);
+    switch (op) {
+        case Py_LT:
+            res = (cmp <= 0) ? Py_True: Py_False;
+            break;
+        case Py_LE:
+            res = (cmp < 0) ? Py_True: Py_False;
+            break;
+        case Py_EQ:
+            res = (cmp == 0) ? Py_True: Py_False;
+            break;
+        case Py_NE:
+            res = (cmp != 0) ? Py_True: Py_False;
+            break;
+        case Py_GT:
+            res = (cmp > 0) ? Py_True: Py_False;
+            break;
+        case Py_GE:
+            res = (cmp >= 0) ? Py_True: Py_False;
+            break;
+    }
+
+    Py_INCREF(res);
+    return res;
+}
+
+
+PyDoc_STRVAR(Oid_raw__doc__, "Raw oid.");
+
+PyObject *
+Oid_raw__get__(Oid *self)
+{
+    return PyBytes_FromStringAndSize((const char*)self->oid.id, GIT_OID_RAWSZ);
+}
+
+
+PyDoc_STRVAR(Oid_hex__doc__, "Hex oid.");
+
+PyObject *
+Oid_hex__get__(Oid *self)
+{
+    return git_oid_to_py_str(&self->oid);
+}
+
+PyGetSetDef Oid_getseters[] = {
+    GETTER(Oid, raw),
+    GETTER(Oid, hex),
+    {NULL},
+};
+
+PyDoc_STRVAR(Oid__doc__, "Object id.");
+
+PyTypeObject OidType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.Oid",                             /* tp_name           */
+    sizeof(Oid),                               /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    0,                                         /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    (hashfunc)Oid_hash,                        /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    Oid__doc__,                                /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    (richcmpfunc)Oid_richcompare,              /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    Oid_getseters,                             /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    (initproc)Oid_init,                        /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};

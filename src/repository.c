@@ -132,10 +132,10 @@ static int
 Repository_build_as_iter(const git_oid *oid, void *accum)
 {
     int err;
-    PyObject *oid_str = git_oid_to_py_str(oid);
+    PyObject *py_oid = git_oid_to_python(oid);
 
-    err = PyList_Append((PyObject*)accum, oid_str);
-    Py_DECREF(oid_str);
+    err = PyList_Append((PyObject*)accum, py_oid);
+    Py_DECREF(py_oid);
     return err;
 }
 
@@ -152,11 +152,10 @@ Repository_as_iter(Repository *self)
 
     err = git_odb_foreach(odb, Repository_build_as_iter, (void*)accum);
     git_odb_free(odb);
-    if (err == GIT_EUSER) {
+    if (err == GIT_EUSER)
         return NULL;
-    } else if (err < 0) {
+    if (err < 0)
         return Error_set(err);
-    }
 
     return PyObject_GetIter(accum);
 }
@@ -399,7 +398,7 @@ Repository_write(Repository *self, PyObject *args)
     stream->write(stream, buffer, buflen);
     err = stream->finalize_write(&oid, stream);
     stream->free(stream);
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -574,7 +573,7 @@ Repository_create_blob(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -597,7 +596,7 @@ Repository_create_blob_fromfile(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -670,7 +669,7 @@ Repository_create_commit(Repository *self, PyObject *args)
         goto out;
     }
 
-    py_result = git_oid_to_python(oid.id);
+    py_result = git_oid_to_python(&oid);
 
 out:
     free(message);
@@ -718,7 +717,7 @@ Repository_create_tag(Repository *self, PyObject *args)
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -1153,7 +1152,7 @@ Repository_create_note(Repository *self, PyObject* args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(note_id.id);
+    return git_oid_to_python(&note_id);
 }
 
 

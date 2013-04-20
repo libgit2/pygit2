@@ -60,7 +60,7 @@ Object_oid__get__(Object *self)
     oid = git_object_id(self->obj);
     assert(oid);
 
-    return git_oid_to_python(oid->id);
+    return git_oid_to_python(oid);
 }
 
 

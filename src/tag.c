@@ -43,7 +43,7 @@ Tag_target__get__(Tag *self)
     const git_oid *oid;
 
     oid = git_tag_target_id(self->tag);
-    return git_oid_to_python(oid->id);
+    return git_oid_to_python(oid);
 }
 
 

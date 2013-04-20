@@ -423,7 +423,7 @@ Index_write_tree(Index *self)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 PyMethodDef Index_methods[] = {
@@ -585,7 +585,7 @@ PyDoc_STRVAR(IndexEntry_oid__doc__, "Object id.");
 PyObject *
 IndexEntry_oid__get__(IndexEntry *self)
 {
-    return git_oid_to_python(self->entry->oid.id);
+    return git_oid_to_python(&self->entry->oid);
 }
 
 

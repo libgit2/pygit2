@@ -41,14 +41,16 @@ from os.path import join, realpath
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
 from pygit2 import init_repository, discover_repository, Reference, hashfile
+from pygit2 import Oid
 import pygit2
 from . import utils
 
 
 HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
 PARENT_SHA = 'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87'  # HEAD^
-A_HEX_SHA = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
-A_BIN_SHA = binascii.unhexlify(A_HEX_SHA.encode('ascii'))
+BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
+BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
+BLOB_OID = Oid(raw=BLOB_RAW)
 
 
 class RepositoryTest(utils.BareRepoTestCase):
@@ -70,15 +72,15 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertRaises(TypeError, self.repo.read, 123)
         self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read, '1' * 40)
 
-        ab = self.repo.read(A_BIN_SHA)
-        a = self.repo.read(A_HEX_SHA)
+        ab = self.repo.read(BLOB_OID)
+        a = self.repo.read(BLOB_HEX)
         self.assertEqual(ab, a)
         self.assertEqual((GIT_OBJ_BLOB, b'a contents\n'), a)
 
         a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
         self.assertEqual((GIT_OBJ_BLOB, b'a contents 2\n'), a2)
 
-        a_hex_prefix = A_HEX_SHA[:4]
+        a_hex_prefix = BLOB_HEX[:4]
         a3 = self.repo.read(a_hex_prefix)
         self.assertEqual((GIT_OBJ_BLOB, b'a contents\n'), a3)
 
@@ -88,34 +90,33 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertRaises(ValueError, self.repo.write, GIT_OBJ_ANY, data)
 
         oid = self.repo.write(GIT_OBJ_BLOB, data)
-        self.assertEqual(type(oid), bytes)
-        self.assertEqual(len(oid), 20)
+        self.assertEqual(type(oid), Oid)
 
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
-        self.assertTrue(A_BIN_SHA in self.repo)
-        self.assertTrue(A_BIN_SHA[:10] in self.repo)
-        self.assertTrue(A_HEX_SHA in self.repo)
-        self.assertTrue(A_HEX_SHA[:10] in self.repo)
+        self.assertTrue(BLOB_OID in self.repo)
+        self.assertTrue(BLOB_HEX in self.repo)
+        self.assertTrue(BLOB_HEX[:10] in self.repo)
         self.assertFalse('a' * 40 in self.repo)
         self.assertFalse('a' * 20 in self.repo)
 
     def test_iterable(self):
         l = [ obj for obj in self.repo ]
-        self.assertTrue(A_HEX_SHA in l)
+        oid = Oid(hex=BLOB_HEX)
+        self.assertTrue(oid in l)
 
     def test_lookup_blob(self):
         self.assertRaises(TypeError, lambda: self.repo[123])
-        self.assertEqual(self.repo[A_BIN_SHA].hex, A_HEX_SHA)
-        a = self.repo[A_HEX_SHA]
+        self.assertEqual(self.repo[BLOB_OID].hex, BLOB_HEX)
+        a = self.repo[BLOB_HEX]
         self.assertEqual(b'a contents\n', a.read_raw())
-        self.assertEqual(A_HEX_SHA, a.hex)
+        self.assertEqual(BLOB_HEX, a.hex)
         self.assertEqual(GIT_OBJ_BLOB, a.type)
 
     def test_lookup_blob_prefix(self):
-        a = self.repo[A_HEX_SHA[:5]]
+        a = self.repo[BLOB_HEX[:5]]
         self.assertEqual(b'a contents\n', a.read_raw())
-        self.assertEqual(A_HEX_SHA, a.hex)
+        self.assertEqual(BLOB_HEX, a.hex)
         self.assertEqual(GIT_OBJ_BLOB, a.type)
 
     def test_lookup_commit(self):
@@ -230,15 +231,17 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, head=True)
         self.assertTrue('bye.txt' not in self.repo.status())
 
+
 class NewRepositoryTest(utils.NoRepoTestCase):
+
     def test_new_repo(self):
         repo = init_repository(self._temp_dir, False)
 
         oid = repo.write(GIT_OBJ_BLOB, "Test")
-        self.assertEqual(type(oid), bytes)
-        self.assertEqual(len(oid), 20)
+        self.assertEqual(type(oid), Oid)
 
         assert os.path.exists(os.path.join(self._temp_dir, '.git'))
+
 
 class InitRepositoryTest(utils.NoRepoTestCase):
     # under the assumption that repo.is_bare works

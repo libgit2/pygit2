@@ -72,7 +72,7 @@ PyDoc_STRVAR(Note_oid__doc__,
 PyObject *
 Note_oid__get__(Note *self)
 {
-  return git_oid_to_py_str(git_note_oid(self->note));
+  return git_oid_to_python(git_note_oid(self->note));
 }
 
 

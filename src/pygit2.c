@@ -38,6 +38,7 @@
 extern PyObject *GitError;
 
 extern PyTypeObject RepositoryType;
+extern PyTypeObject OidType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
 extern PyTypeObject DiffType;
@@ -141,7 +142,7 @@ hashfile(PyObject *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 PyDoc_STRVAR(hash__doc__,
@@ -165,7 +166,7 @@ hash(PyObject *self, PyObject *args)
         return Error_set(err);
     }
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
@@ -192,6 +193,10 @@ moduleinit(PyObject* m)
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Repository);
+
+    /* Oid */
+    INIT_TYPE(OidType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Oid);
 
     /* Objects (make them with the Repository.create_XXX methods). */
     INIT_TYPE(ObjectType, NULL, NULL)
