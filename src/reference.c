@@ -204,18 +204,17 @@ Reference_target__get__(Reference *self)
 
     CHECK_REFERENCE(self);
 
-    /* Get the target */
-    if (GIT_REF_OID == git_reference_type(self->reference)) {
-        return git_oid_to_py_str(git_reference_target(self->reference));
-    } else {
-        c_name = git_reference_symbolic_target(self->reference);
-        if (c_name == NULL) {
-            PyErr_SetString(PyExc_ValueError, "no target available");
-            return NULL;
-        }
+    /* Case 1: Direct */
+    if (GIT_REF_OID == git_reference_type(self->reference))
+        return git_oid_to_python(git_reference_target(self->reference));
+
+    /* Case 2: Symbolic */
+    c_name = git_reference_symbolic_target(self->reference);
+    if (c_name == NULL) {
+        PyErr_SetString(PyExc_ValueError, "no target available");
+        return NULL;
     }
 
-    /* Make a PyString and return it */
     return to_path(c_name);
 }
 
@@ -262,21 +261,17 @@ PyDoc_STRVAR(Reference_oid__doc__, "Object id.");
 PyObject *
 Reference_oid__get__(Reference *self)
 {
-    const git_oid *oid;
-
     CHECK_REFERENCE(self);
 
-    /* Get the oid (only for "direct" references) */
-    oid = git_reference_target(self->reference);
-    if (oid == NULL) {
-        PyErr_SetString(PyExc_ValueError,
-                        "oid is only available if the reference is direct "
-                        "(i.e. not symbolic)");
-        return NULL;
-    }
+    /* Case 1: Direct */
+    if (GIT_REF_OID == git_reference_type(self->reference))
+        return git_oid_to_python(git_reference_target(self->reference));
 
-    /* Convert and return it */
-    return git_oid_to_python(oid);
+    /* Get the oid (only for "direct" references) */
+    PyErr_SetString(PyExc_ValueError,
+                    "oid is only available if the reference is direct "
+                    "(i.e. not symbolic)");
+    return NULL;
 }
 
 int

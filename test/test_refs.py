@@ -176,7 +176,7 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertTrue('refs/tags/version1' in refs)
         reference = self.repo.lookup_reference('refs/tags/version1')
         self.assertEqual(reference.hex, LAST_COMMIT)
-        self.assertEqual(reference.target, LAST_COMMIT)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
 
         # try to create existing reference
         self.assertRaises(ValueError, self.repo.create_reference,
