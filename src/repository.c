@@ -132,10 +132,10 @@ static int
 Repository_build_as_iter(const git_oid *oid, void *accum)
 {
     int err;
-    PyObject *oid_str = git_oid_to_py_str(oid);
+    PyObject *py_oid = git_oid_to_python(oid);
 
-    err = PyList_Append((PyObject*)accum, oid_str);
-    Py_DECREF(oid_str);
+    err = PyList_Append((PyObject*)accum, py_oid);
+    Py_DECREF(py_oid);
     return err;
 }
 
@@ -152,11 +152,10 @@ Repository_as_iter(Repository *self)
 
     err = git_odb_foreach(odb, Repository_build_as_iter, (void*)accum);
     git_odb_free(odb);
-    if (err == GIT_EUSER) {
+    if (err == GIT_EUSER)
         return NULL;
-    } else if (err < 0) {
+    if (err < 0)
         return Error_set(err);
-    }
 
     return PyObject_GetIter(accum);
 }

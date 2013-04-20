@@ -102,7 +102,8 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_iterable(self):
         l = [ obj for obj in self.repo ]
-        self.assertTrue(BLOB_HEX in l)
+        oid = Oid(hex=BLOB_HEX)
+        self.assertTrue(oid in l)
 
     def test_lookup_blob(self):
         self.assertRaises(TypeError, lambda: self.repo[123])
