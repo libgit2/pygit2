@@ -56,16 +56,17 @@ class NotesTest(utils.BareRepoTestCase):
         self.assertEqual(NOTE[1].encode(), self.repo[note_id].data)
 
     def test_lookup_note(self):
-        annotated_id = self.repo.head.hex
+        annotated_id = self.repo.head.target.hex
         note = self.repo.lookup_note(annotated_id)
         self.assertEqual(NOTES[0][0], note.oid.hex)
         self.assertEqual(NOTES[0][1], note.message)
 
     def test_remove_note(self):
-        note = self.repo.lookup_note(self.repo.head.hex)
+        head = self.repo.head
+        note = self.repo.lookup_note(head.target.hex)
         author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
         note.remove(author, committer)
-        self.assertRaises(KeyError, self.repo.lookup_note, self.repo.head.hex)
+        self.assertRaises(KeyError, self.repo.lookup_note, head.target.hex)
 
     def test_iterate_notes(self):
         for i, note in enumerate(self.repo.notes()):

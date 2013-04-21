@@ -28,8 +28,6 @@ The Reference type
 ====================
 
 .. autoattribute:: pygit2.Reference.name
-.. autoattribute:: pygit2.Reference.oid
-.. autoattribute:: pygit2.Reference.hex
 .. autoattribute:: pygit2.Reference.target
 .. autoattribute:: pygit2.Reference.type
 

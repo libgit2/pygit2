@@ -63,7 +63,7 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_head(self):
         head = self.repo.head
-        self.assertEqual(HEAD_SHA, head.hex)
+        self.assertEqual(HEAD_SHA, head.target.hex)
         self.assertEqual(type(head), Reference)
         self.assertFalse(self.repo.head_is_orphaned)
         self.assertFalse(self.repo.head_is_detached)

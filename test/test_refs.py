@@ -61,7 +61,7 @@ class ReferencesTest(utils.RepoTestCase):
 
     def test_head(self):
         head = self.repo.head
-        self.assertEqual(LAST_COMMIT, self.repo[head.oid].hex)
+        self.assertEqual(LAST_COMMIT, self.repo[head.target].hex)
 
     def test_lookup_reference(self):
         repo = self.repo
@@ -76,20 +76,20 @@ class ReferencesTest(utils.RepoTestCase):
 
     def test_reference_get_sha(self):
         reference = self.repo.lookup_reference('refs/heads/master')
-        self.assertEqual(reference.hex, LAST_COMMIT)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
 
 
     def test_reference_set_sha(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
-        reference.oid = NEW_COMMIT
-        self.assertEqual(reference.hex, NEW_COMMIT)
+        reference.target = NEW_COMMIT
+        self.assertEqual(reference.target.hex, NEW_COMMIT)
 
     def test_reference_set_sha_prefix(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
-        reference.oid = NEW_COMMIT[0:6]
-        self.assertEqual(reference.hex, NEW_COMMIT)
+        reference.target = NEW_COMMIT[0:6]
+        self.assertEqual(reference.target.hex, NEW_COMMIT)
 
 
     def test_reference_get_type(self):
@@ -123,10 +123,8 @@ class ReferencesTest(utils.RepoTestCase):
         # Access the deleted reference
         self.assertRaises(GitError, getattr, reference, 'name')
         self.assertRaises(GitError, getattr, reference, 'type')
-        self.assertRaises(GitError, getattr, reference, 'oid')
-        self.assertRaises(GitError, setattr, reference, 'oid', LAST_COMMIT)
-        self.assertRaises(GitError, getattr, reference, 'hex')
         self.assertRaises(GitError, getattr, reference, 'target')
+        self.assertRaises(GitError, setattr, reference, 'target', LAST_COMMIT)
         self.assertRaises(GitError, setattr, reference, 'target', "a/b/c")
         self.assertRaises(GitError, reference.delete)
         self.assertRaises(GitError, reference.resolve)
@@ -159,7 +157,7 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
         reference = reference.resolve()
         self.assertEqual(reference.type, GIT_REF_OID)
-        self.assertEqual(reference.hex, LAST_COMMIT)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
 
 
     def test_reference_resolve_identity(self):
@@ -175,7 +173,6 @@ class ReferencesTest(utils.RepoTestCase):
         refs = self.repo.listall_references()
         self.assertTrue('refs/tags/version1' in refs)
         reference = self.repo.lookup_reference('refs/tags/version1')
-        self.assertEqual(reference.hex, LAST_COMMIT)
         self.assertEqual(reference.target.hex, LAST_COMMIT)
 
         # try to create existing reference
@@ -185,7 +182,7 @@ class ReferencesTest(utils.RepoTestCase):
         # try to create existing reference with force
         reference =  self.repo.create_reference('refs/tags/version1',
                         LAST_COMMIT, force=True)
-        self.assertEqual(reference.hex, LAST_COMMIT)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
 
 
     def test_create_symbolic_reference(self):

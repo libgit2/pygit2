@@ -214,35 +214,53 @@ Reference_target__get__(Reference *self)
         PyErr_SetString(PyExc_ValueError, "no target available");
         return NULL;
     }
-
     return to_path(c_name);
 }
 
 int
-Reference_target__set__(Reference *self, PyObject *py_name)
+Reference_target__set__(Reference *self, PyObject *py_target)
 {
+    git_oid oid;
     char *c_name;
     int err;
     git_reference *new_ref;
+    git_repository *repo;
 
     CHECK_REFERENCE_INT(self);
 
-    /* Get the C name */
-    c_name = py_path_to_c_str(py_name);
+    /* Case 1: Direct */
+    if (GIT_REF_OID == git_reference_type(self->reference)) {
+        repo = git_reference_owner(self->reference);
+        err = py_str_to_git_oid_expand(repo, py_target, &oid);
+        if (err < 0)
+            goto error;
+
+        err = git_reference_set_target(&new_ref, self->reference, &oid);
+        if (err < 0)
+            goto error;
+
+        git_reference_free(self->reference);
+        self->reference = new_ref;
+        return 0;
+    }
+
+    /* Case 2: Symbolic */
+    c_name = py_path_to_c_str(py_target);
     if (c_name == NULL)
         return -1;
 
-    /* Set the new target */
     err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name);
     free(c_name);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
+    if (err < 0)
+        goto error;
 
     git_reference_free(self->reference);
     self->reference = new_ref;
     return 0;
+
+error:
+    Error_set(err);
+    return -1;
 }
 
 
@@ -253,77 +271,6 @@ Reference_name__get__(Reference *self)
 {
     CHECK_REFERENCE(self);
     return to_path(git_reference_name(self->reference));
-}
-
-
-PyDoc_STRVAR(Reference_oid__doc__, "Object id.");
-
-PyObject *
-Reference_oid__get__(Reference *self)
-{
-    CHECK_REFERENCE(self);
-
-    /* Case 1: Direct */
-    if (GIT_REF_OID == git_reference_type(self->reference))
-        return git_oid_to_python(git_reference_target(self->reference));
-
-    /* Get the oid (only for "direct" references) */
-    PyErr_SetString(PyExc_ValueError,
-                    "oid is only available if the reference is direct "
-                    "(i.e. not symbolic)");
-    return NULL;
-}
-
-int
-Reference_oid__set__(Reference *self, PyObject *py_hex)
-{
-    git_oid oid;
-    int err;
-    git_reference *new_ref;
-
-    CHECK_REFERENCE_INT(self);
-
-    /* Get the oid */
-    err = py_str_to_git_oid_expand(git_reference_owner(self->reference),
-                                                       py_hex, &oid);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-
-    /* Set the oid */
-    err = git_reference_set_target(&new_ref, self->reference, &oid);
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-
-    git_reference_free(self->reference);
-    self->reference = new_ref;
-    return 0;
-}
-
-
-PyDoc_STRVAR(Reference_hex__doc__, "Hex oid.");
-
-PyObject *
-Reference_hex__get__(Reference *self)
-{
-    const git_oid *oid;
-
-    CHECK_REFERENCE(self);
-
-    /* Get the oid (only for "direct" references) */
-    oid = git_reference_target(self->reference);
-    if (oid == NULL) {
-        PyErr_SetString(PyExc_ValueError,
-                        "oid is only available if the reference is direct "
-                        "(i.e. not symbolic)");
-        return NULL;
-    }
-
-    /* Convert and return it */
-    return git_oid_to_py_str(oid);
 }
 
 
@@ -460,8 +407,6 @@ PyMethodDef Reference_methods[] = {
 
 PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, name),
-    GETSET(Reference, oid),
-    GETTER(Reference, hex),
     GETSET(Reference, target),
     GETTER(Reference, type),
     {NULL}

@@ -91,7 +91,7 @@ a contents
 class DiffDirtyTest(utils.DirtyRepoTestCase):
     def test_diff_empty_index(self):
         repo = self.repo
-        head = repo[repo.lookup_reference('HEAD').resolve().oid]
+        head = repo[repo.lookup_reference('HEAD').resolve().target]
         diff = head.tree.diff(repo.index)
 
         files = [patch.new_file_path for patch in diff]
@@ -99,11 +99,12 @@ class DiffDirtyTest(utils.DirtyRepoTestCase):
 
     def test_workdir_to_tree(self):
         repo = self.repo
-        head = repo[repo.lookup_reference('HEAD').resolve().oid]
+        head = repo[repo.lookup_reference('HEAD').resolve().target]
         diff = head.tree.diff()
 
         files = [patch.new_file_path for patch in diff]
         self.assertEqual(DIFF_WORKDIR_EXPECTED, files)
+
 
 class DiffTest(utils.BareRepoTestCase):
 
@@ -114,7 +115,7 @@ class DiffTest(utils.BareRepoTestCase):
 
     def test_diff_empty_index(self):
         repo = self.repo
-        head = repo[repo.lookup_reference('HEAD').resolve().oid]
+        head = repo[repo.lookup_reference('HEAD').resolve().target]
         diff = head.tree.diff(repo.index)
 
         files = [patch.new_file_path.split('/')[0] for patch in diff]
