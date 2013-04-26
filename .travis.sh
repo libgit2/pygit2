@@ -2,7 +2,7 @@
 
 cd ~
 
-git clone --depth=1 -b development https://github.com/libgit2/libgit2.git
+git clone --depth=1 -b master https://github.com/libgit2/libgit2.git
 cd libgit2/
 
 mkdir build && cd build
