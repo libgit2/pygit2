@@ -168,8 +168,6 @@ PyObject *
 Repository_head__get__(Repository *self)
 {
     git_reference *head;
-    const git_oid *oid;
-    PyObject *pyobj;
     int err;
 
     err = git_repository_head(&head, self->repo);
