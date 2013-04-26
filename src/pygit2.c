@@ -203,7 +203,7 @@ moduleinit(PyObject* m)
     INIT_TYPE(CommitType, &ObjectType, NULL)
     INIT_TYPE(SignatureType, NULL, PyType_GenericNew)
     INIT_TYPE(TreeType, &ObjectType, NULL)
-    INIT_TYPE(TreeEntryType, NULL, PyType_GenericNew)
+    INIT_TYPE(TreeEntryType, NULL, NULL)
     INIT_TYPE(TreeIterType, NULL, NULL)
     INIT_TYPE(TreeBuilderType, NULL, PyType_GenericNew)
     INIT_TYPE(BlobType, &ObjectType, NULL)
@@ -229,7 +229,7 @@ moduleinit(PyObject* m)
 
     /* Index */
     INIT_TYPE(IndexType, NULL, PyType_GenericNew)
-    INIT_TYPE(IndexEntryType, NULL, PyType_GenericNew)
+    INIT_TYPE(IndexEntryType, NULL, NULL)
     INIT_TYPE(IndexIterType, NULL, NULL)
     ADD_TYPE(m, Index);
     ADD_TYPE(m, IndexEntry);
