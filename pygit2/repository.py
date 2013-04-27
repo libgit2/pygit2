@@ -25,8 +25,12 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+# Import from the Standard Library
+from string import hexdigits
+
 # Import from pygit2
 from _pygit2 import Repository as _Repository
+from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 
 
 class Repository(_Repository):
@@ -53,10 +57,13 @@ class Repository(_Repository):
     #
     # References
     #
-    def create_reference(self, name, target, force=False, symbolic=False):
+    def create_reference(self, name, target, force=False):
         """
-        Create a new reference "name" which points to a object or another
+        Create a new reference "name" which points to an object or to another
         reference.
+
+        Based on the type and value of the target parameter, this method tries
+        to guess whether it is a direct or a symbolic reference.
 
         Keyword arguments:
 
@@ -64,19 +71,20 @@ class Repository(_Repository):
             If True references will be overridden, otherwise (the default) an
             exception is raised.
 
-        symbolic
-            If True a symbolic reference will be created, then source has to
-            be a valid existing reference name; if False (the default) a
-            normal reference will be created, then source must has to be a
-            valid SHA hash.
-
         Examples::
 
             repo.create_reference('refs/heads/foo', repo.head.hex)
-            repo.create_reference('refs/tags/foo', 'refs/heads/master',
-                                  symbolic=True)
+            repo.create_reference('refs/tags/foo', 'refs/heads/master')
+            repo.create_reference('refs/tags/foo', 'bbb78a9cec580')
         """
-        if symbolic:
-            return self.git_reference_symbolic_create(name, target, force)
+        direct = (
+            type(target) is Oid
+            or (
+                all(c in hexdigits for c in target)
+                and GIT_OID_MINPREFIXLEN <= len(target) <= GIT_OID_HEXSZ)
+            )
 
-        return self.git_reference_create(name, target, force)
+        if direct:
+            return self.git_reference_create(name, target, force)
+
+        return self.git_reference_symbolic_create(name, target, force)
