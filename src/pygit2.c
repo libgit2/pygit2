@@ -185,6 +185,12 @@ moduleinit(PyObject* m)
     if (m == NULL)
         return NULL;
 
+    /* libgit2 version info */
+    ADD_CONSTANT_INT(m, LIBGIT2_VER_MAJOR)
+    ADD_CONSTANT_INT(m, LIBGIT2_VER_MINOR)
+    ADD_CONSTANT_INT(m, LIBGIT2_VER_REVISION)
+    ADD_CONSTANT_STR(m, LIBGIT2_VERSION)
+
     /* Errors */
     GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
     Py_INCREF(GitError);
@@ -192,13 +198,19 @@ moduleinit(PyObject* m)
 
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
-    ADD_TYPE(m, Repository);
+    ADD_TYPE(m, Repository)
 
     /* Oid */
     INIT_TYPE(OidType, NULL, PyType_GenericNew)
-    ADD_TYPE(m, Oid);
+    ADD_TYPE(m, Oid)
+    ADD_CONSTANT_INT(m, GIT_OID_RAWSZ)
+    ADD_CONSTANT_INT(m, GIT_OID_HEXSZ)
+    ADD_CONSTANT_STR(m, GIT_OID_HEX_ZERO)
+    ADD_CONSTANT_INT(m, GIT_OID_MINPREFIXLEN)
 
-    /* Objects (make them with the Repository.create_XXX methods). */
+    /*
+     * Objects
+     */
     INIT_TYPE(ObjectType, NULL, NULL)
     INIT_TYPE(CommitType, &ObjectType, NULL)
     INIT_TYPE(SignatureType, NULL, PyType_GenericNew)
@@ -208,182 +220,141 @@ moduleinit(PyObject* m)
     INIT_TYPE(TreeBuilderType, NULL, PyType_GenericNew)
     INIT_TYPE(BlobType, &ObjectType, NULL)
     INIT_TYPE(TagType, &ObjectType, NULL)
-    ADD_TYPE(m, Object);
-    ADD_TYPE(m, Commit);
-    ADD_TYPE(m, Signature);
-    ADD_TYPE(m, Tree);
-    ADD_TYPE(m, TreeEntry);
-    ADD_TYPE(m, TreeBuilder);
-    ADD_TYPE(m, Blob);
-    ADD_TYPE(m, Tag);
+    ADD_TYPE(m, Object)
+    ADD_TYPE(m, Commit)
+    ADD_TYPE(m, Signature)
+    ADD_TYPE(m, Tree)
+    ADD_TYPE(m, TreeEntry)
+    ADD_TYPE(m, TreeBuilder)
+    ADD_TYPE(m, Blob)
+    ADD_TYPE(m, Tag)
+    ADD_CONSTANT_INT(m, GIT_OBJ_ANY)
+    ADD_CONSTANT_INT(m, GIT_OBJ_COMMIT)
+    ADD_CONSTANT_INT(m, GIT_OBJ_TREE)
+    ADD_CONSTANT_INT(m, GIT_OBJ_BLOB)
+    ADD_CONSTANT_INT(m, GIT_OBJ_TAG)
+    /* Valid modes for index and tree entries. */
+    ADD_CONSTANT_INT(m, GIT_FILEMODE_NEW)
+    ADD_CONSTANT_INT(m, GIT_FILEMODE_TREE)
+    ADD_CONSTANT_INT(m, GIT_FILEMODE_BLOB)
+    ADD_CONSTANT_INT(m, GIT_FILEMODE_BLOB_EXECUTABLE)
+    ADD_CONSTANT_INT(m, GIT_FILEMODE_LINK)
+    ADD_CONSTANT_INT(m, GIT_FILEMODE_COMMIT)
 
-    /* References */
+    /*
+     * Log
+     */
+    INIT_TYPE(WalkerType, NULL, PyType_GenericNew)
+    ADD_CONSTANT_INT(m, GIT_SORT_NONE)
+    ADD_CONSTANT_INT(m, GIT_SORT_TOPOLOGICAL)
+    ADD_CONSTANT_INT(m, GIT_SORT_TIME)
+    ADD_CONSTANT_INT(m, GIT_SORT_REVERSE)
+
+    /*
+     * References
+     */
     INIT_TYPE(ReferenceType, NULL, PyType_GenericNew)
     INIT_TYPE(RefLogEntryType, NULL, NULL)
     INIT_TYPE(RefLogIterType, NULL, NULL)
     INIT_TYPE(NoteType, NULL, NULL)
     INIT_TYPE(NoteIterType, NULL, NULL)
-    ADD_TYPE(m, Reference);
-    ADD_TYPE(m, RefLogEntry);
-    ADD_TYPE(m, Note);
+    ADD_TYPE(m, Reference)
+    ADD_TYPE(m, RefLogEntry)
+    ADD_TYPE(m, Note)
+    ADD_CONSTANT_INT(m, GIT_REF_INVALID)
+    ADD_CONSTANT_INT(m, GIT_REF_OID)
+    ADD_CONSTANT_INT(m, GIT_REF_SYMBOLIC)
+    ADD_CONSTANT_INT(m, GIT_REF_LISTALL)
 
-    /* Index */
+    /*
+     * Index & Working copy
+     */
     INIT_TYPE(IndexType, NULL, PyType_GenericNew)
     INIT_TYPE(IndexEntryType, NULL, NULL)
     INIT_TYPE(IndexIterType, NULL, NULL)
-    ADD_TYPE(m, Index);
-    ADD_TYPE(m, IndexEntry);
+    ADD_TYPE(m, Index)
+    ADD_TYPE(m, IndexEntry)
+    /* Status */
+    ADD_CONSTANT_INT(m, GIT_STATUS_CURRENT)
+    ADD_CONSTANT_INT(m, GIT_STATUS_INDEX_NEW)
+    ADD_CONSTANT_INT(m, GIT_STATUS_INDEX_MODIFIED)
+    ADD_CONSTANT_INT(m, GIT_STATUS_INDEX_DELETED)
+    ADD_CONSTANT_INT(m, GIT_STATUS_WT_NEW)
+    ADD_CONSTANT_INT(m, GIT_STATUS_WT_MODIFIED)
+    ADD_CONSTANT_INT(m, GIT_STATUS_WT_DELETED)
+    ADD_CONSTANT_INT(m, GIT_STATUS_IGNORED) /* Flags for ignored files */
+    /* Different checkout strategies */
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_NONE)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_SAFE)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_SAFE_CREATE)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_FORCE)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_ALLOW_CONFLICTS)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_REMOVE_UNTRACKED)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_REMOVE_IGNORED)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_UPDATE_ONLY)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_DONT_UPDATE_INDEX)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_NO_REFRESH)
+    ADD_CONSTANT_INT(m, GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH)
 
-    /* Diff */
+    /*
+     * Diff
+     */
     INIT_TYPE(DiffType, NULL, NULL)
     INIT_TYPE(DiffIterType, NULL, NULL)
     INIT_TYPE(PatchType, NULL, NULL)
     INIT_TYPE(HunkType, NULL, NULL)
-    ADD_TYPE(m, Diff);
-    ADD_TYPE(m, Patch);
-    ADD_TYPE(m, Hunk);
-
-    /* Log */
-    INIT_TYPE(WalkerType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Diff)
+    ADD_TYPE(m, Patch)
+    ADD_TYPE(m, Hunk)
+    ADD_CONSTANT_INT(m, GIT_DIFF_NORMAL)
+    ADD_CONSTANT_INT(m, GIT_DIFF_REVERSE)
+    ADD_CONSTANT_INT(m, GIT_DIFF_FORCE_TEXT)
+    ADD_CONSTANT_INT(m, GIT_DIFF_IGNORE_WHITESPACE)
+    ADD_CONSTANT_INT(m, GIT_DIFF_IGNORE_WHITESPACE_CHANGE)
+    ADD_CONSTANT_INT(m, GIT_DIFF_IGNORE_WHITESPACE_EOL)
+    ADD_CONSTANT_INT(m, GIT_DIFF_IGNORE_SUBMODULES)
+    ADD_CONSTANT_INT(m, GIT_DIFF_PATIENCE)
+    ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_IGNORED)
+    ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_UNTRACKED)
+    ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_UNMODIFIED)
+    ADD_CONSTANT_INT(m, GIT_DIFF_RECURSE_UNTRACKED_DIRS)
+    /* Flags for diff find similar */
+    /* --find-renames */
+    ADD_CONSTANT_INT(m, GIT_DIFF_FIND_RENAMES)
+    /* --break-rewrites=N */
+    ADD_CONSTANT_INT(m, GIT_DIFF_FIND_RENAMES_FROM_REWRITES)
+    /* --find-copies */
+    ADD_CONSTANT_INT(m, GIT_DIFF_FIND_COPIES)
+    /* --find-copies-harder */
+    ADD_CONSTANT_INT(m, GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED)
+    /* --break-rewrites=/M */
+    ADD_CONSTANT_INT(m, GIT_DIFF_FIND_AND_BREAK_REWRITES)
+    /* Flags for diff deltas */
+    ADD_CONSTANT_INT(m, GIT_DELTA_UNMODIFIED)
+    ADD_CONSTANT_INT(m, GIT_DELTA_ADDED)
+    ADD_CONSTANT_INT(m, GIT_DELTA_DELETED)
+    ADD_CONSTANT_INT(m, GIT_DELTA_MODIFIED)
+    ADD_CONSTANT_INT(m, GIT_DELTA_RENAMED)
+    ADD_CONSTANT_INT(m, GIT_DELTA_COPIED)
+    ADD_CONSTANT_INT(m, GIT_DELTA_IGNORED)
+    ADD_CONSTANT_INT(m, GIT_DELTA_UNTRACKED)
+    /* Flags for diffed lines origin */
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_CONTEXT)
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_ADDITION)
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_DELETION)
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_ADD_EOFNL)
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_DEL_EOFNL)
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_FILE_HDR)
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_HUNK_HDR)
+    ADD_CONSTANT_INT(m, GIT_DIFF_LINE_BINARY)
 
     /* Config */
     INIT_TYPE(ConfigType, NULL, PyType_GenericNew)
-    ADD_TYPE(m, Config);
+    ADD_TYPE(m, Config)
 
-    /* Remote */
+    /* Remotes */
     INIT_TYPE(RemoteType, NULL, NULL)
-    ADD_TYPE(m, Remote);
-
-    /* Constants */
-    PyModule_AddIntConstant(m, "GIT_OBJ_ANY", GIT_OBJ_ANY);
-    PyModule_AddIntConstant(m, "GIT_OBJ_COMMIT", GIT_OBJ_COMMIT);
-    PyModule_AddIntConstant(m, "GIT_OBJ_TREE", GIT_OBJ_TREE);
-    PyModule_AddIntConstant(m, "GIT_OBJ_BLOB", GIT_OBJ_BLOB);
-    PyModule_AddIntConstant(m, "GIT_OBJ_TAG", GIT_OBJ_TAG);
-    PyModule_AddIntConstant(m, "GIT_SORT_NONE", GIT_SORT_NONE);
-    PyModule_AddIntConstant(m, "GIT_SORT_TOPOLOGICAL", GIT_SORT_TOPOLOGICAL);
-    PyModule_AddIntConstant(m, "GIT_SORT_TIME", GIT_SORT_TIME);
-    PyModule_AddIntConstant(m, "GIT_SORT_REVERSE", GIT_SORT_REVERSE);
-    PyModule_AddIntConstant(m, "GIT_REF_INVALID", GIT_REF_INVALID);
-    PyModule_AddIntConstant(m, "GIT_REF_OID", GIT_REF_OID);
-    PyModule_AddIntConstant(m, "GIT_REF_SYMBOLIC", GIT_REF_SYMBOLIC);
-    PyModule_AddIntConstant(m, "GIT_REF_LISTALL", GIT_REF_LISTALL);
-
-    /* Git status flags */
-    PyModule_AddIntConstant(m, "GIT_STATUS_CURRENT", GIT_STATUS_CURRENT);
-    PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_NEW", GIT_STATUS_INDEX_NEW);
-    PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_MODIFIED",
-                            GIT_STATUS_INDEX_MODIFIED);
-    PyModule_AddIntConstant(m, "GIT_STATUS_INDEX_DELETED" ,
-                            GIT_STATUS_INDEX_DELETED);
-    PyModule_AddIntConstant(m, "GIT_STATUS_WT_NEW", GIT_STATUS_WT_NEW);
-    PyModule_AddIntConstant(m, "GIT_STATUS_WT_MODIFIED" ,
-                            GIT_STATUS_WT_MODIFIED);
-    PyModule_AddIntConstant(m, "GIT_STATUS_WT_DELETED", GIT_STATUS_WT_DELETED);
-
-    /* Flags for ignored files */
-    PyModule_AddIntConstant(m, "GIT_STATUS_IGNORED", GIT_STATUS_IGNORED);
-
-    /* Git diff flags */
-    PyModule_AddIntConstant(m, "GIT_DIFF_NORMAL", GIT_DIFF_NORMAL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_REVERSE", GIT_DIFF_REVERSE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_FORCE_TEXT", GIT_DIFF_FORCE_TEXT);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_WHITESPACE",
-                            GIT_DIFF_IGNORE_WHITESPACE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_WHITESPACE_CHANGE",
-                            GIT_DIFF_IGNORE_WHITESPACE_CHANGE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_WHITESPACE_EOL",
-                            GIT_DIFF_IGNORE_WHITESPACE_EOL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_IGNORE_SUBMODULES",
-                            GIT_DIFF_IGNORE_SUBMODULES);
-    PyModule_AddIntConstant(m, "GIT_DIFF_PATIENCE", GIT_DIFF_PATIENCE);
-    PyModule_AddIntConstant(m, "GIT_DIFF_INCLUDE_IGNORED",
-                            GIT_DIFF_INCLUDE_IGNORED);
-    PyModule_AddIntConstant(m, "GIT_DIFF_INCLUDE_UNTRACKED",
-                            GIT_DIFF_INCLUDE_UNTRACKED);
-    PyModule_AddIntConstant(m, "GIT_DIFF_INCLUDE_UNMODIFIED",
-                            GIT_DIFF_INCLUDE_UNMODIFIED);
-    PyModule_AddIntConstant(m, "GIT_DIFF_RECURSE_UNTRACKED_DIRS",
-                            GIT_DIFF_RECURSE_UNTRACKED_DIRS);
-
-    /* Flags for diff find similar */
-    /* --find-renames */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_RENAMES",
-                            GIT_DIFF_FIND_RENAMES);
-    /* --break-rewrites=N */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_RENAMES_FROM_REWRITES",
-                            GIT_DIFF_FIND_RENAMES_FROM_REWRITES);
-    /* --find-copies */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_COPIES",
-                            GIT_DIFF_FIND_COPIES);
-    /* --find-copies-harder */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED",
-                            GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED);
-    /* --break-rewrites=/M */
-    PyModule_AddIntConstant(m, "GIT_DIFF_FIND_AND_BREAK_REWRITES",
-                            GIT_DIFF_FIND_AND_BREAK_REWRITES);
-
-    /* Flags for diff deltas */
-    PyModule_AddIntConstant(m, "GIT_DELTA_UNMODIFIED", GIT_DELTA_UNMODIFIED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_ADDED", GIT_DELTA_ADDED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_DELETED", GIT_DELTA_DELETED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_MODIFIED", GIT_DELTA_MODIFIED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_RENAMED", GIT_DELTA_RENAMED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_COPIED", GIT_DELTA_COPIED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_IGNORED", GIT_DELTA_IGNORED);
-    PyModule_AddIntConstant(m, "GIT_DELTA_UNTRACKED", GIT_DELTA_UNTRACKED);
-
-    /* Flags for diffed lines origin */
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_CONTEXT", GIT_DIFF_LINE_CONTEXT);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_ADDITION",
-                            GIT_DIFF_LINE_ADDITION);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_DELETION",
-                            GIT_DIFF_LINE_DELETION);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_ADD_EOFNL",
-                            GIT_DIFF_LINE_ADD_EOFNL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_DEL_EOFNL",
-                            GIT_DIFF_LINE_DEL_EOFNL);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_FILE_HDR",
-                            GIT_DIFF_LINE_FILE_HDR);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_HUNK_HDR",
-                            GIT_DIFF_LINE_HUNK_HDR);
-    PyModule_AddIntConstant(m, "GIT_DIFF_LINE_BINARY", GIT_DIFF_LINE_BINARY);
-
-    /* Valid modes for index and tree entries. */
-    PyModule_AddIntConstant(m, "GIT_FILEMODE_NEW", GIT_FILEMODE_NEW);
-    PyModule_AddIntConstant(m, "GIT_FILEMODE_TREE", GIT_FILEMODE_TREE);
-    PyModule_AddIntConstant(m, "GIT_FILEMODE_BLOB", GIT_FILEMODE_BLOB);
-    PyModule_AddIntConstant(m, "GIT_FILEMODE_BLOB_EXECUTABLE",
-                            GIT_FILEMODE_BLOB_EXECUTABLE);
-    PyModule_AddIntConstant(m, "GIT_FILEMODE_LINK", GIT_FILEMODE_LINK);
-    PyModule_AddIntConstant(m, "GIT_FILEMODE_COMMIT", GIT_FILEMODE_COMMIT);
-
-    /* libgit2 version info */
-    PyModule_AddIntConstant(m, "LIBGIT2_VER_MAJOR", LIBGIT2_VER_MAJOR);
-    PyModule_AddIntConstant(m, "LIBGIT2_VER_MINOR", LIBGIT2_VER_MINOR);
-    PyModule_AddIntConstant(m, "LIBGIT2_VER_REVISION", LIBGIT2_VER_REVISION);
-    PyModule_AddStringConstant(m, "LIBGIT2_VERSION", LIBGIT2_VERSION);
-
-    /* Different checkout strategies */
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_NONE", GIT_CHECKOUT_NONE);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_SAFE", GIT_CHECKOUT_SAFE);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_SAFE_CREATE",
-                            GIT_CHECKOUT_SAFE_CREATE);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_FORCE", GIT_CHECKOUT_FORCE);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_ALLOW_CONFLICTS",
-                            GIT_CHECKOUT_ALLOW_CONFLICTS);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_REMOVE_UNTRACKED",
-                            GIT_CHECKOUT_REMOVE_UNTRACKED);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_REMOVE_IGNORED",
-                            GIT_CHECKOUT_REMOVE_IGNORED);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_UPDATE_ONLY",
-                            GIT_CHECKOUT_UPDATE_ONLY);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_DONT_UPDATE_INDEX",
-                            GIT_CHECKOUT_DONT_UPDATE_INDEX);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_NO_REFRESH",
-                            GIT_CHECKOUT_NO_REFRESH);
-    PyModule_AddIntConstant(m, "GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH",
-                            GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH);
+    ADD_TYPE(m, Remote)
 
     /* Global initialization of libgit2 */
     git_threads_init();

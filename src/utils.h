@@ -150,5 +150,9 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
     Py_INCREF(& type ## Type); \
     PyModule_AddObject(module, #type, (PyObject *) & type ## Type);
 
+#define ADD_CONSTANT_INT(m, name) PyModule_AddIntConstant(m, #name, name);
+
+#define ADD_CONSTANT_STR(m, name) PyModule_AddStringConstant(m, #name, name);
+
 
 #endif
