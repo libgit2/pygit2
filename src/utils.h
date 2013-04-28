@@ -147,12 +147,15 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
     if (PyType_Ready(&type) < 0) return NULL;
 
 #define ADD_TYPE(module, type) \
-    Py_INCREF(& type ## Type); \
-    PyModule_AddObject(module, #type, (PyObject *) & type ## Type);
+    Py_INCREF(& type ## Type);\
+    if (PyModule_AddObject(module, #type, (PyObject*) & type ## Type) == -1)\
+        return NULL;
 
-#define ADD_CONSTANT_INT(m, name) PyModule_AddIntConstant(m, #name, name);
+#define ADD_CONSTANT_INT(m, name) \
+    if (PyModule_AddIntConstant(m, #name, name) == -1) return NULL;
 
-#define ADD_CONSTANT_STR(m, name) PyModule_AddStringConstant(m, #name, name);
+#define ADD_CONSTANT_STR(m, name) \
+    if (PyModule_AddStringConstant(m, #name, name) == -1) return NULL;
 
 
 #endif
