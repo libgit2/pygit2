@@ -2,26 +2,16 @@
 References
 **********************************************************************
 
+.. contents::
+
 .. automethod:: pygit2.Repository.listall_references
 .. automethod:: pygit2.Repository.lookup_reference
 
-Reference lookup::
+Example::
 
     >>> all_refs = repo.listall_references()
     >>> master_ref = repo.lookup_reference("refs/heads/master")
-    >>> commit = repo[master_ref.oid]
-
-Reference log::
-
-    >>> head = repo.lookup_reference('refs/heads/master')
-    >>> for entry in head.log():
-    ...     print(entry.message)
-
-Shortcuts::
-
-    >>> # These two lines are equivalent
-    >>> head = repo.head
-    >>> head = repo.lookup_reference('HEAD').resolve()
+    >>> commit = repo[master_ref.target]
 
 
 The Reference type
@@ -38,7 +28,12 @@ The Reference type
 
 
 The HEAD
---------------------
+====================
+
+Example. These two lines are equivalent::
+
+    >>> head = repo.lookup_reference('HEAD').resolve()
+    >>> head = repo.head
 
 .. autoattribute:: pygit2.Repository.head
 .. autoattribute:: pygit2.Repository.head_is_detached
@@ -46,7 +41,13 @@ The HEAD
 
 
 The reference log
---------------------
+====================
+
+Example::
+
+    >>> head = repo.lookup_reference('refs/heads/master')
+    >>> for entry in head.log():
+    ...     print(entry.message)
 
 .. autoattribute:: pygit2.RefLogEntry.oid_new
 .. autoattribute:: pygit2.RefLogEntry.oid_old

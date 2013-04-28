@@ -195,7 +195,10 @@ Reference_resolve(Reference *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Reference_target__doc__, "Target.");
+PyDoc_STRVAR(Reference_target__doc__,
+    "The reference target: If direct the value will be an Oid object, if it\n"
+    "is symbolic it will be an string with the full name of the target\n"
+    "reference.");
 
 PyObject *
 Reference_target__get__(Reference *self)
@@ -264,7 +267,7 @@ error:
 }
 
 
-PyDoc_STRVAR(Reference_name__doc__, "The full name of a reference.");
+PyDoc_STRVAR(Reference_name__doc__, "The full name of the reference.");
 
 PyObject *
 Reference_name__get__(Reference *self)
@@ -275,7 +278,7 @@ Reference_name__get__(Reference *self)
 
 
 PyDoc_STRVAR(Reference_type__doc__,
-  "Type (GIT_REF_OID or GIT_REF_SYMBOLIC).");
+    "Type, either GIT_REF_OID or GIT_REF_SYMBOLIC.");
 
 PyObject *
 Reference_type__get__(Reference *self)
