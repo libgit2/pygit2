@@ -29,6 +29,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+import os
 import unittest
 
 import pygit2
@@ -74,9 +75,9 @@ class BlobTest(utils.RepoTestCase):
         self.assertEqual(len(BLOB_NEW_CONTENT), blob.size)
         self.assertEqual(BLOB_NEW_CONTENT, blob.read_raw())
 
-    def test_create_blob_fromfile(self):
+    def test_create_blob_fromworkdir(self):
 
-        blob_oid = self.repo.create_blob_fromfile("bye.txt")
+        blob_oid = self.repo.create_blob_fromworkdir("bye.txt")
         blob = self.repo[blob_oid]
 
         self.assertTrue(isinstance(blob, pygit2.Blob))
@@ -91,6 +92,20 @@ class BlobTest(utils.RepoTestCase):
         self.assertEqual(BLOB_FILE_CONTENT, blob.data)
         self.assertEqual(len(BLOB_FILE_CONTENT), blob.size)
         self.assertEqual(BLOB_FILE_CONTENT, blob.read_raw())
+
+    def test_create_blob_outside_workdir(self):
+
+        path = os.path.join(os.path.dirname(__file__), 'data', self.repo_dir + '.tar')
+        self.assertRaises(KeyError, self.repo.create_blob_fromworkdir, path)
+
+    def test_create_blob_fromdisk(self):
+
+        path = os.path.join(os.path.dirname(__file__), 'data', self.repo_dir + '.tar')
+        blob_oid = self.repo.create_blob_fromdisk(path)
+        blob = self.repo[blob_oid]
+
+        self.assertTrue(isinstance(blob, pygit2.Blob))
+        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
 
 if __name__ == '__main__':
     unittest.main()
