@@ -575,13 +575,13 @@ Repository_create_blob(Repository *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Repository_create_blob_fromfile__doc__,
-  "create_blob_fromfile(path) -> bytes\n"
+PyDoc_STRVAR(Repository_create_blob_fromworkdir__doc__,
+  "create_blob_fromworkdir(path) -> bytes\n"
   "\n"
-  "Create a new blob from file.");
+  "Create a new blob from a file within the working directory.");
 
 PyObject *
-Repository_create_blob_fromfile(Repository *self, PyObject *args)
+Repository_create_blob_fromworkdir(Repository *self, PyObject *args)
 {
     git_oid oid;
     const char* path;
@@ -595,6 +595,29 @@ Repository_create_blob_fromfile(Repository *self, PyObject *args)
         return Error_set(err);
 
     return git_oid_to_python(&oid);
+}
+
+
+PyDoc_STRVAR(Repository_create_blob_fromdisk__doc__,
+  "create_blob_fromdisk(path) -> bytes\n"
+  "\n"
+  "Create a new blob from file.");
+
+PyObject *
+Repository_create_blob_fromdisk(Repository *self, PyObject *args)
+{
+    git_oid oid;
+    const char* path;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s", &path))
+        return NULL;
+
+    err = git_blob_create_fromdisk(&oid, self->repo, path);
+    if (err < 0)
+        return Error_set(err);
+
+    return git_oid_to_python(oid.id);
 }
 
 
@@ -1178,7 +1201,8 @@ Repository_lookup_note(Repository *self, PyObject* args)
 
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
-    METHOD(Repository, create_blob_fromfile, METH_VARARGS),
+    METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
+    METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
     METHOD(Repository, create_commit, METH_VARARGS),
     METHOD(Repository, create_tag, METH_VARARGS),
     METHOD(Repository, TreeBuilder, METH_VARARGS),
