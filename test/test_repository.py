@@ -231,6 +231,10 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, head=True)
         self.assertTrue('bye.txt' not in self.repo.status())
 
+    def test_merge_base(self):
+        commit = self.repo.merge_base('5ebeeebb320790caf276b9fc8b24546d63316533', '4ec4389a8068641da2d6578db0419484972284c8')
+        self.assertEqual(commit.hex, 'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+
 
 class NewRepositoryTest(utils.NoRepoTestCase):
 

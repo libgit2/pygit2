@@ -497,6 +497,38 @@ Repository_config__get__(Repository *self)
     return self->config;
 }
 
+PyDoc_STRVAR(Repository_merge_base__doc__,
+  "merge_base(oid, oid) -> commit\n"
+  "\n"
+  "Find as good common ancestors as possible for a merge.");
+
+PyObject *
+Repository_merge_base(Repository *self, PyObject *args)
+{
+    PyObject *value1;
+    PyObject *value2;
+    git_oid oid;
+    git_oid oid1;
+    git_oid oid2;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "OO", &value1, &value2))
+        return NULL;
+
+    err = py_str_to_git_oid_expand(self->repo, value1, &oid1);
+    if (err < 0)
+        return NULL;
+
+    err = py_str_to_git_oid_expand(self->repo, value2, &oid2);
+    if (err < 0)
+        return NULL;
+
+    err = git_merge_base(&oid, self->repo, &oid1, &oid2);
+    if (err < 0)
+        return Error_set(err);
+
+    return git_oid_to_python(&oid);
+}
 
 PyDoc_STRVAR(Repository_walk__doc__,
   "walk(oid, sort_mode) -> iterator\n"
@@ -1183,6 +1215,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_tag, METH_VARARGS),
     METHOD(Repository, TreeBuilder, METH_VARARGS),
     METHOD(Repository, walk, METH_VARARGS),
+    METHOD(Repository, merge_base, METH_VARARGS),
     METHOD(Repository, read, METH_O),
     METHOD(Repository, write, METH_VARARGS),
     METHOD(Repository, git_reference_create, METH_VARARGS),
