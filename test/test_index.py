@@ -133,13 +133,12 @@ class IndexTest(utils.RepoTestCase):
 
         self.assertRaises(pygit2.GitError, lambda: index.add('bye.txt'))
 
-    def test_del(self):
-        index = self.repo.index
-        del index['hello.txt']
-
     def test_remove(self):
         index = self.repo.index
+        self.assertTrue('hello.txt' in index)
         index.remove('hello.txt')
+        self.assertFalse('hello.txt' in index)
+
 
 if __name__ == '__main__':
     unittest.main()

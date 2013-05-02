@@ -227,43 +227,6 @@ Index_write(Index *self)
     Py_RETURN_NONE;
 }
 
-/* This is an internal function, used by Index_getitem and Index_setitem */
-size_t
-Index_get_position(Index *self, PyObject *value)
-{
-    char *path;
-    size_t idx;
-    int err;
-
-    /* Case 1: integer */
-    if (PyLong_Check(value)) {
-        err = (int)PyLong_AsLong(value);
-        if (err == -1 && PyErr_Occurred())
-            return -1;
-        if (err < 0) {
-            PyErr_SetObject(PyExc_ValueError, value);
-            return -1;
-        }
-        return err;
-    }
-
-    /* Case 2: byte or text string */
-    path = py_path_to_c_str(value);
-    if (!path)
-        return -1;
-
-    err = git_index_find(&idx, self->index, path);
-    if (err < 0) {
-        Error_set_str(err, path);
-        free(path);
-        return -1;
-    }
-
-    free(path);
-
-    return idx;
-}
-
 int
 Index_contains(Index *self, PyObject *value)
 {
@@ -322,19 +285,34 @@ wrap_index_entry(const git_index_entry *entry, Index *index)
 PyObject *
 Index_getitem(Index *self, PyObject *value)
 {
-    size_t idx;
+    long idx;
+    char *path;
     const git_index_entry *index_entry;
 
-    idx = Index_get_position(self, value);
-    if (idx == -1)
-        return NULL;
+    /* Case 1: integer */
+    if (PyLong_Check(value)) {
+        idx = PyLong_AsLong(value);
+        if (idx == -1 && PyErr_Occurred())
+            return NULL;
+        if (idx < 0) {
+            PyErr_SetObject(PyExc_ValueError, value);
+            return NULL;
+        }
+        index_entry = git_index_get_byindex(self->index, (size_t)idx);
+    /* Case 2: byte or text string */
+    } else {
+        path = py_path_to_c_str(value);
+        if (!path)
+            return NULL;
 
-    index_entry = git_index_get_byindex(self->index, idx);
+        index_entry = git_index_get_bypath(self->index, path, 0);
+        free(path);
+    }
+
     if (!index_entry) {
         PyErr_SetObject(PyExc_KeyError, value);
         return NULL;
     }
-
     return wrap_index_entry(index_entry, self);
 }
 
@@ -360,21 +338,6 @@ Index_remove(Index *self, PyObject *args)
     }
 
     Py_RETURN_NONE;
-}
-
-int
-Index_setitem(Index *self, PyObject *key, PyObject *value)
-{
-    if (value != NULL) {
-        PyErr_SetString(PyExc_NotImplementedError,
-                        "set item on index not yet implemented");
-        return -1;
-    }
-
-    if (Index_remove(self, Py_BuildValue("(N)", key)) == NULL)
-        return -1;
-
-    return 0;
 }
 
 
@@ -453,7 +416,7 @@ PySequenceMethods Index_as_sequence = {
 PyMappingMethods Index_as_mapping = {
     (lenfunc)Index_len,              /* mp_length */
     (binaryfunc)Index_getitem,       /* mp_subscript */
-    (objobjargproc)Index_setitem,    /* mp_ass_subscript */
+    NULL,                            /* mp_ass_subscript */
 };
 
 PyDoc_STRVAR(Index__doc__, "Index file.");
