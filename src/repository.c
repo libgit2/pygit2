@@ -617,7 +617,7 @@ Repository_create_blob_fromdisk(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return git_oid_to_python(oid.id);
+    return git_oid_to_python(&oid);
 }
 
 
