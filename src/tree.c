@@ -42,7 +42,6 @@ extern PyTypeObject IndexType;
 void
 TreeEntry_dealloc(TreeEntry *self)
 {
-    Py_CLEAR(self->owner);
     git_tree_entry_free((git_tree_entry*)self->entry);
     PyObject_Del(self);
 }
@@ -87,32 +86,11 @@ TreeEntry_hex__get__(TreeEntry *self)
 }
 
 
-PyDoc_STRVAR(TreeEntry_to_object__doc__,
-  "to_object() -> Object\n"
-  "\n"
-  "Look up the corresponding object in the repo.");
-
-PyObject *
-TreeEntry_to_object(TreeEntry *self)
-{
-    const git_oid *entry_oid;
-    Repository *repo;
-
-    repo = ((Object*)(self->owner))->repo;
-    entry_oid = git_tree_entry_id(self->entry);
-    return lookup_object(repo, entry_oid, GIT_OBJ_ANY);
-}
-
 PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, filemode),
     GETTER(TreeEntry, name),
     GETTER(TreeEntry, oid),
     GETTER(TreeEntry, hex),
-    {NULL}
-};
-
-PyMethodDef TreeEntry_methods[] = {
-    METHOD(TreeEntry, to_object, METH_NOARGS),
     {NULL}
 };
 
@@ -147,7 +125,7 @@ PyTypeObject TreeEntryType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    TreeEntry_methods,                         /* tp_methods        */
+    0,                                         /* tp_methods        */
     0,                                         /* tp_members        */
     TreeEntry_getseters,                       /* tp_getset         */
     0,                                         /* tp_base           */
@@ -181,16 +159,14 @@ Tree_contains(Tree *self, PyObject *py_name)
 }
 
 TreeEntry *
-wrap_tree_entry(const git_tree_entry *entry, Tree *tree)
+wrap_tree_entry(const git_tree_entry *entry)
 {
     TreeEntry *py_entry;
 
     py_entry = PyObject_New(TreeEntry, &TreeEntryType);
-    if (py_entry) {
+    if (py_entry)
         py_entry->entry = entry;
-        py_entry->owner = (PyObject*)tree;
-        Py_INCREF(tree);
-    }
+
     return py_entry;
 }
 
@@ -252,7 +228,14 @@ Tree_getitem_by_index(Tree *self, PyObject *py_index)
         PyErr_SetObject(PyExc_IndexError, py_index);
         return NULL;
     }
-    return wrap_tree_entry(git_tree_entry_dup(entry), self);
+
+    entry = git_tree_entry_dup(entry);
+    if (entry == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return NULL;
+    }
+
+    return wrap_tree_entry(entry);
 }
 
 TreeEntry *
@@ -283,7 +266,7 @@ Tree_getitem(Tree *self, PyObject *value)
         return (TreeEntry*)Error_set(err);
 
     /* git_tree_entry_dup is already done in git_tree_entry_bypath */
-    return wrap_tree_entry(entry, self);
+    return wrap_tree_entry(entry);
 }
 
 
@@ -431,15 +414,20 @@ TreeIter_dealloc(TreeIter *self)
 TreeEntry *
 TreeIter_iternext(TreeIter *self)
 {
-    const git_tree_entry *tree_entry;
+    const git_tree_entry *entry;
 
-    tree_entry = git_tree_entry_byindex(self->owner->tree, self->i);
-    if (!tree_entry)
+    entry = git_tree_entry_byindex(self->owner->tree, self->i);
+    if (!entry)
         return NULL;
 
     self->i += 1;
-    return (TreeEntry*)wrap_tree_entry(git_tree_entry_dup(tree_entry),
-                                       self->owner);
+
+    entry = git_tree_entry_dup(entry);
+    if (entry == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return NULL;
+    }
+    return wrap_tree_entry(entry);
 }
 
 

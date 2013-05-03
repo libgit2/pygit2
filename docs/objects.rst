@@ -187,7 +187,6 @@ interfaces::
 .. autoattribute:: pygit2.TreeEntry.oid
 .. autoattribute:: pygit2.TreeEntry.hex
 .. autoattribute:: pygit2.TreeEntry.filemode
-.. automethod:: pygit2.TreeEntry.to_object
 
 
 Creating trees

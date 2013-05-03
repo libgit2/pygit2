@@ -32,6 +32,7 @@
 #include "utils.h"
 #include "oid.h"
 #include "treebuilder.h"
+#include "tree.h"
 
 
 void
@@ -44,9 +45,9 @@ TreeBuilder_dealloc(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_insert__doc__,
-  "insert(name, oid, attr)\n"
-  "\n"
-  "Insert or replace an entry in the treebuilder.");
+    "insert(name, oid, attr)\n"
+    "\n"
+    "Insert or replace an entry in the treebuilder.");
 
 PyObject *
 TreeBuilder_insert(TreeBuilder *self, PyObject *args)
@@ -72,9 +73,9 @@ TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 
 
 PyDoc_STRVAR(TreeBuilder_write__doc__,
-  "write() -> bytes\n"
-  "\n"
-  "Write the tree to the given repository.");
+    "write() -> bytes\n"
+    "\n"
+    "Write the tree to the given repository.");
 
 PyObject *
 TreeBuilder_write(TreeBuilder *self)
@@ -90,10 +91,38 @@ TreeBuilder_write(TreeBuilder *self)
 }
 
 
+PyDoc_STRVAR(TreeBuilder_get__doc__,
+    "get(name) -> TreeEntry\n"
+    "\n"
+    "Return the TreeEntry for the given name, or None if there is not.");
+
+PyObject *
+TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
+{
+    char *filename;
+    const git_tree_entry *entry;
+
+    filename = py_path_to_c_str(py_filename);
+    if (filename == NULL)
+        return NULL;
+
+    entry = git_treebuilder_get(self->bld, filename);
+    if (entry == NULL)
+        Py_RETURN_NONE;
+
+    entry = git_tree_entry_dup(entry);
+    if (entry == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return NULL;
+    }
+    return (PyObject*)wrap_tree_entry(entry);
+}
+
+
 PyDoc_STRVAR(TreeBuilder_remove__doc__,
-  "remove(name)\n"
-  "\n"
-  "Remove an entry from the builder.");
+    "remove(name)\n"
+    "\n"
+    "Remove an entry from the builder.");
 
 PyObject *
 TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
@@ -114,9 +143,9 @@ TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
 
 
 PyDoc_STRVAR(TreeBuilder_clear__doc__,
-  "clear()\n"
-  "\n"
-  "Clear all the entries in the builder.");
+    "clear()\n"
+    "\n"
+    "Clear all the entries in the builder.");
 
 PyObject *
 TreeBuilder_clear(TreeBuilder *self)
@@ -126,10 +155,11 @@ TreeBuilder_clear(TreeBuilder *self)
 }
 
 PyMethodDef TreeBuilder_methods[] = {
-    METHOD(TreeBuilder, insert, METH_VARARGS),
-    METHOD(TreeBuilder, write, METH_NOARGS),
-    METHOD(TreeBuilder, remove, METH_O),
     METHOD(TreeBuilder, clear, METH_NOARGS),
+    METHOD(TreeBuilder, get, METH_O),
+    METHOD(TreeBuilder, insert, METH_VARARGS),
+    METHOD(TreeBuilder, remove, METH_O),
+    METHOD(TreeBuilder, write, METH_NOARGS),
     {NULL}
 };
 
