@@ -41,25 +41,33 @@ class TreeBuilderTest(utils.BareRepoTestCase):
     def test_new_empty_treebuilder(self):
         self.repo.TreeBuilder()
 
+
     def test_noop_treebuilder(self):
         tree = self.repo[TREE_SHA]
         bld = self.repo.TreeBuilder(TREE_SHA)
         result = bld.write()
+
+        self.assertEqual(len(bld), len(tree))
         self.assertEqual(tree.oid, result)
+
 
     def test_noop_treebuilder_from_tree(self):
         tree = self.repo[TREE_SHA]
         bld = self.repo.TreeBuilder(tree)
         result = bld.write()
+
+        self.assertEqual(len(bld), len(tree))
         self.assertEqual(tree.oid, result)
+
 
     def test_rebuild_treebuilder(self):
         tree = self.repo[TREE_SHA]
         bld = self.repo.TreeBuilder()
         for e in tree:
             bld.insert(e.name, e.hex, e.filemode)
-
         result = bld.write()
+
+        self.assertEqual(len(bld), len(tree))
         self.assertEqual(tree.oid, result)
 
 

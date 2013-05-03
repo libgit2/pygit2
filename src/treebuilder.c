@@ -56,20 +56,16 @@ TreeBuilder_insert(TreeBuilder *self, PyObject *args)
     git_oid oid;
     const char *fname;
 
-    if (!PyArg_ParseTuple(args, "sOi", &fname, &py_oid, &attr)) {
+    if (!PyArg_ParseTuple(args, "sOi", &fname, &py_oid, &attr))
         return NULL;
-    }
 
     len = py_str_to_git_oid(py_oid, &oid);
-    if (len < 0) {
+    if (len < 0)
         return NULL;
-    }
 
     err = git_treebuilder_insert(NULL, self->bld, fname, &oid, attr);
-    if (err < 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err < 0)
+        return Error_set(err);
 
     Py_RETURN_NONE;
 }
@@ -138,6 +134,20 @@ PyMethodDef TreeBuilder_methods[] = {
 };
 
 
+Py_ssize_t
+TreeBuilder_len(TreeBuilder *self)
+{
+    return (Py_ssize_t)git_treebuilder_entrycount(self->bld);
+}
+
+
+PyMappingMethods TreeBuilder_as_mapping = {
+    (lenfunc)TreeBuilder_len,     /* mp_length */
+    0,                            /* mp_subscript */
+    0,                            /* mp_ass_subscript */
+};
+
+
 PyDoc_STRVAR(TreeBuilder__doc__, "TreeBuilder objects.");
 
 PyTypeObject TreeBuilderType = {
@@ -153,7 +163,7 @@ PyTypeObject TreeBuilderType = {
     0,                                         /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
-    0,                                         /* tp_as_mapping     */
+    &TreeBuilder_as_mapping,                   /* tp_as_mapping     */
     0,                                         /* tp_hash           */
     0,                                         /* tp_call           */
     0,                                         /* tp_str            */
