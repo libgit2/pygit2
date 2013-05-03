@@ -65,7 +65,7 @@ class TreeBuilderTest(utils.BareRepoTestCase):
         bld = self.repo.TreeBuilder()
         for entry in tree:
             name = entry.name
-            self.assertIsNone(bld.get(name))
+            self.assertTrue(bld.get(name) is None)
             bld.insert(name, entry.hex, entry.filemode)
             self.assertEqual(bld.get(name).oid, entry.oid)
         result = bld.write()
