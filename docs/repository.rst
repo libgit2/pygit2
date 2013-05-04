@@ -41,3 +41,4 @@ To open an existing repository::
 .. autoattribute:: pygit2.Repository.is_empty
 .. automethod:: pygit2.Repository.read
 .. automethod:: pygit2.Repository.write
+.. automethod:: pygit2.Repository.merge_base
