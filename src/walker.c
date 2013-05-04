@@ -53,11 +53,12 @@ PyObject *
 Walker_hide(Walker *self, PyObject *py_hex)
 {
     int err;
+    Py_ssize_t len;
     git_oid oid;
 
-    err = py_str_to_git_oid_expand(self->repo->repo, py_hex, &oid);
-    if (err < 0)
-        return Error_set(err);
+    len = py_str_to_git_oid_expand(self->repo->repo, py_hex, &oid);
+    if (len < 0)
+        return Error_set((int)len);
 
     err = git_revwalk_hide(self->walk, &oid);
     if (err < 0)
@@ -76,11 +77,12 @@ PyObject *
 Walker_push(Walker *self, PyObject *py_hex)
 {
     int err;
+    Py_ssize_t len;
     git_oid oid;
 
-    err = py_str_to_git_oid_expand(self->repo->repo, py_hex, &oid);
-    if (err < 0)
-        return Error_set(err);
+    len = py_str_to_git_oid_expand(self->repo->repo, py_hex, &oid);
+    if (len < 0)
+        return Error_set((int)len);
 
     err = git_revwalk_push(self->walk, &oid);
     if (err < 0)

@@ -148,7 +148,7 @@ PyDoc_STRVAR(Signature_time__doc__, "Unix time.");
 PyObject *
 Signature_time__get__(Signature *self)
 {
-    return PyLong_FromLong(self->signature->when.time);
+    return PyLong_FromLongLong(self->signature->when.time);
 }
 
 

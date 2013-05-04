@@ -174,8 +174,8 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     git_reflog *reflog;
-    int i;
-    int size;
+    size_t i;
+    size_t size;
 } RefLogIter;
 
 

@@ -45,7 +45,7 @@ git_oid_to_python(const git_oid *oid)
     return (PyObject*)py_oid;
 }
 
-int
+Py_ssize_t
 _oid_from_hex(PyObject *py_oid, git_oid *oid)
 {
     PyObject *py_hex;
@@ -97,7 +97,7 @@ _oid_from_hex(PyObject *py_oid, git_oid *oid)
     return -1;
 }
 
-int
+Py_ssize_t
 py_str_to_git_oid(PyObject *py_oid, git_oid *oid)
 {
     /* Oid */
@@ -110,11 +110,11 @@ py_str_to_git_oid(PyObject *py_oid, git_oid *oid)
     return _oid_from_hex(py_oid, oid);
 }
 
-int
+Py_ssize_t
 py_str_to_git_oid_expand(git_repository *repo, PyObject *py_str, git_oid *oid)
 {
     int err;
-    int len;
+    Py_ssize_t len;
     git_odb *odb;
     git_odb_object *obj;
 
@@ -197,8 +197,8 @@ Oid_init(Oid *self, PyObject *args, PyObject *kw)
     }
 
     /* Case 2: hex */
-    err = _oid_from_hex(hex, &self->oid);
-    if (err < 0)
+    len = _oid_from_hex(hex, &self->oid);
+    if (len < 0)
         return -1;
 
     return 0;
