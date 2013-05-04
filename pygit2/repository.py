@@ -85,6 +85,6 @@ class Repository(_Repository):
             )
 
         if direct:
-            return self.git_reference_create(name, target, force)
+            return self.create_reference_direct(name, target, force)
 
-        return self.git_reference_symbolic_create(name, target, force)
+        return self.create_reference_symbolic(name, target, force)
