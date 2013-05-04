@@ -77,7 +77,7 @@ PyDoc_STRVAR(Commit_commit_time__doc__, "Commit time.");
 PyObject *
 Commit_commit_time__get__(Commit *commit)
 {
-    return PyLong_FromLong(git_commit_time(commit->commit));
+    return PyLong_FromLongLong(git_commit_time(commit->commit));
 }
 
 

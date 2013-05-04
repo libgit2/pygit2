@@ -53,7 +53,8 @@ PyObject *
 TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 {
     PyObject *py_oid;
-    int len, err, attr;
+    Py_ssize_t len;
+    int err, attr;
     git_oid oid;
     const char *fname;
 

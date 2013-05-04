@@ -351,14 +351,14 @@ Index_read_tree(Index *self, PyObject *value)
 {
     git_oid oid;
     git_tree *tree;
-    int err, len;
+    int err;
+    Py_ssize_t len;
 
     len = py_str_to_git_oid(value, &oid);
     if (len < 0)
         return NULL;
 
-    err = git_tree_lookup_prefix(&tree, self->repo->repo, &oid,
-                                 (unsigned int)len);
+    err = git_tree_lookup_prefix(&tree, self->repo->repo, &oid, len);
     if (err < 0)
         return Error_set(err);
 

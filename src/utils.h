@@ -33,6 +33,12 @@
 #include <git2.h>
 #include "types.h"
 
+#ifdef __GNUC__
+#  define PYGIT2_FN_UNUSED __attribute__((unused))
+#else
+#  define PYGIT2_FN_UNUSED
+#endif
+
 /* Python 2 support */
 #if PY_MAJOR_VERSION == 2
   #define PyLong_FromSize_t PyInt_FromSize_t
@@ -75,6 +81,7 @@
 /* Utilities */
 #define to_unicode(x, encoding, errors) to_unicode_n(x, strlen(x), encoding, errors)
 
+PYGIT2_FN_UNUSED
 Py_LOCAL_INLINE(PyObject*)
 to_unicode_n(const char *value, size_t len, const char *encoding, const char *errors)
 {
@@ -90,6 +97,7 @@ to_unicode_n(const char *value, size_t len, const char *encoding, const char *er
     return PyUnicode_Decode(value, len, encoding, errors);
 }
 
+PYGIT2_FN_UNUSED
 Py_LOCAL_INLINE(PyObject*)
 to_bytes(const char * value)
 {
