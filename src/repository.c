@@ -631,7 +631,7 @@ Repository_create_blob(Repository *self, PyObject *args)
 PyDoc_STRVAR(Repository_create_blob_fromworkdir__doc__,
   "create_blob_fromworkdir(path) -> bytes\n"
   "\n"
-  "Create a new blob from a file within the working directory.");
+  "Create a new blob from a file within the working directory (raise an error otherwise).");
 
 PyObject *
 Repository_create_blob_fromworkdir(Repository *self, PyObject *args)
@@ -654,7 +654,7 @@ Repository_create_blob_fromworkdir(Repository *self, PyObject *args)
 PyDoc_STRVAR(Repository_create_blob_fromdisk__doc__,
   "create_blob_fromdisk(path) -> bytes\n"
   "\n"
-  "Create a new blob from file.");
+  "Create a new blob from a file anywhere (no working directory check).");
 
 PyObject *
 Repository_create_blob_fromdisk(Repository *self, PyObject *args)
