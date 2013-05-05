@@ -34,7 +34,8 @@ extern PyTypeObject ReferenceType;
 
 /* py_str_to_c_str() returns a newly allocated C string holding
  * the string contained in the value argument. */
-char * py_str_to_c_str(PyObject *value, const char *encoding)
+char *
+py_str_to_c_str(PyObject *value, const char *encoding)
 {
     char *c_str = NULL;
     /* Case 1: byte string */
@@ -43,7 +44,6 @@ char * py_str_to_c_str(PyObject *value, const char *encoding)
 
     /* Case 2: text string */
     if (PyUnicode_Check(value)) {
-
         if (encoding == NULL)
             value = PyUnicode_AsUTF8String(value);
         else
@@ -60,6 +60,3 @@ char * py_str_to_c_str(PyObject *value, const char *encoding)
                  Py_TYPE(value)->tp_name);
     return NULL;
 }
-
-
-

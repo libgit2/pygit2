@@ -42,6 +42,7 @@ extern PyObject *GitError;
 extern PyTypeObject IndexType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject SignatureType;
+extern PyTypeObject ObjectType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
@@ -181,6 +182,25 @@ Repository_head__get__(Repository *self)
     }
 
     return wrap_reference(head);
+}
+
+int
+Repository_head__set__(Repository *self, PyObject *py_refname)
+{
+    int err;
+    const char *refname;
+
+    refname = py_str_to_c_str(py_refname, NULL);
+    if (refname == NULL)
+        return -1;
+
+    err = git_repository_set_head(self->repo, refname);
+    if (err < 0) {
+        Error_set_str(err, refname);
+        return -1;
+    }
+
+    return 0;
 }
 
 
@@ -1101,47 +1121,72 @@ Repository_remotes__get__(Repository *self)
 }
 
 
-PyDoc_STRVAR(Repository_checkout__doc__,
-  "checkout([strategy:int, reference:Reference])\n"
-  "\n"
-  "Checks out a tree by a given reference and modifies the HEAD pointer\n"
-  "Standard checkout strategy is pygit2.GIT_CHECKOUT_SAFE_CREATE\n"
-  "If no reference is given, checkout will use HEAD instead.");
+PyDoc_STRVAR(Repository_checkout_head__doc__,
+    "checkout_head(strategy)\n"
+    "\n"
+    "Checkout the head using the given strategy.");
 
 PyObject *
-Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
+Repository_checkout_head(Repository *self, PyObject *args)
 {
     git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
-    unsigned int strategy = GIT_CHECKOUT_SAFE_CREATE;
-    Reference* ref = NULL;
-    git_object* object;
-    const git_oid* id;
-    int err, head = 0;
+    unsigned int strategy;
+    int err;
 
-    static char *kwlist[] = {"strategy", "reference", "head", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|IO!i", kwlist,
-                                     &strategy, &ReferenceType, &ref, &head))
+    if (!PyArg_ParseTuple(args, "I", &strategy))
         return NULL;
 
-    if (ref != NULL) { /* checkout from treeish */
-        id = git_reference_target(ref->reference);
-        err = git_object_lookup(&object, self->repo, id, GIT_OBJ_COMMIT);
-        if (err == GIT_OK) {
-            opts.checkout_strategy = strategy;
-            err = git_checkout_tree(self->repo, object, &opts);
-            if (err == GIT_OK) {
-                err = git_repository_set_head(self->repo,
-                          git_reference_name(ref->reference));
-            }
-            git_object_free(object);
-        }
-    } else { /* checkout from head / index */
-        opts.checkout_strategy = strategy;
-        err = (!head) ? git_checkout_index(self->repo, NULL, &opts) :
-                        git_checkout_head(self->repo, &opts);
-    }
+    opts.checkout_strategy = strategy;
+    err = git_checkout_head(self->repo, &opts);
+    if (err < 0)
+        return Error_set(err);
 
+    Py_RETURN_NONE;
+}
+
+
+PyDoc_STRVAR(Repository_checkout_index__doc__,
+    "checkout_index(strategy)\n"
+    "\n"
+    "Checkout the index using the given strategy.");
+
+PyObject *
+Repository_checkout_index(Repository *self, PyObject *args)
+{
+    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    unsigned int strategy;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "I", &strategy))
+        return NULL;
+
+    opts.checkout_strategy = strategy;
+    err = git_checkout_index(self->repo, NULL, &opts);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+
+PyDoc_STRVAR(Repository_checkout_tree__doc__,
+    "checkout_tree(treeish, strategy)\n"
+    "\n"
+    "Checkout the given tree, commit or tag, using the given strategy.");
+
+PyObject *
+Repository_checkout_tree(Repository *self, PyObject *args)
+{
+    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    unsigned int strategy;
+    Object *py_object;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "O!I", &ObjectType, &py_object, &strategy))
+        return NULL;
+
+    opts.checkout_strategy = strategy;
+    err = git_checkout_tree(self->repo, py_object->obj, &opts);
     if (err < 0)
         return Error_set(err);
 
@@ -1152,7 +1197,7 @@ Repository_checkout(Repository *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(Repository_notes__doc__, "");
 
 PyObject *
-Repository_notes(Repository *self, PyObject* args)
+Repository_notes(Repository *self, PyObject *args)
 {
     NoteIter *iter = NULL;
     char *ref = "refs/notes/commits";
@@ -1255,7 +1300,9 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, create_remote, METH_VARARGS),
-    METHOD(Repository, checkout, METH_VARARGS|METH_KEYWORDS),
+    METHOD(Repository, checkout_head, METH_VARARGS),
+    METHOD(Repository, checkout_index, METH_VARARGS),
+    METHOD(Repository, checkout_tree, METH_VARARGS),
     METHOD(Repository, notes, METH_VARARGS),
     METHOD(Repository, create_note, METH_VARARGS),
     METHOD(Repository, lookup_note, METH_VARARGS),
@@ -1266,7 +1313,7 @@ PyMethodDef Repository_methods[] = {
 PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, index),
     GETTER(Repository, path),
-    GETTER(Repository, head),
+    GETSET(Repository, head),
     GETTER(Repository, head_is_detached),
     GETTER(Repository, head_is_orphaned),
     GETTER(Repository, is_empty),

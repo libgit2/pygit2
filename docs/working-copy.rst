@@ -64,3 +64,9 @@ Checkout
 ====================
 
 .. automethod:: pygit2.Repository.checkout
+
+Lower level API:
+
+.. automethod:: pygit2.Repository.checkout_head
+.. automethod:: pygit2.Repository.checkout_tree
+.. automethod:: pygit2.Repository.checkout_index

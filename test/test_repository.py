@@ -191,18 +191,17 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         # checkout i18n with conflicts and default strategy should
         # not be possible
-        self.assertRaises(pygit2.GitError,
-                          lambda: self.repo.checkout(reference=ref_i18n))
+        self.assertRaises(pygit2.GitError, self.repo.checkout, ref_i18n)
 
         # checkout i18n with GIT_CHECKOUT_FORCE
         head = self.repo.head
         head = self.repo[head.target]
         self.assertTrue('new' not in head.tree)
-        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, ref_i18n)
+        self.repo.checkout(ref_i18n, pygit2.GIT_CHECKOUT_FORCE)
 
         head = self.repo.head
         head = self.repo[head.target]
-        self.assertEqual(head.hex, self.repo[ref_i18n.target].hex)
+        self.assertEqual(head.hex, ref_i18n.target.hex)
         self.assertTrue('new' in head.tree)
         self.assertTrue('bye.txt' not in self.repo.status())
 
@@ -213,7 +212,7 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         # checkout index
         self.assertTrue('hello.txt' in self.repo.status())
-        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE)
+        self.repo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
         self.assertTrue('hello.txt' not in self.repo.status())
 
     def test_checkout_head(self):
@@ -224,16 +223,19 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         # checkout from index should not change anything
         self.assertTrue('bye.txt' in self.repo.status())
-        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE)
+        self.repo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
         self.assertTrue('bye.txt' in self.repo.status())
 
         # checkout from head will reset index as well
-        self.repo.checkout(pygit2.GIT_CHECKOUT_FORCE, head=True)
+        self.repo.checkout('HEAD', pygit2.GIT_CHECKOUT_FORCE)
         self.assertTrue('bye.txt' not in self.repo.status())
 
     def test_merge_base(self):
-        commit = self.repo.merge_base('5ebeeebb320790caf276b9fc8b24546d63316533', '4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertEqual(commit.hex, 'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+        commit = self.repo.merge_base(
+            '5ebeeebb320790caf276b9fc8b24546d63316533',
+            '4ec4389a8068641da2d6578db0419484972284c8')
+        self.assertEqual(commit.hex,
+                         'acecd5ea2924a4b900e7e149496e1f4b57976e51')
 
 
 class NewRepositoryTest(utils.NoRepoTestCase):
