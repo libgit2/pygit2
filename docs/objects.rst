@@ -220,8 +220,8 @@ Creating blobs
 --------------------
 
 .. automethod:: pygit2.Repository.create_blob
-.. automethod:: pygit2.Repository.create_blob_fromfile
-
+.. automethod:: pygit2.Repository.create_blob_fromworkdir
+.. automethod:: pygit2.Repository.create_blob_fromdisk
 
 Tags
 =================
