@@ -36,6 +36,7 @@
 #include "note.h"
 #include "repository.h"
 #include "remote.h"
+#include <git2/odb_backend.h>
 
 extern PyObject *GitError;
 
