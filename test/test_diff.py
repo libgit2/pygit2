@@ -134,6 +134,7 @@ class DiffTest(utils.BareRepoTestCase):
 
         patch = diff[0]
         hunk = patch.hunks[0]
+        self.assertEqual(hunk.origin, '+')
         self.assertEqual(hunk.old_start, 1)
         self.assertEqual(hunk.old_lines, 1)
         self.assertEqual(hunk.new_start, 1)
