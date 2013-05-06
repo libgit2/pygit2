@@ -142,6 +142,12 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertEqual(patch.old_file_path, 'a')
         self.assertEqual(patch.new_file_path, 'a')
 
+    def test_diff_empty_tree(self):
+        commit_a = self.repo[COMMIT_SHA1_1]
+        diff = commit_a.tree.diff(empty_tree=True)
+        entries = [p.new_file_path for p in diff]
+        self.assertAll(lambda x: commit_a.tree[x], entries)
+
     def test_diff_tree_opts(self):
         commit_c = self.repo[COMMIT_SHA1_3]
         commit_d = self.repo[COMMIT_SHA1_4]

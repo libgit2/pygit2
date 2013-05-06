@@ -286,38 +286,38 @@ PyDoc_STRVAR(Tree_diff__doc__,
   "    TODO");
 
 PyObject *
-Tree_diff(Tree *self, PyObject *args)
+Tree_diff(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
-    int err;
+    git_tree* tree = NULL;
+    git_index* index;
+    git_repository* repo;
+    int err, empty_tree = 0;
+    char *keywords[] = {"obj", "flags", "empty_tree", NULL};
 
     Diff *py_diff;
     PyObject *py_obj = NULL;
 
-    if (!PyArg_ParseTuple(args, "|Oi", &py_obj, &opts.flags))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oii", keywords,
+                                     &py_obj, &opts.flags, &empty_tree))
         return NULL;
 
+    repo = self->repo->repo;
     if (py_obj == NULL) {
-        err = git_diff_tree_to_workdir(
-                &diff,
-                self->repo->repo,
-                self->tree,
-                &opts);
+        if (empty_tree > 0)
+            err = git_diff_tree_to_tree(&diff, repo, self->tree, NULL, &opts);
+        else
+            err = git_diff_tree_to_workdir(&diff, repo, self->tree, &opts);
+
     } else if (PyObject_TypeCheck(py_obj, &TreeType)) {
-        err = git_diff_tree_to_tree(
-                &diff,
-                self->repo->repo,
-                self->tree,
-                ((Tree *)py_obj)->tree,
-                &opts);
+        tree = ((Tree *)py_obj)->tree;
+        err = git_diff_tree_to_tree(&diff, repo, self->tree, tree, &opts);
+
     } else if (PyObject_TypeCheck(py_obj, &IndexType)) {
-        err = git_diff_tree_to_index(
-                &diff,
-                self->repo->repo,
-                self->tree,
-                ((Index *)py_obj)->index,
-                &opts);
+        index = ((Index *)py_obj)->index;
+        err = git_diff_tree_to_index(&diff, repo, self->tree, index, &opts);
+
     } else {
         PyErr_SetObject(PyExc_TypeError, py_obj);
         return NULL;
@@ -355,7 +355,7 @@ PyMappingMethods Tree_as_mapping = {
 };
 
 PyMethodDef Tree_methods[] = {
-    METHOD(Tree, diff, METH_VARARGS),
+    METHOD(Tree, diff, METH_VARARGS | METH_KEYWORDS),
     {NULL}
 };
 
