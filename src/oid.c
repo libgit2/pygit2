@@ -103,7 +103,7 @@ py_str_to_git_oid(PyObject *py_oid, git_oid *oid)
     /* Oid */
     if (PyObject_TypeCheck(py_oid, (PyTypeObject*)&OidType)) {
         git_oid_cpy(oid, &((Oid*)py_oid)->oid);
-        return GIT_OID_RAWSZ;
+        return GIT_OID_HEXSZ;
     }
 
     /* Hex */
