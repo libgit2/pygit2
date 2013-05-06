@@ -219,9 +219,9 @@ class DiffTest(utils.BareRepoTestCase):
         #~ Must pass GIT_DIFF_INCLUDE_UNMODIFIED if you expect to emulate
         #~ --find-copies-harder during rename transformion...
         diff = commit_a.tree.diff(commit_b.tree, GIT_DIFF_INCLUDE_UNMODIFIED)
-        self.assertAll(lambda x: x.status is not pygit2.GIT_DELTA_RENAMED, diff)
+        self.assertAll(lambda x: x.status != 'R', diff)
         diff.find_similar()
-        self.assertAny(lambda x: x.status is pygit2.GIT_DELTA_RENAMED, diff)
+        self.assertAny(lambda x: x.status == 'R', diff)
 
 if __name__ == '__main__':
     unittest.main()

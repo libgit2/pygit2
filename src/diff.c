@@ -62,7 +62,7 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
     if (py_patch != NULL) {
         py_patch->old_file_path = delta->old_file.path;
         py_patch->new_file_path = delta->new_file.path;
-        py_patch->status = delta->status;
+        py_patch->status = git_diff_status_char(delta->status);
         py_patch->similarity = delta->similarity;
         py_patch->old_oid = git_oid_allocfmt(&delta->old_file.oid);
         py_patch->new_oid = git_oid_allocfmt(&delta->new_file.oid);
@@ -126,7 +126,7 @@ PyMemberDef Patch_members[] = {
     MEMBER(Patch, new_file_path, T_STRING, "new file path"),
     MEMBER(Patch, old_oid, T_STRING, "old oid"),
     MEMBER(Patch, new_oid, T_STRING, "new oid"),
-    MEMBER(Patch, status, T_INT, "status"),
+    MEMBER(Patch, status, T_CHAR, "status"),
     MEMBER(Patch, similarity, T_INT, "similarity"),
     MEMBER(Patch, hunks, T_OBJECT, "hunks"),
     {NULL}

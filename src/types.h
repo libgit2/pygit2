@@ -111,7 +111,7 @@ typedef struct {
     const char * new_file_path;
     char* old_oid;
     char* new_oid;
-    unsigned status;
+    char status;
     unsigned similarity;
 } Patch;
 
