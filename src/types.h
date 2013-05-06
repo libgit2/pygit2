@@ -193,6 +193,4 @@ typedef struct {
 SIMPLE_TYPE(Remote, git_remote, remote)
 
 
-PyObject* lookup_object(Repository *repo, const git_oid *oid, git_otype type);
-
 #endif

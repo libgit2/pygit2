@@ -292,7 +292,7 @@ Tree_diff(Tree *self, PyObject *args, PyObject *kwds)
     git_diff_list *diff;
     git_tree* tree = NULL;
     git_index* index;
-    git_repository* repo;
+    git_repository *repo;
     int err, empty_tree = 0;
     char *keywords[] = {"obj", "flags", "empty_tree", NULL};
 
@@ -303,7 +303,7 @@ Tree_diff(Tree *self, PyObject *args, PyObject *kwds)
                                      &py_obj, &opts.flags, &empty_tree))
         return NULL;
 
-    repo = self->repo->repo;
+    repo = git_tree_owner(self->tree);
     if (py_obj == NULL) {
         if (empty_tree > 0)
             err = git_diff_tree_to_tree(&diff, repo, self->tree, NULL, &opts);
