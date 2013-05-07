@@ -83,9 +83,8 @@ DIFF_WORKDIR_EXPECTED = [
     'subdir/modified_file'
 ]
 
-HUNK_EXPECTED = """@@ -1 +1 @@
-a contents 2
-a contents
+HUNK_EXPECTED = """- a contents 2
++ a contents
 """
 
 class DiffDirtyTest(utils.DirtyRepoTestCase):
@@ -134,7 +133,6 @@ class DiffTest(utils.BareRepoTestCase):
 
         patch = diff[0]
         hunk = patch.hunks[0]
-        self.assertEqual(hunk.origin, '+')
         self.assertEqual(hunk.old_start, 1)
         self.assertEqual(hunk.old_lines, 1)
         self.assertEqual(hunk.new_start, 1)
@@ -216,7 +214,8 @@ class DiffTest(utils.BareRepoTestCase):
         commit_b = self.repo[COMMIT_SHA1_2]
         patch = commit_a.tree.diff(commit_b.tree)[0]
         hunk = patch.hunks[0]
-        self.assertEqual(HUNK_EXPECTED, ''.join(hunk.lines))
+        lines = ('{0} {1}'.format(*x) for x in hunk.lines)
+        self.assertEqual(HUNK_EXPECTED, ''.join(lines))
 
     def test_find_similar(self):
         commit_a = self.repo[COMMIT_SHA1_6]

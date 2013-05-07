@@ -118,7 +118,6 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     PyObject* lines;
-    char origin;
     int old_start;
     int old_lines;
     int new_start;
