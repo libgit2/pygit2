@@ -43,6 +43,21 @@ extern PyTypeObject HunkType;
 PyTypeObject PatchType;
 
 PyObject*
+wrap_diff(git_diff_list *diff, Repository *repo)
+{
+    Diff *py_diff;
+
+    py_diff = PyObject_New(Diff, &DiffType);
+    if (py_diff) {
+        Py_INCREF(repo);
+        py_diff->repo = repo;
+        py_diff->list = diff;
+    }
+
+    return (PyObject*) py_diff;
+}
+
+PyObject*
 diff_get_patch_byindex(git_diff_list* list, size_t idx)
 {
     const git_diff_delta* delta;

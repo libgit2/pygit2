@@ -33,6 +33,7 @@
 #include "repository.h"
 #include "oid.h"
 #include "tree.h"
+#include "diff.h"
 
 extern PyTypeObject TreeType;
 extern PyTypeObject DiffType;
@@ -270,70 +271,87 @@ Tree_getitem(Tree *self, PyObject *value)
 }
 
 
-PyDoc_STRVAR(Tree_diff__doc__,
-  "diff([obj, flags]) -> Diff\n"
-  "\n"
-  "Get changes between current tree instance with another tree, an index or\n"
-  "the working dir.\n"
-  "\n"
-  "Arguments:\n"
-  "\n"
-  "obj\n"
-  "    If not given compare diff against working dir. Possible valid\n"
-  "    arguments are instances of Tree or Index.\n"
-  "\n"
-  "flags\n"
-  "    TODO");
+PyDoc_STRVAR(Tree_diff_to_workdir__doc__, "\n");
 
 PyObject *
-Tree_diff(Tree *self, PyObject *args, PyObject *kwds)
+Tree_diff_to_workdir(Tree *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
-    git_tree* tree = NULL;
-    git_index* index;
     git_repository* repo;
-    int err, empty_tree = 0;
-    char *keywords[] = {"obj", "flags", "empty_tree", NULL};
+    int err;
 
     Diff *py_diff;
     PyObject *py_obj = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oii", keywords,
-                                     &py_obj, &opts.flags, &empty_tree))
+    if (!PyArg_ParseTuple(args, "|i", &opts.flags))
         return NULL;
 
     repo = self->repo->repo;
-    if (py_obj == NULL) {
-        if (empty_tree > 0)
-            err = git_diff_tree_to_tree(&diff, repo, self->tree, NULL, &opts);
-        else
-            err = git_diff_tree_to_workdir(&diff, repo, self->tree, &opts);
-
-    } else if (PyObject_TypeCheck(py_obj, &TreeType)) {
-        tree = ((Tree *)py_obj)->tree;
-        err = git_diff_tree_to_tree(&diff, repo, self->tree, tree, &opts);
-
-    } else if (PyObject_TypeCheck(py_obj, &IndexType)) {
-        index = ((Index *)py_obj)->index;
-        err = git_diff_tree_to_index(&diff, repo, self->tree, index, &opts);
-
-    } else {
-        PyErr_SetObject(PyExc_TypeError, py_obj);
-        return NULL;
-    }
+    err = git_diff_tree_to_workdir(&diff, repo, self->tree, &opts);
 
     if (err < 0)
         return Error_set(err);
 
-    py_diff = PyObject_New(Diff, &DiffType);
-    if (py_diff) {
-        Py_INCREF(self->repo);
-        py_diff->repo = self->repo;
-        py_diff->list = diff;
-    }
+    return wrap_diff(diff, self->repo);
+}
 
-    return (PyObject*)py_diff;
+
+PyDoc_STRVAR(Tree_diff_to_index__doc__, "\n");
+
+PyObject *
+Tree_diff_to_index(Tree *self, PyObject *args)
+{
+    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
+    git_diff_list *diff;
+    git_index* index;
+    git_repository* repo;
+    int err;
+    char *keywords[] = {"obj", "flags", NULL};
+
+    Diff *py_diff;
+    Index *py_idx = NULL;
+
+    if (!PyArg_ParseTuple(args, "O!|i", &IndexType, &py_idx, &opts.flags))
+        return NULL;
+
+    repo = self->repo->repo;
+    err = git_diff_tree_to_index(&diff, repo, self->tree, py_idx->index, &opts);
+
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_diff(diff, self->repo);
+}
+
+
+PyDoc_STRVAR(Tree_diff_to_tree__doc__, "\n");
+
+PyObject *
+Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
+{
+    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
+    git_diff_list *diff;
+    git_tree* tree;
+    git_repository* repo;
+    int err;
+    char *keywords[] = {"obj", "flags", NULL};
+
+    Diff *py_diff;
+    Tree *py_tree = NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!i", keywords,
+                                     &TreeType, &py_tree, &opts.flags))
+        return NULL;
+
+    repo = self->repo->repo;
+    tree = (py_tree == NULL) ? NULL : py_tree->tree;
+    err = git_diff_tree_to_tree(&diff, repo, self->tree, tree, &opts);
+
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_diff(diff, self->repo);
 }
 
 
@@ -355,7 +373,9 @@ PyMappingMethods Tree_as_mapping = {
 };
 
 PyMethodDef Tree_methods[] = {
-    METHOD(Tree, diff, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Tree, diff_to_tree, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Tree, diff_to_workdir, METH_VARARGS),
+    METHOD(Tree, diff_to_index, METH_VARARGS),
     {NULL}
 };
 
