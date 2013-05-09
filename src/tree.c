@@ -332,21 +332,29 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
-    git_tree* tree;
+    git_tree *from, *to, *tmp;
     git_repository* repo;
-    int err;
-    char *keywords[] = {"obj", "flags", NULL};
+    int err, swap = 0;
+    char *keywords[] = {"obj", "flags", "swap", NULL};
 
     Diff *py_diff;
     Tree *py_tree = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!i", keywords,
-                                     &TreeType, &py_tree, &opts.flags))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!ii", keywords,
+                                     &TreeType, &py_tree, &opts.flags,
+                                     &swap))
         return NULL;
 
     repo = self->repo->repo;
-    tree = (py_tree == NULL) ? NULL : py_tree->tree;
-    err = git_diff_tree_to_tree(&diff, repo, self->tree, tree, &opts);
+    to = (py_tree == NULL) ? NULL : py_tree->tree;
+    from = self->tree;
+    if (swap > 0) {
+      tmp = from;
+      from = to;
+      to = tmp;
+    }
+
+    err = git_diff_tree_to_tree(&diff, repo, from, to, &opts);
 
     if (err < 0)
         return Error_set(err);

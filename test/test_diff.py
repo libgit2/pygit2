@@ -33,6 +33,7 @@ import unittest
 import pygit2
 from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
 from . import utils
+from itertools import chain
 
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -145,8 +146,20 @@ class DiffTest(utils.BareRepoTestCase):
     def test_diff_empty_tree(self):
         commit_a = self.repo[COMMIT_SHA1_1]
         diff = commit_a.tree.diff_to_tree()
+
+        def get_context_for_lines(diff):
+          hunks = chain(*map(lambda x: x.hunks, [p for p in diff]))
+          lines = chain(*map(lambda x: x.lines, hunks))
+          return map(lambda x: x[0], lines)
+
         entries = [p.new_file_path for p in diff]
         self.assertAll(lambda x: commit_a.tree[x], entries)
+        self.assertAll(lambda x: '-' == x, get_context_for_lines(diff))
+
+        diff_swaped = commit_a.tree.diff_to_tree(swap=True)
+        entries = [p.new_file_path for p in diff_swaped]
+        self.assertAll(lambda x: commit_a.tree[x], entries)
+        self.assertAll(lambda x: '+' == x, get_context_for_lines(diff_swaped))
 
     def test_diff_tree_opts(self):
         commit_c = self.repo[COMMIT_SHA1_3]
