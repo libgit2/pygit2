@@ -253,7 +253,7 @@ Oid_richcompare(PyObject *o1, PyObject *o2, int op)
 }
 
 
-PyDoc_STRVAR(Oid_raw__doc__, "Raw oid.");
+PyDoc_STRVAR(Oid_raw__doc__, "Raw oid, a 20 bytes string.");
 
 PyObject *
 Oid_raw__get__(Oid *self)
@@ -262,7 +262,7 @@ Oid_raw__get__(Oid *self)
 }
 
 
-PyDoc_STRVAR(Oid_hex__doc__, "Hex oid.");
+PyDoc_STRVAR(Oid_hex__doc__, "Hex oid, a 40 chars long string (type str).");
 
 PyObject *
 Oid_hex__get__(Oid *self)

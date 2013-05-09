@@ -366,11 +366,11 @@ Repository_read(Repository *self, PyObject *py_hex)
 
 
 PyDoc_STRVAR(Repository_write__doc__,
-  "write(type, data) -> oid\n"
-  "\n"
-  "Write raw object data into the repository. First arg is the object type,\n"
-  "the second one a buffer with data. Return the object id (sha) of of the\n"
-  "created object.");
+    "write(type, data) -> Oid\n"
+    "\n"
+    "Write raw object data into the repository. First arg is the object\n"
+    "type, the second one a buffer with data. Return the Oid of the created\n"
+    "object.");
 
 PyObject *
 Repository_write(Repository *self, PyObject *args)

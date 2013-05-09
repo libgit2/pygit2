@@ -22,32 +22,27 @@ Pygit2 links:
 Start:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    install
 
 Usage guide:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
+   general
    repository
+   oid
    objects
    references
    revparse
    log
    working-copy
    diff
+   merge
    config
    remotes
-   errors
-
-More:
-
-.. toctree::
-   :maxdepth: 1
-
-   utils
 
 
 Indices and tables

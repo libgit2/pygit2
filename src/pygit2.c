@@ -124,10 +124,10 @@ discover_repository(PyObject *self, PyObject *args)
 };
 
 PyDoc_STRVAR(hashfile__doc__,
-  "hashfile(path) -> bytes\n"
-  "\n"
-  "Returns the oid of a new blob from a file path without actually writing \n"
-  "to the odb.");
+    "hashfile(path) -> Oid\n"
+    "\n"
+    "Returns the oid of a new blob from a file path without actually writing\n"
+    "to the odb.");
 PyObject *
 hashfile(PyObject *self, PyObject *args)
 {
@@ -146,10 +146,10 @@ hashfile(PyObject *self, PyObject *args)
 }
 
 PyDoc_STRVAR(hash__doc__,
-  "hash(data) -> bytes\n"
-  "\n"
-  "Returns the oid of a new blob from a string without actually writing to \n"
-  "the odb.");
+    "hash(data) -> Oid\n"
+    "\n"
+    "Returns the oid of a new blob from a string without actually writing to\n"
+    "the odb.");
 PyObject *
 hash(PyObject *self, PyObject *args)
 {
