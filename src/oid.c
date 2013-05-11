@@ -248,6 +248,9 @@ Oid_richcompare(PyObject *o1, PyObject *o2, int op)
         case Py_GE:
             res = (cmp >= 0) ? Py_True: Py_False;
             break;
+        default:
+            PyErr_Format(PyExc_RuntimeError, "Unexpected '%d' op", op);
+            return NULL;
     }
 
     Py_INCREF(res);
