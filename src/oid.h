@@ -32,9 +32,9 @@
 #include <Python.h>
 #include <git2.h>
 
-Py_ssize_t py_str_to_git_oid(PyObject *py_str, git_oid *oid);
-Py_ssize_t py_str_to_git_oid_expand(git_repository *repo, PyObject *py_str,
-                                    git_oid *oid);
+size_t py_oid_to_git_oid(PyObject *py_str, git_oid *oid);
+int py_oid_to_git_oid_expand(git_repository *repo, PyObject *py_str,
+                             git_oid *oid);
 PyObject* git_oid_to_python(const git_oid *oid);
 PyObject* git_oid_to_py_str(const git_oid *oid);
 
