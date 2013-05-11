@@ -1,5 +1,5 @@
 **********************************************************************
-Git objects
+Git Objects
 **********************************************************************
 
 There are four types of Git objects: blobs, trees, commits and tags. For each
@@ -11,8 +11,41 @@ type.
    :local:
 
 
-Objects
+Object lookup
 =================
+
+In the previous chapter we learnt about Object IDs. With an oid we can ask the
+repository to get the associated object. To do that the ``Repository`` class
+implementes a subset of the mapping interface.
+
+.. method:: Repository.get(oid, default=None)
+
+   Return the Git object for the given *oid*, returns the *default* value if
+   there's no object in the repository with that oid. The oid can be an Oid
+   object, or an hexadecimal string.
+
+   Example::
+
+     >>> from pygit2 import Repository
+     >>> repo = Repository('path/to/pygit2')
+     >>> obj = repo.get("101715bf37440d32291bde4f58c3142bcf7d8adb")
+     >>> obj
+     <_pygit2.Commit object at 0x7ff27a6b60f0>
+
+.. method:: Repository[oid]
+
+   Return the Git object for the given oid, raise ``KeyError`` if there's no
+   object in the repository with that oid. The oid can be an Oid object, or
+   an hexadecimal string.
+
+.. method:: oid in Repository
+
+   Returns True if there is an object in the Repository with that oid, False
+   if there is not.  The oid can be an Oid object, or an hexadecimal string.
+
+
+The Object base type
+====================
 
 The Object type is a base type, it is not possible to make instances of it, in
 any way.
@@ -51,38 +84,57 @@ This is the common interface for all Git objects:
 .. automethod:: pygit2.Object.read_raw
 
 
-
-
-
-
-
 Blobs
 =================
 
-A blob is equivalent to a file in a file system.::
+A blob is just a raw byte string. They are the Git equivalent to files in
+a filesytem.
 
-    >>> # create a blob out of memory
-    >>> oid  = repo.create_blob('foo bar')
-    >>> blob = repo[oid]
-    >>> blob.data
-    'foo bar'
-    >>> oid
-    '\x96\xc9\x06um{\x91\xc4S"a|\x92\x95\xe4\xa8\rR\xd1\xc5'
+This is their API:
 
 .. autoattribute:: pygit2.Blob.data
+
+   Example, print the contents of the ``.gitignore`` file::
+
+     >>> blob = repo["d8022420bf6db02e906175f64f66676df539f2fd"]
+     >>> print blob.data
+     MANIFEST
+     build
+     dist
+
 .. autoattribute:: pygit2.Blob.size
 
-To create new blobs use the Repository API:
+   Example::
+
+     >>> print blob.size
+     130
+
+Creating blobs
+--------------
+
+There are a number of methods in the repository to create new blobs, and add
+them to the Git object database:
 
 .. automethod:: pygit2.Repository.create_blob
+
+   Example:
+
+     >>> oid  = repo.create_blob('foo bar')   # Creates blob from bytes string
+     >>> blob = repo[oid]
+     >>> blob.data
+     'foo bar'
+
 .. automethod:: pygit2.Repository.create_blob_fromworkdir
 .. automethod:: pygit2.Repository.create_blob_fromdisk
 
-It is also possible to get the oid for a blob without really adding it to
-the Git object database:
+There are also some functions to calculate the oid for a byte string without
+creating the blob object:
  
 .. autofunction:: pygit2.hash
 .. autofunction:: pygit2.hashfile
+
+
+
 
 
 Trees

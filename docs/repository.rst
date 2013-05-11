@@ -9,16 +9,19 @@ existing one.
    :local:
 
 
-Creating a repository
+Functions
 ===================================
 
 .. autofunction:: pygit2.init_repository
 
-Example::
+   Example::
 
-  >>> from pygit2 import init_repository
-  >>> repo = init_repository('test')            # Creates a non-bare repository
-  >>> repo = init_repository('test', bare=True) # Creates a bare repository
+     >>> from pygit2 import init_repository
+     >>> repo = init_repository('test')            # Creates a non-bare repository
+     >>> repo = init_repository('test', bare=True) # Creates a bare repository
+
+.. autofunction:: pygit2.discover_repository
+
 
 
 The Repository class
@@ -47,9 +50,3 @@ Below there are some general attributes and methods:
 .. autoattribute:: pygit2.Repository.is_empty
 .. automethod:: pygit2.Repository.read
 .. automethod:: pygit2.Repository.write
-
-
-Utilities
-=========
-
-.. autofunction:: pygit2.discover_repository

@@ -42,7 +42,8 @@ Blob_size__get__(Blob *self)
 
 
 PyDoc_STRVAR(Blob_data__doc__,
-  "Raw data. This is the same as Blob.read_raw()");
+  "The contents of the blob, a bytes string. This is the same as\n"
+  "Blob.read_raw()");
 
 PyGetSetDef Blob_getseters[] = {
     GETTER(Blob, size),
