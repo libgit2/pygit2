@@ -372,7 +372,7 @@ Index_read_tree(Index *self, PyObject *value)
 
 
 PyDoc_STRVAR(Index_write_tree__doc__,
-  "write_tree() -> str\n"
+  "write_tree() -> Oid\n"
   "\n"
   "Create a tree object from the index file, return its oid.");
 

@@ -74,7 +74,7 @@ TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 
 
 PyDoc_STRVAR(TreeBuilder_write__doc__,
-    "write() -> bytes\n"
+    "write() -> Oid\n"
     "\n"
     "Write the tree to the given repository.");
 

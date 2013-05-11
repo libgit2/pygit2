@@ -134,24 +134,48 @@ creating the blob object:
 .. autofunction:: pygit2.hashfile
 
 
-
-
-
 Trees
 =================
 
 A tree is a sorted collection of tree entries. It is similar to a folder or
 directory in a file system. Each entry points to another tree or a blob.  A
 tree can be iterated, and partially implements the sequence and mapping
-interfaces::
+interfaces.
 
-    >>> # Number of entries
+.. method:: Tree[name]
+
+   Return the TreeEntry object for the given *name*. Raise ``KeyError`` if
+   there is not a tree entry with that name.
+
+.. method:: name in Tree
+
+   Return True if there is a tree entry with the given name, False otherwise.
+
+.. method:: len(Tree)
+
+   Return the number of entries in the tree.
+
+.. method:: iter(Tree)
+
+   Return an iterator over the entries of the tree.
+
+.. automethod:: pygit2.Tree.diff
+
+Tree entries
+------------
+
+.. autoattribute:: pygit2.TreeEntry.name
+.. autoattribute:: pygit2.TreeEntry.oid
+.. autoattribute:: pygit2.TreeEntry.hex
+.. autoattribute:: pygit2.TreeEntry.filemode
+
+Example::
+
     >>> tree = commit.tree
-    >>> len(tree)
+    >>> len(tree)                        # Number of entries
     6
 
-    >>> # Iteration
-    >>> for entry in tree:
+    >>> for entry in tree:               # Iteration
     ...     print(entry.hex, entry.name)
     ...
     7151ca7cd3e59f3eab19c485cfbf3cb30928d7fa .gitignore
@@ -161,23 +185,13 @@ interfaces::
     85a67270a49ef16cdd3d328f06a3e4b459f09b27 setup.py
     3d8985bbec338eb4d47c5b01b863ee89d044bd53 test
 
-    >>> # Get an entry by name
-    >>> entry = tree['pygit2.c']
+    >>> entry = tree['pygit2.c']         # Get an entry by name
     >>> entry
     <pygit2.TreeEntry object at 0xcc10f0>
 
-    >>> # Get the object the entry points to
-    >>> blob = repo[entry.oid]
+    >>> blob = repo[entry.oid]           # Get the object the entry points to
     >>> blob
     <pygit2.Blob object at 0xcc12d0>
-
-.. automethod:: pygit2.Tree.diff
-
-.. autoattribute:: pygit2.TreeEntry.name
-.. autoattribute:: pygit2.TreeEntry.oid
-.. autoattribute:: pygit2.TreeEntry.hex
-.. autoattribute:: pygit2.TreeEntry.filemode
-
 
 Creating trees
 --------------------

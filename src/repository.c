@@ -505,7 +505,7 @@ Repository_config__get__(Repository *self)
 }
 
 PyDoc_STRVAR(Repository_merge_base__doc__,
-  "merge_base(oid, oid) -> commit\n"
+  "merge_base(oid, oid) -> Oid\n"
   "\n"
   "Find as good common ancestors as possible for a merge.");
 
@@ -665,9 +665,9 @@ Repository_create_blob_fromdisk(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_commit__doc__,
-  "create_commit(reference, author, committer, message, tree, parents[, encoding]) -> bytes\n"
+  "create_commit(reference, author, committer, message, tree, parents[, encoding]) -> Oid\n"
   "\n"
-  "Create a new commit object, return its SHA.");
+  "Create a new commit object, return its oid.");
 
 PyObject *
 Repository_create_commit(Repository *self, PyObject *args)
@@ -749,9 +749,9 @@ out:
 
 
 PyDoc_STRVAR(Repository_create_tag__doc__,
-  "create_tag(name, oid, type, tagger, message) -> bytes\n"
+  "create_tag(name, oid, type, tagger, message) -> Oid\n"
   "\n"
-  "Create a new tag object, return its SHA.");
+  "Create a new tag object, return its oid.");
 
 PyObject *
 Repository_create_tag(Repository *self, PyObject *args)
@@ -1209,12 +1209,11 @@ Repository_notes(Repository *self, PyObject *args)
     }
 
     return Error_set(err);
-
 }
 
 
 PyDoc_STRVAR(Repository_create_note__doc__,
-  "create_note(message, author, committer, annotated_id [,ref, force]) -> ID\n"
+  "create_note(message, author, committer, annotated_id [,ref, force]) -> Oid\n"
   "\n"
   "Create a new note for an object, return its SHA-ID."
   "If no ref is given 'refs/notes/commits' will be used.");
