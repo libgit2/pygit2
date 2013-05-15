@@ -97,6 +97,61 @@ init_repository(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 };
 
+PyDoc_STRVAR(clone_repository__doc__,
+    "clone_repository(url, path, bare, remote_name, push_url, fetch_spec, push_spec, checkout_branch)\n"
+    "\n"
+    "Clones a Git repository in the given url to the given path with the specified options.\n"
+    "\n"
+    "Arguments:\n"
+    "\n"
+    "url\n"
+    "  Git repository remote url.\n"
+    "path\n"
+    "  Path where to create the repository.\n"
+    "bare\n"
+    "  If 'bare' is not 0, then a bare git repository will be created.\n"
+    "remote_name\n"
+    "  The name given to the 'origin' remote.  The default is 'origin'.\n"
+    "push_url\n"
+    "  URL to be used for pushing.\n"
+    "fetch_spec\n"
+    "  The fetch specification to be used for fetching. None results in the same behavior as GIT_REMOTE_DEFAULT_FETCH.\n"
+    "push_spec\n"
+    "  The fetch specification to be used for pushing. None means use the same spec as for 'fetch_spec'\n"
+    "checkout_branch\n"
+    "  The name of the branch to checkout. None means use the remote's HEAD.\n");
+
+
+PyObject *
+clone_repository(PyObject *self, PyObject *args) {
+    git_repository *repo;
+    const char *url;
+    const char *path;
+    unsigned int bare;
+    const char *remote_name, *push_url, *fetch_spec, *push_spec, *checkout_branch;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "zzIzzzzz", &url, &path, &bare, &remote_name, &push_url, &fetch_spec, &push_spec, &checkout_branch))
+        return NULL;
+
+    git_clone_options opts = {
+        .version=1,
+        .bare=bare,
+        .remote_name=remote_name,
+        .pushurl=push_url,
+        .fetch_spec=fetch_spec,
+        .push_spec=push_spec,
+        .checkout_branch=checkout_branch
+    };
+
+    err = git_clone(&repo, url, path, &opts);
+    if (err < 0)
+        return Error_set_str(err, path);
+
+    git_repository_free(repo);
+    Py_RETURN_NONE;
+};
+
 
 PyDoc_STRVAR(discover_repository__doc__,
   "discover_repository(path[, across_fs[, ceiling_dirs]]) -> str\n"
@@ -172,6 +227,7 @@ hash(PyObject *self, PyObject *args)
 
 PyMethodDef module_methods[] = {
     {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
+    {"clone_repository", clone_repository, METH_VARARGS, clone_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
