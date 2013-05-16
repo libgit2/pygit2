@@ -40,7 +40,10 @@ from os.path import join, realpath
 
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
-from pygit2 import init_repository, clone_repository, discover_repository, Reference, hashfile
+from pygit2 import (
+    init_repository, clone_repository, discover_repository,
+    Reference, hashfile
+)
 from pygit2 import Oid
 import pygit2
 from . import utils
@@ -101,7 +104,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertFalse('a' * 20 in self.repo)
 
     def test_iterable(self):
-        l = [ obj for obj in self.repo ]
+        l = [obj for obj in self.repo]
         oid = Oid(hex=BLOB_HEX)
         self.assertTrue(oid in l)
 
@@ -135,9 +138,10 @@ class RepositoryTest(utils.BareRepoTestCase):
         commit = self.repo[commit_sha_prefix]
         self.assertEqual(commit_sha, commit.hex)
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
-        self.assertEqual(('Second test data commit.\n\n'
-                    'This commit has some additional text.\n'),
-                   commit.message)
+        self.assertEqual(
+            ('Second test data commit.\n\n'
+             'This commit has some additional text.\n'),
+            commit.message)
         self.assertRaises(ValueError, self.repo.__getitem__, too_short_prefix)
 
     def test_get_path(self):
@@ -208,7 +212,7 @@ class RepositoryTest_II(utils.RepoTestCase):
     def test_checkout_index(self):
         # some changes to working dir
         with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
-          f.write('new content')
+            f.write('new content')
 
         # checkout index
         self.assertTrue('hello.txt' in self.repo.status())
@@ -218,7 +222,7 @@ class RepositoryTest_II(utils.RepoTestCase):
     def test_checkout_head(self):
         # some changes to the index
         with open(os.path.join(self.repo.workdir, 'bye.txt'), 'w') as f:
-          f.write('new content')
+            f.write('new content')
         self.repo.index.add('bye.txt')
 
         # checkout from index should not change anything
@@ -272,12 +276,14 @@ class InitRepositoryTest(utils.NoRepoTestCase):
         repo = init_repository(self._temp_dir, bare=True)
         self.assertTrue(repo.is_bare)
 
+
 class DiscoverRepositoryTest(utils.NoRepoTestCase):
     def test_discover_repo(self):
         repo = init_repository(self._temp_dir, False)
         subdir = os.path.join(self._temp_dir, "test1", "test2")
         os.makedirs(subdir)
         self.assertEqual(repo.path, discover_repository(subdir))
+
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
 
@@ -291,44 +297,68 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         self.assertTrue(self.repo.head_is_orphaned)
         self.assertFalse(self.repo.head_is_detached)
 
+
 class CloneRepositoryTest(utils.NoRepoTestCase):
     def test_clone_repository(self):
-        repo = clone_repository("./test/data/testrepo.git/", self._temp_dir)
+        repo_path = "./test/data/testrepo.git/"
+        repo = clone_repository(repo_path, self._temp_dir)
         self.assertFalse(repo.is_empty)
         self.assertFalse(repo.is_bare)
 
     def test_clone_bare_repository(self):
-        repo = clone_repository("./test/data/testrepo.git/", self._temp_dir, bare=True)
+        repo_path = "./test/data/testrepo.git/"
+        repo = clone_repository(repo_path, self._temp_dir, bare=True)
         self.assertFalse(repo.is_empty)
         self.assertTrue(repo.is_bare)
 
     def test_clone_remote_name(self):
-        repo = clone_repository("./test/data/testrepo.git/", self._temp_dir, remote_name="custom_remote")
+        repo_path = "./test/data/testrepo.git/"
+        repo = clone_repository(
+            repo_path, self._temp_dir, remote_name="custom_remote"
+        )
         self.assertFalse(repo.is_empty)
         self.assertEqual(repo.remotes[0].name, "custom_remote")
 
     def test_clone_push_url(self):
-        repo = clone_repository("./test/data/testrepo.git/", self._temp_dir, push_url="custom_push_url")
+        repo_path = "./test/data/testrepo.git/"
+        repo = clone_repository(
+            repo_path, self._temp_dir, push_url="custom_push_url"
+        )
         self.assertFalse(repo.is_empty)
-        # not sure how to test this... couldn't find pushurl
+        # FIXME: When pygit2 supports retrieving the pushurl parameter,
+        # enable this test
         # self.assertEqual(repo.remotes[0].pushurl, "custom_push_url")
 
     def test_clone_fetch_spec(self):
-        repo = clone_repository("./test/data/testrepo.git/", self._temp_dir, fetch_spec="refs/heads/test")
+        repo_path = "./test/data/testrepo.git/"
+        repo = clone_repository(
+            repo_path, self._temp_dir, fetch_spec="refs/heads/test"
+        )
         self.assertFalse(repo.is_empty)
-        # not sure how to test this either... fetchspec seems to be going through, but repo is not getting it.
+        # FIXME: When pygit2 retrieve the fetchspec we passed to git clone.
+        # fetchspec seems to be going through, but the Repository class is
+        # not getting it.
         # self.assertEqual(repo.remotes[0].fetchspec, "refs/heads/test")
 
     def test_clone_push_spec(self):
-        repo = clone_repository("./test/data/testrepo.git/", self._temp_dir, push_spec="refs/heads/test")
+        repo_path = "./test/data/testrepo.git/"
+        repo = clone_repository(
+            repo_path, self._temp_dir, push_spec="refs/heads/test"
+        )
         self.assertFalse(repo.is_empty)
+        # FIXME: When pygit2 supports retrieving the pushspec parameter,
+        # enable this test
         # not sure how to test this either... couldn't find pushspec
         # self.assertEqual(repo.remotes[0].fetchspec, "refs/heads/test")
 
     def test_clone_checkout_branch(self):
-        repo = clone_repository("./test/data/testrepo.git/", self._temp_dir, checkout_branch="test")
+        repo_path = "./test/data/testrepo.git/"
+        repo = clone_repository(
+            repo_path, self._temp_dir, checkout_branch="test"
+        )
         self.assertFalse(repo.is_empty)
-        # not sure how to test this either... couldn't find current branch
+        # FIXME: When pygit2 supports retrieving the current branch,
+        # enable this test
         # self.assertEqual(repo.remotes[0].current_branch, "test")
 
 
