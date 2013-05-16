@@ -56,16 +56,27 @@ def clone_repository(
     """
     Clones a new Git repository from *url* in the given *path*.
 
-    * **bare** indicates whether a bare git repository should be created.
-    * **remote_name** is the name given to the "origin" remote. The default is "origin".
-    * **push_url** is a URL to be used for pushing. None means use the *url* parameter.
-    * **fetch_spec** defines the the default fetch spec. None results in the same behavior as *GIT_REMOTE_DEFAULT_FETCH*.
-    * **push_spec** is the fetch specification to be used for pushing. None means use the same spec as for *fetch_spec*.
-    * **checkout_branch** gives the name of the branch to checkout. None means use the remote's *HEAD*.
+    **bare** indicates whether a bare git repository should be created.
+
+    **remote_name** is the name given to the "origin" remote.
+    The default is "origin".
+
+    **push_url** is a URL to be used for pushing.
+    None means use the *url* parameter.
+
+    **fetch_spec** defines the the default fetch spec.
+    None results in the same behavior as *GIT_REMOTE_DEFAULT_FETCH*.
+
+    **push_spec** is the fetch specification to be used for pushing.
+    None means use the same spec as for *fetch_spec*.
+
+    **checkout_branch** gives the name of the branch to checkout.
+    None means use the remote's *HEAD*.
 
     Returns a Repository class pointing to the newly cloned repository.
 
-    If you wish to use the repo, you need to do a checkout for one of the available branches, like this:
+    If you wish to use the repo, you need to do a checkout for one of
+    the available branches, like this:
 
         >>> repo = repo.clone_repository("url", "path")
         >>> repo.checkout(branch)  # i.e.: refs/heads/master

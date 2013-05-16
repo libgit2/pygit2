@@ -98,9 +98,11 @@ init_repository(PyObject *self, PyObject *args) {
 };
 
 PyDoc_STRVAR(clone_repository__doc__,
-    "clone_repository(url, path, bare, remote_name, push_url, fetch_spec, push_spec, checkout_branch)\n"
+    "clone_repository(url, path, bare, remote_name, push_url,"
+    "fetch_spec, push_spec, checkout_branch)\n"
     "\n"
-    "Clones a Git repository in the given url to the given path with the specified options.\n"
+    "Clones a Git repository in the given url to the given path "
+    "with the specified options.\n"
     "\n"
     "Arguments:\n"
     "\n"
@@ -115,11 +117,14 @@ PyDoc_STRVAR(clone_repository__doc__,
     "push_url\n"
     "  URL to be used for pushing.\n"
     "fetch_spec\n"
-    "  The fetch specification to be used for fetching. None results in the same behavior as GIT_REMOTE_DEFAULT_FETCH.\n"
+    "  The fetch specification to be used for fetching. None results in "
+    "the same behavior as GIT_REMOTE_DEFAULT_FETCH.\n"
     "push_spec\n"
-    "  The fetch specification to be used for pushing. None means use the same spec as for 'fetch_spec'\n"
+    "  The fetch specification to be used for pushing. None means use the "
+    "same spec as for 'fetch_spec'\n"
     "checkout_branch\n"
-    "  The name of the branch to checkout. None means use the remote's HEAD.\n");
+    "  The name of the branch to checkout. None means use the remote's "
+    "HEAD.\n");
 
 
 PyObject *
@@ -131,7 +136,9 @@ clone_repository(PyObject *self, PyObject *args) {
     const char *remote_name, *push_url, *fetch_spec, *push_spec, *checkout_branch;
     int err;
 
-    if (!PyArg_ParseTuple(args, "zzIzzzzz", &url, &path, &bare, &remote_name, &push_url, &fetch_spec, &push_spec, &checkout_branch))
+    if (!PyArg_ParseTuple(args, "zzIzzzzz", 
+                &url, &path, &bare, &remote_name, &push_url, 
+                &fetch_spec, &push_spec, &checkout_branch))
         return NULL;
 
     git_clone_options opts = {
