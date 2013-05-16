@@ -41,6 +41,6 @@ PyObject* Reference_get_name(Reference *self);
 PyObject* Reference_get_oid(Reference *self);
 PyObject* Reference_get_hex(Reference *self);
 PyObject* Reference_get_type(Reference *self);
-PyObject* wrap_reference(git_reference * c_reference);
+PyObject* wrap_reference(git_reference *c_reference, Repository *repo);
 
 #endif

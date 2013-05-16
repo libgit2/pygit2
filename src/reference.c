@@ -107,6 +107,7 @@ PyTypeObject RefLogIterType = {
 void
 Reference_dealloc(Reference *self)
 {
+    Py_CLEAR(self->repo);
     git_reference_free(self->reference);
     PyObject_Del(self);
 }
@@ -191,7 +192,7 @@ Reference_resolve(Reference *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return wrap_reference(c_reference);
+    return wrap_reference(c_reference, self->repo);
 }
 
 
@@ -461,13 +462,18 @@ PyTypeObject ReferenceType = {
 
 
 PyObject *
-wrap_reference(git_reference * c_reference)
+wrap_reference(git_reference * c_reference, Repository *repo)
 {
     Reference *py_reference=NULL;
 
     py_reference = PyObject_New(Reference, &ReferenceType);
-    if (py_reference)
+    if (py_reference) {
         py_reference->reference = c_reference;
+        if (repo) {
+            py_reference->repo = repo;
+            Py_INCREF(repo);
+        }
+    }
 
     return (PyObject *)py_reference;
 }

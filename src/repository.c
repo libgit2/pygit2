@@ -168,7 +168,7 @@ Repository_head__get__(Repository *self)
         return NULL;
     }
 
-    return wrap_reference(head);
+    return wrap_reference(head, self);
 }
 
 int
@@ -859,7 +859,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     free(c_name);
 
     /* 3- Make an instance of Reference and return it */
-    return wrap_reference(c_reference);
+    return wrap_reference(c_reference, self);
 }
 
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
@@ -898,7 +898,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
     if (err < 0)
         return Error_set(err);
 
-    return wrap_reference(c_reference);
+    return wrap_reference(c_reference, self);
 }
 
 PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
@@ -932,7 +932,7 @@ Repository_create_reference_symbolic(Repository *self,  PyObject *args,
     if (err < 0)
         return Error_set(err);
 
-    return wrap_reference(c_reference);
+    return wrap_reference(c_reference, self);
 }
 
 
