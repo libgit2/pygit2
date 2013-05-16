@@ -133,7 +133,8 @@ clone_repository(PyObject *self, PyObject *args) {
     const char *url;
     const char *path;
     unsigned int bare;
-    const char *remote_name, *push_url, *fetch_spec, *push_spec, *checkout_branch;
+    const char *remote_name, *push_url, *fetch_spec;
+    const char *push_spec, *checkout_branch;
     int err;
 
     if (!PyArg_ParseTuple(args, "zzIzzzzz", 
@@ -234,7 +235,8 @@ hash(PyObject *self, PyObject *args)
 
 PyMethodDef module_methods[] = {
     {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
-    {"clone_repository", clone_repository, METH_VARARGS, clone_repository__doc__},
+    {"clone_repository", clone_repository, METH_VARARGS,
+        clone_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
