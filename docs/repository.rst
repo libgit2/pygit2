@@ -20,6 +20,17 @@ Functions
      >>> repo = init_repository('test')            # Creates a non-bare repository
      >>> repo = init_repository('test', bare=True) # Creates a bare repository
 
+.. autofunction:: pygit2.clone_repository
+
+   Example::
+
+     >>> from pygit2 import clone_repository
+     >>> repo_url = 'git://github.com/libgit2/pygit2.git'
+     >>> repo_path = '/path/to/create/repository'
+     >>> repo = clone_repository(repo_url, repo_path) # Clones a non-bare repository
+     >>> repo = clone_repository(repo_url, repo_path, bare=True) # Clones a bare repository
+
+
 .. autofunction:: pygit2.discover_repository
 
 
