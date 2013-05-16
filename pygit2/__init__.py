@@ -50,19 +50,27 @@ def init_repository(path, bare=False):
 
 
 def clone_repository(
-        url, path, bare=False, remote_name="origin", push_url=None, fetch_spec=None,
+        url, path, bare=False, remote_name="origin",
+        push_url=None, fetch_spec=None,
         push_spec=None, checkout_branch=None):
     """
     Clones a new Git repository from *url* in the given *path*.
 
     Parameters:
-    * If 'bare' is True, then a bare git repository will be created.
-    * 'remote_name' is the name given to the "origin" remote.  The default is "origin".
-    * 'push_url' is a URL to be used for pushing.  None means use the fetch url.
-    * 'fetch_spec' is the fetch specification to be used for fetching. None results in the same behavior as GIT_REMOTE_DEFAULT_FETCH.
-    * 'push_spec' is the fetch specification to be used for pushing.  None means use the same spec as for 'fetch_spec'.
-    * 'checkout_branch' gives the name of the branch to checkout. None means use the remote's HEAD
+    * 'bare' indicates whether a bare git repository should be created.
+    * 'remote_name' is the name given to the "origin" remote.
+       The default is "origin".
+    * 'push_url' is a URL to be used for pushing.
+       None means use the fetch url.
+    * 'fetch_spec' is the fetch specification to be used for fetching.
+       None results in the same behavior as GIT_REMOTE_DEFAULT_FETCH.
+    * 'push_spec' is the fetch specification to be used for pushing.
+       None means use the same spec as for 'fetch_spec'.
+    * 'checkout_branch' gives the name of the branch to checkout.
+      None means use the remote's HEAD
     """
 
-    _pygit2.clone_repository(url, path, bare, remote_name, push_url, fetch_spec, push_spec, checkout_branch)
+    _pygit2.clone_repository(
+        url, path, bare, remote_name, push_url,
+        fetch_spec, push_spec, checkout_branch)
     return Repository(path)
