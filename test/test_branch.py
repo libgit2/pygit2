@@ -68,6 +68,17 @@ class BranchesTestCase(utils.RepoTestCase):
         reference = self.repo.create_branch('version1', commit, True)
         self.assertEqual(reference.target.hex, LAST_COMMIT)
 
+    def test_delete(self):
+        branch = self.repo.lookup_branch('i18n')
+        branch.delete()
+
+        self.assertTrue(self.repo.lookup_branch('i18n') is None)
+
+    def test_cant_delete_master(self):
+        branch = self.repo.lookup_branch('master')
+
+        self.assertRaises(pygit2.GitError, lambda: branch.delete())
+
 
 class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
     def setUp(self):

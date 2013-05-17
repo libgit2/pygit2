@@ -26,9 +26,39 @@
  */
 
 #include "types.h"
+#include "branch.h"
+#include "error.h"
 #include "reference.h"
+#include "utils.h"
+
+extern PyObject *GitError;
+
+PyDoc_STRVAR(Branch_delete__doc__,
+  "delete()\n"
+  "\n"
+  "Delete this branch. It will no longer be valid!");
+
+PyObject *
+Branch_delete(Branch *self, PyObject *args)
+{
+    int err;
+
+    CHECK_REFERENCE(self);
+
+    /* Delete the branch */
+    err = git_branch_delete(self->reference);
+    if (err < 0)
+        return Error_set(err);
+
+    git_reference_free(self->reference);
+    self->reference = NULL; /* Invalidate the pointer */
+
+    Py_RETURN_NONE;
+}
+
 
 PyMethodDef Branch_methods[] = {
+    METHOD(Branch, delete, METH_NOARGS),
     {NULL}
 };
 
