@@ -123,6 +123,44 @@ PyObject* Branch_branch_name__get__(Branch *self)
 }
 
 
+PyDoc_STRVAR(Branch_remote_name__doc__,
+  "The name of the remote that the remote tracking branch belongs to.");
+
+PyObject* Branch_remote_name__get__(Branch *self)
+{
+    int err;
+    const char *branch_name;
+    char *c_name = NULL;
+
+    CHECK_REFERENCE(self);
+
+    branch_name = git_reference_name(self->reference);
+    // get the length of the remote name
+    err = git_branch_remote_name(NULL, 0, self->repo->repo, branch_name);
+    if (err < GIT_OK)
+        return Error_set(err);
+
+    // get the actual remote name
+    c_name = calloc(err, sizeof(char));
+    if (c_name == NULL)
+        return PyErr_NoMemory();
+
+    err = git_branch_remote_name(c_name,
+                                 err * sizeof(char),
+                                 self->repo->repo,
+                                 branch_name);
+    if (err < GIT_OK) {
+        free(c_name);
+        return Error_set(err);
+    }
+
+    PyObject *py_name = to_unicode(c_name, NULL, NULL);
+    free(c_name);
+
+    return py_name;
+}
+
+
 PyMethodDef Branch_methods[] = {
     METHOD(Branch, delete, METH_NOARGS),
     METHOD(Branch, is_head, METH_NOARGS),
@@ -132,6 +170,7 @@ PyMethodDef Branch_methods[] = {
 
 PyGetSetDef Branch_getseters[] = {
     GETTER(Branch, branch_name),
+    GETTER(Branch, remote_name),
     {NULL}
 };
 

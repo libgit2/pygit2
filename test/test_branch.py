@@ -140,6 +140,12 @@ class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
         branches = sorted(self.repo.listall_branches(pygit2.GIT_BRANCH_REMOTE))
         self.assertEqual(branches, ['origin/master'])
 
+    def test_branch_remote_name(self):
+        self.repo.remotes[0].fetch()
+        branch = self.repo.lookup_branch('origin/master',
+                                         pygit2.GIT_BRANCH_REMOTE)
+        self.assertEqual(branch.remote_name, 'origin')
+
 
 if __name__ == '__main__':
     unittest.main()
