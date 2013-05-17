@@ -337,6 +337,8 @@ moduleinit(PyObject* m)
      */
     INIT_TYPE(BranchType, &ReferenceType, PyType_GenericNew);
     ADD_TYPE(m, Branch)
+    ADD_CONSTANT_INT(m, GIT_BRANCH_LOCAL)
+    ADD_CONSTANT_INT(m, GIT_BRANCH_REMOTE)
 
     /*
      * Index & Working copy

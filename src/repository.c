@@ -36,6 +36,7 @@
 #include "note.h"
 #include "repository.h"
 #include "remote.h"
+#include "branch.h"
 #include <git2/odb_backend.h>
 
 extern PyObject *GitError;
@@ -271,6 +272,33 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
         Py_RETURN_NONE;
 
     return Error_set_oid(err, &oid, len);
+}
+
+
+PyDoc_STRVAR(Repository_lookup_branch__doc__,
+  "lookup_branch(branch_name, [branch_type]) -> Object\n"
+  "\n"
+  "Returns the Git reference for the given branch name (local or remote).");
+
+PyObject *
+Repository_lookup_branch(Repository *self, PyObject *args)
+{
+    git_reference *c_reference;
+    const char *c_name;
+    git_branch_t branch_type = GIT_BRANCH_LOCAL;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s|I", &c_name, &branch_type))
+        return NULL;
+
+    err = git_branch_lookup(&c_reference, self->repo, c_name, branch_type);
+    if (err == 0)
+        return wrap_branch(c_reference, self);
+
+    if (err == GIT_ENOTFOUND)
+        Py_RETURN_NONE;
+
+    return Error_set(err);
 }
 
 
@@ -1321,6 +1349,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_note, METH_VARARGS),
     METHOD(Repository, lookup_note, METH_VARARGS),
     METHOD(Repository, git_object_lookup_prefix, METH_O),
+    METHOD(Repository, lookup_branch, METH_VARARGS),
     {NULL}
 };
 

@@ -30,6 +30,7 @@ from string import hexdigits
 
 # Import from pygit2
 from _pygit2 import Repository as _Repository
+from _pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
