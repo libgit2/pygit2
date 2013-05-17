@@ -20,7 +20,7 @@ Pygit2 links:
 Quick install guide
 ===================
 
-1. Checkout libgi2 v0.18.0::
+1. Checkout libgit2 v0.18.0::
 
    $ git clone git://github.com/libgit2/libgit2.git -b v0.18.0
 
