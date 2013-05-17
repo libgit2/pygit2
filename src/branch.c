@@ -215,6 +215,44 @@ int Branch_upstream__set__(Branch *self, Reference *py_ref)
 }
 
 
+PyDoc_STRVAR(Branch_upstream_name__doc__,
+  "The name of the reference supporting the remote tracking branch.");
+
+PyObject* Branch_upstream_name__get__(Branch *self)
+{
+    int err;
+    const char *branch_name;
+    char *c_name = NULL;
+
+    CHECK_REFERENCE(self);
+
+    branch_name = git_reference_name(self->reference);
+    // get the length of the upstream name
+    err = git_branch_upstream_name(NULL, 0, self->repo->repo, branch_name);
+    if (err < GIT_OK)
+        return Error_set(err);
+
+    // get the actual upstream name
+    c_name = calloc(err, sizeof(char));
+    if (c_name == NULL)
+        return PyErr_NoMemory();
+
+    err = git_branch_upstream_name(c_name,
+                                   err * sizeof(char),
+                                   self->repo->repo,
+                                   branch_name);
+    if (err < GIT_OK) {
+        free(c_name);
+        return Error_set(err);
+    }
+
+    PyObject *py_name = to_unicode(c_name, NULL, NULL);
+    free(c_name);
+
+    return py_name;
+}
+
+
 PyMethodDef Branch_methods[] = {
     METHOD(Branch, delete, METH_NOARGS),
     METHOD(Branch, is_head, METH_NOARGS),
@@ -226,6 +264,7 @@ PyGetSetDef Branch_getseters[] = {
     GETTER(Branch, branch_name),
     GETTER(Branch, remote_name),
     GETSET(Branch, upstream),
+    GETTER(Branch, upstream_name),
     {NULL}
 };
 
