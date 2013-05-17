@@ -52,6 +52,21 @@ class BranchesTestCase(utils.RepoTestCase):
         branches = sorted(self.repo.listall_branches())
         self.assertEqual(branches, ['i18n', 'master'])
 
+    def test_create_branch(self):
+        commit = self.repo[LAST_COMMIT]
+        reference = self.repo.create_branch('version1', commit)
+        refs = self.repo.listall_branches()
+        self.assertTrue('version1' in refs)
+        reference = self.repo.lookup_branch('version1')
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
+
+        # try to create existing reference
+        self.assertRaises(ValueError,
+                          lambda: self.repo.create_branch('version1', commit))
+
+        # try to create existing reference with force
+        reference = self.repo.create_branch('version1', commit, True)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
 
 
 class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):

@@ -45,6 +45,7 @@ extern PyTypeObject IndexType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject SignatureType;
 extern PyTypeObject ObjectType;
+extern PyTypeObject CommitType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
@@ -842,6 +843,39 @@ Repository_create_tag(Repository *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Repository_create_branch__doc__,
+  "create_branch(name, commit, force=False) -> bytes\n"
+  "\n"
+  "Create a new branch \"name\" which points to a commit.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "force\n"
+  "    If True branches will be overridden, otherwise (the default) an\n"
+  "    exception is raised.\n"
+  "\n"
+  "Examples::\n"
+  "\n"
+  "    repo.create_branch('foo', repo.head.hex, force=False)");
+
+PyObject* Repository_create_branch(Repository *self, PyObject *args)
+{
+    Commit *py_commit;
+    git_reference *c_reference;
+    char *c_name;
+    int err, force = 0;
+
+    if (!PyArg_ParseTuple(args, "sO!|i", &c_name, &CommitType, &py_commit, &force))
+        return NULL;
+
+    err = git_branch_create(&c_reference, self->repo, c_name, py_commit->commit, force);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_branch(c_reference, self);
+}
+
+
 PyDoc_STRVAR(Repository_listall_references__doc__,
   "listall_references([flags]) -> (str, ...)\n"
   "\n"
@@ -1422,6 +1456,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, git_object_lookup_prefix, METH_O),
     METHOD(Repository, lookup_branch, METH_VARARGS),
     METHOD(Repository, listall_branches, METH_VARARGS),
+    METHOD(Repository, create_branch, METH_VARARGS),
     {NULL}
 };
 
