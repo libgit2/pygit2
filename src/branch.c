@@ -57,8 +57,31 @@ Branch_delete(Branch *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Branch_is_head__doc__,
+  "is_head()\n"
+  "\n"
+  "True if HEAD points at the branch, False otherwise.");
+
+PyObject *
+Branch_is_head(Branch *self)
+{
+    int err;
+
+    CHECK_REFERENCE(self);
+
+    err = git_branch_is_head(self->reference);
+    if (err == 1)
+        Py_RETURN_TRUE;
+    else if (err == 0)
+        Py_RETURN_FALSE;
+    else
+        return Error_set(err);
+}
+
+
 PyMethodDef Branch_methods[] = {
     METHOD(Branch, delete, METH_NOARGS),
+    METHOD(Branch, is_head, METH_NOARGS),
     {NULL}
 };
 

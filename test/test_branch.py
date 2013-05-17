@@ -79,6 +79,14 @@ class BranchesTestCase(utils.RepoTestCase):
 
         self.assertRaises(pygit2.GitError, lambda: branch.delete())
 
+    def test_branch_is_head_returns_true_if_branch_is_head(self):
+        branch = self.repo.lookup_branch('master')
+        self.assertTrue(branch.is_head())
+
+    def test_branch_is_head_returns_false_if_branch_is_not_head(self):
+        branch = self.repo.lookup_branch('i18n')
+        self.assertFalse(branch.is_head())
+
 
 class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
     def setUp(self):

@@ -33,6 +33,7 @@
 #include <git2.h>
 
 PyObject* Branch_delete(Branch *self, PyObject *args);
+PyObject* Branch_is_head(Branch *self);
 
 PyObject* wrap_branch(git_reference *c_reference, Repository *repo);
 
