@@ -160,6 +160,8 @@ SIMPLE_TYPE(Walker, git_revwalk, walk)
 
 SIMPLE_TYPE(Reference, git_reference, reference)
 
+typedef Reference Branch;
+
 typedef struct {
     PyObject_HEAD
     git_signature *signature;

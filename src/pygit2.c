@@ -59,6 +59,7 @@ extern PyTypeObject ConfigType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
+extern PyTypeObject BranchType;
 extern PyTypeObject SignatureType;
 extern PyTypeObject RemoteType;
 extern PyTypeObject NoteType;
@@ -330,6 +331,12 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_REF_OID)
     ADD_CONSTANT_INT(m, GIT_REF_SYMBOLIC)
     ADD_CONSTANT_INT(m, GIT_REF_LISTALL)
+
+    /*
+     * Branches
+     */
+    INIT_TYPE(BranchType, &ReferenceType, PyType_GenericNew);
+    ADD_TYPE(m, Branch)
 
     /*
      * Index & Working copy
