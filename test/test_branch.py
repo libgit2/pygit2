@@ -48,16 +48,28 @@ class BranchesTestCase(utils.RepoTestCase):
 
         self.assertTrue(self.repo.lookup_branch('not-exists') is None)
 
+    def test_listall_branches(self):
+        branches = sorted(self.repo.listall_branches())
+        self.assertEqual(branches, ['i18n', 'master'])
+
+
 
 class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
-    def test_lookup_branch_remote(self):
+    def setUp(self):
+        super(utils.EmptyRepoTestCase, self).setUp()
+
         remote = self.repo.remotes[0]
         remote.fetch()
 
+    def test_lookup_branch_remote(self):
         branch = self.repo.lookup_branch('origin/master', pygit2.GIT_BRANCH_REMOTE)
         self.assertEqual(branch.target.hex, ORIGIN_MASTER_COMMIT)
 
         self.assertTrue(self.repo.lookup_branch('origin/not-exists', pygit2.GIT_BRANCH_REMOTE) is None)
+
+    def test_listall_branches(self):
+        branches = sorted(self.repo.listall_branches(pygit2.GIT_BRANCH_REMOTE))
+        self.assertEqual(branches, ['origin/master'])
 
 
 if __name__ == '__main__':

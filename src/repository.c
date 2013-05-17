@@ -886,6 +886,77 @@ out:
 }
 
 
+PyDoc_STRVAR(Repository_listall_branches__doc__,
+  "listall_branches([flags]) -> (str, ...)\n"
+  "\n"
+  "Return a tuple with all the branches in the repository.");
+
+struct branch_foreach_s {
+    PyObject *tuple;
+    Py_ssize_t pos;
+};
+
+int
+branch_foreach_cb(const char *branch_name, git_branch_t branch_type, void *payload)
+{
+    /* This is the callback that will be called in git_branch_foreach. It
+     * will be called for every branch.
+     * payload is a struct branch_foreach_s.
+     */
+    int err;
+    struct branch_foreach_s *payload_s = (struct branch_foreach_s *)payload;
+
+    if (PyTuple_Size(payload_s->tuple) <= payload_s->pos)
+    {
+        err = _PyTuple_Resize(&(payload_s->tuple), payload_s->pos * 2);
+        if (err) {
+            Py_CLEAR(payload_s->tuple);
+            return GIT_ERROR;
+        }
+    }
+
+    PyObject *py_branch_name = to_path(branch_name);
+    if (py_branch_name == NULL) {
+        Py_CLEAR(payload_s->tuple);
+        return GIT_ERROR;
+    }
+
+    PyTuple_SET_ITEM(payload_s->tuple, payload_s->pos++, py_branch_name);
+
+    return GIT_OK;
+}
+
+
+PyObject *
+Repository_listall_branches(Repository *self, PyObject *args)
+{
+    unsigned int list_flags = GIT_BRANCH_LOCAL;
+    int err;
+
+    /* 1- Get list_flags */
+    if (!PyArg_ParseTuple(args, "|I", &list_flags))
+        return NULL;
+
+    /* 2- Get the C result */
+    struct branch_foreach_s payload;
+    payload.tuple = PyTuple_New(4);
+    if (payload.tuple == NULL)
+        return NULL;
+
+    payload.pos = 0;
+    err = git_branch_foreach(self->repo, list_flags, branch_foreach_cb, &payload);
+    if (err != GIT_OK)
+        return Error_set(err);
+
+    /* 3- Trim the tuple */
+    err = _PyTuple_Resize(&payload.tuple, payload.pos);
+    if (err)
+        return Error_set(err);
+
+    return payload.tuple;
+}
+
+
 PyDoc_STRVAR(Repository_lookup_reference__doc__,
   "lookup_reference(name) -> Reference\n"
   "\n"
@@ -1350,6 +1421,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, lookup_note, METH_VARARGS),
     METHOD(Repository, git_object_lookup_prefix, METH_O),
     METHOD(Repository, lookup_branch, METH_VARARGS),
+    METHOD(Repository, listall_branches, METH_VARARGS),
     {NULL}
 };
 
