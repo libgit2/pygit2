@@ -105,6 +105,24 @@ PyObject* Branch_rename(Branch *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Branch_branch_name__doc__,
+  "The name of the local or remote branch.");
+
+PyObject* Branch_branch_name__get__(Branch *self)
+{
+    int err;
+    const char *c_name;
+
+    CHECK_REFERENCE(self);
+
+    err = git_branch_name(&c_name, self->reference);
+    if (err == GIT_OK)
+        return to_unicode(c_name, NULL, NULL);
+    else
+        return Error_set(err);
+}
+
+
 PyMethodDef Branch_methods[] = {
     METHOD(Branch, delete, METH_NOARGS),
     METHOD(Branch, is_head, METH_NOARGS),
@@ -113,6 +131,7 @@ PyMethodDef Branch_methods[] = {
 };
 
 PyGetSetDef Branch_getseters[] = {
+    GETTER(Branch, branch_name),
     {NULL}
 };
 

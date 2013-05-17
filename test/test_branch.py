@@ -110,6 +110,15 @@ class BranchesTestCase(utils.RepoTestCase):
         self.assertRaises(ValueError,
                           lambda: original_branch.rename('abc@{123'))
 
+    def test_branch_name(self):
+        branch = self.repo.lookup_branch('master')
+        self.assertEqual(branch.branch_name, 'master')
+        self.assertEqual(branch.name, 'refs/heads/master')
+
+        branch = self.repo.lookup_branch('i18n')
+        self.assertEqual(branch.branch_name, 'i18n')
+        self.assertEqual(branch.name, 'refs/heads/i18n')
+
 
 class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
     def setUp(self):
