@@ -79,9 +79,36 @@ Branch_is_head(Branch *self)
 }
 
 
+PyDoc_STRVAR(Branch_rename__doc__,
+  "rename(name, force=False)\n"
+  "\n"
+  "Move/rename an existing local branch reference. The new branch name will be "
+  "checked for validity.\n"
+  "Returns the new branch.");
+
+PyObject* Branch_rename(Branch *self, PyObject *args)
+{
+    int err, force = 0;
+    git_reference *c_out;
+    const char *c_name;
+
+    CHECK_REFERENCE(self);
+
+    if (!PyArg_ParseTuple(args, "s|i", &c_name, &force))
+        return NULL;
+
+    err = git_branch_move(&c_out, self->reference, c_name, force);
+    if (err == GIT_OK)
+        return wrap_branch(c_out, self->repo);
+    else
+        return Error_set(err);
+}
+
+
 PyMethodDef Branch_methods[] = {
     METHOD(Branch, delete, METH_NOARGS),
     METHOD(Branch, is_head, METH_NOARGS),
+    METHOD(Branch, rename, METH_VARARGS),
     {NULL}
 };
 

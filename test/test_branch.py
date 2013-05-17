@@ -38,6 +38,7 @@ LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 I18N_LAST_COMMIT = '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 ORIGIN_MASTER_COMMIT = '784855caf26449a1914d2cf62d12b9374d76ae78'
 
+
 class BranchesTestCase(utils.RepoTestCase):
     def test_lookup_branch_local(self):
         branch = self.repo.lookup_branch('master')
@@ -87,6 +88,28 @@ class BranchesTestCase(utils.RepoTestCase):
         branch = self.repo.lookup_branch('i18n')
         self.assertFalse(branch.is_head())
 
+    def test_branch_rename_succeeds(self):
+        original_branch = self.repo.lookup_branch('i18n')
+        new_branch = original_branch.rename('new-branch')
+        self.assertEqual(new_branch.target.hex, I18N_LAST_COMMIT)
+
+        new_branch_2 = self.repo.lookup_branch('new-branch')
+        self.assertEqual(new_branch_2.target.hex, I18N_LAST_COMMIT)
+
+    def test_branch_rename_fails_if_destination_already_exists(self):
+        original_branch = self.repo.lookup_branch('i18n')
+        self.assertRaises(ValueError, lambda: original_branch.rename('master'))
+
+    def test_branch_rename_not_fails_if_force_is_true(self):
+        original_branch = self.repo.lookup_branch('master')
+        new_branch = original_branch.rename('i18n', True)
+        self.assertEqual(new_branch.target.hex, LAST_COMMIT)
+
+    def test_branch_rename_fails_with_invalid_names(self):
+        original_branch = self.repo.lookup_branch('i18n')
+        self.assertRaises(ValueError,
+                          lambda: original_branch.rename('abc@{123'))
+
 
 class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
     def setUp(self):
@@ -96,10 +119,13 @@ class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
         remote.fetch()
 
     def test_lookup_branch_remote(self):
-        branch = self.repo.lookup_branch('origin/master', pygit2.GIT_BRANCH_REMOTE)
+        branch = self.repo.lookup_branch('origin/master',
+                                         pygit2.GIT_BRANCH_REMOTE)
         self.assertEqual(branch.target.hex, ORIGIN_MASTER_COMMIT)
 
-        self.assertTrue(self.repo.lookup_branch('origin/not-exists', pygit2.GIT_BRANCH_REMOTE) is None)
+        self.assertTrue(
+            self.repo.lookup_branch('origin/not-exists',
+                                    pygit2.GIT_BRANCH_REMOTE) is None)
 
     def test_listall_branches(self):
         branches = sorted(self.repo.listall_branches(pygit2.GIT_BRANCH_REMOTE))
