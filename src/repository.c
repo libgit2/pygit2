@@ -541,13 +541,28 @@ PyDoc_STRVAR(Repository_walk__doc__,
   "walk(oid, sort_mode) -> iterator\n"
   "\n"
   "Generator that traverses the history starting from the given commit.\n"
+  "The following types of sorting could be used to control traversing\n"
+  "direction:\n"
+  "\n"
+  "* GIT_SORT_NONE. This is the default sorting for new walkers\n"
+  "  Sort the repository contents in no particular ordering\n"
+  "* GIT_SORT_TOPOLOGICAL. Sort the repository contents in topological order\n"
+  "  (parents before children); this sorting mode can be combined with\n"
+  "  time sorting.\n"
+  "* GIT_SORT_TIME. Sort the repository contents by commit time\n"
+  "* GIT_SORT_REVERSE. Iterate through the repository contents in reverse\n"
+  "  order; this sorting mode can be combined with any of the above.\n"
   "\n"
   "Example:\n"
   "\n"
-  "import pygit2"
-  "repo = pygit2.Repository(.git)\n"
-  "for object in repo.walk(repo.head.oid, pygit2.GIT_SORT_TOPOLOGICAL):\n"
-  "    print object.message");
+  "  >>> from pygit2 import Repository\n"
+  "  >>> from pygit2 import GIT_SORT_TOPOLOGICAL, GIT_SORT_REVERSE\n"
+  "  >>> repo = Repository('.git')\n"
+  "  >>> for commit in repo.walk(repo.head.oid, GIT_SORT_TOPOLOGICAL):\n"
+  "  ...    print commit.message\n"
+  "  >>> for commit in repo.walk(repo.head.oid, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE):\n"
+  "  ...    print commit.message\n"
+  "  >>>\n");
 
 PyObject *
 Repository_walk(Repository *self, PyObject *args)
