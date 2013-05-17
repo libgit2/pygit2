@@ -146,6 +146,24 @@ class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
                                          pygit2.GIT_BRANCH_REMOTE)
         self.assertEqual(branch.remote_name, 'origin')
 
+    def test_branch_upstream(self):
+        self.repo.remotes[0].fetch()
+        remote_master = self.repo.lookup_branch('origin/master',
+                                                pygit2.GIT_BRANCH_REMOTE)
+        master = self.repo.create_branch('master',
+                                         self.repo[remote_master.target.hex])
+
+        self.assertTrue(master.upstream is None)
+        master.upstream = remote_master
+        self.assertEqual(master.upstream.branch_name, 'origin/master')
+
+        def set_bad_upstream():
+            master.upstream = 2.5
+        self.assertRaises(TypeError, set_bad_upstream)
+
+        master.upstream = None
+        self.assertTrue(master.upstream is None)
+
 
 if __name__ == '__main__':
     unittest.main()
