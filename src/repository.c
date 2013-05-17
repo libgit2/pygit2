@@ -540,7 +540,14 @@ Repository_merge_base(Repository *self, PyObject *args)
 PyDoc_STRVAR(Repository_walk__doc__,
   "walk(oid, sort_mode) -> iterator\n"
   "\n"
-  "Generator that traverses the history starting from the given commit.");
+  "Generator that traverses the history starting from the given commit.\n"
+  "\n"
+  "Example:\n"
+  "\n"
+  "import pygit2"
+  "repo = pygit2.Repository(.git)\n"
+  "for object in repo.walk(repo.head.oid, pygit2.GIT_SORT_TOPOLOGICAL):\n"
+  "    print object.message");
 
 PyObject *
 Repository_walk(Repository *self, PyObject *args)
