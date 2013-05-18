@@ -290,7 +290,7 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|i", &opts.flags))
         return NULL;
 
-    repo = self->repo->repo;
+    repo = git_tree_owner(self->tree);
     err = git_diff_tree_to_workdir(&diff, repo, self->tree, &opts);
 
     if (err < 0)
@@ -321,7 +321,7 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTuple(args, "O!|i", &IndexType, &py_idx, &opts.flags))
         return NULL;
 
-    repo = self->repo->repo;
+    repo = git_tree_owner(self->tree);
     err = git_diff_tree_to_index(&diff, repo, self->tree, py_idx->index, &opts);
     if (err < 0)
         return Error_set(err);
@@ -354,7 +354,7 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
                                      &swap))
         return NULL;
 
-    repo = self->repo->repo;
+    repo = git_tree_owner(self->tree);
     to = (py_tree == NULL) ? NULL : py_tree->tree;
     from = self->tree;
     if (swap > 0) {

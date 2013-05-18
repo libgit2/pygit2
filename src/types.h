@@ -158,10 +158,7 @@ typedef struct {
 /* git_reference, git_reflog */
 SIMPLE_TYPE(Walker, git_revwalk, walk)
 
-typedef struct {
-    PyObject_HEAD
-    git_reference *reference;
-} Reference;
+SIMPLE_TYPE(Reference, git_reference, reference)
 
 typedef struct {
     PyObject_HEAD
@@ -191,7 +188,5 @@ typedef struct {
 /* git_remote */
 SIMPLE_TYPE(Remote, git_remote, remote)
 
-
-PyObject* lookup_object(Repository *repo, const git_oid *oid, git_otype type);
 
 #endif

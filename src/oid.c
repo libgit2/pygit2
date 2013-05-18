@@ -45,8 +45,8 @@ git_oid_to_python(const git_oid *oid)
     return (PyObject*)py_oid;
 }
 
-Py_ssize_t
-_oid_from_hex(PyObject *py_oid, git_oid *oid)
+size_t
+py_hex_to_git_oid (PyObject *py_oid, git_oid *oid)
 {
     PyObject *py_hex;
     int err;
@@ -58,15 +58,15 @@ _oid_from_hex(PyObject *py_oid, git_oid *oid)
     if (PyBytes_Check(py_oid)) {
         err = PyBytes_AsStringAndSize(py_oid, &hex, &len);
         if (err)
-            return -1;
+            return 0;
 
         err = git_oid_fromstrn(oid, hex, len);
         if (err < 0) {
             PyErr_SetObject(Error_type(err), py_oid);
-            return -1;
+            return 0;
         }
 
-        return len;
+        return (size_t)len;
     }
 #endif
 
@@ -74,31 +74,31 @@ _oid_from_hex(PyObject *py_oid, git_oid *oid)
     if (PyUnicode_Check(py_oid)) {
         py_hex = PyUnicode_AsASCIIString(py_oid);
         if (py_hex == NULL)
-            return -1;
+            return 0;
 
         err = PyBytes_AsStringAndSize(py_hex, &hex, &len);
         if (err) {
             Py_DECREF(py_hex);
-            return -1;
+            return 0;
         }
 
         err = git_oid_fromstrn(oid, hex, len);
         Py_DECREF(py_hex);
         if (err < 0) {
             PyErr_SetObject(Error_type(err), py_oid);
-            return -1;
+            return 0;
         }
 
-        return len;
+        return (size_t)len;
     }
 
     /* Type error */
     PyErr_SetObject(PyExc_TypeError, py_oid);
-    return -1;
+    return 0;
 }
 
-Py_ssize_t
-py_str_to_git_oid(PyObject *py_oid, git_oid *oid)
+size_t
+py_oid_to_git_oid(PyObject *py_oid, git_oid *oid)
 {
     /* Oid */
     if (PyObject_TypeCheck(py_oid, (PyTypeObject*)&OidType)) {
@@ -107,41 +107,43 @@ py_str_to_git_oid(PyObject *py_oid, git_oid *oid)
     }
 
     /* Hex */
-    return _oid_from_hex(py_oid, oid);
+    return py_hex_to_git_oid(py_oid, oid);
 }
 
-Py_ssize_t
-py_str_to_git_oid_expand(git_repository *repo, PyObject *py_str, git_oid *oid)
+int
+py_oid_to_git_oid_expand(git_repository *repo, PyObject *py_str, git_oid *oid)
 {
     int err;
-    Py_ssize_t len;
-    git_odb *odb;
-    git_odb_object *obj;
+    size_t len;
+    git_odb *odb = NULL;
+    git_odb_object *obj = NULL;
 
-    len = py_str_to_git_oid(py_str, oid);
-
-    if (len == GIT_OID_HEXSZ || len < 0)
-        return len;
-
-    err = git_repository_odb(&odb, repo);
-    if (err < 0) {
-        Error_set(err);
+    len = py_oid_to_git_oid(py_str, oid);
+    if (len == 0)
         return -1;
-    }
+
+    if (len == GIT_OID_HEXSZ)
+        return 0;
+
+    /* Short oid */
+    err = git_repository_odb(&odb, repo);
+    if (err < 0)
+        goto error;
 
     err = git_odb_read_prefix(&obj, odb, oid, len);
-    if (err < 0) {
-        git_odb_free(odb);
-        Error_set(err);
-        return err;
-    }
+    if (err < 0)
+        goto error;
 
     git_oid_cpy(oid, git_odb_object_id(obj));
-
     git_odb_object_free(obj);
     git_odb_free(odb);
-
     return 0;
+
+error:
+    git_odb_object_free(obj);
+    git_odb_free(odb);
+    Error_set(err);
+    return -1;
 }
 
 PyObject *
@@ -197,8 +199,8 @@ Oid_init(Oid *self, PyObject *args, PyObject *kw)
     }
 
     /* Case 2: hex */
-    len = _oid_from_hex(hex, &self->oid);
-    if (len < 0)
+    len = py_hex_to_git_oid(hex, &self->oid);
+    if (len == 0)
         return -1;
 
     return 0;
@@ -246,6 +248,9 @@ Oid_richcompare(PyObject *o1, PyObject *o2, int op)
         case Py_GE:
             res = (cmp >= 0) ? Py_True: Py_False;
             break;
+        default:
+            PyErr_Format(PyExc_RuntimeError, "Unexpected '%d' op", op);
+            return NULL;
     }
 
     Py_INCREF(res);
@@ -253,7 +258,7 @@ Oid_richcompare(PyObject *o1, PyObject *o2, int op)
 }
 
 
-PyDoc_STRVAR(Oid_raw__doc__, "Raw oid.");
+PyDoc_STRVAR(Oid_raw__doc__, "Raw oid, a 20 bytes string.");
 
 PyObject *
 Oid_raw__get__(Oid *self)
@@ -262,7 +267,7 @@ Oid_raw__get__(Oid *self)
 }
 
 
-PyDoc_STRVAR(Oid_hex__doc__, "Hex oid.");
+PyDoc_STRVAR(Oid_hex__doc__, "Hex oid, a 40 chars long string (type str).");
 
 PyObject *
 Oid_hex__get__(Oid *self)

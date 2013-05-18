@@ -31,6 +31,7 @@
 #include "utils.h"
 #include "signature.h"
 #include "commit.h"
+#include "object.h"
 
 extern PyTypeObject TreeType;
 
@@ -149,32 +150,43 @@ Commit_tree__get__(Commit *commit)
 PyDoc_STRVAR(Commit_parents__doc__, "The list of parent commits.");
 
 PyObject *
-Commit_parents__get__(Commit *commit)
+Commit_parents__get__(Commit *self)
 {
+    git_repository *repo;
     unsigned int i, parent_count;
     const git_oid *parent_oid;
-    PyObject *obj;
+    git_commit *parent;
+    int err;
+    PyObject *py_parent;
     PyObject *list;
 
-    parent_count = git_commit_parentcount(commit->commit);
+    parent_count = git_commit_parentcount(self->commit);
     list = PyList_New(parent_count);
     if (!list)
         return NULL;
 
+    repo = git_object_owner((git_object*)self->commit);
     for (i=0; i < parent_count; i++) {
-        parent_oid = git_commit_parent_id(commit->commit, i);
+        parent_oid = git_commit_parent_id(self->commit, i);
         if (parent_oid == NULL) {
             Py_DECREF(list);
             Error_set(GIT_ENOTFOUND);
             return NULL;
         }
-        obj = lookup_object(commit->repo, parent_oid, GIT_OBJ_COMMIT);
-        if (obj == NULL) {
+
+        err = git_commit_lookup(&parent, repo, parent_oid);
+        if (err < 0) {
+            Py_DECREF(list);
+            return Error_set_oid(err, parent_oid, GIT_OID_HEXSZ);
+        }
+
+        py_parent = wrap_object((git_object*)parent, self->repo);
+        if (py_parent == NULL) {
             Py_DECREF(list);
             return NULL;
         }
 
-        PyList_SET_ITEM(list, i, obj);
+        PyList_SET_ITEM(list, i, py_parent);
     }
 
     return list;

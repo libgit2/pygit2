@@ -1,8 +1,5 @@
 **********************************************************************
-Errors
+Merge
 **********************************************************************
 
-.. autoexception:: pygit2.GitError
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. automethod:: pygit2.Repository.merge_base

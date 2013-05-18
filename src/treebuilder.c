@@ -53,7 +53,7 @@ PyObject *
 TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 {
     PyObject *py_oid;
-    Py_ssize_t len;
+    size_t len;
     int err, attr;
     git_oid oid;
     const char *fname;
@@ -61,8 +61,8 @@ TreeBuilder_insert(TreeBuilder *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "sOi", &fname, &py_oid, &attr))
         return NULL;
 
-    len = py_str_to_git_oid(py_oid, &oid);
-    if (len < 0)
+    len = py_oid_to_git_oid(py_oid, &oid);
+    if (len == 0)
         return NULL;
 
     err = git_treebuilder_insert(NULL, self->bld, fname, &oid, attr);
@@ -74,7 +74,7 @@ TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 
 
 PyDoc_STRVAR(TreeBuilder_write__doc__,
-    "write() -> bytes\n"
+    "write() -> Oid\n"
     "\n"
     "Write the tree to the given repository.");
 

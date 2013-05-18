@@ -1,92 +1,80 @@
 **********************************************************************
-Git objects
+Git Objects
 **********************************************************************
+
+There are four types of Git objects: blobs, trees, commits and tags. For each
+one pygit2 has a type, and all four types inherit from the base ``Object``
+type.
+
 
 .. contents:: Contents
    :local:
 
-In the first place Git is a key-value storage system. The keys are called
-OIDs, for Object id, and the  values stored are called Objects.
 
-Oids
+Object lookup
 =================
 
-The oid is the `SHA-1 <http://en.wikipedia.org/wiki/SHA-1>`_ hash of an
-object. It is 20 bytes long:
+In the previous chapter we learnt about Object IDs. With an oid we can ask the
+repository to get the associated object. To do that the ``Repository`` class
+implementes a subset of the mapping interface.
 
-- When we represent an oid as a 20 bytes Python string, we say it is a raw
-  oid.
+.. method:: Repository.get(oid, default=None)
 
-- When we represent an oid as a 40 chars Python string, we sayt it is a hex
-  oid.
+   Return the Git object for the given *oid*, returns the *default* value if
+   there's no object in the repository with that oid. The oid can be an Oid
+   object, or an hexadecimal string.
 
-However, most of the time we will use the Oid type. We can explicetly create
-an Oid object from its raw or hexadecimal form::
+   Example::
 
-  >>> hex = "cff3ceaefc955f0dbe1957017db181bc49913781"
-  >>> oid1 = Oid(hex=hex)
+     >>> from pygit2 import Repository
+     >>> repo = Repository('path/to/pygit2')
+     >>> obj = repo.get("101715bf37440d32291bde4f58c3142bcf7d8adb")
+     >>> obj
+     <_pygit2.Commit object at 0x7ff27a6b60f0>
 
-  >>> from binascii import unhexlify
-  >>> raw = unhexlify(hex)
-  >>> oid2 = Oid(raw=raw)
+.. method:: Repository[oid]
 
-  >>> print oid1 == oid2
+   Return the Git object for the given oid, raise ``KeyError`` if there's no
+   object in the repository with that oid. The oid can be an Oid object, or
+   an hexadecimal string.
+
+.. method:: oid in Repository
+
+   Returns True if there is an object in the Repository with that oid, False
+   if there is not.  The oid can be an Oid object, or an hexadecimal string.
+
+
+The Object base type
+====================
+
+The Object type is a base type, it is not possible to make instances of it, in
+any way.
+
+It is the base type of the ``Blob``, ``Tree``, ``Commit`` and ``Tag`` types, so
+it is possible to check whether a Python value is an Object or not::
+
+  >>> from pygit2 import Object
+  >>> commit = repository.revparse_single('HEAD')
+  >>> print isinstance(commit, Object)
   True
 
-And in the opposite direction, we can get the raw or hexadecimal form from
-an Oid object:
+All Objects are immutable, they cannot be modified once they are created::
 
-.. autoattribute:: pygit2.Oid.raw
-.. autoattribute:: pygit2.Oid.hex
+  >>> commit.message = u"foobar"
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+  AttributeError: attribute 'message' of '_pygit2.Commit' objects is not writable
 
-The Oid type supports:
+Derived types (blobs, trees, etc.) don't have a constructor, this means they
+cannot be created with the common idiom::
 
-- rich comparisons, not just for equality, also: lesser-than, lesser-or-equal,
-  etc.
+  >>> from pygit2 import Blob
+  >>> blob = Blob("data")
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+  TypeError: cannot create '_pygit2.Blob' instances
 
-- hashing, so Oid objects can be used as keys in a dictionary
-
-
-Python 2 and Python 3
----------------------
-
-There is a difference on how the library handles hex oids, depending on
-whether we are using Python 2 or 3.
-
-- In Python 2, we can represent an hexadecimal oid using a bytes string
-  (``str``) or a text string (``unicode``)
-
-- In Python 3, hexadecimal oids can only be represented using unicode
-  strings.
-
-
-Objects
-=================
-
-There are four types (commits, trees, blobs and tags), for each type pygit2
-has a Python class::
-
-    >>> # Show commits and trees
-    >>> commit
-    <pygit2.Commit object at 0x7f9d2f3000b0>
-    >>> commit.tree
-    <pygit2.Tree object at 0x7f9d2f3000f0>
-
-These four classes (``Commit``, ``Tree``, ``Blob`` and ``Tag``) inherit from
-the ``Object`` base class, which provides shared behaviour. A Git object is
-identified by a unique *object id*, which is a binary byte string; this is
-often represented as an hexadecimal text string::
-
-    >>> commit.oid
-    b'x\xde\xb5W\x8d\x01<\xdb\xdf\x08o\xa1\xd1\xa3\xe7\xd9\x82\xe8\x88\x8f'
-    >>> commit.hex
-    '78deb5578d013cdbdf086fa1d1a3e7d982e8888f'
-
-The API of pygit2 accepts both the raw object id and its hexadecimal
-representation, the difference is done based on its type (a byte or a text
-string).
-
-Objects can not be modified once they have been created.
+New objects are created using an specific API we will see later.
 
 This is the common interface for all Git objects:
 
@@ -94,6 +82,126 @@ This is the common interface for all Git objects:
 .. autoattribute:: pygit2.Object.hex
 .. autoattribute:: pygit2.Object.type
 .. automethod:: pygit2.Object.read_raw
+
+
+Blobs
+=================
+
+A blob is just a raw byte string. They are the Git equivalent to files in
+a filesytem.
+
+This is their API:
+
+.. autoattribute:: pygit2.Blob.data
+
+   Example, print the contents of the ``.gitignore`` file::
+
+     >>> blob = repo["d8022420bf6db02e906175f64f66676df539f2fd"]
+     >>> print blob.data
+     MANIFEST
+     build
+     dist
+
+.. autoattribute:: pygit2.Blob.size
+
+   Example::
+
+     >>> print blob.size
+     130
+
+Creating blobs
+--------------
+
+There are a number of methods in the repository to create new blobs, and add
+them to the Git object database:
+
+.. automethod:: pygit2.Repository.create_blob
+
+   Example:
+
+     >>> oid  = repo.create_blob('foo bar')   # Creates blob from bytes string
+     >>> blob = repo[oid]
+     >>> blob.data
+     'foo bar'
+
+.. automethod:: pygit2.Repository.create_blob_fromworkdir
+.. automethod:: pygit2.Repository.create_blob_fromdisk
+
+There are also some functions to calculate the oid for a byte string without
+creating the blob object:
+ 
+.. autofunction:: pygit2.hash
+.. autofunction:: pygit2.hashfile
+
+
+Trees
+=================
+
+A tree is a sorted collection of tree entries. It is similar to a folder or
+directory in a file system. Each entry points to another tree or a blob.  A
+tree can be iterated, and partially implements the sequence and mapping
+interfaces.
+
+.. method:: Tree[name]
+
+   Return the TreeEntry object for the given *name*. Raise ``KeyError`` if
+   there is not a tree entry with that name.
+
+.. method:: name in Tree
+
+   Return True if there is a tree entry with the given name, False otherwise.
+
+.. method:: len(Tree)
+
+   Return the number of entries in the tree.
+
+.. method:: iter(Tree)
+
+   Return an iterator over the entries of the tree.
+
+.. automethod:: pygit2.Tree.diff
+
+Tree entries
+------------
+
+.. autoattribute:: pygit2.TreeEntry.name
+.. autoattribute:: pygit2.TreeEntry.oid
+.. autoattribute:: pygit2.TreeEntry.hex
+.. autoattribute:: pygit2.TreeEntry.filemode
+
+Example::
+
+    >>> tree = commit.tree
+    >>> len(tree)                        # Number of entries
+    6
+
+    >>> for entry in tree:               # Iteration
+    ...     print(entry.hex, entry.name)
+    ...
+    7151ca7cd3e59f3eab19c485cfbf3cb30928d7fa .gitignore
+    c36f4cf1e38ec1bb9d9ad146ed572b89ecfc9f18 COPYING
+    32b30b90b062f66957d6790c3c155c289c34424e README.md
+    c87dae4094b3a6d10e08bc6c5ef1f55a7e448659 pygit2.c
+    85a67270a49ef16cdd3d328f06a3e4b459f09b27 setup.py
+    3d8985bbec338eb4d47c5b01b863ee89d044bd53 test
+
+    >>> entry = tree['pygit2.c']         # Get an entry by name
+    >>> entry
+    <pygit2.TreeEntry object at 0xcc10f0>
+
+    >>> blob = repo[entry.oid]           # Get the object the entry points to
+    >>> blob
+    <pygit2.Blob object at 0xcc12d0>
+
+Creating trees
+--------------------
+
+.. automethod:: pygit2.Repository.TreeBuilder
+
+.. automethod:: pygit2.TreeBuilder.insert
+.. automethod:: pygit2.TreeBuilder.remove
+.. automethod:: pygit2.TreeBuilder.clear
+.. automethod:: pygit2.TreeBuilder.write
 
 
 Commits
@@ -146,82 +254,6 @@ repository with the following parameters::
     ... )
     '#\xe4<u\xfe\xd6\x17\xa0\xe6\xa2\x8b\xb6\xdc35$\xcf-\x8b~'
 
-
-Trees
-=================
-
-A tree is a sorted collection of tree entries. It is similar to a folder or
-directory in a file system. Each entry points to another tree or a blob.  A
-tree can be iterated, and partially implements the sequence and mapping
-interfaces::
-
-    >>> # Number of entries
-    >>> tree = commit.tree
-    >>> len(tree)
-    6
-
-    >>> # Iteration
-    >>> for entry in tree:
-    ...     print(entry.hex, entry.name)
-    ...
-    7151ca7cd3e59f3eab19c485cfbf3cb30928d7fa .gitignore
-    c36f4cf1e38ec1bb9d9ad146ed572b89ecfc9f18 COPYING
-    32b30b90b062f66957d6790c3c155c289c34424e README.md
-    c87dae4094b3a6d10e08bc6c5ef1f55a7e448659 pygit2.c
-    85a67270a49ef16cdd3d328f06a3e4b459f09b27 setup.py
-    3d8985bbec338eb4d47c5b01b863ee89d044bd53 test
-
-    >>> # Get an entry by name
-    >>> entry = tree['pygit2.c']
-    >>> entry
-    <pygit2.TreeEntry object at 0xcc10f0>
-
-    >>> # Get the object the entry points to
-    >>> blob = repo[entry.oid]
-    >>> blob
-    <pygit2.Blob object at 0xcc12d0>
-
-.. automethod:: pygit2.Tree.diff
-
-.. autoattribute:: pygit2.TreeEntry.name
-.. autoattribute:: pygit2.TreeEntry.oid
-.. autoattribute:: pygit2.TreeEntry.hex
-.. autoattribute:: pygit2.TreeEntry.filemode
-
-
-Creating trees
---------------------
-
-.. automethod:: pygit2.Repository.TreeBuilder
-
-.. automethod:: pygit2.TreeBuilder.insert
-.. automethod:: pygit2.TreeBuilder.remove
-.. automethod:: pygit2.TreeBuilder.clear
-.. automethod:: pygit2.TreeBuilder.write
-
-
-Blobs
-=================
-
-A blob is equivalent to a file in a file system.::
-
-    >>> # create a blob out of memory
-    >>> oid  = repo.create_blob('foo bar')
-    >>> blob = repo[oid]
-    >>> blob.data
-    'foo bar'
-    >>> oid
-    '\x96\xc9\x06um{\x91\xc4S"a|\x92\x95\xe4\xa8\rR\xd1\xc5'
-
-.. autoattribute:: pygit2.Blob.data
-.. autoattribute:: pygit2.Blob.size
-
-Creating blobs
---------------------
-
-.. automethod:: pygit2.Repository.create_blob
-.. automethod:: pygit2.Repository.create_blob_fromworkdir
-.. automethod:: pygit2.Repository.create_blob_fromdisk
 
 Tags
 =================

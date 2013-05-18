@@ -79,7 +79,8 @@
 
 
 /* Utilities */
-#define to_unicode(x, encoding, errors) to_unicode_n(x, strlen(x), encoding, errors)
+#define to_unicode(x, encoding, errors)\
+        to_unicode_n(x, strlen(x), encoding, errors)
 
 PYGIT2_FN_UNUSED
 Py_LOCAL_INLINE(PyObject*)
@@ -150,8 +151,8 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
 
 /* Helpers to make type init shorter. */
 #define INIT_TYPE(type, base, new) \
-    if (base != NULL) type.tp_base = base; \
-    if (new != NULL) type.tp_new = new; \
+    type.tp_base = base; \
+    type.tp_new = new; \
     if (PyType_Ready(&type) < 0) return NULL;
 
 #define ADD_TYPE(module, type) \

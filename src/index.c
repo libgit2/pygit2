@@ -358,10 +358,10 @@ Index_read_tree(Index *self, PyObject *value)
     git_oid oid;
     git_tree *tree;
     int err;
-    Py_ssize_t len;
+    size_t len;
 
-    len = py_str_to_git_oid(value, &oid);
-    if (len < 0)
+    len = py_oid_to_git_oid(value, &oid);
+    if (len == 0)
         return NULL;
 
     err = git_tree_lookup_prefix(&tree, self->repo->repo, &oid, len);
@@ -378,7 +378,7 @@ Index_read_tree(Index *self, PyObject *value)
 
 
 PyDoc_STRVAR(Index_write_tree__doc__,
-  "write_tree() -> str\n"
+  "write_tree() -> Oid\n"
   "\n"
   "Create a tree object from the index file, return its oid.");
 
