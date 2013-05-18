@@ -27,3 +27,13 @@
 
 
 # feel free to add utils functions here
+
+import sys
+
+# python2/3 compability types for isinstance()
+if sys.version < '3':
+    text_type = unicode
+    binary_type = str
+else:
+    text_type = str
+    binary_type = bytes

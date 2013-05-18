@@ -300,7 +300,7 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
 PyDoc_STRVAR(Tree_diff_to_index__doc__, "\n");
 
 PyObject *
-Tree_diff_to_index(Tree *self, PyObject *args)
+Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
@@ -383,7 +383,7 @@ PyMappingMethods Tree_as_mapping = {
 PyMethodDef Tree_methods[] = {
     METHOD(Tree, diff_to_tree, METH_VARARGS | METH_KEYWORDS),
     METHOD(Tree, diff_to_workdir, METH_VARARGS),
-    METHOD(Tree, diff_to_index, METH_VARARGS),
+    METHOD(Tree, diff_to_index, METH_VARARGS | METH_KEYWORDS),
     {NULL}
 };
 

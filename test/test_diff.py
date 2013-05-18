@@ -91,17 +91,25 @@ HUNK_EXPECTED = """- a contents 2
 class DiffDirtyTest(utils.DirtyRepoTestCase):
     def test_diff_empty_index(self):
         repo = self.repo
+
         head = repo[repo.lookup_reference('HEAD').resolve().target]
         diff = head.tree.diff_to_index(repo.index)
+        files = [patch.new_file_path for patch in diff]
+        self.assertEqual(DIFF_INDEX_EXPECTED, files)
 
+        diff = repo.diff('HEAD', cached=True)
         files = [patch.new_file_path for patch in diff]
         self.assertEqual(DIFF_INDEX_EXPECTED, files)
 
     def test_workdir_to_tree(self):
         repo = self.repo
         head = repo[repo.lookup_reference('HEAD').resolve().target]
-        diff = head.tree.diff_to_workdir()
 
+        diff = head.tree.diff_to_workdir()
+        files = [patch.new_file_path for patch in diff]
+        self.assertEqual(DIFF_WORKDIR_EXPECTED, files)
+
+        diff = repo.diff('HEAD')
         files = [patch.new_file_path for patch in diff]
         self.assertEqual(DIFF_WORKDIR_EXPECTED, files)
 
@@ -117,8 +125,12 @@ class DiffTest(utils.BareRepoTestCase):
     def test_diff_empty_index(self):
         repo = self.repo
         head = repo[repo.lookup_reference('HEAD').resolve().target]
-        diff = head.tree.diff_to_index(repo.index)
 
+        diff = head.tree.diff_to_index(repo.index)
+        files = [patch.new_file_path.split('/')[0] for patch in diff]
+        self.assertEqual([x.name for x in head.tree], files)
+
+        diff = repo.diff('HEAD', cached=True)
         files = [patch.new_file_path.split('/')[0] for patch in diff]
         self.assertEqual([x.name for x in head.tree], files)
 
@@ -126,22 +138,25 @@ class DiffTest(utils.BareRepoTestCase):
         commit_a = self.repo[COMMIT_SHA1_1]
         commit_b = self.repo[COMMIT_SHA1_2]
 
-        diff = commit_a.tree.diff_to_tree(commit_b.tree)
+        def _test(diff):
+            # self.assertIsNotNone is 2.7 only
+            self.assertTrue(diff is not None)
+            # self.assertIn is 2.7 only
+            self.assertEqual(2, sum(map(lambda x: len(x.hunks), diff)))
 
-        # self.assertIsNotNone is 2.7 only
-        self.assertTrue(diff is not None)
-        # self.assertIn is 2.7 only
-        self.assertEqual(2, sum(map(lambda x: len(x.hunks), diff)))
+            patch = diff[0]
+            hunk = patch.hunks[0]
+            self.assertEqual(hunk.old_start, 1)
+            self.assertEqual(hunk.old_lines, 1)
+            self.assertEqual(hunk.new_start, 1)
+            self.assertEqual(hunk.new_lines, 1)
 
-        patch = diff[0]
-        hunk = patch.hunks[0]
-        self.assertEqual(hunk.old_start, 1)
-        self.assertEqual(hunk.old_lines, 1)
-        self.assertEqual(hunk.new_start, 1)
-        self.assertEqual(hunk.new_lines, 1)
+            self.assertEqual(patch.old_file_path, 'a')
+            self.assertEqual(patch.new_file_path, 'a')
 
-        self.assertEqual(patch.old_file_path, 'a')
-        self.assertEqual(patch.new_file_path, 'a')
+        _test(commit_a.tree.diff_to_tree(commit_b.tree))
+        _test(self.repo.diff(COMMIT_SHA1_1, COMMIT_SHA1_2))
+
 
     def test_diff_empty_tree(self):
         commit_a = self.repo[COMMIT_SHA1_1]
