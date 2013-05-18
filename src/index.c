@@ -162,7 +162,7 @@ Index_diff_to_tree(Index *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O!|i", &TreeType, &py_tree, &opts.flags))
         return NULL;
 
-    repo = self->repo->repo;
+    repo = git_tree_owner(py_tree->tree);
     err = git_diff_tree_to_index(&diff, repo, py_tree->tree, self->index, &opts);
     if (err < 0)
         return Error_set(err);
