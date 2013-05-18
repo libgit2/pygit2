@@ -271,7 +271,10 @@ Tree_getitem(Tree *self, PyObject *value)
 }
 
 
-PyDoc_STRVAR(Tree_diff_to_workdir__doc__, "\n");
+PyDoc_STRVAR(Tree_diff_to_workdir__doc__,
+  "diff_to_workdir([flags]) -> Diff\n"
+  "\n"
+  "Show the changes between the tree and the workdir.\n");
 
 PyObject *
 Tree_diff_to_workdir(Tree *self, PyObject *args)
@@ -297,7 +300,10 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Tree_diff_to_index__doc__, "\n");
+PyDoc_STRVAR(Tree_diff_to_index__doc__,
+  "diff_to_index(index, [flags]) -> Diff\n"
+  "\n"
+  "Show the changes between the index and a given tree.\n");
 
 PyObject *
 Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
@@ -324,7 +330,11 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 }
 
 
-PyDoc_STRVAR(Tree_diff_to_tree__doc__, "\n");
+PyDoc_STRVAR(Tree_diff_to_tree__doc__,
+  "diff_to_tree([tree, flags, swap]) -> Diff\n"
+  "\n"
+  "Show the changes between two trees. If no tree is given the empty tree will"
+  "be used instead.\n");
 
 PyObject *
 Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
