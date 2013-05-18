@@ -61,7 +61,7 @@ index 297efb8..0000000
 -c/d contents
 """
 
-DIFF_INDEX_EXPECTED = [
+DIFF_HEAD_TO_INDEX_EXPECTED = [
     'staged_changes',
     'staged_changes_file_deleted',
     'staged_changes_file_modified',
@@ -72,7 +72,7 @@ DIFF_INDEX_EXPECTED = [
     'staged_new_file_modified'
 ]
 
-DIFF_WORKDIR_EXPECTED = [
+DIFF_HEAD_TO_WORKDIR_EXPECTED = [
     'file_deleted',
     'modified_file',
     'staged_changes',
@@ -80,6 +80,17 @@ DIFF_WORKDIR_EXPECTED = [
     'staged_changes_file_modified',
     'staged_delete',
     'staged_delete_file_modified',
+    'subdir/deleted_file',
+    'subdir/modified_file'
+]
+
+DIFF_INDEX_TO_WORK_EXPECTED = [
+    'file_deleted',
+    'modified_file',
+    'staged_changes_file_deleted',
+    'staged_changes_file_modified',
+    'staged_new_file_deleted',
+    'staged_new_file_modified',
     'subdir/deleted_file',
     'subdir/modified_file'
 ]
@@ -95,11 +106,11 @@ class DiffDirtyTest(utils.DirtyRepoTestCase):
         head = repo[repo.lookup_reference('HEAD').resolve().target]
         diff = head.tree.diff_to_index(repo.index)
         files = [patch.new_file_path for patch in diff]
-        self.assertEqual(DIFF_INDEX_EXPECTED, files)
+        self.assertEqual(DIFF_HEAD_TO_INDEX_EXPECTED, files)
 
         diff = repo.diff('HEAD', cached=True)
         files = [patch.new_file_path for patch in diff]
-        self.assertEqual(DIFF_INDEX_EXPECTED, files)
+        self.assertEqual(DIFF_HEAD_TO_INDEX_EXPECTED, files)
 
     def test_workdir_to_tree(self):
         repo = self.repo
@@ -107,11 +118,16 @@ class DiffDirtyTest(utils.DirtyRepoTestCase):
 
         diff = head.tree.diff_to_workdir()
         files = [patch.new_file_path for patch in diff]
-        self.assertEqual(DIFF_WORKDIR_EXPECTED, files)
+        self.assertEqual(DIFF_HEAD_TO_WORKDIR_EXPECTED, files)
 
         diff = repo.diff('HEAD')
         files = [patch.new_file_path for patch in diff]
-        self.assertEqual(DIFF_WORKDIR_EXPECTED, files)
+        self.assertEqual(DIFF_HEAD_TO_WORKDIR_EXPECTED, files)
+
+    def test_index_to_workdir(self):
+        diff = self.repo.diff()
+        files = [patch.new_file_path for patch in diff]
+        self.assertEqual(DIFF_INDEX_TO_WORK_EXPECTED, files)
 
 
 class DiffTest(utils.BareRepoTestCase):
@@ -125,6 +141,10 @@ class DiffTest(utils.BareRepoTestCase):
     def test_diff_empty_index(self):
         repo = self.repo
         head = repo[repo.lookup_reference('HEAD').resolve().target]
+
+        diff = self.repo.index.diff_to_tree(head.tree)
+        files = [patch.new_file_path.split('/')[0] for patch in diff]
+        self.assertEqual([x.name for x in head.tree], files)
 
         diff = head.tree.diff_to_index(repo.index)
         files = [patch.new_file_path.split('/')[0] for patch in diff]

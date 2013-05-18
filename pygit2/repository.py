@@ -180,7 +180,7 @@ class Repository(_Repository):
 
         # Case 2: Index to workdir
         elif a is None and b is None:
-            return self.index.diff()
+            return self.index.diff_to_workdir()
 
         # Case 3: Diff tree to index or workdir
         elif isinstance(a, Tree) and b is None:

@@ -109,7 +109,8 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
                       goto cleanup;
 
                     PyList_SetItem(py_hunk->lines, j,
-                        Py_BuildValue("cO", line_origin,
+                        Py_BuildValue("OO",
+                            to_unicode_n(&line_origin, 1, NULL, NULL),
                             to_unicode_n(line, line_len, NULL, NULL)
                         )
                     );

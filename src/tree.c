@@ -317,7 +317,6 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 
     repo = self->repo->repo;
     err = git_diff_tree_to_index(&diff, repo, self->tree, py_idx->index, &opts);
-
     if (err < 0)
         return Error_set(err);
 
