@@ -159,7 +159,9 @@ interfaces.
 
    Return an iterator over the entries of the tree.
 
-.. automethod:: pygit2.Tree.diff
+.. automethod:: pygit2.Tree.diff_to_tree
+.. automethod:: pygit2.Tree.diff_to_workdir
+.. automethod:: pygit2.Tree.diff_to_index
 
 Tree entries
 ------------

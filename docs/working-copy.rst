@@ -33,7 +33,8 @@ The Index type
 .. automethod:: pygit2.Index.write
 .. automethod:: pygit2.Index.read_tree
 .. automethod:: pygit2.Index.write_tree
-.. automethod:: pygit2.Index.diff
+.. automethod:: pygit2.Index.diff_to_tree
+.. automethod:: pygit2.Index.diff_to_workdir
 
 
 The IndexEntry type

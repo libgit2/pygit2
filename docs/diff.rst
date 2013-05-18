@@ -2,16 +2,15 @@
 Diff
 **********************************************************************
 
-A diff shows the changes between trees, an index or the working dir::
+.. contents::
 
-    # Changes in the working tree not yet staged for the next commit
-    >>> repo.diff()
+A diff shows the changes between trees, an index or the working dir.
 
-    # Changes between the index and your last commit
-    >>> self.diff(cached=True)
+.. automethod:: pygit2.Repository.diff
 
-    # Changes in the working tree since your last commit
-    >>> self.diff('HEAD')
+Examples
+
+.. code-block:: python
 
     # Changes between commits
     >>> t0 = revparse_single('HEAD')
@@ -31,7 +30,6 @@ A diff shows the changes between trees, an index or the working dir::
     # Diff empty tree to a tree
     >>> tree = revparse_single('HEAD').tree
     >>> tree.diff_to_tree(swap=True)
-
 
 The Diff type
 ====================
