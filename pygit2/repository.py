@@ -27,6 +27,7 @@
 
 # Import from the Standard Library
 from string import hexdigits
+from collections import OrderedDict
 
 # Import from pygit2
 from utils import text_type
@@ -134,11 +135,28 @@ class Repository(_Repository):
     #
     # Diff
     #
-    def diff(self, a=None, b=None, cached=False, flags=0):
+    def diff(self, a=None, b=None, cached=False, flags=0, context_lines=3,
+             interhunk_lines=0):
         """
         Show changes between the working tree and the index or a tree,
         changes between the index and a tree, changes between two trees, or
         changes between two blobs.
+
+        Keyword arguments:
+
+        cached
+            use staged changes instead of workdir
+
+        flag
+            a GIT_DIFF_* constant
+
+        context_lines
+            the number of unchanged lines that define the boundary
+            of a hunk (and to display before and after)\n"
+
+        interhunk_lines
+            the maximum number of unchanged lines between hunk
+            boundaries before the hunks will be merged into a one
 
         Examples::
 
@@ -174,20 +192,26 @@ class Repository(_Repository):
         a = treeish_to_tree(a) or a
         b = treeish_to_tree(b) or b
 
+        opts = OrderedDict([
+            ('flags', flags),
+            ('context_lines', context_lines),
+            ('interhunk_lines', interhunk_lines)
+        ])
+
         # Case 1: Diff tree to tree
         if isinstance(a, Tree) and isinstance(b, Tree):
-            return a.diff_to_tree(b, flags=flags)
+            return a.diff_to_tree(b, **opts)
 
         # Case 2: Index to workdir
         elif a is None and b is None:
-            return self.index.diff_to_workdir()
+            return self.index.diff_to_workdir(*opts.values())
 
         # Case 3: Diff tree to index or workdir
         elif isinstance(a, Tree) and b is None:
             if cached:
-                return a.diff_to_index(self.index, flags=flags)
+                return a.diff_to_index(self.index, **opts)
             else:
-                return a.diff_to_workdir(flags)
+                return a.diff_to_workdir(*opts.values())
 
         # Case 4: Diff blob to blob
         if isinstance(a, Blob) and isinstance(b, Blob):

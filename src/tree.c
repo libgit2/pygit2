@@ -272,9 +272,19 @@ Tree_getitem(Tree *self, PyObject *value)
 
 
 PyDoc_STRVAR(Tree_diff_to_workdir__doc__,
-  "diff_to_workdir([flags]) -> Diff\n"
+  "diff_to_workdir([flags, context_lines, interhunk_lines]) -> Diff\n"
   "\n"
-  "Show the changes between the tree and the workdir.\n");
+  "Show the changes between the :py:class:`~pygit2.Tree` and the workdir.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "flag: a GIT_DIFF_* constant.\n"
+  "\n"
+  "context_lines: the number of unchanged lines that define the boundary\n"
+  "   of a hunk (and to display before and after)\n"
+  "\n"
+  "interhunk_lines: the maximum number of unchanged lines between hunk\n"
+  "   boundaries before the hunks will be merged into a one.\n");
 
 PyObject *
 Tree_diff_to_workdir(Tree *self, PyObject *args)
@@ -287,7 +297,8 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
     Diff *py_diff;
     PyObject *py_obj = NULL;
 
-    if (!PyArg_ParseTuple(args, "|i", &opts.flags))
+    if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
+                                        &opts.interhunk_lines))
         return NULL;
 
     repo = git_tree_owner(self->tree);
@@ -301,9 +312,21 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
 
 
 PyDoc_STRVAR(Tree_diff_to_index__doc__,
-  "diff_to_index(index, [flags]) -> Diff\n"
+  "diff_to_index(index, [flags, context_lines, interhunk_lines]) -> Diff\n"
   "\n"
-  "Show the changes between the index and a given tree.\n");
+  "Show the changes between the index and a given :py:class:`~pygit2.Tree`.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "tree: the :py:class:`~pygit2.Tree` to diff.\n"
+  "\n"
+  "flag: a GIT_DIFF_* constant.\n"
+  "\n"
+  "context_lines: the number of unchanged lines that define the boundary\n"
+  "   of a hunk (and to display before and after)\n"
+  "\n"
+  "interhunk_lines: the maximum number of unchanged lines between hunk\n"
+  "   boundaries before the hunks will be merged into a one.\n");
 
 PyObject *
 Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
@@ -318,7 +341,9 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
     Diff *py_diff;
     Index *py_idx = NULL;
 
-    if (!PyArg_ParseTuple(args, "O!|i", &IndexType, &py_idx, &opts.flags))
+    if (!PyArg_ParseTuple(args, "O!|IHH", &IndexType, &py_idx, &opts.flags,
+                                        &opts.context_lines,
+                                        &opts.interhunk_lines))
         return NULL;
 
     repo = git_tree_owner(self->tree);
@@ -331,10 +356,24 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 
 
 PyDoc_STRVAR(Tree_diff_to_tree__doc__,
-  "diff_to_tree([tree, flags, swap]) -> Diff\n"
+  "diff_to_tree([tree, flags, context_lines, interhunk_lines, swap]) -> Diff\n"
   "\n"
-  "Show the changes between two trees. If no tree is given the empty tree will"
-  "be used instead.\n");
+  "Show the changes between two trees\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "tree: the :py:class:`~pygit2.Tree` to diff. If no tree is given the empty\n"
+  "   tree will be used instead.\n"
+  "\n"
+  "flag: a GIT_DIFF_* constant.\n"
+  "\n"
+  "context_lines: the number of unchanged lines that define the boundary\n"
+  "   of a hunk (and to display before and after)\n"
+  "\n"
+  "interhunk_lines: the maximum number of unchanged lines between hunk\n"
+  "   boundaries before the hunks will be merged into a one.\n"
+  "\n"
+  "swap: instead of diffing a to b. Diff b to a.\n");
 
 PyObject *
 Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
@@ -344,14 +383,16 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
     git_tree *from, *to, *tmp;
     git_repository* repo;
     int err, swap = 0;
-    char *keywords[] = {"obj", "flags", "swap", NULL};
+    char *keywords[] = {"obj", "flags", "context_lines", "interhunk_lines",
+      "swap", NULL};
 
     Diff *py_diff;
     Tree *py_tree = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!ii", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!IHHi", keywords,
                                      &TreeType, &py_tree, &opts.flags,
-                                     &swap))
+                                     &opts.context_lines,
+                                     &opts.interhunk_lines, &swap))
         return NULL;
 
     repo = git_tree_owner(self->tree);

@@ -116,10 +116,20 @@ Index_clear(Index *self)
 
 
 PyDoc_STRVAR(Index_diff_to_workdir__doc__,
-  "diff_to_workdir() -> Diff\n"
+  "diff_to_workdir([flag, context_lines, interhunk_lines]) -> Diff\n"
   "\n"
   "Return a :py:class:`~pygit2.Diff` object with the differences between the\n"
-  "index and the working copy.\n");
+  "index and the working copy.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "flag: a GIT_DIFF_* constant.\n"
+  "\n"
+  "context_lines: the number of unchanged lines that define the boundary\n"
+  "   of a hunk (and to display before and after)\n"
+  "\n"
+  "interhunk_lines: the maximum number of unchanged lines between hunk\n"
+  "   boundaries before the hunks will be merged into a one.\n");
 
 PyObject *
 Index_diff_to_workdir(Index *self, PyObject *args)
@@ -128,7 +138,8 @@ Index_diff_to_workdir(Index *self, PyObject *args)
     git_diff_list *diff;
     int err;
 
-    if (!PyArg_ParseTuple(args, "|i", &opts.flags))
+    if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
+                                        &opts.interhunk_lines))
         return NULL;
 
     err = git_diff_index_to_workdir(
@@ -144,10 +155,22 @@ Index_diff_to_workdir(Index *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Index_diff_to_tree__doc__,
-  "diff_to_tree(tree) -> Diff\n"
+  "diff_to_tree(tree [, flag, context_lines, interhunk_lines]) -> Diff\n"
   "\n"
   "Return a :py:class:`~pygit2.Diff` object with the differences between the\n"
-  "index and the given tree.\n");
+  "index and the given tree.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "tree: the tree to diff.\n"
+  "\n"
+  "flag: a GIT_DIFF_* constant.\n"
+  "\n"
+  "context_lines: the number of unchanged lines that define the boundary\n"
+  "   of a hunk (and to display before and after)\n"
+  "\n"
+  "interhunk_lines: the maximum number of unchanged lines between hunk\n"
+  "   boundaries before the hunks will be merged into a one.\n");
 
 PyObject *
 Index_diff_to_tree(Index *self, PyObject *args)
@@ -159,7 +182,8 @@ Index_diff_to_tree(Index *self, PyObject *args)
 
     Tree *py_tree = NULL;
 
-    if (!PyArg_ParseTuple(args, "O!|i", &TreeType, &py_tree, &opts.flags))
+    if (!PyArg_ParseTuple(args, "O!|IHH", &TreeType, &py_tree, &opts.flags,
+                          &opts.context_lines, &opts.interhunk_lines))
         return NULL;
 
     repo = git_tree_owner(py_tree->tree);
