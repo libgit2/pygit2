@@ -31,7 +31,7 @@ from string import hexdigits
 # Import from pygit2
 from _pygit2 import Repository as _Repository
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from _pygit2 import GIT_CHECKOUT_SAFE_CREATE
+from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
 
 
@@ -133,8 +133,8 @@ class Repository(_Repository):
     #
     # Diff
     #
-    def diff(self, a=None, b=None, cached=False, flags=0, context_lines=3,
-             interhunk_lines=0):
+    def diff(self, a=None, b=None, cached=False, flags=GIT_DIFF_NORMAL,
+             context_lines=3, interhunk_lines=0):
         """
         Show changes between the working tree and the index or a tree,
         changes between the index and a tree, changes between two trees, or
