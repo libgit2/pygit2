@@ -30,7 +30,6 @@ from string import hexdigits
 from collections import OrderedDict
 
 # Import from pygit2
-from utils import text_type
 from _pygit2 import Repository as _Repository
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE
@@ -180,8 +179,10 @@ class Repository(_Repository):
         """
 
         def treeish_to_tree(obj):
-            if isinstance(obj, text_type):
+            try:
                 obj = self.revparse_single(obj)
+            except:
+                pass
 
             if isinstance(obj, Commit):
                 return obj.tree

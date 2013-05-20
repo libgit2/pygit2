@@ -196,13 +196,17 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertAll(lambda x: commit_a.tree[x], entries)
         self.assertAll(lambda x: '+' == x, get_context_for_lines(diff_swaped))
 
+    def test_diff_revparse(self):
+        diff = self.repo.diff('HEAD','HEAD~6')
+        self.assertEqual(type(diff), pygit2.Diff)
+
     def test_diff_tree_opts(self):
         commit_c = self.repo[COMMIT_SHA1_3]
         commit_d = self.repo[COMMIT_SHA1_4]
 
-        for opt in [pygit2.GIT_DIFF_IGNORE_WHITESPACE,
+        for flag in [pygit2.GIT_DIFF_IGNORE_WHITESPACE,
                     pygit2.GIT_DIFF_IGNORE_WHITESPACE_EOL]:
-            diff = commit_c.tree.diff_to_tree(commit_d.tree, opt)
+            diff = commit_c.tree.diff_to_tree(commit_d.tree, flag)
             self.assertTrue(diff is not None)
             self.assertEqual(0, len(diff[0].hunks))
 
