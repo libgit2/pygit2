@@ -295,7 +295,6 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
     int err;
 
     Diff *py_diff;
-    PyObject *py_obj = NULL;
 
     if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
                                         &opts.interhunk_lines))
