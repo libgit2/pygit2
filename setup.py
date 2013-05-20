@@ -52,6 +52,10 @@ if sys.version_info[0] == 2:
 else:
     u = str
 
+popen = Popen(['git', 'submodule', 'update', '--init'], stdout=PIPE, stderr=PIPE)
+if popen.returncode != 0:
+    print(stderrdata)
+    sys.exit()
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
@@ -70,7 +74,6 @@ else:
         libgit2_lib_path = cwd + "/libgit2_embed.a"
         if not os.path.isfile(libgit2_lib_path):
             os.chdir(libgit2_dir)
-            print(os.getcwd())
             popen = Popen(['make', '-f', 'Makefile.embed'], stdout=PIPE, stderr=PIPE)
             stdoutdata, stderrdata = popen.communicate()
             if popen.returncode != 0:
