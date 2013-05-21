@@ -53,6 +53,7 @@ else:
     u = str
 
 popen = Popen(['git', 'submodule', 'update', '--init'], stdout=PIPE, stderr=PIPE)
+stdoutdata, stderrdata = popen.communicate()
 if popen.returncode != 0:
     print(stderrdata)
     sys.exit()
