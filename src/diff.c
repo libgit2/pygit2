@@ -69,6 +69,7 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
     int err;
     Hunk *py_hunk = NULL;
     Patch *py_patch = NULL;
+    PyObject *py_line_origin=NULL, *py_line=NULL;
 
     err = git_diff_get_patch(&patch, &delta, list, idx);
     if (err < 0)
@@ -108,12 +109,16 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
                     if (err < 0)
                       goto cleanup;
 
+                    py_line_origin = to_unicode_n(&line_origin, 1, NULL, NULL);
+                    py_line = to_unicode_n(line, line_len, NULL, NULL);
                     PyList_SetItem(py_hunk->lines, j,
                         Py_BuildValue("OO",
-                            to_unicode_n(&line_origin, 1, NULL, NULL),
-                            to_unicode_n(line, line_len, NULL, NULL)
+                            py_line_origin,
+                            py_line
                         )
                     );
+                    Py_DECREF(py_line_origin);
+                    Py_DECREF(py_line);
                 }
 
                 PyList_SetItem((PyObject*) py_patch->hunks, i,
