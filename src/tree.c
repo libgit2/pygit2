@@ -294,8 +294,6 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
     git_repository* repo;
     int err;
 
-    Diff *py_diff;
-
     if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
                                         &opts.interhunk_lines))
         return NULL;
@@ -332,12 +330,9 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
-    git_index* index;
     git_repository* repo;
     int err;
-    char *keywords[] = {"obj", "flags", NULL};
 
-    Diff *py_diff;
     Index *py_idx = NULL;
 
     if (!PyArg_ParseTuple(args, "O!|IHH", &IndexType, &py_idx, &opts.flags,
@@ -385,7 +380,6 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
     char *keywords[] = {"obj", "flags", "context_lines", "interhunk_lines",
       "swap", NULL};
 
-    Diff *py_diff;
     Tree *py_tree = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!IHHi", keywords,
