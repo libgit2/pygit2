@@ -31,6 +31,7 @@
 #include "types.h"
 #include "utils.h"
 #include "oid.h"
+#include "diff.h"
 #include "index.h"
 
 extern PyTypeObject IndexType;
@@ -114,54 +115,83 @@ Index_clear(Index *self)
 }
 
 
-PyDoc_STRVAR(Index_diff__doc__,
-  "diff([tree]) -> Diff\n"
+PyDoc_STRVAR(Index_diff_to_workdir__doc__,
+  "diff_to_workdir([flag, context_lines, interhunk_lines]) -> Diff\n"
   "\n"
   "Return a :py:class:`~pygit2.Diff` object with the differences between the\n"
-  "index and the working copy. If a :py:class:`~pygit2.Tree` object is\n"
-  "passed, return the diferences between the index and the given tree.");
+  "index and the working copy.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "flag: a GIT_DIFF_* constant.\n"
+  "\n"
+  "context_lines: the number of unchanged lines that define the boundary\n"
+  "   of a hunk (and to display before and after)\n"
+  "\n"
+  "interhunk_lines: the maximum number of unchanged lines between hunk\n"
+  "   boundaries before the hunks will be merged into a one.\n");
 
 PyObject *
-Index_diff(Index *self, PyObject *args)
+Index_diff_to_workdir(Index *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
     int err;
 
-    Diff *py_diff;
-    PyObject *py_obj = NULL;
-
-    if (!PyArg_ParseTuple(args, "|O", &py_obj))
+    if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
+                                        &opts.interhunk_lines))
         return NULL;
 
-    if (py_obj == NULL) {
-        err = git_diff_index_to_workdir(
-                &diff,
-                self->repo->repo,
-                self->index,
-                &opts);
-    } else if (PyObject_TypeCheck(py_obj, &TreeType)) {
-        err = git_diff_tree_to_index(
-                &diff,
-                self->repo->repo,
-                ((Tree *)py_obj)->tree,
-                self->index,
-                &opts);
-    } else {
-        PyErr_SetObject(PyExc_TypeError, py_obj);
-        return NULL;
-    }
+    err = git_diff_index_to_workdir(
+            &diff,
+            self->repo->repo,
+            self->index,
+            &opts);
+
     if (err < 0)
         return Error_set(err);
 
-    py_diff = PyObject_New(Diff, &DiffType);
-    if (py_diff) {
-        Py_INCREF(self->repo);
-        py_diff->repo = self->repo;
-        py_diff->list = diff;
-    }
+    return wrap_diff(diff, self->repo);
+}
 
-    return (PyObject*)py_diff;
+PyDoc_STRVAR(Index_diff_to_tree__doc__,
+  "diff_to_tree(tree [, flag, context_lines, interhunk_lines]) -> Diff\n"
+  "\n"
+  "Return a :py:class:`~pygit2.Diff` object with the differences between the\n"
+  "index and the given tree.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "tree: the tree to diff.\n"
+  "\n"
+  "flag: a GIT_DIFF_* constant.\n"
+  "\n"
+  "context_lines: the number of unchanged lines that define the boundary\n"
+  "   of a hunk (and to display before and after)\n"
+  "\n"
+  "interhunk_lines: the maximum number of unchanged lines between hunk\n"
+  "   boundaries before the hunks will be merged into a one.\n");
+
+PyObject *
+Index_diff_to_tree(Index *self, PyObject *args)
+{
+    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
+    git_diff_list *diff;
+    git_repository* repo;
+    int err;
+
+    Tree *py_tree = NULL;
+
+    if (!PyArg_ParseTuple(args, "O!|IHH", &TreeType, &py_tree, &opts.flags,
+                          &opts.context_lines, &opts.interhunk_lines))
+        return NULL;
+
+    repo = git_tree_owner(py_tree->tree);
+    err = git_diff_tree_to_index(&diff, repo, py_tree->tree, self->index, &opts);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_diff(diff, self->repo);
 }
 
 
@@ -393,7 +423,8 @@ PyMethodDef Index_methods[] = {
     METHOD(Index, add, METH_VARARGS),
     METHOD(Index, remove, METH_VARARGS),
     METHOD(Index, clear, METH_NOARGS),
-    METHOD(Index, diff, METH_VARARGS),
+    METHOD(Index, diff_to_workdir, METH_VARARGS),
+    METHOD(Index, diff_to_tree, METH_VARARGS),
     METHOD(Index, _find, METH_O),
     METHOD(Index, read, METH_NOARGS),
     METHOD(Index, write, METH_NOARGS),

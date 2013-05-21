@@ -43,6 +43,21 @@ extern PyTypeObject HunkType;
 PyTypeObject PatchType;
 
 PyObject*
+wrap_diff(git_diff_list *diff, Repository *repo)
+{
+    Diff *py_diff;
+
+    py_diff = PyObject_New(Diff, &DiffType);
+    if (py_diff) {
+        Py_INCREF(repo);
+        py_diff->repo = repo;
+        py_diff->list = diff;
+    }
+
+    return (PyObject*) py_diff;
+}
+
+PyObject*
 diff_get_patch_byindex(git_diff_list* list, size_t idx)
 {
     const git_diff_delta* delta;
@@ -50,9 +65,11 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
     git_diff_patch* patch = NULL;
     size_t i, j, hunk_amounts, lines_in_hunk, line_len, header_len;
     const char* line, *header;
+    char line_origin;
     int err;
     Hunk *py_hunk = NULL;
     Patch *py_patch = NULL;
+    PyObject *py_line_origin=NULL, *py_line=NULL;
 
     err = git_diff_get_patch(&patch, &delta, list, idx);
     if (err < 0)
@@ -84,18 +101,24 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
                 py_hunk->new_start = range->new_start;
                 py_hunk->new_lines = range->new_lines;
 
-                py_hunk->lines = PyList_New(lines_in_hunk + 1);
-                PyList_SetItem(py_hunk->lines, 0,
-                    to_unicode_n(header, header_len, NULL, NULL));
-                for (j=1; j < lines_in_hunk + 1; ++j) {
-                    err = git_diff_patch_get_line_in_hunk(&py_hunk->origin,
-                              &line, &line_len, NULL, NULL, patch, i, j - 1);
+                py_hunk->lines = PyList_New(lines_in_hunk);
+                for (j=0; j < lines_in_hunk; ++j) {
+                    err = git_diff_patch_get_line_in_hunk(&line_origin,
+                              &line, &line_len, NULL, NULL, patch, i, j);
 
                     if (err < 0)
                       goto cleanup;
 
+                    py_line_origin = to_unicode_n(&line_origin, 1, NULL, NULL);
+                    py_line = to_unicode_n(line, line_len, NULL, NULL);
                     PyList_SetItem(py_hunk->lines, j,
-                        to_unicode_n(line, line_len, NULL, NULL));
+                        Py_BuildValue("OO",
+                            py_line_origin,
+                            py_line
+                        )
+                    );
+                    Py_DECREF(py_line_origin);
+                    Py_DECREF(py_line);
                 }
 
                 PyList_SetItem((PyObject*) py_patch->hunks, i,
@@ -279,7 +302,6 @@ Hunk_dealloc(Hunk *self)
 }
 
 PyMemberDef Hunk_members[] = {
-    MEMBER(Hunk, origin, T_CHAR, "origin."),
     MEMBER(Hunk, old_start, T_INT, "Old start."),
     MEMBER(Hunk, old_lines, T_INT, "Old lines."),
     MEMBER(Hunk, new_start, T_INT, "New start."),
