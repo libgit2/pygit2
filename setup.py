@@ -32,6 +32,7 @@ from __future__ import print_function
 
 import codecs
 import os
+import shutil
 from subprocess import Popen, PIPE
 import sys
 from distutils.core import setup, Extension, Command
@@ -51,19 +52,40 @@ if sys.version_info[0] == 2:
 else:
     u = str
 
+popen = Popen(['git', 'submodule', 'update', '--init'], stdout=PIPE, stderr=PIPE)
+stdoutdata, stderrdata = popen.communicate()
+if popen.returncode != 0:
+    print(stderrdata)
+    sys.exit()
 
 # Use environment variable LIBGIT2 to set your own libgit2 configuration.
 libgit2_path = os.getenv("LIBGIT2")
-if libgit2_path is None:
+if libgit2_path:
+    libgit2_bin = os.path.join(libgit2_path, 'bin')
+    libgit2_include = os.path.join(libgit2_path, 'include')
+    libgit2_lib = os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib'))
+else:
     if os.name == 'nt':
         program_files = os.getenv("ProgramFiles")
         libgit2_path = '%s\libgit2' % program_files
     else:
-        libgit2_path = '/usr/local'
+        # use libgit2 embed
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        libgit2_dir = os.path.join(cwd, 'vendor', 'libgit2')
+        libgit2_lib_path = cwd + "/libgit2_embed.a"
+        if not os.path.isfile(libgit2_lib_path):
+            os.chdir(libgit2_dir)
+            popen = Popen(['make', '-f', 'Makefile.embed'], stdout=PIPE, stderr=PIPE)
+            stdoutdata, stderrdata = popen.communicate()
+            if popen.returncode != 0:
+                print(stderrdata)
+                sys.exit()
+            shutil.copy('libgit2.a', libgit2_lib_path)
+            os.chdir(cwd)
+        libgit2_bin = ''
+        libgit2_include = os.path.join(libgit2_dir, 'include')
+        libgit2_lib = cwd
 
-libgit2_bin = os.path.join(libgit2_path, 'bin')
-libgit2_include = os.path.join(libgit2_path, 'include')
-libgit2_lib = os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib'))
 pygit2_exts = [os.path.join('src', name) for name in os.listdir('src')
                if name.endswith('.c')]
 
@@ -188,6 +210,6 @@ setup(name='pygit2',
           Extension('_pygit2', pygit2_exts,
                     include_dirs=[libgit2_include, 'include'],
                     library_dirs=[libgit2_lib],
-                    libraries=['git2']),
+                    libraries=['git2_embed', 'git2']),
       ],
       cmdclass=cmdclass)
