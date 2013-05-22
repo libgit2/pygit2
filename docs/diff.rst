@@ -2,27 +2,34 @@
 Diff
 **********************************************************************
 
-A diff shows the changes between trees, an index or the working dir::
+.. contents::
 
-    >>> head = repo.revparse_single('HEAD')
+A diff shows the changes between trees, an index or the working dir.
 
-    # Diff two trees
-    >>> t0 = head.tree
-    >>> t1 = head.parents[0].tree
-    >>> diff = t1.diff(t0)
+.. automethod:: pygit2.Repository.diff
 
-    # Diff a tree with the index
-    >>> diff = head.tree.diff(repo.index)
+Examples
 
-    # Diff a tree with the current working dir
-    >>> diff = head.tree.diff()
+.. code-block:: python
+
+    # Changes between commits
+    >>> t0 = revparse_single('HEAD')
+    >>> t1 = revparse_single('HEAD^')
+    >>> repo.diff(t0, t1)
+    >>> t0.diff(t1)           # equivalent
+    >>> repo.diff('HEAD', 'HEAD^') # equivalent
 
     # Get all patches for a diff
-    >>> t0 = repo.revparse_single('HEAD^').tree
-    >>> t1 = repo.revparse_single('HEAD~3').tree
-    >>> diff = t0.diff(t1)
+    >>> diff = repo.diff('HEAD^', 'HEAD~3')
     >>> patches = [p for p in diff]
 
+    # Diffing the empty tree
+    >>> tree = revparse_single('HEAD').tree
+    >>> tree.diff_to_tree()
+
+    # Diff empty tree to a tree
+    >>> tree = revparse_single('HEAD').tree
+    >>> tree.diff_to_tree(swap=True)
 
 The Diff type
 ====================

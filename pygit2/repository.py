@@ -31,8 +31,8 @@ from string import hexdigits
 # Import from pygit2
 from _pygit2 import Repository as _Repository
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from _pygit2 import GIT_CHECKOUT_SAFE_CREATE
-from _pygit2 import Reference
+from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
+from _pygit2 import Reference, Tree, Commit, Blob
 
 
 class Repository(_Repository):
@@ -128,3 +128,90 @@ class Repository(_Repository):
         treeish = self[oid]
         self.checkout_tree(treeish, strategy)
         self.head = refname
+
+
+    #
+    # Diff
+    #
+    def diff(self, a=None, b=None, cached=False, flags=GIT_DIFF_NORMAL,
+             context_lines=3, interhunk_lines=0):
+        """
+        Show changes between the working tree and the index or a tree,
+        changes between the index and a tree, changes between two trees, or
+        changes between two blobs.
+
+        Keyword arguments:
+
+        cached
+            use staged changes instead of workdir
+
+        flag
+            a GIT_DIFF_* constant
+
+        context_lines
+            the number of unchanged lines that define the boundary
+            of a hunk (and to display before and after)\n"
+
+        interhunk_lines
+            the maximum number of unchanged lines between hunk
+            boundaries before the hunks will be merged into a one
+
+        Examples::
+
+          # Changes in the working tree not yet staged for the next commit
+          >>> diff()
+
+          # Changes between the index and your last commit
+          >>> diff(cached=True)
+
+          # Changes in the working tree since your last commit
+          >>> diff('HEAD')
+
+          # Changes between commits
+          >>> t0 = revparse_single('HEAD')
+          >>> t1 = revparse_single('HEAD^')
+          >>> diff(t0, t1)
+          >>> diff('HEAD', 'HEAD^') # equivalent
+
+        If you want to diff a tree against an empty tree, use the low level
+        API (Tree.diff_to_tree()) directly.
+        """
+
+        def treeish_to_tree(obj):
+            try:
+                obj = self.revparse_single(obj)
+            except:
+                pass
+
+            if isinstance(obj, Commit):
+                return obj.tree
+            elif isinstance(obj, Reference):
+                oid = obj.resolve().target
+                return self[oid]
+
+        a = treeish_to_tree(a) or a
+        b = treeish_to_tree(b) or b
+
+        opt_keys = ['flags', 'context_lines', 'interhunk_lines']
+        opt_values = [flags, context_lines, interhunk_lines]
+
+        # Case 1: Diff tree to tree
+        if isinstance(a, Tree) and isinstance(b, Tree):
+            return a.diff_to_tree(b, **dict(zip(opt_keys, opt_values)))
+
+        # Case 2: Index to workdir
+        elif a is None and b is None:
+            return self.index.diff_to_workdir(*opt_values)
+
+        # Case 3: Diff tree to index or workdir
+        elif isinstance(a, Tree) and b is None:
+            if cached:
+                return a.diff_to_index(self.index, *opt_values)
+            else:
+                return a.diff_to_workdir(*opt_values)
+
+        # Case 4: Diff blob to blob
+        if isinstance(a, Blob) and isinstance(b, Blob):
+            raise NotImplementedError('git_diff_blob_to_blob()')
+
+        raise ValueError("Only blobs and treeish can be diffed")
