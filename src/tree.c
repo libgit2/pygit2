@@ -291,20 +291,19 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
-    git_repository* repo;
+    Repository *py_repo;
     int err;
 
     if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
                                         &opts.interhunk_lines))
         return NULL;
 
-    repo = git_tree_owner(self->tree);
-    err = git_diff_tree_to_workdir(&diff, repo, self->tree, &opts);
-
+    py_repo = self->repo;
+    err = git_diff_tree_to_workdir(&diff, py_repo->repo, self->tree, &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_diff(diff, self->repo);
+    return wrap_diff(diff, py_repo);
 }
 
 
@@ -330,7 +329,7 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
-    git_repository* repo;
+    Repository *py_repo;
     int err;
 
     Index *py_idx = NULL;
@@ -340,12 +339,13 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
                                         &opts.interhunk_lines))
         return NULL;
 
-    repo = git_tree_owner(self->tree);
-    err = git_diff_tree_to_index(&diff, repo, self->tree, py_idx->index, &opts);
+    py_repo = self->repo;
+    err = git_diff_tree_to_index(&diff, py_repo->repo, self->tree,
+                                 py_idx->index, &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_diff(diff, self->repo);
+    return wrap_diff(diff, py_repo);
 }
 
 
@@ -375,10 +375,10 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
     git_tree *from, *to, *tmp;
-    git_repository* repo;
+    Repository *py_repo;
     int err, swap = 0;
     char *keywords[] = {"obj", "flags", "context_lines", "interhunk_lines",
-      "swap", NULL};
+                        "swap", NULL};
 
     Tree *py_tree = NULL;
 
@@ -388,21 +388,20 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
                                      &opts.interhunk_lines, &swap))
         return NULL;
 
-    repo = git_tree_owner(self->tree);
+    py_repo = self->repo;
     to = (py_tree == NULL) ? NULL : py_tree->tree;
     from = self->tree;
     if (swap > 0) {
-      tmp = from;
-      from = to;
-      to = tmp;
+        tmp = from;
+        from = to;
+        to = tmp;
     }
 
-    err = git_diff_tree_to_tree(&diff, repo, from, to, &opts);
-
+    err = git_diff_tree_to_tree(&diff, py_repo->repo, from, to, &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_diff(diff, self->repo);
+    return wrap_diff(diff, py_repo);
 }
 
 

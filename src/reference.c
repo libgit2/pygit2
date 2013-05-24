@@ -228,14 +228,12 @@ Reference_target__set__(Reference *self, PyObject *py_target)
     char *c_name;
     int err;
     git_reference *new_ref;
-    git_repository *repo;
 
     CHECK_REFERENCE_INT(self);
 
     /* Case 1: Direct */
     if (GIT_REF_OID == git_reference_type(self->reference)) {
-        repo = git_reference_owner(self->reference);
-        err = py_oid_to_git_oid_expand(repo, py_target, &oid);
+        err = py_oid_to_git_oid_expand(self->repo->repo, py_target, &oid);
         if (err < 0)
             return err;
 

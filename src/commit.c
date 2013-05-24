@@ -152,7 +152,7 @@ PyDoc_STRVAR(Commit_parents__doc__, "The list of parent commits.");
 PyObject *
 Commit_parents__get__(Commit *self)
 {
-    git_repository *repo;
+    Repository *py_repo;
     unsigned int i, parent_count;
     const git_oid *parent_oid;
     git_commit *parent;
@@ -165,7 +165,7 @@ Commit_parents__get__(Commit *self)
     if (!list)
         return NULL;
 
-    repo = git_object_owner((git_object*)self->commit);
+    py_repo = self->repo;
     for (i=0; i < parent_count; i++) {
         parent_oid = git_commit_parent_id(self->commit, i);
         if (parent_oid == NULL) {
@@ -174,13 +174,13 @@ Commit_parents__get__(Commit *self)
             return NULL;
         }
 
-        err = git_commit_lookup(&parent, repo, parent_oid);
+        err = git_commit_lookup(&parent, py_repo->repo, parent_oid);
         if (err < 0) {
             Py_DECREF(list);
             return Error_set_oid(err, parent_oid, GIT_OID_HEXSZ);
         }
 
-        py_parent = wrap_object((git_object*)parent, self->repo);
+        py_parent = wrap_object((git_object*)parent, py_repo);
         if (py_parent == NULL) {
             Py_DECREF(list);
             return NULL;

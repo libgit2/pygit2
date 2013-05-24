@@ -175,9 +175,9 @@ PyDoc_STRVAR(Index_diff_to_tree__doc__,
 PyObject *
 Index_diff_to_tree(Index *self, PyObject *args)
 {
+    Repository *py_repo;
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff_list *diff;
-    git_repository* repo;
     int err;
 
     Tree *py_tree = NULL;
@@ -186,12 +186,13 @@ Index_diff_to_tree(Index *self, PyObject *args)
                           &opts.context_lines, &opts.interhunk_lines))
         return NULL;
 
-    repo = git_tree_owner(py_tree->tree);
-    err = git_diff_tree_to_index(&diff, repo, py_tree->tree, self->index, &opts);
+    py_repo = py_tree->repo;
+    err = git_diff_tree_to_index(&diff, py_repo->repo, py_tree->tree,
+                                 self->index, &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_diff(diff, self->repo);
+    return wrap_diff(diff, py_repo);
 }
 
 
