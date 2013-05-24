@@ -129,7 +129,7 @@ them to the Git object database:
 
 There are also some functions to calculate the oid for a byte string without
 creating the blob object:
- 
+
 .. autofunction:: pygit2.hash
 .. autofunction:: pygit2.hashfile
 

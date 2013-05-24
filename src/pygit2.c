@@ -137,8 +137,8 @@ clone_repository(PyObject *self, PyObject *args) {
     const char *push_spec, *checkout_branch;
     int err;
 
-    if (!PyArg_ParseTuple(args, "zzIzzzzz", 
-                &url, &path, &bare, &remote_name, &push_url, 
+    if (!PyArg_ParseTuple(args, "zzIzzzzz",
+                &url, &path, &bare, &remote_name, &push_url,
                 &fetch_spec, &push_spec, &checkout_branch))
         return NULL;
 

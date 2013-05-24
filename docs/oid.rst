@@ -47,17 +47,17 @@ The Oid type
    The constructor expects either a raw or a hex oid, but not both.
 
    An Oid object is created from the hexadecimal form this way::
-   
+
      >>> from pygit2 import Oid
-   
+
      >>> hex = "cff3ceaefc955f0dbe1957017db181bc49913781"
      >>> oid1 = Oid(hex=hex)
-   
+
    An Oid object is created from the raw form this way::
-   
+
      >>> from binascii import unhexlify
      >>> from pygit2 import Oid
-   
+
      >>> raw = unhexlify("cff3ceaefc955f0dbe1957017db181bc49913781")
      >>> oid2 = Oid(raw=raw)
 
