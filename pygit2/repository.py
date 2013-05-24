@@ -150,7 +150,7 @@ class Repository(_Repository):
 
         context_lines
             the number of unchanged lines that define the boundary
-            of a hunk (and to display before and after)\n"
+            of a hunk (and to display before and after)
 
         interhunk_lines
             the maximum number of unchanged lines between hunk
