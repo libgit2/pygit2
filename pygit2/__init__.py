@@ -35,7 +35,6 @@ from _pygit2 import *
 # High level API
 from .repository import Repository
 from .version import __version__
-import pygit2.utils
 
 
 def init_repository(path, bare=False):

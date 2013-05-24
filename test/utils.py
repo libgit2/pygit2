@@ -27,7 +27,6 @@
 
 """Test utilities for libgit2."""
 
-from binascii import b2a_hex
 import sys
 import os
 import shutil
