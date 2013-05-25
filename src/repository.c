@@ -175,13 +175,14 @@ int
 Repository_head__set__(Repository *self, PyObject *py_refname)
 {
     int err;
-    const char *refname;
+    char *refname;
 
     refname = py_str_to_c_str(py_refname, NULL);
     if (refname == NULL)
         return -1;
 
     err = git_repository_set_head(self->repo, refname);
+    free(refname);
     if (err < 0) {
         Error_set_str(err, refname);
         return -1;
