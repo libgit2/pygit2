@@ -108,6 +108,7 @@ TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
         return NULL;
 
     entry = git_treebuilder_get(self->bld, filename);
+    free(filename);
     if (entry == NULL)
         Py_RETURN_NONE;
 
