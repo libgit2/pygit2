@@ -41,10 +41,14 @@ names = ['blob', 'commit', 'config', 'diff', 'index', 'note', 'oid', 'refs',
 
 def test_suite():
     # Sometimes importing pygit2 fails, we try this first to get an
-    # informative traceback
+    # informative traceback.
     import pygit2
-    # Go
+    # Check the test modules import correctly, to get a nice error if one
+    # does not.
     modules = ['test.test_%s' % n for n in names]
+    for module in modules:
+        __import__(module)
+    # Go
     return unittest.defaultTestLoader.loadTestsFromNames(modules)
 
 
