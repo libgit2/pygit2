@@ -31,23 +31,26 @@ These tests are run automatically with 'setup.py test', but can also be run
 manually.
 """
 
+from os import listdir
+from os.path import dirname
 import sys
 import unittest
 
-
-names = ['blob', 'commit', 'config', 'diff', 'index', 'note', 'oid', 'refs',
-         'remote', 'repository', 'revwalk', 'signature', 'status', 'tag',
-         'tree', 'treebuilder']
 
 def test_suite():
     # Sometimes importing pygit2 fails, we try this first to get an
     # informative traceback.
     import pygit2
-    # Check the test modules import correctly, to get a nice error if one
-    # does not.
-    modules = ['test.test_%s' % n for n in names]
-    for module in modules:
-        __import__(module)
+
+    # Build the list of modules
+    modules = []
+    for name in listdir(dirname(__file__)):
+        if name.startswith('test_') and name.endswith('.py'):
+            module = 'test.%s' % name[:-3]
+            # Check the module imports correctly, have a nice error otherwise
+            __import__(module)
+            modules.append(module)
+
     # Go
     return unittest.defaultTestLoader.loadTestsFromNames(modules)
 
