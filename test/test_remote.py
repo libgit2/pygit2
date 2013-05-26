@@ -39,6 +39,7 @@ REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
 REMOTE_REPO_OBJECTS = 30
 REMOTE_REPO_BYTES = 2758
 
+
 class RepositoryTest(utils.RepoTestCase):
     def test_remote_create(self):
         name = 'upstream'

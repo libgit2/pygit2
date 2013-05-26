@@ -100,6 +100,7 @@ HUNK_EXPECTED = """- a contents 2
 + a contents
 """
 
+
 class DiffDirtyTest(utils.DirtyRepoTestCase):
     def test_diff_empty_index(self):
         repo = self.repo
@@ -198,7 +199,7 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertAll(lambda x: '+' == x, get_context_for_lines(diff_swaped))
 
     def test_diff_revparse(self):
-        diff = self.repo.diff('HEAD','HEAD~6')
+        diff = self.repo.diff('HEAD', 'HEAD~6')
         self.assertEqual(type(diff), pygit2.Diff)
 
     def test_diff_tree_opts(self):

@@ -179,8 +179,8 @@ class ReferencesTest(utils.RepoTestCase):
                           'refs/tags/version1', LAST_COMMIT)
 
         # try to create existing reference with force
-        reference =  self.repo.create_reference('refs/tags/version1',
-                                                LAST_COMMIT, force=True)
+        reference = self.repo.create_reference('refs/tags/version1',
+                                               LAST_COMMIT, force=True)
         self.assertEqual(reference.target.hex, LAST_COMMIT)
 
 

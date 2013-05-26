@@ -83,8 +83,7 @@ class Repository(_Repository):
             type(target) is Oid
             or (
                 all(c in hexdigits for c in target)
-                and GIT_OID_MINPREFIXLEN <= len(target) <= GIT_OID_HEXSZ)
-            )
+                and GIT_OID_MINPREFIXLEN <= len(target) <= GIT_OID_HEXSZ))
 
         if direct:
             return self.create_reference_direct(name, target, force)

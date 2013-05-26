@@ -40,8 +40,8 @@ NOTES = [
     ('ab533997b80705767be3dae8cbb06a0740809f79', 'First Note - HEAD\n',
      '784855caf26449a1914d2cf62d12b9374d76ae78'),
     ('d879714d880671ed84f8aaed8b27fca23ba01f27', 'Second Note - HEAD~1\n',
-     'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87')
-    ]
+     'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87')]
+
 
 class NotesTest(utils.BareRepoTestCase):
 
