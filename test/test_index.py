@@ -129,7 +129,7 @@ class IndexTest(utils.RepoTestCase):
     def test_bare_index(self):
         index = pygit2.Index(os.path.join(self.repo.path, 'index'))
         self.assertEqual([x.hex for x in index],
-                [x.hex for x in self.repo.index])
+                         [x.hex for x in self.repo.index])
 
         self.assertRaises(pygit2.GitError, lambda: index.add('bye.txt'))
 

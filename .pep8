@@ -1,0 +1,3 @@
+[pep8]
+exclude = .git,build,docs
+ignore =

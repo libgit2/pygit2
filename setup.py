@@ -31,13 +31,15 @@
 from __future__ import print_function
 
 import codecs
-import os
-from subprocess import Popen, PIPE
-import sys
 from distutils.core import setup, Extension, Command
 from distutils.command.build import build
 from distutils.command.sdist import sdist
 from distutils import log
+import os
+import shlex
+from subprocess import Popen, PIPE
+import sys
+import unittest
 
 # Read version from local pygit2/version.py without pulling in
 # pygit2/__init__.py
@@ -85,11 +87,9 @@ class TestCommand(Command):
     def run(self):
         self.run_command('build')
         bld = self.distribution.get_command_obj('build')
-        #Add build_lib in to sys.path so that unittest can found DLLs and libs
+        # Add build_lib in to sys.path so that unittest can found DLLs and libs
         sys.path = [os.path.abspath(bld.build_lib)] + sys.path
 
-        import shlex
-        import unittest
         test_argv0 = [sys.argv[0] + ' test --args=']
         # For transfering args to unittest, we have to split args by ourself,
         # so that command like:

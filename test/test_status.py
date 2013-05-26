@@ -35,34 +35,6 @@ import pygit2
 from . import utils
 
 
-EXPECTED = {
-    "current_file":                    pygit2.GIT_STATUS_CURRENT,
-    "file_deleted":                    pygit2.GIT_STATUS_WT_DELETED,
-    "modified_file":                   pygit2.GIT_STATUS_WT_MODIFIED,
-    "new_file":                        pygit2.GIT_STATUS_WT_NEW,
-
-    "staged_changes":                  pygit2.GIT_STATUS_INDEX_MODIFIED,
-    "staged_changes_file_deleted":     pygit2.GIT_STATUS_INDEX_MODIFIED |
-                                       pygit2.GIT_STATUS_WT_DELETED,
-    "staged_changes_file_modified":    pygit2.GIT_STATUS_INDEX_MODIFIED |
-                                       pygit2.GIT_STATUS_WT_MODIFIED,
-
-    "staged_delete":                   pygit2.GIT_STATUS_INDEX_DELETED,
-    "staged_delete_file_modified":     pygit2.GIT_STATUS_INDEX_DELETED |
-                                       pygit2.GIT_STATUS_WT_NEW,
-    "staged_new":                      pygit2.GIT_STATUS_INDEX_NEW,
-
-    "staged_new_file_deleted":         pygit2.GIT_STATUS_INDEX_NEW |
-                                       pygit2.GIT_STATUS_WT_DELETED,
-    "staged_new_file_modified":        pygit2.GIT_STATUS_INDEX_NEW |
-                                       pygit2.GIT_STATUS_WT_MODIFIED,
-
-    "subdir/current_file":             pygit2.GIT_STATUS_CURRENT,
-    "subdir/deleted_file":             pygit2.GIT_STATUS_WT_DELETED,
-    "subdir/modified_file":            pygit2.GIT_STATUS_WT_MODIFIED,
-    "subdir/new_file":                 pygit2.GIT_STATUS_WT_NEW,
-}
-
 class StatusTest(utils.DirtyRepoTestCase):
 
     def test_status(self):
