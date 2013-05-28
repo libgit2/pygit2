@@ -110,6 +110,15 @@ class BranchesTestCase(utils.RepoTestCase):
         self.assertRaises(ValueError,
                           lambda: original_branch.rename('abc@{123'))
 
+    def test_branch_name(self):
+        branch = self.repo.lookup_branch('master')
+        self.assertEqual(branch.branch_name, 'master')
+        self.assertEqual(branch.name, 'refs/heads/master')
+
+        branch = self.repo.lookup_branch('i18n')
+        self.assertEqual(branch.branch_name, 'i18n')
+        self.assertEqual(branch.name, 'refs/heads/i18n')
+
 
 class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
     def setUp(self):
@@ -130,6 +139,40 @@ class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
     def test_listall_branches(self):
         branches = sorted(self.repo.listall_branches(pygit2.GIT_BRANCH_REMOTE))
         self.assertEqual(branches, ['origin/master'])
+
+    def test_branch_remote_name(self):
+        self.repo.remotes[0].fetch()
+        branch = self.repo.lookup_branch('origin/master',
+                                         pygit2.GIT_BRANCH_REMOTE)
+        self.assertEqual(branch.remote_name, 'origin')
+
+    def test_branch_upstream(self):
+        self.repo.remotes[0].fetch()
+        remote_master = self.repo.lookup_branch('origin/master',
+                                                pygit2.GIT_BRANCH_REMOTE)
+        master = self.repo.create_branch('master',
+                                         self.repo[remote_master.target.hex])
+
+        self.assertTrue(master.upstream is None)
+        master.upstream = remote_master
+        self.assertEqual(master.upstream.branch_name, 'origin/master')
+
+        def set_bad_upstream():
+            master.upstream = 2.5
+        self.assertRaises(TypeError, set_bad_upstream)
+
+        master.upstream = None
+        self.assertTrue(master.upstream is None)
+
+    def test_branch_upstream_name(self):
+        self.repo.remotes[0].fetch()
+        remote_master = self.repo.lookup_branch('origin/master',
+                                                pygit2.GIT_BRANCH_REMOTE)
+        master = self.repo.create_branch('master',
+                                         self.repo[remote_master.target.hex])
+
+        master.upstream = remote_master
+        self.assertEqual(master.upstream_name, 'refs/remotes/origin/master')
 
 
 if __name__ == '__main__':
