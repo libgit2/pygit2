@@ -29,6 +29,7 @@
 #include <Python.h>
 #include <string.h>
 #include <structmember.h>
+#include "object.h"
 #include "error.h"
 #include "types.h"
 #include "utils.h"
@@ -312,6 +313,27 @@ Reference_log(Reference *self)
 }
 
 
+PyDoc_STRVAR(Reference_get_object__doc__,
+  "get_object() -> object\n"
+  "\n"
+  "Retrieves the object the current reference is pointing to.");
+
+PyObject *
+Reference_get_object(Reference *self)
+{
+    int err;
+    git_object* obj;
+
+    CHECK_REFERENCE(self);
+
+    err = git_reference_peel(&obj, self->reference, GIT_OBJ_ANY);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_object(obj, self->repo);
+}
+
+
 PyDoc_STRVAR(RefLogEntry_committer__doc__, "Committer.");
 
 PyObject *
@@ -404,6 +426,7 @@ PyMethodDef Reference_methods[] = {
     METHOD(Reference, rename, METH_O),
     METHOD(Reference, resolve, METH_NOARGS),
     METHOD(Reference, log, METH_NOARGS),
+    METHOD(Reference, get_object, METH_NOARGS),
     {NULL}
 };
 
