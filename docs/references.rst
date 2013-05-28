@@ -11,7 +11,7 @@ Example::
 
     >>> all_refs = repo.listall_references()
     >>> master_ref = repo.lookup_reference("refs/heads/master")
-    >>> commit = repo[master_ref.target]
+    >>> commit = master_ref.get_object() # or repo[master_ref.target]
 
 
 The Reference type
@@ -25,6 +25,7 @@ The Reference type
 .. automethod:: pygit2.Reference.rename
 .. automethod:: pygit2.Reference.resolve
 .. automethod:: pygit2.Reference.log
+.. automethod:: pygit2.Reference.get_object
 
 
 The HEAD

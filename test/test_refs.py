@@ -209,5 +209,11 @@ class ReferencesTest(utils.RepoTestCase):
 #       self.repo.packall_references()
 
 
+    def test_get_object(self):
+        repo = self.repo
+        ref = repo.lookup_reference('refs/heads/master')
+        self.assertEqual(repo[ref.target].oid, ref.get_object().oid)
+
+
 if __name__ == '__main__':
     unittest.main()
