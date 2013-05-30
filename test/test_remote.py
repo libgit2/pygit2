@@ -98,6 +98,18 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.create_remote(name, url)
         self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
 
+    def test_remote_save(self):
+        remote = self.repo.remotes[0]
+
+        remote.name = 'new-name'
+        remote.url = 'http://example.com/test.git'
+
+        remote.save()
+
+        self.assertEqual('new-name', self.repo.remotes[0].name)
+        self.assertEqual('http://example.com/test.git',
+                         self.repo.remotes[0].url)
+
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
     def test_fetch(self):

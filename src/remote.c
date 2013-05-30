@@ -215,8 +215,28 @@ Remote_fetch(Remote *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Remote_save__doc__,
+  "save()\n\n"
+  "Save a remote to its repository configuration.");
+
+PyObject *
+Remote_save(Remote *self, PyObject *args)
+{
+    int err;
+
+    err = git_remote_save(self->remote);
+    if (err == GIT_OK) {
+        Py_RETURN_NONE;
+    }
+    else {
+        return Error_set(err);
+    }
+}
+
+
 PyMethodDef Remote_methods[] = {
     METHOD(Remote, fetch, METH_NOARGS),
+    METHOD(Remote, save, METH_NOARGS),
     {NULL}
 };
 

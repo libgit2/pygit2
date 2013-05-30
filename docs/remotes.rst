@@ -14,3 +14,4 @@ The Remote type
 .. autoattribute:: pygit2.Remote.url
 .. autoattribute:: pygit2.Remote.fetchspec
 .. automethod:: pygit2.Remote.fetch
+.. automethod:: pygit2.Remote.save
