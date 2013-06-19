@@ -94,7 +94,7 @@ Object_type__get__(Object *self)
 PyDoc_STRVAR(Object_read_raw__doc__,
   "read_raw()\n"
   "\n"
-  "Returns the byte string with the raw contents of the of the object.");
+  "Returns the byte string with the raw contents of the object.");
 
 PyObject *
 Object_read_raw(Object *self)
