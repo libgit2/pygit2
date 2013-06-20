@@ -106,7 +106,7 @@ class BuildWithDLLs(build):
 
     # On Windows, we install the git2.dll too.
     def _get_dlls(self):
-        # return a list of of (FQ-in-name, relative-out-name) tuples.
+        # return a list of (FQ-in-name, relative-out-name) tuples.
         ret = []
         bld_ext = self.distribution.get_command_obj('build_ext')
         compiler_type = bld_ext.compiler.compiler_type
