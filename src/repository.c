@@ -877,34 +877,29 @@ PyObject* Repository_create_branch(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_listall_references__doc__,
-  "listall_references([flags]) -> (str, ...)\n"
+  "listall_references() -> (str, ...)\n"
   "\n"
   "Return a tuple with all the references in the repository.");
 
 PyObject *
 Repository_listall_references(Repository *self, PyObject *args)
 {
-    unsigned list_flags=GIT_REF_LISTALL;
     git_strarray c_result;
     PyObject *py_result, *py_string;
     unsigned index;
     int err;
 
-    /* 1- Get list_flags */
-    if (!PyArg_ParseTuple(args, "|I", &list_flags))
-        return NULL;
-
-    /* 2- Get the C result */
-    err = git_reference_list(&c_result, self->repo, list_flags);
+    /* Get the C result */
+    err = git_reference_list(&c_result, self->repo);
     if (err < 0)
         return Error_set(err);
 
-    /* 3- Create a new PyTuple */
+    /* Create a new PyTuple */
     py_result = PyTuple_New(c_result.count);
     if (py_result == NULL)
         goto out;
 
-    /* 4- Fill it */
+    /* Fill it */
     for (index=0; index < c_result.count; index++) {
         py_string = to_path((c_result.strings)[index]);
         if (py_string == NULL) {
@@ -1441,7 +1436,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, write, METH_VARARGS),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
-    METHOD(Repository, listall_references, METH_VARARGS),
+    METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
