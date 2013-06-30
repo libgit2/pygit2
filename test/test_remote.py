@@ -75,16 +75,18 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertRaisesAssign(ValueError, remote, 'url', '')
 
 
-    def test_remote_fetchspec(self):
+    def test_refspec(self):
         remote = self.repo.remotes[0]
 
-        self.assertEqual(REMOTE_FETCHSPEC_SRC, remote.fetchspec[0])
-        self.assertEqual(REMOTE_FETCHSPEC_DST, remote.fetchspec[1])
+        self.assertEqual(remote.refspec_count, 1)
+        refspec = remote.get_refspec(0)
+        self.assertEqual(refspec[0], REMOTE_FETCHSPEC_SRC)
+        self.assertEqual(refspec[1], REMOTE_FETCHSPEC_DST)
 
-        new_fetchspec = ('refs/foo/*', 'refs/remotes/foo/*')
-        remote.fetchspec = new_fetchspec
-        self.assertEqual(new_fetchspec[0], remote.fetchspec[0])
-        self.assertEqual(new_fetchspec[1], remote.fetchspec[1])
+#       new_fetchspec = ('refs/foo/*', 'refs/remotes/foo/*')
+#       remote.fetchspec = new_fetchspec
+#       self.assertEqual(new_fetchspec[0], remote.fetchspec[0])
+#       self.assertEqual(new_fetchspec[1], remote.fetchspec[1])
 
 
     def test_remote_list(self):

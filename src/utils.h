@@ -42,6 +42,7 @@
 /* Python 2 support */
 #if PY_MAJOR_VERSION == 2
   #define PyLong_FromSize_t PyInt_FromSize_t
+  #define PyLong_AsSize_t (size_t)PyInt_AsSsize_t
   #define PyLong_AsLong PyInt_AsLong
   #undef PyLong_Check
   #define PyLong_Check PyInt_Check
