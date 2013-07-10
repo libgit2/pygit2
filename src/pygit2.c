@@ -153,7 +153,7 @@ clone_repository(PyObject *self, PyObject *args) {
 
     err = git_clone(&repo, url, path, &opts);
     if (err < 0)
-        return Error_set_str(err, path);
+        return Error_set(err);
 
     git_repository_free(repo);
     Py_RETURN_NONE;
