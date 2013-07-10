@@ -75,11 +75,10 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
     if (err < 0) {
         git_config_free(self->config);
 
-        if (err == GIT_ENOTFOUND) {
+        if (err == GIT_ENOTFOUND)
             Error_set_exc(PyExc_IOError);
-        } else {
+        else
             Error_set(err);
-        }
 
         return -1;
     }
@@ -187,11 +186,11 @@ Config_getitem(Config *self, PyObject *py_key)
         goto cleanup;
 
     if (git_config_parse_int64(&value_int, value_str) == 0)
-      py_value = PyLong_FromLongLong(value_int);
+        py_value = PyLong_FromLongLong(value_int);
     else if(git_config_parse_bool(&value_bool, value_str) == 0)
-      py_value = PyBool_FromLong(value_bool);
+        py_value = PyBool_FromLong(value_bool);
     else
-      py_value = to_unicode(value_str, NULL, NULL);
+        py_value = to_unicode(value_str, NULL, NULL);
 
 cleanup:
     free(key);
@@ -323,10 +322,8 @@ Config_add_file(Config *self, PyObject *args, PyObject *kwds)
         return NULL;
 
     err = git_config_add_file_ondisk(self->config, path, level, force);
-    if (err < 0) {
-        Error_set_str(err, path);
-        return NULL;
-    }
+    if (err < 0)
+        return Error_set_str(err, path);
 
     Py_RETURN_NONE;
 }
@@ -342,15 +339,21 @@ PyDoc_STRVAR(Config_get_multivar__doc__,
 int
 Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
 {
-    PyObject *item = NULL;
+    PyObject *item;
 
-    if (!(item = to_unicode(value->value, NULL, NULL)))
+    item = to_unicode(value->value, NULL, NULL);
+    if (item == NULL)
+        /* FIXME Right now there is no way to forward errors through the
+         * libgit2 API, open an issue or pull-request to libgit2.
+         *
+         * See libgit2/src/config_file.c:443 (config_get_multivar).
+         * Comment says "early termination by the user is not an error".
+         * That's wrong.
+         */
         return -2;
 
     PyList_Append((PyObject *)data, item);
-
     Py_CLEAR(item);
-
     return 0;
 }
 
@@ -359,6 +362,7 @@ Config_get_multivar(Config *self, PyObject *args)
 {
     int err;
     PyObject *list;
+    Py_ssize_t size;
     const char *name = NULL;
     const char *regex = NULL;
 
@@ -369,14 +373,16 @@ Config_get_multivar(Config *self, PyObject *args)
     err = git_config_get_multivar(self->config, name, regex,
                                   Config_get_multivar_fn_wrapper,
                                   (void *)list);
-    if (err  < 0) {
-        Py_CLEAR(list);
 
-        if (err == GIT_ENOTFOUND)
-            Error_set(err);
-        else
-            PyErr_SetNone(PyExc_TypeError);
-        return NULL;
+    if (err < 0) {
+        /* XXX The return value of git_config_get_multivar is not reliable,
+         * see https://github.com/libgit2/libgit2/pull/1712
+         * Once libgit2 0.20 is released, we will remove this test. */
+        if (err == GIT_ENOTFOUND && PyList_Size(list) != 0)
+            return list;
+
+        Py_CLEAR(list);
+        return Error_set(err);
     }
 
     return list;

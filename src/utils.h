@@ -85,7 +85,8 @@
 
 PYGIT2_FN_UNUSED
 Py_LOCAL_INLINE(PyObject*)
-to_unicode_n(const char *value, size_t len, const char *encoding, const char *errors)
+to_unicode_n(const char *value, size_t len, const char *encoding,
+             const char *errors)
 {
     if (encoding == NULL) {
         /* If the encoding is not explicit, it may not be UTF-8, so it
