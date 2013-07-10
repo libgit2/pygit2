@@ -25,6 +25,7 @@ Start:
    :maxdepth: 1
 
    install
+   recipes
 
 Usage guide:
 
