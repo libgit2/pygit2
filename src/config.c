@@ -261,7 +261,7 @@ Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
     if (!(py_result = PyObject_CallObject(py_callback, args)))
         return -1;
 
-    if ((c_result = PyLong_AsLong(py_result) == -1))
+    if ((c_result = PyLong_AsLong(py_result)) == -1)
         return -1;
 
     Py_CLEAR(args);
