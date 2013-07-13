@@ -53,6 +53,7 @@ This is the list of authors of pygit2, sorted by number of commits (as shown by
 - W Trevor King
 - Dave Borowitz
 - Carlos Martín Nieto
+- Daniel Rodríguez Troitiño
 - Richo Healey
 - Christian Boos
 - Julien Miotte
@@ -64,6 +65,7 @@ This is the list of authors of pygit2, sorted by number of commits (as shown by
 - John Szakmeister
 - David Versmisse
 - Petr Hosek
+- Rémi Duraffort
 - Sebastian Thiel
 - Han-Wen Nienhuys
 - Petr Viktorin
@@ -71,9 +73,9 @@ This is the list of authors of pygit2, sorted by number of commits (as shown by
 - Amit Bakshi
 - Andrey Devyatkin
 - Ben Davis
-- Daniel Rodríguez Troitiño
 - Hervé Cauwelier
 - Jared Flatow
+- Jiunn Haur Lim
 - Sarath Lakshman
 - Vicent Marti
 - Zoran Zaric
@@ -81,6 +83,7 @@ This is the list of authors of pygit2, sorted by number of commits (as shown by
 - Benjamin Kircher
 - Benjamin Pollack
 - Bryan O'Sullivan
+- David Fischer
 - David Sanders
 - Eric Davis
 - Eric Schrijver

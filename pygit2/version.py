@@ -23,4 +23,4 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-__version__ = '0.18.1'
+__version__ = '0.19.0'
