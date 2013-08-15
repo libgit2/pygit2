@@ -267,6 +267,8 @@ A tag is a static label for a commit. See references for more information.
 .. autoattribute:: pygit2.Tag.tagger
 .. autoattribute:: pygit2.Tag.message
 
+.. automethod:: pygit2.Tag.get_object
+
 
 Creating tags
 --------------------
