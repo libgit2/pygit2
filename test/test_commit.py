@@ -113,7 +113,7 @@ class CommitTest(utils.BareRepoTestCase):
 
         self.assertEqual(GIT_OBJ_COMMIT, commit.type)
         self.assertEqual('iso-8859-1', commit.message_encoding)
-        self.assertEqual(message, commit.message)
+        self.assertEqual(message.encode(encoding), commit.raw_message)
         self.assertEqual(12346, commit.commit_time)
         self.assertEqualSignature(committer, commit.committer)
         self.assertEqualSignature(author, commit.author)
