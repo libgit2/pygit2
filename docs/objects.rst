@@ -232,7 +232,9 @@ objects::
     <pygit2.Signature object at 0x7f75e9b1f5f8>
 
 .. autoattribute:: pygit2.Signature.name
+.. autoattribute:: pygit2.Signature.raw_name
 .. autoattribute:: pygit2.Signature.email
+.. autoattribute:: pygit2.Signature.raw_email
 .. autoattribute:: pygit2.Signature.time
 .. autoattribute:: pygit2.Signature.offset
 
