@@ -216,6 +216,7 @@ committer and others.
 .. autoattribute:: pygit2.Commit.committer
 .. autoattribute:: pygit2.Commit.message
 .. autoattribute:: pygit2.Commit.message_encoding
+.. autoattribute:: pygit2.Commit.raw_message
 .. autoattribute:: pygit2.Commit.tree
 .. autoattribute:: pygit2.Commit.parents
 .. autoattribute:: pygit2.Commit.commit_time

@@ -64,10 +64,10 @@ Commit_message__get__(Commit *commit)
 }
 
 
-PyDoc_STRVAR(Commit__message__doc__, "Message (bytes).");
+PyDoc_STRVAR(Commit_raw_message__doc__, "Message (bytes).");
 
 PyObject *
-Commit__message__get__(Commit *commit)
+Commit_raw_message__get__(Commit *commit)
 {
     return PyBytes_FromString(git_commit_message(commit->commit));
 }
@@ -195,7 +195,7 @@ Commit_parents__get__(Commit *self)
 PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, message_encoding),
     GETTER(Commit, message),
-    GETTER(Commit, _message),
+    GETTER(Commit, raw_message),
     GETTER(Commit, commit_time),
     GETTER(Commit, commit_time_offset),
     GETTER(Commit, committer),
