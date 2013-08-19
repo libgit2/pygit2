@@ -41,8 +41,12 @@ class SignatureTest(NoRepoTestCase):
             'Foo', 'foo@example.com', 1322174594, 60)
         encoding = signature._encoding
         self.assertEqual(encoding, 'ascii')
-        self.assertEqual(signature.name, signature._name.decode(encoding))
-        self.assertEqual(signature.name.encode(encoding), signature._name)
+        self.assertEqual(signature.name, signature.raw_name.decode(encoding))
+        self.assertEqual(signature.name.encode(encoding), signature.raw_name)
+        self.assertEqual(signature.email,
+                         signature.raw_email.decode(encoding))
+        self.assertEqual(signature.email.encode(encoding),
+                         signature.raw_email)
 
     def test_ascii(self):
         self.assertRaises(UnicodeEncodeError,
@@ -53,16 +57,24 @@ class SignatureTest(NoRepoTestCase):
         signature = Signature(
             'Foo Ibáñez', 'foo@example.com', encoding=encoding)
         self.assertEqual(encoding, signature._encoding)
-        self.assertEqual(signature.name, signature._name.decode(encoding))
-        self.assertEqual(signature.name.encode(encoding), signature._name)
+        self.assertEqual(signature.name, signature.raw_name.decode(encoding))
+        self.assertEqual(signature.name.encode(encoding), signature.raw_name)
+        self.assertEqual(signature.email,
+                         signature.raw_email.decode(encoding))
+        self.assertEqual(signature.email.encode(encoding),
+                         signature.raw_email)
 
     def test_now(self):
         encoding = 'utf-8'
         signature = Signature(
             'Foo Ibáñez', 'foo@example.com', encoding=encoding)
         self.assertEqual(encoding, signature._encoding)
-        self.assertEqual(signature.name, signature._name.decode(encoding))
-        self.assertEqual(signature.name.encode(encoding), signature._name)
+        self.assertEqual(signature.name, signature.raw_name.decode(encoding))
+        self.assertEqual(signature.name.encode(encoding), signature.raw_name)
+        self.assertEqual(signature.email,
+                         signature.raw_email.decode(encoding))
+        self.assertEqual(signature.email.encode(encoding),
+                         signature.raw_email)
         self.assertTrue(abs(signature.time - time.time()) < 5)
 
 

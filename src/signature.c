@@ -107,19 +107,19 @@ Signature__encoding__get__(Signature *self)
 }
 
 
-PyDoc_STRVAR(Signature__name__doc__, "Name (bytes).");
+PyDoc_STRVAR(Signature_raw_name__doc__, "Name (bytes).");
 
 PyObject *
-Signature__name__get__(Signature *self)
+Signature_raw_name__get__(Signature *self)
 {
     return to_bytes(self->signature->name);
 }
 
 
-PyDoc_STRVAR(Signature__email__doc__, "Email (bytes).");
+PyDoc_STRVAR(Signature_raw_email__doc__, "Email (bytes).");
 
 PyObject *
-Signature__email__get__(Signature *self)
+Signature_raw_email__get__(Signature *self)
 {
     return to_bytes(self->signature->email);
 }
@@ -162,8 +162,8 @@ Signature_offset__get__(Signature *self)
 
 PyGetSetDef Signature_getseters[] = {
     GETTER(Signature, _encoding),
-    GETTER(Signature, _name),
-    GETTER(Signature, _email),
+    GETTER(Signature, raw_name),
+    GETTER(Signature, raw_email),
     GETTER(Signature, name),
     GETTER(Signature, email),
     GETTER(Signature, time),
