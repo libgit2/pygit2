@@ -218,10 +218,76 @@ Remote_save(Remote *self, PyObject *args)
 }
 
 
+int
+push_status_foreach_callback(const char *ref, const char *msg, void *data)
+{
+    const char **msg_dst = (const char **)data;
+    if (msg != NULL && *msg_dst == NULL)
+        *msg_dst = msg;
+    return 0;
+}
+
+PyDoc_STRVAR(Remote_push__doc__,
+    "push(refspec)\n"
+    "\n"
+    "Push the given refspec to the remote.  Raises ``GitError`` on error.");
+
+PyObject *
+Remote_push(Remote *self, PyObject *args)
+{
+    git_push *push = NULL;
+    const char *refspec = NULL;
+    const char *msg = NULL;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s", &refspec))
+        return NULL;
+
+    err = git_push_new(&push, self->remote);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_push_add_refspec(push, refspec);
+    if (err < 0)
+        goto error;
+
+    err = git_push_finish(push);
+    if (err < 0)
+        goto error;
+
+    if (!git_push_unpack_ok(push)) {
+        git_push_free(push);
+        PyErr_SetString(GitError, "Remote failed to unpack objects");
+        return NULL;
+    }
+
+    err = git_push_status_foreach(push, push_status_foreach_callback, &msg);
+    if (err < 0)
+        goto error;
+    if (msg != NULL) {
+        git_push_free(push);
+        PyErr_SetString(GitError, msg);
+        return NULL;
+    }
+
+    err = git_push_update_tips(push);
+    if (err < 0)
+        goto error;
+
+    git_push_free(push);
+    Py_RETURN_NONE;
+
+error:
+    git_push_free(push);
+    return Error_set(err);
+}
+
+
 PyMethodDef Remote_methods[] = {
     METHOD(Remote, fetch, METH_NOARGS),
     METHOD(Remote, save, METH_NOARGS),
     METHOD(Remote, get_refspec, METH_O),
+    METHOD(Remote, push, METH_VARARGS),
     {NULL}
 };
 
