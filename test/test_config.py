@@ -46,6 +46,7 @@ foreach_test_wrapper.__test__ = False
 class ConfigTest(utils.RepoTestCase):
 
     def tearDown(self):
+        super(ConfigTest, self).tearDown()
         try:
             os.remove(CONFIG_FILENAME)
         except OSError:
