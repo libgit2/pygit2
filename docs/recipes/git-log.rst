@@ -16,7 +16,7 @@ Show HEAD commit
 
 .. code-block:: python
 
-    >>> commit = repo[repo.head.oid]
+    >>> commit = repo[repo.head.target]
     >>> commit.message
     'commit message'
 
@@ -30,7 +30,7 @@ Traverse commit history
 
 .. code-block:: python
 
-    >>> last = repo[repo.head.oid]
+    >>> last = repo[repo.head.target]
     >>> for commit in repo.walk(last.oid, pygit2.GIT_SORT_TIME):
     >>>     print(commit.message) # or some other operation
 

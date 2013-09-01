@@ -591,9 +591,9 @@ PyDoc_STRVAR(Repository_walk__doc__,
   "  >>> from pygit2 import Repository\n"
   "  >>> from pygit2 import GIT_SORT_TOPOLOGICAL, GIT_SORT_REVERSE\n"
   "  >>> repo = Repository('.git')\n"
-  "  >>> for commit in repo.walk(repo.head.oid, GIT_SORT_TOPOLOGICAL):\n"
+  "  >>> for commit in repo.walk(repo.head.target, GIT_SORT_TOPOLOGICAL):\n"
   "  ...    print commit.message\n"
-  "  >>> for commit in repo.walk(repo.head.oid, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE):\n"
+  "  >>> for commit in repo.walk(repo.head.target, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE):\n"
   "  ...    print commit.message\n"
   "  >>>\n");
 
