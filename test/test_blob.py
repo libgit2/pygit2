@@ -93,13 +93,12 @@ class BlobTest(utils.RepoTestCase):
 
 
     def test_create_blob_outside_workdir(self):
-        path = join(dirname(__file__), 'data', self.repo_dir + '.tar')
+        path = __file__
         self.assertRaises(KeyError, self.repo.create_blob_fromworkdir, path)
 
 
     def test_create_blob_fromdisk(self):
-        path = join(dirname(__file__), 'data', self.repo_dir + '.tar')
-        blob_oid = self.repo.create_blob_fromdisk(path)
+        blob_oid = self.repo.create_blob_fromdisk(__file__)
         blob = self.repo[blob_oid]
 
         self.assertTrue(isinstance(blob, pygit2.Blob))
