@@ -143,7 +143,7 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_get_path(self):
         directory = realpath(self.repo.path)
-        expected = realpath(join(self._temp_dir, 'testrepo.git'))
+        expected = realpath(self.repo_path)
         self.assertEqual(directory, expected)
 
     def test_get_workdir(self):
@@ -179,12 +179,12 @@ class RepositoryTest_II(utils.RepoTestCase):
 
     def test_get_path(self):
         directory = realpath(self.repo.path)
-        expected = realpath(join(self._temp_dir, 'testrepo', '.git'))
+        expected = realpath(join(self.repo_path, '.git'))
         self.assertEqual(directory, expected)
 
     def test_get_workdir(self):
         directory = realpath(self.repo.workdir)
-        expected = realpath(join(self._temp_dir, 'testrepo'))
+        expected = realpath(self.repo_path)
         self.assertEqual(directory, expected)
 
     def test_checkout_ref(self):

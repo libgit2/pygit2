@@ -124,5 +124,45 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         self.assertEqual(stats['received_objects'], REMOTE_REPO_OBJECTS)
 
 
+class PushTestCase(unittest.TestCase):
+    def setUp(self):
+        self.origin_ctxtmgr = utils.TemporaryRepository(('git', 'testrepo.git'))
+        self.clone_ctxtmgr = utils.TemporaryRepository(('git', 'testrepo.git'))
+        self.origin = pygit2.Repository(self.origin_ctxtmgr.__enter__())
+        self.clone = pygit2.Repository(self.clone_ctxtmgr.__enter__())
+        self.remote = self.clone.create_remote('origin', self.origin.path)
+
+    def tearDown(self):
+        self.origin_ctxtmgr.__exit__(None, None, None)
+        self.clone_ctxtmgr.__exit__(None, None, None)
+
+    def test_push_fast_forward_commits_to_remote_succeeds(self):
+        tip = self.clone[self.clone.head.target]
+        oid = self.clone.create_commit(
+            'refs/heads/master', tip.author, tip.author, 'empty commit',
+            tip.tree.oid, [tip.oid]
+        )
+        self.remote.push('refs/heads/master')
+        self.assertEqual(self.origin[self.origin.head.target].oid, oid)
+
+    def test_push_when_up_to_date_succeeds(self):
+        self.remote.push('refs/heads/master')
+        origin_tip = self.origin[self.origin.head.target].oid
+        clone_tip = self.clone[self.clone.head.target].oid
+        self.assertEqual(origin_tip, clone_tip)
+
+    def test_push_non_fast_forward_commits_to_remote_fails(self):
+        tip = self.origin[self.origin.head.target]
+        oid = self.origin.create_commit(
+            'refs/heads/master', tip.author, tip.author, 'some commit',
+            tip.tree.oid, [tip.oid]
+        )
+        tip = self.clone[self.clone.head.target]
+        oid = self.clone.create_commit(
+            'refs/heads/master', tip.author, tip.author, 'other commit',
+            tip.tree.oid, [tip.oid]
+        )
+        self.assertRaises(pygit2.GitError, self.remote.push, 'refs/heads/master')
+
 if __name__ == '__main__':
     unittest.main()

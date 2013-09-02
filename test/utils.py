@@ -65,6 +65,27 @@ def rmtree(path):
         shutil.rmtree(path, onerror=onerror)
 
 
+class TemporaryRepository(object):
+    def __init__(self, repo_spec):
+        self.repo_spec = repo_spec
+
+    def __enter__(self):
+        container, name = self.repo_spec
+        repo_path = os.path.join(os.path.dirname(__file__), 'data', name)
+        self.temp_dir = tempfile.mkdtemp()
+        temp_repo_path = os.path.join(self.temp_dir, name)
+        if container == 'tar':
+            tar = tarfile.open('.'.join((repo_path, 'tar')))
+            tar.extractall(self.temp_dir)
+            tar.close()
+        else:
+            shutil.copytree(repo_path, temp_repo_path)
+        return temp_repo_path
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        rmtree(self.temp_dir)
+
+
 class NoRepoTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -103,45 +124,33 @@ class NoRepoTestCase(unittest.TestCase):
         self.assertEqual(a.offset, b.offset)
 
 
-class BareRepoTestCase(NoRepoTestCase):
-
-    repo_dir = 'testrepo.git'
-
+class AutoRepoTestCase(NoRepoTestCase):
     def setUp(self):
-        super(BareRepoTestCase, self).setUp()
+        super(AutoRepoTestCase, self).setUp()
+        self.repo_ctxtmgr = TemporaryRepository(self.repo_spec)
+        self.repo_path = self.repo_ctxtmgr.__enter__()
+        self.repo = pygit2.Repository(self.repo_path)
 
-        repo_dir = self.repo_dir
-        repo_path = os.path.join(os.path.dirname(__file__), 'data', repo_dir)
-        temp_repo_path = os.path.join(self._temp_dir, repo_dir)
-
-        shutil.copytree(repo_path, temp_repo_path)
-
-        self.repo = pygit2.Repository(temp_repo_path)
-
-
-class RepoTestCase(NoRepoTestCase):
-
-    repo_dir = 'testrepo'
-
-    def setUp(self):
-        super(RepoTestCase, self).setUp()
-
-        repo_dir = self.repo_dir
-        repo_path = os.path.join(os.path.dirname(__file__), 'data', repo_dir)
-        temp_repo_path = os.path.join(self._temp_dir, repo_dir, '.git')
-
-        tar = tarfile.open(repo_path + '.tar')
-        tar.extractall(self._temp_dir)
-        tar.close()
-
-        self.repo = pygit2.Repository(temp_repo_path)
+    def tearDown(self):
+        self.repo_ctxtmgr.__exit__(None, None, None)
+        super(AutoRepoTestCase, self).tearDown()
 
 
-class DirtyRepoTestCase(RepoTestCase):
+class BareRepoTestCase(AutoRepoTestCase):
 
-    repo_dir = 'dirtyrepo'
+    repo_spec = 'git', 'testrepo.git'
 
 
-class EmptyRepoTestCase(RepoTestCase):
+class RepoTestCase(AutoRepoTestCase):
 
-    repo_dir = 'emptyrepo'
+    repo_spec = 'tar', 'testrepo'
+
+
+class DirtyRepoTestCase(AutoRepoTestCase):
+
+    repo_spec = 'tar', 'dirtyrepo'
+
+
+class EmptyRepoTestCase(AutoRepoTestCase):
+
+    repo_spec = 'tar', 'emptyrepo'
