@@ -63,10 +63,12 @@ This is the list of authors of pygit2, sorted by number of commits (as shown by
 - Valentin Haenel
 - Bernardo Heynemann
 - John Szakmeister
+- Brodie Rao
 - David Versmisse
 - Petr Hosek
 - Rémi Duraffort
 - Sebastian Thiel
+- Fraser Tweedale
 - Han-Wen Nienhuys
 - Petr Viktorin
 - Alex Chamberlain
@@ -79,6 +81,7 @@ This is the list of authors of pygit2, sorted by number of commits (as shown by
 - Sarath Lakshman
 - Vicent Marti
 - Zoran Zaric
+- Andrew Chin
 - András Veres-Szentkirályi
 - Benjamin Kircher
 - Benjamin Pollack
@@ -89,7 +92,6 @@ This is the list of authors of pygit2, sorted by number of commits (as shown by
 - Eric Schrijver
 - Erik van Zijst
 - Ferengee
-- Fraser Tweedale
 - Hugh Cole-Baker
 - Josh Bleecher Snyder
 - Jun Omae
