@@ -135,7 +135,7 @@ PyObject *
 Index_diff_to_workdir(Index *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_diff_list *diff;
+    git_diff *diff;
     int err;
 
     if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
@@ -177,7 +177,7 @@ Index_diff_to_tree(Index *self, PyObject *args)
 {
     Repository *py_repo;
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_diff_list *diff;
+    git_diff *diff;
     int err;
 
     Tree *py_tree = NULL;

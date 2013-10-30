@@ -290,7 +290,7 @@ PyObject *
 Tree_diff_to_workdir(Tree *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_diff_list *diff;
+    git_diff *diff;
     Repository *py_repo;
     int err;
 
@@ -328,7 +328,7 @@ PyObject *
 Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_diff_list *diff;
+    git_diff *diff;
     Repository *py_repo;
     int err;
 
@@ -373,7 +373,7 @@ PyObject *
 Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_diff_list *diff;
+    git_diff *diff;
     git_tree *from, *to, *tmp;
     Repository *py_repo;
     int err, swap = 0;

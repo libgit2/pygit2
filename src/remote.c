@@ -179,7 +179,7 @@ Remote_fetch(Remote *self, PyObject *args)
 
     err = git_remote_connect(self->remote, GIT_DIRECTION_FETCH);
     if (err == GIT_OK) {
-        err = git_remote_download(self->remote, NULL, NULL);
+        err = git_remote_download(self->remote);
         if (err == GIT_OK) {
             stats = git_remote_stats(self->remote);
             py_stats = Py_BuildValue("{s:I,s:I,s:n}",

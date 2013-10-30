@@ -208,14 +208,14 @@ Repository_head_is_detached__get__(Repository *self)
 }
 
 
-PyDoc_STRVAR(Repository_head_is_orphaned__doc__,
-  "An orphan branch is one named from HEAD but which doesn't exist in the\n"
+PyDoc_STRVAR(Repository_head_is_unborn__doc__,
+  "An unborn branch is one named from HEAD but which doesn't exist in the\n"
   "refs namespace, because it doesn't have any commit to point to.");
 
 PyObject *
-Repository_head_is_orphaned__get__(Repository *self)
+Repository_head_is_unborn__get__(Repository *self)
 {
-    if (git_repository_head_orphan(self->repo) > 0)
+    if (git_repository_head_unborn(self->repo) > 0)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -430,9 +430,9 @@ Repository_write(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    stream->write(stream, buffer, buflen);
-    err = stream->finalize_write(&oid, stream);
-    stream->free(stream);
+    git_odb_stream_write(stream, buffer, buflen);
+    err = git_odb_stream_finalize_write(&oid, stream);
+    git_odb_stream_free(stream);
     return git_oid_to_python(&oid);
 }
 
@@ -1480,7 +1480,7 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, path),
     GETSET(Repository, head),
     GETTER(Repository, head_is_detached),
-    GETTER(Repository, head_is_orphaned),
+    GETTER(Repository, head_is_unborn),
     GETTER(Repository, is_empty),
     GETTER(Repository, is_bare),
     GETTER(Repository, config),

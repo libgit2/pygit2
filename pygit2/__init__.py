@@ -49,9 +49,8 @@ def init_repository(path, bare=False):
 
 
 def clone_repository(
-        url, path, bare=False, remote_name="origin",
-        push_url=None, fetch_spec=None,
-        push_spec=None, checkout_branch=None):
+        url, path, bare=False, ignore_cert_errors=False,
+        remote_name="origin", checkout_branch=None):
     """
     Clones a new Git repository from *url* in the given *path*.
 
@@ -59,15 +58,6 @@ def clone_repository(
 
     **remote_name** is the name given to the "origin" remote.
     The default is "origin".
-
-    **push_url** is a URL to be used for pushing.
-    None means use the *url* parameter.
-
-    **fetch_spec** defines the the default fetch spec.
-    None results in the same behavior as *GIT_REMOTE_DEFAULT_FETCH*.
-
-    **push_spec** is the fetch specification to be used for pushing.
-    None means use the same spec as for *fetch_spec*.
 
     **checkout_branch** gives the name of the branch to checkout.
     None means use the remote's *HEAD*.
@@ -83,6 +73,5 @@ def clone_repository(
     """
 
     _pygit2.clone_repository(
-        url, path, bare, remote_name, push_url,
-        fetch_spec, push_spec, checkout_branch)
+        url, path, bare, ignore_cert_errors, remote_name, checkout_branch)
     return Repository(path)

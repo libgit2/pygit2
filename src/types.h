@@ -95,7 +95,7 @@ typedef struct {
 
 
 /* git _diff */
-SIMPLE_TYPE(Diff, git_diff_list, list)
+SIMPLE_TYPE(Diff, git_diff, list)
 
 typedef struct {
     PyObject_HEAD

@@ -99,8 +99,7 @@ init_repository(PyObject *self, PyObject *args) {
 };
 
 PyDoc_STRVAR(clone_repository__doc__,
-    "clone_repository(url, path, bare, remote_name, push_url,"
-    "fetch_spec, push_spec, checkout_branch)\n"
+    "clone_repository(url, path, bare, remote_name, checkout_branch)\n"
     "\n"
     "Clones a Git repository in the given url to the given path "
     "with the specified options.\n"
@@ -115,14 +114,6 @@ PyDoc_STRVAR(clone_repository__doc__,
     "  If 'bare' is not 0, then a bare git repository will be created.\n"
     "remote_name\n"
     "  The name given to the 'origin' remote.  The default is 'origin'.\n"
-    "push_url\n"
-    "  URL to be used for pushing.\n"
-    "fetch_spec\n"
-    "  The fetch specification to be used for fetching. None results in "
-    "the same behavior as GIT_REMOTE_DEFAULT_FETCH.\n"
-    "push_spec\n"
-    "  The fetch specification to be used for pushing. None means use the "
-    "same spec as for 'fetch_spec'\n"
     "checkout_branch\n"
     "  The name of the branch to checkout. None means use the remote's "
     "HEAD.\n");
@@ -133,22 +124,18 @@ clone_repository(PyObject *self, PyObject *args) {
     git_repository *repo;
     const char *url;
     const char *path;
-    unsigned int bare;
-    const char *remote_name, *push_url, *fetch_spec;
-    const char *push_spec, *checkout_branch;
+    unsigned int bare, ignore_cert_errors;
+    const char *remote_name, *checkout_branch;
     int err;
     git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
 
-    if (!PyArg_ParseTuple(args, "zzIzzzzz",
-                          &url, &path, &bare, &remote_name, &push_url,
-                          &fetch_spec, &push_spec, &checkout_branch))
+    if (!PyArg_ParseTuple(args, "zzIIzz",
+                          &url, &path, &bare, &ignore_cert_errors, &remote_name, &checkout_branch))
         return NULL;
 
     opts.bare = bare;
+    opts.ignore_cert_errors = ignore_cert_errors;
     opts.remote_name = remote_name;
-    opts.pushurl = push_url;
-    opts.fetch_spec = fetch_spec;
-    opts.push_spec = push_spec;
     opts.checkout_branch = checkout_branch;
 
     err = git_clone(&repo, url, path, &opts);
@@ -392,8 +379,8 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_DIFF_RECURSE_UNTRACKED_DIRS)
     ADD_CONSTANT_INT(m, GIT_DIFF_RECURSE_UNTRACKED_DIRS)
     ADD_CONSTANT_INT(m, GIT_DIFF_DISABLE_PATHSPEC_MATCH)
-    ADD_CONSTANT_INT(m, GIT_DIFF_DELTAS_ARE_ICASE)
-    ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_UNTRACKED_CONTENT)
+    ADD_CONSTANT_INT(m, GIT_DIFF_IGNORE_CASE)
+    ADD_CONSTANT_INT(m, GIT_DIFF_SHOW_UNTRACKED_CONTENT)
     ADD_CONSTANT_INT(m, GIT_DIFF_SKIP_BINARY_CHECK)
     ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_TYPECHANGE)
     ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_TYPECHANGE_TREES)
