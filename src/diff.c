@@ -63,7 +63,7 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
     const git_diff_delta* delta;
     const git_diff_range* range;
     git_diff_patch* patch = NULL;
-    size_t i, j, hunk_amounts, lines_in_hunk, line_len, header_len;
+    size_t i, j, hunk_amounts, lines_in_hunk, line_len, header_len, additions, deletions;
     const char* line, *header;
     char line_origin;
     int err;
@@ -84,6 +84,9 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
         py_patch->old_oid = git_oid_allocfmt(&delta->old_file.oid);
         py_patch->new_oid = git_oid_allocfmt(&delta->new_file.oid);
 
+        git_diff_patch_line_stats(NULL, &additions, &deletions, patch);
+        py_patch->additions = additions;
+        py_patch->deletions = deletions;
 
         hunk_amounts = git_diff_patch_num_hunks(patch);
         py_patch->hunks = PyList_New(hunk_amounts);
@@ -152,6 +155,8 @@ PyMemberDef Patch_members[] = {
     MEMBER(Patch, status, T_CHAR, "status"),
     MEMBER(Patch, similarity, T_INT, "similarity"),
     MEMBER(Patch, hunks, T_OBJECT, "hunks"),
+    MEMBER(Patch, additions, T_INT, "additions"),
+    MEMBER(Patch, deletions, T_INT, "deletions"),
     {NULL}
 };
 
