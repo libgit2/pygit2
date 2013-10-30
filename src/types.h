@@ -195,9 +195,9 @@ SIMPLE_TYPE(Remote, git_remote, remote)
 
 /* ssh public key auth helper struct */
 typedef struct {
-    char * pubkey;
-    char * privkey;
-    char * passphrase;
+    const char * pubkey;
+    const char * privkey;
+    const char * passphrase;
 } PubKeyAuth;
 
 
