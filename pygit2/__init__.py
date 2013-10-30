@@ -51,7 +51,8 @@ def init_repository(path, bare=False):
 def clone_repository(
         url, path, bare=False, remote_name="origin",
         push_url=None, fetch_spec=None,
-        push_spec=None, checkout_branch=None):
+        push_spec=None, checkout_branch=None,
+        ssh_pubkey=None, ssh_privkey=None, ssh_passphrase=None):
     """
     Clones a new Git repository from *url* in the given *path*.
 
@@ -72,6 +73,20 @@ def clone_repository(
     **checkout_branch** gives the name of the branch to checkout.
     None means use the remote's *HEAD*.
 
+    **ssh_pubkey** specifies the public key for ssh key authentication.
+    Note that you must specify both public and private keys to enable
+    public key authentication.
+    None means public key authentication will not be used.
+
+    **ssh_privkey** specifies the private key for ssh key authentication.
+    Note that you must specify both public and private keys to enable
+    public key authentication.
+    None means public key authentication will not be used.
+
+    **ssh_passphrase** The passphrase, if required, for public key
+    authentication. If the keypair does not use a passphrase, this can
+    be left set to None.
+
     Returns a Repository class pointing to the newly cloned repository.
 
     If you wish to use the repo, you need to do a checkout for one of
@@ -82,7 +97,13 @@ def clone_repository(
 
     """
 
+    if (ssh_pubkey or ssh_privkey) and not (ssh_pubkey and ssh_privkey):
+        raise UserWarning(("You must supply both private and public keys for"
+                           "public key authentication to work."))
+        ssh_pubkey = ssh_privkey = None
+
     _pygit2.clone_repository(
         url, path, bare, remote_name, push_url,
-        fetch_spec, push_spec, checkout_branch)
+        fetch_spec, push_spec, checkout_branch,
+        ssh_pubkey, ssh_privkey, ssh_passphrase)
     return Repository(path)

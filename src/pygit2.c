@@ -100,7 +100,8 @@ init_repository(PyObject *self, PyObject *args) {
 
 PyDoc_STRVAR(clone_repository__doc__,
     "clone_repository(url, path, bare, remote_name, push_url,"
-    "fetch_spec, push_spec, checkout_branch)\n"
+    "fetch_spec, push_spec, checkout_branch, ssh_pubkey, "
+    "ssh_privkey, ssh_passphrase)\n"
     "\n"
     "Clones a Git repository in the given url to the given path "
     "with the specified options.\n"
@@ -125,8 +126,14 @@ PyDoc_STRVAR(clone_repository__doc__,
     "same spec as for 'fetch_spec'\n"
     "checkout_branch\n"
     "  The name of the branch to checkout. None means use the remote's "
-    "HEAD.\n");
-
+    "HEAD.\n"
+    "ssh_pubkey\n"
+    "  SSH public key to use for authentication (optional).\n"
+    "ssh_privkey\n"
+    "  Private key for SSH key authentication (optional).\n"
+    "ssh_passphrase\n"
+    "  Passphrase for SSH private key. Can be let empty if the key doesn't "
+    "have a passphrase\n");
 
 PyObject *
 clone_repository(PyObject *self, PyObject *args) {
@@ -136,12 +143,15 @@ clone_repository(PyObject *self, PyObject *args) {
     unsigned int bare;
     const char *remote_name, *push_url, *fetch_spec;
     const char *push_spec, *checkout_branch;
+    const char *ssh_pubkey, *ssh_privkey, *ssh_passphrase;
     int err;
     git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
+    PubKeyAuth payload;
 
-    if (!PyArg_ParseTuple(args, "zzIzzzzz",
+    if (!PyArg_ParseTuple(args, "zzIzzzzzzzz",
                           &url, &path, &bare, &remote_name, &push_url,
-                          &fetch_spec, &push_spec, &checkout_branch))
+                          &fetch_spec, &push_spec, &checkout_branch,
+                          &ssh_pubkey, &ssh_privkey, &ssh_passphrase))
         return NULL;
 
     opts.bare = bare;
@@ -150,6 +160,15 @@ clone_repository(PyObject *self, PyObject *args) {
     opts.fetch_spec = fetch_spec;
     opts.push_spec = push_spec;
     opts.checkout_branch = checkout_branch;
+
+    if (ssh_pubkey != NULL && ssh_privkey != NULL) {
+        payload.pubkey = ssh_pubkey;
+        payload.privkey = ssh_privkey;
+        payload.passphrase = ssh_passphrase;
+
+        opts.cred_acquire_cb = &ssh_pubkey_auth_helper;
+        opts.cred_acquire_payload = &payload;
+    }
 
     err = git_clone(&repo, url, path, &opts);
     if (err < 0)
