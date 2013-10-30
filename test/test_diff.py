@@ -254,6 +254,7 @@ class DiffTest(utils.BareRepoTestCase):
 
         diff = commit_a.tree.diff_to_tree(commit_b.tree)
         self.assertEqual(diff.patch, PATCH)
+        self.assertEqual(diff.size, len([patch for patch in diff]))
 
     def test_diff_oids(self):
         commit_a = self.repo[COMMIT_SHA1_1]
