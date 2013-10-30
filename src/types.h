@@ -113,6 +113,7 @@ typedef struct {
     char* new_oid;
     char status;
     unsigned similarity;
+    unsigned flags;
 } Patch;
 
 typedef struct {
