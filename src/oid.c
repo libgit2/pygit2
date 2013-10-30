@@ -46,7 +46,7 @@ git_oid_to_python(const git_oid *oid)
 }
 
 size_t
-py_hex_to_git_oid (PyObject *py_oid, git_oid *oid)
+py_hex_to_git_oid(PyObject *py_oid, git_oid *oid)
 {
     PyObject *py_hex;
     int err;
