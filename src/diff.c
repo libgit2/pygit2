@@ -161,10 +161,10 @@ PyMemberDef Patch_members[] = {
     {NULL}
 };
 
-PyDoc_STRVAR(Patch_binary__doc__, "Binary.");
+PyDoc_STRVAR(Patch_is_binary__doc__, "True if binary data, False if not.");
 
 PyObject *
-Patch_binary__get__(Patch *self)
+Patch_is_binary__get__(Patch *self)
 {
     if (!(self->flags & GIT_DIFF_FLAG_NOT_BINARY) &&
             (self->flags & GIT_DIFF_FLAG_BINARY))
@@ -173,7 +173,7 @@ Patch_binary__get__(Patch *self)
 }
 
 PyGetSetDef Patch_getseters[] = {
-    GETTER(Patch, binary),
+    GETTER(Patch, is_binary),
     {NULL}
 };
 
