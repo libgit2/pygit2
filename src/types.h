@@ -115,6 +115,7 @@ typedef struct {
     unsigned similarity;
     unsigned additions;
     unsigned deletions;
+    unsigned flags;
 } Patch;
 
 typedef struct {

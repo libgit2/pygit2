@@ -81,6 +81,7 @@ diff_get_patch_byindex(git_diff_list* list, size_t idx)
         py_patch->new_file_path = delta->new_file.path;
         py_patch->status = git_diff_status_char(delta->status);
         py_patch->similarity = delta->similarity;
+        py_patch->flags = delta->flags;
         py_patch->old_oid = git_oid_allocfmt(&delta->old_file.oid);
         py_patch->new_oid = git_oid_allocfmt(&delta->new_file.oid);
 
@@ -160,6 +161,22 @@ PyMemberDef Patch_members[] = {
     {NULL}
 };
 
+PyDoc_STRVAR(Patch_binary__doc__, "Binary.");
+
+PyObject *
+Patch_binary__get__(Patch *self)
+{
+    if (!(self->flags & GIT_DIFF_FLAG_NOT_BINARY) &&
+            (self->flags & GIT_DIFF_FLAG_BINARY))
+        Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
+}
+
+PyGetSetDef Patch_getseters[] = {
+    GETTER(Patch, binary),
+    {NULL}
+};
+
 PyDoc_STRVAR(Patch__doc__, "Diff patch object.");
 
 PyTypeObject PatchType = {
@@ -192,7 +209,7 @@ PyTypeObject PatchType = {
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
     Patch_members,                             /* tp_members        */
-    0,                                         /* tp_getset         */
+    Patch_getseters,                           /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
