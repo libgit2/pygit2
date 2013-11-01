@@ -53,6 +53,7 @@ class BlobTest(utils.RepoTestCase):
         sha = blob.oid.hex
         self.assertEqual(sha, BLOB_SHA)
         self.assertTrue(isinstance(blob, pygit2.Blob))
+        self.assertFalse(blob.binary)
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
         self.assertEqual(BLOB_CONTENT, blob.data)
         self.assertEqual(len(BLOB_CONTENT), blob.size)
