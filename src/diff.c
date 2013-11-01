@@ -271,6 +271,12 @@ PyTypeObject DiffIterType = {
     (iternextfunc) DiffIter_iternext,          /* tp_iternext       */
 };
 
+Py_ssize_t
+Diff_len(Diff *self)
+{
+    assert(self->list);
+    return (Py_ssize_t)git_diff_num_deltas(self->list);
+}
 
 PyDoc_STRVAR(Diff_patch__doc__, "Patch diff string.");
 
@@ -466,7 +472,7 @@ PyGetSetDef Diff_getseters[] = {
 };
 
 PyMappingMethods Diff_as_mapping = {
-    0,                               /* mp_length */
+    (lenfunc)Diff_len,               /* mp_length */
     (binaryfunc)Diff_getitem,        /* mp_subscript */
     0,                               /* mp_ass_subscript */
 };
