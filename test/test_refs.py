@@ -103,6 +103,11 @@ class ReferencesTest(utils.RepoTestCase):
         reference.target = 'refs/heads/i18n'
         self.assertEqual(reference.target, 'refs/heads/i18n')
 
+    def test_get_shorthand(self):
+        reference = self.repo.lookup_reference('refs/heads/master')
+        self.assertEqual(reference.shorthand, 'master')
+        reference = self.repo.create_reference('refs/remotes/origin/master', LAST_COMMIT)
+        self.assertEqual(reference.shorthand, 'origin/master')
 
     def test_delete(self):
         repo = self.repo
