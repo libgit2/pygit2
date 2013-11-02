@@ -60,3 +60,12 @@ py_str_to_c_str(PyObject *value, const char *encoding)
                  Py_TYPE(value)->tp_name);
     return NULL;
 }
+
+/* ssh_pubkey_auth_helper is set as the cred_acquire_cb
+ * for obtaining the public/private keypair for auth */
+int ssh_pubkey_auth_helper(git_cred **cred, const char *url,
+        const char *user, unsigned int allowed_types, PubKeyAuth *payload)
+{
+    git_cred_ssh_keyfile_passphrase_new(cred, payload->pubkey, payload->privkey, payload->passphrase);
+    return 0;
+};
