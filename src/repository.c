@@ -1096,33 +1096,53 @@ PyDoc_STRVAR(Repository_status__doc__,
   "Reads the status of the repository and returns a dictionary with file\n"
   "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.");
 
-int
-read_status_cb(const char *path, unsigned int status_flags, void *payload)
-{
-    /* This is the callback that will be called in git_status_foreach. It
-     * will be called for every path.*/
-    PyObject *flags;
-    int err;
-
-    flags = PyLong_FromLong((long) status_flags);
-    err = PyDict_SetItemString(payload, path, flags);
-    Py_CLEAR(flags);
-
-    if (err < 0)
-        return GIT_ERROR;
-
-    return GIT_OK;
-}
-
 PyObject *
 Repository_status(Repository *self, PyObject *args)
 {
-    PyObject *payload_dict;
+    PyObject *dict;
+    int err;
+    size_t len, i;
+    git_status_list *list;
 
-    payload_dict = PyDict_New();
-    git_status_foreach(self->repo, read_status_cb, payload_dict);
+    dict = PyDict_New();
+    if (dict == NULL)
+        return NULL;
 
-    return payload_dict;
+    err = git_status_list_new(&list, self->repo, NULL);
+    if (err < 0)
+        return Error_set(err);
+
+    len = git_status_list_entrycount(list);
+    for (i = 0; i < len; i++) {
+        const git_status_entry *entry;
+        const char *path;
+        PyObject *status;
+
+        entry = git_status_byindex(list, i);
+        if (entry == NULL)
+            goto on_error;
+
+        /* We need to choose one of the strings */
+        path = entry->head_to_index ?
+			entry->head_to_index->old_file.path :
+			entry->index_to_workdir->old_file.path;
+        status = PyLong_FromLong((long) entry->status);
+
+        err = PyDict_SetItemString(dict, path, status);
+        Py_CLEAR(status);
+
+        if (err < 0)
+            goto on_error;
+
+    }
+
+    git_status_list_free(list);
+    return dict;
+
+  on_error:
+    git_status_list_free(list);
+    Py_CLEAR(dict);
+    return NULL;
 }
 
 
