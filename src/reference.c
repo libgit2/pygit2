@@ -276,6 +276,14 @@ Reference_name__get__(Reference *self)
     return to_path(git_reference_name(self->reference));
 }
 
+PyDoc_STRVAR(Reference_shorthand__doc__, "The shorthand \"human-readable\" name of the reference.");
+
+PyObject *
+Reference_shorthand__get__(Reference *self)
+{
+    CHECK_REFERENCE(self);
+    return to_path(git_reference_shorthand(self->reference));
+}
 
 PyDoc_STRVAR(Reference_type__doc__,
     "Type, either GIT_REF_OID or GIT_REF_SYMBOLIC.");
@@ -432,6 +440,7 @@ PyMethodDef Reference_methods[] = {
 
 PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, name),
+    GETTER(Reference, shorthand),
     GETSET(Reference, target),
     GETTER(Reference, type),
     {NULL}
