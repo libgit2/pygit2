@@ -40,6 +40,7 @@
 
 extern PyObject *GitError;
 extern PyTypeObject RefLogEntryType;
+extern PyTypeObject SignatureType;
 
 
 void RefLogIter_dealloc(RefLogIter *self)
@@ -320,6 +321,72 @@ Reference_log(Reference *self)
     return (PyObject*)iter;
 }
 
+PyDoc_STRVAR(Reference_log_append__doc__,
+  "log_append(committer, message, oid)\n"
+  "\n"
+  "Append reflog to the current reference.");
+
+PyObject *
+Reference_log_append(Reference *self, PyObject *args, PyObject *kwds)
+{
+    git_signature *committer;
+    const char *message = NULL;
+    git_reflog *reflog;
+    git_oid oid;
+    git_oid *ref_oid;
+    int err;
+    Signature *py_committer;
+    PyObject *py_message = NULL;
+    PyObject *py_hex = NULL;
+    char *keywords[] = {"committer", "message", "oid", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|OO", keywords,
+                &SignatureType, &py_committer,
+                &py_message,
+                &py_hex))
+        return NULL;
+
+    /* FIXME: encoding */
+    if (py_message != NULL) {
+        message = py_str_to_c_str(py_message, NULL);
+        if (message == NULL)
+            return NULL;
+    }
+
+    if (py_hex != NULL) {
+        err = py_oid_to_git_oid_expand(self->repo->repo, py_hex, &oid);
+        if (err < 0)
+            return NULL;
+    }
+
+    CHECK_REFERENCE(self);
+
+    err = git_reflog_read(&reflog, self->reference);
+    if (err < 0) {
+        free((void *)message);
+        return NULL;
+    }
+
+    if (py_hex != NULL)
+        ref_oid = &oid;
+    else
+        ref_oid = git_reference_target(self->reference);
+
+    committer = (git_signature *)py_committer->signature;
+    if (!(err = git_reflog_append(reflog,
+                    ref_oid,
+                    committer,
+                    message)))
+        err = git_reflog_write(reflog);
+
+    git_reflog_free(reflog);
+    free((void *)message);
+
+    if (err < 0)
+        return NULL;
+
+    Py_RETURN_NONE;
+}
 
 PyDoc_STRVAR(Reference_get_object__doc__,
   "get_object() -> object\n"
@@ -434,6 +501,7 @@ PyMethodDef Reference_methods[] = {
     METHOD(Reference, rename, METH_O),
     METHOD(Reference, resolve, METH_NOARGS),
     METHOD(Reference, log, METH_NOARGS),
+    METHOD(Reference, log_append, METH_VARARGS|METH_KEYWORDS),
     METHOD(Reference, get_object, METH_NOARGS),
     {NULL}
 };
