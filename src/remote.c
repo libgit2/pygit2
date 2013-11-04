@@ -32,6 +32,7 @@
 #include "utils.h"
 #include "types.h"
 #include "remote.h"
+#include "oid.h"
 
 
 extern PyObject *GitError;
@@ -294,6 +295,93 @@ PyTypeObject RefspecType = {
     0,                                         /* tp_new            */
 };
 
+static int
+progress_cb(const char *str, int len, void *data)
+{
+    Remote *remote = (Remote *) data;
+    PyObject *arglist, *ret;
+
+    if (remote->progress == NULL)
+        return 0;
+
+    if (!PyCallable_Check(remote->progress)) {
+        PyErr_SetString(PyExc_TypeError, "progress callback is not callable");
+        return -1;
+    }
+
+    arglist = Py_BuildValue("(s#)", str, len);
+    ret = PyObject_CallObject(remote->progress, arglist);
+    Py_DECREF(arglist);
+
+    if (!ret)
+        return -1;
+
+    Py_DECREF(ret);
+
+    return 0;
+}
+
+static int
+transfer_progress_cb(const git_transfer_progress *stats, void *data)
+{
+    Remote *remote = (Remote *) data;
+    PyObject *arglist, *ret;
+
+    if (remote->transfer_progress == NULL)
+        return 0;
+
+    if (!PyCallable_Check(remote->transfer_progress)) {
+        PyErr_SetString(PyExc_TypeError, "transfer progress callback is not callable");
+        return -1;
+    }
+
+    arglist = Py_BuildValue("({s:I,s:I,s:n})",
+        "indexed_objects", stats->indexed_objects,
+        "received_objects", stats->received_objects,
+        "received_bytes", stats->received_bytes);
+
+    ret = PyObject_CallObject(remote->transfer_progress, arglist);
+    Py_DECREF(arglist);
+
+    if (!ret)
+        return -1;
+
+    Py_DECREF(ret);
+
+    return 0;
+}
+
+static int
+update_tips_cb(const char *refname, const git_oid *a, const git_oid *b, void *data)
+{
+    Remote *remote = (Remote *) data;
+    PyObject *ret;
+    PyObject *old, *new;
+
+    if (remote->update_tips == NULL)
+        return 0;
+
+    if (!PyCallable_Check(remote->update_tips)) {
+        PyErr_SetString(PyExc_TypeError, "update tips callback is not callable");
+        return -1;
+    }
+
+    old = git_oid_to_python(a);
+    new = git_oid_to_python(b);
+
+    ret = PyObject_CallFunction(remote->update_tips, "(s,O,O)", refname, old ,new);
+
+    Py_DECREF(old);
+    Py_DECREF(new);
+
+    if (!ret)
+        return -1;
+
+    Py_DECREF(ret);
+
+    return 0;
+}
+
 PyObject *
 Remote_init(Remote *self, PyObject *args, PyObject *kwds)
 {
@@ -311,18 +399,36 @@ Remote_init(Remote *self, PyObject *args, PyObject *kwds)
     if (err < 0)
         return Error_set(err);
 
+    self->progress = NULL;
+    self->transfer_progress = NULL;
+    self->update_tips = NULL;
+
+    Remote_set_callbacks(self);
     return (PyObject*) self;
 }
 
+void
+Remote_set_callbacks(Remote *self)
+{
+    git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
+
+    self->progress = NULL;
+
+    callbacks.progress = progress_cb;
+    callbacks.transfer_progress = transfer_progress_cb;
+    callbacks.update_tips = update_tips_cb;
+    callbacks.payload = self;
+    git_remote_set_callbacks(self->remote, &callbacks);
+}
 
 static void
 Remote_dealloc(Remote *self)
 {
     Py_CLEAR(self->repo);
+    Py_CLEAR(self->progress);
     git_remote_free(self->remote);
     PyObject_Del(self);
 }
-
 
 PyDoc_STRVAR(Remote_name__doc__, "Name of the remote refspec");
 
@@ -671,23 +777,22 @@ Remote_fetch(Remote *self, PyObject *args)
     const git_transfer_progress *stats;
     int err;
 
-    err = git_remote_connect(self->remote, GIT_DIRECTION_FETCH);
-    if (err == GIT_OK) {
-        err = git_remote_download(self->remote);
-        if (err == GIT_OK) {
-            stats = git_remote_stats(self->remote);
-            py_stats = Py_BuildValue("{s:I,s:I,s:n}",
-                "indexed_objects", stats->indexed_objects,
-                "received_objects", stats->received_objects,
-                "received_bytes", stats->received_bytes);
-
-            err = git_remote_update_tips(self->remote);
-        }
-        git_remote_disconnect(self->remote);
-    }
-
+    PyErr_Clear();
+    err = git_remote_fetch(self->remote);
+    /*
+     * XXX: We should be checking for GIT_EUSER, but on v0.20, this does not
+     * make it all the way to us for update_tips
+     */
+    if (err < 0 && PyErr_Occurred())
+        return NULL;
     if (err < 0)
         return Error_set(err);
+
+    stats = git_remote_stats(self->remote);
+    py_stats = Py_BuildValue("{s:I,s:I,s:n}",
+        "indexed_objects", stats->indexed_objects,
+        "received_objects", stats->received_objects,
+        "received_bytes", stats->received_bytes);
 
     return (PyObject*) py_stats;
 }
@@ -848,6 +953,13 @@ PyGetSetDef Remote_getseters[] = {
     {NULL}
 };
 
+PyMemberDef Remote_members[] = {
+    MEMBER(Remote, progress, T_OBJECT_EX, "Progress output callback"),
+    MEMBER(Remote, transfer_progress, T_OBJECT_EX, "Transfer progress callback"),
+    MEMBER(Remote, update_tips, T_OBJECT_EX, "update tips callback"),
+	{NULL},
+};
+
 PyDoc_STRVAR(Remote__doc__, "Remote object.");
 
 PyTypeObject RemoteType = {
@@ -879,7 +991,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     Remote_methods,                            /* tp_methods        */
-    0,                                         /* tp_members        */
+    Remote_members,                            /* tp_members        */
     Remote_getseters,                          /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */

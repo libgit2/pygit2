@@ -1295,6 +1295,7 @@ Repository_create_remote(Repository *self, PyObject *args)
     Py_INCREF(self);
     py_remote->repo = self;
     py_remote->remote = remote;
+    Remote_set_callbacks(py_remote);
 
     return (PyObject*) py_remote;
 }

@@ -196,7 +196,15 @@ typedef struct {
 
 
 /* git_remote */
-SIMPLE_TYPE(Remote, git_remote, remote)
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_remote *remote;
+    /* Callbacks for network events */
+    PyObject *progress;
+    PyObject *transfer_progress;
+    PyObject *update_tips;
+} Remote;
 
 /* git_refspec */
 typedef struct {
