@@ -40,5 +40,5 @@ class ReflogTest(utils.RepoTestCase):
         repo = self.repo
         master = repo.lookup_reference("refs/heads/master")
         signature = Signature('xtao', 'xutao@douban.com')
-        master.log_append(signature, 'reflog')
+        master.log_append(None, signature, 'reflog')
         self.assertTrue('reflog' in [entry.message for entry in master.log()])
