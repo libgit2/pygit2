@@ -163,6 +163,89 @@ Remote_get_refspec(Remote *self, PyObject *value)
 }
 
 
+PyDoc_STRVAR(Remote_remove_refspec__doc__,
+             "remove_refspec(int) -> Bool\n"
+             "\n"
+             "Removed the refspec at the given position.");
+
+PyObject *
+Remote_remove_refspec(Remote *self, PyObject *args)
+{
+
+  size_t n;
+  long result;
+
+  n = PyLong_AsSize_t(args);
+  if (PyErr_Occurred())
+    return PyBool_FromLong(1);
+
+  result = git_remote_remove_refspec(self->remote, n);
+
+  if (result != 0) {
+    PyErr_SetObject(PyExc_IndexError, args);
+    result = 1;
+  }
+
+
+  return PyBool_FromLong(!result);
+}
+
+PyDoc_STRVAR(Remote_add_push_refspec__doc__,
+             "add_push_refspec(str) -> Bool\n"
+             "\n"
+             "Adds the push refspec to the remote.");
+
+PyObject *
+Remote_add_push_refspec(Remote *self, PyObject *py_refspec)
+{
+
+  int err;
+  char* refspec = NULL;
+
+  refspec = py_str_to_c_str(py_refspec, refspec);
+
+  if (refspec != NULL) {
+    err = git_remote_add_push(self->remote, refspec);
+    free(refspec);
+
+    if (err == GIT_OK)
+      return Py_BuildValue("");
+
+    // Error_set(err);
+  }
+  return Py_BuildValue("");
+
+}
+
+
+PyDoc_STRVAR(Remote_add_fetch_refspec__doc__,
+             "add_fetch_refspec(str) -> Bool\n"
+             "\n"
+             "Adds the fetch refspec to the remote.");
+
+PyObject *
+Remote_add_fetch_refspec(Remote *self, PyObject *py_refspec)
+{
+
+  int err;
+  char* refspec = NULL;
+
+  refspec = py_str_to_c_str(py_refspec, refspec);
+
+  if (refspec != NULL) {
+    err = git_remote_add_fetch(self->remote, refspec);
+    free(refspec);
+
+    if (err == GIT_OK)
+      return Py_BuildValue("");
+
+    // Error_set(err);
+  }
+  return Py_BuildValue("");
+
+}
+
+
 PyDoc_STRVAR(Remote_fetch__doc__,
   "fetch() -> {'indexed_objects': int, 'received_objects' : int,"
   "            'received_bytesa' : int}\n"
@@ -287,6 +370,9 @@ PyMethodDef Remote_methods[] = {
     METHOD(Remote, fetch, METH_NOARGS),
     METHOD(Remote, save, METH_NOARGS),
     METHOD(Remote, get_refspec, METH_O),
+    METHOD(Remote, remove_refspec, METH_O),
+    METHOD(Remote, add_push_refspec, METH_O),
+    METHOD(Remote, add_fetch_refspec, METH_O),
     METHOD(Remote, push, METH_VARARGS),
     {NULL}
 };
