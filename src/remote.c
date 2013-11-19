@@ -199,7 +199,8 @@ PyObject *
 Remote_add_push_refspec(Remote *self, PyObject *py_refspec)
 {
 
-  int err;
+
+  int err = -1;
   char* refspec = NULL;
 
   refspec = py_str_to_c_str(py_refspec, refspec);
@@ -209,11 +210,10 @@ Remote_add_push_refspec(Remote *self, PyObject *py_refspec)
     free(refspec);
 
     if (err == GIT_OK)
-      return Py_BuildValue("");
+      Py_RETURN_NONE;
 
-    // Error_set(err);
   }
-  return Py_BuildValue("");
+  return Error_set(err);
 
 }
 
@@ -227,7 +227,7 @@ PyObject *
 Remote_add_fetch_refspec(Remote *self, PyObject *py_refspec)
 {
 
-  int err;
+  int err = -1;
   char* refspec = NULL;
 
   refspec = py_str_to_c_str(py_refspec, refspec);
@@ -237,11 +237,10 @@ Remote_add_fetch_refspec(Remote *self, PyObject *py_refspec)
     free(refspec);
 
     if (err == GIT_OK)
-      return Py_BuildValue("");
+      Py_RETURN_NONE;
 
-    // Error_set(err);
   }
-  return Py_BuildValue("");
+  return Error_set(err);
 
 }
 
