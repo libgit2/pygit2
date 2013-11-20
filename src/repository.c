@@ -877,9 +877,9 @@ PyObject* Repository_create_branch(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_listall_references__doc__,
-  "listall_references() -> (str, ...)\n"
+  "listall_references() -> [str, ...]\n"
   "\n"
-  "Return a tuple with all the references in the repository.");
+  "Return a list with all the references in the repository.");
 
 PyObject *
 Repository_listall_references(Repository *self, PyObject *args)
@@ -895,18 +895,18 @@ Repository_listall_references(Repository *self, PyObject *args)
         return Error_set(err);
 
     /* Create a new PyTuple */
-    py_result = PyTuple_New(c_result.count);
+    py_result = PyList_New(c_result.count);
     if (py_result == NULL)
         goto out;
 
     /* Fill it */
     for (index=0; index < c_result.count; index++) {
-        py_string = to_path((c_result.strings)[index]);
+        py_string = to_path(c_result.strings[index]);
         if (py_string == NULL) {
             Py_CLEAR(py_result);
             goto out;
         }
-        PyTuple_SET_ITEM(py_result, index, py_string);
+        PyList_SET_ITEM(py_result, index, py_string);
     }
 
 out:
@@ -916,7 +916,7 @@ out:
 
 
 PyDoc_STRVAR(Repository_listall_branches__doc__,
-  "listall_branches([flags]) -> (str, ...)\n"
+  "listall_branches([flags]) -> [str, ...]\n"
   "\n"
   "Return a tuple with all the branches in the repository.");
 
@@ -926,36 +926,33 @@ Repository_listall_branches(Repository *self, PyObject *args)
     git_branch_t list_flags = GIT_BRANCH_LOCAL;
     git_branch_iterator *iter;
     git_reference *ref = NULL;
-    Py_ssize_t pos = 0;
     int err;
     git_branch_t type;
-    PyObject *tuple;
+    PyObject *list;
 
     /* 1- Get list_flags */
     if (!PyArg_ParseTuple(args, "|I", &list_flags))
         return NULL;
 
-    tuple = PyTuple_New(4);
-    if (tuple == NULL)
+    list = PyList_New(0);
+    if (list == NULL)
 	    return NULL;
 
     if ((err = git_branch_iterator_new(&iter, self->repo, list_flags)) < 0)
 	    return Error_set(err);
 
     while ((err = git_branch_next(&ref, &type, iter)) == 0) {
-        if (PyTuple_Size(tuple) <= pos) {
-            if (_PyTuple_Resize(&tuple, pos * 2) < 0)
-                goto on_error;
-        }
-
         PyObject *py_branch_name = to_path(git_reference_shorthand(ref));
         git_reference_free(ref);
-        ref = NULL;
 
         if (py_branch_name == NULL)
             goto on_error;
 
-        PyTuple_SET_ITEM(tuple, pos++, py_branch_name);
+        err = PyList_Append(list, py_branch_name);
+        Py_DECREF(py_branch_name);
+
+        if (err < 0)
+            goto on_error;
     }
 
     git_branch_iterator_free(iter);
@@ -963,20 +960,15 @@ Repository_listall_branches(Repository *self, PyObject *args)
 	    err = 0;
 
     if (err < 0) {
-        Py_CLEAR(tuple);
+        Py_CLEAR(list);
 	    return Error_set(err);
     }
 
-    /* Remove the elements we might have overallocated in the loop */
-    if (_PyTuple_Resize(&tuple, pos) < 0)
-        return Error_set(err);
-
-    return tuple;
+    return list;
 
   on_error:
-    git_reference_free(ref);
     git_branch_iterator_free(iter);
-    Py_CLEAR(tuple);
+    Py_CLEAR(list);
     return NULL;
 }
 
