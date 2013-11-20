@@ -83,11 +83,20 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual(refspec[0], REMOTE_FETCHSPEC_SRC)
         self.assertEqual(refspec[1], REMOTE_FETCHSPEC_DST)
 
-#       new_fetchspec = ('refs/foo/*', 'refs/remotes/foo/*')
-#       remote.fetchspec = new_fetchspec
-#       refspec = remote.get_refspec(0)
-#       self.assertEqual(new_fetchspec[0], refspec[0])
-#       self.assertEqual(new_fetchspec[1], refspec[1])
+        # new_fetchspec = ('refs/foo/*', 'refs/remotes/foo/*')
+        # remote.set_refspec(0, new_fetchspec[0])
+        # refspec = remote.get_refspec(0)
+        # self.assertEqual(new_fetchspec[0], refspec[0])
+        # self.assertEqual(new_fetchspec[1], refspec[1])
+
+        res = remote.remove_refspec(0)
+        self.assertTrue(res)
+        self.assertEquals(0, remote.refspec_count)
+
+        remote.add_push_refspec('refs/heads/master:refs/heads/qa/master')
+        self.assertEquals(1, remote.refspec_count)
+        remote.add_fetch_refspec('refs/heads/master:refs/heads/qa/master')
+        self.assertEquals(2, remote.refspec_count)
 
 
     def test_remote_list(self):
