@@ -35,7 +35,7 @@
 PyObject* Index_add(Index *self, PyObject *args);
 PyObject* Index_clear(Index *self);
 PyObject* Index_find(Index *self, PyObject *py_path);
-PyObject* Index_read(Index *self);
+PyObject* Index_read(Index *self, PyObject *args);
 PyObject* Index_write(Index *self);
 PyObject* Index_iter(Index *self);
 PyObject* Index_getitem(Index *self, PyObject *value);

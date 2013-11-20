@@ -208,14 +208,14 @@ Repository_head_is_detached__get__(Repository *self)
 }
 
 
-PyDoc_STRVAR(Repository_head_is_orphaned__doc__,
-  "An orphan branch is one named from HEAD but which doesn't exist in the\n"
+PyDoc_STRVAR(Repository_head_is_unborn__doc__,
+  "An unborn branch is one named from HEAD but which doesn't exist in the\n"
   "refs namespace, because it doesn't have any commit to point to.");
 
 PyObject *
-Repository_head_is_orphaned__get__(Repository *self)
+Repository_head_is_unborn__get__(Repository *self)
 {
-    if (git_repository_head_orphan(self->repo) > 0)
+    if (git_repository_head_unborn(self->repo) > 0)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -430,9 +430,9 @@ Repository_write(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    stream->write(stream, buffer, buflen);
-    err = stream->finalize_write(&oid, stream);
-    stream->free(stream);
+    git_odb_stream_write(stream, buffer, buflen);
+    err = git_odb_stream_finalize_write(&oid, stream);
+    git_odb_stream_free(stream);
     return git_oid_to_python(&oid);
 }
 
@@ -920,69 +920,64 @@ PyDoc_STRVAR(Repository_listall_branches__doc__,
   "\n"
   "Return a tuple with all the branches in the repository.");
 
-struct branch_foreach_s {
-    PyObject *tuple;
-    Py_ssize_t pos;
-};
-
-int
-branch_foreach_cb(const char *branch_name, git_branch_t branch_type, void *payload)
-{
-    /* This is the callback that will be called in git_branch_foreach. It
-     * will be called for every branch.
-     * payload is a struct branch_foreach_s.
-     */
-    int err;
-    struct branch_foreach_s *payload_s = (struct branch_foreach_s *)payload;
-
-    if (PyTuple_Size(payload_s->tuple) <= payload_s->pos)
-    {
-        err = _PyTuple_Resize(&(payload_s->tuple), payload_s->pos * 2);
-        if (err) {
-            Py_CLEAR(payload_s->tuple);
-            return GIT_ERROR;
-        }
-    }
-
-    PyObject *py_branch_name = to_path(branch_name);
-    if (py_branch_name == NULL) {
-        Py_CLEAR(payload_s->tuple);
-        return GIT_ERROR;
-    }
-
-    PyTuple_SET_ITEM(payload_s->tuple, payload_s->pos++, py_branch_name);
-
-    return GIT_OK;
-}
-
-
 PyObject *
 Repository_listall_branches(Repository *self, PyObject *args)
 {
-    unsigned int list_flags = GIT_BRANCH_LOCAL;
+    git_branch_t list_flags = GIT_BRANCH_LOCAL;
+    git_branch_iterator *iter;
+    git_reference *ref = NULL;
+    Py_ssize_t pos = 0;
     int err;
+    git_branch_t type;
+    PyObject *tuple;
 
     /* 1- Get list_flags */
     if (!PyArg_ParseTuple(args, "|I", &list_flags))
         return NULL;
 
-    /* 2- Get the C result */
-    struct branch_foreach_s payload;
-    payload.tuple = PyTuple_New(4);
-    if (payload.tuple == NULL)
-        return NULL;
+    tuple = PyTuple_New(4);
+    if (tuple == NULL)
+	    return NULL;
 
-    payload.pos = 0;
-    err = git_branch_foreach(self->repo, list_flags, branch_foreach_cb, &payload);
-    if (err != GIT_OK)
+    if ((err = git_branch_iterator_new(&iter, self->repo, list_flags)) < 0)
+	    return Error_set(err);
+
+    while ((err = git_branch_next(&ref, &type, iter)) == 0) {
+        if (PyTuple_Size(tuple) <= pos) {
+            if (_PyTuple_Resize(&tuple, pos * 2) < 0)
+                goto on_error;
+        }
+
+        PyObject *py_branch_name = to_path(git_reference_shorthand(ref));
+        git_reference_free(ref);
+        ref = NULL;
+
+        if (py_branch_name == NULL)
+            goto on_error;
+
+        PyTuple_SET_ITEM(tuple, pos++, py_branch_name);
+    }
+
+    git_branch_iterator_free(iter);
+    if (err == GIT_ITEROVER)
+	    err = 0;
+
+    if (err < 0) {
+        Py_CLEAR(tuple);
+	    return Error_set(err);
+    }
+
+    /* Remove the elements we might have overallocated in the loop */
+    if (_PyTuple_Resize(&tuple, pos) < 0)
         return Error_set(err);
 
-    /* 3- Trim the tuple */
-    err = _PyTuple_Resize(&payload.tuple, payload.pos);
-    if (err)
-        return Error_set(err);
+    return tuple;
 
-    return payload.tuple;
+  on_error:
+    git_reference_free(ref);
+    git_branch_iterator_free(iter);
+    Py_CLEAR(tuple);
+    return NULL;
 }
 
 
@@ -1480,7 +1475,7 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, path),
     GETSET(Repository, head),
     GETTER(Repository, head_is_detached),
-    GETTER(Repository, head_is_orphaned),
+    GETTER(Repository, head_is_unborn),
     GETTER(Repository, is_empty),
     GETTER(Repository, is_bare),
     GETTER(Repository, config),

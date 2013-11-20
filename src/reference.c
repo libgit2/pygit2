@@ -309,13 +309,19 @@ PyDoc_STRVAR(Reference_log__doc__,
 PyObject *
 Reference_log(Reference *self)
 {
+    int err;
     RefLogIter *iter;
+    git_repository *repo;
 
     CHECK_REFERENCE(self);
 
+    repo = git_reference_owner(self->reference);
     iter = PyObject_New(RefLogIter, &RefLogIterType);
     if (iter != NULL) {
-        git_reflog_read(&iter->reflog, self->reference);
+        err = git_reflog_read(&iter->reflog, repo, git_reference_name(self->reference));
+        if (err < 0)
+            return Error_set(err);
+
         iter->size = git_reflog_entrycount(iter->reflog);
         iter->i = 0;
     }
@@ -341,6 +347,7 @@ Reference_log_append(Reference *self, PyObject *args)
     Signature *py_committer;
     PyObject *py_message = NULL;
     char *encoding = NULL;
+    git_repository *repo;
 
     CHECK_REFERENCE(self);
 
@@ -366,7 +373,8 @@ Reference_log_append(Reference *self, PyObject *args)
     }
 
     /* Go */
-    err = git_reflog_read(&reflog, self->reference);
+    repo = git_reference_owner(self->reference);
+    err = git_reflog_read(&reflog, repo, git_reference_name(self->reference));
     if (err < 0) {
         free((void *)message);
         return NULL;

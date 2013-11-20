@@ -65,7 +65,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         head = self.repo.head
         self.assertEqual(HEAD_SHA, head.target.hex)
         self.assertEqual(type(head), Reference)
-        self.assertFalse(self.repo.head_is_orphaned)
+        self.assertFalse(self.repo.head_is_unborn)
         self.assertFalse(self.repo.head_is_detached)
 
     def test_read(self):
@@ -294,7 +294,7 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         self.assertFalse(self.repo.is_bare)
 
     def test_head(self):
-        self.assertTrue(self.repo.head_is_orphaned)
+        self.assertTrue(self.repo.head_is_unborn)
         self.assertFalse(self.repo.head_is_detached)
 
 

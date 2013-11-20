@@ -135,7 +135,7 @@ PyObject *
 Index_diff_to_workdir(Index *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_diff_list *diff;
+    git_diff *diff;
     int err;
 
     if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
@@ -177,7 +177,7 @@ Index_diff_to_tree(Index *self, PyObject *args)
 {
     Repository *py_repo;
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_diff_list *diff;
+    git_diff *diff;
     int err;
 
     Tree *py_tree = NULL;
@@ -222,17 +222,24 @@ Index__find(Index *self, PyObject *py_path)
 
 
 PyDoc_STRVAR(Index_read__doc__,
-  "read()\n"
+  "read(force=True)\n"
   "\n"
   "Update the contents of an existing index object in memory by reading from\n"
-  "the hard disk.");
+  "the hard disk."
+  "Arguments:\n"
+  "\n"
+  "force: if True (the default) allways reload. If False, only if the file has changed"
+);
 
 PyObject *
-Index_read(Index *self)
+Index_read(Index *self, PyObject *args)
 {
-    int err;
+    int err, force = 1;
 
-    err = git_index_read(self->index);
+    if (!PyArg_ParseTuple(args, "|i", &force))
+        return NULL;
+
+    err = git_index_read(self->index, force);
     if (err < GIT_OK)
         return Error_set(err);
 
@@ -427,7 +434,7 @@ PyMethodDef Index_methods[] = {
     METHOD(Index, diff_to_workdir, METH_VARARGS),
     METHOD(Index, diff_to_tree, METH_VARARGS),
     METHOD(Index, _find, METH_O),
-    METHOD(Index, read, METH_NOARGS),
+    METHOD(Index, read, METH_VARARGS),
     METHOD(Index, write, METH_NOARGS),
     METHOD(Index, read_tree, METH_O),
     METHOD(Index, write_tree, METH_NOARGS),

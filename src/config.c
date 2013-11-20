@@ -336,54 +336,43 @@ PyDoc_STRVAR(Config_get_multivar__doc__,
   "parameter is expected to be a regular expression to filter the variables\n"
   "we're interested in.");
 
-int
-Config_get_multivar_fn_wrapper(const git_config_entry *value, void *data)
-{
-    PyObject *item;
-
-    item = to_unicode(value->value, NULL, NULL);
-    if (item == NULL)
-        /* FIXME Right now there is no way to forward errors through the
-         * libgit2 API, open an issue or pull-request to libgit2.
-         *
-         * See libgit2/src/config_file.c:443 (config_get_multivar).
-         * Comment says "early termination by the user is not an error".
-         * That's wrong.
-         */
-        return -2;
-
-    PyList_Append((PyObject *)data, item);
-    Py_CLEAR(item);
-    return 0;
-}
-
 PyObject *
 Config_get_multivar(Config *self, PyObject *args)
 {
     int err;
     PyObject *list;
-    Py_ssize_t size;
     const char *name = NULL;
     const char *regex = NULL;
+    git_config_iterator *iter;
+    git_config_entry *entry;
 
     if (!PyArg_ParseTuple(args, "s|s", &name, &regex))
         return NULL;
 
     list = PyList_New(0);
-    err = git_config_get_multivar(self->config, name, regex,
-                                  Config_get_multivar_fn_wrapper,
-                                  (void *)list);
+    err = git_config_multivar_iterator_new(&iter, self->config, name, regex);
+    if (err < 0)
+	    return Error_set(err);
 
-    if (err < 0) {
-        /* XXX The return value of git_config_get_multivar is not reliable,
-         * see https://github.com/libgit2/libgit2/pull/1712
-         * Once libgit2 0.20 is released, we will remove this test. */
-        if (err == GIT_ENOTFOUND && PyList_Size(list) != 0)
-            return list;
+    while ((err = git_config_next(&entry, iter)) == 0) {
+	    PyObject *item;
 
-        Py_CLEAR(list);
-        return Error_set(err);
+	    item = to_unicode(entry->value, NULL, NULL);
+	    if (item == NULL) {
+		    git_config_iterator_free(iter);
+		    return NULL;
+	    }
+
+	    PyList_Append(list, item);
+	    Py_CLEAR(item);
     }
+
+    git_config_iterator_free(iter);
+    if (err == GIT_ITEROVER)
+	    err = 0;
+
+    if (err < 0)
+	    return Error_set(err);
 
     return list;
 }
