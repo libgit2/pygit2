@@ -69,16 +69,18 @@ class BlameTest(utils.RepoTestCase):
                             '0000000000000000000000000000000000000000')
             self.assertEqual(hunk.orig_path, PATH)
             self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
-            self.assertIsNone(hunk.orig_committer)
+            self.assertTrue(hunk.orig_committer is None)
             self.assertEqual(HUNKS[i][3], hunk.boundary)
 
     def test_blame_with_invalid_index(self):
         repo = self.repo
         blame = repo.blame(PATH)
 
-        with self.assertRaises(IndexError):
+        def test():
             blame[100000]
             blame[-1]
+
+        self.assertRaises(IndexError, test)
 
     def test_blame_for_line(self):
         repo = self.repo
@@ -95,17 +97,19 @@ class BlameTest(utils.RepoTestCase):
                             '0000000000000000000000000000000000000000')
             self.assertEqual(hunk.orig_path, PATH)
             self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
-            self.assertIsNone(hunk.orig_committer)
+            self.assertTrue(hunk.orig_committer is None)
             self.assertEqual(HUNKS[i][3], hunk.boundary)
 
     def test_blame_with_invalid_line(self):
         repo = self.repo
         blame = repo.blame(PATH)
 
-        with self.assertRaises(IndexError):
+        def test():
             blame.for_line(0)
             blame.for_line(100000)
             blame.for_line(-1)
+
+        self.assertRaises(IndexError, test)
 
 if __name__ == '__main__':
     unittest.main()
