@@ -67,4 +67,6 @@ PyObject* Repository_status(Repository *self, PyObject *args);
 PyObject* Repository_status_file(Repository *self, PyObject *value);
 PyObject* Repository_TreeBuilder(Repository *self, PyObject *args);
 
+PyObject* Repository_blame(Repository *self, PyObject *args, PyObject *kwds);
+
 #endif
