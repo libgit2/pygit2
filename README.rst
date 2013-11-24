@@ -45,60 +45,73 @@ for the topic), send a pull request.
 Authors
 ==============
 
-This is the list of authors of pygit2, sorted by number of commits (as shown by
-``git shortlog -sn``):
+52 developers have contributed at least 1 commit to pygit2::
 
-- J David Ibáñez
-- Nico von Geyso
-- W Trevor King
-- Dave Borowitz
-- Carlos Martín Nieto
-- Daniel Rodríguez Troitiño
-- Richo Healey
-- Christian Boos
-- Julien Miotte
-- Martin Lenders
-- Xavier Delannoy
-- Yonggang Luo
-- Valentin Haenel
-- Bernardo Heynemann
-- John Szakmeister
-- Brodie Rao
-- David Versmisse
-- Petr Hosek
-- Rémi Duraffort
-- Sebastian Thiel
-- Fraser Tweedale
-- Han-Wen Nienhuys
-- Petr Viktorin
-- Alex Chamberlain
-- Amit Bakshi
-- Andrey Devyatkin
-- Ben Davis
-- Hervé Cauwelier
-- Jared Flatow
-- Jiunn Haur Lim
-- Sarath Lakshman
-- Vicent Marti
-- Zoran Zaric
-- Andrew Chin
-- András Veres-Szentkirályi
-- Benjamin Kircher
-- Benjamin Pollack
-- Bryan O'Sullivan
-- David Fischer
-- David Sanders
-- Eric Davis
-- Eric Schrijver
-- Erik van Zijst
-- Ferengee
-- Hugh Cole-Baker
-- Josh Bleecher Snyder
-- Jun Omae
-- Ridge Kennedy
-- Rui Abreu Ferreira
-- Xu Tao
-- pistacchio
+  J. David Ibáñez                          Andrey Devyatkin
+  Nico von Geyso                           Ben Davis
+  Carlos Martín Nieto                      Hervé Cauwelier
+  W. Trevor King                           Huang Huang
+  Dave Borowitz                            Jared Flatow
+  Daniel Rodríguez Troitiño                Jiunn Haur Lim
+  Richo Healey                             Sarath Lakshman
+  Christian Boos                           Vicent Marti
+  Julien Miotte                            Zoran Zaric
+  Martin Lenders                           Andrew Chin
+  Xavier Delannoy                          András Veres-Szentkirályi
+  Yonggang Luo                             Benjamin Kircher
+  Valentin Haenel                          Benjamin Pollack
+  Xu Tao                                   Bryan O'Sullivan
+  Bernardo Heynemann                       David Fischer
+  John Szakmeister                         David Sanders
+  Brodie Rao                               Eric Davis
+  Petr Hosek                               Eric Schrijver
+  David Versmisse                          Erik van Zijst
+  Rémi Duraffort                           Ferengee
+  Sebastian Thiel                          Hugh Cole-Baker
+  Fraser Tweedale                          Josh Bleecher Snyder
+  Han-Wen Nienhuys                         Jun Omae
+  Petr Viktorin                            Ridge Kennedy
+  Alex Chamberlain                         Rui Abreu Ferreira
+  Amit Bakshi                              pistacchio
+
+
+Changelog
+==============
+
+0.20.0 (2013-11-24)
+-------------------
+
+API changes:
+
+- Renamed ``Repository.head_is_orphaned`` to ``Repository.head_is_unborn``
+
+- ``Repository.listall_references`` and ``Repository.listall_branches`` now
+  return a list, instead of a tuple
+
+- The prototype of ``clone_repository`` changed from::
+
+    # Before
+    pygit2.clone_repository(url, path, bare=False, remote_name='origin',
+                            push_url=None, fetch_spec=None, push_spec=None,
+                            checkout_branch=None)
+
+    # Now
+    pygit2.clone_repository(url, path, bare=False, ignore_cert_errors=False,
+                            remote_name='origin', checkout_branch=None)
+
+New API:
+
+- Added support for blame
+
+- New:
+
+  - ``Reference.log_append(...)``
+  - ``Reference.shorthand``
+  - ``Blog.is_binary``
+  - ``len(Diff)``
+  - ``Patch.additions``
+  - ``Patch.deletions``
+  - ``Patch.is_binary``
 
 
 License
