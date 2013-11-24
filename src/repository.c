@@ -945,37 +945,37 @@ Repository_listall_branches(Repository *self, PyObject *args)
 
     list = PyList_New(0);
     if (list == NULL)
-	    return NULL;
+        return NULL;
 
     if ((err = git_branch_iterator_new(&iter, self->repo, list_flags)) < 0)
-	    return Error_set(err);
+        return Error_set(err);
 
     while ((err = git_branch_next(&ref, &type, iter)) == 0) {
         PyObject *py_branch_name = to_path(git_reference_shorthand(ref));
         git_reference_free(ref);
 
         if (py_branch_name == NULL)
-            goto on_error;
+            goto error;
 
         err = PyList_Append(list, py_branch_name);
         Py_DECREF(py_branch_name);
 
         if (err < 0)
-            goto on_error;
+            goto error;
     }
 
     git_branch_iterator_free(iter);
     if (err == GIT_ITEROVER)
-	    err = 0;
+        err = 0;
 
     if (err < 0) {
         Py_CLEAR(list);
-	    return Error_set(err);
+        return Error_set(err);
     }
 
     return list;
 
-  on_error:
+error:
     git_branch_iterator_free(iter);
     Py_CLEAR(list);
     return NULL;
@@ -1116,26 +1116,27 @@ Repository_status(Repository *self, PyObject *args)
 
         entry = git_status_byindex(list, i);
         if (entry == NULL)
-            goto on_error;
+            goto error;
 
         /* We need to choose one of the strings */
-        path = entry->head_to_index ?
-			entry->head_to_index->old_file.path :
-			entry->index_to_workdir->old_file.path;
+        if (entry->head_to_index)
+            path = entry->head_to_index->old_file.path;
+        else
+            path = entry->index_to_workdir->old_file.path;
         status = PyLong_FromLong((long) entry->status);
 
         err = PyDict_SetItemString(dict, path, status);
         Py_CLEAR(status);
 
         if (err < 0)
-            goto on_error;
+            goto error;
 
     }
 
     git_status_list_free(list);
     return dict;
 
-  on_error:
+error:
     git_status_list_free(list);
     Py_CLEAR(dict);
     return NULL;
@@ -1486,14 +1487,14 @@ PyObject* Repository_blame(Repository *self, PyObject *args, PyObject *kwds)
         return NULL;
 
     if (value1) {
-      err = py_oid_to_git_oid_expand(self->repo, value1, &opts.newest_commit);
-      if (err < 0)
-          return NULL;
+        err = py_oid_to_git_oid_expand(self->repo, value1, &opts.newest_commit);
+        if (err < 0)
+            return NULL;
     }
     if (value2) {
-      err = py_oid_to_git_oid_expand(self->repo, value2, &opts.oldest_commit);
-      if (err < 0)
-          return NULL;
+        err = py_oid_to_git_oid_expand(self->repo, value2, &opts.oldest_commit);
+        if (err < 0)
+            return NULL;
     }
 
     err = git_blame_file(&blame, self->repo, path, NULL);

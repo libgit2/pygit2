@@ -86,7 +86,7 @@ Remote_name__set__(Remote *self, PyObject* py_name)
         free(name);
 
         if (err == GIT_OK)
-          return 0;
+            return 0;
 
         Error_set(err);
     }
@@ -116,7 +116,7 @@ Remote_url__set__(Remote *self, PyObject* py_url)
         free(url);
 
         if (err == GIT_OK)
-          return 0;
+            return 0;
 
         Error_set(err);
     }

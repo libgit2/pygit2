@@ -71,7 +71,7 @@ diff_get_patch_byindex(git_diff* diff, size_t idx)
     PyObject *py_line_origin=NULL, *py_line=NULL;
 
     err = git_patch_from_diff(&patch, diff, idx);
-     if (err < 0)
+    if (err < 0)
         return Error_set(err);
 
     delta = git_patch_get_delta(patch);
@@ -110,7 +110,7 @@ diff_get_patch_byindex(git_diff* diff, size_t idx)
                     err = git_patch_get_line_in_hunk(&line, patch, i, j);
 
                     if (err < 0)
-                      goto cleanup;
+                        goto cleanup;
 
                     py_line_origin = to_unicode_n(&line->origin, 1, NULL, NULL);
                     py_line = to_unicode_n(line->content, line->content_len, NULL, NULL);

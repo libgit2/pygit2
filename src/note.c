@@ -72,7 +72,7 @@ PyDoc_STRVAR(Note_oid__doc__,
 PyObject *
 Note_oid__get__(Note *self)
 {
-  return git_oid_to_python(git_note_oid(self->note));
+    return git_oid_to_python(git_note_oid(self->note));
 }
 
 
@@ -82,7 +82,7 @@ PyDoc_STRVAR(Note_message__doc__,
 PyObject *
 Note_message__get__(Note *self)
 {
-  return to_unicode(git_note_message(self->note), NULL, NULL);
+    return to_unicode(git_note_message(self->note), NULL, NULL);
 }
 
 
@@ -207,7 +207,7 @@ PyTypeObject NoteIterType = {
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     PyObject_SelfIter,                         /* tp_iter           */
-   (iternextfunc) NoteIter_iternext,           /* tp_iternext       */
+    (iternextfunc) NoteIter_iternext,          /* tp_iternext       */
 };
 
 
