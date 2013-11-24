@@ -432,9 +432,16 @@ Repository_write(Repository *self, PyObject *args)
         return Error_set(err);
 
     err = git_odb_stream_write(stream, buffer, buflen);
-    if (!err)
-        err = git_odb_stream_finalize_write(&oid, stream);
+    if (err) {
+        git_odb_stream_free(stream);
+        return Error_set(err);
+    }
+
+    err = git_odb_stream_finalize_write(&oid, stream);
     git_odb_stream_free(stream);
+    if (err)
+        return Error_set(err);
+
     return git_oid_to_python(&oid);
 }
 
