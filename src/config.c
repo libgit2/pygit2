@@ -352,27 +352,27 @@ Config_get_multivar(Config *self, PyObject *args)
     list = PyList_New(0);
     err = git_config_multivar_iterator_new(&iter, self->config, name, regex);
     if (err < 0)
-	    return Error_set(err);
+        return Error_set(err);
 
     while ((err = git_config_next(&entry, iter)) == 0) {
-	    PyObject *item;
+        PyObject *item;
 
-	    item = to_unicode(entry->value, NULL, NULL);
-	    if (item == NULL) {
-		    git_config_iterator_free(iter);
-		    return NULL;
-	    }
+        item = to_unicode(entry->value, NULL, NULL);
+        if (item == NULL) {
+            git_config_iterator_free(iter);
+            return NULL;
+        }
 
-	    PyList_Append(list, item);
-	    Py_CLEAR(item);
+        PyList_Append(list, item);
+        Py_CLEAR(item);
     }
 
     git_config_iterator_free(iter);
     if (err == GIT_ITEROVER)
-	    err = 0;
+        err = 0;
 
     if (err < 0)
-	    return Error_set(err);
+        return Error_set(err);
 
     return list;
 }
