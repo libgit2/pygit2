@@ -35,12 +35,18 @@ The Diff type
 ====================
 
 .. autoattribute:: pygit2.Diff.patch
+.. method:: len(Diff)
+
+   Returns the number of deltas/patches in this diff.
+
 .. automethod:: pygit2.Diff.merge
 .. automethod:: pygit2.Diff.find_similar
 
 
 The Patch type
 ====================
+
+Attributes:
 
 .. autoattribute:: pygit2.Patch.old_file_path
 .. autoattribute:: pygit2.Patch.new_file_path
@@ -49,6 +55,12 @@ The Patch type
 .. autoattribute:: pygit2.Patch.status
 .. autoattribute:: pygit2.Patch.similarity
 .. autoattribute:: pygit2.Patch.hunks
+.. autoattribute:: pygit2.Patch.additions
+.. autoattribute:: pygit2.Patch.deletions
+
+Getters:
+
+.. autoattribute:: pygit2.Patch.is_binary
 
 
 The Hunk type

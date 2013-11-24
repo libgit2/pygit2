@@ -109,6 +109,9 @@ This is their API:
      >>> print blob.size
      130
 
+.. autoattribute:: pygit2.Blob.is_binary
+
+
 Creating blobs
 --------------
 

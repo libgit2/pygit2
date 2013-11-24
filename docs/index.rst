@@ -44,6 +44,7 @@ Usage guide:
    merge
    config
    remotes
+   blame
 
 
 Indices and tables

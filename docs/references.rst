@@ -18,6 +18,7 @@ The Reference type
 ====================
 
 .. autoattribute:: pygit2.Reference.name
+.. autoattribute:: pygit2.Reference.shorthand
 .. autoattribute:: pygit2.Reference.target
 .. autoattribute:: pygit2.Reference.type
 
@@ -25,6 +26,7 @@ The Reference type
 .. automethod:: pygit2.Reference.rename
 .. automethod:: pygit2.Reference.resolve
 .. automethod:: pygit2.Reference.log
+.. automethod:: pygit2.Reference.log_append
 .. automethod:: pygit2.Reference.get_object
 
 
@@ -38,7 +40,7 @@ Example. These two lines are equivalent::
 
 .. autoattribute:: pygit2.Repository.head
 .. autoattribute:: pygit2.Repository.head_is_detached
-.. autoattribute:: pygit2.Repository.head_is_orphaned
+.. autoattribute:: pygit2.Repository.head_is_unborn
 
 Branches
 ====================
