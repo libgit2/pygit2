@@ -87,7 +87,7 @@ Remote_name__set__(Remote *self, PyObject* py_name)
         free(name);
 
         if (err == GIT_OK)
-          return 0;
+            return 0;
 
         Error_set(err);
     }
@@ -167,13 +167,13 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 
     n = PyObject_Length(pylist);
     if (n < 0)
-      return -1;
+        return -1;
 
     // allocate new git_strarray
     void *ptr = calloc(n, sizeof(char *));
 
     if (!ptr)
-      return -1;
+        return -1;
 
     array->strings = ptr;
     array->count = n;
