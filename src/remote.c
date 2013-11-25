@@ -124,10 +124,8 @@ Remote_fetch_refspecs__get__(Remote *self)
 
     err = git_remote_get_fetch_refspecs(&refspecs, self->remote);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err != 0)
+        return Error_set(err);
 
     new_list = get_pylist_from_git_strarray(&refspecs);
 
@@ -148,10 +146,8 @@ Remote_push_refspecs__get__(Remote *self)
 
     err = git_remote_get_push_refspecs(&refspecs, self->remote);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err != 0)
+        return Error_set(err);
 
     new_list = get_pylist_from_git_strarray(&refspecs);
     git_strarray_free(&refspecs);
@@ -169,7 +165,7 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
     if (n < 0)
         return -1;
 
-    // allocate new git_strarray
+    /* allocate new git_strarray */
     void *ptr = calloc(n, sizeof(char *));
 
     if (!ptr)
@@ -201,16 +197,13 @@ Remote_set_fetch_refspecs(Remote *self, PyObject *args)
     if (! PyArg_Parse(args, "O", &pyrefspecs))
         return NULL;
 
-    if (get_strarraygit_from_pylist(&fetch_refspecs , pyrefspecs) != 0) {
+    if (get_strarraygit_from_pylist(&fetch_refspecs , pyrefspecs) != 0)
         return NULL;
-    }
 
     err = git_remote_set_fetch_refspecs(self->remote, &fetch_refspecs);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err != 0)
+        return Error_set(err);
 
     git_strarray_free(&fetch_refspecs);
 
@@ -234,16 +227,14 @@ Remote_set_push_refspecs(Remote *self, PyObject *args)
     if (! PyArg_Parse(args, "O", &pyrefspecs))
         return NULL;
 
-    if (get_strarraygit_from_pylist(&push_refspecs, pyrefspecs) != 0) {
+    if (get_strarraygit_from_pylist(&push_refspecs, pyrefspecs) != 0)
         return NULL;
-    }
 
     err = git_remote_set_push_refspecs(self->remote, &push_refspecs);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err != 0)
+        return Error_set(err);
+
 
     git_strarray_free(&push_refspecs);
 
