@@ -106,7 +106,7 @@ PyObject * get_pylist_from_git_strarray(git_strarray *strarray)
         PyList_SET_ITEM(
                        new_list,
                        index,
-                       PyString_FromString(strarray->strings[index]));
+                       to_unicode(strarray->strings[index], NULL, NULL));
     }
     return new_list;
 }
