@@ -138,12 +138,12 @@ PyObject* Branch_remote_name__get__(Branch *self)
     CHECK_REFERENCE(self);
 
     branch_name = git_reference_name(self->reference);
-    // get the length of the remote name
+    /* Get the length of the remote name */
     err = git_branch_remote_name(NULL, 0, self->repo->repo, branch_name);
     if (err < GIT_OK)
         return Error_set(err);
 
-    // get the actual remote name
+    /* Get the actual remote name */
     c_name = calloc(err, sizeof(char));
     if (c_name == NULL)
         return PyErr_NoMemory();
@@ -227,12 +227,12 @@ PyObject* Branch_upstream_name__get__(Branch *self)
     CHECK_REFERENCE(self);
 
     branch_name = git_reference_name(self->reference);
-    // get the length of the upstream name
+    /* Get the length of the upstream name */
     err = git_branch_upstream_name(NULL, 0, self->repo->repo, branch_name);
     if (err < GIT_OK)
         return Error_set(err);
 
-    // get the actual upstream name
+    /* Get the actual upstream name */
     c_name = calloc(err, sizeof(char));
     if (c_name == NULL)
         return PyErr_NoMemory();

@@ -536,8 +536,7 @@ Repository_config__get__(Repository *self)
 
         py_config->config = config;
         self->config = (PyObject*)py_config;
-        // We need 2 refs here.
-        // One is returned, one is kept internally.
+        /* We need 2 refs here. One is returned, one is kept internally. */
         Py_INCREF(self->config);
     } else {
         Py_INCREF(self->config);
