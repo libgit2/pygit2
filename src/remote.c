@@ -112,11 +112,11 @@ PyObject * get_pylist_from_git_strarray(git_strarray *strarray)
 }
 
 
-PyDoc_STRVAR(Remote_fetch_refspecs__doc__, "Fetch refspecs");
+PyDoc_STRVAR(Remote_get_fetch_refspecs__doc__, "Fetch refspecs");
 
 
 PyObject *
-Remote_fetch_refspecs__get__(Remote *self)
+Remote_get_fetch_refspecs(Remote *self)
 {
     int err;
     git_strarray refspecs;
@@ -136,11 +136,11 @@ Remote_fetch_refspecs__get__(Remote *self)
 }
 
 
-PyDoc_STRVAR(Remote_push_refspecs__doc__, "Push refspecs");
+PyDoc_STRVAR(Remote_get_push_refspecs__doc__, "Push refspecs");
 
 
 PyObject *
-Remote_push_refspecs__get__(Remote *self)
+Remote_get_push_refspecs(Remote *self)
 {
     int err;
     git_strarray refspecs;
@@ -445,7 +445,9 @@ PyMethodDef Remote_methods[] = {
     METHOD(Remote, save, METH_NOARGS),
     METHOD(Remote, get_refspec, METH_O),
     METHOD(Remote, push, METH_VARARGS),
+    METHOD(Remote, get_fetch_refspecs, METH_O),
     METHOD(Remote, set_fetch_refspecs, METH_O),
+    METHOD(Remote, get_push_refspecs, METH_O),
     METHOD(Remote, set_push_refspecs, METH_O),
     {NULL}
 };
@@ -454,8 +456,6 @@ PyGetSetDef Remote_getseters[] = {
     GETSET(Remote, name),
     GETSET(Remote, url),
     GETTER(Remote, refspec_count),
-    GETTER(Remote, fetch_refspecs),
-    GETTER(Remote, push_refspecs),
     {NULL}
 };
 
