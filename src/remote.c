@@ -445,9 +445,9 @@ PyMethodDef Remote_methods[] = {
     METHOD(Remote, save, METH_NOARGS),
     METHOD(Remote, get_refspec, METH_O),
     METHOD(Remote, push, METH_VARARGS),
-    METHOD(Remote, get_fetch_refspecs, METH_O),
+    METHOD(Remote, get_fetch_refspecs, METH_NOARGS),
     METHOD(Remote, set_fetch_refspecs, METH_O),
-    METHOD(Remote, get_push_refspecs, METH_O),
+    METHOD(Remote, get_push_refspecs, METH_NOARGS),
     METHOD(Remote, set_push_refspecs, METH_O),
     {NULL}
 };
