@@ -238,6 +238,69 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.assertEqual(commit.hex,
                          'acecd5ea2924a4b900e7e149496e1f4b57976e51')
 
+    def test_reset_hard(self):
+        ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
+        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
+            lines = f.readlines()
+        self.assertTrue("hola mundo\n" in lines)
+        self.assertTrue("bonjour le monde\n" in lines)
+
+        self.repo.reset(
+            ref,
+            pygit2.GIT_RESET_HARD)
+        self.assertEqual(self.repo.head.target.hex, ref)
+
+        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
+            lines = f.readlines()
+        #Hard reset will reset the working copy too
+        self.assertFalse("hola mundo\n" in lines)
+        self.assertFalse("bonjour le monde\n" in lines)
+
+    def test_reset_soft(self):
+        ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
+        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
+            lines = f.readlines()
+        self.assertTrue("hola mundo\n" in lines)
+        self.assertTrue("bonjour le monde\n" in lines)
+
+        self.repo.reset(
+            ref,
+            pygit2.GIT_RESET_SOFT)
+        self.assertEqual(self.repo.head.target.hex, ref)
+        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
+            lines = f.readlines()
+        #Soft reset will not reset the working copy
+        self.assertTrue("hola mundo\n" in lines)
+        self.assertTrue("bonjour le monde\n" in lines)
+
+        #soft reset will keep changes in the index
+        diff = self.repo.diff(cached=True)
+        self.assertRaises(KeyError, lambda: diff[0])
+        
+    def test_reset_mixed(self):
+        ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
+        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
+            lines = f.readlines()
+        self.assertTrue("hola mundo\n" in lines)
+        self.assertTrue("bonjour le monde\n" in lines)
+
+        self.repo.reset(
+            ref,
+            pygit2.GIT_RESET_MIXED)
+
+        self.assertEqual(self.repo.head.target.hex, ref)
+
+        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
+            lines = f.readlines()
+        #mixed reset will not reset the working copy
+        self.assertTrue("hola mundo\n" in lines)
+        self.assertTrue("bonjour le monde\n" in lines)
+
+        #mixed reset will set the index to match working copy
+        diff = self.repo.diff(cached=True)
+        self.assertTrue("hola mundo\n" in diff.patch)
+        self.assertTrue("bonjour le monde\n" in diff.patch)
+
 
 class NewRepositoryTest(utils.NoRepoTestCase):
 

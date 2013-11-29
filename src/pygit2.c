@@ -302,6 +302,13 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_SORT_REVERSE)
 
     /*
+     * Reset
+     */
+    ADD_CONSTANT_INT(m, GIT_RESET_SOFT)
+    ADD_CONSTANT_INT(m, GIT_RESET_MIXED)
+    ADD_CONSTANT_INT(m, GIT_RESET_HARD)
+
+    /*
      * References
      */
     INIT_TYPE(ReferenceType, NULL, PyType_GenericNew)
