@@ -102,6 +102,10 @@ PyObject * get_pylist_from_git_strarray(git_strarray *strarray)
     PyObject *new_list;
 
     new_list = PyList_New(strarray->count);
+
+    if (new_list == NULL)
+        return Error_set(GITERR_NOMEMORY);
+
     for (index = 0; index < strarray->count; (index)++ ) {
         PyList_SET_ITEM(
                        new_list,
@@ -124,10 +128,8 @@ Remote_get_fetch_refspecs(Remote *self)
 
     err = git_remote_get_fetch_refspecs(&refspecs, self->remote);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err != GIT_OK)
+        return Error_set(err);
 
     new_list = get_pylist_from_git_strarray(&refspecs);
 
@@ -148,12 +150,11 @@ Remote_get_push_refspecs(Remote *self)
 
     err = git_remote_get_push_refspecs(&refspecs, self->remote);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
+    if (err != GIT_OK)
+        return Error_set(err);
 
     new_list = get_pylist_from_git_strarray(&refspecs);
+
     git_strarray_free(&refspecs);
     return new_list;
 }
@@ -167,13 +168,13 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 
     n = PyObject_Length(pylist);
     if (n < 0)
-        return -1;
+        goto error;
 
-    // allocate new git_strarray
+    /* allocate new git_strarray */
     void *ptr = calloc(n, sizeof(char *));
 
     if (!ptr)
-        return -1;
+        goto error;
 
     array->strings = ptr;
     array->count = n;
@@ -182,7 +183,12 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
         item = PyList_GetItem(pylist, index);
         array->strings[index] = py_str_to_c_str(item, NULL);
     }
-    return 0;
+
+    return GIT_OK;
+
+    error:
+        Error_set(GITERR_NOMEMORY);
+        return -1;
 }
 
 
@@ -199,20 +205,19 @@ Remote_set_fetch_refspecs(Remote *self, PyObject *args)
     git_strarray fetch_refspecs;
 
     if (! PyArg_Parse(args, "O", &pyrefspecs))
-        return NULL;
+        return Error_set(GITERR_INVALID);
 
-    if (get_strarraygit_from_pylist(&fetch_refspecs , pyrefspecs) != 0) {
+    if (get_strarraygit_from_pylist(&fetch_refspecs , pyrefspecs) != GIT_OK) {
         return NULL;
     }
 
     err = git_remote_set_fetch_refspecs(self->remote, &fetch_refspecs);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
-
     git_strarray_free(&fetch_refspecs);
+
+    if (err != GIT_OK) {
+        return Error_set(err);
+    }
 
     Py_RETURN_NONE;
 }
@@ -226,13 +231,12 @@ PyDoc_STRVAR(Remote_set_push_refspecs__doc__,
 PyObject *
 Remote_set_push_refspecs(Remote *self, PyObject *args)
 {
-
     int err;
     PyObject *pyrefspecs;
     git_strarray push_refspecs;
 
     if (! PyArg_Parse(args, "O", &pyrefspecs))
-        return NULL;
+        return Error_set(GITERR_INVALID);
 
     if (get_strarraygit_from_pylist(&push_refspecs, pyrefspecs) != 0) {
         return NULL;
@@ -240,12 +244,10 @@ Remote_set_push_refspecs(Remote *self, PyObject *args)
 
     err = git_remote_set_push_refspecs(self->remote, &push_refspecs);
 
-    if (err != 0) {
-        Error_set(err);
-        return NULL;
-    }
-
     git_strarray_free(&push_refspecs);
+
+    if (err != GIT_OK)
+        return Error_set(err);
 
     Py_RETURN_NONE;
 }
