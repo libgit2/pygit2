@@ -207,7 +207,7 @@ Remote_set_fetch_refspecs(Remote *self, PyObject *args)
     if (! PyArg_Parse(args, "O", &pyrefspecs))
         return Error_set(GITERR_INVALID);
 
-    if (get_strarraygit_from_pylist(&fetch_refspecs , pyrefspecs) != GIT_OK) {
+    if (get_strarraygit_from_pylist(&fetch_refspecs , pyrefspecs) != GIT_OK)
         return NULL;
 
     err = git_remote_set_fetch_refspecs(self->remote, &fetch_refspecs);
