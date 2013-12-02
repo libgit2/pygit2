@@ -1503,6 +1503,42 @@ PyObject* Repository_blame(Repository *self, PyObject *args, PyObject *kwds)
     return wrap_blame(blame, self);
 }
 
+PyDoc_STRVAR(Repository_reset__doc__,
+    "reset(oid, reset_type)\n"
+    "\n"
+    "Resets current head to the provided oid.\n"
+    "reset_type:\n"
+    "GIT_RESET_SOFT: resets head to point to oid, but does not modfy working copy, and leaves the changes in the index.\n"
+    "GIT_RESET_MIXED: resets head to point to oid, but does not modfy working copy. It empties the index too.\n"
+    "GIT_RESET_HARD: resets head to point to oid, and resets too the working copy and the content of the index.\n");
+
+PyObject *
+Repository_reset(Repository *self, PyObject* args)
+{
+    PyObject *py_oid;
+    git_oid oid;
+    git_object *target = NULL;
+    int err, reset_type;
+    size_t len;
+
+    if (!PyArg_ParseTuple(args, "Oi",
+                          &py_oid,
+                          &reset_type
+                          ))
+        return NULL;
+
+    len = py_oid_to_git_oid(py_oid, &oid);
+    if (len == 0)
+        return NULL;
+
+    err = git_object_lookup_prefix(&target, self->repo, &oid, len,
+                                   GIT_OBJ_ANY);
+    err = err < 0 ? err : git_reset(self->repo, target, reset_type);
+    git_object_free(target);
+    if (err < 0)
+        return Error_set_oid(err, &oid, len);
+    Py_RETURN_NONE;    
+}
 
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
@@ -1534,6 +1570,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, blame, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Repository, reset, METH_VARARGS),
     {NULL}
 };
 
