@@ -89,7 +89,8 @@ PyDoc_STRVAR(Branch_rename__doc__,
   "checked for validity.\n"
   "Returns the new branch.");
 
-PyObject* Branch_rename(Branch *self, PyObject *args)
+PyObject *
+Branch_rename(Branch *self, PyObject *args)
 {
     int err, force = 0;
     git_reference *c_out;
@@ -111,7 +112,8 @@ PyObject* Branch_rename(Branch *self, PyObject *args)
 PyDoc_STRVAR(Branch_branch_name__doc__,
   "The name of the local or remote branch.");
 
-PyObject* Branch_branch_name__get__(Branch *self)
+PyObject *
+Branch_branch_name__get__(Branch *self)
 {
     int err;
     const char *c_name;
@@ -129,7 +131,8 @@ PyObject* Branch_branch_name__get__(Branch *self)
 PyDoc_STRVAR(Branch_remote_name__doc__,
   "The name of the remote that the remote tracking branch belongs to.");
 
-PyObject* Branch_remote_name__get__(Branch *self)
+PyObject *
+Branch_remote_name__get__(Branch *self)
 {
     int err;
     const char *branch_name;
@@ -168,7 +171,8 @@ PyDoc_STRVAR(Branch_upstream__doc__,
   "The branch supporting the remote tracking branch or None if this is not a "
   "remote tracking branch. Set to None to unset.");
 
-PyObject* Branch_upstream__get__(Branch *self)
+PyObject *
+Branch_upstream__get__(Branch *self)
 {
     int err;
     git_reference *c_reference;
@@ -218,7 +222,8 @@ int Branch_upstream__set__(Branch *self, Reference *py_ref)
 PyDoc_STRVAR(Branch_upstream_name__doc__,
   "The name of the reference supporting the remote tracking branch.");
 
-PyObject* Branch_upstream_name__get__(Branch *self)
+PyObject *
+Branch_upstream_name__get__(Branch *self)
 {
     int err;
     const char *branch_name;

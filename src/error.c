@@ -29,7 +29,8 @@
 
 PyObject *GitError;
 
-PyObject * Error_type(int type)
+PyObject *
+Error_type(int type)
 {
     const git_error* error;
     /* Expected */
@@ -79,14 +80,16 @@ PyObject * Error_type(int type)
 }
 
 
-PyObject* Error_set(int err)
+PyObject *
+Error_set(int err)
 {
     assert(err < 0);
 
     return Error_set_exc(Error_type(err));
 }
 
-PyObject* Error_set_exc(PyObject* exception)
+PyObject *
+Error_set_exc(PyObject* exception)
 {
     const git_error* error = giterr_last();
     char* message = (error == NULL) ?
@@ -97,7 +100,8 @@ PyObject* Error_set_exc(PyObject* exception)
 }
 
 
-PyObject* Error_set_str(int err, const char *str)
+PyObject *
+Error_set_str(int err, const char *str)
 {
     const git_error* error;
     if (err == GIT_ENOTFOUND) {
@@ -113,7 +117,8 @@ PyObject* Error_set_str(int err, const char *str)
     return PyErr_Format(Error_type(err), "%s: %s", str, error->message);
 }
 
-PyObject* Error_set_oid(int err, const git_oid *oid, size_t len)
+PyObject *
+Error_set_oid(int err, const git_oid *oid, size_t len)
 {
     char hex[GIT_OID_HEXSZ + 1];
 

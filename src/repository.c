@@ -866,7 +866,8 @@ PyDoc_STRVAR(Repository_create_branch__doc__,
   "\n"
   "    repo.create_branch('foo', repo.head.hex, force=False)");
 
-PyObject* Repository_create_branch(Repository *self, PyObject *args)
+PyObject *
+Repository_create_branch(Repository *self, PyObject *args)
 {
     Commit *py_commit;
     git_reference *c_reference;
@@ -1467,7 +1468,8 @@ PyDoc_STRVAR(Repository_blame__doc__,
   "\n"
   "    repo.blame('foo.c', flags=GIT_BLAME_TRACK_COPIES_SAME_FILE)");
 
-PyObject* Repository_blame(Repository *self, PyObject *args, PyObject *kwds)
+PyObject *
+Repository_blame(Repository *self, PyObject *args, PyObject *kwds)
 {
     git_blame_options opts = GIT_BLAME_OPTIONS_INIT;
     git_blame *blame;

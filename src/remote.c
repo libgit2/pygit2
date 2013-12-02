@@ -96,7 +96,8 @@ Remote_name__set__(Remote *self, PyObject* py_name)
 }
 
 
-PyObject * get_pylist_from_git_strarray(git_strarray *strarray)
+PyObject *
+get_pylist_from_git_strarray(git_strarray *strarray)
 {
     int index;
     PyObject *new_list;

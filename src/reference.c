@@ -49,7 +49,8 @@ void RefLogIter_dealloc(RefLogIter *self)
     PyObject_Del(self);
 }
 
-PyObject* RefLogIter_iternext(RefLogIter *self)
+PyObject *
+RefLogIter_iternext(RefLogIter *self)
 {
     const git_reflog_entry *entry;
     RefLogEntry *py_entry;
