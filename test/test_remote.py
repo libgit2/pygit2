@@ -83,11 +83,36 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual(refspec[0], REMOTE_FETCHSPEC_SRC)
         self.assertEqual(refspec[1], REMOTE_FETCHSPEC_DST)
 
-#       new_fetchspec = ('refs/foo/*', 'refs/remotes/foo/*')
-#       remote.fetchspec = new_fetchspec
-#       refspec = remote.get_refspec(0)
-#       self.assertEqual(new_fetchspec[0], refspec[0])
-#       self.assertEqual(new_fetchspec[1], refspec[1])
+        self.assertEqual(list, type(remote.get_fetch_refspecs()))
+        self.assertEqual(1, len(remote.get_fetch_refspecs()))
+        self.assertEqual('+refs/heads/*:refs/remotes/origin/*',
+                         remote.get_fetch_refspecs()[0])
+
+        self.assertEqual(list, type(remote.get_push_refspecs()))
+        self.assertEqual(0, len(remote.get_push_refspecs()))
+
+        remote.set_fetch_refspecs(['+refs/*:refs/remotes/*'])
+        self.assertEqual('+refs/*:refs/remotes/*',
+                         remote.get_fetch_refspecs()[0])
+
+        remote.set_fetch_refspecs([
+           '+refs/*:refs/remotes/*',
+           '+refs/test/*:refs/test/remotes/*'
+        ])
+        self.assertEqual('+refs/*:refs/remotes/*',
+                         remote.get_fetch_refspecs()[0])
+        self.assertEqual('+refs/test/*:refs/test/remotes/*',
+                         remote.get_fetch_refspecs()[1])
+
+        remote.set_push_refspecs([
+            '+refs/*:refs/remotes/*',
+            '+refs/test/*:refs/test/remotes/*'
+        ])
+
+        self.assertEqual('+refs/*:refs/remotes/*',
+                         remote.get_push_refspecs()[0])
+        self.assertEqual('+refs/test/*:refs/test/remotes/*',
+                         remote.get_push_refspecs()[1])
 
 
     def test_remote_list(self):
