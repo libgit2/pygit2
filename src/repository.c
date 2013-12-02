@@ -1537,7 +1537,7 @@ Repository_reset(Repository *self, PyObject* args)
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);
-    Py_RETURN_NONE;    
+    Py_RETURN_NONE;
 }
 
 PyMethodDef Repository_methods[] = {
