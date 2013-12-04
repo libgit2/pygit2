@@ -304,6 +304,9 @@ class RepositoryTest_II(utils.RepoTestCase):
 
 class RepositoryTest_III(utils.RepoTestCaseForMerging):
 
+    def test_merge_none(self):
+        self.assertRaises(TypeError, self.repo.merge, None)
+
     def test_merge_uptodate(self):
         branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
         branch_oid = self.repo.get(branch_head_hex).oid
