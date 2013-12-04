@@ -90,7 +90,7 @@ PyDoc_STRVAR(MergeResult_fastforward_oid__doc__, "Fastforward Oid");
 PyObject *
 MergeResult_fastforward_oid__get__(MergeResult *self)
 {
-    if (self->is_fastforward == 1)
+    if (self->is_fastforward)
     {
         Py_INCREF(self->fastforward_oid);
         return self->fastforward_oid;
@@ -123,7 +123,7 @@ PyTypeObject MergeResultType = {
     "_pygit2.MergeResult",                     /* tp_name           */
     sizeof(MergeResult),                       /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                          /* tp_dealloc        */
+    0,                                         /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
