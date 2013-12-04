@@ -146,6 +146,11 @@ class RepoTestCase(AutoRepoTestCase):
     repo_spec = 'tar', 'testrepo'
 
 
+class RepoTestCaseForMerging(AutoRepoTestCase):
+
+    repo_spec = 'tar', 'testrepoformerging'
+
+
 class DirtyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'dirtyrepo'

@@ -38,6 +38,7 @@
 #include "remote.h"
 #include "branch.h"
 #include "blame.h"
+#include "mergeresult.h"
 #include <git2/odb_backend.h>
 
 extern PyObject *GitError;
@@ -578,6 +579,58 @@ Repository_merge_base(Repository *self, PyObject *args)
     return git_oid_to_python(&oid);
 }
 
+PyDoc_STRVAR(Repository_merge__doc__,
+  "merge(oid) -> MergeResult\n"
+  "\n"
+  "Merges the given oid and returns the MergeResult.\n"
+  "\n"
+  "If the merge is fastforward the MergeResult will contain the new\n"
+  "fastforward oid.\n"
+  "If the branch is uptodate, nothing to merge, the MergeResult will\n"
+  "have the fastforward oid as None.\n"
+  "If the merge is not fastforward the MergeResult will have the status\n"
+  "produced by the merge, even if there are conflicts.");
+
+PyObject *
+Repository_merge(Repository *self, PyObject *py_oid)
+{
+    git_merge_result *merge_result;
+    git_merge_head *oid_merge_head;
+    git_oid oid;
+    const git_merge_opts default_opts = GIT_MERGE_OPTS_INIT;
+    int err;
+    size_t len;
+    PyObject *py_merge_result;
+
+    len = py_oid_to_git_oid(py_oid, &oid);
+    if (len == 0)
+        return NULL;
+
+    err = git_merge_head_from_oid(&oid_merge_head, self->repo, &oid);
+    if (err < 0)
+        goto error;
+
+    err = git_merge(&merge_result, self->repo,
+                    (const git_merge_head **)&oid_merge_head, 1,
+                    &default_opts);
+    if (err < 0)
+    {
+        git_merge_result_free(merge_result);
+        goto error;
+    }
+
+    py_merge_result = git_merge_result_to_python(merge_result, self);
+
+    git_merge_head_free(oid_merge_head);
+    git_merge_result_free(merge_result);
+
+    return py_merge_result;
+
+error:
+    git_merge_head_free(oid_merge_head);
+    return Error_set(err);
+}
+
 PyDoc_STRVAR(Repository_walk__doc__,
   "walk(oid, sort_mode) -> iterator\n"
   "\n"
@@ -1093,7 +1146,7 @@ PyDoc_STRVAR(Repository_status__doc__,
   "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.");
 
 PyObject *
-Repository_status(Repository *self, PyObject *args)
+Repository_status(Repository *self)
 {
     PyObject *dict;
     int err;
@@ -1551,6 +1604,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, TreeBuilder, METH_VARARGS),
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
+    METHOD(Repository, merge, METH_O),
     METHOD(Repository, read, METH_O),
     METHOD(Repository, write, METH_VARARGS),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
