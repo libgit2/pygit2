@@ -28,11 +28,11 @@ Example::
 The MergeResult object
 ======================
 
-Represents the result of a merge and contains this fields:
+Represents the result of a merge and contains these fields:
 
 - is_uptodate: bool, if there wasn't any merge because the repo was already
- up to date
+  up to date
 - is_fastforward: bool, whether the merge was fastforward or not
 - fastforward_oid: Oid, in the case it was a fastforward, this is the
- forwarded Oid.
+  forwarded Oid.
 - index: represents the repository index after the merge
