@@ -46,6 +46,7 @@ extern PyTypeObject IndexType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject SignatureType;
 extern PyTypeObject ObjectType;
+extern PyTypeObject OidType;
 extern PyTypeObject CommitType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
@@ -1477,13 +1478,14 @@ Repository_blame(Repository *self, PyObject *args, PyObject *kwds)
     PyObject *value1 = NULL;
     PyObject *value2 = NULL;
     int err;
-    char *keywords[] = {"flags", "min_match_characters", "newest_commit",
+    char *keywords[] = {"path", "flags", "min_match_characters", "newest_commit",
                         "oldest_commit", "min_line", "max_line", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|IHOOII", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|IHO!O!II", keywords,
                                      &path, &opts.flags,
                                      &opts.min_match_characters,
-                                     &value1, &value2,
+                                     &OidType, &value1,
+                                     &OidType, &value2,
                                      &opts.min_line, &opts.max_line))
         return NULL;
 
@@ -1498,7 +1500,7 @@ Repository_blame(Repository *self, PyObject *args, PyObject *kwds)
             return NULL;
     }
 
-    err = git_blame_file(&blame, self->repo, path, NULL);
+    err = git_blame_file(&blame, self->repo, path, &opts);
     if (err < 0)
         return Error_set(err);
 
