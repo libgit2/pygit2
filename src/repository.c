@@ -613,9 +613,8 @@ Repository_merge(Repository *self, PyObject *py_oid)
     err = git_merge(&merge_result, self->repo,
                     (const git_merge_head **)&oid_merge_head, 1,
                     &default_opts);
-    if (err < 0)
-    {
-        git_merge_result_free(merge_result);
+    if (err < 0) {
+        git_merge_head_free(oid_merge_head);
         goto error;
     }
 
@@ -627,7 +626,6 @@ Repository_merge(Repository *self, PyObject *py_oid)
     return py_merge_result;
 
 error:
-    git_merge_head_free(oid_merge_head);
     return Error_set(err);
 }
 

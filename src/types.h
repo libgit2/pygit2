@@ -218,13 +218,6 @@ typedef struct {
 } BlameHunk;
 
 /* git_merge */
-typedef struct {
-	PyObject_HEAD
-	int is_uptodate;
-	int is_fastforward;
-	PyObject* fastforward_oid;
-	PyObject* status;
-	
-} MergeResult;
+SIMPLE_TYPE(MergeResult, git_merge_result, result)
 
 #endif
