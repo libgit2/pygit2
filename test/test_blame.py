@@ -111,5 +111,32 @@ class BlameTest(utils.RepoTestCase):
 
         self.assertRaises(IndexError, test)
 
+    def test_blame_newest(self):
+        repo = self.repo
+
+        revs = [
+            ( 'master^2',   3 ),
+            ( 'master^2^',  2 ),
+            ( 'master^2^^', 1 ),
+        ]
+
+        for rev, num_commits in revs:
+            commit = repo.revparse_single(rev)
+            blame = repo.blame(PATH, newest_commit=commit.oid)
+
+            self.assertEqual(len(blame), num_commits)
+
+            for i, hunk in enumerate(tuple(blame)[:num_commits]):
+                self.assertEqual(hunk.lines_in_hunk, 1)
+                self.assertEqual(HUNKS[i][0], hunk.final_commit_id)
+                self.assertEqual(HUNKS[i][1], hunk.final_start_line_number)
+                self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
+                self.assertEqual(hunk.orig_commit_id,
+                                '0000000000000000000000000000000000000000')
+                self.assertEqual(hunk.orig_path, PATH)
+                self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
+                self.assertTrue(hunk.orig_committer is None)
+                self.assertEqual(HUNKS[i][3], hunk.boundary)
+
 if __name__ == '__main__':
     unittest.main()
