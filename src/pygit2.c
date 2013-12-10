@@ -67,6 +67,7 @@ extern PyTypeObject NoteIterType;
 extern PyTypeObject BlameType;
 extern PyTypeObject BlameIterType;
 extern PyTypeObject BlameHunkType;
+extern PyTypeObject MergeResultType;
 
 
 
@@ -427,6 +428,10 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES)
+
+    /* Merge */
+    INIT_TYPE(MergeResultType, NULL, NULL)
+    ADD_TYPE(m, MergeResult)
 
     /* Global initialization of libgit2 */
     git_threads_init();
