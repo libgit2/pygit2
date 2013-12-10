@@ -609,24 +609,17 @@ Repository_merge(Repository *self, PyObject *py_oid)
 
     err = git_merge_head_from_oid(&oid_merge_head, self->repo, &oid);
     if (err < 0)
-        goto error;
+        return Error_set(err);
 
     err = git_merge(&merge_result, self->repo,
                     (const git_merge_head **)&oid_merge_head, 1,
                     &default_opts);
-    if (err < 0) {
-        git_merge_head_free(oid_merge_head);
-        goto error;
-    }
-
-    py_merge_result = git_merge_result_to_python(merge_result, self);
-
     git_merge_head_free(oid_merge_head);
+    if (err < 0)
+        return Error_set(err);
 
+    py_merge_result = git_merge_result_to_python(merge_result);
     return py_merge_result;
-
-error:
-    return Error_set(err);
 }
 
 PyDoc_STRVAR(Repository_walk__doc__,

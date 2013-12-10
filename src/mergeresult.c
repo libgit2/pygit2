@@ -37,7 +37,7 @@ extern PyTypeObject MergeResultType;
 extern PyTypeObject IndexType;
 
 PyObject *
-git_merge_result_to_python(git_merge_result *merge_result, Repository *repo)
+git_merge_result_to_python(git_merge_result *merge_result)
 {
     MergeResult *py_merge_result;
 
@@ -46,7 +46,6 @@ git_merge_result_to_python(git_merge_result *merge_result, Repository *repo)
         return NULL;
 
     py_merge_result->result = merge_result;
-    py_merge_result->repo = repo;
 
     return (PyObject*) py_merge_result;
 }

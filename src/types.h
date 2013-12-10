@@ -218,6 +218,9 @@ typedef struct {
 } BlameHunk;
 
 /* git_merge */
-SIMPLE_TYPE(MergeResult, git_merge_result, result)
+typedef struct {
+    PyObject_HEAD
+    git_merge_result *result;
+} MergeResult;
 
 #endif
