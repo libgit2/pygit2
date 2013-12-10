@@ -35,4 +35,3 @@ Represents the result of a merge and contains these fields:
 - is_fastforward: bool, whether the merge was fastforward or not
 - fastforward_oid: Oid, in the case it was a fastforward, this is the
   forwarded Oid.
-- index: represents the repository index after the merge
