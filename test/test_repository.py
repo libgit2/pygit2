@@ -339,8 +339,8 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         self.assertEquals({'bye.txt': 1}, self.repo.status())
         self.assertEquals({'bye.txt': 1}, self.repo.status())
         # Checking the index works as expected
-        merge_result.index.remove('bye.txt')
-        merge_result.index.write()
+        self.repo.index.remove('bye.txt')
+        self.repo.index.write()
         self.assertEquals({'bye.txt': 128}, self.repo.status())       
 
     def test_merge_no_fastforward_conflicts(self):
@@ -355,8 +355,8 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         self.assertEquals({'.gitignore': 132}, self.repo.status())
         self.assertEquals({'.gitignore': 132}, self.repo.status())
         # Checking the index works as expected
-        merge_result.index.add('.gitignore')
-        merge_result.index.write()
+        self.repo.index.add('.gitignore')
+        self.repo.index.write()
         self.assertEquals({'.gitignore': 2}, self.repo.status())       
 
     def test_merge_invalid_hex(self):

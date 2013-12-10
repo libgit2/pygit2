@@ -86,35 +86,10 @@ MergeResult_fastforward_oid__get__(MergeResult *self)
     else Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(MergeResult_index__doc__, "Merge repository index");
-
-PyObject *
-MergeResult_index__get__(MergeResult *self)
-{
-    git_index *index;
-    Index *py_index;
-    int err;
-
-    err = git_repository_index(&index, self->repo->repo);
-    if (err < 0)
-        return NULL;
-
-    py_index = PyObject_GC_New(Index, &IndexType);
-    if (!py_index) {
-        return NULL;
-    }
-
-    py_index->repo = self->repo;
-    py_index->index = index;
-    Py_INCREF(py_index);
-    return (PyObject*) py_index;
-}
-
 PyGetSetDef MergeResult_getseters[] = {
     GETTER(MergeResult, is_uptodate),
     GETTER(MergeResult, is_fastforward),
     GETTER(MergeResult, fastforward_oid),
-    GETTER(MergeResult, index),
     {NULL},
 };
 
