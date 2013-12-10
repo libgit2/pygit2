@@ -217,5 +217,7 @@ typedef struct {
     char boundary;
 } BlameHunk;
 
+/* git_merge */
+SIMPLE_TYPE(MergeResult, git_merge_result, result)
 
 #endif

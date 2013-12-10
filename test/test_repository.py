@@ -302,6 +302,76 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.assertTrue("bonjour le monde\n" in diff.patch)
 
 
+class RepositoryTest_III(utils.RepoTestCaseForMerging):
+
+    def test_merge_none(self):
+        self.assertRaises(TypeError, self.repo.merge, None)
+
+    def test_merge_uptodate(self):
+        branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
+        branch_oid = self.repo.get(branch_head_hex).oid
+        merge_result = self.repo.merge(branch_oid)
+        self.assertTrue(merge_result.is_uptodate)
+        self.assertFalse(merge_result.is_fastforward)
+        self.assertEquals(None, merge_result.fastforward_oid)
+        self.assertEquals({}, self.repo.status())
+
+    def test_merge_fastforward(self):
+        branch_head_hex = 'e97b4cfd5db0fb4ebabf4f203979ca4e5d1c7c87'
+        branch_oid = self.repo.get(branch_head_hex).oid
+        merge_result = self.repo.merge(branch_oid)
+        self.assertFalse(merge_result.is_uptodate)
+        self.assertTrue(merge_result.is_fastforward)
+        # Asking twice to assure the reference counting is correct
+        self.assertEquals(branch_head_hex, merge_result.fastforward_oid.hex)
+        self.assertEquals(branch_head_hex, merge_result.fastforward_oid.hex)
+        self.assertEquals({}, self.repo.status())
+
+    def test_merge_no_fastforward_no_conflicts(self):
+        branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
+        branch_oid = self.repo.get(branch_head_hex).oid
+        merge_result = self.repo.merge(branch_oid)
+        self.assertFalse(merge_result.is_uptodate)
+        self.assertFalse(merge_result.is_fastforward)
+        # Asking twice to assure the reference counting is correct
+        self.assertEquals(None, merge_result.fastforward_oid)
+        self.assertEquals(None, merge_result.fastforward_oid)
+        self.assertEquals({'bye.txt': 1}, self.repo.status())
+        self.assertEquals({'bye.txt': 1}, self.repo.status())
+        # Checking the index works as expected
+        self.repo.index.remove('bye.txt')
+        self.repo.index.write()
+        self.assertEquals({'bye.txt': 128}, self.repo.status())       
+
+    def test_merge_no_fastforward_conflicts(self):
+        branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+        branch_oid = self.repo.get(branch_head_hex).oid
+        merge_result = self.repo.merge(branch_oid)
+        self.assertFalse(merge_result.is_uptodate)
+        self.assertFalse(merge_result.is_fastforward)
+        # Asking twice to assure the reference counting is correct
+        self.assertEquals(None, merge_result.fastforward_oid)
+        self.assertEquals(None, merge_result.fastforward_oid)
+        self.assertEquals({'.gitignore': 132}, self.repo.status())
+        self.assertEquals({'.gitignore': 132}, self.repo.status())
+        # Checking the index works as expected
+        self.repo.index.add('.gitignore')
+        self.repo.index.write()
+        self.assertEquals({'.gitignore': 2}, self.repo.status())       
+
+    def test_merge_invalid_hex(self):
+        branch_head_hex = '12345678'
+        self.assertRaises(KeyError, self.repo.merge, branch_head_hex)
+
+    def test_merge_already_something_in_index(self):
+        branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
+        branch_oid = self.repo.get(branch_head_hex).oid
+        with open(os.path.join(self.repo.workdir, 'inindex.txt'), 'w') as f:
+            f.write('new content')
+        self.repo.index.add('inindex.txt')
+        self.assertRaises(pygit2.GitError, self.repo.merge, branch_oid)
+
+
 class NewRepositoryTest(utils.NoRepoTestCase):
 
     def test_new_repo(self):
@@ -376,8 +446,7 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
     def test_clone_remote_name(self):
         repo_path = "./test/data/testrepo.git/"
         repo = clone_repository(
-            repo_path, self._temp_dir, remote_name="custom_remote"
-        )
+            repo_path, self._temp_dir, remote_name="custom_remote")
         self.assertFalse(repo.is_empty)
         self.assertEqual(repo.remotes[0].name, "custom_remote")
 
