@@ -137,6 +137,7 @@ Branch_remote_name__get__(Branch *self)
     int err;
     const char *branch_name;
     char *c_name = NULL;
+    PyObject *py_name;
 
     CHECK_REFERENCE(self);
 
@@ -160,7 +161,7 @@ Branch_remote_name__get__(Branch *self)
         return Error_set(err);
     }
 
-    PyObject *py_name = to_unicode(c_name, NULL, NULL);
+    py_name = to_unicode(c_name, NULL, NULL);
     free(c_name);
 
     return py_name;
@@ -228,6 +229,7 @@ Branch_upstream_name__get__(Branch *self)
     int err;
     const char *branch_name;
     char *c_name = NULL;
+    PyObject *py_name;
 
     CHECK_REFERENCE(self);
 
@@ -251,7 +253,7 @@ Branch_upstream_name__get__(Branch *self)
         return Error_set(err);
     }
 
-    PyObject *py_name = to_unicode(c_name, NULL, NULL);
+    py_name = to_unicode(c_name, NULL, NULL);
     free(c_name);
 
     return py_name;
