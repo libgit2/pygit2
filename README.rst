@@ -1,4 +1,3 @@
-
 ######################################################################
 pygit2 - libgit2 bindings in Python
 ######################################################################
@@ -107,7 +106,7 @@ New API:
 
   - ``Reference.log_append(...)``
   - ``Reference.shorthand``
-  - ``Blog.is_binary``
+  - ``Blob.is_binary``
   - ``len(Diff)``
   - ``Patch.additions``
   - ``Patch.deletions``
