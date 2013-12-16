@@ -122,6 +122,18 @@ Walker_reset(Walker *self)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Walker_simplify_first_parent__doc__,
+  "simplify_first_parent()\n"
+  "\n"
+  "Simplify the history by first-parent.");
+
+PyObject *
+Walker_simplify_first_parent(Walker *self)
+{
+    git_revwalk_simplify_first_parent(self->walk);
+    Py_RETURN_NONE;
+}
+
 PyObject *
 Walker_iter(Walker *self)
 {
@@ -158,6 +170,7 @@ PyMethodDef Walker_methods[] = {
     METHOD(Walker, hide, METH_O),
     METHOD(Walker, push, METH_O),
     METHOD(Walker, reset, METH_NOARGS),
+    METHOD(Walker, simplify_first_parent, METH_NOARGS),
     METHOD(Walker, sort, METH_O),
     {NULL}
 };
