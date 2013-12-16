@@ -290,6 +290,8 @@ Diff_patch__get__(Diff *self)
     PyObject *py_patch = NULL;
 
     num = git_diff_num_deltas(self->list);
+    if (num == 0)
+        Py_RETURN_NONE;
     MALLOC(strings, num * sizeof(char*), cleanup);
 
     for (i = 0, len = 1; i < num ; ++i) {
