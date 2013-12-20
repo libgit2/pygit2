@@ -102,6 +102,10 @@ class WalkerTest(utils.RepoTestCase):
         walker.sort(GIT_SORT_TIME | GIT_SORT_REVERSE)
         self.assertEqual([x.hex for x in walker], list(reversed(log)))
 
+    def test_simplify_first_parent(self):
+        walker = self.repo.walk(log[0], GIT_SORT_TIME)
+        walker.simplify_first_parent()
+        self.assertEqual(len(list(walker)), 3)
 
 if __name__ == '__main__':
     unittest.main()
