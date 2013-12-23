@@ -300,6 +300,7 @@ moduleinit(PyObject* m)
      * Log
      */
     INIT_TYPE(WalkerType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Walker);
     ADD_CONSTANT_INT(m, GIT_SORT_NONE)
     ADD_CONSTANT_INT(m, GIT_SORT_TOPOLOGICAL)
     ADD_CONSTANT_INT(m, GIT_SORT_TIME)
