@@ -44,40 +44,42 @@ for the topic), send a pull request.
 Authors
 ==============
 
-52 developers have contributed at least 1 commit to pygit2::
+56 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez                          Andrey Devyatkin
   Nico von Geyso                           Ben Davis
-  Carlos Martín Nieto                      Hervé Cauwelier
-  W. Trevor King                           Huang Huang
-  Dave Borowitz                            Jared Flatow
-  Daniel Rodríguez Troitiño                Jiunn Haur Lim
-  Richo Healey                             Sarath Lakshman
-  Christian Boos                           Vicent Marti
-  Julien Miotte                            Zoran Zaric
-  Martin Lenders                           Andrew Chin
+  Carlos Martín Nieto                      Eric Schrijver
+  W. Trevor King                           Hervé Cauwelier
+  Dave Borowitz                            Huang Huang
+  Daniel Rodríguez Troitiño                Jared Flatow
+  Richo Healey                             Jiunn Haur Lim
+  Christian Boos                           Sarath Lakshman
+  Julien Miotte                            Vicent Marti
+  Jose Plana                               Zoran Zaric
+  Martin Lenders                           Adam Spiers
+  Victor Garcia                            Andrew Chin
   Xavier Delannoy                          András Veres-Szentkirályi
   Yonggang Luo                             Benjamin Kircher
-  Valentin Haenel                          Benjamin Pollack
-  Xu Tao                                   Bryan O'Sullivan
-  Bernardo Heynemann                       David Fischer
-  John Szakmeister                         David Sanders
-  Brodie Rao                               Eric Davis
-  Petr Hosek                               Eric Schrijver
-  David Versmisse                          Erik van Zijst
-  Rémi Duraffort                           Ferengee
+  Petr Hosek                               Benjamin Pollack
+  Valentin Haenel                          Bryan O'Sullivan
+  Xu Tao                                   David Fischer
+  Bernardo Heynemann                       David Sanders
+  John Szakmeister                         Eric Davis
+  Brodie Rao                               Erik van Zijst
+  David Versmisse                          Ferengee
+  Rémi Duraffort                           Gustavo Di Pietro
   Sebastian Thiel                          Hugh Cole-Baker
   Fraser Tweedale                          Josh Bleecher Snyder
   Han-Wen Nienhuys                         Jun Omae
-  Petr Viktorin                            Ridge Kennedy
-  Alex Chamberlain                         Rui Abreu Ferreira
-  Amit Bakshi                              pistacchio
+  Petr Viktorin                            Óscar San José
+  Alex Chamberlain                         Ridge Kennedy
+  Amit Bakshi                              Rui Abreu Ferreira
 
 
 Changelog
 ==============
 
-0.20.1 (201X-XX-XX)
+0.20.1 (2013-12-24)
 -------------------
 
 - New remote ref-specs API:
