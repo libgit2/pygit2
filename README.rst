@@ -77,40 +77,84 @@ Authors
 Changelog
 ==============
 
+0.20.1 (201X-XX-XX)
+-------------------
+
+- New remote ref-specs API:
+  `#290 <https://github.com/libgit2/pygit2/pull/290>`_
+
+- New ``Repository.reset(...)``:
+  `#292 <https://github.com/libgit2/pygit2/pull/292>`_,
+  `#294 <https://github.com/libgit2/pygit2/pull/294>`_
+
+- Export ``GIT_DIFF_MINIMAL``:
+  `#293 <https://github.com/libgit2/pygit2/pull/293>`_
+
+- New ``Repository.merge(...)``:
+  `#295 <https://github.com/libgit2/pygit2/pull/295>`_
+
+- Fix ``Repository.blame`` argument handling:
+  `#297 <https://github.com/libgit2/pygit2/pull/297>`_
+
+- Fix build error on Windows:
+  `#298 <https://github.com/libgit2/pygit2/pull/298>`_
+
+- Fix typo in the README file, Blog → Blob:
+  `#301 <https://github.com/libgit2/pygit2/pull/301>`_
+
+- Now ``Diff.patch`` returns ``None`` if no patch:
+  `#232 <https://github.com/libgit2/pygit2/pull/232>`_,
+  `#303 <https://github.com/libgit2/pygit2/pull/303>`_
+
+- New ``Walker.simplify_first_parent()``:
+  `#304 <https://github.com/libgit2/pygit2/pull/304>`_
+
 0.20.0 (2013-11-24)
 -------------------
 
-API changes:
+- Upgrade to libgit2 v0.20.0:
+  `#288 <https://github.com/libgit2/pygit2/pull/288>`_
 
-- Renamed ``Repository.head_is_orphaned`` to ``Repository.head_is_unborn``
+  Rename ``Repository.head_is_orphaned`` to ``Repository.head_is_unborn``
 
-- ``Repository.listall_references`` and ``Repository.listall_branches`` now
-  return a list, instead of a tuple
+  Prototype of ``pygit2.clone_repository(...)`` changed::
 
-- The prototype of ``clone_repository`` changed from::
+      # Before
+      pygit2.clone_repository(url, path, bare=False, remote_name='origin',
+                              push_url=None, fetch_spec=None, push_spec=None,
+                              checkout_branch=None)
 
-    # Before
-    pygit2.clone_repository(url, path, bare=False, remote_name='origin',
-                            push_url=None, fetch_spec=None, push_spec=None,
-                            checkout_branch=None)
+      # Now
+      pygit2.clone_repository(url, path, bare=False, ignore_cert_errors=False,
+                              remote_name='origin', checkout_branch=None)
 
-    # Now
-    pygit2.clone_repository(url, path, bare=False, ignore_cert_errors=False,
-                            remote_name='origin', checkout_branch=None)
+- New ``Patch.additions`` and ``Patch.deletions``:
+  `#275 <https://github.com/libgit2/pygit2/pull/275>`_
 
-New API:
+- New ``Patch.is_binary``:
+  `#276 <https://github.com/libgit2/pygit2/pull/276>`_
 
-- Added support for blame
+- New ``Reference.log_append(...)``:
+  `#277 <https://github.com/libgit2/pygit2/pull/277>`_
 
-- New:
+- New ``Blob.is_binary``:
+  `#278 <https://github.com/libgit2/pygit2/pull/278>`_
 
-  - ``Reference.log_append(...)``
-  - ``Reference.shorthand``
-  - ``Blob.is_binary``
-  - ``len(Diff)``
-  - ``Patch.additions``
-  - ``Patch.deletions``
-  - ``Patch.is_binary``
+- New ``len(Diff)`` shows the number of patches:
+  `#281 <https://github.com/libgit2/pygit2/pull/281>`_
+
+- Rewrite ``Repository.status()``:
+  `#283 <https://github.com/libgit2/pygit2/pull/283>`_
+
+- New ``Reference.shorthand``:
+  `#284 <https://github.com/libgit2/pygit2/pull/284>`_
+
+- New ``Repository.blame(...)``:
+  `#285 <https://github.com/libgit2/pygit2/pull/285>`_
+
+- Now ``Repository.listall_references()`` and
+  ``Repository.listall_branches()`` return a list, not a tuple:
+  `#289 <https://github.com/libgit2/pygit2/pull/289>`_
 
 
 License
