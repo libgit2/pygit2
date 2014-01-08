@@ -58,6 +58,8 @@ PyObject* Repository_create_commit(Repository *self, PyObject *args);
 PyObject* Repository_create_tag(Repository *self, PyObject *args);
 PyObject* Repository_create_branch(Repository *self, PyObject *args);
 PyObject* Repository_listall_references(Repository *self, PyObject *args);
+PyObject* Repository_listall_reference_objects(Repository *self,
+                                               PyObject *args);
 PyObject* Repository_listall_branches(Repository *self, PyObject *args);
 PyObject* Repository_lookup_reference(Repository *self, PyObject *py_name);
 
