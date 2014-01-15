@@ -57,27 +57,24 @@ wrap_diff(git_diff *diff, Repository *repo)
     return (PyObject*) py_diff;
 }
 
-PyObject*
-diff_get_patch_byindex(git_diff* diff, size_t idx)
+PyObject *
+wrap_patch(git_patch *patch)
 {
-    const git_diff_delta* delta;
-    const git_diff_hunk *hunk;
-    const git_diff_line *line;
-    git_patch* patch = NULL;
-    size_t i, j, hunk_amounts, lines_in_hunk, additions, deletions;
-    int err;
-    Hunk *py_hunk = NULL;
-    Patch *py_patch = NULL;
-    PyObject *py_line_origin=NULL, *py_line=NULL;
+    Patch *py_patch;
 
-    err = git_patch_from_diff(&patch, diff, idx);
-    if (err < 0)
-        return Error_set(err);
-
-    delta = git_patch_get_delta(patch);
+    if (!patch)
+        Py_RETURN_NONE;
 
     py_patch = PyObject_New(Patch, &PatchType);
-    if (py_patch != NULL) {
+    if (py_patch) {
+        size_t i, j, hunk_amounts, lines_in_hunk, additions, deletions;
+        const git_diff_delta *delta;
+        const git_diff_hunk *hunk;
+        const git_diff_line *line;
+        int err;
+
+        delta = git_patch_get_delta(patch);
+
         py_patch->old_file_path = delta->old_file.path;
         py_patch->new_file_path = delta->new_file.path;
         py_patch->status = git_diff_status_char(delta->status);
@@ -92,11 +89,12 @@ diff_get_patch_byindex(git_diff* diff, size_t idx)
 
         hunk_amounts = git_patch_num_hunks(patch);
         py_patch->hunks = PyList_New(hunk_amounts);
-        for (i=0; i < hunk_amounts; ++i) {
-            err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch, i);
+        for (i = 0; i < hunk_amounts; ++i) {
+            Hunk *py_hunk = NULL;
 
+            err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch, i);
             if (err < 0)
-                goto cleanup;
+                return Error_set(err);
 
             py_hunk = PyObject_New(Hunk, &HunkType);
             if (py_hunk != NULL) {
@@ -106,20 +104,20 @@ diff_get_patch_byindex(git_diff* diff, size_t idx)
                 py_hunk->new_lines = hunk->new_lines;
 
                 py_hunk->lines = PyList_New(lines_in_hunk);
-                for (j=0; j < lines_in_hunk; ++j) {
+                for (j = 0; j < lines_in_hunk; ++j) {
+                    PyObject *py_line_origin = NULL, *py_line = NULL;
+
                     err = git_patch_get_line_in_hunk(&line, patch, i, j);
-
                     if (err < 0)
-                        goto cleanup;
+                        return Error_set(err);
 
-                    py_line_origin = to_unicode_n(&line->origin, 1, NULL, NULL);
-                    py_line = to_unicode_n(line->content, line->content_len, NULL, NULL);
+                    py_line_origin = to_unicode_n(&line->origin, 1,
+                        NULL, NULL);
+                    py_line = to_unicode_n(line->content, line->content_len,
+                        NULL, NULL);
                     PyList_SetItem(py_hunk->lines, j,
-                        Py_BuildValue("OO",
-                            py_line_origin,
-                            py_line
-                        )
-                    );
+                        Py_BuildValue("OO", py_line_origin, py_line));
+
                     Py_DECREF(py_line_origin);
                     Py_DECREF(py_line);
                 }
@@ -130,10 +128,20 @@ diff_get_patch_byindex(git_diff* diff, size_t idx)
         }
     }
 
-cleanup:
-    git_patch_free(patch);
+    return (PyObject*) py_patch;
+}
 
-    return (err < 0) ? Error_set(err) : (PyObject*) py_patch;
+PyObject*
+diff_get_patch_byindex(git_diff *diff, size_t idx)
+{
+    git_patch *patch = NULL;
+    int err;
+
+    err = git_patch_from_diff(&patch, diff, idx);
+    if (err < 0)
+        return Error_set(err);
+
+    return (PyObject*) wrap_patch(patch);
 }
 
 static void
