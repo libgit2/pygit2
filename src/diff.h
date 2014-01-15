@@ -42,5 +42,6 @@ PyObject* Diff_changes(Diff *self);
 PyObject* Diff_patch(Diff *self);
 
 PyObject* wrap_diff(git_diff *diff, Repository *repo);
+PyObject* wrap_patch(git_patch *patch);
 
 #endif
