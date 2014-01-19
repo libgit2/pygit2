@@ -118,7 +118,7 @@ class TreeTest(utils.BareRepoTestCase):
         """
         tree = self.repo[TREE_SHA]
         for tree_entry in tree:
-            self.assertEqual(tree_entry.hex, tree[tree_entry.name].hex)
+            self.assertEqual(tree_entry, tree[tree_entry.name])
 
 
 if __name__ == '__main__':
