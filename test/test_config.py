@@ -36,13 +36,6 @@ from . import utils
 
 CONFIG_FILENAME = "test_config"
 
-
-def foreach_test_wrapper(key, name, lst):
-    lst[key] = name
-    return 0
-foreach_test_wrapper.__test__ = False
-
-
 class ConfigTest(utils.RepoTestCase):
 
     def tearDown(self):
@@ -175,13 +168,15 @@ class ConfigTest(utils.RepoTestCase):
         for i in l:
             self.assertEqual(i, 'foo-123456')
 
-    def test_foreach(self):
+    def test_iterator(self):
         config = self.repo.config
         lst = {}
-        config.foreach(foreach_test_wrapper, lst)
+
+        for name, value in config:
+            lst[name] = value
+
         self.assertTrue('core.bare' in lst)
         self.assertTrue(lst['core.bare'])
-
 
 if __name__ == '__main__':
     unittest.main()

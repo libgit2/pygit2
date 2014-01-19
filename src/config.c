@@ -33,6 +33,7 @@
 #include "config.h"
 
 extern PyTypeObject ConfigType;
+extern PyTypeObject ConfigIterType;
 
 
 PyObject *
@@ -239,70 +240,6 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
     return 0;
 }
 
-int
-Config_foreach_callback_wrapper(const git_config_entry *entry, void *c_payload)
-{
-    PyObject *args = (PyObject *)c_payload;
-    PyObject *py_callback = NULL;
-    PyObject *py_payload = NULL;
-    PyObject *py_result = NULL;
-    int c_result;
-
-    if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
-        return -1;
-
-    if (py_payload)
-        args = Py_BuildValue("ssO", entry->name, entry->value, py_payload);
-    else
-        args = Py_BuildValue("ss", entry->name, entry->value);
-    if (!args)
-        return -1;
-
-    if (!(py_result = PyObject_CallObject(py_callback, args)))
-        return -1;
-
-    if ((c_result = PyLong_AsLong(py_result)) == -1)
-        return -1;
-
-    Py_CLEAR(args);
-
-    return c_result;
-}
-
-
-PyDoc_STRVAR(Config_foreach__doc__,
-  "foreach(callback[, payload]) -> int\n"
-  "\n"
-  "Perform an operation on each config variable.\n"
-  "\n"
-  "The callback must be of type Callable and receives the normalized name\n"
-  "and value of each variable in the config backend, and an optional payload\n"
-  "passed to this method. As soon as one of the callbacks returns an integer\n"
-  "other than 0, this function returns that value.");
-
-PyObject *
-Config_foreach(Config *self, PyObject *args)
-{
-    int ret;
-    PyObject *py_callback;
-    PyObject *py_payload = NULL;
-
-    if (!PyArg_ParseTuple(args, "O|O", &py_callback, &py_payload))
-        return NULL;
-
-    if (!PyCallable_Check(py_callback)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "Argument 'callback' is not callable");
-        return NULL;
-    }
-
-    ret = git_config_foreach(self->config, Config_foreach_callback_wrapper,
-            (void *)args);
-
-    return PyLong_FromLong((long)ret);
-}
-
-
 PyDoc_STRVAR(Config_add_file__doc__,
   "add_file(path, level=0, force=0)\n"
   "\n"
@@ -407,10 +344,28 @@ Config_set_multivar(Config *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+PyObject *
+Config_iter(Config *self)
+{
+    ConfigIter *iter;
+    int err;
+
+    iter = PyObject_New(ConfigIter, &ConfigIterType);
+    if (!iter)
+        return NULL;
+
+    if ((err = git_config_iterator_new(&iter->iter, self->config)) < 0)
+        return Error_set(err);
+
+    Py_INCREF(self);
+    iter->owner = self;
+
+    return (PyObject*)iter;
+}
+
 PyMethodDef Config_methods[] = {
     METHOD(Config, get_system_config, METH_NOARGS | METH_STATIC),
     METHOD(Config, get_global_config, METH_NOARGS | METH_STATIC),
-    METHOD(Config, foreach, METH_VARARGS),
     METHOD(Config, add_file, METH_VARARGS | METH_KEYWORDS),
     METHOD(Config, get_multivar, METH_VARARGS),
     METHOD(Config, set_multivar, METH_VARARGS),
@@ -463,7 +418,7 @@ PyTypeObject ConfigType = {
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter           */
+    (getiterfunc)Config_iter,                  /* tp_iter           */
     0,                                         /* tp_iternext       */
     Config_methods,                            /* tp_methods        */
     0,                                         /* tp_members        */
@@ -476,4 +431,57 @@ PyTypeObject ConfigType = {
     (initproc)Config_init,                     /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
+};
+
+void
+ConfigIter_dealloc(ConfigIter *self)
+{
+    Py_CLEAR(self->owner);
+    git_config_iterator_free(self->iter);
+    PyObject_Del(self);
+}
+
+PyObject *
+ConfigIter_iternext(ConfigIter *self)
+{
+    int err;
+    git_config_entry *entry;
+
+    if ((err = git_config_next(&entry, self->iter)) < 0)
+        return Error_set(err);
+
+    return Py_BuildValue("ss", entry->name, entry->value);
+}
+
+PyDoc_STRVAR(ConfigIter__doc__, "Configuration iterator.");
+
+PyTypeObject ConfigIterType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.ConfigIter",                       /* tp_name           */
+    sizeof(ConfigIter),                         /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)ConfigIter_dealloc ,           /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    ConfigIter__doc__,                         /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    PyObject_SelfIter,                         /* tp_iter           */
+    (iternextfunc)ConfigIter_iternext,         /* tp_iternext       */
+
 };
