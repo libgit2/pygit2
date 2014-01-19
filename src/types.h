@@ -77,6 +77,11 @@ typedef struct {
     git_config* config;
 } Config;
 
+typedef struct {
+    PyObject_HEAD
+    Config *owner;
+    git_config_iterator *iter;
+} ConfigIter;
 
 /* git_note */
 typedef struct {
