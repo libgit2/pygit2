@@ -56,6 +56,7 @@ extern PyTypeObject IndexEntryType;
 extern PyTypeObject IndexIterType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject ConfigType;
+extern PyTypeObject ConfigIterType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
@@ -412,7 +413,9 @@ moduleinit(PyObject* m)
 
     /* Config */
     INIT_TYPE(ConfigType, NULL, PyType_GenericNew)
+    INIT_TYPE(ConfigIterType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Config)
+    ADD_TYPE(m, ConfigIter)
 
     /* Remotes */
     INIT_TYPE(RemoteType, NULL, NULL)
