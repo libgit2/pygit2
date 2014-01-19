@@ -371,6 +371,16 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         self.repo.index.add('inindex.txt')
         self.assertRaises(pygit2.GitError, self.repo.merge, branch_oid)
 
+class RepositorySignatureTest(utils.RepoTestCase):
+
+    def test_default_signature(self):
+        config = self.repo.config
+        config['user.name'] = 'Random J Hacker'
+        config['user.email'] ='rjh@example.com'
+
+        sig = self.repo.default_signature
+        self.assertEqual('Random J Hacker', sig.name)
+        self.assertEqual('rjh@example.com', sig.email)
 
 class NewRepositoryTest(utils.NoRepoTestCase):
 

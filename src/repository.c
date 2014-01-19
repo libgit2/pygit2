@@ -39,6 +39,7 @@
 #include "branch.h"
 #include "blame.h"
 #include "mergeresult.h"
+#include "signature.h"
 #include <git2/odb_backend.h>
 
 extern PyObject *GitError;
@@ -1324,6 +1325,19 @@ Repository_remotes__get__(Repository *self)
     return (PyObject*) py_list;
 }
 
+PyDoc_STRVAR(Repository_default_signature__doc__, "Return the signature according to the repository's configuration");
+
+PyObject *
+Repository_default_signature__get__(Repository *self)
+{
+    git_signature *sig;
+    int err;
+
+    if ((err = git_signature_default(&sig, self->repo)) < 0)
+        return Error_set(err);
+
+    return build_signature((Object*) self, sig, "utf-8");
+}
 
 PyDoc_STRVAR(Repository_checkout_head__doc__,
     "checkout_head(strategy)\n"
@@ -1633,6 +1647,7 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, config),
     GETTER(Repository, workdir),
     GETTER(Repository, remotes),
+    GETTER(Repository, default_signature),
     {NULL}
 };
 
