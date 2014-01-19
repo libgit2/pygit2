@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
-from pygit2 import GIT_OBJ_COMMIT, Signature
+from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
 from . import utils
 
 
@@ -92,8 +92,10 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqualSignature(committer, commit.committer)
         self.assertEqualSignature(author, commit.author)
         self.assertEqual(tree, commit.tree.hex)
+        self.assertEqual(Oid(hex=tree), commit.tree_id)
         self.assertEqual(1, len(commit.parents))
         self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
+        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
 
     def test_new_commit_encoding(self):
         repo = self.repo
@@ -118,8 +120,10 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertEqualSignature(committer, commit.committer)
         self.assertEqualSignature(author, commit.author)
         self.assertEqual(tree, commit.tree.hex)
+        self.assertEqual(Oid(hex=tree), commit.tree_id)
         self.assertEqual(1, len(commit.parents))
         self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
+        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
 
     def test_modify_commit(self):
         message = 'New commit.\n\nMessage.\n'
