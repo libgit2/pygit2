@@ -32,6 +32,7 @@
 #include "signature.h"
 #include "commit.h"
 #include "object.h"
+#include "oid.h"
 
 extern PyTypeObject TreeType;
 
@@ -120,7 +121,6 @@ Commit_author__get__(Commit *self)
     return build_signature((Object*)self, signature, encoding);
 }
 
-
 PyDoc_STRVAR(Commit_tree__doc__, "The tree object attached to the commit.");
 
 PyObject *
@@ -146,6 +146,13 @@ Commit_tree__get__(Commit *commit)
     return (PyObject*)py_tree;
 }
 
+PyDoc_STRVAR(Commit_tree_id__doc__, "The id of the tree attached to the commit.");
+
+PyObject *
+Commit_tree_id__get__(Commit *commit)
+{
+    return git_oid_to_python(git_commit_tree_id(commit->commit));
+}
 
 PyDoc_STRVAR(Commit_parents__doc__, "The list of parent commits.");
 
@@ -192,6 +199,28 @@ Commit_parents__get__(Commit *self)
     return list;
 }
 
+PyDoc_STRVAR(Commit_parent_ids__doc__, "The list of parent commits' ids.");
+
+PyObject *
+Commit_parent_ids__get__(Commit *self)
+{
+    unsigned int i, parent_count;
+    const git_oid *id;
+    PyObject *list;
+
+    parent_count = git_commit_parentcount(self->commit);
+    list = PyList_New(parent_count);
+    if (!list)
+        return NULL;
+
+    for (i=0; i < parent_count; i++) {
+        id = git_commit_parent_id(self->commit, i);
+        PyList_SET_ITEM(list, i, git_oid_to_python(id));
+    }
+
+    return list;
+}
+
 PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, message_encoding),
     GETTER(Commit, message),
@@ -201,7 +230,9 @@ PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, committer),
     GETTER(Commit, author),
     GETTER(Commit, tree),
+    GETTER(Commit, tree_id),
     GETTER(Commit, parents),
+    GETTER(Commit, parent_ids),
     {NULL}
 };
 
