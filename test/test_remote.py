@@ -92,6 +92,8 @@ class RepositoryTest(utils.RepoTestCase):
 
         self.assertTrue(refspec.src_matches('refs/heads/master'))
         self.assertTrue(refspec.dst_matches('refs/remotes/origin/master'))
+        self.assertEqual('refs/remotes/origin/master', refspec.transform('refs/heads/master'))
+        self.assertEqual('refs/heads/master', refspec.rtransform('refs/remotes/origin/master'))
 
         self.assertEqual(list, type(remote.get_push_refspecs()))
         self.assertEqual(0, len(remote.get_push_refspecs()))

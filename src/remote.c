@@ -147,9 +147,91 @@ Refspec_dst_matches(Refspec *self, PyObject *py_str)
     Py_RETURN_FALSE;
 }
 
+PyDoc_STRVAR(Refspec_transform__doc__,
+    "transform(str) -> str\n"
+    "\n"
+    "Transform a reference according to the refspec\n");
+
+PyObject *
+Refspec_transform(Refspec *self, PyObject *py_str)
+{
+    char *str, *trans;
+    int err, len, alen;
+    PyObject *py_trans;
+
+    str = py_str_to_c_str(py_str, NULL);
+    alen = len = strlen(str);
+
+    do {
+        alen *= alen;
+        trans = malloc(alen);
+        if (!trans) {
+            free(str);
+            return PyErr_NoMemory();
+        }
+
+        err = git_refspec_transform(trans, alen, self->refspec, str);
+    } while(err == GIT_EBUFS);
+    free(str);
+
+    if (err < 0) {
+        free(trans);
+        Error_set(err);
+        return NULL;
+    }
+
+    py_trans = to_unicode(trans, NULL, NULL);
+
+    free(trans);
+
+    return py_trans;
+}
+
+PyDoc_STRVAR(Refspec_rtransform__doc__,
+    "rtransform(str) -> str\n"
+    "\n"
+    "Transform a reference according to the refspec in reverse\n");
+
+PyObject *
+Refspec_rtransform(Refspec *self, PyObject *py_str)
+{
+    char *str, *trans;
+    int err, len, alen;
+    PyObject *py_trans;
+
+    str = py_str_to_c_str(py_str, NULL);
+    alen = len = strlen(str);
+
+    do {
+        alen *= alen;
+        trans = malloc(alen);
+        if (!trans) {
+            free(str);
+            return PyErr_NoMemory();
+        }
+
+        err = git_refspec_rtransform(trans, alen, self->refspec, str);
+    } while(err == GIT_EBUFS);
+    free(str);
+
+    if (err < 0) {
+        free(trans);
+        Error_set(err);
+        return NULL;
+    }
+
+    py_trans = to_unicode(trans, NULL, NULL);
+
+    free(trans);
+
+    return py_trans;
+}
+
 PyMethodDef Refspec_methods[] = {
     METHOD(Refspec, src_matches, METH_O),
     METHOD(Refspec, dst_matches, METH_O),
+    METHOD(Refspec, transform, METH_O),
+    METHOD(Refspec, rtransform, METH_O),
     {NULL}
 };
 
