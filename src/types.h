@@ -198,6 +198,12 @@ typedef struct {
 /* git_remote */
 SIMPLE_TYPE(Remote, git_remote, remote)
 
+/* git_refspec */
+typedef struct {
+    PyObject_HEAD
+    const Remote *owner;
+    const git_refspec *refspec;
+} Refspec;
 
 /* git_blame */
 SIMPLE_TYPE(Blame, git_blame, blame)

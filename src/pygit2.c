@@ -63,6 +63,7 @@ extern PyTypeObject RefLogEntryType;
 extern PyTypeObject BranchType;
 extern PyTypeObject SignatureType;
 extern PyTypeObject RemoteType;
+extern PyTypeObject RefspecType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
 extern PyTypeObject BlameType;
@@ -420,6 +421,11 @@ moduleinit(PyObject* m)
     /* Remotes */
     INIT_TYPE(RemoteType, NULL, NULL)
     ADD_TYPE(m, Remote)
+    INIT_TYPE(RefspecType, NULL, NULL)
+    ADD_TYPE(m, Refspec)
+    /* Direction for the refspec */
+    ADD_CONSTANT_INT(m, GIT_DIRECTION_FETCH)
+    ADD_CONSTANT_INT(m, GIT_DIRECTION_PUSH)
 
     /* Blame */
     INIT_TYPE(BlameType, NULL, NULL)
