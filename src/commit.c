@@ -199,6 +199,28 @@ Commit_parents__get__(Commit *self)
     return list;
 }
 
+PyDoc_STRVAR(Commit_parent_ids__doc__, "The list of parent commits' ids.");
+
+PyObject *
+Commit_parent_ids__get__(Commit *self)
+{
+    unsigned int i, parent_count;
+    const git_oid *id;
+    PyObject *list;
+
+    parent_count = git_commit_parentcount(self->commit);
+    list = PyList_New(parent_count);
+    if (!list)
+        return NULL;
+
+    for (i=0; i < parent_count; i++) {
+        id = git_commit_parent_id(self->commit, i);
+        PyList_SET_ITEM(list, i, git_oid_to_python(id));
+    }
+
+    return list;
+}
+
 PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, message_encoding),
     GETTER(Commit, message),
@@ -210,6 +232,7 @@ PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, tree),
     GETTER(Commit, tree_id),
     GETTER(Commit, parents),
+    GETTER(Commit, parent_ids),
     {NULL}
 };
 
