@@ -21,3 +21,16 @@ The Remote type
 .. automethod:: pygit2.Remote.fetch
 .. automethod:: pygit2.Remote.push
 .. automethod:: pygit2.Remote.save
+
+The Refspec type
+===================
+
+.. autoattribute:: pygit2.Refspec.direction
+.. autoattribute:: pygit2.Refspec.src
+.. autoattribute:: pygit2.Refspec.dst
+.. autoattribute:: pygit2.Refspec.force
+.. autoattribute:: pygit2.Refspec.string
+.. automethod:: pygit2.Refspec.src_matches
+.. automethod:: pygit2.Refspec.dst_matches
+.. automethod:: pygit2.Refspec.transform
+.. automethod:: pygit2.Refspec.rtransform

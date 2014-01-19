@@ -39,6 +39,7 @@ REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
 REMOTE_REPO_OBJECTS = 30
 REMOTE_REPO_BYTES = 2758
 
+ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
 class RepositoryTest(utils.RepoTestCase):
     def test_remote_create(self):
@@ -80,13 +81,19 @@ class RepositoryTest(utils.RepoTestCase):
 
         self.assertEqual(remote.refspec_count, 1)
         refspec = remote.get_refspec(0)
-        self.assertEqual(refspec[0], REMOTE_FETCHSPEC_SRC)
-        self.assertEqual(refspec[1], REMOTE_FETCHSPEC_DST)
+        self.assertEqual(refspec.src, REMOTE_FETCHSPEC_SRC)
+        self.assertEqual(refspec.dst, REMOTE_FETCHSPEC_DST)
+        self.assertEqual(True, refspec.force)
+        self.assertEqual(ORIGIN_REFSPEC, refspec.string)
 
         self.assertEqual(list, type(remote.get_fetch_refspecs()))
         self.assertEqual(1, len(remote.get_fetch_refspecs()))
-        self.assertEqual('+refs/heads/*:refs/remotes/origin/*',
-                         remote.get_fetch_refspecs()[0])
+        self.assertEqual(ORIGIN_REFSPEC, remote.get_fetch_refspecs()[0])
+
+        self.assertTrue(refspec.src_matches('refs/heads/master'))
+        self.assertTrue(refspec.dst_matches('refs/remotes/origin/master'))
+        self.assertEqual('refs/remotes/origin/master', refspec.transform('refs/heads/master'))
+        self.assertEqual('refs/heads/master', refspec.rtransform('refs/remotes/origin/master'))
 
         self.assertEqual(list, type(remote.get_push_refspecs()))
         self.assertEqual(0, len(remote.get_push_refspecs()))
