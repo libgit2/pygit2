@@ -467,7 +467,7 @@ Remote_fetch(Remote *self, PyObject *args)
     int err;
 
     PyErr_Clear();
-    err = git_remote_fetch(self->remote);
+    err = git_remote_fetch(self->remote, NULL, NULL);
     /*
      * XXX: We should be checking for GIT_EUSER, but on v0.20, this does not
      * make it all the way to us for update_tips
@@ -558,7 +558,7 @@ Remote_push(Remote *self, PyObject *args)
         return NULL;
     }
 
-    err = git_push_update_tips(push);
+    err = git_push_update_tips(push, NULL, NULL);
     if (err < 0)
         goto error;
 

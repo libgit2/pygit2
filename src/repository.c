@@ -192,7 +192,7 @@ Repository_head__set__(Repository *self, PyObject *py_refname)
     if (refname == NULL)
         return -1;
 
-    err = git_repository_set_head(self->repo, refname);
+    err = git_repository_set_head(self->repo, refname, NULL, NULL);
     Py_DECREF(trefname);
     if (err < 0) {
         Error_set_str(err, refname);
@@ -929,7 +929,7 @@ Repository_create_branch(Repository *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "sO!|i", &c_name, &CommitType, &py_commit, &force))
         return NULL;
 
-    err = git_branch_create(&c_reference, self->repo, c_name, py_commit->commit, force);
+    err = git_branch_create(&c_reference, self->repo, c_name, py_commit->commit, force, NULL, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1096,7 +1096,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
     if (err < 0)
         return NULL;
 
-    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force);
+    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force, NULL, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1130,7 +1130,7 @@ Repository_create_reference_symbolic(Repository *self,  PyObject *args,
         return NULL;
 
     err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
-                                        c_target, force);
+                                        c_target, force, NULL, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1607,7 +1607,7 @@ Repository_reset(Repository *self, PyObject* args)
 
     err = git_object_lookup_prefix(&target, self->repo, &oid, len,
                                    GIT_OBJ_ANY);
-    err = err < 0 ? err : git_reset(self->repo, target, reset_type);
+    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL, NULL);
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);
