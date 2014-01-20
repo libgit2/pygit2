@@ -191,14 +191,26 @@ Tree_len(Tree *self)
 int
 Tree_contains(Tree *self, PyObject *py_name)
 {
-    int result = 0;
+	int err;
+    git_tree_entry *entry;
     char *name = py_path_to_c_str(py_name);
     if (name == NULL)
         return -1;
 
-    result = git_tree_entry_byname(self->tree, name) ? 1 : 0;
+    err = git_tree_entry_bypath(&entry, self->tree, name);
     free(name);
-    return result;
+
+    if (err == GIT_ENOTFOUND)
+        return 0;
+
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    git_tree_entry_free(entry);
+
+    return 1;
 }
 
 TreeEntry *

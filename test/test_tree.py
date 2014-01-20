@@ -120,6 +120,13 @@ class TreeTest(utils.BareRepoTestCase):
         for tree_entry in tree:
             self.assertEqual(tree_entry, tree[tree_entry.name])
 
+    def test_deep_contains(self):
+        tree = self.repo[TREE_SHA]
+        self.assertTrue('a' in tree)
+        self.assertTrue('c' in tree)
+        self.assertTrue('c/d' in tree)
+        self.assertFalse('c/e' in tree)
+        self.assertFalse('d' in tree)
 
 if __name__ == '__main__':
     unittest.main()
