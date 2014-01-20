@@ -248,7 +248,13 @@ PyDoc_STRVAR(Remote_url__doc__, "Url of the remote");
 PyObject *
 Remote_url__get__(Remote *self)
 {
-    return to_unicode(git_remote_url(self->remote), NULL, NULL);
+	const char *url;
+
+    url = git_remote_url(self->remote);
+    if (!url)
+        Py_RETURN_NONE;
+
+    return to_unicode(url, NULL, NULL);
 }
 
 
