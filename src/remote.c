@@ -729,11 +729,60 @@ error:
 }
 
 
+PyDoc_STRVAR(Remote_add_push__doc__,
+    "add_push(refspec)\n"
+    "\n"
+    "Add a push refspec to the remote.");
+
+PyObject *
+Remote_add_push(Remote *self, PyObject *args)
+{
+    git_remote *remote;
+    char *refspec = NULL;
+    int err = 0;
+
+    if (!PyArg_ParseTuple(args, "s", &refspec))
+        return NULL;
+
+    remote = self->remote;
+    err = git_remote_add_push(remote, refspec);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+
+PyDoc_STRVAR(Remote_add_fetch__doc__,
+    "add_fetch(refspec)\n"
+    "\n"
+    "Add a fetch refspec to the remote.");
+
+PyObject *
+Remote_add_fetch(Remote *self, PyObject *args)
+{
+    git_remote *remote;
+    char *refspec = NULL;
+    int err = 0;
+
+    if (!PyArg_ParseTuple(args, "s", &refspec))
+        return NULL;
+
+    remote = self->remote;
+    err = git_remote_add_fetch(remote, refspec);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
 PyMethodDef Remote_methods[] = {
     METHOD(Remote, fetch, METH_NOARGS),
     METHOD(Remote, save, METH_NOARGS),
     METHOD(Remote, get_refspec, METH_O),
     METHOD(Remote, push, METH_VARARGS),
+    METHOD(Remote, add_push, METH_VARARGS),
+    METHOD(Remote, add_fetch, METH_VARARGS),
     METHOD(Remote, get_fetch_refspecs, METH_NOARGS),
     METHOD(Remote, set_fetch_refspecs, METH_O),
     METHOD(Remote, get_push_refspecs, METH_NOARGS),
