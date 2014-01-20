@@ -50,6 +50,7 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual(type(remote), pygit2.Remote)
         self.assertEqual(name, remote.name)
         self.assertEqual(url, remote.url)
+        self.assertEqual(None, remote.push_url)
 
         self.assertRaises(ValueError, self.repo.create_remote, *(name, url))
 
@@ -73,6 +74,10 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual(new_url, remote.url)
 
         self.assertRaisesAssign(ValueError, remote, 'url', '')
+
+        remote.push_url = new_url
+        self.assertEqual(new_url, remote.push_url)
+        self.assertRaisesAssign(ValueError, remote, 'push_url', '')
 
 
     def test_refspec(self):
