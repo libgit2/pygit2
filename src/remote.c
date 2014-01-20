@@ -505,7 +505,13 @@ PyDoc_STRVAR(Remote_url__doc__, "Url of the remote");
 PyObject *
 Remote_url__get__(Remote *self)
 {
-    return to_unicode(git_remote_url(self->remote), NULL, NULL);
+	const char *url;
+
+    url = git_remote_url(self->remote);
+    if (!url)
+        Py_RETURN_NONE;
+
+    return to_unicode(url, NULL, NULL);
 }
 
 
@@ -518,6 +524,42 @@ Remote_url__set__(Remote *self, PyObject* py_url)
     url = py_str_to_c_str(py_url, NULL);
     if (url != NULL) {
         err = git_remote_set_url(self->remote, url);
+        free(url);
+
+        if (err == GIT_OK)
+            return 0;
+
+        Error_set(err);
+    }
+
+    return -1;
+}
+
+PyDoc_STRVAR(Remote_push_url__doc__, "Push url of the remote");
+
+
+PyObject *
+Remote_push_url__get__(Remote *self)
+{
+	const char *url;
+
+    url = git_remote_pushurl(self->remote);
+    if (!url)
+        Py_RETURN_NONE;
+
+    return to_unicode(url, NULL, NULL);
+}
+
+
+int
+Remote_push_url__set__(Remote *self, PyObject* py_url)
+{
+    int err;
+    char* url = NULL;
+
+    url = py_str_to_c_str(py_url, NULL);
+    if (url != NULL) {
+        err = git_remote_set_pushurl(self->remote, url);
         free(url);
 
         if (err == GIT_OK)
@@ -702,6 +744,7 @@ PyMethodDef Remote_methods[] = {
 PyGetSetDef Remote_getseters[] = {
     GETSET(Remote, name),
     GETSET(Remote, url),
+    GETSET(Remote, push_url),
     GETTER(Remote, refspec_count),
     {NULL}
 };
