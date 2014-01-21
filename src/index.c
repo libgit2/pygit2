@@ -605,6 +605,19 @@ IndexEntry_mode__get__(IndexEntry *self)
     return PyLong_FromLong(self->entry.mode);
 }
 
+int
+IndexEntry_mode__set__(IndexEntry *self, PyObject *py_mode)
+{
+    long c_val;
+
+    c_val = PyLong_AsLong(py_mode);
+    if (c_val == -1 && PyErr_Occurred())
+        return -1;
+
+    self->entry.mode = (unsigned int) c_val;
+
+    return 0;
+}
 
 PyDoc_STRVAR(IndexEntry_path__doc__, "Path.");
 
@@ -614,6 +627,26 @@ IndexEntry_path__get__(IndexEntry *self)
     return to_path(self->entry.path);
 }
 
+int
+IndexEntry_path__set__(IndexEntry *self, PyObject *py_path)
+{
+    char *c_inner, *c_path;
+
+    c_inner = py_str_to_c_str(py_path, NULL);
+    if (!c_inner)
+        return -1;
+
+    c_path = strdup(c_inner);
+    if (!c_path) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
+    free(self->entry.path);
+    self->entry.path = c_path;
+
+    return 0;
+}
 
 PyDoc_STRVAR(IndexEntry_oid__doc__, "Object id.");
 
@@ -623,6 +656,14 @@ IndexEntry_oid__get__(IndexEntry *self)
     return git_oid_to_python(&self->entry.oid);
 }
 
+int
+IndexEntry_oid__set__(IndexEntry *self, PyObject *py_id)
+{
+    if (!py_oid_to_git_oid(py_id, &self->entry.oid))
+        return -1;
+
+    return 0;
+}
 
 PyDoc_STRVAR(IndexEntry_hex__doc__, "Hex id.");
 
@@ -633,9 +674,9 @@ IndexEntry_hex__get__(IndexEntry *self)
 }
 
 PyGetSetDef IndexEntry_getseters[] = {
-    GETTER(IndexEntry, mode),
-    GETTER(IndexEntry, path),
-    GETTER(IndexEntry, oid),
+    GETSET(IndexEntry, mode),
+    GETSET(IndexEntry, path),
+    GETSET(IndexEntry, oid),
     GETTER(IndexEntry, hex),
     {NULL},
 };

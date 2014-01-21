@@ -139,6 +139,19 @@ class IndexTest(utils.RepoTestCase):
         index.remove('hello.txt')
         self.assertFalse('hello.txt' in index)
 
+    def test_change_attributes(self):
+        index = self.repo.index
+        entry = index['hello.txt']
+        ign_entry = index['.gitignore']
+        self.assertNotEqual(ign_entry.oid, entry.oid)
+        self.assertNotEqual(entry.mode, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE)
+        entry.path = 'foo.txt'
+        entry.oid = ign_entry.oid
+        entry.mode = pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
+        self.assertEqual('foo.txt', entry.path)
+        self.assertEqual(ign_entry.oid, entry.oid)
+        self.assertEqual(pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, entry.mode)
+
 
 if __name__ == '__main__':
     unittest.main()
