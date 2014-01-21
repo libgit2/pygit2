@@ -82,7 +82,7 @@ Index_traverse(Index *self, visitproc visit, void *arg)
 
 
 PyDoc_STRVAR(Index_add__doc__,
-  "add(path)\n"
+  "add([path|entry])\n"
   "\n"
   "Add or update an index entry from a file in disk.");
 
@@ -91,6 +91,16 @@ Index_add(Index *self, PyObject *args)
 {
     int err;
     const char *path;
+    IndexEntry *py_entry;
+
+    if (PyArg_ParseTuple(args, "O!", &IndexEntryType, &py_entry)) {
+        err = git_index_add(self->index, &py_entry->entry);
+        if (err < 0)
+            return Error_set(err);
+
+        Py_RETURN_NONE;
+    }
+    PyErr_Clear();
 
     if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;

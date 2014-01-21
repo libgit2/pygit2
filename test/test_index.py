@@ -152,6 +152,15 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual(ign_entry.oid, entry.oid)
         self.assertEqual(pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, entry.mode)
 
+class IndexEntryTest(utils.RepoTestCase):
+
+    def test_create_entry(self):
+        index = self.repo.index
+        hello_entry = index['hello.txt']
+        entry = pygit2.IndexEntry('README.md', hello_entry.oid, hello_entry.mode)
+        index.add(entry)
+        tree_id = index.write_tree()
+        self.assertEqual('60e769e57ae1d6a2ab75d8d253139e6260e1f912', str(tree_id))
 
 if __name__ == '__main__':
     unittest.main()

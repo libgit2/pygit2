@@ -22,6 +22,9 @@ Index write::
     >>> del index['path/to/file']          # git rm
     >>> index.write()                      # don't forget to save the changes
 
+Custom entries::
+   >>> entry = pygit2.IndexEntry('README.md', blob_id, blob_filemode)
+   >>> repo.index.add(entry)
 
 The Index type
 ====================
