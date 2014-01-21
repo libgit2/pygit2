@@ -39,6 +39,7 @@ extern PyTypeObject TreeType;
 extern PyTypeObject DiffType;
 extern PyTypeObject IndexIterType;
 extern PyTypeObject IndexEntryType;
+extern PyTypeObject OidType;
 
 int
 Index_init(Index *self, PyObject *args, PyObject *kwds)
@@ -564,6 +565,31 @@ PyTypeObject IndexIterType = {
     (iternextfunc)IndexIter_iternext,          /* tp_iternext       */
 };
 
+int
+IndexEntry_init(IndexEntry *self, PyObject *args, PyObject *kwds)
+{
+    char *c_path = NULL;
+    Oid *id = NULL;
+    unsigned int mode;
+    char *keywords[] = {"path", "oid", "mode", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO!I", keywords,
+                                     &c_path, &OidType, &id, &mode))
+        return -1;
+
+    memset(&self->entry, 0, sizeof(struct git_index_entry));
+    if (c_path)
+        self->entry.path = c_path;
+
+    if (id)
+        git_oid_cpy(&self->entry.oid, &id->oid);
+
+    if (mode)
+        self->entry.mode = mode;
+
+    return 0;
+}
+
 void
 IndexEntry_dealloc(IndexEntry *self)
 {
@@ -652,7 +678,7 @@ PyTypeObject IndexEntryType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    0,                                         /* tp_init           */
+    (initproc)IndexEntry_init,                 /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };

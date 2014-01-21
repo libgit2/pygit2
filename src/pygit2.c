@@ -343,7 +343,7 @@ moduleinit(PyObject* m)
      * Index & Working copy
      */
     INIT_TYPE(IndexType, NULL, PyType_GenericNew)
-    INIT_TYPE(IndexEntryType, NULL, NULL)
+    INIT_TYPE(IndexEntryType, NULL, PyType_GenericNew)
     INIT_TYPE(IndexIterType, NULL, NULL)
     ADD_TYPE(m, Index)
     ADD_TYPE(m, IndexEntry)
