@@ -153,7 +153,7 @@ SIMPLE_TYPE(Index, git_index, index)
 
 typedef struct {
     PyObject_HEAD
-    const git_index_entry *entry;
+    git_index_entry entry;
 } IndexEntry;
 
 typedef struct {

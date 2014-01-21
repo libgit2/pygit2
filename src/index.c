@@ -314,8 +314,15 @@ wrap_index_entry(const git_index_entry *entry, Index *index)
     IndexEntry *py_entry;
 
     py_entry = PyObject_New(IndexEntry, &IndexEntryType);
-    if (py_entry)
-        py_entry->entry = entry;
+    if (!py_entry)
+        return NULL;
+
+    memcpy(&py_entry->entry, entry, sizeof(struct git_index_entry));
+    py_entry->entry.path = strdup(entry->path);
+    if (!py_entry->entry.path) {
+        Py_CLEAR(py_entry);
+        return NULL;
+    }
 
     return (PyObject*)py_entry;
 }
@@ -569,7 +576,7 @@ PyDoc_STRVAR(IndexEntry_mode__doc__, "Mode.");
 PyObject *
 IndexEntry_mode__get__(IndexEntry *self)
 {
-    return PyLong_FromLong(self->entry->mode);
+    return PyLong_FromLong(self->entry.mode);
 }
 
 
@@ -578,7 +585,7 @@ PyDoc_STRVAR(IndexEntry_path__doc__, "Path.");
 PyObject *
 IndexEntry_path__get__(IndexEntry *self)
 {
-    return to_path(self->entry->path);
+    return to_path(self->entry.path);
 }
 
 
@@ -587,7 +594,7 @@ PyDoc_STRVAR(IndexEntry_oid__doc__, "Object id.");
 PyObject *
 IndexEntry_oid__get__(IndexEntry *self)
 {
-    return git_oid_to_python(&self->entry->oid);
+    return git_oid_to_python(&self->entry.oid);
 }
 
 
@@ -596,7 +603,7 @@ PyDoc_STRVAR(IndexEntry_hex__doc__, "Hex id.");
 PyObject *
 IndexEntry_hex__get__(IndexEntry *self)
 {
-    return git_oid_to_py_str(&self->entry->oid);
+    return git_oid_to_py_str(&self->entry.oid);
 }
 
 PyGetSetDef IndexEntry_getseters[] = {
