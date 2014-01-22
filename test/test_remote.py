@@ -103,9 +103,18 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual(list, type(remote.get_push_refspecs()))
         self.assertEqual(0, len(remote.get_push_refspecs()))
 
+        push_specs = remote.push_refspecs
+        self.assertEqual(list, type(push_specs))
+        self.assertEqual(0, len(push_specs))
+
         remote.set_fetch_refspecs(['+refs/*:refs/remotes/*'])
         self.assertEqual('+refs/*:refs/remotes/*',
                          remote.get_fetch_refspecs()[0])
+
+        fetch_specs = remote.fetch_refspecs
+        self.assertEqual(list, type(fetch_specs))
+        self.assertEqual(1, len(fetch_specs))
+        self.assertEqual('+refs/*:refs/remotes/*', fetch_specs[0])
 
         remote.set_fetch_refspecs([
            '+refs/*:refs/remotes/*',
@@ -120,6 +129,10 @@ class RepositoryTest(utils.RepoTestCase):
             '+refs/*:refs/remotes/*',
             '+refs/test/*:refs/test/remotes/*'
         ])
+
+        self.assertRaises(TypeError, setattr, remote, 'push_refspecs', '+refs/*:refs/*')
+        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs', '+refs/*:refs/*')
+        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs', ['+refs/*:refs/*', 5])
 
         self.assertEqual('+refs/*:refs/remotes/*',
                          remote.get_push_refspecs()[0])

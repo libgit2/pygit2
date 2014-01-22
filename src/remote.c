@@ -370,12 +370,55 @@ get_pylist_from_git_strarray(git_strarray *strarray)
     return new_list;
 }
 
+int
+get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
+{
+    Py_ssize_t index, n;
+    PyObject *item;
+    void *ptr;
 
-PyDoc_STRVAR(Remote_get_fetch_refspecs__doc__, "Fetch refspecs");
+    if (!PyList_Check(pylist)) {
+        PyErr_SetString(PyExc_TypeError, "Value must be a list");
+        return -1;
+    }
 
+    n = PyList_Size(pylist);
+
+    /* allocate new git_strarray */
+    ptr = calloc(n, sizeof(char *));
+    if (!ptr) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return -1;
+    }
+
+    array->strings = ptr;
+    array->count = n;
+
+    for (index = 0; index < n; index++) {
+        item = PyList_GetItem(pylist, index);
+        char *str = py_str_to_c_str(item, NULL);
+        if (!str)
+            goto on_error;
+
+        array->strings[index] = str;
+    }
+
+    return 0;
+
+on_error:
+    n = index;
+    for (index = 0; index < n; index++) {
+        free(array->strings[index]);
+    }
+    free(array->strings);
+
+    return -1;
+}
+
+PyDoc_STRVAR(Remote_fetch_refspecs__doc__, "Fetch refspecs");
 
 PyObject *
-Remote_get_fetch_refspecs(Remote *self)
+Remote_fetch_refspecs__get__(Remote *self)
 {
     int err;
     git_strarray refspecs;
@@ -391,12 +434,30 @@ Remote_get_fetch_refspecs(Remote *self)
     return new_list;
 }
 
+int
+Remote_fetch_refspecs__set__(Remote *self, PyObject *py_list)
+{
+    int err;
+    git_strarray fetch_refspecs;
 
-PyDoc_STRVAR(Remote_get_push_refspecs__doc__, "Push refspecs");
+    if (get_strarraygit_from_pylist(&fetch_refspecs, py_list) < 0)
+        return -1;
 
+    err = git_remote_set_fetch_refspecs(self->remote, &fetch_refspecs);
+    git_strarray_free(&fetch_refspecs);
+
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    return 0;
+}
+
+PyDoc_STRVAR(Remote_push_refspecs__doc__, "Push refspecs");
 
 PyObject *
-Remote_get_push_refspecs(Remote *self)
+Remote_push_refspecs__get__(Remote *self)
 {
     int err;
     git_strarray refspecs;
@@ -412,60 +473,59 @@ Remote_get_push_refspecs(Remote *self)
     return new_list;
 }
 
-
 int
-get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
+Remote_push_refspecs__set__(Remote *self, PyObject *py_list)
 {
-    long index, n;
-    PyObject *item;
-    void *ptr;
+    int err;
+    git_strarray push_refspecs;
 
-    n = PyObject_Length(pylist);
-    if (n < 0)
+    if (get_strarraygit_from_pylist(&push_refspecs, py_list) != 0)
         return -1;
 
-    /* allocate new git_strarray */
-    ptr = calloc(n, sizeof(char *));
-    if (!ptr) {
-        PyErr_SetNone(PyExc_MemoryError);
+    err = git_remote_set_push_refspecs(self->remote, &push_refspecs);
+    git_strarray_free(&push_refspecs);
+
+    if (err < 0) {
+        Error_set(err);
         return -1;
     }
 
-    array->strings = ptr;
-    array->count = n;
+    return 0;
+}
 
-    for (index = 0; index < n; index++) {
-        item = PyList_GetItem(pylist, index);
-        array->strings[index] = py_str_to_c_str(item, NULL);
-    }
+PyDoc_STRVAR(Remote_get_fetch_refspecs__doc__,
+    "Fetch refspecs.\n"
+    "This function is deprecated, please use the fetch_refspecs attribute"
+    "\n");
 
-    return GIT_OK;
+
+PyObject *
+Remote_get_fetch_refspecs(Remote *self)
+{
+    return Remote_fetch_refspecs__get__(self);
 }
 
 
+PyDoc_STRVAR(Remote_get_push_refspecs__doc__, "Push refspecs");
+
+
+PyObject *
+Remote_get_push_refspecs(Remote *self)
+{
+    return Remote_push_refspecs__get__(self);
+}
+
 PyDoc_STRVAR(Remote_set_fetch_refspecs__doc__,
     "set_fetch_refspecs([str])\n"
+    "This function is deprecated, please use the push_refspecs attribute"
     "\n");
 
 
 PyObject *
 Remote_set_fetch_refspecs(Remote *self, PyObject *args)
 {
-    int err;
-    PyObject *pyrefspecs;
-    git_strarray fetch_refspecs;
-
-    if (! PyArg_Parse(args, "O", &pyrefspecs))
+    if (Remote_fetch_refspecs__set__(self, args) < 0)
         return NULL;
-
-    if (get_strarraygit_from_pylist(&fetch_refspecs, pyrefspecs) != GIT_OK)
-        return NULL;
-
-    err = git_remote_set_fetch_refspecs(self->remote, &fetch_refspecs);
-    git_strarray_free(&fetch_refspecs);
-
-    if (err != GIT_OK)
-        return Error_set(err);
 
     Py_RETURN_NONE;
 }
@@ -473,27 +533,15 @@ Remote_set_fetch_refspecs(Remote *self, PyObject *args)
 
 PyDoc_STRVAR(Remote_set_push_refspecs__doc__,
     "set_push_refspecs([str])\n"
+    "This function is deprecated, please use the push_refspecs attribute"
     "\n");
 
 
 PyObject *
 Remote_set_push_refspecs(Remote *self, PyObject *args)
 {
-    int err;
-    PyObject *pyrefspecs;
-    git_strarray push_refspecs;
-
-    if (! PyArg_Parse(args, "O", &pyrefspecs))
+    if (Remote_push_refspecs__set__(self, args) < 0)
         return NULL;
-
-    if (get_strarraygit_from_pylist(&push_refspecs, pyrefspecs) != 0)
-        return NULL;
-
-    err = git_remote_set_push_refspecs(self->remote, &push_refspecs);
-    git_strarray_free(&push_refspecs);
-
-    if (err != GIT_OK)
-        return Error_set(err);
 
     Py_RETURN_NONE;
 }
@@ -795,6 +843,8 @@ PyGetSetDef Remote_getseters[] = {
     GETSET(Remote, url),
     GETSET(Remote, push_url),
     GETTER(Remote, refspec_count),
+    GETSET(Remote, fetch_refspecs),
+    GETSET(Remote, push_refspecs),
     {NULL}
 };
 
