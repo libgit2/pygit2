@@ -130,6 +130,10 @@ class RepositoryTest(utils.RepoTestCase):
             '+refs/test/*:refs/test/remotes/*'
         ])
 
+        self.assertRaises(TypeError, setattr, remote, 'push_refspecs', '+refs/*:refs/*')
+        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs', '+refs/*:refs/*')
+        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs', ['+refs/*:refs/*', 5])
+
         self.assertEqual('+refs/*:refs/remotes/*',
                          remote.get_push_refspecs()[0])
         self.assertEqual('+refs/test/*:refs/test/remotes/*',

@@ -373,13 +373,16 @@ get_pylist_from_git_strarray(git_strarray *strarray)
 int
 get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 {
-    long index, n;
+    Py_ssize_t index, n;
     PyObject *item;
     void *ptr;
 
-    n = PyObject_Length(pylist);
-    if (n < 0)
+    if (!PyList_Check(pylist)) {
+        PyErr_SetString(PyExc_TypeError, "Value must be a list");
         return -1;
+    }
+
+    n = PyList_Size(pylist);
 
     /* allocate new git_strarray */
     ptr = calloc(n, sizeof(char *));
@@ -393,10 +396,23 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 
     for (index = 0; index < n; index++) {
         item = PyList_GetItem(pylist, index);
-        array->strings[index] = py_str_to_c_str(item, NULL);
+        char *str = py_str_to_c_str(item, NULL);
+        if (!str)
+            goto on_error;
+
+        array->strings[index] = str;
     }
 
-    return GIT_OK;
+    return 0;
+
+on_error:
+    n = index;
+    for (index = 0; index < n; index++) {
+        free(array->strings[index]);
+    }
+    free(array->strings);
+
+    return -1;
 }
 
 PyDoc_STRVAR(Remote_fetch_refspecs__doc__, "Fetch refspecs");
@@ -419,16 +435,12 @@ Remote_fetch_refspecs__get__(Remote *self)
 }
 
 int
-Remote_fetch_refspecs__set__(Remote *self, PyObject *args)
+Remote_fetch_refspecs__set__(Remote *self, PyObject *py_list)
 {
     int err;
-    PyObject *pyrefspecs;
     git_strarray fetch_refspecs;
 
-    if (! PyArg_Parse(args, "O", &pyrefspecs))
-        return -1;
-
-    if (get_strarraygit_from_pylist(&fetch_refspecs, pyrefspecs) < 0)
+    if (get_strarraygit_from_pylist(&fetch_refspecs, py_list) < 0)
         return -1;
 
     err = git_remote_set_fetch_refspecs(self->remote, &fetch_refspecs);
@@ -462,16 +474,12 @@ Remote_push_refspecs__get__(Remote *self)
 }
 
 int
-Remote_push_refspecs__set__(Remote *self, PyObject *args)
+Remote_push_refspecs__set__(Remote *self, PyObject *py_list)
 {
     int err;
-    PyObject *pyrefspecs;
     git_strarray push_refspecs;
 
-    if (! PyArg_Parse(args, "O", &pyrefspecs))
-        return -1;
-
-    if (get_strarraygit_from_pylist(&push_refspecs, pyrefspecs) != 0)
+    if (get_strarraygit_from_pylist(&push_refspecs, py_list) != 0)
         return -1;
 
     err = git_remote_set_push_refspecs(self->remote, &push_refspecs);
