@@ -151,6 +151,15 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual('http://example.com/test.git',
                          self.repo.remotes[0].url)
 
+    def test_add_refspec(self):
+        remote = self.repo.create_remote('test_add_refspec', REMOTE_URL)
+        remote.add_push('refs/heads/*:refs/heads/test_refspec/*')
+        self.assertEqual('refs/heads/*:refs/heads/test_refspec/*',
+                         remote.get_push_refspecs()[0])
+        remote.add_fetch('+refs/heads/*:refs/remotes/test_refspec/*')
+        self.assertEqual('+refs/heads/*:refs/remotes/test_refspec/*',
+                         remote.get_fetch_refspecs()[1])
+
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
     def test_fetch(self):
