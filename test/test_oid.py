@@ -50,19 +50,19 @@ class OidTest(utils.BareRepoTestCase):
     def test_raw(self):
         oid = Oid(raw=RAW)
         self.assertEqual(oid.raw, RAW)
-        self.assertEqual(oid.hex, HEX)
+        self.assertEqual(str(oid), HEX)
 
     def test_hex(self):
         oid = Oid(hex=HEX)
         self.assertEqual(oid.raw, RAW)
-        self.assertEqual(oid.hex, HEX)
+        self.assertEqual(str(oid), HEX)
 
     def test_hex_bytes(self):
         if version_info[0] == 2:
             hex = bytes(HEX)
             oid = Oid(hex=hex)
             self.assertEqual(oid.raw, RAW)
-            self.assertEqual(oid.hex, HEX)
+            self.assertEqual(str(oid), HEX)
         else:
             hex = bytes(HEX, "ascii")
             self.assertRaises(TypeError, Oid, hex=hex)
