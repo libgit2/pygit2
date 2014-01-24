@@ -67,15 +67,24 @@ TreeEntry_name__get__(TreeEntry *self)
 }
 
 
-PyDoc_STRVAR(TreeEntry_oid__doc__, "Object id.");
+PyDoc_STRVAR(TreeEntry_id__doc__, "Object id.");
 
 PyObject *
-TreeEntry_oid__get__(TreeEntry *self)
+TreeEntry_id__get__(TreeEntry *self)
 {
     const git_oid *oid;
 
     oid = git_tree_entry_id(self->entry);
     return git_oid_to_python(oid);
+}
+
+PyDoc_STRVAR(TreeEntry_oid__doc__, "Object id.\n"
+    "This attribute is deprecated. Please use 'id'");
+
+PyObject *
+TreeEntry_oid__get__(TreeEntry *self)
+{
+    return TreeEntry_id__get__(self);
 }
 
 PyObject *
@@ -133,6 +142,7 @@ PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, filemode),
     GETTER(TreeEntry, name),
     GETTER(TreeEntry, oid),
+    GETTER(TreeEntry, id),
     GETTER(TreeEntry, hex),
     {NULL}
 };

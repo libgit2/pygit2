@@ -68,7 +68,7 @@ class TreeBuilderTest(utils.BareRepoTestCase):
             name = entry.name
             self.assertTrue(bld.get(name) is None)
             bld.insert(name, entry.hex, entry.filemode)
-            self.assertEqual(bld.get(name).oid, entry.oid)
+            self.assertEqual(bld.get(name).id, entry.id)
         result = bld.write()
 
         self.assertEqual(len(bld), len(tree))
