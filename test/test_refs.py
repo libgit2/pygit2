@@ -213,7 +213,7 @@ class ReferencesTest(utils.RepoTestCase):
     def test_get_object(self):
         repo = self.repo
         ref = repo.lookup_reference('refs/heads/master')
-        self.assertEqual(repo[ref.target].oid, ref.get_object().oid)
+        self.assertEqual(repo[ref.target].id, ref.get_object().id)
 
 
 if __name__ == '__main__':

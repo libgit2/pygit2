@@ -50,7 +50,7 @@ class BlobTest(utils.RepoTestCase):
     def test_read_blob(self):
         blob = self.repo[BLOB_SHA]
         self.assertEqual(blob.hex, BLOB_SHA)
-        sha = blob.oid.hex
+        sha = blob.id.hex
         self.assertEqual(sha, BLOB_SHA)
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertFalse(blob.is_binary)
@@ -66,7 +66,7 @@ class BlobTest(utils.RepoTestCase):
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
 
-        self.assertEqual(blob_oid, blob.oid)
+        self.assertEqual(blob_oid, blob.id)
         self.assertEqual(
             utils.gen_blob_sha1(BLOB_NEW_CONTENT),
             blob_oid.hex)
@@ -83,7 +83,7 @@ class BlobTest(utils.RepoTestCase):
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
 
-        self.assertEqual(blob_oid, blob.oid)
+        self.assertEqual(blob_oid, blob.id)
         self.assertEqual(
             utils.gen_blob_sha1(BLOB_FILE_CONTENT),
             blob_oid.hex)

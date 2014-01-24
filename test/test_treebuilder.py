@@ -49,7 +49,7 @@ class TreeBuilderTest(utils.BareRepoTestCase):
         result = bld.write()
 
         self.assertEqual(len(bld), len(tree))
-        self.assertEqual(tree.oid, result)
+        self.assertEqual(tree.id, result)
 
 
     def test_noop_treebuilder_from_tree(self):
@@ -58,7 +58,7 @@ class TreeBuilderTest(utils.BareRepoTestCase):
         result = bld.write()
 
         self.assertEqual(len(bld), len(tree))
-        self.assertEqual(tree.oid, result)
+        self.assertEqual(tree.id, result)
 
 
     def test_rebuild_treebuilder(self):
@@ -68,11 +68,11 @@ class TreeBuilderTest(utils.BareRepoTestCase):
             name = entry.name
             self.assertTrue(bld.get(name) is None)
             bld.insert(name, entry.hex, entry.filemode)
-            self.assertEqual(bld.get(name).oid, entry.oid)
+            self.assertEqual(bld.get(name).id, entry.id)
         result = bld.write()
 
         self.assertEqual(len(bld), len(tree))
-        self.assertEqual(tree.oid, result)
+        self.assertEqual(tree.id, result)
 
 
 if __name__ == '__main__':

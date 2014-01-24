@@ -122,7 +122,7 @@ class BlameTest(utils.RepoTestCase):
 
         for rev, num_commits in revs:
             commit = repo.revparse_single(rev)
-            blame = repo.blame(PATH, newest_commit=commit.oid)
+            blame = repo.blame(PATH, newest_commit=commit.id)
 
             self.assertEqual(len(blame), num_commits)
 

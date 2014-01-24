@@ -257,6 +257,11 @@ Oid_richcompare(PyObject *o1, PyObject *o2, int op)
     return res;
 }
 
+PyObject *
+Oid__str__(Oid *self)
+{
+    return git_oid_to_py_str(&self->oid);
+}
 
 PyDoc_STRVAR(Oid_raw__doc__, "Raw oid, a 20 bytes string.");
 
@@ -267,12 +272,13 @@ Oid_raw__get__(Oid *self)
 }
 
 
-PyDoc_STRVAR(Oid_hex__doc__, "Hex oid, a 40 chars long string (type str).");
+PyDoc_STRVAR(Oid_hex__doc__, "Hex oid, a 40 chars long string (type str).\n"
+    "This attribute is deprecated, please use the built-int str() or unicode()\n");
 
 PyObject *
 Oid_hex__get__(Oid *self)
 {
-    return git_oid_to_py_str(&self->oid);
+    return Oid__str__(self);
 }
 
 PyGetSetDef Oid_getseters[] = {
@@ -293,13 +299,13 @@ PyTypeObject OidType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)Oid__str__,                      /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
     (hashfunc)Oid_hash,                        /* tp_hash           */
     0,                                         /* tp_call           */
-    0,                                         /* tp_str            */
+    (reprfunc)Oid__str__,                      /* tp_str            */
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
