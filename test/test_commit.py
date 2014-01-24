@@ -42,11 +42,11 @@ class CommitTest(utils.BareRepoTestCase):
 
     def test_read_commit(self):
         commit = self.repo[COMMIT_SHA]
-        self.assertEqual(COMMIT_SHA, commit.hex)
+        self.assertEqual(COMMIT_SHA, str(commit.id))
         parents = commit.parents
         self.assertEqual(1, len(parents))
         self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
-                         parents[0].hex)
+                         str(parents[0].id))
         self.assertEqual(None, commit.message_encoding)
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
@@ -62,7 +62,7 @@ class CommitTest(utils.BareRepoTestCase):
             Signature('Dave Borowitz', 'dborowitz@google.com', 1288477363,
                       -420))
         self.assertEqual(
-            '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', commit.tree.hex)
+            '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', str(commit.tree.id))
 
     def test_new_commit(self):
         repo = self.repo

@@ -92,7 +92,7 @@ class TagTest(utils.BareRepoTestCase):
     def test_get_object(self):
         repo = self.repo
         tag = repo[TAG_SHA]
-        self.assertEqual(repo[tag.target].oid, tag.get_object().oid)
+        self.assertEqual(repo[tag.target].id, tag.get_object().id)
 
 
 if __name__ == '__main__':

@@ -100,8 +100,8 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertEqual(x.filemode, 0o0100644)
         self.assertEqual(y.filemode, 0o0100755)
 
-        self.assertEqual(repo[x.oid].oid, b0)
-        self.assertEqual(repo[y.oid].oid, b1)
+        self.assertEqual(repo[x.oid].id, b0)
+        self.assertEqual(repo[y.oid].id, b1)
 
 
     def test_modify_tree(self):

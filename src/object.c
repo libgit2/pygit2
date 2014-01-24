@@ -49,11 +49,11 @@ Object_dealloc(Object* self)
 }
 
 
-PyDoc_STRVAR(Object_oid__doc__,
+PyDoc_STRVAR(Object_id__doc__,
     "The object id, an instance of the Oid type.");
 
 PyObject *
-Object_oid__get__(Object *self)
+Object_id__get__(Object *self)
 {
     const git_oid *oid;
 
@@ -63,10 +63,20 @@ Object_oid__get__(Object *self)
     return git_oid_to_python(oid);
 }
 
+PyDoc_STRVAR(Object_oid__doc__,
+    "The object id, an instance of the Oid type.\n"
+    "This attribute is deprecated, please use 'id'\n");
+
+PyObject *
+Object_oid__get__(Object *self)
+{
+    return Object_id__get__(self);
+}
 
 PyDoc_STRVAR(Object_hex__doc__,
     "Hexadecimal representation of the object id. This is a shortcut for\n"
-    "Object.oid.hex");
+    "Object.oid.hex\n"
+    "This attribute is deprecated, please use 'id'\n");
 
 PyObject *
 Object_hex__get__(Object *self)
@@ -119,6 +129,7 @@ Object_read_raw(Object *self)
 
 PyGetSetDef Object_getseters[] = {
     GETTER(Object, oid),
+    GETTER(Object, id),
     GETTER(Object, hex),
     GETTER(Object, type),
     {NULL}

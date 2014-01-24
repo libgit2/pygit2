@@ -199,27 +199,27 @@ class PushTestCase(unittest.TestCase):
         tip = self.clone[self.clone.head.target]
         oid = self.clone.create_commit(
             'refs/heads/master', tip.author, tip.author, 'empty commit',
-            tip.tree.oid, [tip.oid]
+            tip.tree.id, [tip.id]
         )
         self.remote.push('refs/heads/master')
-        self.assertEqual(self.origin[self.origin.head.target].oid, oid)
+        self.assertEqual(self.origin[self.origin.head.target].id, oid)
 
     def test_push_when_up_to_date_succeeds(self):
         self.remote.push('refs/heads/master')
-        origin_tip = self.origin[self.origin.head.target].oid
-        clone_tip = self.clone[self.clone.head.target].oid
+        origin_tip = self.origin[self.origin.head.target].id
+        clone_tip = self.clone[self.clone.head.target].id
         self.assertEqual(origin_tip, clone_tip)
 
     def test_push_non_fast_forward_commits_to_remote_fails(self):
         tip = self.origin[self.origin.head.target]
         oid = self.origin.create_commit(
             'refs/heads/master', tip.author, tip.author, 'some commit',
-            tip.tree.oid, [tip.oid]
+            tip.tree.id, [tip.id]
         )
         tip = self.clone[self.clone.head.target]
         oid = self.clone.create_commit(
             'refs/heads/master', tip.author, tip.author, 'other commit',
-            tip.tree.oid, [tip.oid]
+            tip.tree.id, [tip.id]
         )
         self.assertRaises(pygit2.GitError, self.remote.push, 'refs/heads/master')
 
