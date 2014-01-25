@@ -59,6 +59,7 @@ Below there are some general attributes and methods:
 .. autoattribute:: pygit2.Repository.workdir
 .. autoattribute:: pygit2.Repository.is_bare
 .. autoattribute:: pygit2.Repository.is_empty
+.. autoattribute:: pygit2.Repository.default_signature
 .. automethod:: pygit2.Repository.read
 .. automethod:: pygit2.Repository.write
 .. automethod:: pygit2.Repository.reset

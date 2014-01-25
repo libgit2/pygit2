@@ -22,7 +22,7 @@ merge with the default ones defined in GIT_MERGE_OPTS_INIT libgit2 constant.
 Example::
 
     >>> branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
-    >>> branch_oid = self.repo.get(branch_head_hex).oid
+    >>> branch_oid = self.repo.get(branch_head_hex).id
     >>> merge_result = self.repo.merge(branch_oid)
 
 The MergeResult object
