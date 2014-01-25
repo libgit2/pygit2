@@ -12,7 +12,10 @@ The Remote type
 
 .. autoattribute:: pygit2.Remote.name
 .. autoattribute:: pygit2.Remote.url
+.. autoattribute:: pygit2.Remote.push_url
 .. autoattribute:: pygit2.Remote.refspec_count
+.. autoattribute:: pygit2.Remote.push_refspecs
+.. autoattribute:: pygit2.Remote.fetch_refspecs
 .. automethod:: pygit2.Remote.get_push_refspecs
 .. automethod:: pygit2.Remote.get_fetch_refspecs
 .. automethod:: pygit2.Remote.set_push_refspecs

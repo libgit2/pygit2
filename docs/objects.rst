@@ -78,6 +78,7 @@ New objects are created using an specific API we will see later.
 
 This is the common interface for all Git objects:
 
+.. autoattribute:: pygit2.Object.id
 .. autoattribute:: pygit2.Object.oid
 .. autoattribute:: pygit2.Object.hex
 .. autoattribute:: pygit2.Object.type
@@ -170,9 +171,12 @@ Tree entries
 ------------
 
 .. autoattribute:: pygit2.TreeEntry.name
+.. autoattribute:: pygit2.TreeEntry.id
 .. autoattribute:: pygit2.TreeEntry.oid
 .. autoattribute:: pygit2.TreeEntry.hex
 .. autoattribute:: pygit2.TreeEntry.filemode
+
+:class:`TreeEntry` supports comparison against other tree entries.
 
 Example::
 
@@ -181,7 +185,7 @@ Example::
     6
 
     >>> for entry in tree:               # Iteration
-    ...     print(entry.hex, entry.name)
+    ...     print(entry.id, entry.name)
     ...
     7151ca7cd3e59f3eab19c485cfbf3cb30928d7fa .gitignore
     c36f4cf1e38ec1bb9d9ad146ed572b89ecfc9f18 COPYING
@@ -194,7 +198,7 @@ Example::
     >>> entry
     <pygit2.TreeEntry object at 0xcc10f0>
 
-    >>> blob = repo[entry.oid]           # Get the object the entry points to
+    >>> blob = repo[entry.id]           # Get the object the entry points to
     >>> blob
     <pygit2.Blob object at 0xcc12d0>
 
@@ -221,7 +225,9 @@ committer and others.
 .. autoattribute:: pygit2.Commit.message_encoding
 .. autoattribute:: pygit2.Commit.raw_message
 .. autoattribute:: pygit2.Commit.tree
+.. autoattribute:: pygit2.Commit.tree_id
 .. autoattribute:: pygit2.Commit.parents
+.. autoattribute:: pygit2.Commit.parent_ids
 .. autoattribute:: pygit2.Commit.commit_time
 .. autoattribute:: pygit2.Commit.commit_time_offset
 

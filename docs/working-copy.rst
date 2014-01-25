@@ -8,7 +8,7 @@ Index read::
 
     >>> index = repo.index
     >>> index.read()
-    >>> oid = index['path/to/file'].oid    # from path to object id
+    >>> oid = index['path/to/file'].id    # from path to object id
     >>> blob = repo[oid]                   # from object id to object
 
 Iterate over all entries of the index::
