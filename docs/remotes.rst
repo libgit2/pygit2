@@ -28,6 +28,20 @@ The Remote type
 .. automethod:: pygit2.Remote.push
 .. automethod:: pygit2.Remote.save
 
+The TransferProgress type
+===========================
+
+This class contains the data which is available to us during a fetch.
+
+.. autoattribute:: pygit2.TransferProgress.total_objects
+.. autoattribute:: pygit2.TransferProgress.indexed_objects
+.. autoattribute:: pygit2.TransferProgress.received_objects
+.. autoattribute:: pygit2.TransferProgress.local_objects
+.. autoattribute:: pygit2.TransferProgress.total_deltas
+.. autoattribute:: pygit2.TransferProgress.indexed_deltas
+.. autoattribute:: pygit2.TransferProgress.received_bytes
+
+
 The Refspec type
 ===================
 

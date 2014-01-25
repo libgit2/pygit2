@@ -38,6 +38,7 @@
 extern PyObject *GitError;
 extern PyTypeObject RepositoryType;
 extern PyTypeObject RefspecType;
+extern PyTypeObject TransferProgressType;
 
 Refspec *
 wrap_refspec(const Remote *owner, const git_refspec *refspec)
@@ -295,6 +296,87 @@ PyTypeObject RefspecType = {
     0,                                         /* tp_new            */
 };
 
+PyObject *
+wrap_transfer_progress(const git_transfer_progress *stats)
+{
+    TransferProgress *py_stats;
+
+    py_stats = PyObject_New(TransferProgress, &TransferProgressType);
+    if (!py_stats)
+        return NULL;
+
+    py_stats->total_objects = stats->total_objects;
+    py_stats->indexed_objects = stats->indexed_objects;
+    py_stats->received_objects = stats->received_objects;
+    py_stats->local_objects = stats->local_objects;
+    py_stats->total_deltas = stats->total_deltas;
+    py_stats->indexed_deltas = stats->indexed_deltas;
+    py_stats->received_bytes = stats->received_bytes;
+
+    return (PyObject *) py_stats;
+}
+
+void
+TransferProgress_dealloc(TransferProgress *self)
+{
+    PyObject_Del(self);
+}
+
+PyMemberDef TransferProgress_members[] = {
+    RMEMBER(TransferProgress, total_objects, T_UINT, "Total number objects to download"),
+    RMEMBER(TransferProgress, indexed_objects, T_UINT, "Objects which have been indexed"),
+    RMEMBER(TransferProgress, received_objects, T_UINT, "Objects which have been received up to now"),
+    RMEMBER(TransferProgress, local_objects, T_UINT, "Local objects which were used to fix the thin pack"),
+    RMEMBER(TransferProgress, total_deltas, T_UINT, "Total number of deltas in the pack"),
+    RMEMBER(TransferProgress, indexed_deltas, T_UINT, "Deltas which have been indexed"),
+    /* FIXME: technically this is unsigned, but there's no value for size_t here. */
+    RMEMBER(TransferProgress, received_bytes, T_PYSSIZET, "Number of bytes received up to now"),
+	{NULL},
+};
+
+PyDoc_STRVAR(TransferProgress__doc__, "Progress downloading and indexing data during a fetch");
+
+PyTypeObject TransferProgressType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.TransferProgress",                /* tp_name           */
+    sizeof(TransferProgress),                            /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)TransferProgress_dealloc,      /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    TransferProgress__doc__,                            /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    TransferProgress_members,                  /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
 static int
 progress_cb(const char *str, int len, void *data)
 {
@@ -325,7 +407,7 @@ static int
 transfer_progress_cb(const git_transfer_progress *stats, void *data)
 {
     Remote *remote = (Remote *) data;
-    PyObject *arglist, *ret;
+    PyObject *py_stats, *ret;
 
     if (remote->transfer_progress == NULL)
         return 0;
@@ -335,14 +417,11 @@ transfer_progress_cb(const git_transfer_progress *stats, void *data)
         return -1;
     }
 
-    arglist = Py_BuildValue("({s:I,s:I,s:n})",
-        "indexed_objects", stats->indexed_objects,
-        "received_objects", stats->received_objects,
-        "received_bytes", stats->received_bytes);
+    py_stats = wrap_transfer_progress(stats);
+    if (!py_stats)
+        return -1;
 
-    ret = PyObject_CallObject(remote->transfer_progress, arglist);
-    Py_DECREF(arglist);
-
+    ret = PyObject_CallFunctionObjArgs(remote->transfer_progress, py_stats, NULL);
     if (!ret)
         return -1;
 
