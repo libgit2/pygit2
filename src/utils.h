@@ -133,6 +133,9 @@ char * py_str_to_c_str(PyObject *value, const char *encoding);
 #define MEMBER(type, attr, attr_type, docstr)\
   {#attr, attr_type, offsetof(type, attr), 0, PyDoc_STR(docstr)}
 
+#define RMEMBER(type, attr, attr_type, docstr)\
+  {#attr, attr_type, offsetof(type, attr), READONLY, PyDoc_STR(docstr)}
+
 
 /* Helpers for memory allocation */
 #define CALLOC(ptr, num, size, label) \
