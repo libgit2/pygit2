@@ -258,7 +258,7 @@ PyDoc_STRVAR(Refspec__doc__, "Refspec object.");
 PyTypeObject RefspecType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.Refspec",                         /* tp_name           */
-    sizeof(Remote),                            /* tp_basicsize      */
+    sizeof(Refspec),                            /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Refspec_dealloc,               /* tp_dealloc        */
     0,                                         /* tp_print          */
