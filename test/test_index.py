@@ -31,6 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import os
 import unittest
+import tempfile
 
 import pygit2
 from . import utils
@@ -151,6 +152,14 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual('foo.txt', entry.path)
         self.assertEqual(ign_entry.oid, entry.oid)
         self.assertEqual(pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, entry.mode)
+
+    def test_write_tree_to(self):
+        path = tempfile.mkdtemp()
+        pygit2.init_repository(path)
+        nrepo = pygit2.Repository(path)
+
+        id = self.repo.index.write_tree(nrepo)
+        self.assertNotEqual(None, nrepo[id])
 
 class IndexEntryTest(utils.RepoTestCase):
 

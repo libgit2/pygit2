@@ -40,6 +40,7 @@ extern PyTypeObject DiffType;
 extern PyTypeObject IndexIterType;
 extern PyTypeObject IndexEntryType;
 extern PyTypeObject OidType;
+extern PyTypeObject RepositoryType;
 
 int
 Index_init(Index *self, PyObject *args, PyObject *kwds)
@@ -428,17 +429,26 @@ Index_read_tree(Index *self, PyObject *value)
 
 
 PyDoc_STRVAR(Index_write_tree__doc__,
-  "write_tree() -> Oid\n"
+  "write_tree([repo]) -> Oid\n"
   "\n"
-  "Create a tree object from the index file, return its oid.");
+  "Create a tree object from the index file, return its oid.\n"
+  "If 'repo' is passed, write to that repository's odb.");
 
 PyObject *
-Index_write_tree(Index *self)
+Index_write_tree(Index *self, PyObject *args)
 {
     git_oid oid;
+    Repository *repo = NULL;
     int err;
 
-    err = git_index_write_tree(&oid, self->index);
+    if (!PyArg_ParseTuple(args, "|O!", &RepositoryType, &repo))
+        return NULL;
+
+    if (repo)
+        err = git_index_write_tree_to(&oid, self->index, repo->repo);
+    else
+        err = git_index_write_tree(&oid, self->index);
+
     if (err < 0)
         return Error_set(err);
 
@@ -455,7 +465,7 @@ PyMethodDef Index_methods[] = {
     METHOD(Index, read, METH_VARARGS),
     METHOD(Index, write, METH_NOARGS),
     METHOD(Index, read_tree, METH_O),
-    METHOD(Index, write_tree, METH_NOARGS),
+    METHOD(Index, write_tree, METH_VARARGS),
     {NULL}
 };
 
