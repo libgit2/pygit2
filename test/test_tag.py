@@ -34,6 +34,12 @@ import unittest
 import pygit2
 from . import utils
 
+# pypy raises TypeError on writing to read-only, so we need to check
+# and change the test accordingly
+try:
+    import __pypy__
+except ImportError:
+    __pypy__ = None
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 
@@ -84,10 +90,11 @@ class TagTest(utils.BareRepoTestCase):
         tagger = ('John Doe', 'jdoe@example.com', 12347)
 
         tag = self.repo[TAG_SHA]
-        self.assertRaises(AttributeError, setattr, tag, 'name', name)
-        self.assertRaises(AttributeError, setattr, tag, 'target', target)
-        self.assertRaises(AttributeError, setattr, tag, 'tagger', tagger)
-        self.assertRaises(AttributeError, setattr, tag, 'message', message)
+        error_type = AttributeError if not __pypy__ else TypeError
+        self.assertRaises(error_type, setattr, tag, 'name', name)
+        self.assertRaises(error_type, setattr, tag, 'target', target)
+        self.assertRaises(error_type, setattr, tag, 'tagger', tagger)
+        self.assertRaises(error_type, setattr, tag, 'message', message)
 
     def test_get_object(self):
         repo = self.repo

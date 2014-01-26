@@ -59,7 +59,7 @@ Config_init(Config *self, PyObject *args, PyObject *kwds)
     char *path = NULL;
     int err;
 
-    if (kwds) {
+    if (kwds && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError,
                         "Config takes no keyword arguments");
         return -1;

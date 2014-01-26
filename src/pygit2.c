@@ -27,13 +27,23 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include <osdefs.h>
+
+/* Pypy does not provide this header */
+#ifndef PYPY_VERSION
+# include <osdefs.h>
+#endif
+
 #include <git2.h>
 #include "error.h"
 #include "types.h"
 #include "utils.h"
 #include "repository.h"
 #include "oid.h"
+
+/* FIXME: This is for pypy */
+#ifndef MAXPATHLEN
+# define MAXPATHLEN 1024
+#endif
 
 extern PyObject *GitError;
 

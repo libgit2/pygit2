@@ -77,7 +77,7 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
     char *path;
     int err;
 
-    if (kwds) {
+    if (kwds && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError,
                         "Repository takes no keyword arguments");
         return -1;
