@@ -34,6 +34,12 @@ import unittest
 from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
 from . import utils
 
+# pypy raises TypeError on writing to read-only, so we need to check
+# and change the test accordingly
+try:
+    import __pypy__
+except ImportError:
+    __pypy__ = None
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 
@@ -131,12 +137,13 @@ class CommitTest(utils.BareRepoTestCase):
         author = ('Jane Doe', 'jdoe2@example.com', 12345)
 
         commit = self.repo[COMMIT_SHA]
-        self.assertRaises(AttributeError, setattr, commit, 'message', message)
-        self.assertRaises(AttributeError, setattr, commit, 'committer',
-                          committer)
-        self.assertRaises(AttributeError, setattr, commit, 'author', author)
-        self.assertRaises(AttributeError, setattr, commit, 'tree', None)
-        self.assertRaises(AttributeError, setattr, commit, 'parents', None)
+
+        error_type = AttributeError if not __pypy__ else TypeError
+        self.assertRaises(error_type, setattr, commit, 'message', message)
+        self.assertRaises(error_type, setattr, commit, 'committer', committer)
+        self.assertRaises(error_type, setattr, commit, 'author', author)
+        self.assertRaises(error_type, setattr, commit, 'tree', None)
+        self.assertRaises(error_type, setattr, commit, 'parents', None)
 
 
 if __name__ == '__main__':

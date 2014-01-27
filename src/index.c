@@ -46,7 +46,7 @@ Index_init(Index *self, PyObject *args, PyObject *kwds)
     char *path;
     int err;
 
-    if (kwds) {
+    if (kwds && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError, "Index takes no keyword arguments");
         return -1;
     }
