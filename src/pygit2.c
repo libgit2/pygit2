@@ -312,7 +312,7 @@ moduleinit(PyObject* m)
     /*
      * Log
      */
-    INIT_TYPE(WalkerType, NULL, PyType_GenericNew)
+    INIT_TYPE(WalkerType, NULL, NULL)
     ADD_TYPE(m, Walker);
     ADD_CONSTANT_INT(m, GIT_SORT_NONE)
     ADD_CONSTANT_INT(m, GIT_SORT_TOPOLOGICAL)
@@ -329,7 +329,7 @@ moduleinit(PyObject* m)
     /*
      * References
      */
-    INIT_TYPE(ReferenceType, NULL, PyType_GenericNew)
+    INIT_TYPE(ReferenceType, NULL, NULL)
     INIT_TYPE(RefLogEntryType, NULL, NULL)
     INIT_TYPE(RefLogIterType, NULL, NULL)
     INIT_TYPE(NoteType, NULL, NULL)
@@ -345,7 +345,7 @@ moduleinit(PyObject* m)
     /*
      * Branches
      */
-    INIT_TYPE(BranchType, &ReferenceType, PyType_GenericNew);
+    INIT_TYPE(BranchType, &ReferenceType, NULL);
     ADD_TYPE(m, Branch)
     ADD_CONSTANT_INT(m, GIT_BRANCH_LOCAL)
     ADD_CONSTANT_INT(m, GIT_BRANCH_REMOTE)
@@ -425,7 +425,7 @@ moduleinit(PyObject* m)
 
     /* Config */
     INIT_TYPE(ConfigType, NULL, PyType_GenericNew)
-    INIT_TYPE(ConfigIterType, NULL, PyType_GenericNew)
+    INIT_TYPE(ConfigIterType, NULL, NULL)
     ADD_TYPE(m, Config)
     ADD_TYPE(m, ConfigIter)
 
