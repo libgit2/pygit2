@@ -1318,6 +1318,7 @@ Repository_remotes__get__(Repository *self)
         py_remote = PyObject_New(Remote, &RemoteType);
         py_args = Py_BuildValue("Os", self, remotes.strings[i]);
         Remote_init(py_remote, py_args, NULL);
+        Py_DECREF(py_args);
         PyList_SetItem(py_list, i, (PyObject*) py_remote);
     }
 
