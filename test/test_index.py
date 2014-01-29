@@ -31,6 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import os
 import unittest
+import tempfile
 
 import pygit2
 from . import utils
@@ -139,6 +140,36 @@ class IndexTest(utils.RepoTestCase):
         index.remove('hello.txt')
         self.assertFalse('hello.txt' in index)
 
+    def test_change_attributes(self):
+        index = self.repo.index
+        entry = index['hello.txt']
+        ign_entry = index['.gitignore']
+        self.assertNotEqual(ign_entry.oid, entry.oid)
+        self.assertNotEqual(entry.mode, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE)
+        entry.path = 'foo.txt'
+        entry.oid = ign_entry.oid
+        entry.mode = pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
+        self.assertEqual('foo.txt', entry.path)
+        self.assertEqual(ign_entry.oid, entry.oid)
+        self.assertEqual(pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, entry.mode)
+
+    def test_write_tree_to(self):
+        path = tempfile.mkdtemp()
+        pygit2.init_repository(path)
+        nrepo = pygit2.Repository(path)
+
+        id = self.repo.index.write_tree(nrepo)
+        self.assertNotEqual(None, nrepo[id])
+
+class IndexEntryTest(utils.RepoTestCase):
+
+    def test_create_entry(self):
+        index = self.repo.index
+        hello_entry = index['hello.txt']
+        entry = pygit2.IndexEntry('README.md', hello_entry.oid, hello_entry.mode)
+        index.add(entry)
+        tree_id = index.write_tree()
+        self.assertEqual('60e769e57ae1d6a2ab75d8d253139e6260e1f912', str(tree_id))
 
 if __name__ == '__main__':
     unittest.main()

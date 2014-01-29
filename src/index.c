@@ -39,6 +39,8 @@ extern PyTypeObject TreeType;
 extern PyTypeObject DiffType;
 extern PyTypeObject IndexIterType;
 extern PyTypeObject IndexEntryType;
+extern PyTypeObject OidType;
+extern PyTypeObject RepositoryType;
 
 int
 Index_init(Index *self, PyObject *args, PyObject *kwds)
@@ -81,7 +83,7 @@ Index_traverse(Index *self, visitproc visit, void *arg)
 
 
 PyDoc_STRVAR(Index_add__doc__,
-  "add(path)\n"
+  "add([path|entry])\n"
   "\n"
   "Add or update an index entry from a file in disk.");
 
@@ -90,6 +92,16 @@ Index_add(Index *self, PyObject *args)
 {
     int err;
     const char *path;
+    IndexEntry *py_entry;
+
+    if (PyArg_ParseTuple(args, "O!", &IndexEntryType, &py_entry)) {
+        err = git_index_add(self->index, &py_entry->entry);
+        if (err < 0)
+            return Error_set(err);
+
+        Py_RETURN_NONE;
+    }
+    PyErr_Clear();
 
     if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
@@ -314,8 +326,15 @@ wrap_index_entry(const git_index_entry *entry, Index *index)
     IndexEntry *py_entry;
 
     py_entry = PyObject_New(IndexEntry, &IndexEntryType);
-    if (py_entry)
-        py_entry->entry = entry;
+    if (!py_entry)
+        return NULL;
+
+    memcpy(&py_entry->entry, entry, sizeof(struct git_index_entry));
+    py_entry->entry.path = strdup(entry->path);
+    if (!py_entry->entry.path) {
+        Py_CLEAR(py_entry);
+        return NULL;
+    }
 
     return (PyObject*)py_entry;
 }
@@ -410,17 +429,26 @@ Index_read_tree(Index *self, PyObject *value)
 
 
 PyDoc_STRVAR(Index_write_tree__doc__,
-  "write_tree() -> Oid\n"
+  "write_tree([repo]) -> Oid\n"
   "\n"
-  "Create a tree object from the index file, return its oid.");
+  "Create a tree object from the index file, return its oid.\n"
+  "If 'repo' is passed, write to that repository's odb.");
 
 PyObject *
-Index_write_tree(Index *self)
+Index_write_tree(Index *self, PyObject *args)
 {
     git_oid oid;
+    Repository *repo = NULL;
     int err;
 
-    err = git_index_write_tree(&oid, self->index);
+    if (!PyArg_ParseTuple(args, "|O!", &RepositoryType, &repo))
+        return NULL;
+
+    if (repo)
+        err = git_index_write_tree_to(&oid, self->index, repo->repo);
+    else
+        err = git_index_write_tree(&oid, self->index);
+
     if (err < 0)
         return Error_set(err);
 
@@ -437,7 +465,7 @@ PyMethodDef Index_methods[] = {
     METHOD(Index, read, METH_VARARGS),
     METHOD(Index, write, METH_NOARGS),
     METHOD(Index, read_tree, METH_O),
-    METHOD(Index, write_tree, METH_NOARGS),
+    METHOD(Index, write_tree, METH_VARARGS),
     {NULL}
 };
 
@@ -557,6 +585,31 @@ PyTypeObject IndexIterType = {
     (iternextfunc)IndexIter_iternext,          /* tp_iternext       */
 };
 
+int
+IndexEntry_init(IndexEntry *self, PyObject *args, PyObject *kwds)
+{
+    char *c_path = NULL;
+    Oid *id = NULL;
+    unsigned int mode;
+    char *keywords[] = {"path", "oid", "mode", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO!I", keywords,
+                                     &c_path, &OidType, &id, &mode))
+        return -1;
+
+    memset(&self->entry, 0, sizeof(struct git_index_entry));
+    if (c_path)
+        self->entry.path = c_path;
+
+    if (id)
+        git_oid_cpy(&self->entry.oid, &id->oid);
+
+    if (mode)
+        self->entry.mode = mode;
+
+    return 0;
+}
+
 void
 IndexEntry_dealloc(IndexEntry *self)
 {
@@ -569,40 +622,81 @@ PyDoc_STRVAR(IndexEntry_mode__doc__, "Mode.");
 PyObject *
 IndexEntry_mode__get__(IndexEntry *self)
 {
-    return PyLong_FromLong(self->entry->mode);
+    return PyLong_FromLong(self->entry.mode);
 }
 
+int
+IndexEntry_mode__set__(IndexEntry *self, PyObject *py_mode)
+{
+    long c_val;
+
+    c_val = PyLong_AsLong(py_mode);
+    if (c_val == -1 && PyErr_Occurred())
+        return -1;
+
+    self->entry.mode = (unsigned int) c_val;
+
+    return 0;
+}
 
 PyDoc_STRVAR(IndexEntry_path__doc__, "Path.");
 
 PyObject *
 IndexEntry_path__get__(IndexEntry *self)
 {
-    return to_path(self->entry->path);
+    return to_path(self->entry.path);
 }
 
+int
+IndexEntry_path__set__(IndexEntry *self, PyObject *py_path)
+{
+    char *c_inner, *c_path;
+
+    c_inner = py_str_to_c_str(py_path, NULL);
+    if (!c_inner)
+        return -1;
+
+    c_path = strdup(c_inner);
+    if (!c_path) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
+    free(self->entry.path);
+    self->entry.path = c_path;
+
+    return 0;
+}
 
 PyDoc_STRVAR(IndexEntry_oid__doc__, "Object id.");
 
 PyObject *
 IndexEntry_oid__get__(IndexEntry *self)
 {
-    return git_oid_to_python(&self->entry->oid);
+    return git_oid_to_python(&self->entry.oid);
 }
 
+int
+IndexEntry_oid__set__(IndexEntry *self, PyObject *py_id)
+{
+    if (!py_oid_to_git_oid(py_id, &self->entry.oid))
+        return -1;
+
+    return 0;
+}
 
 PyDoc_STRVAR(IndexEntry_hex__doc__, "Hex id.");
 
 PyObject *
 IndexEntry_hex__get__(IndexEntry *self)
 {
-    return git_oid_to_py_str(&self->entry->oid);
+    return git_oid_to_py_str(&self->entry.oid);
 }
 
 PyGetSetDef IndexEntry_getseters[] = {
-    GETTER(IndexEntry, mode),
-    GETTER(IndexEntry, path),
-    GETTER(IndexEntry, oid),
+    GETSET(IndexEntry, mode),
+    GETSET(IndexEntry, path),
+    GETSET(IndexEntry, oid),
     GETTER(IndexEntry, hex),
     {NULL},
 };
@@ -645,7 +739,7 @@ PyTypeObject IndexEntryType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    0,                                         /* tp_init           */
+    (initproc)IndexEntry_init,                 /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };

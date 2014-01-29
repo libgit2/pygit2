@@ -40,7 +40,7 @@ PyObject* Index_write(Index *self);
 PyObject* Index_iter(Index *self);
 PyObject* Index_getitem(Index *self, PyObject *value);
 PyObject* Index_read_tree(Index *self, PyObject *value);
-PyObject* Index_write_tree(Index *self);
+PyObject* Index_write_tree(Index *self, PyObject *args);
 Py_ssize_t Index_len(Index *self);
 int Index_setitem(Index *self, PyObject *key, PyObject *value);
 
