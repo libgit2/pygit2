@@ -1279,7 +1279,6 @@ PyDoc_STRVAR(Repository_create_remote__doc__,
 PyObject *
 Repository_create_remote(Repository *self, PyObject *args)
 {
-    Remote *py_remote;
     git_remote *remote;
     char *name = NULL, *url = NULL;
     int err;
@@ -1291,13 +1290,7 @@ Repository_create_remote(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    py_remote = PyObject_New(Remote, &RemoteType);
-    Py_INCREF(self);
-    py_remote->repo = self;
-    py_remote->remote = remote;
-    Remote_set_callbacks(py_remote);
-
-    return (PyObject*) py_remote;
+    return (PyObject*) wrap_remote(remote, self);
 }
 
 
@@ -1307,23 +1300,35 @@ PyObject *
 Repository_remotes__get__(Repository *self)
 {
     git_strarray remotes;
-    PyObject* py_list = NULL, *py_args = NULL;
-    Remote *py_remote;
+    git_remote *remote = NULL;
+    PyObject *py_list = NULL;
+    PyObject *py_remote = NULL;
     size_t i;
+    int err;
 
     git_remote_list(&remotes, self->repo);
 
     py_list = PyList_New(remotes.count);
     for (i=0; i < remotes.count; ++i) {
-        py_remote = PyObject_New(Remote, &RemoteType);
-        py_args = Py_BuildValue("Os", self, remotes.strings[i]);
-        Remote_init(py_remote, py_args, NULL);
-        PyList_SetItem(py_list, i, (PyObject*) py_remote);
+        err = git_remote_load(&remote, self->repo, remotes.strings[i]);
+        if (err < 0)
+            goto cleanup;
+        py_remote = wrap_remote(remote, self);
+        if (py_remote == NULL)
+            goto cleanup;
+        PyList_SetItem(py_list, i, py_remote);
     }
 
     git_strarray_free(&remotes);
-
     return (PyObject*) py_list;
+
+cleanup:
+    git_strarray_free(&remotes);
+    if (py_list)
+        Py_DECREF(py_list);
+    if (err < 0)
+        return Error_set(err);
+    return NULL;
 }
 
 PyDoc_STRVAR(Repository_default_signature__doc__, "Return the signature according to the repository's configuration");
