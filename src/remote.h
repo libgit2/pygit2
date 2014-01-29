@@ -34,8 +34,6 @@
 #include <git2/remote.h>
 
 PyObject* Remote_fetch(Remote *self, PyObject *args);
-
-void Remote_set_callbacks(Remote *self);
-PyObject *wrap_remote(git_remote *c_remote, Repository *repo);
+PyObject* wrap_remote(git_remote *c_remote, Repository *repo);
 
 #endif
