@@ -1279,7 +1279,6 @@ PyDoc_STRVAR(Repository_create_remote__doc__,
 PyObject *
 Repository_create_remote(Repository *self, PyObject *args)
 {
-    Remote *py_remote;
     git_remote *remote;
     char *name = NULL, *url = NULL;
     int err;
@@ -1291,13 +1290,7 @@ Repository_create_remote(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    py_remote = PyObject_New(Remote, &RemoteType);
-    Py_INCREF(self);
-    py_remote->repo = self;
-    py_remote->remote = remote;
-    Remote_set_callbacks(py_remote);
-
-    return (PyObject*) py_remote;
+    return (PyObject*) wrap_remote(remote, self);
 }
 
 
@@ -1307,18 +1300,19 @@ PyObject *
 Repository_remotes__get__(Repository *self)
 {
     git_strarray remotes;
+    git_remote *remote = NULL;
     PyObject* py_list = NULL, *py_args = NULL;
-    Remote *py_remote;
     size_t i;
+    int err;
 
     git_remote_list(&remotes, self->repo);
 
     py_list = PyList_New(remotes.count);
     for (i=0; i < remotes.count; ++i) {
-        py_remote = PyObject_New(Remote, &RemoteType);
-        py_args = Py_BuildValue("Os", self, remotes.strings[i]);
-        Remote_init(py_remote, py_args, NULL);
-        PyList_SetItem(py_list, i, (PyObject*) py_remote);
+        err = git_remote_load(&remote, self->repo, remotes.strings[i]);
+        if (err < 0)
+            return Error_set(err);
+        PyList_SetItem(py_list, i, wrap_remote(remote, self));
     }
 
     git_strarray_free(&remotes);

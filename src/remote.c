@@ -1036,7 +1036,7 @@ PyMemberDef Remote_members[] = {
     MEMBER(Remote, progress, T_OBJECT_EX, "Progress output callback"),
     MEMBER(Remote, transfer_progress, T_OBJECT_EX, "Transfer progress callback"),
     MEMBER(Remote, update_tips, T_OBJECT_EX, "update tips callback"),
-	{NULL},
+    {NULL},
 };
 
 PyDoc_STRVAR(Remote__doc__, "Remote object.");
@@ -1081,3 +1081,21 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
+
+PyObject *
+wrap_remote(git_remote *c_remote, Repository *repo)
+{
+    Remote *py_remote = NULL;
+    py_remote = PyObject_New(Remote, &RemoteType);
+    if (py_remote) {
+        Py_INCREF(repo);
+        py_remote->repo = repo;
+        py_remote->remote = c_remote;
+        py_remote->progress = NULL;
+        py_remote->transfer_progress = NULL;
+        py_remote->update_tips = NULL;
+        Remote_set_callbacks(py_remote);
+    }
+
+    return (PyObject *)py_remote;
+}
