@@ -33,7 +33,6 @@
 #include <git2.h>
 #include <git2/remote.h>
 
-PyObject* Remote_init(Remote *self, PyObject *args, PyObject *kwds);
 PyObject* Remote_fetch(Remote *self, PyObject *args);
 
 void Remote_set_callbacks(Remote *self);

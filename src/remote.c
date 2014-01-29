@@ -461,45 +461,6 @@ update_tips_cb(const char *refname, const git_oid *a, const git_oid *b, void *da
     return 0;
 }
 
-PyObject *
-Remote_init(Remote *self, PyObject *args, PyObject *kwds)
-{
-    Repository* py_repo = NULL;
-    char *name = NULL;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "O!s", &RepositoryType, &py_repo, &name))
-        return NULL;
-
-    self->repo = py_repo;
-    Py_INCREF(self->repo);
-    err = git_remote_load(&self->remote, py_repo->repo, name);
-
-    if (err < 0)
-        return Error_set(err);
-
-    self->progress = NULL;
-    self->transfer_progress = NULL;
-    self->update_tips = NULL;
-
-    Remote_set_callbacks(self);
-    return (PyObject*) self;
-}
-
-void
-Remote_set_callbacks(Remote *self)
-{
-    git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
-
-    self->progress = NULL;
-
-    callbacks.progress = progress_cb;
-    callbacks.transfer_progress = transfer_progress_cb;
-    callbacks.update_tips = update_tips_cb;
-    callbacks.payload = self;
-    git_remote_set_callbacks(self->remote, &callbacks);
-}
-
 static void
 Remote_dealloc(Remote *self)
 {
@@ -1077,7 +1038,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    (initproc)Remote_init,                     /* tp_init           */
+    0,                                         /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
@@ -1086,6 +1047,8 @@ PyObject *
 wrap_remote(git_remote *c_remote, Repository *repo)
 {
     Remote *py_remote = NULL;
+    git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
+
     py_remote = PyObject_New(Remote, &RemoteType);
     if (py_remote) {
         Py_INCREF(repo);
@@ -1094,7 +1057,12 @@ wrap_remote(git_remote *c_remote, Repository *repo)
         py_remote->progress = NULL;
         py_remote->transfer_progress = NULL;
         py_remote->update_tips = NULL;
-        Remote_set_callbacks(py_remote);
+
+        callbacks.progress = progress_cb;
+        callbacks.transfer_progress = transfer_progress_cb;
+        callbacks.update_tips = update_tips_cb;
+        callbacks.payload = py_remote;
+        git_remote_set_callbacks(c_remote, &callbacks);
     }
 
     return (PyObject *)py_remote;

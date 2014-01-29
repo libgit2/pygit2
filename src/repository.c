@@ -1301,7 +1301,8 @@ Repository_remotes__get__(Repository *self)
 {
     git_strarray remotes;
     git_remote *remote = NULL;
-    PyObject* py_list = NULL, *py_args = NULL;
+    PyObject *py_list = NULL;
+    PyObject *py_remote = NULL;
     size_t i;
     int err;
 
@@ -1311,13 +1312,23 @@ Repository_remotes__get__(Repository *self)
     for (i=0; i < remotes.count; ++i) {
         err = git_remote_load(&remote, self->repo, remotes.strings[i]);
         if (err < 0)
-            return Error_set(err);
-        PyList_SetItem(py_list, i, wrap_remote(remote, self));
+            goto cleanup;
+        py_remote = wrap_remote(remote, self);
+        if (py_remote == NULL)
+            goto cleanup;
+        PyList_SetItem(py_list, i, py_remote);
     }
 
     git_strarray_free(&remotes);
-
     return (PyObject*) py_list;
+
+cleanup:
+    git_strarray_free(&remotes);
+    if (py_list)
+        Py_DECREF(py_list);
+    if (err < 0)
+        return Error_set(err);
+    return NULL;
 }
 
 PyDoc_STRVAR(Repository_default_signature__doc__, "Return the signature according to the repository's configuration");
