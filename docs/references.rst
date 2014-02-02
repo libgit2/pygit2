@@ -92,8 +92,8 @@ Example::
     >>> for entry in head.log():
     ...     print(entry.message)
 
-.. autoattribute:: pygit2.RefLogEntry.oid_new
-.. autoattribute:: pygit2.RefLogEntry.oid_old
+.. autoattribute:: pygit2.RefLogEntry.id_new
+.. autoattribute:: pygit2.RefLogEntry.id_old
 .. autoattribute:: pygit2.RefLogEntry.message
 .. autoattribute:: pygit2.RefLogEntry.committer
 
@@ -109,6 +109,6 @@ The Note type
 --------------------
 
 .. autoattribute:: pygit2.Note.annotated_id
-.. autoattribute:: pygit2.Note.oid
+.. autoattribute:: pygit2.Note.id
 .. autoattribute:: pygit2.Note.message
 .. automethod:: pygit2.Note.remove

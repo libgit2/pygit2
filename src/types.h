@@ -114,8 +114,8 @@ typedef struct {
     PyObject* hunks;
     const char * old_file_path;
     const char * new_file_path;
-    char* old_oid;
-    char* new_oid;
+    char* old_id;
+    char* new_id;
     char status;
     unsigned similarity;
     unsigned additions;

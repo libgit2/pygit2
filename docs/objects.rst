@@ -14,14 +14,14 @@ type.
 Object lookup
 =================
 
-In the previous chapter we learnt about Object IDs. With an oid we can ask the
+In the previous chapter we learnt about Object IDs. With an Oid we can ask the
 repository to get the associated object. To do that the ``Repository`` class
 implementes a subset of the mapping interface.
 
 .. automethod:: pygit2.Repository.get
 
-   Return the Git object for the given *oid*, returns the *default* value if
-   there's no object in the repository with that oid. The oid can be an Oid
+   Return the Git object for the given *id*, returns the *default* value if
+   there's no object in the repository with that id. The id can be an Oid
    object, or an hexadecimal string.
 
    Example::
@@ -32,16 +32,16 @@ implementes a subset of the mapping interface.
      >>> obj
      <_pygit2.Commit object at 0x7ff27a6b60f0>
 
-.. method:: Repository.__getitem__(oid)
+.. method:: Repository.__getitem__(id)
 
-   Return the Git object for the given oid, raise ``KeyError`` if there's no
-   object in the repository with that oid. The oid can be an Oid object, or
+   Return the Git object for the given id, raise ``KeyError`` if there's no
+   object in the repository with that id. The id can be an Oid object, or
    an hexadecimal string.
 
-.. method:: Repository.__contains__(oid)
+.. method:: Repository.__contains__(id)
 
-   Returns True if there is an object in the Repository with that oid, False
-   if there is not.  The oid can be an Oid object, or an hexadecimal string.
+   Returns True if there is an object in the Repository with that id, False
+   if there is not.  The id can be an Oid object, or an hexadecimal string.
 
 
 The Object base type
@@ -125,15 +125,15 @@ them to the Git object database:
 
    Example:
 
-     >>> oid  = repo.create_blob('foo bar')   # Creates blob from bytes string
-     >>> blob = repo[oid]
+     >>> id  = repo.create_blob('foo bar')   # Creates blob from bytes string
+     >>> blob = repo[id]
      >>> blob.data
      'foo bar'
 
 .. automethod:: pygit2.Repository.create_blob_fromworkdir
 .. automethod:: pygit2.Repository.create_blob_fromdisk
 
-There are also some functions to calculate the oid for a byte string without
+There are also some functions to calculate the id for a byte string without
 creating the blob object:
 
 .. autofunction:: pygit2.hash

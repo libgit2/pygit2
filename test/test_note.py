@@ -58,7 +58,7 @@ class NotesTest(utils.BareRepoTestCase):
     def test_lookup_note(self):
         annotated_id = self.repo.head.target.hex
         note = self.repo.lookup_note(annotated_id)
-        self.assertEqual(NOTES[0][0], note.oid.hex)
+        self.assertEqual(NOTES[0][0], note.id.hex)
         self.assertEqual(NOTES[0][1], note.message)
 
     def test_remove_note(self):
@@ -70,7 +70,7 @@ class NotesTest(utils.BareRepoTestCase):
 
     def test_iterate_notes(self):
         for i, note in enumerate(self.repo.notes()):
-            entry = (note.oid.hex, note.message, note.annotated_id)
+            entry = (note.id.hex, note.message, note.annotated_id)
             self.assertEqual(NOTES[i], entry)
 
     def test_iterate_non_existing_ref(self):

@@ -314,7 +314,7 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         merge_result = self.repo.merge(branch_oid)
         self.assertTrue(merge_result.is_uptodate)
         self.assertFalse(merge_result.is_fastforward)
-        self.assertEqual(None, merge_result.fastforward_oid)
+        self.assertEqual(None, merge_result.fastforward_id)
         self.assertEqual({}, self.repo.status())
 
     def test_merge_fastforward(self):
@@ -324,8 +324,8 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         self.assertFalse(merge_result.is_uptodate)
         self.assertTrue(merge_result.is_fastforward)
         # Asking twice to assure the reference counting is correct
-        self.assertEqual(branch_head_hex, merge_result.fastforward_oid.hex)
-        self.assertEqual(branch_head_hex, merge_result.fastforward_oid.hex)
+        self.assertEqual(branch_head_hex, merge_result.fastforward_id.hex)
+        self.assertEqual(branch_head_hex, merge_result.fastforward_id.hex)
         self.assertEqual({}, self.repo.status())
 
     def test_merge_no_fastforward_no_conflicts(self):
@@ -335,8 +335,8 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         self.assertFalse(merge_result.is_uptodate)
         self.assertFalse(merge_result.is_fastforward)
         # Asking twice to assure the reference counting is correct
-        self.assertEqual(None, merge_result.fastforward_oid)
-        self.assertEqual(None, merge_result.fastforward_oid)
+        self.assertEqual(None, merge_result.fastforward_id)
+        self.assertEqual(None, merge_result.fastforward_id)
         self.assertEqual({'bye.txt': 1}, self.repo.status())
         self.assertEqual({'bye.txt': 1}, self.repo.status())
         # Checking the index works as expected
@@ -351,8 +351,8 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         self.assertFalse(merge_result.is_uptodate)
         self.assertFalse(merge_result.is_fastforward)
         # Asking twice to assure the reference counting is correct
-        self.assertEqual(None, merge_result.fastforward_oid)
-        self.assertEqual(None, merge_result.fastforward_oid)
+        self.assertEqual(None, merge_result.fastforward_id)
+        self.assertEqual(None, merge_result.fastforward_id)
         self.assertEqual({'.gitignore': 132}, self.repo.status())
         self.assertEqual({'.gitignore': 132}, self.repo.status())
         # Checking the index works as expected

@@ -80,15 +80,15 @@ MergeResult_is_fastforward__get__(MergeResult *self)
         Py_RETURN_FALSE;
 }
 
-PyDoc_STRVAR(MergeResult_fastforward_oid__doc__, "Fastforward Oid");
+PyDoc_STRVAR(MergeResult_fastforward_id__doc__, "Fastforward Oid");
 
 PyObject *
-MergeResult_fastforward_oid__get__(MergeResult *self)
+MergeResult_fastforward_id__get__(MergeResult *self)
 {
     if (git_merge_result_is_fastforward(self->result)) {
-        git_oid fastforward_oid;
-        git_merge_result_fastforward_oid(&fastforward_oid, self->result);
-        return git_oid_to_python((const git_oid *)&fastforward_oid);
+        git_oid fastforward_id;
+        git_merge_result_fastforward_id(&fastforward_id, self->result);
+        return git_oid_to_python((const git_oid *)&fastforward_id);
     }
     else Py_RETURN_NONE;
 }
@@ -96,7 +96,7 @@ MergeResult_fastforward_oid__get__(MergeResult *self)
 PyGetSetDef MergeResult_getseters[] = {
     GETTER(MergeResult, is_uptodate),
     GETTER(MergeResult, is_fastforward),
-    GETTER(MergeResult, fastforward_oid),
+    GETTER(MergeResult, fastforward_id),
     {NULL},
 };
 
