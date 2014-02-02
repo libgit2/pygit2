@@ -103,10 +103,11 @@ PyDoc_STRVAR(Config_get_global_config__doc__,
 PyObject *
 Config_get_global_config(void)
 {
-    char path[GIT_PATH_MAX];
+    git_buf path = {NULL};
+    PyObject *py_config;
     int err;
 
-    err = git_config_find_global(path, GIT_PATH_MAX);
+    err = git_config_find_global(&path);
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetString(PyExc_IOError, "Global config file not found.");
@@ -116,7 +117,10 @@ Config_get_global_config(void)
         return Error_set(err);
     }
 
-    return wrap_config(path);
+    py_config = wrap_config(path.ptr);
+
+    git_buf_free(&path);
+    return py_config;
 }
 
 
@@ -128,10 +132,11 @@ PyDoc_STRVAR(Config_get_system_config__doc__,
 PyObject *
 Config_get_system_config(void)
 {
-    char path[GIT_PATH_MAX];
+    git_buf path = {NULL};
+    PyObject *py_config;
     int err;
 
-    err = git_config_find_system(path, GIT_PATH_MAX);
+    err = git_config_find_system(&path);
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetString(PyExc_IOError, "System config file not found.");
@@ -140,7 +145,10 @@ Config_get_system_config(void)
         return Error_set(err);
     }
 
-    return wrap_config(path);
+    py_config = wrap_config(path.ptr);
+
+    git_buf_free(&path);
+    return py_config;
 }
 
 

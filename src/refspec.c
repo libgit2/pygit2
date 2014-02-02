@@ -155,35 +155,24 @@ PyDoc_STRVAR(Refspec_transform__doc__,
 PyObject *
 Refspec_transform(Refspec *self, PyObject *py_str)
 {
+    git_buf trans = {NULL};
     const char *str;
-    char *trans;
-    int err, len, alen;
+    int err;
     PyObject *py_trans, *tstr;
 
     str = py_str_borrow_c_str(&tstr, py_str, NULL);
-    alen = len = strlen(str);
 
-    do {
-        alen *= alen;
-        trans = malloc(alen);
-        if (!trans) {
-            Py_DECREF(tstr);
-            return PyErr_NoMemory();
-        }
-
-        err = git_refspec_transform(trans, alen, self->refspec, str);
-    } while(err == GIT_EBUFS);
+    err = git_refspec_transform(&trans, self->refspec, str);
     Py_DECREF(tstr);
 
     if (err < 0) {
-        free(trans);
         Error_set(err);
         return NULL;
     }
 
-    py_trans = to_unicode(trans, NULL, NULL);
+    py_trans = to_unicode(trans.ptr, NULL, NULL);
 
-    free(trans);
+    git_buf_free(&trans);
 
     return py_trans;
 }
@@ -196,35 +185,24 @@ PyDoc_STRVAR(Refspec_rtransform__doc__,
 PyObject *
 Refspec_rtransform(Refspec *self, PyObject *py_str)
 {
+    git_buf trans = {NULL};
     const char *str;
-    char *trans;
-    int err, len, alen;
+    int err;
     PyObject *py_trans, *tstr;
 
     str = py_str_borrow_c_str(&tstr, py_str, NULL);
-    alen = len = strlen(str);
 
-    do {
-        alen *= alen;
-        trans = malloc(alen);
-        if (!trans) {
-            Py_DECREF(tstr);
-            return PyErr_NoMemory();
-        }
-
-        err = git_refspec_rtransform(trans, alen, self->refspec, str);
-    } while(err == GIT_EBUFS);
+    err = git_refspec_rtransform(&trans, self->refspec, str);
     Py_DECREF(tstr);
 
     if (err < 0) {
-        free(trans);
         Error_set(err);
         return NULL;
     }
 
-    py_trans = to_unicode(trans, NULL, NULL);
+    py_trans = to_unicode(trans.ptr, NULL, NULL);
 
-    free(trans);
+    git_buf_free(&trans);
 
     return py_trans;
 }
