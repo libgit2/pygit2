@@ -19,14 +19,12 @@ The Remote type
 .. autoattribute:: pygit2.Remote.progress
 .. autoattribute:: pygit2.Remote.transfer_progress
 .. autoattribute:: pygit2.Remote.update_tips
-.. automethod:: pygit2.Remote.get_push_refspecs
-.. automethod:: pygit2.Remote.get_fetch_refspecs
-.. automethod:: pygit2.Remote.set_push_refspecs
-.. automethod:: pygit2.Remote.set_fetch_refspecs
 .. automethod:: pygit2.Remote.get_refspec
 .. automethod:: pygit2.Remote.fetch
 .. automethod:: pygit2.Remote.push
 .. automethod:: pygit2.Remote.save
+.. automethod:: pygit2.Remote.add_push
+.. automethod:: pygit2.Remote.add_fetch
 
 The TransferProgress type
 ===========================

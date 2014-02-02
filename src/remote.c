@@ -43,9 +43,9 @@ extern PyTypeObject TransferProgressType;
 Refspec *
 wrap_refspec(const Remote *owner, const git_refspec *refspec)
 {
-	Refspec *spec;
+    Refspec *spec;
 
-	spec = PyObject_New(Refspec, &RefspecType);
+    spec = PyObject_New(Refspec, &RefspecType);
     if (!spec)
         return NULL;
 
@@ -258,7 +258,7 @@ PyDoc_STRVAR(Refspec__doc__, "Refspec object.");
 PyTypeObject RefspecType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.Refspec",                         /* tp_name           */
-    sizeof(Refspec),                            /* tp_basicsize      */
+    sizeof(Refspec),                           /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)Refspec_dealloc,               /* tp_dealloc        */
     0,                                         /* tp_print          */
@@ -331,7 +331,7 @@ PyMemberDef TransferProgress_members[] = {
     RMEMBER(TransferProgress, indexed_deltas, T_UINT, "Deltas which have been indexed"),
     /* FIXME: technically this is unsigned, but there's no value for size_t here. */
     RMEMBER(TransferProgress, received_bytes, T_PYSSIZET, "Number of bytes received up to now"),
-	{NULL},
+    {NULL},
 };
 
 PyDoc_STRVAR(TransferProgress__doc__, "Progress downloading and indexing data during a fetch");
@@ -639,59 +639,6 @@ Remote_push_refspecs__set__(Remote *self, PyObject *py_list)
     return 0;
 }
 
-PyDoc_STRVAR(Remote_get_fetch_refspecs__doc__,
-    "Fetch refspecs.\n"
-    "This function is deprecated, please use the fetch_refspecs attribute"
-    "\n");
-
-
-PyObject *
-Remote_get_fetch_refspecs(Remote *self)
-{
-    return Remote_fetch_refspecs__get__(self);
-}
-
-
-PyDoc_STRVAR(Remote_get_push_refspecs__doc__, "Push refspecs");
-
-
-PyObject *
-Remote_get_push_refspecs(Remote *self)
-{
-    return Remote_push_refspecs__get__(self);
-}
-
-PyDoc_STRVAR(Remote_set_fetch_refspecs__doc__,
-    "set_fetch_refspecs([str])\n"
-    "This function is deprecated, please use the push_refspecs attribute"
-    "\n");
-
-
-PyObject *
-Remote_set_fetch_refspecs(Remote *self, PyObject *args)
-{
-    if (Remote_fetch_refspecs__set__(self, args) < 0)
-        return NULL;
-
-    Py_RETURN_NONE;
-}
-
-
-PyDoc_STRVAR(Remote_set_push_refspecs__doc__,
-    "set_push_refspecs([str])\n"
-    "This function is deprecated, please use the push_refspecs attribute"
-    "\n");
-
-
-PyObject *
-Remote_set_push_refspecs(Remote *self, PyObject *args)
-{
-    if (Remote_push_refspecs__set__(self, args) < 0)
-        return NULL;
-
-    Py_RETURN_NONE;
-}
-
 
 PyDoc_STRVAR(Remote_url__doc__, "Url of the remote");
 
@@ -699,7 +646,7 @@ PyDoc_STRVAR(Remote_url__doc__, "Url of the remote");
 PyObject *
 Remote_url__get__(Remote *self)
 {
-	const char *url;
+    const char *url;
 
     url = git_remote_url(self->remote);
     if (!url)
@@ -735,7 +682,7 @@ PyDoc_STRVAR(Remote_push_url__doc__, "Push url of the remote");
 PyObject *
 Remote_push_url__get__(Remote *self)
 {
-	const char *url;
+    const char *url;
 
     url = git_remote_pushurl(self->remote);
     if (!url)
@@ -976,10 +923,6 @@ PyMethodDef Remote_methods[] = {
     METHOD(Remote, push, METH_VARARGS),
     METHOD(Remote, add_push, METH_VARARGS),
     METHOD(Remote, add_fetch, METH_VARARGS),
-    METHOD(Remote, get_fetch_refspecs, METH_NOARGS),
-    METHOD(Remote, set_fetch_refspecs, METH_O),
-    METHOD(Remote, get_push_refspecs, METH_NOARGS),
-    METHOD(Remote, set_push_refspecs, METH_O),
     {NULL}
 };
 

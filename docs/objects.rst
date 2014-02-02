@@ -79,8 +79,6 @@ New objects are created using an specific API we will see later.
 This is the common interface for all Git objects:
 
 .. autoattribute:: pygit2.Object.id
-.. autoattribute:: pygit2.Object.oid
-.. autoattribute:: pygit2.Object.hex
 .. autoattribute:: pygit2.Object.type
 .. automethod:: pygit2.Object.read_raw
 
@@ -111,6 +109,9 @@ This is their API:
      130
 
 .. autoattribute:: pygit2.Blob.is_binary
+
+.. automethod:: pygit2.Blob.diff
+.. automethod:: pygit2.Blob.diff_to_buffer
 
 
 Creating blobs
@@ -172,11 +173,12 @@ Tree entries
 
 .. autoattribute:: pygit2.TreeEntry.name
 .. autoattribute:: pygit2.TreeEntry.id
-.. autoattribute:: pygit2.TreeEntry.oid
 .. autoattribute:: pygit2.TreeEntry.hex
 .. autoattribute:: pygit2.TreeEntry.filemode
 
-:class:`TreeEntry` supports comparison against other tree entries.
+.. method:: cmp(TreeEntry, TreeEntry)
+
+   Rich comparison between tree entries.
 
 Example::
 

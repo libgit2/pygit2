@@ -201,9 +201,11 @@ Tree_len(Tree *self)
 int
 Tree_contains(Tree *self, PyObject *py_name)
 {
-	int err;
+    int err;
     git_tree_entry *entry;
-    char *name = py_path_to_c_str(py_name);
+    char *name;
+
+    name = py_path_to_c_str(py_name);
     if (name == NULL)
         return -1;
 

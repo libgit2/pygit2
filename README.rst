@@ -79,6 +79,43 @@ Authors
 Changelog
 ==============
 
+0.20.2 (2014-02-XX)
+-------------------
+
+- New ``Blob.diff(...)`` and ``Blob.diff_to_buffer(...)``
+  `#307 <https://github.com/libgit2/pygit2/pull/307>`_
+
+- New ``Repository.default_signature``
+  `#310 <https://github.com/libgit2/pygit2/pull/310>`_
+
+- New ``Commit.tree_id`` and ``Commit.parent_ids``
+  `#730 <https://github.com/libgit2/pygit2/issues/73>`_
+
+
+- New rich comparison between tree entries
+- New ``Config`` iterator replaces ``Config.foreach``
+- New type ``Refspec``
+- New ``Remote.push_url``
+- New ``Remote.add_push`` and ``Remote.add_fetch``
+- New ``Remote.fetch_refspecs`` replaces ``Remote.get_fetch_refspecs()`` and
+  ``Remote.set_fetch_refspecs(...)``
+- New ``Remote.push_refspecs`` replaces ``Remote.get_push_refspecs()`` and
+  ``Remote.set_push_refspecs(...)``
+- Now *path* in ``Tree`` works
+- New ``str(Oid)`` deprecates ``Oid.hex``
+- New ``Object.id`` deprecates ``Object.oid``
+- New ``TreeEntry.id`` deprecates ``TreeEntry.oid``
+- New ``Remote.progress``, ``Remote.transfer_progress`` and
+  ``Remote.update_tips``
+- New type ``TransferProgress``
+- Now possible to create ``IndexEntry(...)``
+- Now ``IndexEntry.path``, ``IndexEntry.oid`` and ``IndexEntry.mode`` are
+  writable
+- Now ``Index.add(...)`` accepts an ``IndexEntry`` too
+- Now ``Index.write_tree(...)`` is able to write to a different repository
+- Support pypy
+
+
 0.20.1 (2013-12-24)
 -------------------
 
@@ -117,18 +154,10 @@ Changelog
 - Upgrade to libgit2 v0.20.0:
   `#288 <https://github.com/libgit2/pygit2/pull/288>`_
 
-  Rename ``Repository.head_is_orphaned`` to ``Repository.head_is_unborn``
+- New ``Repository.head_is_unborn`` replaces ``Repository.head_is_orphaned``
 
-  Prototype of ``pygit2.clone_repository(...)`` changed::
-
-      # Before
-      pygit2.clone_repository(url, path, bare=False, remote_name='origin',
-                              push_url=None, fetch_spec=None, push_spec=None,
-                              checkout_branch=None)
-
-      # Now
-      pygit2.clone_repository(url, path, bare=False, ignore_cert_errors=False,
-                              remote_name='origin', checkout_branch=None)
+- Changed ``pygit2.clone_repository(...)``. Drop ``push_url``, ``fetch_spec``
+  and ``push_spec`` parameters. Add ``ignore_cert_errors``.
 
 - New ``Patch.additions`` and ``Patch.deletions``:
   `#275 <https://github.com/libgit2/pygit2/pull/275>`_

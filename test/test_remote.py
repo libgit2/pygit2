@@ -92,53 +92,49 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual(True, refspec.force)
         self.assertEqual(ORIGIN_REFSPEC, refspec.string)
 
-        self.assertEqual(list, type(remote.get_fetch_refspecs()))
-        self.assertEqual(1, len(remote.get_fetch_refspecs()))
-        self.assertEqual(ORIGIN_REFSPEC, remote.get_fetch_refspecs()[0])
+        self.assertEqual(list, type(remote.fetch_refspecs))
+        self.assertEqual(1, len(remote.fetch_refspecs))
+        self.assertEqual(ORIGIN_REFSPEC, remote.fetch_refspecs[0])
 
         self.assertTrue(refspec.src_matches('refs/heads/master'))
         self.assertTrue(refspec.dst_matches('refs/remotes/origin/master'))
         self.assertEqual('refs/remotes/origin/master', refspec.transform('refs/heads/master'))
         self.assertEqual('refs/heads/master', refspec.rtransform('refs/remotes/origin/master'))
 
-        self.assertEqual(list, type(remote.get_push_refspecs()))
-        self.assertEqual(0, len(remote.get_push_refspecs()))
+        self.assertEqual(list, type(remote.push_refspecs))
+        self.assertEqual(0, len(remote.push_refspecs))
 
         push_specs = remote.push_refspecs
         self.assertEqual(list, type(push_specs))
         self.assertEqual(0, len(push_specs))
 
-        remote.set_fetch_refspecs(['+refs/*:refs/remotes/*'])
-        self.assertEqual('+refs/*:refs/remotes/*',
-                         remote.get_fetch_refspecs()[0])
+        remote.fetch_refspecs = ['+refs/*:refs/remotes/*']
+        self.assertEqual('+refs/*:refs/remotes/*', remote.fetch_refspecs[0])
 
         fetch_specs = remote.fetch_refspecs
         self.assertEqual(list, type(fetch_specs))
         self.assertEqual(1, len(fetch_specs))
         self.assertEqual('+refs/*:refs/remotes/*', fetch_specs[0])
 
-        remote.set_fetch_refspecs([
-           '+refs/*:refs/remotes/*',
-           '+refs/test/*:refs/test/remotes/*'
-        ])
-        self.assertEqual('+refs/*:refs/remotes/*',
-                         remote.get_fetch_refspecs()[0])
+        remote.fetch_refspecs = ['+refs/*:refs/remotes/*',
+                                 '+refs/test/*:refs/test/remotes/*']
+        self.assertEqual('+refs/*:refs/remotes/*', remote.fetch_refspecs[0])
         self.assertEqual('+refs/test/*:refs/test/remotes/*',
-                         remote.get_fetch_refspecs()[1])
+                         remote.fetch_refspecs[1])
 
-        remote.set_push_refspecs([
-            '+refs/*:refs/remotes/*',
-            '+refs/test/*:refs/test/remotes/*'
-        ])
+        remote.push_refspecs = ['+refs/*:refs/remotes/*',
+                                '+refs/test/*:refs/test/remotes/*']
 
-        self.assertRaises(TypeError, setattr, remote, 'push_refspecs', '+refs/*:refs/*')
-        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs', '+refs/*:refs/*')
-        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs', ['+refs/*:refs/*', 5])
+        self.assertRaises(TypeError, setattr, remote, 'push_refspecs',
+                          '+refs/*:refs/*')
+        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs',
+                          '+refs/*:refs/*')
+        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs',
+                          ['+refs/*:refs/*', 5])
 
-        self.assertEqual('+refs/*:refs/remotes/*',
-                         remote.get_push_refspecs()[0])
+        self.assertEqual('+refs/*:refs/remotes/*', remote.push_refspecs[0])
         self.assertEqual('+refs/test/*:refs/test/remotes/*',
-                         remote.get_push_refspecs()[1])
+                         remote.push_refspecs[1])
 
 
     def test_remote_list(self):
@@ -169,10 +165,10 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.create_remote('test_add_refspec', REMOTE_URL)
         remote.add_push('refs/heads/*:refs/heads/test_refspec/*')
         self.assertEqual('refs/heads/*:refs/heads/test_refspec/*',
-                         remote.get_push_refspecs()[0])
+                         remote.push_refspecs[0])
         remote.add_fetch('+refs/heads/*:refs/remotes/test_refspec/*')
         self.assertEqual('+refs/heads/*:refs/remotes/test_refspec/*',
-                         remote.get_fetch_refspecs()[1])
+                         remote.fetch_refspecs[1])
 
     def test_remote_callback_typecheck(self):
         remote = self.repo.remotes[0]
