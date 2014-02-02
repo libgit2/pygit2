@@ -82,6 +82,11 @@ Changelog
 0.20.2 (2014-02-XX)
 -------------------
 
+- Support pypy
+  `#209 <https://github.com/libgit2/pygit2/issues/209>`_
+  `#327 <https://github.com/libgit2/pygit2/pull/327>`_
+  `#333 <https://github.com/libgit2/pygit2/pull/333>`_
+
 - New ``Blob.diff(...)`` and ``Blob.diff_to_buffer(...)``
   `#307 <https://github.com/libgit2/pygit2/pull/307>`_
 
@@ -89,31 +94,74 @@ Changelog
   `#310 <https://github.com/libgit2/pygit2/pull/310>`_
 
 - New ``Commit.tree_id`` and ``Commit.parent_ids``
-  `#730 <https://github.com/libgit2/pygit2/issues/73>`_
+  `#73 <https://github.com/libgit2/pygit2/issues/73>`_
+  `#311 <https://github.com/libgit2/pygit2/pull/311>`_
 
+- New ``Config`` iterator replaces ``Config.foreach``
+  `#183 <https://github.com/libgit2/pygit2/issues/183>`_
+  `#312 <https://github.com/libgit2/pygit2/pull/312>`_
 
 - New rich comparison between tree entries
-- New ``Config`` iterator replaces ``Config.foreach``
+  `#305 <https://github.com/libgit2/pygit2/issues/305>`_
+  `#313 <https://github.com/libgit2/pygit2/pull/313>`_
+
 - New type ``Refspec``
+  `#314 <https://github.com/libgit2/pygit2/pull/314>`_
+
 - New ``Remote.push_url``
+  `#315 <https://github.com/libgit2/pygit2/pull/314>`_
+
+- Now ``path in Tree`` works
+  `#306 <https://github.com/libgit2/pygit2/issues/306>`_
+  `#316 <https://github.com/libgit2/pygit2/pull/316>`_
+
 - New ``Remote.add_push`` and ``Remote.add_fetch``
+  `#255 <https://github.com/libgit2/pygit2/issues/255>`_
+  `#318 <https://github.com/libgit2/pygit2/pull/318>`_
+
 - New ``Remote.fetch_refspecs`` replaces ``Remote.get_fetch_refspecs()`` and
   ``Remote.set_fetch_refspecs(...)``
+  `#319 <https://github.com/libgit2/pygit2/pull/319>`_
+
 - New ``Remote.push_refspecs`` replaces ``Remote.get_push_refspecs()`` and
   ``Remote.set_push_refspecs(...)``
-- Now *path* in ``Tree`` works
+  `#319 <https://github.com/libgit2/pygit2/pull/319>`_
+
 - New ``str(Oid)`` deprecates ``Oid.hex``
+  `#322 <https://github.com/libgit2/pygit2/pull/322>`_
+
 - New ``Object.id`` deprecates ``Object.oid``
+  `#322 <https://github.com/libgit2/pygit2/pull/322>`_
+
 - New ``TreeEntry.id`` deprecates ``TreeEntry.oid``
+  `#322 <https://github.com/libgit2/pygit2/pull/322>`_
+
 - New ``Remote.progress``, ``Remote.transfer_progress`` and
   ``Remote.update_tips``
+  `#274 <https://github.com/libgit2/pygit2/issues/274>`_
+  `#324 <https://github.com/libgit2/pygit2/pull/324>`_
+
 - New type ``TransferProgress``
+  `#274 <https://github.com/libgit2/pygit2/issues/274>`_
+  `#324 <https://github.com/libgit2/pygit2/pull/324>`_
+
 - Now possible to create ``IndexEntry(...)``
+  `#325 <https://github.com/libgit2/pygit2/pull/325>`_
+
 - Now ``IndexEntry.path``, ``IndexEntry.oid`` and ``IndexEntry.mode`` are
   writable
+  `#325 <https://github.com/libgit2/pygit2/pull/325>`_
+
 - Now ``Index.add(...)`` accepts an ``IndexEntry`` too
+  `#325 <https://github.com/libgit2/pygit2/pull/325>`_
+
 - Now ``Index.write_tree(...)`` is able to write to a different repository
-- Support pypy
+  `#325 <https://github.com/libgit2/pygit2/pull/325>`_
+
+- Other non user visible changes:
+  `#331 <https://github.com/libgit2/pygit2/pull/331>`_
+  and
+  `#332 <https://github.com/libgit2/pygit2/pull/332>`_
 
 
 0.20.1 (2013-12-24)
