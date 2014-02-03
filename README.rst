@@ -158,10 +158,12 @@ Changelog
 - Now ``Index.write_tree(...)`` is able to write to a different repository
   `#325 <https://github.com/libgit2/pygit2/pull/325>`_
 
+- Fix refcount leak in ``Repository.remotes``
+  `#321 <https://github.com/libgit2/pygit2/issues/321>`_
+  `#332 <https://github.com/libgit2/pygit2/pull/332>`_
+
 - Other non user visible changes:
   `#331 <https://github.com/libgit2/pygit2/pull/331>`_
-  and
-  `#332 <https://github.com/libgit2/pygit2/pull/332>`_
 
 
 0.20.1 (2013-12-24)
