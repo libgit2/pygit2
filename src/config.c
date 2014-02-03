@@ -147,15 +147,15 @@ Config_get_system_config(void)
 int
 Config_contains(Config *self, PyObject *py_key) {
     int err;
-    const char *c_value;
-    char *c_key;
+    const char *c_value, *c_key;
+    PyObject *tkey;
 
-    c_key = py_str_to_c_str(py_key, NULL);
+    c_key = py_str_borrow_c_str(&tkey, py_key, NULL);
     if (c_key == NULL)
         return -1;
 
     err = git_config_get_string(&c_value, self->config, c_key);
-    free(c_key);
+    Py_DECREF(tkey);
 
     if (err < 0) {
         if (err == GIT_ENOTFOUND)
@@ -175,14 +175,15 @@ Config_getitem(Config *self, PyObject *py_key)
     int64_t value_int;
     int err, value_bool;
     const char *value_str;
-    char *key;
-    PyObject* py_value;
+    const char *key;
+    PyObject* py_value, *tmp;
 
-    key = py_str_to_c_str(py_key, NULL);
+    key = py_str_borrow_c_str(&tmp, py_key, NULL);
     if (key == NULL)
         return NULL;
 
     err = git_config_get_string(&value_str, self->config, key);
+    Py_CLEAR(tmp);
     if (err < 0)
         goto cleanup;
 
@@ -194,8 +195,6 @@ Config_getitem(Config *self, PyObject *py_key)
         py_value = to_unicode(value_str, NULL, NULL);
 
 cleanup:
-    free(key);
-
     if (err < 0) {
         if (err == GIT_ENOTFOUND) {
             PyErr_SetObject(PyExc_KeyError, py_key);
@@ -212,9 +211,10 @@ int
 Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
 {
     int err;
-    char *key, *value;
+    const char *key, *value;
+    PyObject *tkey, *tvalue;
 
-    key = py_str_to_c_str(py_key, NULL);
+    key = py_str_borrow_c_str(&tkey, py_key, NULL);
     if (key == NULL)
         return -1;
 
@@ -227,12 +227,12 @@ Config_setitem(Config *self, PyObject *py_key, PyObject *py_value)
         err = git_config_set_int64(self->config, key,
                 (int64_t)PyLong_AsLong(py_value));
     } else {
-        value = py_str_to_c_str(py_value, NULL);
+        value = py_str_borrow_c_str(&tvalue, py_value, NULL);
         err = git_config_set_string(self->config, key, value);
-        free(value);
+        Py_DECREF(tvalue);
     }
 
-    free(key);
+    Py_DECREF(tkey);
     if (err < 0) {
         Error_set(err);
         return -1;
