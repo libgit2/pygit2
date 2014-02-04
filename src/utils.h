@@ -108,6 +108,8 @@ to_bytes(const char * value)
 }
 
 char * py_str_to_c_str(PyObject *value, const char *encoding);
+const char *py_str_borrow_c_str(PyObject **tvaue, PyObject *value, const char *encoding);
+
 
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)

@@ -37,8 +37,9 @@ int
 Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 {
     char *keywords[] = {"name", "email", "time", "offset", "encoding", NULL};
-    PyObject *py_name;
-    char *name, *email, *encoding = "ascii";
+    PyObject *py_name, *tname;
+    char *email, *encoding = "ascii";
+    const char *name;
     long long time = -1;
     int offset = 0;
     int err;
@@ -49,7 +50,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
             &py_name, &email, &time, &offset, &encoding))
         return -1;
 
-    name = py_str_to_c_str(py_name, encoding);
+    name = py_str_borrow_c_str(&tname, py_name, encoding);
     if (name == NULL)
         return -1;
 
@@ -58,7 +59,8 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
     } else {
         err = git_signature_new(&signature, name, email, time, offset);
     }
-    free(name);
+    Py_DECREF(tname);
+
     if (err < 0) {
         Error_set(err);
         return -1;

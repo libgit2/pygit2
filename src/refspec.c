@@ -105,15 +105,16 @@ PyDoc_STRVAR(Refspec_src_matches__doc__,
 PyObject *
 Refspec_src_matches(Refspec *self, PyObject *py_str)
 {
-    char *str;
+    const char *str;
+    PyObject *tstr;
     int res;
 
-    str = py_str_to_c_str(py_str, NULL);
+    str = py_str_borrow_c_str(&tstr, py_str, NULL);
     if (!str)
         return NULL;
 
     res = git_refspec_src_matches(self->refspec, str);
-    free(str);
+    Py_DECREF(tstr);
 
     if (res)
         Py_RETURN_TRUE;
@@ -129,15 +130,16 @@ PyDoc_STRVAR(Refspec_dst_matches__doc__,
 PyObject *
 Refspec_dst_matches(Refspec *self, PyObject *py_str)
 {
-    char *str;
+    const char *str;
+    PyObject *tstr;
     int res;
 
-    str = py_str_to_c_str(py_str, NULL);
+    str = py_str_borrow_c_str(&tstr, py_str, NULL);
     if (!str)
         return NULL;
 
     res = git_refspec_dst_matches(self->refspec, str);
-    free(str);
+    Py_DECREF(tstr);
 
     if (res)
         Py_RETURN_TRUE;
@@ -153,24 +155,25 @@ PyDoc_STRVAR(Refspec_transform__doc__,
 PyObject *
 Refspec_transform(Refspec *self, PyObject *py_str)
 {
-    char *str, *trans;
+    const char *str;
+    char *trans;
     int err, len, alen;
-    PyObject *py_trans;
+    PyObject *py_trans, *tstr;
 
-    str = py_str_to_c_str(py_str, NULL);
+    str = py_str_borrow_c_str(&tstr, py_str, NULL);
     alen = len = strlen(str);
 
     do {
         alen *= alen;
         trans = malloc(alen);
         if (!trans) {
-            free(str);
+            Py_DECREF(tstr);
             return PyErr_NoMemory();
         }
 
         err = git_refspec_transform(trans, alen, self->refspec, str);
     } while(err == GIT_EBUFS);
-    free(str);
+    Py_DECREF(tstr);
 
     if (err < 0) {
         free(trans);
@@ -193,24 +196,25 @@ PyDoc_STRVAR(Refspec_rtransform__doc__,
 PyObject *
 Refspec_rtransform(Refspec *self, PyObject *py_str)
 {
-    char *str, *trans;
+    const char *str;
+    char *trans;
     int err, len, alen;
-    PyObject *py_trans;
+    PyObject *py_trans, *tstr;
 
-    str = py_str_to_c_str(py_str, NULL);
+    str = py_str_borrow_c_str(&tstr, py_str, NULL);
     alen = len = strlen(str);
 
     do {
         alen *= alen;
         trans = malloc(alen);
         if (!trans) {
-            free(str);
+            Py_DECREF(tstr);
             return PyErr_NoMemory();
         }
 
         err = git_refspec_rtransform(trans, alen, self->refspec, str);
     } while(err == GIT_EBUFS);
-    free(str);
+    Py_DECREF(tstr);
 
     if (err < 0) {
         free(trans);

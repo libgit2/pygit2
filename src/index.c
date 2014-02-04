@@ -650,17 +650,11 @@ IndexEntry_path__get__(IndexEntry *self)
 int
 IndexEntry_path__set__(IndexEntry *self, PyObject *py_path)
 {
-    char *c_inner, *c_path;
+    char *c_path;
 
-    c_inner = py_str_to_c_str(py_path, NULL);
-    if (!c_inner)
+    c_path = py_str_to_c_str(py_path, NULL);
+    if (!c_path)
         return -1;
-
-    c_path = strdup(c_inner);
-    if (!c_path) {
-        PyErr_NoMemory();
-        return -1;
-    }
 
     free(self->entry.path);
     self->entry.path = c_path;

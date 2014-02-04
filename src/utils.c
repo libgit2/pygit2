@@ -32,27 +32,50 @@
 
 extern PyTypeObject ReferenceType;
 
-/* py_str_to_c_str() returns a newly allocated C string holding
- * the string contained in the value argument. */
+/**
+ * py_str_to_c_str() returns a newly allocated C string holding the string
+ * contained in the 'value' argument.
+ */
 char *
 py_str_to_c_str(PyObject *value, const char *encoding)
 {
+    const char *borrowed;
     char *c_str = NULL;
+    PyObject *tmp = NULL;
+
+    borrowed = py_str_borrow_c_str(&tmp, value, encoding);
+    if (!borrowed)
+        return NULL;
+
+    c_str = strdup(borrowed);
+
+    Py_DECREF(tmp);
+    return c_str;
+}
+
+/**
+ * Return a pointer to the underlying C string in 'value'. The pointer is
+ * guaranteed by 'tvalue'. Decrease its refcount when done with the string.
+ */
+const char *
+py_str_borrow_c_str(PyObject **tvalue, PyObject *value, const char *encoding)
+{
     /* Case 1: byte string */
-    if (PyBytes_Check(value))
-        return strdup(PyBytes_AsString(value));
+    if (PyBytes_Check(value)) {
+        Py_INCREF(value);
+        *tvalue = value;
+        return PyBytes_AsString(value);
+    }
 
     /* Case 2: text string */
     if (PyUnicode_Check(value)) {
         if (encoding == NULL)
-            value = PyUnicode_AsUTF8String(value);
+            *tvalue = PyUnicode_AsUTF8String(value);
         else
-            value = PyUnicode_AsEncodedString(value, encoding, "strict");
-        if (value == NULL)
+            *tvalue = PyUnicode_AsEncodedString(value, encoding, "strict");
+        if (*tvalue == NULL)
             return NULL;
-        c_str = strdup(PyBytes_AsString(value));
-        Py_DECREF(value);
-        return c_str;
+        return PyBytes_AsString(*tvalue);
     }
 
     /* Type error */

@@ -226,12 +226,13 @@ int
 Remote_name__set__(Remote *self, PyObject* py_name)
 {
     int err;
-    char* name;
+    const char* name;
+    PyObject *tname;
 
-    name = py_str_to_c_str(py_name, NULL);
+    name = py_str_borrow_c_str(&tname, py_name, NULL);
     if (name != NULL) {
         err = git_remote_rename(self->remote, name, NULL, NULL);
-        free(name);
+	Py_DECREF(tname);
 
         if (err == GIT_OK)
             return 0;
@@ -404,12 +405,13 @@ int
 Remote_url__set__(Remote *self, PyObject* py_url)
 {
     int err;
-    char* url = NULL;
+    const char* url = NULL;
+    PyObject *turl;
 
-    url = py_str_to_c_str(py_url, NULL);
+    url = py_str_borrow_c_str(&turl, py_url, NULL);
     if (url != NULL) {
         err = git_remote_set_url(self->remote, url);
-        free(url);
+	Py_DECREF(turl);
 
         if (err == GIT_OK)
             return 0;
@@ -440,12 +442,13 @@ int
 Remote_push_url__set__(Remote *self, PyObject* py_url)
 {
     int err;
-    char* url = NULL;
+    const char* url = NULL;
+    PyObject *turl;
 
-    url = py_str_to_c_str(py_url, NULL);
+    url = py_str_borrow_c_str(&turl, py_url, NULL);
     if (url != NULL) {
         err = git_remote_set_pushurl(self->remote, url);
-        free(url);
+	Py_DECREF(turl);
 
         if (err == GIT_OK)
             return 0;
