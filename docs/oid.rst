@@ -65,7 +65,7 @@ And the other way around, from an Oid object we can get the hexadecimal and raw
 forms. You can use the built-in `str()` (or `unicode()` in python 2) to get the
 hexadecimal representation of the Oid.
 
-.. method:: str(pygit2.Oid)
+.. method:: Oid.__str__()
 .. autoattribute:: pygit2.Oid.raw
 
 The Oid type supports:

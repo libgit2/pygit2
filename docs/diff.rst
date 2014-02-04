@@ -35,7 +35,7 @@ The Diff type
 ====================
 
 .. autoattribute:: pygit2.Diff.patch
-.. method:: len(Diff)
+.. method:: Diff.__len__()
 
    Returns the number of deltas/patches in this diff.
 

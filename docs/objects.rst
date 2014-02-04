@@ -18,7 +18,7 @@ In the previous chapter we learnt about Object IDs. With an oid we can ask the
 repository to get the associated object. To do that the ``Repository`` class
 implementes a subset of the mapping interface.
 
-.. method:: Repository.get(oid, default=None)
+.. automethod:: pygit2.Repository.get
 
    Return the Git object for the given *oid*, returns the *default* value if
    there's no object in the repository with that oid. The oid can be an Oid
@@ -32,13 +32,13 @@ implementes a subset of the mapping interface.
      >>> obj
      <_pygit2.Commit object at 0x7ff27a6b60f0>
 
-.. method:: Repository[oid]
+.. method:: Repository.__getitem__(oid)
 
    Return the Git object for the given oid, raise ``KeyError`` if there's no
    object in the repository with that oid. The oid can be an Oid object, or
    an hexadecimal string.
 
-.. method:: oid in Repository
+.. method:: Repository.__contains__(oid)
 
    Returns True if there is an object in the Repository with that oid, False
    if there is not.  The oid can be an Oid object, or an hexadecimal string.
@@ -147,20 +147,20 @@ directory in a file system. Each entry points to another tree or a blob.  A
 tree can be iterated, and partially implements the sequence and mapping
 interfaces.
 
-.. method:: Tree[name]
+.. method:: Tree.__getitem__(name)
 
    Return the TreeEntry object for the given *name*. Raise ``KeyError`` if
    there is not a tree entry with that name.
 
-.. method:: name in Tree
+.. method:: Tree.__contains__(name)
 
    Return True if there is a tree entry with the given name, False otherwise.
 
-.. method:: len(Tree)
+.. method:: Tree.__len__()
 
    Return the number of entries in the tree.
 
-.. method:: iter(Tree)
+.. method:: Tree.__iter__()
 
    Return an iterator over the entries of the tree.
 
@@ -176,7 +176,7 @@ Tree entries
 .. autoattribute:: pygit2.TreeEntry.hex
 .. autoattribute:: pygit2.TreeEntry.filemode
 
-.. method:: cmp(TreeEntry, TreeEntry)
+.. method:: TreeEntry.__cmp__(TreeEntry)
 
    Rich comparison between tree entries.
 

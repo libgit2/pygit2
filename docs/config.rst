@@ -14,7 +14,7 @@ The Config type
 .. automethod:: pygit2.Config.get_multivar
 .. automethod:: pygit2.Config.set_multivar
 
-.. method:: for (name, value) in Config
+.. method:: Config.__iter__()
 
    The :class:`Config` class has an iterator which can be used to loop
    through all the entries in the configuration. Each element is a tuple

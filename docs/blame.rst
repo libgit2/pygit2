@@ -12,9 +12,9 @@ The Blame type
 ==============
 
 .. automethod:: pygit2.Blame.for_line
-.. method:: iter(Blame)
-.. method:: len(Blame)
-.. method:: Blame[n]
+.. method:: Blame.__iter__()
+.. method:: Blame.__len__()
+.. method:: Blame.__getitem__(n)
 
 
 The BlameHunk type
