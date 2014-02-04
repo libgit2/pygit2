@@ -44,42 +44,33 @@ for the topic), send a pull request.
 Authors
 ==============
 
-56 developers have contributed at least 1 commit to pygit2::
+57 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez                          Andrey Devyatkin
-  Nico von Geyso                           Ben Davis
-  Carlos Martín Nieto                      Eric Schrijver
-  W. Trevor King                           Hervé Cauwelier
-  Dave Borowitz                            Huang Huang
-  Daniel Rodríguez Troitiño                Jared Flatow
-  Richo Healey                             Jiunn Haur Lim
-  Christian Boos                           Sarath Lakshman
-  Julien Miotte                            Vicent Marti
-  Jose Plana                               Zoran Zaric
-  Martin Lenders                           Adam Spiers
-  Victor Garcia                            Andrew Chin
-  Xavier Delannoy                          András Veres-Szentkirályi
-  Yonggang Luo                             Benjamin Kircher
-  Petr Hosek                               Benjamin Pollack
-  Valentin Haenel                          Bryan O'Sullivan
-  Xu Tao                                   David Fischer
-  Bernardo Heynemann                       David Sanders
-  John Szakmeister                         Eric Davis
-  Brodie Rao                               Erik van Zijst
-  David Versmisse                          Ferengee
-  Rémi Duraffort                           Gustavo Di Pietro
-  Sebastian Thiel                          Hugh Cole-Baker
-  Fraser Tweedale                          Josh Bleecher Snyder
-  Han-Wen Nienhuys                         Jun Omae
-  Petr Viktorin                            Óscar San José
-  Alex Chamberlain                         Ridge Kennedy
-  Amit Bakshi                              Rui Abreu Ferreira
+  J. David Ibáñez            Brodie Rao                 Adam Spiers
+  Nico von Geyso             David Versmisse            Alexander Bayandin
+  Carlos Martín Nieto        Rémi Duraffort             Andrew Chin
+  W. Trevor King             Sebastian Thiel            András Veres-Szentkirályi
+  Dave Borowitz              Fraser Tweedale            Benjamin Kircher
+  Daniel Rodríguez Troitiño  Han-Wen Nienhuys           Benjamin Pollack
+  Richo Healey               Petr Viktorin              Bryan O'Sullivan
+  Christian Boos             Alex Chamberlain           David Fischer
+  Julien Miotte              Amit Bakshi                David Sanders
+  Xu Tao                     Andrey Devyatkin           Eric Davis
+  Jose Plana                 Ben Davis                  Erik van Zijst
+  Martin Lenders             Eric Schrijver             Ferengee
+  Petr Hosek                 Hervé Cauwelier            Gustavo Di Pietro
+  Victor Garcia              Huang Huang                Hugh Cole-Baker
+  Xavier Delannoy            Jared Flatow               Josh Bleecher Snyder
+  Yonggang Luo               Jiunn Haur Lim             Jun Omae
+  Valentin Haenel            Sarath Lakshman            Óscar San José
+  Bernardo Heynemann         Vicent Marti               Ridge Kennedy
+  John Szakmeister           Zoran Zaric                Rui Abreu Ferreira
 
 
 Changelog
 ==============
 
-0.20.2 (2014-02-XX)
+0.20.2 (2014-02-04)
 -------------------
 
 - Support pypy
@@ -87,48 +78,17 @@ Changelog
   `#327 <https://github.com/libgit2/pygit2/pull/327>`_
   `#333 <https://github.com/libgit2/pygit2/pull/333>`_
 
-- New ``Blob.diff(...)`` and ``Blob.diff_to_buffer(...)``
-  `#307 <https://github.com/libgit2/pygit2/pull/307>`_
+Repository:
 
 - New ``Repository.default_signature``
   `#310 <https://github.com/libgit2/pygit2/pull/310>`_
 
-- New ``Commit.tree_id`` and ``Commit.parent_ids``
-  `#73 <https://github.com/libgit2/pygit2/issues/73>`_
-  `#311 <https://github.com/libgit2/pygit2/pull/311>`_
-
-- New ``Config`` iterator replaces ``Config.foreach``
-  `#183 <https://github.com/libgit2/pygit2/issues/183>`_
-  `#312 <https://github.com/libgit2/pygit2/pull/312>`_
-
-- New rich comparison between tree entries
-  `#305 <https://github.com/libgit2/pygit2/issues/305>`_
-  `#313 <https://github.com/libgit2/pygit2/pull/313>`_
-
-- New type ``Refspec``
-  `#314 <https://github.com/libgit2/pygit2/pull/314>`_
-
-- New ``Remote.push_url``
-  `#315 <https://github.com/libgit2/pygit2/pull/314>`_
-
-- Now ``path in Tree`` works
-  `#306 <https://github.com/libgit2/pygit2/issues/306>`_
-  `#316 <https://github.com/libgit2/pygit2/pull/316>`_
-
-- New ``Remote.add_push`` and ``Remote.add_fetch``
-  `#255 <https://github.com/libgit2/pygit2/issues/255>`_
-  `#318 <https://github.com/libgit2/pygit2/pull/318>`_
-
-- New ``Remote.fetch_refspecs`` replaces ``Remote.get_fetch_refspecs()`` and
-  ``Remote.set_fetch_refspecs(...)``
-  `#319 <https://github.com/libgit2/pygit2/pull/319>`_
-
-- New ``Remote.push_refspecs`` replaces ``Remote.get_push_refspecs()`` and
-  ``Remote.set_push_refspecs(...)``
-  `#319 <https://github.com/libgit2/pygit2/pull/319>`_
+Oid:
 
 - New ``str(Oid)`` deprecates ``Oid.hex``
   `#322 <https://github.com/libgit2/pygit2/pull/322>`_
+
+Object:
 
 - New ``Object.id`` deprecates ``Object.oid``
   `#322 <https://github.com/libgit2/pygit2/pull/322>`_
@@ -136,14 +96,22 @@ Changelog
 - New ``TreeEntry.id`` deprecates ``TreeEntry.oid``
   `#322 <https://github.com/libgit2/pygit2/pull/322>`_
 
-- New ``Remote.progress``, ``Remote.transfer_progress`` and
-  ``Remote.update_tips``
-  `#274 <https://github.com/libgit2/pygit2/issues/274>`_
-  `#324 <https://github.com/libgit2/pygit2/pull/324>`_
+- New ``Blob.diff(...)`` and ``Blob.diff_to_buffer(...)``
+  `#307 <https://github.com/libgit2/pygit2/pull/307>`_
 
-- New type ``TransferProgress``
-  `#274 <https://github.com/libgit2/pygit2/issues/274>`_
-  `#324 <https://github.com/libgit2/pygit2/pull/324>`_
+- New ``Commit.tree_id`` and ``Commit.parent_ids``
+  `#73 <https://github.com/libgit2/pygit2/issues/73>`_
+  `#311 <https://github.com/libgit2/pygit2/pull/311>`_
+
+- New rich comparison between tree entries
+  `#305 <https://github.com/libgit2/pygit2/issues/305>`_
+  `#313 <https://github.com/libgit2/pygit2/pull/313>`_
+
+- Now ``Tree.__contains__(key)`` supports paths
+  `#306 <https://github.com/libgit2/pygit2/issues/306>`_
+  `#316 <https://github.com/libgit2/pygit2/pull/316>`_
+
+Index:
 
 - Now possible to create ``IndexEntry(...)``
   `#325 <https://github.com/libgit2/pygit2/pull/325>`_
@@ -158,12 +126,49 @@ Changelog
 - Now ``Index.write_tree(...)`` is able to write to a different repository
   `#325 <https://github.com/libgit2/pygit2/pull/325>`_
 
+- Fix memory leak in ``IndexEntry.path`` setter
+  `#335 <https://github.com/libgit2/pygit2/pull/335>`_
+
+Config:
+
+- New ``Config`` iterator replaces ``Config.foreach``
+  `#183 <https://github.com/libgit2/pygit2/issues/183>`_
+  `#312 <https://github.com/libgit2/pygit2/pull/312>`_
+
+Remote:
+
+- New type ``Refspec``
+  `#314 <https://github.com/libgit2/pygit2/pull/314>`_
+
+- New ``Remote.push_url``
+  `#315 <https://github.com/libgit2/pygit2/pull/314>`_
+
+- New ``Remote.add_push`` and ``Remote.add_fetch``
+  `#255 <https://github.com/libgit2/pygit2/issues/255>`_
+  `#318 <https://github.com/libgit2/pygit2/pull/318>`_
+
+- New ``Remote.fetch_refspecs`` replaces ``Remote.get_fetch_refspecs()`` and
+  ``Remote.set_fetch_refspecs(...)``
+  `#319 <https://github.com/libgit2/pygit2/pull/319>`_
+
+- New ``Remote.push_refspecs`` replaces ``Remote.get_push_refspecs()`` and
+  ``Remote.set_push_refspecs(...)``
+  `#319 <https://github.com/libgit2/pygit2/pull/319>`_
+
+- New ``Remote.progress``, ``Remote.transfer_progress`` and
+  ``Remote.update_tips``
+  `#274 <https://github.com/libgit2/pygit2/issues/274>`_
+  `#324 <https://github.com/libgit2/pygit2/pull/324>`_
+
+- New type ``TransferProgress``
+  `#274 <https://github.com/libgit2/pygit2/issues/274>`_
+  `#324 <https://github.com/libgit2/pygit2/pull/324>`_
+
 - Fix refcount leak in ``Repository.remotes``
   `#321 <https://github.com/libgit2/pygit2/issues/321>`_
   `#332 <https://github.com/libgit2/pygit2/pull/332>`_
 
-- Other non user visible changes:
-  `#331 <https://github.com/libgit2/pygit2/pull/331>`_
+Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 
 
 0.20.1 (2013-12-24)
