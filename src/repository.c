@@ -181,14 +181,15 @@ int
 Repository_head__set__(Repository *self, PyObject *py_refname)
 {
     int err;
-    char *refname;
+    const char *refname;
+    PyObject *trefname;
 
-    refname = py_str_to_c_str(py_refname, NULL);
+    refname = py_str_borrow_c_str(&trefname, py_refname, NULL);
     if (refname == NULL)
         return -1;
 
     err = git_repository_set_head(self->repo, refname);
-    free(refname);
+    Py_DECREF(trefname);
     if (err < 0) {
         Error_set_str(err, refname);
         return -1;
@@ -318,11 +319,12 @@ PyObject *
 Repository_revparse_single(Repository *self, PyObject *py_spec)
 {
     git_object *c_obj;
-    char *c_spec;
+    const char *c_spec;
+    PyObject *tspec;
     int err;
 
     /* 1- Get the C revision spec */
-    c_spec = py_str_to_c_str(py_spec, NULL);
+    c_spec = py_str_borrow_c_str(&tspec, py_spec, NULL);
     if (c_spec == NULL)
         return NULL;
 
@@ -331,10 +333,10 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 
     if (err < 0) {
         PyObject *err_obj = Error_set_str(err, c_spec);
-        free(c_spec);
+	Py_DECREF(tspec);
         return err_obj;
     }
-    free(c_spec);
+    Py_DECREF(tspec);
 
     return wrap_object(c_obj, self);
 }
@@ -782,7 +784,8 @@ Repository_create_commit(Repository *self, PyObject *args)
     Signature *py_author, *py_committer;
     PyObject *py_oid, *py_message, *py_parents, *py_parent;
     PyObject *py_result = NULL;
-    char *message = NULL;
+    PyObject *tmessage;
+    const char *message = NULL;
     char *update_ref = NULL;
     char *encoding = NULL;
     git_oid oid;
@@ -806,7 +809,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     if (len == 0)
         goto out;
 
-    message = py_str_to_c_str(py_message, encoding);
+    message = py_str_borrow_c_str(&tmessage, py_message, encoding);
     if (message == NULL)
         goto out;
 
@@ -846,7 +849,7 @@ Repository_create_commit(Repository *self, PyObject *args)
     py_result = git_oid_to_python(&oid);
 
 out:
-    free(message);
+    Py_DECREF(tmessage);
     git_tree_free(tree);
     while (i > 0) {
         i--;
@@ -1048,7 +1051,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     err = git_reference_lookup(&c_reference, self->repo, c_name);
     if (err < 0) {
         PyObject *err_obj = Error_set_str(err, c_name);
-        free(c_name);
+	free(c_name);
         return err_obj;
     }
     free(c_name);
