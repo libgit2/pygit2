@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
-from pygit2 import GIT_SORT_TIME, GIT_SORT_REVERSE
+from pygit2 import GIT_SORT_NONE, GIT_SORT_TIME, GIT_SORT_REVERSE
 from . import utils
 
 
@@ -106,6 +106,14 @@ class WalkerTest(utils.RepoTestCase):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
         walker.simplify_first_parent()
         self.assertEqual(len(list(walker)), 3)
+
+    def test_default_sorting(self):
+        walker = self.repo.walk(log[0], GIT_SORT_NONE)
+        list1 = list([x.id for x in walker])
+        walker = self.repo.walk(log[0])
+        list2 = list([x.id for x in walker])
+
+        self.assertEqual(list1, list2)
 
 if __name__ == '__main__':
     unittest.main()
