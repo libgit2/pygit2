@@ -626,13 +626,13 @@ Repository_merge(Repository *self, PyObject *py_oid)
 }
 
 PyDoc_STRVAR(Repository_walk__doc__,
-  "walk(oid, sort_mode) -> iterator\n"
+  "walk(oid[, sort_mode]) -> iterator\n"
   "\n"
   "Generator that traverses the history starting from the given commit.\n"
   "The following types of sorting could be used to control traversing\n"
   "direction:\n"
   "\n"
-  "* GIT_SORT_NONE. This is the default sorting for new walkers\n"
+  "* GIT_SORT_NONE. This is the default sorting for new walkers.\n"
   "  Sort the repository contents in no particular ordering\n"
   "* GIT_SORT_TOPOLOGICAL. Sort the repository contents in topological order\n"
   "  (parents before children); this sorting mode can be combined with\n"
@@ -656,13 +656,13 @@ PyObject *
 Repository_walk(Repository *self, PyObject *args)
 {
     PyObject *value;
-    unsigned int sort;
+    unsigned int sort = GIT_SORT_NONE;
     int err;
     git_oid oid;
     git_revwalk *walk;
     Walker *py_walker;
 
-    if (!PyArg_ParseTuple(args, "OI", &value, &sort))
+    if (!PyArg_ParseTuple(args, "O|I", &value, &sort))
         return NULL;
 
     err = git_revwalk_new(&walk, self->repo);
