@@ -61,6 +61,10 @@
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
 #endif
 
+#ifdef PYPY_VERSION
+  #define PyLong_AsSize_t (size_t)PyLong_AsUnsignedLong
+#endif
+
 #ifndef Py_hash_t
   #define Py_hash_t long
 #endif
