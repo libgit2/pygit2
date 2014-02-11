@@ -81,6 +81,7 @@ This is the common interface for all Git objects:
 .. autoattribute:: pygit2.Object.id
 .. autoattribute:: pygit2.Object.type
 .. automethod:: pygit2.Object.read_raw
+.. automethod:: pygit2.Object.peel
 
 
 Blobs
