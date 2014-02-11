@@ -127,6 +127,28 @@ Object_read_raw(Object *self)
     return aux;
 }
 
+PyDoc_STRVAR(Object_peel__doc__,
+  "peel(target_type) -> Object\n"
+  "\n"
+  "Peel the current object and returns the first object of the given type\n");
+
+PyObject *
+Object_peel(Object *self, PyObject *py_type)
+{
+    int type, err;
+    git_object *peeled;
+
+    type = PyLong_AsLong(py_type);
+    if (type == -1 && PyErr_Occurred())
+        return NULL;
+
+    err = git_object_peel(&peeled, self->obj, (git_otype)type);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_object(peeled, self->repo);
+}
+
 PyGetSetDef Object_getseters[] = {
     GETTER(Object, oid),
     GETTER(Object, id),
@@ -137,6 +159,7 @@ PyGetSetDef Object_getseters[] = {
 
 PyMethodDef Object_methods[] = {
     METHOD(Object, read_raw, METH_NOARGS),
+    METHOD(Object, peel, METH_O),
     {NULL}
 };
 
