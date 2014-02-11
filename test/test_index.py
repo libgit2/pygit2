@@ -34,6 +34,7 @@ import unittest
 import tempfile
 
 import pygit2
+from pygit2 import Repository
 from . import utils
 
 
@@ -154,12 +155,10 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual(pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, entry.mode)
 
     def test_write_tree_to(self):
-        path = tempfile.mkdtemp()
-        pygit2.init_repository(path)
-        nrepo = pygit2.Repository(path)
-
-        id = self.repo.index.write_tree(nrepo)
-        self.assertNotEqual(None, nrepo[id])
+        with utils.TemporaryRepository(('tar', 'emptyrepo')) as path:
+            nrepo = Repository(path)
+            id = self.repo.index.write_tree(nrepo)
+            self.assertNotEqual(None, nrepo[id])
 
 class IndexEntryTest(utils.RepoTestCase):
 
