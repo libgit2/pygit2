@@ -33,7 +33,7 @@ from os.path import dirname, join
 import unittest
 
 import pygit2
-from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG
+from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag
 from . import utils
 
 
@@ -54,14 +54,29 @@ class ObjectTest(utils.RepoTestCase):
         # and peel to the tree
         tree = commit.peel(GIT_OBJ_TREE)
 
-        self.assertEqual(type(tree), pygit2.Tree)
+        self.assertEqual(type(tree), Tree)
         self.assertEqual(str(tree.id), 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+
+    def test_peel_commit_type(self):
+        commit_id = self.repo.lookup_reference('refs/heads/master').target
+        commit = self.repo[commit_id]
+        tree = commit.peel(Tree)
+
+        self.assertEqual(type(tree), Tree)
+        self.assertEqual(str(tree.id), 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+
 
     def test_invalid(self):
         commit_id = self.repo.lookup_reference('refs/heads/master').target
         commit = self.repo[commit_id]
 
         self.assertRaises(ValueError, commit.peel, GIT_OBJ_TAG)
+
+    def test_invalid_type(self):
+        commit_id = self.repo.lookup_reference('refs/heads/master').target
+        commit = self.repo[commit_id]
+
+        self.assertRaises(ValueError, commit.peel, Tag)
 
 if __name__ == '__main__':
     unittest.main()
