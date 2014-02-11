@@ -165,6 +165,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         with open(tempfile_path, 'w') as fh:
             fh.write(data)
         hashed_sha1 = hashfile(tempfile_path)
+        os.unlink(tempfile_path)
         written_sha1 = self.repo.create_blob(data)
         self.assertEqual(hashed_sha1, written_sha1)
 
