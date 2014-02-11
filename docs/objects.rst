@@ -214,6 +214,7 @@ Creating trees
 .. automethod:: pygit2.TreeBuilder.remove
 .. automethod:: pygit2.TreeBuilder.clear
 .. automethod:: pygit2.TreeBuilder.write
+.. automethod:: pygit2.TreeBuilder.get
 
 
 Commits
