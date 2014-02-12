@@ -81,7 +81,6 @@ Index_traverse(Index *self, visitproc visit, void *arg)
     return 0;
 }
 
-
 PyDoc_STRVAR(Index_add__doc__,
   "add([path|entry])\n"
   "\n"
@@ -113,6 +112,31 @@ Index_add(Index *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(Index_add_all__doc__,
+  "add_all([file names|glob pattern])\n"
+  "\n"
+  "Add or update index entries matching files in the working directory.");
+
+PyObject *
+Index_add_all(Index *self, PyObject *pylist)
+{
+    int err;
+    git_strarray pathspec;
+
+    if (get_strarraygit_from_pylist(&pathspec, pylist) < 0)
+        return -1;
+
+    err = git_index_add_all(self->index, &pathspec, 0, NULL, NULL);
+    git_strarray_free(&pathspec);
+
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    return 0;
+}
 
 PyDoc_STRVAR(Index_clear__doc__,
   "clear()\n"
