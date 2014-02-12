@@ -125,17 +125,17 @@ Index_add_all(Index *self, PyObject *pylist)
     git_strarray pathspec;
 
     if (get_strarraygit_from_pylist(&pathspec, pylist) < 0)
-        return -1;
+        return NULL;
 
     err = git_index_add_all(self->index, &pathspec, 0, NULL, NULL);
     git_strarray_free(&pathspec);
 
     if (err < 0) {
         Error_set(err);
-        return -1;
+        return NULL;
     }
 
-    return 0;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(Index_clear__doc__,
@@ -481,6 +481,7 @@ Index_write_tree(Index *self, PyObject *args)
 
 PyMethodDef Index_methods[] = {
     METHOD(Index, add, METH_VARARGS),
+    METHOD(Index, add_all, METH_O),
     METHOD(Index, remove, METH_VARARGS),
     METHOD(Index, clear, METH_NOARGS),
     METHOD(Index, diff_to_workdir, METH_VARARGS),
