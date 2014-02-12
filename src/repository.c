@@ -333,7 +333,7 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 
     if (err < 0) {
         PyObject *err_obj = Error_set_str(err, c_spec);
-	Py_DECREF(tspec);
+        Py_DECREF(tspec);
         return err_obj;
     }
     Py_DECREF(tspec);
@@ -1051,7 +1051,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     err = git_reference_lookup(&c_reference, self->repo, c_name);
     if (err < 0) {
         PyObject *err_obj = Error_set_str(err, c_name);
-	free(c_name);
+        free(c_name);
         return err_obj;
     }
     free(c_name);
