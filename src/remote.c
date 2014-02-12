@@ -267,6 +267,7 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
     Py_ssize_t index, n;
     PyObject *item;
     void *ptr;
+    char *str;
 
     if (!PyList_Check(pylist)) {
         PyErr_SetString(PyExc_TypeError, "Value must be a list");
@@ -287,7 +288,7 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 
     for (index = 0; index < n; index++) {
         item = PyList_GetItem(pylist, index);
-        char *str = py_str_to_c_str(item, NULL);
+        str = py_str_to_c_str(item, NULL);
         if (!str)
             goto on_error;
 
