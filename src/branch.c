@@ -161,7 +161,7 @@ Branch_remote_name__get__(Branch *self)
         return Error_set(err);
     }
 
-    py_name = to_unicode(c_name, NULL, NULL);
+    py_name = to_unicode_n(c_name, err - 1, NULL, NULL);
     free(c_name);
 
     return py_name;
@@ -253,7 +253,7 @@ Branch_upstream_name__get__(Branch *self)
         return Error_set(err);
     }
 
-    py_name = to_unicode(c_name, NULL, NULL);
+    py_name = to_unicode_n(c_name, err - 1, NULL, NULL);
     free(c_name);
 
     return py_name;
