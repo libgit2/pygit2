@@ -33,6 +33,7 @@
 #include <git2.h>
 
 PyObject* Index_add(Index *self, PyObject *args);
+PyObject* Index_add_all(Index *self, PyObject *pylist);
 PyObject* Index_clear(Index *self);
 PyObject* Index_find(Index *self, PyObject *py_path);
 PyObject* Index_read(Index *self, PyObject *args);
