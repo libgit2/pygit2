@@ -25,23 +25,14 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDE_pygit2_diff_h
-#define INCLUDE_pygit2_diff_h
+#ifndef INCLUDE_pygit2_patch_h
+#define INCLUDE_pygit2_patch_h
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
 #include "types.h"
 
-#define DIFF_CHECK_TYPES(_x, _y, _type_x, _type_y) \
-                  PyObject_TypeCheck(_x, _type_x) && \
-                  PyObject_TypeCheck(_y, _type_y)
-
-
-PyObject* wrap_diff(git_diff *diff, Repository *repo);
-PyObject* wrap_diff_file(const git_diff_file *file);
-PyObject* wrap_diff_delta(const git_diff_delta *delta);
-PyObject* wrap_diff_hunk(const git_diff_hunk *hunk, size_t idx, Patch *patch);
-PyObject* wrap_diff_line(const git_diff_line *line);
+PyObject* wrap_patch(git_patch *patch);
 
 #endif

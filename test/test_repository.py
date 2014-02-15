@@ -298,7 +298,7 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         #soft reset will keep changes in the index
         diff = self.repo.diff(cached=True)
-        self.assertRaises(KeyError, lambda: diff[0])
+        self.assertTrue(KeyError, lambda: diff[0])
 
     def test_reset_mixed(self):
         ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
@@ -321,8 +321,9 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         #mixed reset will set the index to match working copy
         diff = self.repo.diff(cached=True)
-        self.assertTrue("hola mundo\n" in diff.patch)
-        self.assertTrue("bonjour le monde\n" in diff.patch)
+
+        self.assertTrue("hola mundo\n" in ''.join([str(patch) for patch in diff.patches()]))
+        self.assertTrue("bonjour le monde\n" in ''.join([str(patch) for patch in diff.patches()]))
 
 class RepositorySignatureTest(utils.RepoTestCase):
 

@@ -27,7 +27,6 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include "diff.h"
 #include "error.h"
 #include "utils.h"
 #include "object.h"
@@ -36,96 +35,6 @@
 extern PyObject *GitError;
 
 extern PyTypeObject BlobType;
-
-PyDoc_STRVAR(Blob_diff__doc__,
-  "diff([blob, flag, old_as_path, new_as_path]) -> Patch\n"
-  "\n"
-  "Directly generate a :py:class:`pygit2.Patch` from the difference\n"
-  "between two blobs.\n"
-  "\n"
-  ":param Blob blob: the :py:class:`~pygit2.Blob` to diff.\n"
-  "\n"
-  ":param flag: a GIT_DIFF_* constant.\n"
-  "\n"
-  ":param str old_as_path: treat old blob as if it had this filename.\n"
-  "\n"
-  ":param str new_as_path: treat new blob as if it had this filename.\n"
-  "\n"
-  ":rtype: Patch\n");
-
-PyObject *
-Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
-{
-    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_patch *patch;
-    char *old_as_path = NULL, *new_as_path = NULL;
-    Blob *py_blob = NULL;
-    int err;
-    char *keywords[] = {"blob", "flag", "old_as_path", "new_as_path", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!Iss", keywords,
-                                     &BlobType, &py_blob, &opts.flags,
-                                     &old_as_path, &new_as_path))
-        return NULL;
-
-    err = git_patch_from_blobs(&patch, self->blob, old_as_path,
-                               py_blob ? py_blob->blob : NULL, new_as_path,
-                               &opts);
-    if (err < 0)
-        return Error_set(err);
-
-    return wrap_patch(patch);
-}
-
-
-PyDoc_STRVAR(Blob_diff_to_buffer__doc__,
-  "diff_to_buffer([buffer, flag, old_as_path, buffer_as_path]) -> Patch\n"
-  "\n"
-  "Directly generate a :py:class:`~pygit2.Patch` from the difference\n"
-  "between a blob and a buffer.\n"
-  "\n"
-  ":param Blob buffer: Raw data for new side of diff.\n"
-  "\n"
-  ":param flag: a GIT_DIFF_* constant.\n"
-  "\n"
-  ":param str old_as_path: treat old blob as if it had this filename.\n"
-  "\n"
-  ":param str buffer_as_path: treat buffer as if it had this filename.\n"
-  "\n"
-  ":rtype: Patch\n");
-
-PyObject *
-Blob_diff_to_buffer(Blob *self, PyObject *args, PyObject *kwds)
-{
-    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
-    git_patch *patch;
-    char *old_as_path = NULL, *buffer_as_path = NULL;
-    const char *buffer = NULL;
-    Py_ssize_t buffer_len;
-    int err;
-    char *keywords[] = {"buffer", "flag", "old_as_path", "buffer_as_path",
-                        NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#Iss", keywords,
-                                     &buffer, &buffer_len, &opts.flags,
-                                     &old_as_path, &buffer_as_path))
-        return NULL;
-
-    err = git_patch_from_blob_and_buffer(&patch, self->blob, old_as_path,
-                                         buffer, buffer_len, buffer_as_path,
-                                         &opts);
-    if (err < 0)
-        return Error_set(err);
-
-    return wrap_patch(patch);
-}
-
-static PyMethodDef Blob_methods[] = {
-    METHOD(Blob, diff, METH_VARARGS | METH_KEYWORDS),
-    METHOD(Blob, diff_to_buffer, METH_VARARGS | METH_KEYWORDS),
-    {NULL}
-};
-
 
 PyDoc_STRVAR(Blob_size__doc__, "Size.");
 
@@ -245,7 +154,7 @@ PyTypeObject BlobType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    Blob_methods,                              /* tp_methods        */
+    0,                                         /* tp_methods        */
     0,                                         /* tp_members        */
     Blob_getseters,                            /* tp_getset         */
     0,                                         /* tp_base           */

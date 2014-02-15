@@ -89,40 +89,80 @@ typedef struct {
     char* ref;
 } NoteIter;
 
-
-/* git _diff */
-SIMPLE_TYPE(Diff, git_diff, list)
+/* git_patch */
+SIMPLE_TYPE(Patch, git_patch, patch)
 
 typedef struct {
     PyObject_HEAD
-    Diff* diff;
+    Patch *patch;
+    size_t i;
+    size_t n;
+} PatchIter;
+
+/* git_diff */
+SIMPLE_TYPE(Diff, git_diff, diff)
+
+typedef struct {
+    PyObject_HEAD
+    Diff *diff;
     size_t i;
     size_t n;
 } DiffIter;
 
 typedef struct {
     PyObject_HEAD
-    PyObject* hunks;
-    const char * old_file_path;
-    const char * new_file_path;
-    char* old_id;
-    char* new_id;
-    char status;
-    unsigned similarity;
-    unsigned additions;
-    unsigned deletions;
-    unsigned flags;
-} Patch;
+    Diff *diff;
+    size_t i;
+    size_t n;
+} DiffPatchIter;
 
 typedef struct {
     PyObject_HEAD
-    PyObject* lines;
+    char *oid;
+    char *path;
+    git_off_t size;
+    uint32_t flags;
+    uint16_t mode;
+} DiffFile;
+
+typedef struct {
+    PyObject_HEAD
+    git_delta_t status;
+    uint32_t flags;
+    uint16_t similarity;
+    uint16_t nfiles;
+    PyObject *old_file;
+    PyObject *new_file;
+} DiffDelta;
+
+typedef struct {
+    PyObject_HEAD
+    Patch *patch;
+    git_diff_hunk *hunk;
+    size_t index;
     int old_start;
     int old_lines;
     int new_start;
     int new_lines;
-} Hunk;
+    PyObject *header;
+} DiffHunk;
 
+typedef struct {
+    PyObject_HEAD
+    DiffHunk *hunk;
+    size_t i;
+    size_t n;
+} DiffHunkIter;
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *origin;
+    int old_lineno;
+    int new_lineno;
+    int num_lines;
+    git_off_t content_offset;
+    PyObject *content;
+} DiffLine;
 
 /* git_tree_walk , git_treebuilder*/
 SIMPLE_TYPE(TreeBuilder, git_treebuilder, bld)
