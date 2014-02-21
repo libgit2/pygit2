@@ -127,6 +127,7 @@ wrap_patch(git_patch *patch)
             }
         }
     }
+    git_patch_free(patch);
 
     return (PyObject*) py_patch;
 }
