@@ -37,14 +37,39 @@ from .repository import Repository
 from .version import __version__
 
 
-def init_repository(path, bare=False):
+def init_repository(path, bare=False, **kw):
     """
     Creates a new Git repository in the given *path*.
 
     If *bare* is True the repository will be bare, i.e. it will not have a
     working copy.
+
+    Keyword options:
+
+    **shared** allows setting the permissions on the repository. Accepted
+    values are 'false', 'uname', 'true', 'group', 'all', 'everybody', 'world',
+    or an octal string, e.g. '0660'.
+
+    **template_dir** A directory of templates to use instead of the default.
+    It is not currently implemented in libgit, so this has no effect yet.
+
+    **working_dir** The directory to use as the working tree. If this is
+    specified, the git repository at **path** will have its working directory
+    set to this value.
+
+    **initial_head** if specified, points HEAD at this reference. If it begins
+    with 'refs/', the value will be used verbatim. Otherwise 'refs/heads/' will
+    be prefixed to the value.
+
+    **origin_url** if specified, an 'origin' remote will be added that points
+    at this URL.
     """
-    _pygit2.init_repository(path, bare)
+
+    if 'working_dir' in kw:  # Overrides the relative path behaviour in libgit
+        from os.path import abspath
+        kw['working_dir'] = str(abspath(kw['working_dir']))
+    
+    _pygit2.init_repository(path, bare, **kw)
     return Repository(path)
 
 

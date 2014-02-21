@@ -85,7 +85,7 @@ extern PyTypeObject MergeResultType;
 
 
 PyDoc_STRVAR(init_repository__doc__,
-    "init_repository(path, bare)\n"
+    "init_repository(path, **options)\n"
     "\n"
     "Creates a new Git repository in the given path.\n"
     "\n"
@@ -94,22 +94,105 @@ PyDoc_STRVAR(init_repository__doc__,
     "path\n"
     "  Path where to create the repository.\n"
     "\n"
+    "Optional arguments:\n"
+    "\n"
     "bare\n"
-    "  Whether the repository will be bare or not.\n");
+    "  Whether the repository will be bare or not.\n"
+    "\n"
+    "shared\n"
+    "   Allows setting the permissions on the repository.\n"
+    "\n"
+    "template_dir\n"
+    "  A directory of templates to use instead of the default.\n"
+    "\n"
+    "working_dir\n"
+    "  The directory to use as the working tree.\n"
+    "\n"
+    "initial_head\n"
+    "  Points HEAD at this reference.\n"
+    "\n"
+    "origin_url\n"
+    "  An 'origin' remote will be added that points at this URL.\n");
 
 PyObject *
-init_repository(PyObject *self, PyObject *args) {
+init_repository(PyObject *self, PyObject *args, PyObject *kw) {
     git_repository *repo;
     const char *path;
-    unsigned int bare;
+    unsigned int bare = 0;
+    const char *shared = NULL;
+    const char *template_dir = NULL;
+    const char *working_dir = NULL;
+    const char *initial_head = NULL;
+    const char *origin_url = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "sI", &path, &bare))
+    static char * kwlist[] = {
+        "path", "bare", "shared", "template_dir",
+        "working_dir", "initial_head", "origin_url", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "s|Isssss", kwlist,
+                                     &path, &bare, &shared, &template_dir,
+                                     &working_dir, &initial_head, &origin_url))
         return NULL;
 
-    err = git_repository_init(&repo, path, bare);
-    if (err < 0)
-        return Error_set_str(err, path);
+    if (!shared &&!template_dir && !working_dir && !initial_head && !origin_url) {
+        err = git_repository_init(&repo, path, bare);
+        if (err < 0)
+            return Error_set_str(err, path);
+    }
+
+    else {
+        git_repository_init_options initopts = GIT_REPOSITORY_INIT_OPTIONS_INIT;
+        initopts.flags = GIT_REPOSITORY_INIT_MKPATH;
+        
+        if (bare)
+            initopts.flags |= GIT_REPOSITORY_INIT_BARE;
+        
+        if (template_dir) {
+            initopts.flags |= GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE;
+            initopts.template_path = template_dir;
+        }
+
+        if (working_dir)
+            initopts.workdir_path = working_dir;
+
+        if (initial_head)
+            initopts.initial_head = initial_head;
+        
+        if (origin_url)
+            initopts.origin_url = origin_url;
+
+        // Parse `shared` options: false, umask, true, group, all, world, everybody, & octal values
+        if (shared) {
+            unsigned int shared_value = 0;
+            
+            if (!strcmp(shared, "false") || !strcmp(shared, "umask"))
+                shared_value = GIT_REPOSITORY_INIT_SHARED_UMASK;
+
+            else if (!strcmp(shared, "true") || !strcmp(shared, "group"))
+                shared_value = GIT_REPOSITORY_INIT_SHARED_GROUP;
+
+            else if (!strcmp(shared, "all") || !strcmp(shared, "world") ||
+                     !strcmp(shared, "everybody"))
+                shared_value = GIT_REPOSITORY_INIT_SHARED_ALL;
+
+            else if (shared[0] == '0') {
+                char *end = NULL;
+                shared_value = (unsigned int) strtol(shared + 1, &end, 8);
+                if (end == shared + 1 || *end != 0) {
+                    PyErr_SetString(PyExc_ValueError, "Invalid octal value for 'shared'.");
+                    return NULL;
+                }
+            }
+
+            if (shared_value)
+                initopts.mode = shared_value;
+        }
+
+        err = git_repository_init_ext(&repo, path, &initopts);
+        if (err < 0)
+            return Error_set_str(err, path);
+    }
 
     git_repository_free(repo);
     Py_RETURN_NONE;
@@ -237,7 +320,7 @@ hash(PyObject *self, PyObject *args)
 
 
 PyMethodDef module_methods[] = {
-    {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
+    {"init_repository", (PyCFunction) init_repository, METH_VARARGS|METH_KEYWORDS, init_repository__doc__},
     {"clone_repository", clone_repository, METH_VARARGS,
      clone_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
