@@ -124,6 +124,7 @@ init_repository(PyObject *self, PyObject *args, PyObject *kw) {
     const char *working_dir = NULL;
     const char *initial_head = NULL;
     const char *origin_url = NULL;
+    unsigned int shared_value = 0;
     int err;
 
     static char * kwlist[] = {
@@ -162,10 +163,8 @@ init_repository(PyObject *self, PyObject *args, PyObject *kw) {
         if (origin_url)
             initopts.origin_url = origin_url;
 
-        // Parse `shared` options: false, umask, true, group, all, world, everybody, & octal values
+        /* Parse `shared` options: false, umask, true, group, all, world, everybody, & octal values */
         if (shared) {
-            unsigned int shared_value = 0;
-            
             if (!strcmp(shared, "false") || !strcmp(shared, "umask"))
                 shared_value = GIT_REPOSITORY_INIT_SHARED_UMASK;
 
