@@ -35,6 +35,7 @@ from _pygit2 import *
 # High level API
 from .repository import Repository
 from .version import __version__
+from .settings import Settings
 
 
 def init_repository(path, bare=False):
@@ -75,3 +76,5 @@ def clone_repository(
     _pygit2.clone_repository(
         url, path, bare, ignore_cert_errors, remote_name, checkout_branch)
     return Repository(path)
+
+settings = Settings()

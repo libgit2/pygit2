@@ -44,6 +44,12 @@ class OptionsTest(utils.NoRepoTestCase):
         option(GIT_OPT_SET_MWINDOW_SIZE, new_size)
         self.assertEqual(new_size, option(GIT_OPT_GET_MWINDOW_SIZE))
 
+    def test_mwindow_size_proxy(self):
+        new_size = 300 * 1024
+        pygit2.settings.mwindow_size = new_size
+
+        self.assertEqual(new_size, pygit2.settings.mwindow_size)
+
     def test_search_path(self):
         paths = [(GIT_CONFIG_LEVEL_GLOBAL, '/tmp/global'),
                  (GIT_CONFIG_LEVEL_XDG,    '/tmp/xdg'),
@@ -52,6 +58,15 @@ class OptionsTest(utils.NoRepoTestCase):
         for level, path in paths:
             option(GIT_OPT_SET_SEARCH_PATH, level, path)
             self.assertEqual(path, option(GIT_OPT_GET_SEARCH_PATH, level))
+
+    def test_search_path_proxy(self):
+        paths = [(GIT_CONFIG_LEVEL_GLOBAL, '/tmp2/global'),
+                 (GIT_CONFIG_LEVEL_XDG,    '/tmp2/xdg'),
+                 (GIT_CONFIG_LEVEL_SYSTEM, '/tmp2/etc')]
+
+        for level, path in paths:
+            pygit2.settings.search_path[level] = path
+            self.assertEqual(path, pygit2.settings.search_path[level])
 
 if __name__ == '__main__':
     unittest.main()
