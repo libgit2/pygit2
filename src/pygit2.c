@@ -39,6 +39,7 @@
 #include "utils.h"
 #include "repository.h"
 #include "oid.h"
+#include "options.h"
 
 /* FIXME: This is for pypy */
 #ifndef MAXPATHLEN
@@ -244,6 +245,7 @@ PyMethodDef module_methods[] = {
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
     {"hash", hash, METH_VARARGS, hash__doc__},
+    {"option", option, METH_VARARGS, option__doc__},
     {NULL}
 };
 
@@ -258,6 +260,12 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, LIBGIT2_VER_MINOR)
     ADD_CONSTANT_INT(m, LIBGIT2_VER_REVISION)
     ADD_CONSTANT_STR(m, LIBGIT2_VERSION)
+
+    /* libgit2 options */
+    ADD_CONSTANT_INT(m, GIT_OPT_GET_SEARCH_PATH);
+    ADD_CONSTANT_INT(m, GIT_OPT_SET_SEARCH_PATH);
+    ADD_CONSTANT_INT(m, GIT_OPT_GET_MWINDOW_SIZE);
+    ADD_CONSTANT_INT(m, GIT_OPT_SET_MWINDOW_SIZE);
 
     /* Errors */
     GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
@@ -424,6 +432,11 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_DIFF_FIND_AND_BREAK_REWRITES)
 
     /* Config */
+    ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_LOCAL);
+    ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_GLOBAL);
+    ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_XDG);
+    ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_SYSTEM);
+
     INIT_TYPE(ConfigType, NULL, PyType_GenericNew)
     INIT_TYPE(ConfigIterType, NULL, NULL)
     ADD_TYPE(m, Config)
