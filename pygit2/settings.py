@@ -38,6 +38,7 @@ class SearchPathList(object):
         option(GIT_OPT_SET_SEARCH_PATH, key, value)
 
 class Settings(object):
+    """Library-wide settings"""
 
     __slots__ = []
 
@@ -45,10 +46,17 @@ class Settings(object):
 
     @property
     def search_path(self):
+        """Configuration file search path.
+
+        This behaves like an array whose indices correspond to the
+        GIT_CONFIG_LEVEL_* values.  The local search path cannot be
+        changed.
+        """
         return self._search_path
 
     @property
     def mwindow_size(self):
+        """Maximum mmap window size"""
         return option(GIT_OPT_GET_MWINDOW_SIZE)
 
     @mwindow_size.setter
