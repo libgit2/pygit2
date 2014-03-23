@@ -39,9 +39,13 @@ class SearchPathList(object):
 
 class Settings(object):
 
-    __slots__ = ['mwindow_size', 'search_path']
+    __slots__ = []
 
-    search_path = SearchPathList()
+    _search_path = SearchPathList()
+
+    @property
+    def search_path(self):
+        return self._search_path
 
     @property
     def mwindow_size(self):
