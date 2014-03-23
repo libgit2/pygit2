@@ -1360,7 +1360,7 @@ PyDoc_STRVAR(Repository_checkout_head__doc__,
 PyObject *
 Repository_checkout_head(Repository *self, PyObject *args)
 {
-    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
     unsigned int strategy;
     int err;
 
@@ -1384,7 +1384,7 @@ PyDoc_STRVAR(Repository_checkout_index__doc__,
 PyObject *
 Repository_checkout_index(Repository *self, PyObject *args)
 {
-    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
     unsigned int strategy;
     int err;
 
@@ -1408,7 +1408,7 @@ PyDoc_STRVAR(Repository_checkout_tree__doc__,
 PyObject *
 Repository_checkout_tree(Repository *self, PyObject *args)
 {
-    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
     unsigned int strategy;
     Object *py_object;
     int err;
