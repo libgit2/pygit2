@@ -45,6 +45,7 @@ Usage guide:
    config
    remotes
    blame
+   settings
 
 
 Indices and tables
