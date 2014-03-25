@@ -56,6 +56,8 @@ class Repository(_Repository):
     def __contains__(self, key):
         return self.git_object_lookup_prefix(key) is not None
 
+    def __repr__(self):
+        return "pygit2.Repository(%r)" % self.path
 
     #
     # References
