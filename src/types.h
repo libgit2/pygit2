@@ -202,9 +202,29 @@ typedef struct {
     git_remote *remote;
     /* Callbacks for network events */
     PyObject *progress;
+    PyObject *credentials;
     PyObject *transfer_progress;
     PyObject *update_tips;
 } Remote;
+
+typedef struct {
+    PyObject_HEAD
+    git_credtype_t credtype;
+} Cred;
+
+typedef struct {
+    Cred parent;
+    char *username;
+    char *password;
+} CredUsernamePassword;
+
+typedef struct {
+    Cred parent;
+    char *username;
+    char *pubkey;
+    char *privkey;
+    char *passphrase;
+} CredSshKey;
 
 /* git_refspec */
 typedef struct {

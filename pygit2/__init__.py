@@ -36,7 +36,7 @@ from _pygit2 import *
 from .repository import Repository
 from .version import __version__
 from .settings import Settings
-
+from .credentials import *
 
 def init_repository(path, bare=False):
     """

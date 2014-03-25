@@ -74,6 +74,8 @@ extern PyTypeObject RefLogEntryType;
 extern PyTypeObject BranchType;
 extern PyTypeObject SignatureType;
 extern PyTypeObject RemoteType;
+extern PyTypeObject CredUsernamePasswordType;
+extern PyTypeObject CredSshKeyType;
 extern PyTypeObject RefspecType;
 extern PyTypeObject TransferProgressType;
 extern PyTypeObject NoteType;
@@ -444,14 +446,21 @@ moduleinit(PyObject* m)
 
     /* Remotes */
     INIT_TYPE(RemoteType, NULL, NULL)
+    INIT_TYPE(CredUsernamePasswordType, NULL, PyType_GenericNew)
+    INIT_TYPE(CredSshKeyType, NULL, PyType_GenericNew)
     INIT_TYPE(RefspecType, NULL, NULL)
     INIT_TYPE(TransferProgressType, NULL, NULL)
     ADD_TYPE(m, Remote)
+    ADD_TYPE(m, CredUsernamePassword)
+    ADD_TYPE(m, CredSshKey)
     ADD_TYPE(m, Refspec)
     ADD_TYPE(m, TransferProgress)
     /* Direction for the refspec */
     ADD_CONSTANT_INT(m, GIT_DIRECTION_FETCH)
     ADD_CONSTANT_INT(m, GIT_DIRECTION_PUSH)
+    /* Credential types */
+    ADD_CONSTANT_INT(m, GIT_CREDTYPE_USERPASS_PLAINTEXT)
+    ADD_CONSTANT_INT(m, GIT_CREDTYPE_SSH_KEY)
 
     /* Blame */
     INIT_TYPE(BlameType, NULL, NULL)

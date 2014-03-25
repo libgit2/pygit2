@@ -39,6 +39,8 @@
 extern PyObject *GitError;
 extern PyTypeObject RepositoryType;
 extern PyTypeObject TransferProgressType;
+extern PyTypeObject CredUsernamePasswordType;
+extern PyTypeObject CredSshKeyType;
 
 PyObject *
 wrap_transfer_progress(const git_transfer_progress *stats)
@@ -154,6 +156,78 @@ progress_cb(const char *str, int len, void *data)
     Py_DECREF(ret);
 
     return 0;
+}
+
+static int
+py_cred_to_git_cred(git_cred **out, PyObject *py_cred, unsigned int allowed)
+{
+    Cred *base_cred;
+    int err;
+
+    if (!PyObject_TypeCheck(py_cred, &CredUsernamePasswordType) &&
+        !PyObject_TypeCheck(py_cred, &CredSshKeyType)) {
+        PyErr_SetString(PyExc_TypeError, "unkown credential type");
+        return -1;
+    }
+
+    base_cred = (Cred *) py_cred;
+
+    /* Sanity check, make sure we're given credentials we can use */
+    if (!(allowed & base_cred->credtype)) {
+        PyErr_SetString(PyExc_TypeError, "invalid credential type");
+        return -1;
+    }
+
+    switch (base_cred->credtype) {
+    case GIT_CREDTYPE_USERPASS_PLAINTEXT:
+    {
+        CredUsernamePassword *cred = (CredUsernamePassword *) base_cred;
+        err = git_cred_userpass_plaintext_new(out, cred->username, cred->password);
+        break;
+    }
+    case GIT_CREDTYPE_SSH_KEY:
+    {
+        CredSshKey *cred = (CredSshKey *) base_cred;
+        err = git_cred_ssh_key_new(out, cred->username, cred->pubkey, cred->privkey, cred->passphrase);
+        break;
+    }
+    default:
+        PyErr_SetString(PyExc_TypeError, "unsupported credential type");
+        err = -1;
+        break;
+    }
+
+    return err;
+}
+
+static int
+credentials_cb(git_cred **out, const char *url, const char *username_from_url, unsigned int allowed_types, void *data)
+{
+    Remote *remote = (Remote *) data;
+    PyObject *arglist, *py_cred;
+    int err;
+
+    if (remote->credentials == NULL)
+        return 0;
+
+    if (!PyCallable_Check(remote->credentials)) {
+        PyErr_SetString(PyExc_TypeError, "credentials callback is not callable");
+        return -1;
+    }
+
+    arglist = Py_BuildValue("(szI)", url, username_from_url, allowed_types);
+    py_cred = PyObject_CallObject(remote->credentials, arglist);
+    Py_DECREF(arglist);
+
+    if (!py_cred)
+        return -1;
+
+    err = py_cred_to_git_cred(out, py_cred, allowed_types);
+
+
+    Py_DECREF(py_cred);
+
+    return err;
 }
 
 static int
@@ -631,6 +705,7 @@ PyGetSetDef Remote_getseters[] = {
 
 PyMemberDef Remote_members[] = {
     MEMBER(Remote, progress, T_OBJECT_EX, "Progress output callback"),
+    MEMBER(Remote, credentials, T_OBJECT_EX, "Credentials callback"),
     MEMBER(Remote, transfer_progress, T_OBJECT_EX, "Transfer progress callback"),
     MEMBER(Remote, update_tips, T_OBJECT_EX, "update tips callback"),
     {NULL},
@@ -691,10 +766,12 @@ wrap_remote(git_remote *c_remote, Repository *repo)
         py_remote->repo = repo;
         py_remote->remote = c_remote;
         py_remote->progress = NULL;
+        py_remote->credentials = NULL;
         py_remote->transfer_progress = NULL;
         py_remote->update_tips = NULL;
 
         callbacks.progress = progress_cb;
+        callbacks.credentials = credentials_cb;
         callbacks.transfer_progress = transfer_progress_cb;
         callbacks.update_tips = update_tips_cb;
         callbacks.payload = py_remote;
