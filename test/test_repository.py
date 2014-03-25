@@ -40,6 +40,8 @@ from os.path import join, realpath
 
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
+from pygit2 import GIT_MERGE_ANALYSIS_NONE, GIT_MERGE_ANALYSIS_NORMAL, GIT_MERGE_ANALYSIS_UP_TO_DATE
+from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_UNBORN
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid, Reference, hashfile
 import pygit2
@@ -308,57 +310,50 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
     def test_merge_none(self):
         self.assertRaises(TypeError, self.repo.merge, None)
 
-    def test_merge_uptodate(self):
+    def test_merge_analysis_uptodate(self):
         branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
-        branch_oid = self.repo.get(branch_head_hex).id
-        merge_result = self.repo.merge(branch_oid)
-        self.assertTrue(merge_result.is_uptodate)
-        self.assertFalse(merge_result.is_fastforward)
-        self.assertEqual(None, merge_result.fastforward_id)
+        branch_id = self.repo.get(branch_head_hex).id
+        analysis = self.repo.merge_analysis(branch_id)
+
+        self.assertTrue(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
         self.assertEqual({}, self.repo.status())
 
-    def test_merge_fastforward(self):
+    def test_merge_analysis_fastforward(self):
         branch_head_hex = 'e97b4cfd5db0fb4ebabf4f203979ca4e5d1c7c87'
-        branch_oid = self.repo.get(branch_head_hex).id
-        merge_result = self.repo.merge(branch_oid)
-        self.assertFalse(merge_result.is_uptodate)
-        self.assertTrue(merge_result.is_fastforward)
-        # Asking twice to assure the reference counting is correct
-        self.assertEqual(branch_head_hex, merge_result.fastforward_id.hex)
-        self.assertEqual(branch_head_hex, merge_result.fastforward_id.hex)
+        branch_id = self.repo.get(branch_head_hex).id
+        analysis = self.repo.merge_analysis(branch_id)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
+        self.assertTrue(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
         self.assertEqual({}, self.repo.status())
 
     def test_merge_no_fastforward_no_conflicts(self):
         branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
-        branch_oid = self.repo.get(branch_head_hex).id
-        merge_result = self.repo.merge(branch_oid)
-        self.assertFalse(merge_result.is_uptodate)
-        self.assertFalse(merge_result.is_fastforward)
+        branch_id = self.repo.get(branch_head_hex).id
+        analysis= self.repo.merge_analysis(branch_id)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
         # Asking twice to assure the reference counting is correct
-        self.assertEqual(None, merge_result.fastforward_id)
-        self.assertEqual(None, merge_result.fastforward_id)
-        self.assertEqual({'bye.txt': 1}, self.repo.status())
-        self.assertEqual({'bye.txt': 1}, self.repo.status())
-        # Checking the index works as expected
-        self.repo.index.remove('bye.txt')
-        self.repo.index.write()
-        self.assertEqual({'bye.txt': 128}, self.repo.status())
+        self.assertEqual({}, self.repo.status())
+        self.assertEqual({}, self.repo.status())
 
     def test_merge_no_fastforward_conflicts(self):
         branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
-        branch_oid = self.repo.get(branch_head_hex).id
-        merge_result = self.repo.merge(branch_oid)
-        self.assertFalse(merge_result.is_uptodate)
-        self.assertFalse(merge_result.is_fastforward)
+        branch_id = self.repo.get(branch_head_hex).id
+
+        analysis = self.repo.merge_analysis(branch_id)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
+
+        self.repo.merge(branch_id)
+        status = pygit2.GIT_STATUS_WT_NEW | pygit2.GIT_STATUS_INDEX_DELETED
         # Asking twice to assure the reference counting is correct
-        self.assertEqual(None, merge_result.fastforward_id)
-        self.assertEqual(None, merge_result.fastforward_id)
-        self.assertEqual({'.gitignore': 132}, self.repo.status())
-        self.assertEqual({'.gitignore': 132}, self.repo.status())
+        self.assertEqual({'.gitignore': status}, self.repo.status())
+        self.assertEqual({'.gitignore': status}, self.repo.status())
         # Checking the index works as expected
         self.repo.index.add('.gitignore')
         self.repo.index.write()
-        self.assertEqual({'.gitignore': 2}, self.repo.status())
+        self.assertEqual({'.gitignore': pygit2.GIT_STATUS_INDEX_MODIFIED}, self.repo.status())
 
     def test_merge_invalid_hex(self):
         branch_head_hex = '12345678'

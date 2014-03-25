@@ -249,10 +249,4 @@ typedef struct {
     char boundary;
 } BlameHunk;
 
-/* git_merge */
-typedef struct {
-    PyObject_HEAD
-    git_merge_result *result;
-} MergeResult;
-
 #endif

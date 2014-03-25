@@ -38,7 +38,6 @@
 #include "remote.h"
 #include "branch.h"
 #include "blame.h"
-#include "mergeresult.h"
 #include "signature.h"
 #include <git2/odb_backend.h>
 
@@ -587,28 +586,61 @@ Repository_merge_base(Repository *self, PyObject *args)
     return git_oid_to_python(&oid);
 }
 
+PyDoc_STRVAR(Repository_merge_analysis__doc__,
+  "merge_analysis(id) -> Integer\n"
+  "\n"
+  "Analyzes the given branch and determines the opportunities for merging\n"
+  "them into the HEAD of the repository\n"
+  "\n"
+  "The returned value is a mixture of the GIT_MERGE_ANALYSIS_NONE, _NORMAL,\n"
+  " _UP_TO_DATE, _FASTFORWARD and _UNBORN flags");
+
+PyObject *
+Repository_merge_analysis(Repository *self, PyObject *py_id)
+{
+    int err;
+    size_t len;
+    git_oid id;
+    git_merge_head *merge_head;
+    git_merge_analysis_t analysis;
+
+    len = py_oid_to_git_oid(py_id, &id);
+    if (len == 0)
+        return NULL;
+
+    err = git_merge_head_from_id(&merge_head, self->repo, &id);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_merge_analysis(&analysis, self->repo, (const git_merge_head **) &merge_head, 1);
+    git_merge_head_free(merge_head);
+
+    if (err < 0)
+        return Error_set(err);
+
+    return PyLong_FromLong(analysis);
+}
+
 PyDoc_STRVAR(Repository_merge__doc__,
-  "merge(id) -> MergeResult\n"
+  "merge(id)\n"
   "\n"
-  "Merges the given id and returns the MergeResult.\n"
+  "Merges the given id into HEAD.\n"
   "\n"
-  "If the merge is fastforward the MergeResult will contain the new\n"
-  "fastforward oid.\n"
-  "If the branch is uptodate, nothing to merge, the MergeResult will\n"
-  "have the fastforward oid as None.\n"
-  "If the merge is not fastforward the MergeResult will have the status\n"
-  "produced by the merge, even if there are conflicts.");
+  "Merges the given commit(s) into HEAD, writing the results into the\n"
+  "working directory. Any changes are staged for commit and any conflicts\n"
+  "are written to the index. Callers should inspect the repository's\n"
+  "index after this completes, resolve any conflicts and prepare a\n"
+  "commit.");
 
 PyObject *
 Repository_merge(Repository *self, PyObject *py_oid)
 {
-    git_merge_result *merge_result;
     git_merge_head *oid_merge_head;
     git_oid oid;
-    const git_merge_opts default_opts = GIT_MERGE_OPTS_INIT;
     int err;
     size_t len;
-    PyObject *py_merge_result;
+    git_merge_options merge_opts = GIT_MERGE_OPTIONS_INIT;
+    git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
 
     len = py_oid_to_git_oid(py_oid, &oid);
     if (len == 0)
@@ -618,15 +650,15 @@ Repository_merge(Repository *self, PyObject *py_oid)
     if (err < 0)
         return Error_set(err);
 
-    err = git_merge(&merge_result, self->repo,
+    err = git_merge(self->repo,
                     (const git_merge_head **)&oid_merge_head, 1,
-                    &default_opts);
+                    &merge_opts, &checkout_opts);
+
     git_merge_head_free(oid_merge_head);
     if (err < 0)
         return Error_set(err);
 
-    py_merge_result = git_merge_result_to_python(merge_result);
-    return py_merge_result;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(Repository_walk__doc__,
@@ -1623,6 +1655,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, TreeBuilder, METH_VARARGS),
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
+    METHOD(Repository, merge_analysis, METH_O),
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, read, METH_O),
     METHOD(Repository, write, METH_VARARGS),
