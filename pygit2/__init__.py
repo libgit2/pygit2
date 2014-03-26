@@ -52,24 +52,20 @@ def init_repository(path, bare=False):
 def clone_repository(
         url, path, bare=False, ignore_cert_errors=False,
         remote_name="origin", checkout_branch=None):
-    """
-    Clones a new Git repository from *url* in the given *path*.
-
-    **bare** indicates whether a bare git repository should be created.
-
-    **remote_name** is the name given to the "origin" remote.
-    The default is "origin".
-
-    **checkout_branch** gives the name of the branch to checkout.
-    None means use the remote's *HEAD*.
+    """Clones a new Git repository from *url* in the given *path*.
 
     Returns a Repository class pointing to the newly cloned repository.
 
-    If you wish to use the repo, you need to do a checkout for one of
-    the available branches, like this:
+    :param str url: URL of the repository to clone
 
-        >>> repo = repo.clone_repository("url", "path")
-        >>> repo.checkout(branch)  # i.e.: refs/heads/master
+    :param str path: Local path to clone into
+
+    :param bool bare: Whether the local repository should be bare
+
+    :param str remote_name: Name to give the remote at *url*.
+
+    :param str checkout_branch: Branch to checkout after the
+     clone. The default is to use the remote's default branch.
 
     """
 
