@@ -117,6 +117,8 @@ const char *py_str_borrow_c_str(PyObject **tvaue, PyObject *value, const char *e
 PyObject * get_pylist_from_git_strarray(git_strarray *strarray);
 int get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist);
 
+int callable_to_credentials(git_cred **out, const char *url, const char *username_from_url, unsigned int allowed_types, PyObject *credentials);
+
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 

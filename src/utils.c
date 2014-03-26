@@ -31,6 +31,8 @@
 #include "utils.h"
 
 extern PyTypeObject ReferenceType;
+extern PyTypeObject CredUsernamePasswordType;
+extern PyTypeObject CredSshKeyType;
 
 /**
  * py_str_to_c_str() returns a newly allocated C string holding the string
@@ -152,4 +154,73 @@ on_error:
     free(array->strings);
 
     return -1;
+}
+
+static int
+py_cred_to_git_cred(git_cred **out, PyObject *py_cred, unsigned int allowed)
+{
+    Cred *base_cred;
+    int err;
+
+    if (!PyObject_TypeCheck(py_cred, &CredUsernamePasswordType) &&
+        !PyObject_TypeCheck(py_cred, &CredSshKeyType)) {
+        PyErr_SetString(PyExc_TypeError, "unkown credential type");
+        return -1;
+    }
+
+    base_cred = (Cred *) py_cred;
+
+    /* Sanity check, make sure we're given credentials we can use */
+    if (!(allowed & base_cred->credtype)) {
+        PyErr_SetString(PyExc_TypeError, "invalid credential type");
+        return -1;
+    }
+
+    switch (base_cred->credtype) {
+    case GIT_CREDTYPE_USERPASS_PLAINTEXT:
+    {
+        CredUsernamePassword *cred = (CredUsernamePassword *) base_cred;
+        err = git_cred_userpass_plaintext_new(out, cred->username, cred->password);
+        break;
+    }
+    case GIT_CREDTYPE_SSH_KEY:
+    {
+        CredSshKey *cred = (CredSshKey *) base_cred;
+        err = git_cred_ssh_key_new(out, cred->username, cred->pubkey, cred->privkey, cred->passphrase);
+        break;
+    }
+    default:
+        PyErr_SetString(PyExc_TypeError, "unsupported credential type");
+        err = -1;
+        break;
+    }
+
+    return err;
+}
+
+int
+callable_to_credentials(git_cred **out, const char *url, const char *username_from_url, unsigned int allowed_types, PyObject *credentials)
+{
+    int err;
+    PyObject *py_cred, *arglist;
+
+    if (credentials == NULL)
+        return 0;
+
+    if (!PyCallable_Check(credentials)) {
+        PyErr_SetString(PyExc_TypeError, "credentials callback is not callable");
+        return -1;
+    }
+
+    arglist = Py_BuildValue("(szI)", url, username_from_url, allowed_types);
+    py_cred = PyObject_CallObject(credentials, arglist);
+    Py_DECREF(arglist);
+
+    if (!py_cred)
+        return -1;
+
+    err = py_cred_to_git_cred(out, py_cred, allowed_types);
+    Py_DECREF(py_cred);
+
+    return err;
 }

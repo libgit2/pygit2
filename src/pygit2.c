@@ -118,6 +118,14 @@ init_repository(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 };
 
+static int
+credentials_cb(git_cred **out, const char *url, const char *username_from_url, unsigned int allowed_types, void *data)
+{
+    PyObject *credentials = (PyObject *) data;
+
+    return callable_to_credentials(out, url, username_from_url, allowed_types, credentials);
+}
+
 PyDoc_STRVAR(clone_repository__doc__,
     "clone_repository(url, path, bare, remote_name, checkout_branch)\n"
     "\n"
@@ -146,17 +154,21 @@ clone_repository(PyObject *self, PyObject *args) {
     const char *path;
     unsigned int bare, ignore_cert_errors;
     const char *remote_name, *checkout_branch;
+    PyObject *credentials;
     int err;
     git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
 
-    if (!PyArg_ParseTuple(args, "zzIIzz",
-                          &url, &path, &bare, &ignore_cert_errors, &remote_name, &checkout_branch))
+    if (!PyArg_ParseTuple(args, "zzIIzzO",
+                          &url, &path, &bare, &ignore_cert_errors, &remote_name, &checkout_branch, &credentials))
         return NULL;
 
     opts.bare = bare;
     opts.ignore_cert_errors = ignore_cert_errors;
     opts.remote_name = remote_name;
     opts.checkout_branch = checkout_branch;
+
+    opts.remote_callbacks.credentials = credentials_cb;
+    opts.remote_callbacks.payload = credentials;
 
     err = git_clone(&repo, url, path, &opts);
     if (err < 0)

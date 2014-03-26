@@ -51,7 +51,7 @@ def init_repository(path, bare=False):
 
 def clone_repository(
         url, path, bare=False, ignore_cert_errors=False,
-        remote_name="origin", checkout_branch=None):
+        remote_name="origin", checkout_branch=None, credentials=None):
     """Clones a new Git repository from *url* in the given *path*.
 
     Returns a Repository class pointing to the newly cloned repository.
@@ -67,10 +67,15 @@ def clone_repository(
     :param str checkout_branch: Branch to checkout after the
      clone. The default is to use the remote's default branch.
 
+    :param callable credentials: authentication to use if the remote
+     requires it
+
+    :rtype: Repository
+
     """
 
     _pygit2.clone_repository(
-        url, path, bare, ignore_cert_errors, remote_name, checkout_branch)
+        url, path, bare, ignore_cert_errors, remote_name, checkout_branch, credentials)
     return Repository(path)
 
 settings = Settings()
