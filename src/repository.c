@@ -807,11 +807,11 @@ Repository_create_commit(Repository *self, PyObject *args)
 
     len = py_oid_to_git_oid(py_oid, &oid);
     if (len == 0)
-        goto out;
+        return NULL;
 
     message = py_str_borrow_c_str(&tmessage, py_message, encoding);
     if (message == NULL)
-        goto out;
+        return NULL;
 
     err = git_tree_lookup_prefix(&tree, self->repo, &oid, len);
     if (err < 0) {
