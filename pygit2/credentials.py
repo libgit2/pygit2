@@ -33,7 +33,7 @@ class UserPass(CredUsernamePassword):
     """Username/Password credentials
 
     This is an object suitable for passing to a remote's credentials
-    callback.
+    callback and for returning from said callback.
 
     """
 
@@ -44,7 +44,7 @@ class Keypair(CredSshKey):
     """SSH key pair credentials
 
     This is an object suitable for passing to a remote's credentials
-    callback.
+    callback and for returning from said callback.
 
     """
 

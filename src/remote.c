@@ -705,7 +705,18 @@ PyGetSetDef Remote_getseters[] = {
 
 PyMemberDef Remote_members[] = {
     MEMBER(Remote, progress, T_OBJECT_EX, "Progress output callback"),
-    MEMBER(Remote, credentials, T_OBJECT_EX, "Credentials callback"),
+    MEMBER(Remote, credentials, T_OBJECT_EX,
+  "credentials(url, username_from_url, allowed_types) -> credential\n"
+  "\n"
+  "Credentials callback\n"
+  "\n"
+  "If the remote server requires authentication, this function will\n"
+  "be called and its return value used for authentication.\n"
+  "\n"
+  ":param str url: The url of the remote\n"
+  ":param username_from_url: Username extracted from the url, if any\n"
+  ":type username_from_url: str or None\n"
+  ":param int allowed_types: credential types supported by the remote "),
     MEMBER(Remote, transfer_progress, T_OBJECT_EX, "Transfer progress callback"),
     MEMBER(Remote, update_tips, T_OBJECT_EX, "update tips callback"),
     {NULL},
