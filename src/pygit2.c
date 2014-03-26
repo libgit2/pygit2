@@ -154,7 +154,7 @@ clone_repository(PyObject *self, PyObject *args) {
     const char *path;
     unsigned int bare, ignore_cert_errors;
     const char *remote_name, *checkout_branch;
-    PyObject *credentials;
+    PyObject *credentials = NULL;
     int err;
     git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
 
@@ -167,8 +167,10 @@ clone_repository(PyObject *self, PyObject *args) {
     opts.remote_name = remote_name;
     opts.checkout_branch = checkout_branch;
 
-    opts.remote_callbacks.credentials = credentials_cb;
-    opts.remote_callbacks.payload = credentials;
+    if (credentials != Py_None) {
+	    opts.remote_callbacks.credentials = credentials_cb;
+	    opts.remote_callbacks.payload = credentials;
+    }
 
     err = git_clone(&repo, url, path, &opts);
     if (err < 0)

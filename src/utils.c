@@ -202,9 +202,9 @@ int
 callable_to_credentials(git_cred **out, const char *url, const char *username_from_url, unsigned int allowed_types, PyObject *credentials)
 {
     int err;
-    PyObject *py_cred, *arglist;
+    PyObject *py_cred = NULL, *arglist = NULL;
 
-    if (credentials == NULL)
+    if (credentials == NULL || credentials == Py_None)
         return 0;
 
     if (!PyCallable_Check(credentials)) {

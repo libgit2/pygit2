@@ -72,7 +72,7 @@ CredUsernamePassword_dealloc(CredUsernamePassword *self)
     free(self->username);
     free(self->password);
 
-    PyObject_Del(self);
+    Py_TYPE(self)->tp_free(self);
 }
 
 PyMemberDef CredUsernamePassword_members[] = {
@@ -169,7 +169,7 @@ CredSshKey_dealloc(CredSshKey *self)
     free(self->privkey);
     free(self->passphrase);
 
-    PyObject_Del(self);
+    Py_TYPE(self)->tp_free(self);
 }
 
 PyMemberDef CredSshKey_members[] = {
