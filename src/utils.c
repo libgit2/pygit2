@@ -31,8 +31,6 @@
 #include "utils.h"
 
 extern PyTypeObject ReferenceType;
-extern PyTypeObject CredUsernamePasswordType;
-extern PyTypeObject CredSshKeyType;
 
 /**
  * py_str_to_c_str() returns a newly allocated C string holding the string
@@ -159,41 +157,61 @@ on_error:
 static int
 py_cred_to_git_cred(git_cred **out, PyObject *py_cred, unsigned int allowed)
 {
-    Cred *base_cred;
-    int err;
+    PyObject *py_type, *py_tuple;
+    long type;
+    int err = -1;
 
-    if (!PyObject_TypeCheck(py_cred, &CredUsernamePasswordType) &&
-        !PyObject_TypeCheck(py_cred, &CredSshKeyType)) {
-        PyErr_SetString(PyExc_TypeError, "unkown credential type");
-        return -1;
+    py_type = PyObject_GetAttrString(py_cred, "credential_type");
+    py_tuple = PyObject_GetAttrString(py_cred, "credential_tuple");
+
+    if (!py_type || !py_tuple) {
+        printf("py_type %p, py_tuple %p\n", py_type, py_tuple);
+        PyErr_SetString(PyExc_TypeError, "credential doesn't implement the interface");
+        goto cleanup;
     }
 
-    base_cred = (Cred *) py_cred;
+    if (!PyLong_Check(py_type)) {
+        PyErr_SetString(PyExc_TypeError, "credential type is not a long");
+        goto cleanup;
+    }
+
+    type = PyLong_AsLong(py_type);
 
     /* Sanity check, make sure we're given credentials we can use */
-    if (!(allowed & base_cred->credtype)) {
+    if (!(allowed & type)) {
         PyErr_SetString(PyExc_TypeError, "invalid credential type");
-        return -1;
+        goto cleanup;
     }
 
-    switch (base_cred->credtype) {
+    switch (type) {
     case GIT_CREDTYPE_USERPASS_PLAINTEXT:
     {
-        CredUsernamePassword *cred = (CredUsernamePassword *) base_cred;
-        err = git_cred_userpass_plaintext_new(out, cred->username, cred->password);
+        const char *username, *password;
+
+        if (!PyArg_ParseTuple(py_tuple, "ss", &username, &password))
+            goto cleanup;
+
+        err = git_cred_userpass_plaintext_new(out, username, password);
         break;
     }
     case GIT_CREDTYPE_SSH_KEY:
     {
-        CredSshKey *cred = (CredSshKey *) base_cred;
-        err = git_cred_ssh_key_new(out, cred->username, cred->pubkey, cred->privkey, cred->passphrase);
+        const char *username, *pubkey, *privkey, *passphrase;
+
+        if (!PyArg_ParseTuple(py_tuple, "ssss", &username, &pubkey, &privkey, &passphrase))
+            goto cleanup;
+
+        err = git_cred_ssh_key_new(out, username, pubkey, privkey, passphrase);
         break;
     }
     default:
         PyErr_SetString(PyExc_TypeError, "unsupported credential type");
-        err = -1;
         break;
     }
+
+cleanup:
+    Py_XDECREF(py_type);
+    Py_XDECREF(py_tuple);
 
     return err;
 }

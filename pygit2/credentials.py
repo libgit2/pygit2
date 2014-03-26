@@ -26,10 +26,9 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from _pygit2 import CredUsernamePassword, CredSshKey
-from _pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT
+from _pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT, GIT_CREDTYPE_SSH_KEY
 
-class UserPass(CredUsernamePassword):
+class UserPass:
     """Username/Password credentials
 
     This is an object suitable for passing to a remote's credentials
@@ -37,16 +36,42 @@ class UserPass(CredUsernamePassword):
 
     """
 
+    def __init__(self, username, password):
+        self._username = username
+        self._password = password
+
+    @property
+    def credential_type(self):
+        return GIT_CREDTYPE_USERPASS_PLAINTEXT
+
+    @property
+    def credential_tuple(self):
+        return (self._username, self._password)
+
     def __call__(self, _url, _username, _allowed):
         return self
 
-class Keypair(CredSshKey):
+class Keypair:
     """SSH key pair credentials
 
     This is an object suitable for passing to a remote's credentials
     callback and for returning from said callback.
 
     """
+
+    def __init__(self, username, pubkey, privkey, passphrase):
+        self._username = username
+        self._pubkey = pubkey
+        self._privkey = privkey
+        self._passphrase = passphrase
+
+    @property
+    def credential_type(self):
+        return GIT_CREDTYPE_SSH_KEY
+
+    @property
+    def credential_tuple(self):
+        return (self._username, self._pubkey, self._privkey, self._passphrase)
 
     def __call__(self, _url, _username, _allowed):
         return self

@@ -30,7 +30,6 @@
 
 import unittest
 import pygit2
-from pygit2 import CredUsernamePassword, CredSshKey
 from pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT
 from pygit2 import UserPass, Keypair
 from . import utils
@@ -49,9 +48,8 @@ class CredentialCreateTest(utils.NoRepoTestCase):
         username = "git"
         password = "sekkrit"
 
-        cred = CredUsernamePassword(username, password)
-        self.assertEqual(username, cred.username)
-        self.assertEqual(password, cred.password)
+        cred = UserPass(username, password)
+        self.assertEqual((username, password), cred.credential_tuple)
 
     def test_ssh_key(self):
         username = "git"
@@ -59,11 +57,8 @@ class CredentialCreateTest(utils.NoRepoTestCase):
         privkey = "id_rsa"
         passphrase = "bad wolf"
 
-        cred = CredSshKey(username, pubkey, privkey, passphrase)
-        self.assertEqual(username, cred.username)
-        self.assertEqual(pubkey, cred.pubkey)
-        self.assertEqual(privkey, cred.privkey)
-        self.assertEqual(passphrase, cred.passphrase)
+        cred = Keypair(username, pubkey, privkey, passphrase)
+        self.assertEqual((username, pubkey, privkey, passphrase), cred.credential_tuple)
 
 class CredentialCallback(utils.RepoTestCase):
     def test_callback(self):
@@ -79,7 +74,7 @@ class CredentialCallback(utils.RepoTestCase):
     def test_bad_cred_type(self):
         def credentials_cb(url, username, allowed):
             self.assertTrue(allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT)
-            return CredSshKey("git", "foo.pub", "foo", "sekkrit")
+            return Keypair("git", "foo.pub", "foo", "sekkrit")
 
         remote = self.repo.create_remote("github", "https://github.com/github/github")
         remote.credentials = credentials_cb

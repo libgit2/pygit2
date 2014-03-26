@@ -39,8 +39,6 @@
 extern PyObject *GitError;
 extern PyTypeObject RepositoryType;
 extern PyTypeObject TransferProgressType;
-extern PyTypeObject CredUsernamePasswordType;
-extern PyTypeObject CredSshKeyType;
 
 PyObject *
 wrap_transfer_progress(const git_transfer_progress *stats)
