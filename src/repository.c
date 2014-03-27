@@ -105,7 +105,7 @@ Repository_dealloc(Repository *self)
     Py_CLEAR(self->index);
     Py_CLEAR(self->config);
     git_repository_free(self->repo);
-    PyObject_GC_Del(self);
+    Py_TYPE(self)->tp_free(self);
 }
 
 int

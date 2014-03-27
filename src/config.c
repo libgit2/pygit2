@@ -92,7 +92,7 @@ void
 Config_dealloc(Config *self)
 {
     git_config_free(self->config);
-    PyObject_Del(self);
+    Py_TYPE(self)->tp_free(self);
 }
 
 PyDoc_STRVAR(Config_get_global_config__doc__,
