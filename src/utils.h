@@ -47,6 +47,7 @@
   #undef PyLong_Check
   #define PyLong_Check PyInt_Check
   #define PyLong_FromLong PyInt_FromLong
+  #define PyInteger_Type PyInt_Type
   #define PyBytes_AS_STRING PyString_AS_STRING
   #define PyBytes_AsString PyString_AsString
   #define PyBytes_AsStringAndSize PyString_AsStringAndSize
@@ -57,6 +58,7 @@
   #define to_path(x) to_bytes(x)
   #define to_encoding(x) to_bytes(x)
 #else
+  #define PyInteger_Type PyLong_Type
   #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
 #endif

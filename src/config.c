@@ -170,29 +170,56 @@ Config_contains(Config *self, PyObject *py_key) {
 
 
 PyObject *
-Config_getitem(Config *self, PyObject *py_key)
+Config_getitem(Config *self, PyObject *py_input_key)
 {
-    int64_t value_int;
-    int err, value_bool;
+    int err;
     const char *value_str;
     const char *key;
-    PyObject* py_value, *tmp;
+    PyObject *py_key, *py_value, *tkey, *tmp_type = NULL;
+    PyTypeObject *py_type = NULL;
 
-    key = py_str_borrow_c_str(&tmp, py_key, NULL);
+    if (PyTuple_Check(py_input_key) && PyTuple_Size(py_input_key) == 2) {
+	    py_key = PyTuple_GetItem(py_input_key, 0);
+	    tmp_type = PyTuple_GetItem(py_input_key, 1);
+    } else {
+        py_key = py_input_key;
+    }
+
+    /* If passed a tuple, make sure the second item is a type */
+    if (tmp_type) {
+        if (!PyType_Check(tmp_type))
+            return NULL;
+        else
+            py_type = (PyTypeObject *) tmp_type;
+    }
+
+    key = py_str_borrow_c_str(&tkey, py_key, NULL);
     if (key == NULL)
         return NULL;
 
     err = git_config_get_string(&value_str, self->config, key);
-    Py_CLEAR(tmp);
+    Py_CLEAR(tkey);
     if (err < 0)
         goto cleanup;
 
-    if (git_config_parse_int64(&value_int, value_str) == 0)
-        py_value = PyLong_FromLongLong(value_int);
-    else if(git_config_parse_bool(&value_bool, value_str) == 0)
-        py_value = PyBool_FromLong(value_bool);
-    else
+    /* If the user specified a type, let's parse it */
+    if (py_type) {
+	    if (py_type == &PyBool_Type) {
+		    int value;
+            if ((err = git_config_parse_bool(&value, value_str)) < 0)
+                goto cleanup;
+
+            py_value = PyBool_FromLong(value);
+        } else if (py_type == &PyInteger_Type) {
+            int64_t value;
+            if ((err = git_config_parse_int64(&value, value_str)) < 0)
+                goto cleanup;
+
+            py_value = PyLong_FromLongLong(value);
+        }
+    } else {
         py_value = to_unicode(value_str, NULL, NULL);
+    }
 
 cleanup:
     if (err < 0) {

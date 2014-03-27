@@ -23,3 +23,19 @@ The Config type
    set multiple times in the configuration files.
 
 The :class:`Config` Mapping interface.
+
+Parsing the values
+===================
+
+Instead of a string, a tuple of `(str,type)` can be used to look up a
+key and parse it through the Git rules. E.g.
+
+    config['core.bare',bool]
+
+will return True if 'core.bare' is truthy.
+
+Truty values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',
+0, 'off' and 'no'.
+
+Available types are `bool` and `int`. Not specifying a type returns a
+string.
