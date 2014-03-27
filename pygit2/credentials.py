@@ -28,7 +28,7 @@
 # Import from pygit2
 from _pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT, GIT_CREDTYPE_SSH_KEY
 
-class UserPass:
+class UserPass(object):
     """Username/Password credentials
 
     This is an object suitable for passing to a remote's credentials
@@ -51,7 +51,7 @@ class UserPass:
     def __call__(self, _url, _username, _allowed):
         return self
 
-class Keypair:
+class Keypair(object):
     """SSH key pair credentials
 
     This is an object suitable for passing to a remote's credentials
