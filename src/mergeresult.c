@@ -50,6 +50,14 @@ git_merge_result_to_python(git_merge_result *merge_result)
     return (PyObject*) py_merge_result;
 }
 
+void
+MergeResult_dealloc(MergeResult *self)
+{
+    git_merge_result_free(self->result);
+    PyObject_Del(self);
+}
+
+
 PyDoc_STRVAR(MergeResult_is_uptodate__doc__, "Is up to date");
 
 PyObject *
@@ -99,7 +107,7 @@ PyTypeObject MergeResultType = {
     "_pygit2.MergeResult",                     /* tp_name           */
     sizeof(MergeResult),                       /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                         /* tp_dealloc        */
+    (destructor)MergeResult_dealloc,           /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
