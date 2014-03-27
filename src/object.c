@@ -45,7 +45,7 @@ Object_dealloc(Object* self)
 {
     Py_CLEAR(self->repo);
     git_object_free(self->obj);
-    PyObject_Del(self);
+    Py_TYPE(self)->tp_free(self);
 }
 
 

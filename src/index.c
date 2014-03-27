@@ -71,7 +71,7 @@ Index_dealloc(Index* self)
     PyObject_GC_UnTrack(self);
     Py_XDECREF(self->repo);
     git_index_free(self->index);
-    PyObject_GC_Del(self);
+    Py_TYPE(self)->tp_free(self);
 }
 
 int
@@ -561,7 +561,7 @@ void
 IndexIter_dealloc(IndexIter *self)
 {
     Py_CLEAR(self->owner);
-    PyObject_Del(self);
+    Py_TYPE(self)->tp_free(self);
 }
 
 PyObject *

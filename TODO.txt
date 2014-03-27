@@ -14,7 +14,3 @@ Other
 - Make the Py_LOCAL_INLINE macro to work with Python 2.6, 2.7 and 3.1
 - Use surrogateescape in Python 3, see PEP-383
 - Expose the ODB (Repository.odb)
-- According to Python documentation, tp_dealloc must call tp_free (instead of
-  PyObject_Del or similar) if the type is subclassable. So, go through the
-  code and switch to tp_free, or make the type not subclassable, on a case by
-  case basis.
