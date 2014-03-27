@@ -153,3 +153,92 @@ on_error:
 
     return -1;
 }
+
+static int
+py_cred_to_git_cred(git_cred **out, PyObject *py_cred, unsigned int allowed)
+{
+    PyObject *py_type, *py_tuple;
+    long type;
+    int err = -1;
+
+    py_type = PyObject_GetAttrString(py_cred, "credential_type");
+    py_tuple = PyObject_GetAttrString(py_cred, "credential_tuple");
+
+    if (!py_type || !py_tuple) {
+        printf("py_type %p, py_tuple %p\n", py_type, py_tuple);
+        PyErr_SetString(PyExc_TypeError, "credential doesn't implement the interface");
+        goto cleanup;
+    }
+
+    if (!PyLong_Check(py_type)) {
+        PyErr_SetString(PyExc_TypeError, "credential type is not a long");
+        goto cleanup;
+    }
+
+    type = PyLong_AsLong(py_type);
+
+    /* Sanity check, make sure we're given credentials we can use */
+    if (!(allowed & type)) {
+        PyErr_SetString(PyExc_TypeError, "invalid credential type");
+        goto cleanup;
+    }
+
+    switch (type) {
+    case GIT_CREDTYPE_USERPASS_PLAINTEXT:
+    {
+        const char *username, *password;
+
+        if (!PyArg_ParseTuple(py_tuple, "ss", &username, &password))
+            goto cleanup;
+
+        err = git_cred_userpass_plaintext_new(out, username, password);
+        break;
+    }
+    case GIT_CREDTYPE_SSH_KEY:
+    {
+        const char *username, *pubkey, *privkey, *passphrase;
+
+        if (!PyArg_ParseTuple(py_tuple, "ssss", &username, &pubkey, &privkey, &passphrase))
+            goto cleanup;
+
+        err = git_cred_ssh_key_new(out, username, pubkey, privkey, passphrase);
+        break;
+    }
+    default:
+        PyErr_SetString(PyExc_TypeError, "unsupported credential type");
+        break;
+    }
+
+cleanup:
+    Py_XDECREF(py_type);
+    Py_XDECREF(py_tuple);
+
+    return err;
+}
+
+int
+callable_to_credentials(git_cred **out, const char *url, const char *username_from_url, unsigned int allowed_types, PyObject *credentials)
+{
+    int err;
+    PyObject *py_cred = NULL, *arglist = NULL;
+
+    if (credentials == NULL || credentials == Py_None)
+        return 0;
+
+    if (!PyCallable_Check(credentials)) {
+        PyErr_SetString(PyExc_TypeError, "credentials callback is not callable");
+        return -1;
+    }
+
+    arglist = Py_BuildValue("(szI)", url, username_from_url, allowed_types);
+    py_cred = PyObject_CallObject(credentials, arglist);
+    Py_DECREF(arglist);
+
+    if (!py_cred)
+        return -1;
+
+    err = py_cred_to_git_cred(out, py_cred, allowed_types);
+    Py_DECREF(py_cred);
+
+    return err;
+}

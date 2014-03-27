@@ -157,6 +157,14 @@ progress_cb(const char *str, int len, void *data)
 }
 
 static int
+credentials_cb(git_cred **out, const char *url, const char *username_from_url, unsigned int allowed_types, void *data)
+{
+    Remote *remote = (Remote *) data;
+
+    return callable_to_credentials(out, url, username_from_url, allowed_types, remote->credentials);
+}
+
+static int
 transfer_progress_cb(const git_transfer_progress *stats, void *data)
 {
     Remote *remote = (Remote *) data;
@@ -632,6 +640,18 @@ PyGetSetDef Remote_getseters[] = {
 
 PyMemberDef Remote_members[] = {
     MEMBER(Remote, progress, T_OBJECT_EX, "Progress output callback"),
+    MEMBER(Remote, credentials, T_OBJECT_EX,
+  "credentials(url, username_from_url, allowed_types) -> credential\n"
+  "\n"
+  "Credentials callback\n"
+  "\n"
+  "If the remote server requires authentication, this function will\n"
+  "be called and its return value used for authentication.\n"
+  "\n"
+  ":param str url: The url of the remote\n"
+  ":param username_from_url: Username extracted from the url, if any\n"
+  ":type username_from_url: str or None\n"
+  ":param int allowed_types: credential types supported by the remote "),
     MEMBER(Remote, transfer_progress, T_OBJECT_EX, "Transfer progress callback"),
     MEMBER(Remote, update_tips, T_OBJECT_EX, "update tips callback"),
     {NULL},
@@ -692,10 +712,12 @@ wrap_remote(git_remote *c_remote, Repository *repo)
         py_remote->repo = repo;
         py_remote->remote = c_remote;
         py_remote->progress = NULL;
+        py_remote->credentials = NULL;
         py_remote->transfer_progress = NULL;
         py_remote->update_tips = NULL;
 
         callbacks.progress = progress_cb;
+        callbacks.credentials = credentials_cb;
         callbacks.transfer_progress = transfer_progress_cb;
         callbacks.update_tips = update_tips_cb;
         callbacks.payload = py_remote;
