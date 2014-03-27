@@ -191,7 +191,7 @@ typedef struct {
     PyObject_HEAD
     Object *obj;
     const git_signature *signature;
-    const char *encoding;
+    char *encoding;
 } Signature;
 
 
