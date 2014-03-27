@@ -83,11 +83,12 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 void
 Signature_dealloc(Signature *self)
 {
-    if (self->obj)
+    /* self->obj is the owner of the git_signature, so we musn't free it */
+    if (self->obj) {
         Py_CLEAR(self->obj);
-    else {
-        git_signature_free((git_signature*)self->signature);
-        free((char*)self->encoding);
+    } else {
+        git_signature_free((git_signature *) self->signature);
+        free(self->encoding);
     }
 
     PyObject_Del(self);
@@ -224,12 +225,23 @@ build_signature(Object *obj, const git_signature *signature,
     Signature *py_signature;
 
     py_signature = PyObject_New(Signature, &SignatureType);
+    if (!py_signature)
+        goto on_error;
 
-    if (py_signature) {
-        Py_INCREF(obj);
-        py_signature->obj = obj;
-        py_signature->signature = signature;
-        py_signature->encoding = encoding;
+    py_signature->encoding = NULL;
+    if (encoding) {
+        py_signature->encoding = strdup(encoding);
+        if (!py_signature->encoding)
+            goto on_error;
     }
+
+    Py_XINCREF(obj);
+    py_signature->obj = obj;
+    py_signature->signature = signature;
+
     return (PyObject*)py_signature;
+
+on_error:
+    git_signature_free((git_signature *) signature);
+    return NULL;
 }

@@ -139,6 +139,7 @@ Repository_as_iter(Repository *self)
     git_odb *odb;
     int err;
     PyObject *accum = PyList_New(0);
+    PyObject *ret;
 
     err = git_repository_odb(&odb, self->repo);
     if (err < 0)
@@ -151,7 +152,10 @@ Repository_as_iter(Repository *self)
     if (err < 0)
         return Error_set(err);
 
-    return PyObject_GetIter(accum);
+    ret = PyObject_GetIter(accum);
+    Py_DECREF(accum);
+
+    return ret;
 }
 
 
@@ -1345,7 +1349,7 @@ Repository_default_signature__get__(Repository *self)
     if ((err = git_signature_default(&sig, self->repo)) < 0)
         return Error_set(err);
 
-    return build_signature((Object*) self, sig, "utf-8");
+    return build_signature(NULL, sig, "utf-8");
 }
 
 PyDoc_STRVAR(Repository_checkout_head__doc__,

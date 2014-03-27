@@ -623,8 +623,9 @@ IndexEntry_init(IndexEntry *self, PyObject *args, PyObject *kwds)
         return -1;
 
     memset(&self->entry, 0, sizeof(struct git_index_entry));
-    if (c_path)
-        self->entry.path = c_path;
+    self->entry.path = strdup(c_path);
+    if (!self->entry.path)
+        return -1;
 
     if (id)
         git_oid_cpy(&self->entry.oid, &id->oid);
@@ -638,6 +639,7 @@ IndexEntry_init(IndexEntry *self, PyObject *args, PyObject *kwds)
 void
 IndexEntry_dealloc(IndexEntry *self)
 {
+    free(self->entry.path);
     PyObject_Del(self);
 }
 

@@ -175,6 +175,7 @@ transfer_progress_cb(const git_transfer_progress *stats, void *data)
         return -1;
 
     ret = PyObject_CallFunctionObjArgs(remote->transfer_progress, py_stats, NULL);
+    Py_DECREF(py_stats);
     if (!ret)
         return -1;
 
