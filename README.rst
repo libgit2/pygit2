@@ -70,6 +70,38 @@ Authors
 Changelog
 ==============
 
+0.20.3 (2014-04-XX)
+-------------------
+
+- A number of memory issues fixed
+  `#328 <https://github.com/libgit2/pygit2/pull/328>`_
+  `#348 <https://github.com/libgit2/pygit2/pull/348>`_
+  `#353 <https://github.com/libgit2/pygit2/pull/353>`_
+  `#355 <https://github.com/libgit2/pygit2/pull/355>`_
+  `#356 <https://github.com/libgit2/pygit2/pull/356>`_
+- Compatibility fixes for
+  PyPy (`#338 <https://github.com/libgit2/pygit2/pull/338>`_),
+  Visual Studio 2008 (`#343 <https://github.com/libgit2/pygit2/pull/343>`_)
+  and Python 3.3 (`#351 <https://github.com/libgit2/pygit2/pull/351>`_)
+- Make the sort mode parameter in ``Repository.walk(...)`` optional
+  `#337 <https://github.com/libgit2/pygit2/pull/337>`_
+- New ``Object.peel(...)``
+  `#342 <https://github.com/libgit2/pygit2/pull/342>`_
+- New ``Index.add_all(...)``
+  `#344 <https://github.com/libgit2/pygit2/pull/344>`_
+- Introduce support for libgit2 options
+  `#350 <https://github.com/libgit2/pygit2/pull/350>`_
+- More informative repr for ``Repository`` objects
+  `#352 <https://github.com/libgit2/pygit2/pull/352>`_
+- Introduce support for credentials
+  `#354 <https://github.com/libgit2/pygit2/pull/354>`_
+- Several documentation fixes
+  `#302 <https://github.com/libgit2/pygit2/issues/302>`_
+  `#336 <https://github.com/libgit2/pygit2/issues/336>`_
+- Tests, remove temporary files
+  `#341 <https://github.com/libgit2/pygit2/pull/341>`_
+
+
 0.20.2 (2014-02-04)
 -------------------
 
