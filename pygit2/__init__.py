@@ -37,6 +37,7 @@ from .repository import Repository
 from .version import __version__
 from .settings import Settings
 from .credentials import *
+from .remote import Remote
 
 def init_repository(path, bare=False):
     """

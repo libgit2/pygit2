@@ -10,3 +10,4 @@ pygit2/__pycache__
 *.egg-info
 *.swp
 docs/_build
+__pycache__

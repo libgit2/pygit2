@@ -35,6 +35,9 @@ from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
 
+from .ffi import ffi, C, to_str
+from .errors import check_error
+from .remote import Remote
 
 class Repository(_Repository):
 
@@ -58,6 +61,51 @@ class Repository(_Repository):
 
     def __repr__(self):
         return "pygit2.Repository(%r)" % self.path
+
+
+    #
+    # Remotes
+    #
+    def create_remote(self, name, url):
+        """create_remote(name, url) -> Remote
+
+        Creates a new remote.
+        """
+
+        repo_cptr = ffi.new('git_repository **')
+        repo_cptr[0] = ffi.cast('git_repository *', self._pointer)
+        cremote = ffi.new('git_remote **')
+
+        repo = repo_cptr[0]
+        err = C.git_remote_create(cremote, repo, to_str(name), to_str(url))
+        check_error(err)
+
+        return Remote(repo, cremote[0])
+
+    @property
+    def remotes(self):
+        """Returns all configured remotes"""
+
+        repo_cptr = ffi.new('git_repository **')
+        repo_cptr[0] = ffi.cast('git_repository *', self._pointer)
+        names = ffi.new('git_strarray *')
+
+        repo = repo_cptr[0]
+        try:
+            err = C.git_remote_list(names, repo)
+            check_error(err)
+
+            l = [None] * names.count
+            cremote = ffi.new('git_remote **')
+            for i in range(names.count):
+                err = C.git_remote_load(cremote, repo, names.strings[i])
+                check_error(err)
+
+                l[i] = Remote(repo, cremote[0])
+            return l
+        finally:
+            C.git_strarray_free(names)
+
 
     #
     # References
