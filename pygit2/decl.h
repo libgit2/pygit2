@@ -60,6 +60,13 @@ typedef enum {
 	GIT_DIRECTION_PUSH  = 1
 } git_direction;
 
+typedef enum {
+	GIT_CREDTYPE_USERPASS_PLAINTEXT = ...,
+	GIT_CREDTYPE_SSH_KEY = ...,
+	GIT_CREDTYPE_SSH_CUSTOM = ...,
+	GIT_CREDTYPE_DEFAULT = ...,
+} git_credtype_t;
+
 typedef struct git_remote_callbacks {
 	unsigned int version;
 	int (*progress)(const char *str, int len, void *data);
@@ -125,3 +132,14 @@ int git_refspec_dst_matches(const git_refspec *refspec, const char *refname);
 
 int git_refspec_transform(char *out, size_t outlen, const git_refspec *spec, const char *name);
 int git_refspec_rtransform(char *out, size_t outlen, const git_refspec *spec, const char *name);
+
+int git_cred_userpass_plaintext_new(
+	git_cred **out,
+	const char *username,
+	const char *password);
+int git_cred_ssh_key_new(
+	git_cred **out,
+	const char *username,
+	const char *publickey,
+	const char *privatekey,
+	const char *passphrase);

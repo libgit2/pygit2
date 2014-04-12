@@ -57,11 +57,13 @@ class Remote(object):
 
         self._repo = repo
         self._remote = ptr
+        self._stored_exception = None
 
         # Build the callback structure
         callbacks = ffi.new('git_remote_callbacks *')
         callbacks.version = 1
         callbacks.transfer_progress = self._transfer_progress_cb
+        callbacks.credentials = self._credentials_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         callbacks.payload = self._self_handle
@@ -103,8 +105,9 @@ class Remote(object):
         check_error(err)
 
     def fetch(self):
+        self._stored_exception = None
         err = C.git_remote_fetch(self._remote)
-        if err == C.GIT_EUSER:
+        if self._stored_exception:
             raise self._stored_exception
 
         check_error(err)
@@ -200,6 +203,49 @@ class Remote(object):
 
         try:
             self.transfer_progress(TransferProgress(stats_ptr))
+        except Exception, e:
+            self._stored_exception = e
+            return C.GIT_EUSER
+
+        return 0
+
+    @ffi.callback('int (*credentials)(git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types,	void *data)')
+    def _credentials_cb(cred_out, url, username, allowed, data):
+        self = ffi.from_handle(data)
+
+        if not hasattr(self, 'credentials'):
+            return 0
+
+        try:
+            url_str = maybe_string(url)
+            username_str = maybe_string(username)
+
+            creds = self.credentials(url_str, username_str, allowed)
+
+            if not hasattr(creds, 'credential_type') or not hasattr(creds, 'credential_tuple'):
+                raise TypeError("credential does not implement interface")
+
+            cred_type = creds.credential_type
+
+            if not (allowed & cred_type):
+                raise TypeError("invalid credential type")
+
+            ccred = ffi.new('git_cred **')
+            if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
+                name, passwd = creds.credential_tuple
+                err = C.git_cred_userpass_plaintext_new(ccred, to_str(name), to_str(passwd))
+
+            elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
+                name, pubkey, privkey, passphrase = creds.credential_tuple
+                err = C.git_cred_ssh_key_new(ccred, to_str(name),to_str(pubkey),
+                                             to_str(privkey), to_str(passphrase))
+
+            else:
+                raise TypeError("unsupported credential type")
+
+            check_error(err)
+            cred_out[0] = ccred[0]
+
         except Exception, e:
             self._stored_exception = e
             return C.GIT_EUSER
