@@ -45,15 +45,73 @@ class TransferProgress(object):
     """Progress downloading and indexing data during a fetch"""
 
     def __init__(self, tp):
+
         self.total_objects = tp.total_objects
+        """Total number objects to download"""
+
         self.indexed_objects = tp.indexed_objects
+        """Objects which have been indexed"""
+
         self.received_objects = tp.received_objects
+        """Objects which have been received up to now"""
+
         self.local_objects = tp.local_objects
+        """Local objects which were used to fix the thin pack"""
+
         self.total_deltas = tp.total_deltas
+        """Total number of deltas in the pack"""
+
         self.indexed_deltas = tp.indexed_deltas
+        """Deltas which have been indexed"""
+
         self.received_bytes = tp.received_bytes
+        """"Number of bytes received up to now"""
 
 class Remote(object):
+
+    def progress(self, string):
+        """Progress output callback
+
+        Override this function with your own progress reporting function
+
+        :param str string: Progress otuput from the remote
+        """
+        pass
+
+    def credentials(self, url, username_from_url, allowed_types):
+        """Credentials callback
+
+        If the remote server requires authentication, this function will
+        be called and its return value used for authentication. Override
+        it if you want to be able to perform authentication.
+
+        :param str url: The url of the remote
+        :param username_from_url: Username extracted from the url, if any
+        :type username_from_url: str or None
+        :param int allowed_types: credential types supported by the remote
+        :rtype: credential
+        """
+        pass
+
+    def transfer_progress(self, stats):
+        """Transfer progress callback
+
+        Override with your own function to report transfer progress.
+
+        :param TransferProgress stats: The progress up to now
+        """
+        pass
+
+    def update_tips(self, refname, old, new):
+        """Update tips callabck
+
+        Override with your own function to report reference updates
+
+        :param str refname: the name of the reference that's being updated
+        :param Oid old: the reference's old value
+        :param Oid new: the reference's new value
+        """
+
     def __init__(self, repo, ptr):
         """The constructor is for internal use only"""
 
@@ -80,6 +138,8 @@ class Remote(object):
 
     @property
     def name(self):
+        """Name of the remote"""
+
         return maybe_string(C.git_remote_name(self._remote))
 
     @name.setter
@@ -89,6 +149,8 @@ class Remote(object):
 
     @property
     def url(self):
+        """Url of the remote"""
+
         return maybe_string(C.git_remote_url(self._remote))
 
     @url.setter
@@ -97,6 +159,8 @@ class Remote(object):
 
     @property
     def push_url(self):
+        """Push url of the remote"""
+
         return maybe_string(C.git_remote_pushurl(self._remote))
 
     @push_url.setter
@@ -105,10 +169,19 @@ class Remote(object):
         check_error(err)
 
     def save(self):
+        """save()
+
+        Save a remote to its repository's configuration"""
+
         err = C.git_remote_save(self._remote)
         check_error(err)
 
     def fetch(self):
+        """fetch() -> TransferProgress
+
+        Perform a fetch against this remote.
+        """
+
         self._stored_exception = None
         err = C.git_remote_fetch(self._remote)
         if self._stored_exception:
@@ -120,14 +193,22 @@ class Remote(object):
 
     @property
     def refspec_count(self):
+        """Total number of refspecs in this remote"""
+
         return C.git_remote_refspec_count(self._remote)
 
     def get_refspec(self, n):
+        """get_refspec(n) -> Refspec
+
+        Return the refspec at the given position
+        """
         spec = C.git_remote_get_refspec(self._remote, n)
         return Refspec(self, spec)
 
     @property
     def fetch_refspecs(self):
+        """Refspecs that will be used for fetching"""
+
         specs = ffi.new('git_strarray *')
         err = C.git_remote_get_fetch_refspecs(specs, self._remote)
         check_error(err)
@@ -142,6 +223,8 @@ class Remote(object):
 
     @property
     def push_refspecs(self):
+        """Refspecs that will be used for pushing"""
+
         specs = ffi.new('git_strarray *')
         err = C.git_remote_get_push_refspecs(specs, self._remote)
         check_error(err)
@@ -155,9 +238,17 @@ class Remote(object):
         check_error(err)
 
     def add_fetch(self, spec):
+        """add_fetch(refspec)
+
+        Add a fetch refspec to the remote"""
+
         err = C.git_remote_add_fetch(self._remote, to_str(spec))
 
     def add_push(self, spec):
+        """add_push(refspec)
+
+        Add a push refspec to the remote"""
+
         err = C.git_remote_add_push(self._remote, to_str(spec))
 
     @ffi.callback("int (*cb)(const char *ref, const char *msg, void *data)")
@@ -168,6 +259,10 @@ class Remote(object):
         return 0
 
     def push(self, spec):
+        """push(refspec)
+
+        Push the given refspec to the remote. Raises ``GitError`` on error"""
+
         cpush = ffi.new('git_push **')
         err = C.git_push_new(cpush, self._remote)
         check_error(err)
@@ -202,7 +297,8 @@ class Remote(object):
     @ffi.callback('int (*transfer_progress)(const git_transfer_progress *stats, void *data)')
     def _transfer_progress_cb(stats_ptr, data):
         self = ffi.from_handle(data)
-        if not hasattr(self, 'transfer_progress'):
+
+        if not hasattr(self, 'transfer_progress') or not self.transfer_progress:
             return 0
 
         try:
@@ -217,7 +313,7 @@ class Remote(object):
     def _progress_cb(string, length, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'progress'):
+        if not hasattr(self, 'progress') or not self.progress:
             return 0
 
         try:
@@ -233,7 +329,7 @@ class Remote(object):
     def _update_tips_cb(refname, a, b, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'update_tips'):
+        if not hasattr(self, 'update_tips') or not self.update_tips:
             return 0
 
         try:
@@ -252,7 +348,7 @@ class Remote(object):
     def _credentials_cb(cred_out, url, username, allowed, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'credentials'):
+        if not hasattr(self, 'credentials') or not self.credentials:
             return 0
 
         try:

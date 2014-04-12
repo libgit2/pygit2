@@ -16,9 +16,9 @@ The Remote type
 .. autoattribute:: pygit2.Remote.refspec_count
 .. autoattribute:: pygit2.Remote.push_refspecs
 .. autoattribute:: pygit2.Remote.fetch_refspecs
-.. autoattribute:: pygit2.Remote.progress
-.. autoattribute:: pygit2.Remote.transfer_progress
-.. autoattribute:: pygit2.Remote.update_tips
+.. automethod:: pygit2.Remote.progress
+.. automethod:: pygit2.Remote.transfer_progress
+.. automethod:: pygit2.Remote.update_tips
 .. automethod:: pygit2.Remote.get_refspec
 .. automethod:: pygit2.Remote.fetch
 .. automethod:: pygit2.Remote.push
