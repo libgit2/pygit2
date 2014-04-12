@@ -3,6 +3,8 @@ typedef ... git_remote;
 typedef ... git_refspec;
 typedef ... git_push;
 typedef ... git_cred;
+typedef ... git_diff_file;
+typedef ... git_tree;
 
 #define GIT_OID_RAWSZ ...
 
@@ -43,6 +45,7 @@ typedef struct {
 const git_error * giterr_last(void);
 
 void git_strarray_free(git_strarray *array);
+void git_repository_free(git_repository *repo);
 
 typedef struct git_transfer_progress {
 	unsigned int total_objects;
@@ -148,3 +151,64 @@ int git_cred_ssh_key_new(
 	const char *publickey,
 	const char *privatekey,
 	const char *passphrase);
+
+typedef enum { ... } git_checkout_notify_t;
+
+typedef int (*git_checkout_notify_cb)(
+	git_checkout_notify_t why,
+	const char *path,
+	const git_diff_file *baseline,
+	const git_diff_file *target,
+	const git_diff_file *workdir,
+	void *payload);
+
+typedef void (*git_checkout_progress_cb)(
+	const char *path,
+	size_t completed_steps,
+	size_t total_steps,
+	void *payload);
+
+typedef struct git_checkout_opts {
+	unsigned int version;
+
+	unsigned int checkout_strategy;
+
+	int disable_filters;
+	unsigned int dir_mode;
+	unsigned int file_mode;
+	int file_open_flags;
+
+	unsigned int notify_flags;
+	git_checkout_notify_cb notify_cb;
+	void *notify_payload;
+
+	git_checkout_progress_cb progress_cb;
+	void *progress_payload;
+
+	git_strarray paths;
+
+	git_tree *baseline;
+
+	const char *target_directory;
+
+	const char *our_label;
+	const char *their_label;
+} git_checkout_opts;
+
+
+typedef struct git_clone_options {
+	unsigned int version;
+
+	git_checkout_opts checkout_opts;
+	git_remote_callbacks remote_callbacks;
+
+	int bare;
+	int ignore_cert_errors;
+	const char *remote_name;
+	const char* checkout_branch;
+} git_clone_options;
+
+int git_clone(git_repository **out,
+		const char *url,
+		const char *local_path,
+		const git_clone_options *options);

@@ -352,33 +352,7 @@ class Remote(object):
             return 0
 
         try:
-            url_str = maybe_string(url)
-            username_str = maybe_string(username)
-
-            creds = self.credentials(url_str, username_str, allowed)
-
-            if not hasattr(creds, 'credential_type') or not hasattr(creds, 'credential_tuple'):
-                raise TypeError("credential does not implement interface")
-
-            cred_type = creds.credential_type
-
-            if not (allowed & cred_type):
-                raise TypeError("invalid credential type")
-
-            ccred = ffi.new('git_cred **')
-            if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
-                name, passwd = creds.credential_tuple
-                err = C.git_cred_userpass_plaintext_new(ccred, to_str(name), to_str(passwd))
-
-            elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
-                name, pubkey, privkey, passphrase = creds.credential_tuple
-                err = C.git_cred_ssh_key_new(ccred, to_str(name),to_str(pubkey),
-                                             to_str(privkey), to_str(passphrase))
-
-            else:
-                raise TypeError("unsupported credential type")
-
-            check_error(err)
+            ccred = get_credentials(self.credentials, url, username, allowed)
             cred_out[0] = ccred[0]
 
         except Exception, e:
@@ -386,3 +360,36 @@ class Remote(object):
             return C.GIT_EUSER
 
         return 0
+
+def get_credentials(fn, url, username, allowed):
+    """Call fn and return the credentials object"""
+
+    url_str = maybe_string(url)
+    username_str = maybe_string(username)
+
+    creds = fn(url_str, username_str, allowed)
+
+    if not hasattr(creds, 'credential_type') or not hasattr(creds, 'credential_tuple'):
+        raise TypeError("credential does not implement interface")
+
+    cred_type = creds.credential_type
+
+    if not (allowed & cred_type):
+        raise TypeError("invalid credential type")
+
+    ccred = ffi.new('git_cred **')
+    if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
+        name, passwd = creds.credential_tuple
+        err = C.git_cred_userpass_plaintext_new(ccred, to_str(name), to_str(passwd))
+
+    elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
+        name, pubkey, privkey, passphrase = creds.credential_tuple
+        err = C.git_cred_ssh_key_new(ccred, to_str(name),to_str(pubkey),
+                                    to_str(privkey), to_str(passphrase))
+
+    else:
+        raise TypeError("unsupported credential type")
+
+    check_error(err)
+
+    return ccred
