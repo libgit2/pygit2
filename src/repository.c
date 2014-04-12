@@ -35,7 +35,6 @@
 #include "oid.h"
 #include "note.h"
 #include "repository.h"
-#include "remote.h"
 #include "branch.h"
 #include "blame.h"
 #include "mergeresult.h"
@@ -54,7 +53,6 @@ extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
-extern PyTypeObject RemoteType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
