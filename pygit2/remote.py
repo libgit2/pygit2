@@ -28,6 +28,8 @@
 # Import from the future
 from __future__ import absolute_import
 
+from _pygit2 import Oid
+
 from .ffi import ffi, C, to_str, strarray_to_strings, strings_to_strarray
 from .errors import check_error, GitError
 from .refspec import Refspec
@@ -62,7 +64,9 @@ class Remote(object):
         # Build the callback structure
         callbacks = ffi.new('git_remote_callbacks *')
         callbacks.version = 1
+        callbacks.progress = self._progress_cb
         callbacks.transfer_progress = self._transfer_progress_cb
+        callbacks.update_tips = self._update_tips_cb
         callbacks.credentials = self._credentials_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
@@ -203,6 +207,41 @@ class Remote(object):
 
         try:
             self.transfer_progress(TransferProgress(stats_ptr))
+        except Exception, e:
+            self._stored_exception = e
+            return C.GIT_EUSER
+
+        return 0
+
+    @ffi.callback('int (*progress)(const char *str, int len, void *data)')
+    def _progress_cb(string, length, data):
+        self = ffi.from_handle(data)
+
+        if not hasattr(self, 'progress'):
+            return 0
+
+        try:
+            s = ffi.string(string, length).decode()
+            self.progress(s)
+        except Exception, e:
+            self._stored_exception = e
+            return C.GIT_EUSER
+
+        return 0
+
+    @ffi.callback('int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data)')
+    def _update_tips_cb(refname, a, b, data):
+        self = ffi.from_handle(data)
+
+        if not hasattr(self, 'update_tips'):
+            return 0
+
+        try:
+            s = maybe_string(refname)
+            a = Oid(raw=bytes(ffi.buffer(a)))
+            b = Oid(raw=bytes(ffi.buffer(b)))
+
+            self.update_tips(s, a, b)
         except Exception, e:
             self._stored_exception = e
             return C.GIT_EUSER

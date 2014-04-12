@@ -3,7 +3,12 @@ typedef ... git_remote;
 typedef ... git_refspec;
 typedef ... git_push;
 typedef ... git_cred;
-typedef ... git_oid;
+
+#define GIT_OID_RAWSZ ...
+
+typedef struct git_oid {
+	unsigned char id[20];
+} git_oid;
 
 typedef struct git_strarray {
 	char **strings;
