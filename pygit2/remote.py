@@ -303,7 +303,7 @@ class Remote(object):
 
         try:
             self.transfer_progress(TransferProgress(stats_ptr))
-        except Exception, e:
+        except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
 
@@ -319,7 +319,7 @@ class Remote(object):
         try:
             s = ffi.string(string, length).decode()
             self.progress(s)
-        except Exception, e:
+        except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
 
@@ -338,7 +338,7 @@ class Remote(object):
             b = Oid(raw=bytes(ffi.buffer(b)))
 
             self.update_tips(s, a, b)
-        except Exception, e:
+        except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
 
@@ -355,7 +355,7 @@ class Remote(object):
             ccred = get_credentials(self.credentials, url, username, allowed)
             cred_out[0] = ccred[0]
 
-        except Exception, e:
+        except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
 

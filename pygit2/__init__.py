@@ -59,7 +59,7 @@ def _credentials_cb(cred_out, url, username_from_url, allowed, data):
     try:
         ccred = get_credentials(d['callback'], url, username_from_url, allowed)
         cred_out[0] = ccred[0]
-    except Exception, e:
+    except Exception as e:
         d['exception'] = e
         return C.GIT_EUSER
 

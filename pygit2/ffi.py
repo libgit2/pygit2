@@ -29,7 +29,8 @@
 from __future__ import absolute_import
 
 import inspect
-from os import path
+import codecs
+from os import path, getenv
 from cffi import FFI
 import sys
 
@@ -51,10 +52,10 @@ else:
 
 if sys.version_info.major < 3:
     def is_string(s):
-        return isinstance(s, str)
+        return isinstance(s, basestring)
 else:
     def is_string(s):
-        return isinstance(s, basestring)
+        return isinstance(s, str)
 
 ffi = FFI()
 
@@ -88,7 +89,7 @@ def strings_to_strarray(l):
         if not is_string(l[i]):
             raise TypeError("Value must be a string")
 
-        s = ffi.new('char []', l[i])
+        s = ffi.new('char []', to_str(l[i]))
         refs[i] = s
         strings[i] = s
 
@@ -100,7 +101,7 @@ def strings_to_strarray(l):
 dir_path = path.dirname(path.abspath(inspect.getfile(inspect.currentframe())))
 
 decl_path = path.join(dir_path, 'decl.h')
-with open(decl_path, 'rb') as f:
-    ffi.cdef(f.read())
+with codecs.open(decl_path, 'r', 'utf-8') as header:
+        ffi.cdef(header.read())
 
 C = ffi.verify("#include <git2.h>", libraries=["git2"])
