@@ -184,6 +184,7 @@ setup(name='pygit2',
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
       packages=['pygit2'],
+      package_data={'pygit2': ['decl.h']},
       ext_modules=[
           Extension('_pygit2', pygit2_exts,
                     include_dirs=[libgit2_include, 'include'],
