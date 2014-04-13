@@ -185,6 +185,7 @@ setup(name='pygit2',
       long_description=long_description,
       packages=['pygit2'],
       package_data={'pygit2': ['decl.h']},
+      install_requires=['cffi'],
       ext_modules=[
           Extension('_pygit2', pygit2_exts,
                     include_dirs=[libgit2_include, 'include'],
