@@ -334,8 +334,8 @@ class Remote(object):
 
         try:
             s = maybe_string(refname)
-            a = Oid(raw=bytes(ffi.buffer(a)))
-            b = Oid(raw=bytes(ffi.buffer(b)))
+            a = Oid(raw=bytes(ffi.buffer(a)[:]))
+            b = Oid(raw=bytes(ffi.buffer(b)[:]))
 
             self.update_tips(s, a, b)
         except Exception as e:
