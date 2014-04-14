@@ -144,6 +144,9 @@ class Remote(object):
 
     @name.setter
     def name(self, value):
+        if not value:
+            raise ValueError("New remote name must be a non-empty string")
+
         err = C.git_remote_rename(self._remote, to_str(value), ffi.NULL, ffi.NULL)
         check_error(err)
 

@@ -65,6 +65,7 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual('new', remote.name)
 
         self.assertRaisesAssign(ValueError, remote, 'name', '')
+        self.assertRaisesAssign(ValueError, remote, 'name', None)
 
 
     def test_remote_set_url(self):
