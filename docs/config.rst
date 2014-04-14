@@ -23,3 +23,10 @@ The Config type
    set multiple times in the configuration files.
 
 The :class:`Config` Mapping interface.
+
+When using the mapping interface, the value is returned as a
+string. In order to apply the git-config parsing rules, you can use
+:method:`Config.get_bool` or :method:`Config.get_int`.
+
+.. automethod:: pygit2.Config.get_bool
+.. automethod:: pygit2.Config.get_int
