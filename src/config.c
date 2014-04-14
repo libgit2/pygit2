@@ -168,70 +168,94 @@ Config_contains(Config *self, PyObject *py_key) {
     return 1;
 }
 
-
-PyObject *
-Config_getitem(Config *self, PyObject *py_input_key)
+/* Get the C string value given a python string as key */
+static int
+get_string(const char **key_out, Config *self, PyObject *py_key)
 {
-    int err;
-    const char *value_str;
+    PyObject *tkey;
     const char *key;
-    PyObject *py_key, *py_value, *tkey, *tmp_type = NULL;
-    PyTypeObject *py_type = NULL;
-
-    if (PyTuple_Check(py_input_key) && PyTuple_Size(py_input_key) == 2) {
-	    py_key = PyTuple_GetItem(py_input_key, 0);
-	    tmp_type = PyTuple_GetItem(py_input_key, 1);
-    } else {
-        py_key = py_input_key;
-    }
-
-    /* If passed a tuple, make sure the second item is a type */
-    if (tmp_type) {
-        if (!PyType_Check(tmp_type))
-            return NULL;
-        else
-            py_type = (PyTypeObject *) tmp_type;
-    }
+    int err;
 
     key = py_str_borrow_c_str(&tkey, py_key, NULL);
     if (key == NULL)
+        return -1;
+
+    err = git_config_get_string(key_out, self->config, key);
+    Py_CLEAR(tkey);
+
+    if (err == GIT_ENOTFOUND) {
+        PyErr_SetObject(PyExc_KeyError, py_key);
+        return -1;
+    }
+
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    return 0;
+}
+
+PyObject *
+Config_getitem(Config *self, PyObject *py_key)
+{
+    int err;
+    const char *value_str;
+
+    err = get_string(&value_str, self, py_key);
+    if (err < 0)
         return NULL;
 
-    err = git_config_get_string(&value_str, self->config, key);
-    Py_CLEAR(tkey);
+    return to_unicode(value_str, NULL, NULL);
+}
+
+PyDoc_STRVAR(Config_get_bool__doc__,
+  "get_bool(key) -> Bool\n"
+  "\n"
+  "Look up *key* and parse its value as a boolean as per the git-config rules\n"
+  "\n"
+  "Truthy values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',\n"
+  "0, 'off' and 'no'");
+
+PyObject *
+Config_get_bool(Config *self, PyObject *key)
+{
+    int err, value;
+    const char *value_str;
+
+    err = get_string(&value_str, self, key);
     if (err < 0)
-        goto cleanup;
+        return NULL;
 
-    /* If the user specified a type, let's parse it */
-    if (py_type) {
-	    if (py_type == &PyBool_Type) {
-		    int value;
-            if ((err = git_config_parse_bool(&value, value_str)) < 0)
-                goto cleanup;
+    if ((err = git_config_parse_bool(&value, value_str)) < 0)
+        return NULL;
 
-            py_value = PyBool_FromLong(value);
-        } else if (py_type == &PyInteger_Type) {
-            int64_t value;
-            if ((err = git_config_parse_int64(&value, value_str)) < 0)
-                goto cleanup;
+    return PyBool_FromLong(value);
+}
 
-            py_value = PyLong_FromLongLong(value);
-        }
-    } else {
-        py_value = to_unicode(value_str, NULL, NULL);
-    }
+PyDoc_STRVAR(Config_get_int__doc__,
+  "get_int(key) -> int\n"
+  "\n"
+  "Look up *key* and parse its value as an integer as per the git-config rules\n"
+  "\n"
+  "A value can have a suffix 'k', 'm' or 'g' which stand for 'kilo', 'mega' and\n"
+  "'giga' respectively");
 
-cleanup:
-    if (err < 0) {
-        if (err == GIT_ENOTFOUND) {
-            PyErr_SetObject(PyExc_KeyError, py_key);
-            return NULL;
-        }
+PyObject *
+Config_get_int(Config *self, PyObject *key)
+{
+    int err;
+    int64_t value;
+    const char *value_str;
 
-        return Error_set(err);
-    }
+    err = get_string(&value_str, self, key);
+    if (err < 0)
+        return NULL;
 
-    return py_value;
+    if ((err = git_config_parse_int64(&value, value_str)) < 0)
+        return NULL;
+
+    return PyLong_FromLongLong(value);
 }
 
 int
@@ -396,6 +420,8 @@ PyMethodDef Config_methods[] = {
     METHOD(Config, add_file, METH_VARARGS | METH_KEYWORDS),
     METHOD(Config, get_multivar, METH_VARARGS),
     METHOD(Config, set_multivar, METH_VARARGS),
+    METHOD(Config, get_bool, METH_O),
+    METHOD(Config, get_int, METH_O),
     {NULL}
 };
 

@@ -24,18 +24,9 @@ The Config type
 
 The :class:`Config` Mapping interface.
 
-Parsing the values
-===================
+When using the mapping interface, the value is returned as a
+string. In order to apply the git-config parsing rules, you can use
+:method:`Config.get_bool` or :method:`Config.get_int`.
 
-Instead of a string, a tuple of `(str,type)` can be used to look up a
-key and parse it through the Git rules. E.g.
-
-    config['core.bare',bool]
-
-will return True if 'core.bare' is truthy.
-
-Truty values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',
-0, 'off' and 'no'.
-
-Available types are `bool` and `int`. Not specifying a type returns a
-string.
+.. automethod:: pygit2.Config.get_bool
+.. automethod:: pygit2.Config.get_int
