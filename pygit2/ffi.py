@@ -34,23 +34,29 @@ from os import path, getenv
 from cffi import FFI
 import sys
 
-if sys.version_info.major < 3:
+(major_version, _, _, _, _) = sys.version_info
+
+if major_version < 3:
     def to_str(s, encoding='utf-8', errors='strict'):
-        if s == ffi.NULL:
+        if s == ffi.NULL or s == None:
             return ffi.NULL
-        encoding = encoding or 'utf-8'
+
         if isinstance(s, unicode):
+            encoding = encoding or 'utf-8'
             return s.encode(encoding, errors)
 
         return s
 else:
     def to_str(s, encoding='utf-8', errors='strict'):
+        if s == ffi.NULL or s == None:
+            return ffi.NULL
+
         if isinstance(s, bytes):
             return s
-        else:
-            return bytes(s, encoding, errors)
 
-if sys.version_info.major < 3:
+        return s.encode(encoding, errors)
+
+if major_version < 3:
     def is_string(s):
         return isinstance(s, basestring)
 else:
