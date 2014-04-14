@@ -41,6 +41,15 @@ from .remote import Remote
 
 class Repository(_Repository):
 
+    def __init__(self, *args, **kwargs):
+        super(Repository, self).__init__(*args, **kwargs)
+
+        # Get the pointer as the contents of a buffer and store it for
+        # later access
+        repo_cptr = ffi.new('git_repository **')
+        ffi.buffer(repo_cptr)[:] = self._pointer[:]
+        self._repo = repo_cptr[0]
+
     #
     # Mapping interface
     #
@@ -72,36 +81,30 @@ class Repository(_Repository):
         Creates a new remote.
         """
 
-        repo_cptr = ffi.new('git_repository **')
-        repo_cptr[0] = ffi.cast('git_repository *', self._pointer)
         cremote = ffi.new('git_remote **')
 
-        repo = repo_cptr[0]
-        err = C.git_remote_create(cremote, repo, to_str(name), to_str(url))
+        err = C.git_remote_create(cremote, self._repo, to_str(name), to_str(url))
         check_error(err)
 
-        return Remote(repo, cremote[0])
+        return Remote(self, cremote[0])
 
     @property
     def remotes(self):
         """Returns all configured remotes"""
 
-        repo_cptr = ffi.new('git_repository **')
-        repo_cptr[0] = ffi.cast('git_repository *', self._pointer)
         names = ffi.new('git_strarray *')
 
-        repo = repo_cptr[0]
         try:
-            err = C.git_remote_list(names, repo)
+            err = C.git_remote_list(names, self._repo)
             check_error(err)
 
             l = [None] * names.count
             cremote = ffi.new('git_remote **')
             for i in range(names.count):
-                err = C.git_remote_load(cremote, repo, names.strings[i])
+                err = C.git_remote_load(cremote, self._repo, names.strings[i])
                 check_error(err)
 
-                l[i] = Remote(repo, cremote[0])
+                l[i] = Remote(self, cremote[0])
             return l
         finally:
             C.git_strarray_free(names)

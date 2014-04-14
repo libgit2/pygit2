@@ -1293,13 +1293,8 @@ PyDoc_STRVAR(Repository__pointer__doc__, "Get the repo's pointer. For internal u
 PyObject *
 Repository__pointer__get__(Repository *self)
 {
-    /*
-     * This is pretty bad. We shouldn't be casting a pointer into an
-     * integer, but we can't access the contents of a PyCapsule from
-     * python code, which we need to do in order to get a type that
-     * cffi likes.
-     */
-    return PyLong_FromLongLong((long long) self->repo);
+    /* Bytes means a raw buffer */
+    return PyBytes_FromStringAndSize((char *) &self->repo, sizeof(git_repository *));
 }
 
 PyDoc_STRVAR(Repository_checkout_head__doc__,
