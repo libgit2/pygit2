@@ -168,43 +168,94 @@ Config_contains(Config *self, PyObject *py_key) {
     return 1;
 }
 
+/* Get the C string value given a python string as key */
+static int
+get_string(const char **key_out, Config *self, PyObject *py_key)
+{
+    PyObject *tkey;
+    const char *key;
+    int err;
+
+    key = py_str_borrow_c_str(&tkey, py_key, NULL);
+    if (key == NULL)
+        return -1;
+
+    err = git_config_get_string(key_out, self->config, key);
+    Py_CLEAR(tkey);
+
+    if (err == GIT_ENOTFOUND) {
+        PyErr_SetObject(PyExc_KeyError, py_key);
+        return -1;
+    }
+
+    if (err < 0) {
+        Error_set(err);
+        return -1;
+    }
+
+    return 0;
+}
 
 PyObject *
 Config_getitem(Config *self, PyObject *py_key)
 {
-    int64_t value_int;
-    int err, value_bool;
+    int err;
     const char *value_str;
-    const char *key;
-    PyObject* py_value, *tmp;
 
-    key = py_str_borrow_c_str(&tmp, py_key, NULL);
-    if (key == NULL)
+    err = get_string(&value_str, self, py_key);
+    if (err < 0)
         return NULL;
 
-    err = git_config_get_string(&value_str, self->config, key);
-    Py_CLEAR(tmp);
+    return to_unicode(value_str, NULL, NULL);
+}
+
+PyDoc_STRVAR(Config_get_bool__doc__,
+  "get_bool(key) -> Bool\n"
+  "\n"
+  "Look up *key* and parse its value as a boolean as per the git-config rules\n"
+  "\n"
+  "Truthy values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',\n"
+  "0, 'off' and 'no'");
+
+PyObject *
+Config_get_bool(Config *self, PyObject *key)
+{
+    int err, value;
+    const char *value_str;
+
+    err = get_string(&value_str, self, key);
     if (err < 0)
-        goto cleanup;
+        return NULL;
 
-    if (git_config_parse_int64(&value_int, value_str) == 0)
-        py_value = PyLong_FromLongLong(value_int);
-    else if(git_config_parse_bool(&value_bool, value_str) == 0)
-        py_value = PyBool_FromLong(value_bool);
-    else
-        py_value = to_unicode(value_str, NULL, NULL);
+    if ((err = git_config_parse_bool(&value, value_str)) < 0)
+        return NULL;
 
-cleanup:
-    if (err < 0) {
-        if (err == GIT_ENOTFOUND) {
-            PyErr_SetObject(PyExc_KeyError, py_key);
-            return NULL;
-        }
+    return PyBool_FromLong(value);
+}
 
-        return Error_set(err);
-    }
+PyDoc_STRVAR(Config_get_int__doc__,
+  "get_int(key) -> int\n"
+  "\n"
+  "Look up *key* and parse its value as an integer as per the git-config rules\n"
+  "\n"
+  "A value can have a suffix 'k', 'm' or 'g' which stand for 'kilo', 'mega' and\n"
+  "'giga' respectively");
 
-    return py_value;
+PyObject *
+Config_get_int(Config *self, PyObject *key)
+{
+    int err;
+    int64_t value;
+    const char *value_str;
+
+    err = get_string(&value_str, self, key);
+    if (err < 0)
+        return NULL;
+
+    if ((err = git_config_parse_int64(&value, value_str)) < 0)
+        return NULL;
+
+    return PyLong_FromLongLong(value);
 }
 
 int
@@ -369,6 +420,8 @@ PyMethodDef Config_methods[] = {
     METHOD(Config, add_file, METH_VARARGS | METH_KEYWORDS),
     METHOD(Config, get_multivar, METH_VARARGS),
     METHOD(Config, set_multivar, METH_VARARGS),
+    METHOD(Config, get_bool, METH_O),
+    METHOD(Config, get_int, METH_O),
     {NULL}
 };
 
