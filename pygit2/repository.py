@@ -78,7 +78,7 @@ class Repository(_Repository):
 
         Examples::
 
-            repo.create_reference('refs/heads/foo', repo.head.hex)
+            repo.create_reference('refs/heads/foo', repo.head.get_object().hex)
             repo.create_reference('refs/tags/foo', 'refs/heads/master')
             repo.create_reference('refs/tags/foo', 'bbb78a9cec580')
         """
