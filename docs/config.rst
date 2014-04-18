@@ -22,11 +22,13 @@ The Config type
    aware that this may return multiple versions of each entry if they are
    set multiple times in the configuration files.
 
+.. currentmodule:: pygit2
+
 The :class:`Config` Mapping interface.
 
 When using the mapping interface, the value is returned as a
 string. In order to apply the git-config parsing rules, you can use
-:method:`Config.get_bool` or :method:`Config.get_int`.
+:meth:`Config.get_bool` or :meth:`Config.get_int`.
 
 .. automethod:: pygit2.Config.get_bool
 .. automethod:: pygit2.Config.get_int
