@@ -194,38 +194,6 @@ typedef struct {
     char *encoding;
 } Signature;
 
-
-/* git_remote */
-typedef struct {
-    PyObject_HEAD
-    Repository *repo;
-    git_remote *remote;
-    /* Callbacks for network events */
-    PyObject *progress;
-    PyObject *credentials;
-    PyObject *transfer_progress;
-    PyObject *update_tips;
-} Remote;
-
-/* git_refspec */
-typedef struct {
-    PyObject_HEAD
-    const Remote *owner;
-    const git_refspec *refspec;
-} Refspec;
-
-/* git_transfer_progress */
-typedef struct {
-    PyObject_HEAD
-    unsigned int total_objects;
-    unsigned int indexed_objects;
-    unsigned int received_objects;
-    unsigned int local_objects;
-    unsigned int total_deltas;
-    unsigned int indexed_deltas;
-    size_t received_bytes;
-} TransferProgress;
-
 /* git_blame */
 SIMPLE_TYPE(Blame, git_blame, blame)
 
