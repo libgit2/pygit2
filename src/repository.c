@@ -1077,8 +1077,7 @@ PyDoc_STRVAR(Repository_create_reference_direct__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.create_reference_direct('refs/heads/foo',\n"
-  "                                 repo.head.get_object().hex, False)");
+  "    repo.create_reference_direct('refs/heads/foo', repo.head.target, False)");
 
 PyObject *
 Repository_create_reference_direct(Repository *self,  PyObject *args,
