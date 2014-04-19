@@ -914,7 +914,7 @@ PyDoc_STRVAR(Repository_create_branch__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.create_branch('foo', repo.head.hex, force=False)");
+  "    repo.create_branch('foo', repo.head.get_object(), force=False)");
 
 PyObject *
 Repository_create_branch(Repository *self, PyObject *args)
@@ -1063,7 +1063,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 }
 
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
-  "git_reference_create(name, target, force) -> Reference\n"
+  "create_reference_direct(name, target, force) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to an object.\n"
   "\n"
@@ -1075,7 +1075,7 @@ PyDoc_STRVAR(Repository_create_reference_direct__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.git_reference_create('refs/heads/foo', repo.head.hex, False)");
+  "    repo.create_reference_direct('refs/heads/foo', repo.head.target, False)");
 
 PyObject *
 Repository_create_reference_direct(Repository *self,  PyObject *args,
@@ -1102,7 +1102,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
 }
 
 PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
-  "git_reference_symbolic_create(name, source, force) -> Reference\n"
+  "create_reference_symbolic(name, source, force) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to another reference.\n"
   "\n"
@@ -1114,7 +1114,7 @@ PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.git_reference_symbolic_create('refs/tags/foo', 'refs/heads/master', False)");
+  "    repo.create_reference_symbolic('refs/tags/foo', 'refs/heads/master', False)");
 
 PyObject *
 Repository_create_reference_symbolic(Repository *self,  PyObject *args,
