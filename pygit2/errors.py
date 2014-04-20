@@ -33,7 +33,7 @@ from .ffi import ffi, C
 
 from _pygit2 import GitError
 
-def check_error(err):
+def check_error(err, io=False):
     if err >= 0:
         return
 
@@ -45,7 +45,10 @@ def check_error(err):
     if err in [C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS, C.GIT_EAMBIGUOUS]:
         raise ValueError(message)
     elif err == C.GIT_ENOTFOUND:
-        raise KeyError(message)
+        if io:
+            raise IOError(message)
+        else:
+            raise KeyError(message)
     elif err == C.GIT_EINVALIDSPEC:
         raise ValueError(message)
     elif err == C.GIT_ITEROVER:

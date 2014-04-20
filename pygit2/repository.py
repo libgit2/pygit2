@@ -38,6 +38,7 @@ from _pygit2 import Reference, Tree, Commit, Blob
 from .ffi import ffi, C, to_str
 from .errors import check_error
 from .remote import Remote
+from .config import Config
 
 class Repository(_Repository):
 
@@ -109,6 +110,23 @@ class Repository(_Repository):
         finally:
             C.git_strarray_free(names)
 
+
+    #
+    # Configuration
+    #
+    @property
+    def config(self):
+        """The configuration file for this repository
+
+        If a the configuration hasn't been set yet, the default config for
+        repository will be returned, including global and system configurations
+        (if they are available)."""
+
+        cconfig = ffi.new('git_config **')
+        err = C.git_repository_config(cconfig, self._repo)
+        check_error(err)
+
+        return Config.from_c(self, cconfig[0])
 
     #
     # References

@@ -66,8 +66,6 @@ extern PyTypeObject IndexType;
 extern PyTypeObject IndexEntryType;
 extern PyTypeObject IndexIterType;
 extern PyTypeObject WalkerType;
-extern PyTypeObject ConfigType;
-extern PyTypeObject ConfigIterType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
@@ -384,11 +382,6 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_GLOBAL);
     ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_XDG);
     ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_SYSTEM);
-
-    INIT_TYPE(ConfigType, NULL, PyType_GenericNew)
-    INIT_TYPE(ConfigIterType, NULL, NULL)
-    ADD_TYPE(m, Config)
-    ADD_TYPE(m, ConfigIter)
 
     /* Blame */
     INIT_TYPE(BlameType, NULL, NULL)

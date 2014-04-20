@@ -70,19 +70,6 @@ SIMPLE_TYPE(Tree, git_tree, tree)
 SIMPLE_TYPE(Blob, git_blob, blob)
 SIMPLE_TYPE(Tag, git_tag, tag)
 
-
-/* git_config */
-typedef struct {
-    PyObject_HEAD
-    git_config* config;
-} Config;
-
-typedef struct {
-    PyObject_HEAD
-    Config *owner;
-    git_config_iterator *iter;
-} ConfigIter;
-
 /* git_note */
 typedef struct {
     PyObject_HEAD
