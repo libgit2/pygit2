@@ -224,6 +224,25 @@ class Config(object):
         check_error(err)
 
     #
+    # Methods to parse a string according to the git-config rules
+    #
+
+    @staticmethod
+    def parse_bool(text):
+        res = ffi.new('int *')
+        err = C.git_config_parse_bool(res, to_str(text))
+
+        return res[0] != 0
+
+    @staticmethod
+    def parse_int(text):
+        res = ffi.new('int64_t *')
+        err = C.git_config_parse_int64(res, to_str(text))
+        check_error(err)
+
+        return res[0]
+
+    #
     # Static methods to get specialized version of the config
     #
 

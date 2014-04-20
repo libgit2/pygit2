@@ -179,5 +179,12 @@ class ConfigTest(utils.RepoTestCase):
         self.assertTrue('core.bare' in lst)
         self.assertTrue(lst['core.bare'])
 
+    def test_parsing(self):
+        self.assertTrue(Config.parse_bool("on"))
+        self.assertTrue(Config.parse_bool("1"))
+
+        self.assertEqual(5, Config.parse_int("5"))
+        self.assertEqual(1024, Config.parse_int("1k"))
+
 if __name__ == '__main__':
     unittest.main()
