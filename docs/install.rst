@@ -13,7 +13,7 @@ website:
 
   http://libgit2.github.com
 
-Also, make sure you have Python 2.6+ installed together with the Python
+Also, make sure you have Python 2.7 or 3.2+ installed together with the Python
 development headers.
 
 When those are installed, you can install pygit2:
