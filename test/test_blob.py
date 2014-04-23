@@ -74,6 +74,13 @@ class BlobTest(utils.RepoTestCase):
         self.assertEqual(BLOB_NEW_CONTENT, blob.data)
         self.assertEqual(len(BLOB_NEW_CONTENT), blob.size)
         self.assertEqual(BLOB_NEW_CONTENT, blob.read_raw())
+        blob_buffer = memoryview(blob)
+        self.assertEqual(len(BLOB_NEW_CONTENT), len(blob_buffer))
+        self.assertEqual(BLOB_NEW_CONTENT, blob_buffer)
+        def set_content():
+            blob_buffer[:2] = b'hi'
+
+        self.assertRaises(TypeError, set_content)
 
     def test_create_blob_fromworkdir(self):
 
