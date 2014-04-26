@@ -5,8 +5,11 @@ typedef ... git_push;
 typedef ... git_cred;
 typedef ... git_diff_file;
 typedef ... git_tree;
+typedef ... git_config;
+typedef ... git_config_iterator;
 
 #define GIT_OID_RAWSZ ...
+#define GIT_PATH_MAX ...
 
 typedef struct git_oid {
 	unsigned char id[20];
@@ -212,3 +215,49 @@ int git_clone(git_repository **out,
 		const char *url,
 		const char *local_path,
 		const git_clone_options *options);
+
+
+typedef enum {
+	GIT_CONFIG_LEVEL_SYSTEM = 1,
+	GIT_CONFIG_LEVEL_XDG = 2,
+	GIT_CONFIG_LEVEL_GLOBAL = 3,
+	GIT_CONFIG_LEVEL_LOCAL = 4,
+	GIT_CONFIG_LEVEL_APP = 5,
+	GIT_CONFIG_HIGHEST_LEVEL = -1,
+} git_config_level_t;
+
+typedef struct {
+	const char *name;
+	const char *value;
+	git_config_level_t level;
+} git_config_entry;
+
+int git_repository_config(git_config **out, git_repository *repo);
+void git_config_free(git_config *cfg);
+
+int git_config_get_string(const char **out, const git_config *cfg, const char *name);
+int git_config_set_string(git_config *cfg, const char *name, const char *value);
+int git_config_set_bool(git_config *cfg, const char *name, int value);
+int git_config_set_int64(git_config *cfg, const char *name, int64_t value);
+
+int git_config_parse_bool(int *out, const char *value);
+int git_config_parse_int64(int64_t *out, const char *value);
+
+int git_config_delete_entry(git_config *cfg, const char *name);
+int git_config_add_file_ondisk(git_config *cfg,
+	const char *path,
+	git_config_level_t level,
+	int force);
+
+int git_config_iterator_new(git_config_iterator **out, const git_config *cfg);
+int git_config_next(git_config_entry **entry, git_config_iterator *iter);
+void git_config_iterator_free(git_config_iterator *iter);
+
+int git_config_multivar_iterator_new(git_config_iterator **out, const git_config *cfg, const char *name, const char *regexp);
+int git_config_set_multivar(git_config *cfg, const char *name, const char *regexp, const char *value);
+
+int git_config_new(git_config **out);
+int git_config_open_ondisk(git_config **out, const char *path);
+int git_config_find_system(char *out, size_t length);
+int git_config_find_global(char *out, size_t length);
+int git_config_find_xdg(char *out, size_t length);

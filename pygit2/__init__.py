@@ -38,6 +38,7 @@ from .version import __version__
 from .settings import Settings
 from .credentials import *
 from .remote import Remote, get_credentials
+from .config import Config
 from .errors import check_error
 from .ffi import ffi, C, to_str
 

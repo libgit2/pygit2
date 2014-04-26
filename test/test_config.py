@@ -115,9 +115,10 @@ class ConfigTest(utils.RepoTestCase):
 
         config.add_file(CONFIG_FILENAME, 0)
         self.assertTrue('this.that' in config)
-        self.assertEqual(len(config.get_multivar('this.that')), 2)
-        l = config.get_multivar('this.that', 'bar')
-        self.assertEqual(len(l), 1)
+
+        self.assertEqual(2, len(list(config.get_multivar('this.that'))))
+        l = list(config.get_multivar('this.that', 'bar'))
+        self.assertEqual(1, len(l))
         self.assertEqual(l[0], 'foobar')
 
     def test_write(self):
@@ -155,16 +156,16 @@ class ConfigTest(utils.RepoTestCase):
         config.add_file(CONFIG_FILENAME, 5)
         self.assertTrue('this.that' in config)
         l = config.get_multivar('this.that', 'foo.*')
-        self.assertEqual(len(l), 2)
+        self.assertEqual(2, len(list(l)))
 
         config.set_multivar('this.that', '^.*beer', 'fool')
-        l = config.get_multivar('this.that', 'fool')
+        l = list(config.get_multivar('this.that', 'fool'))
         self.assertEqual(len(l), 1)
         self.assertEqual(l[0], 'fool')
 
         config.set_multivar('this.that', 'foo.*', 'foo-123456')
         l = config.get_multivar('this.that', 'foo.*')
-        self.assertEqual(len(l), 2)
+        self.assertEqual(2, len(list(l)))
         for i in l:
             self.assertEqual(i, 'foo-123456')
 
@@ -177,6 +178,13 @@ class ConfigTest(utils.RepoTestCase):
 
         self.assertTrue('core.bare' in lst)
         self.assertTrue(lst['core.bare'])
+
+    def test_parsing(self):
+        self.assertTrue(Config.parse_bool("on"))
+        self.assertTrue(Config.parse_bool("1"))
+
+        self.assertEqual(5, Config.parse_int("5"))
+        self.assertEqual(1024, Config.parse_int("1k"))
 
 if __name__ == '__main__':
     unittest.main()

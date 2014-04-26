@@ -513,45 +513,6 @@ Repository_workdir__get__(Repository *self, void *closure)
     return to_path(c_path);
 }
 
-
-PyDoc_STRVAR(Repository_config__doc__,
-  "Get the configuration file for this repository.\n"
-  "\n"
-  "If a configuration file has not been set, the default config set for the\n"
-  "repository will be returned, including global and system configurations\n"
-  "(if they are available).");
-
-PyObject *
-Repository_config__get__(Repository *self)
-{
-    int err;
-    git_config *config;
-    Config *py_config;
-
-    assert(self->repo);
-
-    if (self->config == NULL) {
-        err = git_repository_config(&config, self->repo);
-        if (err < 0)
-            return Error_set(err);
-
-        py_config = PyObject_New(Config, &ConfigType);
-        if (py_config == NULL) {
-            git_config_free(config);
-            return NULL;
-        }
-
-        py_config->config = config;
-        self->config = (PyObject*)py_config;
-        /* We need 2 refs here. One is returned, one is kept internally. */
-        Py_INCREF(self->config);
-    } else {
-        Py_INCREF(self->config);
-    }
-
-    return self->config;
-}
-
 PyDoc_STRVAR(Repository_merge_base__doc__,
   "merge_base(oid, oid) -> Oid\n"
   "\n"
@@ -1601,7 +1562,6 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, head_is_unborn),
     GETTER(Repository, is_empty),
     GETTER(Repository, is_bare),
-    GETTER(Repository, config),
     GETTER(Repository, workdir),
     GETTER(Repository, default_signature),
     GETTER(Repository, _pointer),
