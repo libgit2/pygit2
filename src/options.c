@@ -41,10 +41,11 @@ get_search_path(long level)
     size_t len = 64;
     PyObject *py_path;
     int error;
+    char *tmp;
 
     do {
         len *= 2;
-        char *tmp = realloc(buf, len);
+        tmp = realloc(buf, len);
         if (!tmp) {
             free(buf);
             PyErr_NoMemory();
