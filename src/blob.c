@@ -106,7 +106,7 @@ Blob_diff_to_buffer(Blob *self, PyObject *args, PyObject *kwds)
     char *keywords[] = {"buffer", "flag", "old_as_path", "buffer_as_path",
                         NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#ssI", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#Iss", keywords,
                                      &buffer, &buffer_len, &opts.flags,
                                      &old_as_path, &buffer_as_path))
         return NULL;
