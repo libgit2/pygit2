@@ -63,7 +63,7 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
     int err;
     char *keywords[] = {"blob", "flag", "old_as_path", "new_as_path", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!ssI", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!Iss", keywords,
                                      &BlobType, &py_blob, &opts.flags,
                                      &old_as_path, &new_as_path))
         return NULL;
