@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright 2010-2014 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
@@ -23,4 +25,34 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-__version__ = '0.20.3'
+# Import from the Standard Library
+from string import hexdigits
+
+# ffi
+from .ffi import ffi, C
+
+from _pygit2 import GitError
+
+def check_error(err, io=False):
+    if err >= 0:
+        return
+
+    message = "(no message provided)"
+    giterr = C.giterr_last()
+    if giterr != ffi.NULL:
+        message = ffi.string(giterr.message).decode()
+
+    if err in [C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS, C.GIT_EAMBIGUOUS]:
+        raise ValueError(message)
+    elif err == C.GIT_ENOTFOUND:
+        if io:
+            raise IOError(message)
+        else:
+            raise KeyError(message)
+    elif err == C.GIT_EINVALIDSPEC:
+        raise ValueError(message)
+    elif err == C.GIT_ITEROVER:
+        raise StopIteration()
+
+    raise GitError(message)
+

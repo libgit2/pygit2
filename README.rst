@@ -6,8 +6,12 @@ pygit2 - libgit2 bindings in Python
    :target: http://travis-ci.org/libgit2/pygit2
 
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
-implements the core of Git.  Pygit2 works with Python 2.6, 2.7, 3.1, 3.2 and
-3.3
+implements the core of Git.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4 and
+pypy.
+
+It is likely to work with Python 2.6 and 3.1, but these versions are not
+officially supported.
+
 
 Pygit2 links:
 
@@ -44,33 +48,35 @@ for the topic), send a pull request.
 Authors
 ==============
 
-57 developers have contributed at least 1 commit to pygit2::
+62 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez            Brodie Rao                 Adam Spiers
-  Nico von Geyso             David Versmisse            Alexander Bayandin
-  Carlos Martín Nieto        Rémi Duraffort             Andrew Chin
-  W. Trevor King             Sebastian Thiel            András Veres-Szentkirályi
-  Dave Borowitz              Fraser Tweedale            Benjamin Kircher
-  Daniel Rodríguez Troitiño  Han-Wen Nienhuys           Benjamin Pollack
-  Richo Healey               Petr Viktorin              Bryan O'Sullivan
-  Christian Boos             Alex Chamberlain           David Fischer
-  Julien Miotte              Amit Bakshi                David Sanders
-  Xu Tao                     Andrey Devyatkin           Eric Davis
-  Jose Plana                 Ben Davis                  Erik van Zijst
-  Martin Lenders             Eric Schrijver             Ferengee
-  Petr Hosek                 Hervé Cauwelier            Gustavo Di Pietro
-  Victor Garcia              Huang Huang                Hugh Cole-Baker
-  Xavier Delannoy            Jared Flatow               Josh Bleecher Snyder
-  Yonggang Luo               Jiunn Haur Lim             Jun Omae
-  Valentin Haenel            Sarath Lakshman            Óscar San José
-  Bernardo Heynemann         Vicent Marti               Ridge Kennedy
-  John Szakmeister           Zoran Zaric                Rui Abreu Ferreira
+  J. David Ibáñez            Rémi Duraffort             András Veres-Szentkirályi
+  Nico von Geyso             Sebastian Thiel            Benjamin Kircher
+  Carlos Martín Nieto        Fraser Tweedale            Benjamin Pollack
+  W. Trevor King             Han-Wen Nienhuys           Bryan O'Sullivan
+  Dave Borowitz              Leonardo Rhodes            David Fischer
+  Daniel Rodríguez Troitiño  Petr Viktorin              David Sanders
+  Richo Healey               Alex Chamberlain           Devaev Maxim
+  Christian Boos             Amit Bakshi                Eric Davis
+  Julien Miotte              Andrey Devyatkin           Erik Meusel
+  Xu Tao                     Ben Davis                  Erik van Zijst
+  Jose Plana                 Eric Schrijver             Ferengee
+  Martin Lenders             Hervé Cauwelier            Gustavo Di Pietro
+  Petr Hosek                 Huang Huang                Hugh Cole-Baker
+  Victor Garcia              Jared Flatow               Josh Bleecher Snyder
+  Xavier Delannoy            Jiunn Haur Lim             Jun Omae
+  Yonggang Luo               Sarath Lakshman            Óscar San José
+  Valentin Haenel            Vicent Marti               Ridge Kennedy
+  Bernardo Heynemann         Zoran Zaric                Rui Abreu Ferreira
+  John Szakmeister           Adam Spiers                Thomas Kluyver
+  Brodie Rao                 Alexander Bayandin         earl
+  David Versmisse            Andrew Chin
 
 
 Changelog
 ==============
 
-0.20.3 (2014-04-XX)
+0.20.3 (2014-04-02)
 -------------------
 
 - A number of memory issues fixed

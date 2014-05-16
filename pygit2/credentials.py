@@ -25,8 +25,10 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from pygit2
-from _pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT, GIT_CREDTYPE_SSH_KEY
+from .ffi import ffi, C
+
+GIT_CREDTYPE_USERPASS_PLAINTEXT = C.GIT_CREDTYPE_USERPASS_PLAINTEXT
+GIT_CREDTYPE_SSH_KEY = C.GIT_CREDTYPE_SSH_KEY
 
 class UserPass(object):
     """Username/Password credentials

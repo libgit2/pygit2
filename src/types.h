@@ -32,6 +32,10 @@
 #include <Python.h>
 #include <git2.h>
 
+#if !(LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR == 20)
+#error You need a compatible libgit2 version (v0.20.x)
+#endif
+
 /*
  * Python objects
  *
@@ -69,19 +73,6 @@ SIMPLE_TYPE(Commit, git_commit, commit)
 SIMPLE_TYPE(Tree, git_tree, tree)
 SIMPLE_TYPE(Blob, git_blob, blob)
 SIMPLE_TYPE(Tag, git_tag, tag)
-
-
-/* git_config */
-typedef struct {
-    PyObject_HEAD
-    git_config* config;
-} Config;
-
-typedef struct {
-    PyObject_HEAD
-    Config *owner;
-    git_config_iterator *iter;
-} ConfigIter;
 
 /* git_note */
 typedef struct {
@@ -193,38 +184,6 @@ typedef struct {
     const git_signature *signature;
     char *encoding;
 } Signature;
-
-
-/* git_remote */
-typedef struct {
-    PyObject_HEAD
-    Repository *repo;
-    git_remote *remote;
-    /* Callbacks for network events */
-    PyObject *progress;
-    PyObject *credentials;
-    PyObject *transfer_progress;
-    PyObject *update_tips;
-} Remote;
-
-/* git_refspec */
-typedef struct {
-    PyObject_HEAD
-    const Remote *owner;
-    const git_refspec *refspec;
-} Refspec;
-
-/* git_transfer_progress */
-typedef struct {
-    PyObject_HEAD
-    unsigned int total_objects;
-    unsigned int indexed_objects;
-    unsigned int received_objects;
-    unsigned int local_objects;
-    unsigned int total_deltas;
-    unsigned int indexed_deltas;
-    size_t received_bytes;
-} TransferProgress;
 
 /* git_blame */
 SIMPLE_TYPE(Blame, git_blame, blame)

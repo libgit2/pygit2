@@ -35,7 +35,6 @@
 #include "oid.h"
 #include "note.h"
 #include "repository.h"
-#include "remote.h"
 #include "branch.h"
 #include "blame.h"
 #include "signature.h"
@@ -53,7 +52,6 @@ extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
-extern PyTypeObject RemoteType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
@@ -514,45 +512,6 @@ Repository_workdir__get__(Repository *self, void *closure)
     return to_path(c_path);
 }
 
-
-PyDoc_STRVAR(Repository_config__doc__,
-  "Get the configuration file for this repository.\n"
-  "\n"
-  "If a configuration file has not been set, the default config set for the\n"
-  "repository will be returned, including global and system configurations\n"
-  "(if they are available).");
-
-PyObject *
-Repository_config__get__(Repository *self)
-{
-    int err;
-    git_config *config;
-    Config *py_config;
-
-    assert(self->repo);
-
-    if (self->config == NULL) {
-        err = git_repository_config(&config, self->repo);
-        if (err < 0)
-            return Error_set(err);
-
-        py_config = PyObject_New(Config, &ConfigType);
-        if (py_config == NULL) {
-            git_config_free(config);
-            return NULL;
-        }
-
-        py_config->config = config;
-        self->config = (PyObject*)py_config;
-        /* We need 2 refs here. One is returned, one is kept internally. */
-        Py_INCREF(self->config);
-    } else {
-        Py_INCREF(self->config);
-    }
-
-    return self->config;
-}
-
 PyDoc_STRVAR(Repository_merge_base__doc__,
   "merge_base(oid, oid) -> Oid\n"
   "\n"
@@ -948,7 +907,7 @@ PyDoc_STRVAR(Repository_create_branch__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.create_branch('foo', repo.head.hex, force=False)");
+  "    repo.create_branch('foo', repo.head.get_object(), force=False)");
 
 PyObject *
 Repository_create_branch(Repository *self, PyObject *args)
@@ -1097,7 +1056,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 }
 
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
-  "git_reference_create(name, target, force) -> Reference\n"
+  "create_reference_direct(name, target, force) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to an object.\n"
   "\n"
@@ -1109,7 +1068,7 @@ PyDoc_STRVAR(Repository_create_reference_direct__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.git_reference_create('refs/heads/foo', repo.head.hex, False)");
+  "    repo.create_reference_direct('refs/heads/foo', repo.head.target, False)");
 
 PyObject *
 Repository_create_reference_direct(Repository *self,  PyObject *args,
@@ -1136,7 +1095,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
 }
 
 PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
-  "git_reference_symbolic_create(name, source, force) -> Reference\n"
+  "create_reference_symbolic(name, source, force) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to another reference.\n"
   "\n"
@@ -1148,7 +1107,7 @@ PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.git_reference_symbolic_create('refs/tags/foo', 'refs/heads/master', False)");
+  "    repo.create_reference_symbolic('refs/tags/foo', 'refs/heads/master', False)");
 
 PyObject *
 Repository_create_reference_symbolic(Repository *self,  PyObject *args,
@@ -1309,67 +1268,6 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
     return (PyObject*)builder;
 }
 
-
-PyDoc_STRVAR(Repository_create_remote__doc__,
-  "create_remote(name, url) -> Remote\n"
-  "\n"
-  "Creates a new remote.");
-
-PyObject *
-Repository_create_remote(Repository *self, PyObject *args)
-{
-    git_remote *remote;
-    char *name = NULL, *url = NULL;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "ss", &name, &url))
-        return NULL;
-
-    err = git_remote_create(&remote, self->repo, name, url);
-    if (err < 0)
-        return Error_set(err);
-
-    return (PyObject*) wrap_remote(remote, self);
-}
-
-
-PyDoc_STRVAR(Repository_remotes__doc__, "Returns all configured remotes.");
-
-PyObject *
-Repository_remotes__get__(Repository *self)
-{
-    git_strarray remotes;
-    git_remote *remote = NULL;
-    PyObject *py_list = NULL;
-    PyObject *py_remote = NULL;
-    size_t i;
-    int err;
-
-    git_remote_list(&remotes, self->repo);
-
-    py_list = PyList_New(remotes.count);
-    for (i=0; i < remotes.count; ++i) {
-        err = git_remote_load(&remote, self->repo, remotes.strings[i]);
-        if (err < 0)
-            goto cleanup;
-        py_remote = wrap_remote(remote, self);
-        if (py_remote == NULL)
-            goto cleanup;
-        PyList_SetItem(py_list, i, py_remote);
-    }
-
-    git_strarray_free(&remotes);
-    return (PyObject*) py_list;
-
-cleanup:
-    git_strarray_free(&remotes);
-    if (py_list)
-        Py_DECREF(py_list);
-    if (err < 0)
-        return Error_set(err);
-    return NULL;
-}
-
 PyDoc_STRVAR(Repository_default_signature__doc__, "Return the signature according to the repository's configuration");
 
 PyObject *
@@ -1382,6 +1280,14 @@ Repository_default_signature__get__(Repository *self)
         return Error_set(err);
 
     return build_signature(NULL, sig, "utf-8");
+}
+
+PyDoc_STRVAR(Repository__pointer__doc__, "Get the repo's pointer. For internal use only.");
+PyObject *
+Repository__pointer__get__(Repository *self)
+{
+    /* Bytes means a raw buffer */
+    return PyBytes_FromStringAndSize((char *) &self->repo, sizeof(git_repository *));
 }
 
 PyDoc_STRVAR(Repository_checkout_head__doc__,
@@ -1666,7 +1572,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
-    METHOD(Repository, create_remote, METH_VARARGS),
     METHOD(Repository, checkout_head, METH_VARARGS),
     METHOD(Repository, checkout_index, METH_VARARGS),
     METHOD(Repository, checkout_tree, METH_VARARGS),
@@ -1690,10 +1595,9 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, head_is_unborn),
     GETTER(Repository, is_empty),
     GETTER(Repository, is_bare),
-    GETTER(Repository, config),
     GETTER(Repository, workdir),
-    GETTER(Repository, remotes),
     GETTER(Repository, default_signature),
+    GETTER(Repository, _pointer),
     {NULL}
 };
 

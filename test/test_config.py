@@ -74,7 +74,7 @@ class ConfigTest(utils.RepoTestCase):
 
         config_read = Config(CONFIG_FILENAME)
         self.assertTrue('core.bare' in config_read)
-        self.assertFalse(config_read['core.bare'])
+        self.assertFalse(config_read.get_bool('core.bare'))
         self.assertTrue('core.editor' in config_read)
         self.assertEqual(config_read['core.editor'], 'ed')
 
@@ -88,9 +88,9 @@ class ConfigTest(utils.RepoTestCase):
 
         config.add_file(CONFIG_FILENAME, 0)
         self.assertTrue('this.that' in config)
-        self.assertTrue(config['this.that'])
+        self.assertTrue(config.get_bool('this.that'))
         self.assertTrue('something.other.here' in config)
-        self.assertFalse(config['something.other.here'])
+        self.assertFalse(config.get_bool('something.other.here'))
 
     def test_read(self):
         config = self.repo.config
@@ -103,11 +103,11 @@ class ConfigTest(utils.RepoTestCase):
                                  lambda: config['abc.def'])
 
         self.assertTrue('core.bare' in config)
-        self.assertFalse(config['core.bare'])
+        self.assertFalse(config.get_bool('core.bare'))
         self.assertTrue('core.editor' in config)
         self.assertEqual(config['core.editor'], 'ed')
         self.assertTrue('core.repositoryformatversion' in config)
-        self.assertEqual(config['core.repositoryformatversion'], 0)
+        self.assertEqual(config.get_int('core.repositoryformatversion'), 0)
 
         new_file = open(CONFIG_FILENAME, "w")
         new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
@@ -115,9 +115,10 @@ class ConfigTest(utils.RepoTestCase):
 
         config.add_file(CONFIG_FILENAME, 0)
         self.assertTrue('this.that' in config)
-        self.assertEqual(len(config.get_multivar('this.that')), 2)
-        l = config.get_multivar('this.that', 'bar')
-        self.assertEqual(len(l), 1)
+
+        self.assertEqual(2, len(list(config.get_multivar('this.that'))))
+        l = list(config.get_multivar('this.that', 'bar'))
+        self.assertEqual(1, len(l))
         self.assertEqual(l[0], 'foobar')
 
     def test_write(self):
@@ -129,7 +130,7 @@ class ConfigTest(utils.RepoTestCase):
         self.assertFalse('core.dummy1' in config)
         config['core.dummy1'] = 42
         self.assertTrue('core.dummy1' in config)
-        self.assertEqual(config['core.dummy1'], 42)
+        self.assertEqual(config.get_int('core.dummy1'), 42)
 
         self.assertFalse('core.dummy2' in config)
         config['core.dummy2'] = 'foobar'
@@ -155,16 +156,16 @@ class ConfigTest(utils.RepoTestCase):
         config.add_file(CONFIG_FILENAME, 5)
         self.assertTrue('this.that' in config)
         l = config.get_multivar('this.that', 'foo.*')
-        self.assertEqual(len(l), 2)
+        self.assertEqual(2, len(list(l)))
 
         config.set_multivar('this.that', '^.*beer', 'fool')
-        l = config.get_multivar('this.that', 'fool')
+        l = list(config.get_multivar('this.that', 'fool'))
         self.assertEqual(len(l), 1)
         self.assertEqual(l[0], 'fool')
 
         config.set_multivar('this.that', 'foo.*', 'foo-123456')
         l = config.get_multivar('this.that', 'foo.*')
-        self.assertEqual(len(l), 2)
+        self.assertEqual(2, len(list(l)))
         for i in l:
             self.assertEqual(i, 'foo-123456')
 
@@ -177,6 +178,13 @@ class ConfigTest(utils.RepoTestCase):
 
         self.assertTrue('core.bare' in lst)
         self.assertTrue(lst['core.bare'])
+
+    def test_parsing(self):
+        self.assertTrue(Config.parse_bool("on"))
+        self.assertTrue(Config.parse_bool("1"))
+
+        self.assertEqual(5, Config.parse_int("5"))
+        self.assertEqual(1024, Config.parse_int("1k"))
 
 if __name__ == '__main__':
     unittest.main()

@@ -65,6 +65,7 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual('new', remote.name)
 
         self.assertRaisesAssign(ValueError, remote, 'name', '')
+        self.assertRaisesAssign(ValueError, remote, 'name', None)
 
 
     def test_remote_set_url(self):
@@ -189,9 +190,9 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
     def test_fetch(self):
         remote = self.repo.remotes[0]
         stats = remote.fetch()
-        self.assertEqual(stats['received_bytes'], REMOTE_REPO_BYTES)
-        self.assertEqual(stats['indexed_objects'], REMOTE_REPO_OBJECTS)
-        self.assertEqual(stats['received_objects'], REMOTE_REPO_OBJECTS)
+        self.assertEqual(stats.received_bytes, REMOTE_REPO_BYTES)
+        self.assertEqual(stats.indexed_objects, REMOTE_REPO_OBJECTS)
+        self.assertEqual(stats.received_objects, REMOTE_REPO_OBJECTS)
 
     def test_transfer_progress(self):
         self.tp = None
@@ -201,9 +202,9 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         remote = self.repo.remotes[0]
         remote.transfer_progress = tp_cb
         stats = remote.fetch()
-        self.assertEqual(stats['received_bytes'], self.tp.received_bytes)
-        self.assertEqual(stats['indexed_objects'], self.tp.indexed_objects)
-        self.assertEqual(stats['received_objects'], self.tp.received_objects)
+        self.assertEqual(stats.received_bytes, self.tp.received_bytes)
+        self.assertEqual(stats.indexed_objects, self.tp.indexed_objects)
+        self.assertEqual(stats.received_objects, self.tp.received_objects)
 
     def test_update_tips(self):
         remote = self.repo.remotes[0]

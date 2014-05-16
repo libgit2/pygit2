@@ -94,6 +94,13 @@ Signature_dealloc(Signature *self)
     PyObject_Del(self);
 }
 
+PyDoc_STRVAR(Signature__pointer__doc__, "Get the signature's pointer. For internal use only.");
+PyObject *
+Signature__pointer__get__(Repository *self)
+{
+    /* Bytes means a raw buffer */
+    return PyBytes_FromStringAndSize((char *) &self->repo, sizeof(git_repository *));
+}
 
 PyDoc_STRVAR(Signature__encoding__doc__, "Encoding.");
 
@@ -171,6 +178,7 @@ PyGetSetDef Signature_getseters[] = {
     GETTER(Signature, email),
     GETTER(Signature, time),
     GETTER(Signature, offset),
+    GETTER(Signature, _pointer),
     {NULL}
 };
 
