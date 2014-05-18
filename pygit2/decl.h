@@ -255,6 +255,7 @@ typedef struct {
 } git_config_entry;
 
 int git_repository_config(git_config **out, git_repository *repo);
+int git_repository_config_snapshot(git_config **out, git_repository *repo);
 void git_config_free(git_config *cfg);
 
 int git_config_get_string(const char **out, const git_config *cfg, const char *name);
@@ -279,6 +280,7 @@ int git_config_multivar_iterator_new(git_config_iterator **out, const git_config
 int git_config_set_multivar(git_config *cfg, const char *name, const char *regexp, const char *value);
 
 int git_config_new(git_config **out);
+int git_config_snapshot(git_config **out, git_config *config);
 int git_config_open_ondisk(git_config **out, const char *path);
 int git_config_find_system(git_buf *out);
 int git_config_find_global(git_buf *out);

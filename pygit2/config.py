@@ -223,6 +223,19 @@ class Config(object):
         err = C.git_config_add_file_ondisk(self._config, to_str(path), level, force)
         check_error(err)
 
+    def snapshot(self):
+        """Create a snapshot from this Config object
+
+        This means that looking up multiple values will use the same version
+        of the configuration files
+        """
+
+        ccfg = ffi.new('git_config **')
+        err = C.git_config_snapshot(cfg, self._config)
+        check_error(err)
+
+        return Config.from_c(self._repo, ccfg[0])
+
     #
     # Methods to parse a string according to the git-config rules
     #
