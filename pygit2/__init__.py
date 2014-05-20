@@ -129,4 +129,27 @@ def clone_repository(
 
     return Repository(path)
 
+def clone_into(repo, remote, branch=None):
+    """Clone into an empty repository from the specified remote
+
+    :param Repository repo: The empty repository into which to clone
+
+    :param Remote remote: The remote from which to clone
+
+    :param str branch: Branch to checkout after the clone. Pass None
+     to use the remotes's default branch.
+
+    This allows you specify arbitrary repository and remote configurations
+    before performing the clone step itself. E.g. you can replicate git-clone's
+    '--mirror' option by setting a refspec of '+refs/*:refs/*', 'core.mirror' to true
+    and calling this function.
+    """
+
+    err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL, to_str(branch))
+
+    if remote._stored_exception:
+        raise remote._stored_exception
+
+    check_error(err)
+
 settings = Settings()

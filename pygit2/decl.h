@@ -216,6 +216,7 @@ int git_clone(git_repository **out,
 		const char *local_path,
 		const git_clone_options *options);
 
+int git_clone_into(git_repository *repo, git_remote *remote, const git_checkout_opts *co_opts, const char *branch);
 
 typedef enum {
 	GIT_CONFIG_LEVEL_SYSTEM = 1,
