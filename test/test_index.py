@@ -34,7 +34,7 @@ import unittest
 import tempfile
 
 import pygit2
-from pygit2 import Repository
+from pygit2 import Repository, Index
 from . import utils
 
 
@@ -205,6 +205,20 @@ class IndexEntryTest(utils.RepoTestCase):
         index.add(entry)
         tree_id = index.write_tree()
         self.assertEqual('60e769e57ae1d6a2ab75d8d253139e6260e1f912', str(tree_id))
+
+class StandaloneIndexTest(utils.RepoTestCase):
+
+    def test_create_empty(self):
+        index = Index()
+
+    def test_create_empty_read_tree_as_string(self):
+        index = Index()
+        # no repo associated, so we don't know where to read from
+        self.assertRaises(TypeError, index, 'read_tree', 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+
+    def test_create_empty_read_tree(self):
+        index = Index()
+        index.read_tree(self.repo['fd937514cb799514d4b81bb24c5fcfeb6472b245'])
 
 if __name__ == '__main__':
     unittest.main()
