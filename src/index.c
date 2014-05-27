@@ -426,26 +426,46 @@ Index_remove(Index *self, PyObject *args)
 PyDoc_STRVAR(Index_read_tree__doc__,
   "read_tree(tree)\n"
   "\n"
-  "Update the index file from the tree identified by the given oid.");
+  "Update the index file from the specified tree. The tree can be a Tree object or an Oid.\n"
+  "Using an Oid is only possible if this index is associated with a repository");
 
 PyObject *
 Index_read_tree(Index *self, PyObject *value)
 {
     git_oid oid;
-    git_tree *tree;
-    int err;
+    git_tree *tree = NULL;
+    int err, need_free = 0;
     size_t len;
 
     len = py_oid_to_git_oid(value, &oid);
-    if (len == 0)
-        return NULL;
+    if (len == 0) {
+        Tree *py_tree;
+        if (!PyObject_TypeCheck(value, &TreeType)) {
+            return NULL;
+        }
 
-    err = git_tree_lookup_prefix(&tree, self->repo->repo, &oid, len);
-    if (err < 0)
-        return Error_set(err);
+        PyErr_Clear();
+        py_tree = (Tree *) value;
+        tree = py_tree->tree;
+    }
+
+    /*
+     * if the user passed in an id but we're not associated with a
+     * repo, we can't do anything
+     */
+    if (tree == NULL && self->repo == NULL) {
+        PyErr_SetString(PyExc_TypeError, "id given but no associated repository");
+        return NULL;
+    } else if (tree == NULL) {
+        need_free = 1;
+        err = git_tree_lookup_prefix(&tree, self->repo->repo, &oid, len);
+        if (err < 0)
+            return Error_set(err);
+    }
 
     err = git_index_read_tree(self->index, tree);
-    git_tree_free(tree);
+    if (need_free)
+        git_tree_free(tree);
     if (err < 0)
         return Error_set(err);
 
