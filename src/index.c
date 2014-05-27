@@ -45,7 +45,7 @@ extern PyTypeObject RepositoryType;
 int
 Index_init(Index *self, PyObject *args, PyObject *kwds)
 {
-    char *path;
+    char *path = NULL;
     int err;
 
     if (kwds && PyDict_Size(kwds) > 0) {
@@ -53,9 +53,10 @@ Index_init(Index *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (!PyArg_ParseTuple(args, "s", &path))
+    if (!PyArg_ParseTuple(args, "|s", &path))
         return -1;
 
+    self->repo = NULL;
     err = git_index_open(&self->index, path);
     if (err < 0) {
         Error_set_str(err, path);
