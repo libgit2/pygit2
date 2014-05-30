@@ -70,6 +70,15 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertFalse(self.repo.head_is_unborn)
         self.assertFalse(self.repo.head_is_detached)
 
+    def test_set_head(self):
+        # Test setting a detatched HEAD.
+        self.repo.head = Oid(hex=PARENT_SHA)
+        self.assertEqual(self.repo.head.target.hex, PARENT_SHA)
+        # And test setting a normal HEAD.
+        self.repo.head = "refs/heads/master"
+        self.assertEqual(self.repo.head.name, "refs/heads/master")
+        self.assertEqual(self.repo.head.target.hex, HEAD_SHA)
+
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)
         self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read, '1' * 40)

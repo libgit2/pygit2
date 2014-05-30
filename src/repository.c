@@ -179,21 +179,31 @@ Repository_head__get__(Repository *self)
 }
 
 int
-Repository_head__set__(Repository *self, PyObject *py_refname)
+Repository_head__set__(Repository *self, PyObject *py_val)
 {
     int err;
-    const char *refname;
-    PyObject *trefname;
+    if (PyObject_TypeCheck(py_val, &OidType)) {
+        git_oid oid;
+        py_oid_to_git_oid(py_val, &oid);
+        err = git_repository_set_head_detached(self->repo, &oid, NULL, NULL);
+        if (err < 0) {
+            Error_set(err);
+            return -1;
+        }
+    } else {
+        const char *refname;
+        PyObject *trefname;
 
-    refname = py_str_borrow_c_str(&trefname, py_refname, NULL);
-    if (refname == NULL)
-        return -1;
+        refname = py_str_borrow_c_str(&trefname, py_val, NULL);
+        if (refname == NULL)
+            return -1;
 
-    err = git_repository_set_head(self->repo, refname, NULL, NULL);
-    Py_DECREF(trefname);
-    if (err < 0) {
-        Error_set_str(err, refname);
-        return -1;
+        err = git_repository_set_head(self->repo, refname, NULL, NULL);
+        Py_DECREF(trefname);
+        if (err < 0) {
+            Error_set_str(err, refname);
+            return -1;
+        }
     }
 
     return 0;
