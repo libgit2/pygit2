@@ -190,6 +190,11 @@ class RepositoryTest_II(utils.RepoTestCase):
         expected = realpath(self.repo_path)
         self.assertEqual(directory, expected)
 
+    def test_set_workdir(self):
+        directory = tempfile.mkdtemp()
+        self.repo.workdir = directory
+        self.assertEqual(realpath(self.repo.workdir), realpath(directory))
+
     def test_checkout_ref(self):
         ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
 

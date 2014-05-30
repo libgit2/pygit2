@@ -512,6 +512,27 @@ Repository_workdir__get__(Repository *self, void *closure)
     return to_path(c_path);
 }
 
+int
+Repository_workdir__set__(Repository *self, PyObject *py_workdir)
+{
+    int err;
+    const char *workdir;
+    PyObject *tworkdir;
+
+    workdir = py_str_borrow_c_str(&tworkdir, py_workdir, NULL);
+    if (workdir == NULL)
+        return -1;
+
+    err = git_repository_set_workdir(self->repo, workdir, 0 /* update_gitlink */);
+    Py_DECREF(tworkdir);
+    if (err < 0) {
+        Error_set_str(err, workdir);
+        return -1;
+    }
+
+    return 0;
+}
+
 PyDoc_STRVAR(Repository_merge_base__doc__,
   "merge_base(oid, oid) -> Oid\n"
   "\n"
@@ -1597,7 +1618,7 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, head_is_unborn),
     GETTER(Repository, is_empty),
     GETTER(Repository, is_bare),
-    GETTER(Repository, workdir),
+    GETSET(Repository, workdir),
     GETTER(Repository, default_signature),
     GETTER(Repository, _pointer),
     {NULL}
