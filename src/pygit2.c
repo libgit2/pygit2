@@ -82,37 +82,6 @@ extern PyTypeObject MergeResultType;
 
 
 
-PyDoc_STRVAR(init_repository__doc__,
-    "init_repository(path, bare)\n"
-    "\n"
-    "Creates a new Git repository in the given path.\n"
-    "\n"
-    "Arguments:\n"
-    "\n"
-    "path\n"
-    "  Path where to create the repository.\n"
-    "\n"
-    "bare\n"
-    "  Whether the repository will be bare or not.\n");
-
-PyObject *
-init_repository(PyObject *self, PyObject *args) {
-    git_repository *repo;
-    const char *path;
-    unsigned int bare;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "sI", &path, &bare))
-        return NULL;
-
-    err = git_repository_init(&repo, path, bare);
-    if (err < 0)
-        return Error_set_str(err, path);
-
-    git_repository_free(repo);
-    Py_RETURN_NONE;
-};
-
 PyDoc_STRVAR(discover_repository__doc__,
   "discover_repository(path[, across_fs[, ceiling_dirs]]) -> str\n"
   "\n"
@@ -186,7 +155,6 @@ hash(PyObject *self, PyObject *args)
 
 
 PyMethodDef module_methods[] = {
-    {"init_repository", init_repository, METH_VARARGS, init_repository__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},

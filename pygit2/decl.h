@@ -254,7 +254,10 @@ int git_config_iterator_new(git_config_iterator **out, const git_config *cfg);
 int git_config_next(git_config_entry **entry, git_config_iterator *iter);
 void git_config_iterator_free(git_config_iterator *iter);
 
-int git_config_multivar_iterator_new(git_config_iterator **out, const git_config *cfg, const char *name, const char *regexp);
+int git_config_multivar_iterator_new(git_config_iterator **out,
+                                     const git_config *cfg, const char *name,
+                                     const char *regexp);
+
 int git_config_set_multivar(git_config *cfg, const char *name, const char *regexp, const char *value);
 
 int git_config_new(git_config **out);
@@ -262,3 +265,7 @@ int git_config_open_ondisk(git_config **out, const char *path);
 int git_config_find_system(char *out, size_t length);
 int git_config_find_global(char *out, size_t length);
 int git_config_find_xdg(char *out, size_t length);
+
+
+int git_repository_init(git_repository **out, const char *path,
+                        unsigned is_bare);

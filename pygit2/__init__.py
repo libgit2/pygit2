@@ -29,7 +29,6 @@
 from __future__ import absolute_import
 
 # Low level API
-import _pygit2
 from _pygit2 import *
 
 # High level API
@@ -49,7 +48,10 @@ def init_repository(path, bare=False):
     If *bare* is True the repository will be bare, i.e. it will not have a
     working copy.
     """
-    _pygit2.init_repository(path, bare)
+    crepository = ffi.new('git_repository **')
+    err = C.git_repository_init(crepository, to_str(path), bare)
+    check_error(err)
+
     return Repository(path)
 
 
