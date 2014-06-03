@@ -5,8 +5,6 @@ typedef ... git_push;
 typedef ... git_cred;
 typedef ... git_diff_file;
 typedef ... git_tree;
-typedef ... git_config;
-typedef ... git_config_iterator;
 
 #define GIT_OID_RAWSZ ...
 #define GIT_PATH_MAX ...
@@ -19,6 +17,7 @@ typedef struct git_strarray {
 	char **strings;
 	size_t count;
 } git_strarray;
+
 
 typedef enum {
 	GIT_OK = 0,
@@ -71,11 +70,13 @@ typedef enum {
 	GIT_DIRECTION_PUSH  = 1
 } git_direction;
 
+
 typedef enum {
-	GIT_CREDTYPE_USERPASS_PLAINTEXT = ...,
-	GIT_CREDTYPE_SSH_KEY = ...,
-	GIT_CREDTYPE_SSH_CUSTOM = ...,
-	GIT_CREDTYPE_DEFAULT = ...,
+	GIT_CREDTYPE_USERPASS_PLAINTEXT,
+	GIT_CREDTYPE_SSH_KEY,
+	GIT_CREDTYPE_SSH_CUSTOM,
+	GIT_CREDTYPE_DEFAULT,
+	...
 } git_credtype_t;
 
 typedef struct git_remote_callbacks {
@@ -90,10 +91,12 @@ typedef struct git_remote_callbacks {
 
 int git_remote_list(git_strarray *out, git_repository *repo);
 int git_remote_load(git_remote **out, git_repository *repo, const char *name);
-int git_remote_create(git_remote **out,
-		git_repository *repo,
-		const char *name,
-		const char *url);
+int git_remote_create(
+	git_remote **out,
+	git_repository *repo,
+	const char *name,
+	const char *url);
+
 const char * git_remote_name(const git_remote *remote);
 typedef int (*git_remote_rename_problem_cb)(const char *problematic_refspec, void *payload);
 int git_remote_rename(git_remote *remote,
@@ -125,9 +128,10 @@ int git_push_add_refspec(git_push *push, const char *refspec);
 int git_push_finish(git_push *push);
 int git_push_unpack_ok(git_push *push);
 
-int git_push_status_foreach(git_push *push,
-			int (*cb)(const char *ref, const char *msg, void *data),
-			void *data);
+int git_push_status_foreach(
+	git_push *push,
+	int (*cb)(const char *ref, const char *msg, void *data),
+	void *data);
 
 int git_push_update_tips(git_push *push);
 void git_push_free(git_push *push);
@@ -154,6 +158,10 @@ int git_cred_ssh_key_new(
 	const char *publickey,
 	const char *privatekey,
 	const char *passphrase);
+
+/*
+ * git_checkout
+ */
 
 typedef enum { ... } git_checkout_notify_t;
 
@@ -199,6 +207,10 @@ typedef struct git_checkout_opts {
 } git_checkout_opts;
 
 
+/*
+ * git_clone
+ */
+
 typedef struct git_clone_options {
 	unsigned int version;
 
@@ -212,11 +224,22 @@ typedef struct git_clone_options {
 } git_clone_options;
 
 int git_clone(git_repository **out,
-		const char *url,
-		const char *local_path,
-		const git_clone_options *options);
+	const char *url,
+	const char *local_path,
+	const git_clone_options *options);
 
-int git_clone_into(git_repository *repo, git_remote *remote, const git_checkout_opts *co_opts, const char *branch);
+int git_clone_into(
+	git_repository *repo,
+	git_remote *remote,
+	const git_checkout_opts *co_opts,
+	const char *branch);
+
+/*
+ * git_config
+ */
+
+typedef ... git_config;
+typedef ... git_config_iterator;
 
 typedef enum {
 	GIT_CONFIG_LEVEL_SYSTEM = 1,
@@ -254,11 +277,17 @@ int git_config_iterator_new(git_config_iterator **out, const git_config *cfg);
 int git_config_next(git_config_entry **entry, git_config_iterator *iter);
 void git_config_iterator_free(git_config_iterator *iter);
 
-int git_config_multivar_iterator_new(git_config_iterator **out,
-                                     const git_config *cfg, const char *name,
-                                     const char *regexp);
+int git_config_multivar_iterator_new(
+	git_config_iterator **out,
+	const git_config *cfg,
+	const char *name,
+	const char *regexp);
 
-int git_config_set_multivar(git_config *cfg, const char *name, const char *regexp, const char *value);
+int git_config_set_multivar(
+	git_config *cfg,
+	const char *name,
+	const char *regexp,
+	const char *value);
 
 int git_config_new(git_config **out);
 int git_config_open_ondisk(git_config **out, const char *path);
@@ -267,5 +296,43 @@ int git_config_find_global(char *out, size_t length);
 int git_config_find_xdg(char *out, size_t length);
 
 
-int git_repository_init(git_repository **out, const char *path,
-                        unsigned is_bare);
+/*
+ * git_repository_init
+ */
+typedef enum {
+	GIT_REPOSITORY_INIT_BARE,
+	GIT_REPOSITORY_INIT_NO_REINIT,
+	GIT_REPOSITORY_INIT_NO_DOTGIT_DIR,
+	GIT_REPOSITORY_INIT_MKDIR,
+	GIT_REPOSITORY_INIT_MKPATH,
+	GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE,
+	...
+} git_repository_init_flag_t;
+
+typedef enum {
+	GIT_REPOSITORY_INIT_SHARED_UMASK,
+	GIT_REPOSITORY_INIT_SHARED_GROUP,
+	GIT_REPOSITORY_INIT_SHARED_ALL,
+	...
+} git_repository_init_mode_t;
+
+typedef struct {
+	unsigned int version;
+	uint32_t    flags;
+	uint32_t    mode;
+	const char *workdir_path;
+	const char *description;
+	const char *template_path;
+	const char *initial_head;
+	const char *origin_url;
+} git_repository_init_options;
+
+int git_repository_init(
+	git_repository **out,
+	const char *path,
+	unsigned is_bare);
+
+int git_repository_init_ext(
+	git_repository **out,
+	const char *repo_path,
+	git_repository_init_options *opts);

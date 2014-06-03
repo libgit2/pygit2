@@ -38,7 +38,7 @@ import sys
 
 if major_version < 3:
     def to_str(s, encoding='utf-8', errors='strict'):
-        if s == ffi.NULL or s == None:
+        if s == ffi.NULL or s is None:
             return ffi.NULL
 
         if isinstance(s, unicode):
@@ -48,7 +48,7 @@ if major_version < 3:
         return s
 else:
     def to_str(s, encoding='utf-8', errors='strict'):
-        if s == ffi.NULL or s == None:
+        if s == ffi.NULL or s is None:
             return ffi.NULL
 
         if isinstance(s, bytes):
@@ -108,7 +108,7 @@ dir_path = path.dirname(path.abspath(inspect.getfile(inspect.currentframe())))
 
 decl_path = path.join(dir_path, 'decl.h')
 with codecs.open(decl_path, 'r', 'utf-8') as header:
-        ffi.cdef(header.read())
+    ffi.cdef(header.read())
 
 # if LIBGIT2 exists, set build and link against that version
 libgit2_path = getenv('LIBGIT2')
@@ -118,4 +118,5 @@ if libgit2_path:
     include_dirs = [path.join(libgit2_path, 'include')]
     library_dirs = [path.join(libgit2_path, 'lib')]
 
-C = ffi.verify("#include <git2.h>", libraries=["git2"], include_dirs=include_dirs, library_dirs=library_dirs)
+C = ffi.verify("#include <git2.h>", libraries=["git2"],
+               include_dirs=include_dirs, library_dirs=library_dirs)
