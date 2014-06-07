@@ -262,7 +262,8 @@ int git_clone_into(
 	git_repository *repo,
 	git_remote *remote,
 	const git_checkout_options *co_opts,
-	const char *branch);
+	const char *branch,
+	const git_signature *signature);
 
 /*
  * git_config
