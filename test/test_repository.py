@@ -313,7 +313,7 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
     def test_merge_analysis_uptodate(self):
         branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
         branch_id = self.repo.get(branch_head_hex).id
-        analysis = self.repo.merge_analysis(branch_id)
+        analysis, preference = self.repo.merge_analysis(branch_id)
 
         self.assertTrue(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
@@ -322,7 +322,7 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
     def test_merge_analysis_fastforward(self):
         branch_head_hex = 'e97b4cfd5db0fb4ebabf4f203979ca4e5d1c7c87'
         branch_id = self.repo.get(branch_head_hex).id
-        analysis = self.repo.merge_analysis(branch_id)
+        analysis, preference = self.repo.merge_analysis(branch_id)
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
         self.assertTrue(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
         self.assertEqual({}, self.repo.status())
@@ -330,7 +330,7 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
     def test_merge_no_fastforward_no_conflicts(self):
         branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
         branch_id = self.repo.get(branch_head_hex).id
-        analysis= self.repo.merge_analysis(branch_id)
+        analysis, preference = self.repo.merge_analysis(branch_id)
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
         # Asking twice to assure the reference counting is correct
@@ -341,7 +341,7 @@ class RepositoryTest_III(utils.RepoTestCaseForMerging):
         branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
         branch_id = self.repo.get(branch_head_hex).id
 
-        analysis = self.repo.merge_analysis(branch_id)
+        analysis, preference = self.repo.merge_analysis(branch_id)
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
 

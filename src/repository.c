@@ -546,13 +546,14 @@ Repository_merge_base(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_merge_analysis__doc__,
-  "merge_analysis(id) -> Integer\n"
+  "merge_analysis(id) -> (Integer, Integer)\n"
   "\n"
   "Analyzes the given branch and determines the opportunities for merging\n"
   "them into the HEAD of the repository\n"
   "\n"
-  "The returned value is a mixture of the GIT_MERGE_ANALYSIS_NONE, _NORMAL,\n"
-  " _UP_TO_DATE, _FASTFORWARD and _UNBORN flags");
+  "The first returned value is a mixture of the GIT_MERGE_ANALYSIS_NONE, _NORMAL,\n"
+  " _UP_TO_DATE, _FASTFORWARD and _UNBORN flags.\n"
+  "The second value is the user's preference from 'merge.ff'");
 
 PyObject *
 Repository_merge_analysis(Repository *self, PyObject *py_id)
@@ -562,6 +563,7 @@ Repository_merge_analysis(Repository *self, PyObject *py_id)
     git_oid id;
     git_merge_head *merge_head;
     git_merge_analysis_t analysis;
+    git_merge_preference_t preference;
 
     len = py_oid_to_git_oid(py_id, &id);
     if (len == 0)
@@ -571,13 +573,13 @@ Repository_merge_analysis(Repository *self, PyObject *py_id)
     if (err < 0)
         return Error_set(err);
 
-    err = git_merge_analysis(&analysis, self->repo, (const git_merge_head **) &merge_head, 1);
+    err = git_merge_analysis(&analysis, &preference, self->repo, (const git_merge_head **) &merge_head, 1);
     git_merge_head_free(merge_head);
 
     if (err < 0)
         return Error_set(err);
 
-    return PyLong_FromLong(analysis);
+    return Py_BuildValue("(ii)", analysis, preference);
 }
 
 PyDoc_STRVAR(Repository_merge__doc__,

@@ -220,6 +220,13 @@ typedef struct git_checkout_options {
 	const char *their_label;
 } git_checkout_options;
 
+typedef enum {
+	GIT_CLONE_LOCAL_AUTO,
+	GIT_CLONE_LOCAL,
+	GIT_CLONE_NO_LOCAL,
+	GIT_CLONE_LOCAL_NO_LINKS,
+} git_clone_local_t;
+
 typedef struct git_clone_options {
 	unsigned int version;
 
@@ -228,6 +235,7 @@ typedef struct git_clone_options {
 
 	int bare;
 	int ignore_cert_errors;
+	git_clone_local_t local;
 	const char *remote_name;
 	const char* checkout_branch;
 	git_signature *signature;
