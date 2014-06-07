@@ -29,7 +29,6 @@
 from __future__ import absolute_import
 
 # Low level API
-import _pygit2
 from _pygit2 import *
 
 # High level API
@@ -42,14 +41,59 @@ from .config import Config
 from .errors import check_error
 from .ffi import ffi, C, to_str
 
-def init_repository(path, bare=False):
+def init_repository(path, bare=False,
+                    flags=C.GIT_REPOSITORY_INIT_MKPATH,
+                    mode=0,
+                    workdir_path=None,
+                    description=None,
+                    template_path=None,
+                    initial_head=None,
+                    origin_url=None):
     """
     Creates a new Git repository in the given *path*.
 
     If *bare* is True the repository will be bare, i.e. it will not have a
     working copy.
+
+    The *flags* may be a combination of:
+
+    - GIT_REPOSITORY_INIT_BARE (overriden by the *bare* parameter)
+    - GIT_REPOSITORY_INIT_NO_REINIT
+    - GIT_REPOSITORY_INIT_NO_DOTGIT_DIR
+    - GIT_REPOSITORY_INIT_MKDIR
+    - GIT_REPOSITORY_INIT_MKPATH (set by default)
+    - GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE
+
+    The *mode* parameter may be any of GIT_REPOSITORY_SHARED_UMASK (default),
+    GIT_REPOSITORY_SHARED_GROUP or GIT_REPOSITORY_INIT_SHARED_ALL, or a custom
+    value.
+
+    The *workdir_path*, *description*, *template_path*, *initial_head* and
+    *origin_url* are all strings.
+
+    See libgit2's documentation on git_repository_init_ext for further details.
     """
-    _pygit2.init_repository(path, bare)
+    # Pre-process input parameters
+    if bare:
+        flags |= C.GIT_REPOSITORY_INIT_BARE
+
+    # Options
+    options = ffi.new('git_repository_init_options *')
+    options.version = 1
+    options.flags = flags
+    options.mode = mode
+    options.workdir_path = to_str(workdir_path)
+    options.description = to_str(description)
+    options.template_path = to_str(template_path)
+    options.initial_head = to_str(initial_head)
+    options.origin_url = to_str(origin_url)
+
+    # Call
+    crepository = ffi.new('git_repository **')
+    err = C.git_repository_init_ext(crepository, to_str(path), options)
+    check_error(err)
+
+    # Ok
     return Repository(path)
 
 
@@ -128,5 +172,28 @@ def clone_repository(
     check_error(err)
 
     return Repository(path)
+
+def clone_into(repo, remote, branch=None):
+    """Clone into an empty repository from the specified remote
+
+    :param Repository repo: The empty repository into which to clone
+
+    :param Remote remote: The remote from which to clone
+
+    :param str branch: Branch to checkout after the clone. Pass None
+     to use the remotes's default branch.
+
+    This allows you specify arbitrary repository and remote configurations
+    before performing the clone step itself. E.g. you can replicate git-clone's
+    '--mirror' option by setting a refspec of '+refs/*:refs/*', 'core.mirror' to true
+    and calling this function.
+    """
+
+    err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL, to_str(branch))
+
+    if remote._stored_exception:
+        raise remote._stored_exception
+
+    check_error(err)
 
 settings = Settings()
