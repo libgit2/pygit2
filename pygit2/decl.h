@@ -116,11 +116,11 @@ int git_remote_create(
 	const char *url);
 
 const char * git_remote_name(const git_remote *remote);
-typedef int (*git_remote_rename_problem_cb)(const char *problematic_refspec, void *payload);
-int git_remote_rename(git_remote *remote,
-	const char *new_name,
-	git_remote_rename_problem_cb callback,
-	void *payload);
+
+int git_remote_rename(
+	git_strarray *problems,
+	git_remote *remote,
+	const char *new_name);
 const char * git_remote_url(const git_remote *remote);
 int git_remote_set_url(git_remote *remote, const char* url);
 const char * git_remote_pushurl(const git_remote *remote);

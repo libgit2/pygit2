@@ -142,13 +142,24 @@ class Remote(object):
 
         return maybe_string(C.git_remote_name(self._remote))
 
-    @name.setter
-    def name(self, value):
-        if not value:
+    def rename(self, new_name):
+        """Rename this remote
+
+        Returns a list of fetch refspecs which were not in the standard format
+        and thus could not be remapped
+        """
+
+        if not new_name:
             raise ValueError("New remote name must be a non-empty string")
 
-        err = C.git_remote_rename(self._remote, to_str(value), ffi.NULL, ffi.NULL)
+        problems = ffi.new('git_strarray *')
+        err = C.git_remote_rename(problems, self._remote, to_str(new_name))
         check_error(err)
+
+        ret = strarray_to_strings(problems)
+        C.git_strarray_free(problems)
+
+        return ret
 
     @property
     def url(self):
