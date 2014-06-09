@@ -33,6 +33,11 @@ Functions
 
 .. autofunction:: pygit2.discover_repository
 
+   Example::
+
+     >>> current_working_directory = os.getcwd()
+     >>> repository_path = discover_repository(current_working_directory)
+     >>> repo = Repository(repository_path)
 
 
 The Repository class
