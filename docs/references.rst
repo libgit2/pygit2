@@ -45,7 +45,7 @@ Example. These two lines are equivalent::
 Branches
 ====================
 
-Branches inherit from References, and additionally provide spetialized
+Branches inherit from References, and additionally provide specialized
 accessors for some unique features.
 
 .. automethod:: pygit2.Repository.listall_branches
