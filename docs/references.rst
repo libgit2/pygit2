@@ -27,6 +27,23 @@ The Reference type
 .. automethod:: pygit2.Reference.resolve
 .. automethod:: pygit2.Reference.log
 .. automethod:: pygit2.Reference.log_append
+
+   Example::
+
+      >>> branch = repository.lookup_reference("refs/heads/master")
+      >>> branch.target = another_commit.id
+      >>> committer = Signature('Cecil Committer', 'cecil@committers.tld')
+      >>> branch.log_append(another_commit.id, committer,
+                            "changed branch target using pygit2")
+
+   This creates a reflog entry in ``git reflog master`` which looks like::
+
+      7296b92 master@{10}: changed branch target using pygit2
+
+   In order to make an entry in ``git reflog``, ie. the reflog for ``HEAD``, you
+   have to get the Reference object for ``HEAD`` and call ``log_append`` on
+   that.
+
 .. automethod:: pygit2.Reference.get_object
 
 
@@ -45,7 +62,7 @@ Example. These two lines are equivalent::
 Branches
 ====================
 
-Branches inherit from References, and additionally provide spetialized
+Branches inherit from References, and additionally provide specialized
 accessors for some unique features.
 
 .. automethod:: pygit2.Repository.listall_branches

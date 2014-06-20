@@ -202,7 +202,10 @@ Reference_resolve(Reference *self, PyObject *args)
 PyDoc_STRVAR(Reference_target__doc__,
     "The reference target: If direct the value will be an Oid object, if it\n"
     "is symbolic it will be an string with the full name of the target\n"
-    "reference.");
+    "reference.\n"
+    "\n"
+    "The target is writable. Setting the Reference's target to another Oid\n"
+    "object will direct the reference to that Oid instead.");
 
 PyObject *
 Reference_target__get__(Reference *self)
