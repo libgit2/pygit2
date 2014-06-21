@@ -223,6 +223,19 @@ class Config(object):
         err = C.git_config_add_file_ondisk(self._config, to_str(path), level, force)
         check_error(err)
 
+    def snapshot(self):
+        """Create a snapshot from this Config object
+
+        This means that looking up multiple values will use the same version
+        of the configuration files
+        """
+
+        ccfg = ffi.new('git_config **')
+        err = C.git_config_snapshot(cfg, self._config)
+        check_error(err)
+
+        return Config.from_c(self._repo, ccfg[0])
+
     #
     # Methods to parse a string according to the git-config rules
     #
@@ -248,10 +261,13 @@ class Config(object):
 
     @staticmethod
     def _from_found_config(fn):
-        buf = ffi.new('char []', C.GIT_PATH_MAX)
-        err = fn(buf, C.GIT_PATH_MAX)
+        buf = ffi.new('git_buf *', (ffi.NULL, 0))
+        err = fn(buf)
         check_error(err, True)
-        return Config(ffi.string(buf).decode())
+        cpath = ffi.string(buf.ptr).decode()
+        C.git_buf_free(buf)
+
+        return Config(cpath)
 
     @staticmethod
     def get_system_config():

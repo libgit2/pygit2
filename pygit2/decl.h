@@ -5,6 +5,7 @@ typedef ... git_push;
 typedef ... git_cred;
 typedef ... git_diff_file;
 typedef ... git_tree;
+typedef ... git_signature;
 
 #define GIT_OID_RAWSZ ...
 #define GIT_PATH_MAX ...
@@ -12,6 +13,12 @@ typedef ... git_tree;
 typedef struct git_oid {
 	unsigned char id[20];
 } git_oid;
+
+typedef struct {
+	char   *ptr;
+	size_t asize, size;
+} git_buf;
+void git_buf_free(git_buf *buffer);
 
 typedef struct git_strarray {
 	char **strings;
@@ -79,15 +86,26 @@ typedef enum {
 	...
 } git_credtype_t;
 
-typedef struct git_remote_callbacks {
+typedef int (*git_transport_message_cb)(const char *str, int len, void *data);
+typedef int (*git_cred_acquire_cb)(
+	git_cred **cred,
+	const char *url,
+	const char *username_from_url,
+	unsigned int allowed_types,
+	void *payload);
+typedef int (*git_transfer_progress_cb)(const git_transfer_progress *stats, void *payload);
+
+struct git_remote_callbacks {
 	unsigned int version;
-	int (*progress)(const char *str, int len, void *data);
+	git_transport_message_cb sideband_progress;
 	int (*completion)(git_remote_completion_type type, void *data);
-	int (*credentials)(git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types,	void *data);
-	int (*transfer_progress)(const git_transfer_progress *stats, void *data);
+	git_cred_acquire_cb credentials;
+	git_transfer_progress_cb transfer_progress;
 	int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data);
 	void *payload;
-} git_remote_callbacks ;
+};
+
+typedef struct git_remote_callbacks git_remote_callbacks;
 
 int git_remote_list(git_strarray *out, git_repository *repo);
 int git_remote_load(git_remote **out, git_repository *repo, const char *name);
@@ -98,16 +116,16 @@ int git_remote_create(
 	const char *url);
 
 const char * git_remote_name(const git_remote *remote);
-typedef int (*git_remote_rename_problem_cb)(const char *problematic_refspec, void *payload);
-int git_remote_rename(git_remote *remote,
-	const char *new_name,
-	git_remote_rename_problem_cb callback,
-	void *payload);
+
+int git_remote_rename(
+	git_strarray *problems,
+	git_remote *remote,
+	const char *new_name);
 const char * git_remote_url(const git_remote *remote);
 int git_remote_set_url(git_remote *remote, const char* url);
 const char * git_remote_pushurl(const git_remote *remote);
 int git_remote_set_pushurl(git_remote *remote, const char* url);
-int git_remote_fetch(git_remote *remote);
+int git_remote_fetch(git_remote *remote, const git_signature *signature, const char *reflog_message);
 const git_transfer_progress * git_remote_stats(git_remote *remote);
 int git_remote_add_push(git_remote *remote, const char *refspec);
 int git_remote_add_fetch(git_remote *remote, const char *refspec);
@@ -133,7 +151,10 @@ int git_push_status_foreach(
 	int (*cb)(const char *ref, const char *msg, void *data),
 	void *data);
 
-int git_push_update_tips(git_push *push);
+int git_push_update_tips(
+		git_push *push,
+		const git_signature *signature,
+		const char *reflog_message);
 void git_push_free(git_push *push);
 
 const char * git_refspec_src(const git_refspec *refspec);
@@ -145,8 +166,8 @@ git_direction git_refspec_direction(const git_refspec *spec);
 int git_refspec_src_matches(const git_refspec *refspec, const char *refname);
 int git_refspec_dst_matches(const git_refspec *refspec, const char *refname);
 
-int git_refspec_transform(char *out, size_t outlen, const git_refspec *spec, const char *name);
-int git_refspec_rtransform(char *out, size_t outlen, const git_refspec *spec, const char *name);
+int git_refspec_transform(git_buf *buf, const git_refspec *spec, const char *name);
+int git_refspec_rtransform(git_buf *buf, const git_refspec *spec, const char *name);
 
 int git_cred_userpass_plaintext_new(
 	git_cred **out,
@@ -179,7 +200,7 @@ typedef void (*git_checkout_progress_cb)(
 	size_t total_steps,
 	void *payload);
 
-typedef struct git_checkout_opts {
+typedef struct git_checkout_options {
 	unsigned int version;
 
 	unsigned int checkout_strategy;
@@ -202,10 +223,17 @@ typedef struct git_checkout_opts {
 
 	const char *target_directory;
 
+	const char *ancestor_label;
 	const char *our_label;
 	const char *their_label;
-} git_checkout_opts;
+} git_checkout_options;
 
+typedef enum {
+	GIT_CLONE_LOCAL_AUTO,
+	GIT_CLONE_LOCAL,
+	GIT_CLONE_NO_LOCAL,
+	GIT_CLONE_LOCAL_NO_LINKS,
+} git_clone_local_t;
 
 /*
  * git_clone
@@ -214,13 +242,15 @@ typedef struct git_checkout_opts {
 typedef struct git_clone_options {
 	unsigned int version;
 
-	git_checkout_opts checkout_opts;
+	git_checkout_options checkout_opts;
 	git_remote_callbacks remote_callbacks;
 
 	int bare;
 	int ignore_cert_errors;
+	git_clone_local_t local;
 	const char *remote_name;
 	const char* checkout_branch;
+	git_signature *signature;
 } git_clone_options;
 
 int git_clone(git_repository **out,
@@ -231,8 +261,9 @@ int git_clone(git_repository **out,
 int git_clone_into(
 	git_repository *repo,
 	git_remote *remote,
-	const git_checkout_opts *co_opts,
-	const char *branch);
+	const git_checkout_options *co_opts,
+	const char *branch,
+	const git_signature *signature);
 
 /*
  * git_config
@@ -257,6 +288,7 @@ typedef struct {
 } git_config_entry;
 
 int git_repository_config(git_config **out, git_repository *repo);
+int git_repository_config_snapshot(git_config **out, git_repository *repo);
 void git_config_free(git_config *cfg);
 
 int git_config_get_string(const char **out, const git_config *cfg, const char *name);
@@ -290,11 +322,11 @@ int git_config_set_multivar(
 	const char *value);
 
 int git_config_new(git_config **out);
+int git_config_snapshot(git_config **out, git_config *config);
 int git_config_open_ondisk(git_config **out, const char *path);
-int git_config_find_system(char *out, size_t length);
-int git_config_find_global(char *out, size_t length);
-int git_config_find_xdg(char *out, size_t length);
-
+int git_config_find_system(git_buf *out);
+int git_config_find_global(git_buf *out);
+int git_config_find_xdg(git_buf *out);
 
 /*
  * git_repository_init

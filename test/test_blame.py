@@ -65,11 +65,10 @@ class BlameTest(utils.RepoTestCase):
             self.assertEqual(HUNKS[i][0], hunk.final_commit_id)
             self.assertEqual(HUNKS[i][1], hunk.final_start_line_number)
             self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
-            self.assertEqual(hunk.orig_commit_id,
-                            '0000000000000000000000000000000000000000')
+            self.assertEqual(HUNKS[i][0], hunk.orig_commit_id)
             self.assertEqual(hunk.orig_path, PATH)
             self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
-            self.assertTrue(hunk.orig_committer is None)
+            self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
             self.assertEqual(HUNKS[i][3], hunk.boundary)
 
     def test_blame_with_invalid_index(self):
@@ -93,11 +92,10 @@ class BlameTest(utils.RepoTestCase):
             self.assertEqual(HUNKS[i][0], hunk.final_commit_id)
             self.assertEqual(HUNKS[i][1], hunk.final_start_line_number)
             self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
-            self.assertEqual(hunk.orig_commit_id,
-                            '0000000000000000000000000000000000000000')
+            self.assertEqual(HUNKS[i][0], hunk.orig_commit_id)
             self.assertEqual(hunk.orig_path, PATH)
             self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
-            self.assertTrue(hunk.orig_committer is None)
+            self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
             self.assertEqual(HUNKS[i][3], hunk.boundary)
 
     def test_blame_with_invalid_line(self):
@@ -131,11 +129,10 @@ class BlameTest(utils.RepoTestCase):
                 self.assertEqual(HUNKS[i][0], hunk.final_commit_id)
                 self.assertEqual(HUNKS[i][1], hunk.final_start_line_number)
                 self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
-                self.assertEqual(hunk.orig_commit_id,
-                                '0000000000000000000000000000000000000000')
+                self.assertEqual(HUNKS[i][0], hunk.orig_commit_id)
                 self.assertEqual(hunk.orig_path, PATH)
                 self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
-                self.assertTrue(hunk.orig_committer is None)
+                self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
                 self.assertEqual(HUNKS[i][3], hunk.boundary)
 
 if __name__ == '__main__':

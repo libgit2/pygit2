@@ -69,14 +69,20 @@ wrap_blame_hunk(const git_blame_hunk *hunk, Blame *blame)
         py_hunk->lines_in_hunk = hunk->lines_in_hunk;
         py_hunk->final_commit_id = git_oid_allocfmt(&hunk->final_commit_id);
         py_hunk->final_start_line_number = hunk->final_start_line_number;
-        py_hunk->final_signature = hunk->final_signature != NULL ?
-            git_signature_dup(hunk->final_signature) : NULL;
+
+	py_hunk->final_signature = NULL;
+	if (hunk->final_signature)
+		git_signature_dup(&py_hunk->final_signature, hunk->final_signature);
+
         py_hunk->orig_commit_id = git_oid_allocfmt(&hunk->orig_commit_id);
         py_hunk->orig_path = hunk->orig_path != NULL ?
             strdup(hunk->orig_path) : NULL;
         py_hunk->orig_start_line_number = hunk->orig_start_line_number;
-        py_hunk->orig_signature = hunk->orig_signature != NULL ?
-            git_signature_dup(hunk->orig_signature) : NULL;
+
+	py_hunk->orig_signature = NULL;
+	if (hunk->orig_signature)
+		git_signature_dup(&py_hunk->orig_signature, hunk->orig_signature);
+
         py_hunk->boundary = hunk->boundary;
     }
 

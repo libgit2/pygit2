@@ -50,8 +50,8 @@ Attributes:
 
 .. autoattribute:: pygit2.Patch.old_file_path
 .. autoattribute:: pygit2.Patch.new_file_path
-.. autoattribute:: pygit2.Patch.old_oid
-.. autoattribute:: pygit2.Patch.new_oid
+.. autoattribute:: pygit2.Patch.old_id
+.. autoattribute:: pygit2.Patch.new_id
 .. autoattribute:: pygit2.Patch.status
 .. autoattribute:: pygit2.Patch.similarity
 .. autoattribute:: pygit2.Patch.hunks

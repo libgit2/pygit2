@@ -61,11 +61,12 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.remotes[0]
 
         self.assertEqual(REMOTE_NAME, remote.name)
-        remote.name = 'new'
+        problems = remote.rename('new')
+        self.assertEqual([], problems)
         self.assertEqual('new', remote.name)
 
-        self.assertRaisesAssign(ValueError, remote, 'name', '')
-        self.assertRaisesAssign(ValueError, remote, 'name', None)
+        self.assertRaises(ValueError, remote.rename, '')
+        self.assertRaises(ValueError, remote.rename, None)
 
 
     def test_remote_set_url(self):
@@ -153,7 +154,7 @@ class RepositoryTest(utils.RepoTestCase):
     def test_remote_save(self):
         remote = self.repo.remotes[0]
 
-        remote.name = 'new-name'
+        remote.rename('new-name')
         remote.url = 'http://example.com/test.git'
 
         remote.save()

@@ -128,6 +128,19 @@ class Repository(_Repository):
 
         return Config.from_c(self, cconfig[0])
 
+    @property
+    def config_snapshot(self):
+        """A snapshot for this repositiory's configuration
+
+        This allows reads over multiple values to use the same version
+        of the configuration files"""
+
+        cconfig = ffi.new('git_config **')
+        err = C.git_repository_config_snapshot(cconfig, self._repo)
+        check_error(err)
+
+        return Config.from_c(self, cconfig[0])
+
     #
     # References
     #

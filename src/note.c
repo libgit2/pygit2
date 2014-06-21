@@ -66,13 +66,13 @@ Note_remove(Note *self, PyObject* args)
 }
 
 
-PyDoc_STRVAR(Note_oid__doc__,
+PyDoc_STRVAR(Note_id__doc__,
   "Gets the id of the blob containing the note message\n");
 
 PyObject *
-Note_oid__get__(Note *self)
+Note_id__get__(Note *self)
 {
-    return git_oid_to_python(git_note_oid(self->note));
+    return git_oid_to_python(git_note_id(self->note));
 }
 
 
@@ -108,7 +108,7 @@ PyMemberDef Note_members[] = {
 
 PyGetSetDef Note_getseters[] = {
     GETTER(Note, message),
-    GETTER(Note, oid),
+    GETTER(Note, id),
     {NULL}
 };
 

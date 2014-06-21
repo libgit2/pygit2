@@ -69,7 +69,7 @@ class TransferProgress(object):
 
 class Remote(object):
 
-    def progress(self, string):
+    def sideband_progress(self, string):
         """Progress output callback
 
         Override this function with your own progress reporting function
@@ -122,7 +122,7 @@ class Remote(object):
         # Build the callback structure
         callbacks = ffi.new('git_remote_callbacks *')
         callbacks.version = 1
-        callbacks.progress = self._progress_cb
+        callbacks.sideband_progress = self._sideband_progress_cb
         callbacks.transfer_progress = self._transfer_progress_cb
         callbacks.update_tips = self._update_tips_cb
         callbacks.credentials = self._credentials_cb
@@ -142,13 +142,24 @@ class Remote(object):
 
         return maybe_string(C.git_remote_name(self._remote))
 
-    @name.setter
-    def name(self, value):
-        if not value:
+    def rename(self, new_name):
+        """Rename this remote
+
+        Returns a list of fetch refspecs which were not in the standard format
+        and thus could not be remapped
+        """
+
+        if not new_name:
             raise ValueError("New remote name must be a non-empty string")
 
-        err = C.git_remote_rename(self._remote, to_str(value), ffi.NULL, ffi.NULL)
+        problems = ffi.new('git_strarray *')
+        err = C.git_remote_rename(problems, self._remote, to_str(new_name))
         check_error(err)
+
+        ret = strarray_to_strings(problems)
+        C.git_strarray_free(problems)
+
+        return ret
 
     @property
     def url(self):
@@ -179,14 +190,19 @@ class Remote(object):
         err = C.git_remote_save(self._remote)
         check_error(err)
 
-    def fetch(self):
-        """fetch() -> TransferProgress
+    def fetch(self, signature=None, message=None):
+        """fetch(signature, message) -> TransferProgress
 
         Perform a fetch against this remote.
         """
 
+        if signature:
+            ptr = signature._pointer[:]
+        else:
+            ptr = ffi.NULL
+
         self._stored_exception = None
-        err = C.git_remote_fetch(self._remote)
+        err = C.git_remote_fetch(self._remote, ptr, to_str(message))
         if self._stored_exception:
             raise self._stored_exception
 
@@ -261,10 +277,15 @@ class Remote(object):
             self._bad_message = ffi.string(msg).decode()
         return 0
 
-    def push(self, spec):
-        """push(refspec)
+    def push(self, spec, signature=None, message=None):
+        """push(refspec, signature, message)
 
-        Push the given refspec to the remote. Raises ``GitError`` on error"""
+        Push the given refspec to the remote. Raises ``GitError`` on error
+
+        :param str spec: push refspec to use
+        :param Signature signature: signature to use when updating the tips
+        :param str message: message to use when updating the tips
+        """
 
         cpush = ffi.new('git_push **')
         err = C.git_push_new(cpush, self._remote)
@@ -288,7 +309,12 @@ class Remote(object):
             if hasattr(self, '_bad_message'):
                 raise GitError(self._bad_message)
 
-            err = C.git_push_update_tips(push)
+            if signature:
+                ptr = signature._pointer[:]
+            else:
+                ptr = ffi.NULL
+
+            err = C.git_push_update_tips(push, ptr, to_str(message))
             check_error(err)
 
         finally:
@@ -297,7 +323,7 @@ class Remote(object):
     # These functions exist to be called by the git_remote as
     # callbacks. They proxy the call to whatever the user set
 
-    @ffi.callback('int (*transfer_progress)(const git_transfer_progress *stats, void *data)')
+    @ffi.callback('git_transfer_progress_cb')
     def _transfer_progress_cb(stats_ptr, data):
         self = ffi.from_handle(data)
 
@@ -312,8 +338,8 @@ class Remote(object):
 
         return 0
 
-    @ffi.callback('int (*progress)(const char *str, int len, void *data)')
-    def _progress_cb(string, length, data):
+    @ffi.callback('git_transport_message_cb')
+    def _sideband_progress_cb(string, length, data):
         self = ffi.from_handle(data)
 
         if not hasattr(self, 'progress') or not self.progress:

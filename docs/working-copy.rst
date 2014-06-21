@@ -8,8 +8,8 @@ Index read::
 
     >>> index = repo.index
     >>> index.read()
-    >>> oid = index['path/to/file'].id    # from path to object id
-    >>> blob = repo[oid]                   # from object id to object
+    >>> id = index['path/to/file'].id    # from path to object id
+    >>> blob = repo[id]                  # from object id to object
 
 Iterate over all entries of the index::
 
@@ -51,7 +51,7 @@ The Index type
 The IndexEntry type
 --------------------
 
-.. autoattribute:: pygit2.IndexEntry.oid
+.. autoattribute:: pygit2.IndexEntry.id
 .. autoattribute:: pygit2.IndexEntry.hex
 .. autoattribute:: pygit2.IndexEntry.path
 .. autoattribute:: pygit2.IndexEntry.mode

@@ -73,38 +73,24 @@ class Refspec(object):
         Returns whether the given string matches the destination of this refspec"""
         return bool(C.git_refspec_dst_matches(self._refspec, to_str(ref)))
 
+    def _transform(self, ref, fn):
+        buf = ffi.new('git_buf *', (ffi.NULL, 0))
+        err = fn(buf, self._refspec, to_str(ref))
+        check_error(err)
+
+        try:
+            return ffi.string(buf.ptr).decode()
+        finally:
+            C.git_buf_free(buf)
+
     def transform(self, ref):
         """transform(str) -> str
 
         Transform a reference name according to this refspec from the lhs to the rhs."""
-        alen = len(ref)
-        err = C.GIT_EBUFS
-        ptr = None
-        ref_str = to_str(ref)
-
-        while err == C.GIT_EBUFS:
-            alen *= 2
-            ptr = ffi.new('char []', alen)
-
-            err = C.git_refspec_transform(ptr, alen, self._refspec, ref_str)
-
-        check_error(err)
-        return ffi.string(ptr).decode()
+        return self._transform(ref, C.git_refspec_transform)
 
     def rtransform(self, ref):
         """transform(str) -> str
 
         Transform a reference name according to this refspec from the lhs to the rhs"""
-        alen = len(ref)
-        err = C.GIT_EBUFS
-        ptr = None
-        ref_str = to_str(ref)
-
-        while err == C.GIT_EBUFS:
-            alen *= 2
-            ptr = ffi.new('char []', alen)
-
-            err = C.git_refspec_rtransform(ptr, alen, self._refspec, ref_str)
-
-        check_error(err)
-        return ffi.string(ptr).decode()
+        return self._transform(ref, C.git_refspec_rtransform)

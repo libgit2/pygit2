@@ -37,36 +37,16 @@ extern PyObject *GitError;
 static PyObject *
 get_search_path(long level)
 {
-    char *buf = NULL;
-    size_t len = 64;
+    git_buf buf = {NULL};
     PyObject *py_path;
-    int error;
-    char *tmp;
+    int err;
 
-    do {
-        len *= 2;
-        tmp = realloc(buf, len);
-        if (!tmp) {
-            free(buf);
-            PyErr_NoMemory();
-            return NULL;
-        }
-        buf = tmp;
+    err = git_libgit2_opts(GIT_OPT_GET_SEARCH_PATH, level, &buf);
+    if (err < 0)
+        return Error_set(err);
 
-        error = git_libgit2_opts(GIT_OPT_GET_SEARCH_PATH, level, buf, len);
-    } while(error == GIT_EBUFS);
-
-    if (error < 0) {
-        free(buf);
-        Error_set(error);
-        return NULL;
-    }
-
-    if (!buf)
-        return NULL;
-
-    py_path = to_unicode(buf, NULL, NULL);
-    free(buf);
+    py_path = to_unicode(buf.ptr, NULL, NULL);
+    git_buf_free(&buf);
 
     if (!py_path)
         return NULL;

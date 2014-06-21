@@ -189,7 +189,7 @@ def clone_into(repo, remote, branch=None):
     and calling this function.
     """
 
-    err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL, to_str(branch))
+    err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL, to_str(branch), ffi.NULL)
 
     if remote._stored_exception:
         raise remote._stored_exception

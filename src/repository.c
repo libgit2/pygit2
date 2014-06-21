@@ -37,7 +37,6 @@
 #include "repository.h"
 #include "branch.h"
 #include "blame.h"
-#include "mergeresult.h"
 #include "signature.h"
 #include <git2/odb_backend.h>
 
@@ -190,7 +189,7 @@ Repository_head__set__(Repository *self, PyObject *py_refname)
     if (refname == NULL)
         return -1;
 
-    err = git_repository_set_head(self->repo, refname);
+    err = git_repository_set_head(self->repo, refname, NULL, NULL);
     Py_DECREF(trefname);
     if (err < 0) {
         Error_set_str(err, refname);
@@ -546,46 +545,81 @@ Repository_merge_base(Repository *self, PyObject *args)
     return git_oid_to_python(&oid);
 }
 
+PyDoc_STRVAR(Repository_merge_analysis__doc__,
+  "merge_analysis(id) -> (Integer, Integer)\n"
+  "\n"
+  "Analyzes the given branch and determines the opportunities for merging\n"
+  "them into the HEAD of the repository\n"
+  "\n"
+  "The first returned value is a mixture of the GIT_MERGE_ANALYSIS_NONE, _NORMAL,\n"
+  " _UP_TO_DATE, _FASTFORWARD and _UNBORN flags.\n"
+  "The second value is the user's preference from 'merge.ff'");
+
+PyObject *
+Repository_merge_analysis(Repository *self, PyObject *py_id)
+{
+    int err;
+    size_t len;
+    git_oid id;
+    git_merge_head *merge_head;
+    git_merge_analysis_t analysis;
+    git_merge_preference_t preference;
+
+    len = py_oid_to_git_oid(py_id, &id);
+    if (len == 0)
+        return NULL;
+
+    err = git_merge_head_from_id(&merge_head, self->repo, &id);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_merge_analysis(&analysis, &preference, self->repo, (const git_merge_head **) &merge_head, 1);
+    git_merge_head_free(merge_head);
+
+    if (err < 0)
+        return Error_set(err);
+
+    return Py_BuildValue("(ii)", analysis, preference);
+}
+
 PyDoc_STRVAR(Repository_merge__doc__,
-  "merge(oid) -> MergeResult\n"
+  "merge(id)\n"
   "\n"
-  "Merges the given oid and returns the MergeResult.\n"
+  "Merges the given id into HEAD.\n"
   "\n"
-  "If the merge is fastforward the MergeResult will contain the new\n"
-  "fastforward oid.\n"
-  "If the branch is uptodate, nothing to merge, the MergeResult will\n"
-  "have the fastforward oid as None.\n"
-  "If the merge is not fastforward the MergeResult will have the status\n"
-  "produced by the merge, even if there are conflicts.");
+  "Merges the given commit(s) into HEAD, writing the results into the\n"
+  "working directory. Any changes are staged for commit and any conflicts\n"
+  "are written to the index. Callers should inspect the repository's\n"
+  "index after this completes, resolve any conflicts and prepare a\n"
+  "commit.");
 
 PyObject *
 Repository_merge(Repository *self, PyObject *py_oid)
 {
-    git_merge_result *merge_result;
     git_merge_head *oid_merge_head;
     git_oid oid;
-    const git_merge_opts default_opts = GIT_MERGE_OPTS_INIT;
     int err;
     size_t len;
-    PyObject *py_merge_result;
+    git_merge_options merge_opts = GIT_MERGE_OPTIONS_INIT;
+    git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
 
     len = py_oid_to_git_oid(py_oid, &oid);
     if (len == 0)
         return NULL;
 
-    err = git_merge_head_from_oid(&oid_merge_head, self->repo, &oid);
+    err = git_merge_head_from_id(&oid_merge_head, self->repo, &oid);
     if (err < 0)
         return Error_set(err);
 
-    err = git_merge(&merge_result, self->repo,
+    err = git_merge(self->repo,
                     (const git_merge_head **)&oid_merge_head, 1,
-                    &default_opts);
+                    &merge_opts, &checkout_opts);
+
     git_merge_head_free(oid_merge_head);
     if (err < 0)
         return Error_set(err);
 
-    py_merge_result = git_merge_result_to_python(merge_result);
-    return py_merge_result;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(Repository_walk__doc__,
@@ -888,7 +922,7 @@ Repository_create_branch(Repository *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "sO!|i", &c_name, &CommitType, &py_commit, &force))
         return NULL;
 
-    err = git_branch_create(&c_reference, self->repo, c_name, py_commit->commit, force);
+    err = git_branch_create(&c_reference, self->repo, c_name, py_commit->commit, force, NULL, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1055,7 +1089,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
     if (err < 0)
         return NULL;
 
-    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force);
+    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force, NULL, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1089,7 +1123,7 @@ Repository_create_reference_symbolic(Repository *self,  PyObject *args,
         return NULL;
 
     err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
-                                        c_target, force);
+                                        c_target, force, NULL, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1266,7 +1300,7 @@ PyDoc_STRVAR(Repository_checkout_head__doc__,
 PyObject *
 Repository_checkout_head(Repository *self, PyObject *args)
 {
-    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
     unsigned int strategy;
     int err;
 
@@ -1290,7 +1324,7 @@ PyDoc_STRVAR(Repository_checkout_index__doc__,
 PyObject *
 Repository_checkout_index(Repository *self, PyObject *args)
 {
-    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
     unsigned int strategy;
     int err;
 
@@ -1314,7 +1348,7 @@ PyDoc_STRVAR(Repository_checkout_tree__doc__,
 PyObject *
 Repository_checkout_tree(Repository *self, PyObject *args)
 {
-    git_checkout_opts opts = GIT_CHECKOUT_OPTS_INIT;
+    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
     unsigned int strategy;
     Object *py_object;
     int err;
@@ -1513,7 +1547,7 @@ Repository_reset(Repository *self, PyObject* args)
 
     err = git_object_lookup_prefix(&target, self->repo, &oid, len,
                                    GIT_OBJ_ANY);
-    err = err < 0 ? err : git_reset(self->repo, target, reset_type);
+    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL, NULL);
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);
@@ -1529,6 +1563,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, TreeBuilder, METH_VARARGS),
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
+    METHOD(Repository, merge_analysis, METH_O),
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, read, METH_O),
     METHOD(Repository, write, METH_VARARGS),

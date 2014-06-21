@@ -284,20 +284,20 @@ TreeEntry *
 Tree_getitem_by_index(Tree *self, PyObject *py_index)
 {
     int index;
-    const git_tree_entry *entry;
+    const git_tree_entry *entry_src;
+    git_tree_entry *entry;
 
     index = Tree_fix_index(self, py_index);
     if (PyErr_Occurred())
         return NULL;
 
-    entry = git_tree_entry_byindex(self->tree, index);
-    if (!entry) {
+    entry_src = git_tree_entry_byindex(self->tree, index);
+    if (!entry_src) {
         PyErr_SetObject(PyExc_IndexError, py_index);
         return NULL;
     }
 
-    entry = git_tree_entry_dup(entry);
-    if (entry == NULL) {
+    if (git_tree_entry_dup(&entry, entry_src) < 0) {
         PyErr_SetNone(PyExc_MemoryError);
         return NULL;
     }
@@ -550,16 +550,16 @@ TreeIter_dealloc(TreeIter *self)
 TreeEntry *
 TreeIter_iternext(TreeIter *self)
 {
-    const git_tree_entry *entry;
+    const git_tree_entry *entry_src;
+    git_tree_entry *entry;
 
-    entry = git_tree_entry_byindex(self->owner->tree, self->i);
-    if (!entry)
+    entry_src = git_tree_entry_byindex(self->owner->tree, self->i);
+    if (!entry_src)
         return NULL;
 
     self->i += 1;
 
-    entry = git_tree_entry_dup(entry);
-    if (entry == NULL) {
+    if (git_tree_entry_dup(&entry, entry_src) < 0) {
         PyErr_SetNone(PyExc_MemoryError);
         return NULL;
     }

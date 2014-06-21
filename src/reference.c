@@ -62,8 +62,7 @@ RefLogIter_iternext(RefLogIter *self)
         py_entry->oid_old = git_oid_allocfmt(git_reflog_entry_id_old(entry));
         py_entry->oid_new = git_oid_allocfmt(git_reflog_entry_id_new(entry));
         py_entry->message = strdup(git_reflog_entry_message(entry));
-        py_entry->signature = git_signature_dup(
-            git_reflog_entry_committer(entry));
+	git_signature_dup(&py_entry->signature, git_reflog_entry_committer(entry));
 
         ++(self->i);
 
@@ -160,7 +159,7 @@ Reference_rename(Reference *self, PyObject *py_name)
         return NULL;
 
     /* Rename */
-    err = git_reference_rename(&new_reference, self->reference, c_name, 0);
+    err = git_reference_rename(&new_reference, self->reference, c_name, 0, NULL, NULL);
     git_reference_free(self->reference);
     free(c_name);
     if (err < 0)
@@ -243,7 +242,7 @@ Reference_target__set__(Reference *self, PyObject *py_target)
         if (err < 0)
             return err;
 
-        err = git_reference_set_target(&new_ref, self->reference, &oid);
+        err = git_reference_set_target(&new_ref, self->reference, &oid, NULL, NULL);
         if (err < 0)
             goto error;
 
@@ -257,7 +256,7 @@ Reference_target__set__(Reference *self, PyObject *py_target)
     if (c_name == NULL)
         return -1;
 
-    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name);
+    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, NULL, NULL);
     free(c_name);
     if (err < 0)
         goto error;

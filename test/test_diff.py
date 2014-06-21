@@ -257,13 +257,13 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertEqual(diff.patch, PATCH)
         self.assertEqual(len(diff), len([patch for patch in diff]))
 
-    def test_diff_oids(self):
+    def test_diff_ids(self):
         commit_a = self.repo[COMMIT_SHA1_1]
         commit_b = self.repo[COMMIT_SHA1_2]
         patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
-        self.assertEqual(patch.old_oid,
+        self.assertEqual(patch.old_id,
                          '7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        self.assertEqual(patch.new_oid,
+        self.assertEqual(patch.new_id,
                          'af431f20fc541ed6d5afede3e2dc7160f6f01f16')
 
     def test_hunk_content(self):

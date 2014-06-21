@@ -28,11 +28,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-/* Pypy does not provide this header */
-#ifndef PYPY_VERSION
-# include <osdefs.h>
-#endif
-
 #include <git2.h>
 #include "error.h"
 #include "types.h"
@@ -40,11 +35,6 @@
 #include "repository.h"
 #include "oid.h"
 #include "options.h"
-
-/* FIXME: This is for pypy */
-#ifndef MAXPATHLEN
-# define MAXPATHLEN 1024
-#endif
 
 extern PyObject *GitError;
 
@@ -78,7 +68,6 @@ extern PyTypeObject NoteIterType;
 extern PyTypeObject BlameType;
 extern PyTypeObject BlameIterType;
 extern PyTypeObject BlameHunkType;
-extern PyTypeObject MergeResultType;
 
 
 
@@ -90,21 +79,25 @@ PyDoc_STRVAR(discover_repository__doc__,
 PyObject *
 discover_repository(PyObject *self, PyObject *args)
 {
+    git_buf repo_path = {NULL};
     const char *path;
+    PyObject *py_repo_path;
     int across_fs = 0;
     const char *ceiling_dirs = NULL;
-    char repo_path[MAXPATHLEN];
     int err;
 
     if (!PyArg_ParseTuple(args, "s|Is", &path, &across_fs, &ceiling_dirs))
         return NULL;
 
-    err = git_repository_discover(repo_path, sizeof(repo_path),
-            path, across_fs, ceiling_dirs);
+    memset(&repo_path, 0, sizeof(git_buf));
+    err = git_repository_discover(&repo_path, path, across_fs, ceiling_dirs);
     if (err < 0)
         return Error_set_str(err, path);
 
-    return to_path(repo_path);
+    py_repo_path = to_path(repo_path.ptr);
+    git_buf_free(&repo_path);
+
+    return py_repo_path;
 };
 
 PyDoc_STRVAR(hashfile__doc__,
@@ -364,8 +357,11 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES)
 
     /* Merge */
-    INIT_TYPE(MergeResultType, NULL, NULL)
-    ADD_TYPE(m, MergeResult)
+    ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_NONE)
+    ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_NORMAL)
+    ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_UP_TO_DATE)
+    ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_FASTFORWARD)
+    ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_UNBORN)
 
     /* Global initialization of libgit2 */
     git_threads_init();

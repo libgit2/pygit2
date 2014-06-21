@@ -101,7 +101,7 @@ Branch_rename(Branch *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i", &c_name, &force))
         return NULL;
 
-    err = git_branch_move(&c_out, self->reference, c_name, force);
+    err = git_branch_move(&c_out, self->reference, c_name, force, NULL, NULL);
     if (err == GIT_OK)
         return wrap_branch(c_out, self->repo);
     else
@@ -135,34 +135,19 @@ PyObject *
 Branch_remote_name__get__(Branch *self)
 {
     int err;
+    git_buf name = {NULL};
     const char *branch_name;
-    char *c_name = NULL;
     PyObject *py_name;
 
     CHECK_REFERENCE(self);
 
     branch_name = git_reference_name(self->reference);
-    /* Get the length of the remote name */
-    err = git_branch_remote_name(NULL, 0, self->repo->repo, branch_name);
+    err = git_branch_remote_name(&name, self->repo->repo, branch_name);
     if (err < GIT_OK)
         return Error_set(err);
 
-    /* Get the actual remote name */
-    c_name = calloc(err, sizeof(char));
-    if (c_name == NULL)
-        return PyErr_NoMemory();
-
-    err = git_branch_remote_name(c_name,
-                                 err * sizeof(char),
-                                 self->repo->repo,
-                                 branch_name);
-    if (err < GIT_OK) {
-        free(c_name);
-        return Error_set(err);
-    }
-
-    py_name = to_unicode_n(c_name, err - 1, NULL, NULL);
-    free(c_name);
+    py_name = to_unicode(name.ptr, NULL, NULL);
+    git_buf_free(&name);
 
     return py_name;
 }
@@ -227,34 +212,20 @@ PyObject *
 Branch_upstream_name__get__(Branch *self)
 {
     int err;
+    git_buf name = {NULL};
     const char *branch_name;
-    char *c_name = NULL;
     PyObject *py_name;
 
     CHECK_REFERENCE(self);
 
     branch_name = git_reference_name(self->reference);
-    /* Get the length of the upstream name */
-    err = git_branch_upstream_name(NULL, 0, self->repo->repo, branch_name);
+
+    err = git_branch_upstream_name(&name, self->repo->repo, branch_name);
     if (err < GIT_OK)
         return Error_set(err);
 
-    /* Get the actual upstream name */
-    c_name = calloc(err, sizeof(char));
-    if (c_name == NULL)
-        return PyErr_NoMemory();
-
-    err = git_branch_upstream_name(c_name,
-                                   err * sizeof(char),
-                                   self->repo->repo,
-                                   branch_name);
-    if (err < GIT_OK) {
-        free(c_name);
-        return Error_set(err);
-    }
-
-    py_name = to_unicode_n(c_name, err - 1, NULL, NULL);
-    free(c_name);
+    py_name = to_unicode(name.ptr, NULL, NULL);
+    git_buf_free(&name);
 
     return py_name;
 }

@@ -32,8 +32,8 @@
 #include <Python.h>
 #include <git2.h>
 
-#if !(LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR == 20)
-#error You need a compatible libgit2 version (v0.20.x)
+#if !(LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR == 21)
+#error You need a compatible libgit2 version (v0.21.x)
 #endif
 
 /*
@@ -105,8 +105,8 @@ typedef struct {
     PyObject* hunks;
     const char * old_file_path;
     const char * new_file_path;
-    char* old_oid;
-    char* new_oid;
+    char* old_id;
+    char* new_id;
     char status;
     unsigned similarity;
     unsigned additions;
@@ -207,11 +207,5 @@ typedef struct {
     git_signature* orig_signature;
     char boundary;
 } BlameHunk;
-
-/* git_merge */
-typedef struct {
-    PyObject_HEAD
-    git_merge_result *result;
-} MergeResult;
 
 #endif
