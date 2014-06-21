@@ -62,7 +62,7 @@ RefLogIter_iternext(RefLogIter *self)
         py_entry->oid_old = git_oid_allocfmt(git_reflog_entry_id_old(entry));
         py_entry->oid_new = git_oid_allocfmt(git_reflog_entry_id_new(entry));
         py_entry->message = strdup(git_reflog_entry_message(entry));
-	git_signature_dup(&py_entry->signature, git_reflog_entry_committer(entry));
+        git_signature_dup(&py_entry->signature, git_reflog_entry_committer(entry));
 
         ++(self->i);
 

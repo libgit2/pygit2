@@ -70,94 +70,95 @@ option(PyObject *self, PyObject *args)
 
     option = PyLong_AsLong(py_option);
 
-	switch (option) {
-	case GIT_OPT_GET_SEARCH_PATH:
-    {
-        PyObject *py_level;
+    switch (option) {
+        case GIT_OPT_GET_SEARCH_PATH:
+        {
+            PyObject *py_level;
 
-        py_level = PyTuple_GetItem(args, 1);
-        if (!py_level)
-            return NULL;
+            py_level = PyTuple_GetItem(args, 1);
+            if (!py_level)
+                return NULL;
 
-        if (!PyLong_Check(py_level))
-            goto on_non_integer;
+            if (!PyLong_Check(py_level))
+                goto on_non_integer;
 
-        return get_search_path(PyLong_AsLong(py_level));
-        break;
-    }
-
-	case GIT_OPT_SET_SEARCH_PATH:
-    {
-        PyObject *py_level, *py_path, *tpath;
-        const char *path;
-        int err;
-
-        py_level = PyTuple_GetItem(args, 1);
-        if (!py_level)
-            return NULL;
-
-        py_path = PyTuple_GetItem(args, 2);
-        if (!py_path)
-            return NULL;
-
-        if (!PyLong_Check(py_level))
-            goto on_non_integer;
-
-        path = py_str_borrow_c_str(&tpath, py_path, NULL);
-        if (!path)
-            return NULL;
-
-        err = git_libgit2_opts(GIT_OPT_SET_SEARCH_PATH, PyLong_AsLong(py_level), path);
-        Py_DECREF(tpath);
-
-        if (err < 0) {
-            Error_set(err);
-            return NULL;
+            return get_search_path(PyLong_AsLong(py_level));
+            break;
         }
 
-        Py_RETURN_NONE;
-        break;
-    }
+        case GIT_OPT_SET_SEARCH_PATH:
+        {
+            PyObject *py_level, *py_path, *tpath;
+            const char *path;
+            int err;
 
-    case GIT_OPT_GET_MWINDOW_SIZE:
-    {
-        size_t size;
+            py_level = PyTuple_GetItem(args, 1);
+            if (!py_level)
+                return NULL;
 
-        if ((error = git_libgit2_opts(GIT_OPT_GET_MWINDOW_SIZE, &size)) < 0) {
-            Error_set(error);
-            return NULL;
+            py_path = PyTuple_GetItem(args, 2);
+            if (!py_path)
+                return NULL;
+
+            if (!PyLong_Check(py_level))
+                goto on_non_integer;
+
+            path = py_str_borrow_c_str(&tpath, py_path, NULL);
+            if (!path)
+                return NULL;
+
+            err = git_libgit2_opts(GIT_OPT_SET_SEARCH_PATH, PyLong_AsLong(py_level), path);
+            Py_DECREF(tpath);
+
+            if (err < 0) {
+                Error_set(err);
+                return NULL;
+            }
+
+            Py_RETURN_NONE;
+            break;
         }
 
-        return PyLong_FromSize_t(size);
+        case GIT_OPT_GET_MWINDOW_SIZE:
+        {
+            size_t size;
 
-        break;
-    }
+            error = git_libgit2_opts(GIT_OPT_GET_MWINDOW_SIZE, &size);
+            if (error < 0) {
+                Error_set(error);
+                return NULL;
+            }
 
-    case GIT_OPT_SET_MWINDOW_SIZE:
-    {
-        size_t size;
-        PyObject *py_size;
+            return PyLong_FromSize_t(size);
 
-        py_size = PyTuple_GetItem(args, 1);
-        if (!py_size)
-            return NULL;
-
-        if (!PyLong_Check(py_size))
-            goto on_non_integer;
-
-
-        size = PyLong_AsSize_t(py_size);
-        if ((error = git_libgit2_opts(GIT_OPT_SET_MWINDOW_SIZE, size)) < 0) {
-            Error_set(error);
-            return NULL;
+            break;
         }
 
-        Py_RETURN_NONE;
-        break;
-    }
-	}
+        case GIT_OPT_SET_MWINDOW_SIZE:
+        {
+            size_t size;
+            PyObject *py_size;
 
-	PyErr_SetString(PyExc_ValueError, "unknown/unsupported option value");
+            py_size = PyTuple_GetItem(args, 1);
+            if (!py_size)
+                return NULL;
+
+            if (!PyLong_Check(py_size))
+                goto on_non_integer;
+
+            size = PyLong_AsSize_t(py_size);
+            error = git_libgit2_opts(GIT_OPT_SET_MWINDOW_SIZE, size);
+            if (error  < 0) {
+                Error_set(error);
+                return NULL;
+            }
+
+            Py_RETURN_NONE;
+            break;
+        }
+    }
+
+    PyErr_SetString(PyExc_ValueError, "unknown/unsupported option value");
     return NULL;
 
 on_non_integer:
