@@ -54,6 +54,7 @@ RefLogIter_iternext(RefLogIter *self)
 {
     const git_reflog_entry *entry;
     RefLogEntry *py_entry;
+    int err;
 
     if (self->i < self->size) {
         entry = git_reflog_entry_byindex(self->reflog, self->i);
@@ -62,7 +63,10 @@ RefLogIter_iternext(RefLogIter *self)
         py_entry->oid_old = git_oid_allocfmt(git_reflog_entry_id_old(entry));
         py_entry->oid_new = git_oid_allocfmt(git_reflog_entry_id_new(entry));
         py_entry->message = strdup(git_reflog_entry_message(entry));
-        git_signature_dup(&py_entry->signature, git_reflog_entry_committer(entry));
+        err = git_signature_dup(&py_entry->signature,
+                                git_reflog_entry_committer(entry));
+        if (err < 0)
+            return Error_set(err);
 
         ++(self->i);
 

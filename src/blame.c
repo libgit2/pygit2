@@ -60,32 +60,41 @@ PyObject*
 wrap_blame_hunk(const git_blame_hunk *hunk, Blame *blame)
 {
     BlameHunk *py_hunk = NULL;
+    int err;
 
     if (!hunk)
         Py_RETURN_NONE;
 
     py_hunk = PyObject_New(BlameHunk, &BlameHunkType);
-    if (py_hunk != NULL) {
-        py_hunk->lines_in_hunk = hunk->lines_in_hunk;
-        py_hunk->final_commit_id = git_oid_allocfmt(&hunk->final_commit_id);
-        py_hunk->final_start_line_number = hunk->final_start_line_number;
+    if (py_hunk == NULL)
+        return NULL;
 
-        py_hunk->final_signature = NULL;
-        if (hunk->final_signature)
-            git_signature_dup(&py_hunk->final_signature, hunk->final_signature);
+    py_hunk->lines_in_hunk = hunk->lines_in_hunk;
+    py_hunk->final_commit_id = git_oid_allocfmt(&hunk->final_commit_id);
+    py_hunk->final_start_line_number = hunk->final_start_line_number;
 
-        py_hunk->orig_commit_id = git_oid_allocfmt(&hunk->orig_commit_id);
-        py_hunk->orig_path = hunk->orig_path != NULL ?
-                             strdup(hunk->orig_path) : NULL;
-        py_hunk->orig_start_line_number = hunk->orig_start_line_number;
-
-        py_hunk->orig_signature = NULL;
-        if (hunk->orig_signature)
-            git_signature_dup(&py_hunk->orig_signature, hunk->orig_signature);
-
-        py_hunk->boundary = hunk->boundary;
+    py_hunk->final_signature = NULL;
+    if (hunk->final_signature) {
+        err = git_signature_dup(&py_hunk->final_signature,
+                                hunk->final_signature);
+        if (err < 0)
+            return Error_set(err);
     }
 
+    py_hunk->orig_commit_id = git_oid_allocfmt(&hunk->orig_commit_id);
+    py_hunk->orig_path = hunk->orig_path != NULL ?
+                         strdup(hunk->orig_path) : NULL;
+    py_hunk->orig_start_line_number = hunk->orig_start_line_number;
+
+    py_hunk->orig_signature = NULL;
+    if (hunk->orig_signature) {
+        err = git_signature_dup(&py_hunk->orig_signature,
+                                hunk->orig_signature);
+        if (err < 0)
+            return Error_set(err);
+    }
+
+    py_hunk->boundary = hunk->boundary;
     return (PyObject*) py_hunk;
 }
 
