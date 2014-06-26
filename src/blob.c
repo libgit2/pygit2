@@ -38,7 +38,7 @@ extern PyObject *GitError;
 extern PyTypeObject BlobType;
 
 PyDoc_STRVAR(Blob_diff__doc__,
-  "diff([blob, flag, old_as_path, new_as_path] -> Patch\n"
+  "diff([blob, flag, old_as_path, new_as_path]) -> Patch\n"
   "\n"
   "Directly generate a :py:class:`pygit2.Patch` from the difference\n"
   "  between two blobs.\n"
@@ -79,7 +79,7 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
 
 
 PyDoc_STRVAR(Blob_diff_to_buffer__doc__,
-  "diff_to_buffer([buffer, flag, old_as_path, buffer_as_path] -> Patch\n"
+  "diff_to_buffer([buffer, flag, old_as_path, buffer_as_path]) -> Patch\n"
   "\n"
   "Directly generate a :py:class:`~pygit2.Patch` from the difference\n"
   "  between a blob and a buffer.\n"
