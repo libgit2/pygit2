@@ -26,8 +26,8 @@ When those are installed, you can install pygit2:
     $ python setup.py test
 
 .. note:: A minor version of pygit2 must be used with the corresponding minor
-   version of libgit2. For example, pygit2 v0.20.x must be used with libgit2
-   v0.20.0
+   version of libgit2. For example, pygit2 v0.21.x must be used with libgit2
+   v0.21.0
 
 Building on \*nix (including OS X)
 ===================================

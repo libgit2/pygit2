@@ -48,33 +48,99 @@ for the topic), send a pull request.
 Authors
 ==============
 
-62 developers have contributed at least 1 commit to pygit2::
+66 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez            Rémi Duraffort             András Veres-Szentkirályi
-  Nico von Geyso             Sebastian Thiel            Benjamin Kircher
-  Carlos Martín Nieto        Fraser Tweedale            Benjamin Pollack
-  W. Trevor King             Han-Wen Nienhuys           Bryan O'Sullivan
-  Dave Borowitz              Leonardo Rhodes            David Fischer
-  Daniel Rodríguez Troitiño  Petr Viktorin              David Sanders
-  Richo Healey               Alex Chamberlain           Devaev Maxim
-  Christian Boos             Amit Bakshi                Eric Davis
-  Julien Miotte              Andrey Devyatkin           Erik Meusel
-  Xu Tao                     Ben Davis                  Erik van Zijst
-  Jose Plana                 Eric Schrijver             Ferengee
-  Martin Lenders             Hervé Cauwelier            Gustavo Di Pietro
-  Petr Hosek                 Huang Huang                Hugh Cole-Baker
-  Victor Garcia              Jared Flatow               Josh Bleecher Snyder
-  Xavier Delannoy            Jiunn Haur Lim             Jun Omae
-  Yonggang Luo               Sarath Lakshman            Óscar San José
-  Valentin Haenel            Vicent Marti               Ridge Kennedy
-  Bernardo Heynemann         Zoran Zaric                Rui Abreu Ferreira
-  John Szakmeister           Adam Spiers                Thomas Kluyver
-  Brodie Rao                 Alexander Bayandin         earl
-  David Versmisse            Andrew Chin
+  J. David Ibáñez            Rémi Duraffort             Adam Spiers
+  Nico von Geyso             Sebastian Thiel            Alexander Bayandin
+  Carlos Martín Nieto        Fraser Tweedale            Andrew Chin
+  W. Trevor King             Han-Wen Nienhuys           András Veres-Szentkirályi
+  Dave Borowitz              Leonardo Rhodes            Benjamin Kircher
+  Daniel Rodríguez Troitiño  Petr Viktorin              Benjamin Pollack
+  Richo Healey               Thomas Kluyver             Bryan O'Sullivan
+  Christian Boos             Alex Chamberlain           Daniel Bruce
+  Julien Miotte              Amit Bakshi                David Fischer
+  Xu Tao                     Andrey Devyatkin           David Sanders
+  Jose Plana                 Ben Davis                  Devaev Maxim
+  Martin Lenders             Eric Schrijver             Eric Davis
+  Petr Hosek                 Hervé Cauwelier            Erik Meusel
+  Victor Garcia              Huang Huang                Erik van Zijst
+  Xavier Delannoy            Ian P. McCullough          Ferengee
+  Yonggang Luo               Jack O'Connor              Gustavo Di Pietro
+  Valentin Haenel            Jared Flatow               Hugh Cole-Baker
+  Michael Jones              Jiunn Haur Lim             Josh Bleecher Snyder
+  Bernardo Heynemann         Jun Omae                   Óscar San José
+  John Szakmeister           Sarath Lakshman            Ridge Kennedy
+  Brodie Rao                 Vicent Marti               Rui Abreu Ferreira
+  David Versmisse            Zoran Zaric                earl
 
 
 Changelog
 ==============
+
+0.21.0 (2014-06-27)
+-------------------
+
+Highlights:
+
+- Drop official support for Python 2.6, and add support for Python 3.4
+  `#376 <https://github.com/libgit2/pygit2/pull/376>`_
+
+- Upgrade to libgit2 v0.21.0
+  `#374 <https://github.com/libgit2/pygit2/pull/374>`_
+
+- Start using cffi
+  `#360 <https://github.com/libgit2/pygit2/pull/360>`_
+  `#361 <https://github.com/libgit2/pygit2/pull/361>`_
+
+Backward incompatible changes:
+
+- Replace ``oid`` by ``id`` through the API to follow libgit2 conventions.
+- Merge API overhaul following changes in libgit2.
+- New ``Remote.rename(...)`` replaces ``Remote.name = ...``
+- Now ``Remote.fetch()`` returns a ``TransferProgress`` object.
+- Now ``Config.get_multivar(...)`` returns an iterator instead of a list.
+
+New features:
+
+- New ``Config.snapshot()`` and ``Repository.config_snapshot()``
+
+- New ``Config`` methods: ``get_bool(...)``, ``get_int(...)``,
+  ``parse_bool(...)`` and ``parse_int(...)``
+  `#357 <https://github.com/libgit2/pygit2/pull/357>`_
+
+- Blob: implement the memory buffer interface
+  `#362 <https://github.com/libgit2/pygit2/pull/362>`_
+
+- New ``clone_into(...)`` function
+  `#368 <https://github.com/libgit2/pygit2/pull/368>`_
+
+- Now ``Index`` can be used alone, without a repository
+  `#372 <https://github.com/libgit2/pygit2/pull/372>`_
+
+- Add more options to ``init_repository``
+  `#347 <https://github.com/libgit2/pygit2/pull/347>`_
+
+- Support ``Repository.workdir = ...`` and
+  support setting detached heads ``Repository.head = <Oid>``
+  `#377 <https://github.com/libgit2/pygit2/pull/377>`_
+
+Other:
+
+- Fix again build with VS2008
+  `#364 <https://github.com/libgit2/pygit2/pull/364>`_
+
+- Fix ``Blob.diff(...)`` and ``Blob.diff_to_buffer(...)`` arguments passing
+  `#366 <https://github.com/libgit2/pygit2/pull/366>`_
+
+- Fail gracefully when compiling against the wrong version of libgit2
+  `#365 <https://github.com/libgit2/pygit2/pull/365>`_
+
+- Several documentation improvements and updates
+  `#359 <https://github.com/libgit2/pygit2/pull/359>`_
+  `#375 <https://github.com/libgit2/pygit2/pull/375>`_
+  `#378 <https://github.com/libgit2/pygit2/pull/378>`_
+
+
 
 0.20.3 (2014-04-02)
 -------------------
