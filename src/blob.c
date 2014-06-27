@@ -38,20 +38,20 @@ extern PyObject *GitError;
 extern PyTypeObject BlobType;
 
 PyDoc_STRVAR(Blob_diff__doc__,
-  "diff([blob, flag, old_as_path, new_as_path] -> Patch\n"
+  "diff([blob, flag, old_as_path, new_as_path]) -> Patch\n"
   "\n"
   "Directly generate a :py:class:`pygit2.Patch` from the difference\n"
-  "  between two blobs.\n"
+  "between two blobs.\n"
   "\n"
-  "Arguments:\n"
+  ":param Blob blob: the :py:class:`~pygit2.Blob` to diff.\n"
   "\n"
-  "blob: the :py:class:`~pygit2.Blob` to diff.\n"
+  ":param flag: a GIT_DIFF_* constant.\n"
   "\n"
-  "flag: a GIT_DIFF_* constant.\n"
+  ":param str old_as_path: treat old blob as if it had this filename.\n"
   "\n"
-  "old_as_path: treat old blob as if it had this filename.\n"
+  ":param str new_as_path: treat new blob as if it had this filename.\n"
   "\n"
-  "new_as_path: treat new blob as if it had this filename.\n");
+  ":rtype: Patch\n");
 
 PyObject *
 Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
@@ -79,20 +79,20 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
 
 
 PyDoc_STRVAR(Blob_diff_to_buffer__doc__,
-  "diff_to_buffer([buffer, flag, old_as_path, buffer_as_path] -> Patch\n"
+  "diff_to_buffer([buffer, flag, old_as_path, buffer_as_path]) -> Patch\n"
   "\n"
   "Directly generate a :py:class:`~pygit2.Patch` from the difference\n"
-  "  between a blob and a buffer.\n"
+  "between a blob and a buffer.\n"
   "\n"
-  "Arguments:\n"
+  ":param Blob buffer: Raw data for new side of diff.\n"
   "\n"
-  "buffer: Raw data for new side of diff.\n"
+  ":param flag: a GIT_DIFF_* constant.\n"
   "\n"
-  "flag: a GIT_DIFF_* constant.\n"
+  ":param str old_as_path: treat old blob as if it had this filename.\n"
   "\n"
-  "old_as_path: treat old blob as if it had this filename.\n"
+  ":param str buffer_as_path: treat buffer as if it had this filename.\n"
   "\n"
-  "buffer_as_path: treat buffer as if it had this filename.\n");
+  ":rtype: Patch\n");
 
 PyObject *
 Blob_diff_to_buffer(Blob *self, PyObject *args, PyObject *kwds)
