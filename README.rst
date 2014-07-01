@@ -32,6 +32,7 @@ Quick install guide
 
 3. Install pygit2 with *pip*::
 
+   $ pip install cffi
    $ pip install pygit2
 
 For detailed instructions check the documentation,
