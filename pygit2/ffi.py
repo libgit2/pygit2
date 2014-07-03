@@ -112,11 +112,11 @@ with codecs.open(decl_path, 'r', 'utf-8') as header:
 
 # if LIBGIT2 exists, set build and link against that version
 libgit2_path = getenv('LIBGIT2')
-include_dirs = []
-library_dirs = []
-if libgit2_path:
-    include_dirs = [path.join(libgit2_path, 'include')]
-    library_dirs = [path.join(libgit2_path, 'lib')]
+if not libgit2_path:
+    libgit2_path = '/usr/local'
+
+include_dirs = [path.join(libgit2_path, 'include')]
+library_dirs = [path.join(libgit2_path, 'lib')]
 
 C = ffi.verify("#include <git2.h>", libraries=["git2"],
                include_dirs=include_dirs, library_dirs=library_dirs)
