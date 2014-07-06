@@ -129,7 +129,7 @@ Branch_branch_name__get__(Branch *self)
 
 
 PyDoc_STRVAR(Branch_remote_name__doc__,
-  "The name of the remote that the remote tracking branch belongs to.");
+  "The name of the remote set to be the upstream of this branch.");
 
 PyObject *
 Branch_remote_name__get__(Branch *self)
@@ -154,8 +154,8 @@ Branch_remote_name__get__(Branch *self)
 
 
 PyDoc_STRVAR(Branch_upstream__doc__,
-  "The branch supporting the remote tracking branch or None if this is not a "
-  "remote tracking branch. Set to None to unset.");
+  "The branch's upstream branch or None if this branch does not have an upstream set. "
+  "Set to None to unset the upstream configuration.");
 
 PyObject *
 Branch_upstream__get__(Branch *self)
@@ -206,7 +206,7 @@ int Branch_upstream__set__(Branch *self, Reference *py_ref)
 
 
 PyDoc_STRVAR(Branch_upstream_name__doc__,
-  "The name of the reference supporting the remote tracking branch.");
+  "The name of the reference set to be the upstream of this one");
 
 PyObject *
 Branch_upstream_name__get__(Branch *self)
