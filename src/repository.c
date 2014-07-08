@@ -461,41 +461,6 @@ Repository_write(Repository *self, PyObject *args)
     return git_oid_to_python(&oid);
 }
 
-
-PyDoc_STRVAR(Repository_index__doc__, "Index file.");
-
-PyObject *
-Repository_index__get__(Repository *self, void *closure)
-{
-    int err;
-    git_index *index;
-    Index *py_index;
-
-    assert(self->repo);
-
-    if (self->index == NULL) {
-        err = git_repository_index(&index, self->repo);
-        if (err < 0)
-            return Error_set(err);
-
-        py_index = PyObject_GC_New(Index, &IndexType);
-        if (!py_index) {
-            git_index_free(index);
-            return NULL;
-        }
-
-        Py_INCREF(self);
-        py_index->repo = self;
-        py_index->index = index;
-        PyObject_GC_Track(py_index);
-        self->index = (PyObject*)py_index;
-    }
-
-    Py_INCREF(self->index);
-    return self->index;
-}
-
-
 PyDoc_STRVAR(Repository_path__doc__,
   "The normalized path to the git repository.");
 
@@ -1621,7 +1586,6 @@ PyMethodDef Repository_methods[] = {
 };
 
 PyGetSetDef Repository_getseters[] = {
-    GETTER(Repository, index),
     GETTER(Repository, path),
     GETSET(Repository, head),
     GETTER(Repository, head_is_detached),

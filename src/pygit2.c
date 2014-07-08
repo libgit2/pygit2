@@ -52,9 +52,6 @@ extern PyTypeObject TreeEntryType;
 extern PyTypeObject TreeIterType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
-extern PyTypeObject IndexType;
-extern PyTypeObject IndexEntryType;
-extern PyTypeObject IndexIterType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
@@ -268,11 +265,6 @@ moduleinit(PyObject* m)
     /*
      * Index & Working copy
      */
-    INIT_TYPE(IndexType, NULL, PyType_GenericNew)
-    INIT_TYPE(IndexEntryType, NULL, PyType_GenericNew)
-    INIT_TYPE(IndexIterType, NULL, NULL)
-    ADD_TYPE(m, Index)
-    ADD_TYPE(m, IndexEntry)
     /* Status */
     ADD_CONSTANT_INT(m, GIT_STATUS_CURRENT)
     ADD_CONSTANT_INT(m, GIT_STATUS_INDEX_NEW)

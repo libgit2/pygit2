@@ -395,19 +395,45 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff *diff;
+    git_index *index;
+    char *buffer;
+    Py_ssize_t length;
     Repository *py_repo;
+    PyObject *py_idx, *py_idx_ptr;
     int err;
 
-    Index *py_idx = NULL;
-
-    if (!PyArg_ParseTuple(args, "O!|IHH", &IndexType, &py_idx, &opts.flags,
+    if (!PyArg_ParseTuple(args, "O|IHH", &py_idx, &opts.flags,
                                         &opts.context_lines,
                                         &opts.interhunk_lines))
         return NULL;
 
+    /*
+     * This is a hack to check whether we're passed an index, as I
+     * haven't found a good way to grab a type object for
+     * pygit2.index.Index.
+     */
+    if (!PyObject_GetAttrString(py_idx, "_index")) {
+        PyErr_SetString(PyExc_TypeError, "argument must be an Index");
+        return NULL;
+    }
+    py_idx_ptr = PyObject_GetAttrString(py_idx, "_pointer");
+    if (!py_idx_ptr)
+        return NULL;
+
+    /* Here we need to do the opposite conversion from the _pointer getters */
+    if (PyBytes_AsStringAndSize(py_idx_ptr, &buffer, &length))
+        return NULL;
+
+    if (length != sizeof(git_index *)) {
+        PyErr_SetString(PyExc_TypeError, "passed value is not a pointer");
+        return NULL;
+    }
+
+    /* the "buffer" contains the pointer */
+    index = *((git_index **) buffer);
+
     py_repo = self->repo;
-    err = git_diff_tree_to_index(&diff, py_repo->repo, self->tree,
-                                 py_idx->index, &opts);
+    err = git_diff_tree_to_index(&diff, py_repo->repo, self->tree, index, &opts);
     if (err < 0)
         return Error_set(err);
 

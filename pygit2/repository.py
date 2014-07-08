@@ -39,6 +39,7 @@ from .ffi import ffi, C, to_str
 from .errors import check_error
 from .remote import Remote
 from .config import Config
+from .index import Index
 
 class Repository(_Repository):
 
@@ -307,3 +308,16 @@ class Repository(_Repository):
         etc.
         """
         C.git_repository_state_cleanup(self._repo)
+
+    #
+    # Index
+    #
+    @property
+    def index(self):
+        """Index representing the repository's index file
+        """
+        cindex = ffi.new('git_index **')
+        err = C.git_repository_index(cindex, self._repo)
+        check_error(err, True)
+
+        return Index.from_c(self, cindex)

@@ -3,9 +3,10 @@ typedef ... git_remote;
 typedef ... git_refspec;
 typedef ... git_push;
 typedef ... git_cred;
-typedef ... git_diff_file;
 typedef ... git_tree;
 typedef ... git_signature;
+typedef ... git_index;
+typedef ... git_diff;
 
 #define GIT_OID_RAWSZ ...
 #define GIT_PATH_MAX ...
@@ -25,6 +26,7 @@ typedef struct git_strarray {
 	size_t count;
 } git_strarray;
 
+typedef int64_t git_off_t;
 
 typedef enum {
 	GIT_OK = 0,
@@ -180,6 +182,76 @@ int git_cred_ssh_key_new(
 	const char *publickey,
 	const char *privatekey,
 	const char *passphrase);
+
+/*
+ * git_diff
+ */
+
+typedef enum {
+	GIT_SUBMODULE_IGNORE_RESET     = -1,
+
+	GIT_SUBMODULE_IGNORE_NONE      = 1,
+	GIT_SUBMODULE_IGNORE_UNTRACKED = 2,
+	GIT_SUBMODULE_IGNORE_DIRTY     = 3,
+	GIT_SUBMODULE_IGNORE_ALL       = 4,
+	GIT_SUBMODULE_IGNORE_DEFAULT   = 0
+} git_submodule_ignore_t;
+
+typedef enum {
+	GIT_DELTA_UNMODIFIED = 0,
+	GIT_DELTA_ADDED = 1,
+	GIT_DELTA_DELETED = 2,
+	GIT_DELTA_MODIFIED = 3,
+	GIT_DELTA_RENAMED = 4,
+	GIT_DELTA_COPIED = 5,
+	GIT_DELTA_IGNORED = 6,
+	GIT_DELTA_UNTRACKED = 7,
+	GIT_DELTA_TYPECHANGE = 8,
+} git_delta_t;
+
+typedef struct {
+	git_oid     id;
+	const char *path;
+	git_off_t   size;
+	uint32_t    flags;
+	uint16_t    mode;
+} git_diff_file;
+
+typedef struct {
+	git_delta_t   status;
+	uint32_t      flags;
+	uint16_t      similarity;
+	uint16_t      nfiles;
+	git_diff_file old_file;
+	git_diff_file new_file;
+} git_diff_delta;
+
+typedef int (*git_diff_notify_cb)(
+	const git_diff *diff_so_far,
+	const git_diff_delta *delta_to_add,
+	const char *matched_pathspec,
+	void *payload);
+
+typedef struct {
+	unsigned int version;
+	uint32_t flags;
+
+	git_submodule_ignore_t ignore_submodules;
+	git_strarray       pathspec;
+	git_diff_notify_cb notify_cb;
+	void              *notify_payload;
+
+	uint16_t    context_lines;
+	uint16_t    interhunk_lines;
+	uint16_t    id_abbrev;
+	git_off_t   max_size;
+	const char *old_prefix;
+	const char *new_prefix;
+} git_diff_options;
+
+int git_diff_init_options(git_diff_options *opts, unsigned int version);
+int git_diff_index_to_workdir(git_diff **diff, git_repository *repo, git_index *index, const git_diff_options *opts);
+int git_diff_tree_to_index(git_diff **diff, git_repository *repo, git_tree *old_tree, git_index *index, const git_diff_options *opts);
 
 /*
  * git_checkout
@@ -369,3 +441,54 @@ int git_repository_init_ext(
 	git_repository **out,
 	const char *repo_path,
 	git_repository_init_options *opts);
+
+/*
+ * git_index
+ */
+typedef int64_t git_time_t;
+
+typedef struct {
+	git_time_t seconds;
+	unsigned int nanoseconds;
+} git_index_time;
+
+typedef struct git_index_entry {
+	git_index_time ctime;
+	git_index_time mtime;
+
+	unsigned int dev;
+	unsigned int ino;
+	unsigned int mode;
+	unsigned int uid;
+	unsigned int gid;
+	git_off_t file_size;
+
+	git_oid id;
+
+	unsigned short flags;
+	unsigned short flags_extended;
+
+	const char *path;
+} git_index_entry;
+
+typedef int (*git_index_matched_path_cb)(
+	const char *path, const char *matched_pathspec, void *payload);
+
+void git_index_free(git_index *index);
+int git_repository_index(git_index **out, git_repository *repo);
+int git_index_open(git_index **out, const char *index_path);
+int git_index_read(git_index *index, int force);
+int git_index_write(git_index *index);
+size_t git_index_entrycount(const git_index *index);
+int git_index_find(size_t *at_pos, git_index *index, const char *path);
+int git_index_add_bypath(git_index *index, const char *path);
+int git_index_add(git_index *index, const git_index_entry *source_entry);
+int git_index_remove(git_index *index, const char *path, int stage);
+int git_index_read_tree(git_index *index, const git_tree *tree);
+int git_index_clear(git_index *index);
+int git_index_write_tree(git_oid *out, git_index *index);
+int git_index_write_tree_to(git_oid *out, git_index *index, git_repository *repo);
+const git_index_entry *git_index_get_bypath(git_index *index, const char *path, int stage);
+const git_index_entry *git_index_get_byindex(git_index *index, size_t n);
+int git_index_add_all(git_index *index,	const git_strarray *pathspec, unsigned int flags,
+	git_index_matched_path_cb callback,	void *payload);
