@@ -301,4 +301,9 @@ class Repository(_Repository):
         raise ValueError("Only blobs and treeish can be diffed")
 
     def state_cleanup(self):
+        """
+        Remove all the metadata associated with an ongoing command like
+        merge, revert, cherry-pick, etc. For example: MERGE_HEAD, MERGE_MSG,
+        etc.
+        """
         C.git_repository_state_cleanup(self._repo)
