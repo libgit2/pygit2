@@ -300,5 +300,5 @@ class Repository(_Repository):
 
         raise ValueError("Only blobs and treeish can be diffed")
 
-    def clean_state_files(self):
+    def state_cleanup(self):
         C.git_repository_state_cleanup(self._repo)
