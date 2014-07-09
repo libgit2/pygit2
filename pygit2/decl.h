@@ -114,6 +114,7 @@ int git_remote_create(
 	git_repository *repo,
 	const char *name,
 	const char *url);
+int git_repository_state_cleanup(git_repository *repo);
 
 const char * git_remote_name(const git_remote *remote);
 
