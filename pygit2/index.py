@@ -195,6 +195,10 @@ class Index(object):
 
         check_error(err, True)
 
+    @property
+    def has_conflicts(self):
+        return C.git_index_has_conflicts(self._index) != 0
+
     def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
         """Diff the index against the working directory
 
@@ -270,6 +274,13 @@ class Index(object):
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
 
+    @property
+    def conflicts(self):
+        if not hasattr(self, '_conflicts'):
+            self._conflicts = ConflictCollection(self)
+
+        return self._conflicts
+
 class IndexEntry(object):
     __slots__ = ['id', 'path', 'mode', '_index']
 
@@ -299,6 +310,9 @@ class IndexEntry(object):
 
     @classmethod
     def _from_c(cls, centry):
+        if centry == ffi.NULL:
+            return None
+
         entry = cls.__new__(cls)
         entry.path = ffi.string(centry.path).decode()
         entry.mode = centry.mode
@@ -324,3 +338,57 @@ class IndexIterator(object):
         self.n += 1
 
         return entry
+
+class ConflictCollection(object):
+
+    def __init__(self, index):
+        self._index = index
+
+    def __getitem__(self, path):
+        cancestor = ffi.new('git_index_entry **')
+        cours = ffi.new('git_index_entry **')
+        ctheirs = ffi.new('git_index_entry **')
+
+        err = C.git_index_conflict_get(cancestor, cours, ctheirs, self._index._index, to_str(path))
+        check_error(err)
+
+        ancestor = IndexEntry._from_c(cancestor[0])
+        ours = IndexEntry._from_c(cours[0])
+        theirs = IndexEntry._from_c(ctheirs[0])
+
+        return ancestor, ours, theirs
+
+    def __iter__(self):
+        return ConflictIterator(self._index)
+
+class ConflictIterator(object):
+
+    def __init__(self, index):
+        citer = ffi.new('git_index_conflict_iterator **')
+        err = C.git_index_conflict_iterator_new(citer, index._index)
+        check_error(err)
+        self._index = index
+        self._iter = citer[0]
+
+    def __del__(self):
+        C.git_index_conflict_iterator_free(self._iter)
+
+    def next(self):
+        return self.__next__()
+
+    def __next__(self):
+        cancestor = ffi.new('git_index_entry **')
+        cours = ffi.new('git_index_entry **')
+        ctheirs = ffi.new('git_index_entry **')
+
+        err = C.git_index_conflict_next(cancestor, cours, ctheirs, self._iter)
+        if err == C.GIT_ITEROVER:
+            raise StopIteration
+
+        check_error(err)
+
+        ancestor = IndexEntry._from_c(cancestor[0])
+        ours = IndexEntry._from_c(cours[0])
+        theirs = IndexEntry._from_c(ctheirs[0])
+
+        return ancestor, ours, theirs

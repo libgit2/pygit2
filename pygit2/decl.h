@@ -7,6 +7,7 @@ typedef ... git_tree;
 typedef ... git_signature;
 typedef ... git_index;
 typedef ... git_diff;
+typedef ... git_index_conflict_iterator;
 
 #define GIT_OID_RAWSZ ...
 #define GIT_PATH_MAX ...
@@ -492,3 +493,8 @@ const git_index_entry *git_index_get_bypath(git_index *index, const char *path, 
 const git_index_entry *git_index_get_byindex(git_index *index, size_t n);
 int git_index_add_all(git_index *index,	const git_strarray *pathspec, unsigned int flags,
 	git_index_matched_path_cb callback,	void *payload);
+int git_index_has_conflicts(const git_index *index);
+void git_index_conflict_iterator_free(git_index_conflict_iterator *iterator);
+int git_index_conflict_iterator_new(git_index_conflict_iterator **iterator_out, git_index *index);
+int git_index_conflict_get(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index *index, const char *path);
+int git_index_conflict_next(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index_conflict_iterator *iterator);
