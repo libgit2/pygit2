@@ -81,6 +81,7 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
 
         self.repo.merge(branch_id)
+        self.assertTrue(self.repo.index.has_conflicts)
         status = pygit2.GIT_STATUS_WT_NEW | pygit2.GIT_STATUS_INDEX_DELETED
         # Asking twice to assure the reference counting is correct
         self.assertEqual({'.gitignore': status}, self.repo.status())
@@ -101,3 +102,28 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
             f.write('new content')
         self.repo.index.add('inindex.txt')
         self.assertRaises(pygit2.GitError, self.repo.merge, branch_oid)
+
+class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
+
+    def test_merge_no_fastforward_conflicts(self):
+        branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+        branch_id = self.repo.get(branch_head_hex).id
+
+        analysis, preference = self.repo.merge_analysis(branch_id)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
+        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
+
+        self.repo.merge(branch_id)
+        self.assertTrue(self.repo.index.has_conflicts)
+        self.assertRaises(KeyError, self.repo.index.conflicts.__getitem__, 'some-file')
+        ancestor, ours, theirs = self.repo.index.conflicts['.gitignore']
+        self.assertEqual(None, ancestor)
+        self.assertNotEqual(None, ours)
+        self.assertNotEqual(None, theirs)
+        self.assertEqual('.gitignore', ours.path)
+        self.assertEqual('.gitignore', theirs.path)
+        self.assertEqual(1, len(list(self.repo.index.conflicts)))
+        # Checking the index works as expected
+        self.repo.index.add('.gitignore')
+        self.repo.index.write()
+        self.assertRaises(KeyError, self.repo.index.conflicts.__getitem__, '.gitignore')
