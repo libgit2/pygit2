@@ -109,10 +109,8 @@ Example::
     >>> for entry in head.log():
     ...     print(entry.message)
 
-.. autoattribute:: pygit2.RefLogEntry.id_new
-.. autoattribute:: pygit2.RefLogEntry.id_old
-.. autoattribute:: pygit2.RefLogEntry.message
-.. autoattribute:: pygit2.RefLogEntry.committer
+.. autoclass:: pygit2.RefLogEntry
+   :members:
 
 Notes
 ====================
