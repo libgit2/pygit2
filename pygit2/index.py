@@ -290,11 +290,14 @@ class Index(object):
     def conflicts(self):
         """A collection of conflict information
 
-        Each conflict is made up of three elements (and access or
-        iteration of the conflicts returns a three-tuple of
-        :py:class:`~pygit2.IndexEntry`. The first is the common ancestor, the
-        second is the "ours" side of the conflict and the thirs is the
-        "theirs" side.
+        This presents a mapping interface with the paths as keys. You
+        can use the ``del`` operator to remove a conflict form the Index.
+
+        Each conflict is made up of three elements. Access or iteration
+        of the conflicts returns a three-tuple of
+        :py:class:`~pygit2.IndexEntry`. The first is the common
+        ancestor, the second is the "ours" side of the conflict and the
+        thirs is the "theirs" side.
 
         These elements may be None depending on which sides exist for
         the particular conflict.
@@ -384,6 +387,10 @@ class ConflictCollection(object):
         theirs = IndexEntry._from_c(ctheirs[0])
 
         return ancestor, ours, theirs
+
+    def __delitem__(self, path):
+        err = C.git_index_conflict_remove(self._index._index, to_str(path))
+        check_error(err)
 
     def __iter__(self):
         return ConflictIterator(self._index)

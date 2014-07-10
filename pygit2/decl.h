@@ -498,3 +498,4 @@ void git_index_conflict_iterator_free(git_index_conflict_iterator *iterator);
 int git_index_conflict_iterator_new(git_index_conflict_iterator **iterator_out, git_index *index);
 int git_index_conflict_get(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index *index, const char *path);
 int git_index_conflict_next(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index_conflict_iterator *iterator);
+int git_index_conflict_remove(git_index *index, const char *path);
