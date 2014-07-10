@@ -37,25 +37,14 @@ tree. You can use it independently of the index file, e.g.
 The Index type
 ====================
 
-.. automethod:: pygit2.Index.add
-.. automethod:: pygit2.Index.remove
-.. automethod:: pygit2.Index.clear
-.. automethod:: pygit2.Index.read
-.. automethod:: pygit2.Index.write
-.. automethod:: pygit2.Index.read_tree
-.. automethod:: pygit2.Index.write_tree
-.. automethod:: pygit2.Index.diff_to_tree
-.. automethod:: pygit2.Index.diff_to_workdir
-
+.. autoclass:: pygit2.Index
+   :members:
 
 The IndexEntry type
 --------------------
 
-.. autoattribute:: pygit2.IndexEntry.id
-.. autoattribute:: pygit2.IndexEntry.hex
-.. autoattribute:: pygit2.IndexEntry.path
-.. autoattribute:: pygit2.IndexEntry.mode
-
+.. autoclass:: pygit2.IndexEntry
+   :members:
 
 Status
 ====================

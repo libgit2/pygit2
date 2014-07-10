@@ -116,7 +116,9 @@ class Index(object):
         check_error(err)
 
     def read_tree(self, tree):
-        """Replace the contents of the Index with those of a tree
+        """read_tree([Tree|Oid])
+
+        Replace the contents of the Index with those of a tree
 
         The tree will be read recursively and all its children will also be
         inserted into the Index.
@@ -138,7 +140,9 @@ class Index(object):
         check_error(err)
 
     def write_tree(self, repo=None):
-        """Create a tree out of the Index
+        """write_tree([repo]) -> Oid
+
+        Create a tree out of the Index
 
         The contents of the index will be written out to the object
         database. If there is no associated repository, 'repo' must be
@@ -173,7 +177,9 @@ class Index(object):
         check_error(err, True)
         
     def add(self, path_or_entry):
-        """Add or update an entry in the Index
+        """add([path|entry])
+
+        Add or update an entry in the Index
 
         If a path is given, that file will be added. The path must be
         relative to the root of the worktree and the Index must be associated
@@ -197,10 +203,14 @@ class Index(object):
 
     @property
     def has_conflicts(self):
+        """Whether this Index contains conflict information
+        """
         return C.git_index_has_conflicts(self._index) != 0
 
     def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
-        """Diff the index against the working directory
+        """diff_to_workdir(flags=0, context_lines=3, interhunk_lines=0) -> Diff
+
+        Diff the index against the working directory
 
         Return a :py:class:`~pygit2.Diff` object with the differences
         between the index and the working copy.
@@ -233,7 +243,9 @@ class Index(object):
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
 
     def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
-        """Diff the index against a tree
+        """diff_to_tree(flags=0, context_lines=3, interhunk_lines=0) -> Diff
+
+        Diff the index against a tree
 
         Return a :py:class:`~pygit2.Diff` object with the differences between the
         index and the given tree.
@@ -276,6 +288,17 @@ class Index(object):
 
     @property
     def conflicts(self):
+        """A collection of conflict information
+
+        Each conflict is made up of three elements (and access or
+        iteration of the conflicts returns a three-tuple of
+        :py:class:`~pygit2.IndexEntry`. The first is the common ancestor, the
+        second is the "ours" side of the conflict and the thirs is the
+        "theirs" side.
+
+        These elements may be None depending on which sides exist for
+        the particular conflict.
+        """
         if not hasattr(self, '_conflicts'):
             self._conflicts = ConflictCollection(self)
 
@@ -286,11 +309,15 @@ class IndexEntry(object):
 
     def __init__(self, path, object_id, mode):
         self.path = path
+        """The path of this entry"""
         self.id = object_id
+        """The id of the referenced object"""
         self.mode = mode
+        """The mode of this entry, a GIT_FILEMODE_ value"""
 
     @property
     def hex(self):
+        """The id of the referenced object as a hex string"""
         return self.id.hex
 
     def _to_c(self):
