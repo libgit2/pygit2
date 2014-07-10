@@ -509,7 +509,7 @@ PyMappingMethods Diff_as_mapping = {
 static PyMethodDef Diff_methods[] = {
     METHOD(Diff, merge, METH_VARARGS),
     METHOD(Diff, find_similar, METH_VARARGS),
-    METHOD(Diff, from_c, METH_STATIC),
+    METHOD(Diff, from_c, METH_STATIC | METH_VARARGS),
     {NULL}
 };
 
