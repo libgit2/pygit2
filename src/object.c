@@ -100,6 +100,14 @@ Object_type__get__(Object *self)
     return PyLong_FromLong(git_object_type(self->obj));
 }
 
+PyDoc_STRVAR(Object__pointer__doc__, "Get the object's pointer. For internal use only.");
+PyObject *
+Object__pointer__get__(Object *self)
+{
+    /* Bytes means a raw buffer */
+    return PyBytes_FromStringAndSize((char *) &self->obj, sizeof(git_object *));
+}
+
 
 PyDoc_STRVAR(Object_read_raw__doc__,
   "read_raw()\n"
@@ -181,6 +189,7 @@ PyGetSetDef Object_getseters[] = {
     GETTER(Object, id),
     GETTER(Object, hex),
     GETTER(Object, type),
+    GETTER(Object, _pointer),
     {NULL}
 };
 

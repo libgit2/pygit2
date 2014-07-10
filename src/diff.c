@@ -39,6 +39,7 @@ extern PyTypeObject TreeType;
 extern PyTypeObject IndexType;
 extern PyTypeObject DiffType;
 extern PyTypeObject HunkType;
+extern PyTypeObject RepositoryType;
 
 PyTypeObject PatchType;
 
@@ -383,6 +384,33 @@ PyTypeObject HunkType = {
     0,                                         /* tp_new            */
 };
 
+PyDoc_STRVAR(Diff_from_c__doc__, "Method exposed for Index to hook into");
+
+PyObject *
+Diff_from_c(Diff *dummy, PyObject *args)
+{
+    PyObject *py_diff, *py_repository;
+    git_diff *diff;
+    char *buffer;
+    Py_ssize_t length;
+
+    if (!PyArg_ParseTuple(args, "OO!", &py_diff, &RepositoryType, &py_repository))
+        return NULL;
+
+    /* Here we need to do the opposite conversion from the _pointer getters */
+    if (PyBytes_AsStringAndSize(py_diff, &buffer, &length))
+        return NULL;
+
+    if (length != sizeof(git_diff *)) {
+        PyErr_SetString(PyExc_TypeError, "passed value is not a pointer");
+        return NULL;
+    }
+
+    /* the "buffer" contains the pointer */
+    diff = *((git_diff **) buffer);
+
+    return wrap_diff(diff, (Repository *) py_repository);
+}
 
 PyDoc_STRVAR(Diff_merge__doc__,
   "merge(diff)\n"
@@ -481,6 +509,7 @@ PyMappingMethods Diff_as_mapping = {
 static PyMethodDef Diff_methods[] = {
     METHOD(Diff, merge, METH_VARARGS),
     METHOD(Diff, find_similar, METH_VARARGS),
+    METHOD(Diff, from_c, METH_STATIC | METH_VARARGS),
     {NULL}
 };
 
