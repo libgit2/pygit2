@@ -213,7 +213,7 @@ class RepositoryTest_II(utils.RepoTestCase):
         head = self.repo.head
         head = self.repo[head.target]
         self.assertTrue('new' not in head.tree)
-        self.repo.checkout(ref_i18n, pygit2.GIT_CHECKOUT_FORCE)
+        self.repo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
 
         head = self.repo.head
         head = self.repo[head.target]
@@ -243,7 +243,7 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.assertTrue('bye.txt' in self.repo.status())
 
         # checkout from head will reset index as well
-        self.repo.checkout('HEAD', pygit2.GIT_CHECKOUT_FORCE)
+        self.repo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
         self.assertTrue('bye.txt' not in self.repo.status())
 
     def test_merge_base(self):

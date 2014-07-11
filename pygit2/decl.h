@@ -3,6 +3,7 @@ typedef ... git_remote;
 typedef ... git_refspec;
 typedef ... git_push;
 typedef ... git_cred;
+typedef ... git_object;
 typedef ... git_tree;
 typedef ... git_signature;
 typedef ... git_index;
@@ -308,6 +309,11 @@ typedef enum {
 	GIT_CLONE_NO_LOCAL,
 	GIT_CLONE_LOCAL_NO_LINKS,
 } git_clone_local_t;
+
+int git_checkout_init_options(git_checkout_options *opts, unsigned int version);
+int git_checkout_tree(git_repository *repo, const git_object *treeish, const git_checkout_options *opts);
+int git_checkout_head(git_repository *repo, const git_checkout_options *opts);
+int git_checkout_index(git_repository *repo, git_index *index, const git_checkout_options *opts);
 
 /*
  * git_clone

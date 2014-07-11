@@ -176,11 +176,52 @@ class Repository(_Repository):
 
         return self.create_reference_symbolic(name, target, force)
 
-
     #
     # Checkout
     #
-    def checkout(self, refname=None, strategy=GIT_CHECKOUT_SAFE_CREATE):
+    @staticmethod
+    def _checkout_args_to_options(**kwargs):
+        # Create the options struct to pass
+        copts = ffi.new('git_checkout_options *')
+        check_error(C.git_checkout_init_options(copts, 1))
+
+        # pygit2's default is SAFE_CREATE
+        copts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE
+        # and go through the arguments to see what the user wanted
+        for k, v in kwargs.iteritems():
+            if k == 'strategy':
+                copts.checkout_strategy = v
+
+        return copts
+
+    def checkout_head(self, **kwargs):
+        """Checkout HEAD
+
+        For arguments, see Repository.checkout().
+        """
+        copts = Repository._checkout_args_to_options(**kwargs)
+        check_error(C.git_checkout_head(self._repo, copts))
+
+    def checkout_index(self, **kwargs):
+        """Checkout the repository's index
+
+        For arguments, see Repository.checkout().
+        """
+        copts = Repository._checkout_args_to_options(**kwargs)
+        check_error(C.git_checkout_index(self._repo, ffi.NULL, copts))
+
+    def checkout_tree(self, treeish, **kwargs):
+        """Checkout the given treeish
+
+        For arguments, see Repository.checkout().
+        """
+        copts = Repository._checkout_args_to_options(**kwargs)
+        cptr = ffi.new('git_object **')
+        ffi.buffer(cptr)[:] = treeish._pointer[:]
+
+        check_error(C.git_checkout_tree(self._repo, cptr[0], copts))
+
+    def checkout(self, refname=None, **kwargs):
         """
         Checkout the given reference using the given strategy, and update
         the HEAD.
@@ -193,14 +234,24 @@ class Repository(_Repository):
 
         If no reference is given, checkout from the index.
 
+        Arguments:
+
+        :param str refname: The reference to checkout. After checkout,
+          the current branch will be switched to this one.
+
+        :param int strategy: A ``GIT_CHECKOUT_`` value. The default is
+          ``GIT_CHECKOUT_SAFE_CREATE``.
+
         """
+
+
         # Case 1: Checkout index
         if refname is None:
-            return self.checkout_index(strategy)
+            return self.checkout_index(**kwargs)
 
         # Case 2: Checkout head
         if refname == 'HEAD':
-            return self.checkout_head(strategy)
+            return self.checkout_head(**kwargs)
 
         # Case 3: Reference
         if type(refname) is Reference:
@@ -211,7 +262,7 @@ class Repository(_Repository):
 
         oid = reference.resolve().target
         treeish = self[oid]
-        self.checkout_tree(treeish, strategy)
+        self.checkout_tree(treeish, **kwargs)
         self.head = refname
 
 

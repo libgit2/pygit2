@@ -1288,79 +1288,6 @@ Repository__pointer__get__(Repository *self)
     return PyBytes_FromStringAndSize((char *) &self->repo, sizeof(git_repository *));
 }
 
-PyDoc_STRVAR(Repository_checkout_head__doc__,
-    "checkout_head(strategy)\n"
-    "\n"
-    "Checkout the head using the given strategy.");
-
-PyObject *
-Repository_checkout_head(Repository *self, PyObject *args)
-{
-    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
-    unsigned int strategy;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "I", &strategy))
-        return NULL;
-
-    opts.checkout_strategy = strategy;
-    err = git_checkout_head(self->repo, &opts);
-    if (err < 0)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
-
-PyDoc_STRVAR(Repository_checkout_index__doc__,
-    "checkout_index(strategy)\n"
-    "\n"
-    "Checkout the index using the given strategy.");
-
-PyObject *
-Repository_checkout_index(Repository *self, PyObject *args)
-{
-    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
-    unsigned int strategy;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "I", &strategy))
-        return NULL;
-
-    opts.checkout_strategy = strategy;
-    err = git_checkout_index(self->repo, NULL, &opts);
-    if (err < 0)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
-
-PyDoc_STRVAR(Repository_checkout_tree__doc__,
-    "checkout_tree(treeish, strategy)\n"
-    "\n"
-    "Checkout the given tree, commit or tag, using the given strategy.");
-
-PyObject *
-Repository_checkout_tree(Repository *self, PyObject *args)
-{
-    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
-    unsigned int strategy;
-    Object *py_object;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "O!I", &ObjectType, &py_object, &strategy))
-        return NULL;
-
-    opts.checkout_strategy = strategy;
-    err = git_checkout_tree(self->repo, py_object->obj, &opts);
-    if (err < 0)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
-
 PyDoc_STRVAR(Repository_notes__doc__, "");
 
 PyObject *
@@ -1570,9 +1497,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
-    METHOD(Repository, checkout_head, METH_VARARGS),
-    METHOD(Repository, checkout_index, METH_VARARGS),
-    METHOD(Repository, checkout_tree, METH_VARARGS),
     METHOD(Repository, notes, METH_VARARGS),
     METHOD(Repository, create_note, METH_VARARGS),
     METHOD(Repository, lookup_note, METH_VARARGS),
