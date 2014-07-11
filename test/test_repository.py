@@ -246,6 +246,14 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
         self.assertTrue('bye.txt' not in self.repo.status())
 
+    def test_checkout_alternative_dir(self):
+        ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
+        extra_dir = os.path.join(self.repo.workdir, 'extra-dir')
+        os.mkdir(extra_dir)
+        self.assertTrue(len(os.listdir(extra_dir)) == 0)
+        self.repo.checkout(ref_i18n, directory=extra_dir)
+        self.assertFalse(len(os.listdir(extra_dir)) == 0)
+
     def test_merge_base(self):
         commit = self.repo.merge_base(
             '5ebeeebb320790caf276b9fc8b24546d63316533',

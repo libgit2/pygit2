@@ -185,21 +185,30 @@ class Repository(_Repository):
         copts = ffi.new('git_checkout_options *')
         check_error(C.git_checkout_init_options(copts, 1))
 
+        # References we need to keep to strings and so forth
+        refs = []
+
         # pygit2's default is SAFE_CREATE
         copts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE
         # and go through the arguments to see what the user wanted
-        for k, v in kwargs.iteritems():
-            if k == 'strategy':
-                copts.checkout_strategy = v
+        strategy = kwargs.get('strategy')
+        if strategy:
+            copts.checkout_strategy = strategy
 
-        return copts
+        directory = kwargs.get('directory')
+        if directory:
+            target_dir = ffi.new('char[]', to_str(directory))
+            refs.append(target_dir)
+            copts.target_directory = target_dir
+
+        return copts, refs
 
     def checkout_head(self, **kwargs):
         """Checkout HEAD
 
         For arguments, see Repository.checkout().
         """
-        copts = Repository._checkout_args_to_options(**kwargs)
+        copts, refs = Repository._checkout_args_to_options(**kwargs)
         check_error(C.git_checkout_head(self._repo, copts))
 
     def checkout_index(self, **kwargs):
@@ -207,7 +216,7 @@ class Repository(_Repository):
 
         For arguments, see Repository.checkout().
         """
-        copts = Repository._checkout_args_to_options(**kwargs)
+        copts, refs = Repository._checkout_args_to_options(**kwargs)
         check_error(C.git_checkout_index(self._repo, ffi.NULL, copts))
 
     def checkout_tree(self, treeish, **kwargs):
@@ -215,7 +224,7 @@ class Repository(_Repository):
 
         For arguments, see Repository.checkout().
         """
-        copts = Repository._checkout_args_to_options(**kwargs)
+        copts, refs = Repository._checkout_args_to_options(**kwargs)
         cptr = ffi.new('git_object **')
         ffi.buffer(cptr)[:] = treeish._pointer[:]
 
@@ -241,6 +250,8 @@ class Repository(_Repository):
 
         :param int strategy: A ``GIT_CHECKOUT_`` value. The default is
           ``GIT_CHECKOUT_SAFE_CREATE``.
+
+        :param str directory: Alternative checkout path to workdir.
 
         """
 
