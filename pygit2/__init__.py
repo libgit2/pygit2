@@ -42,6 +42,7 @@ from .index import Index, IndexEntry
 from .errors import check_error
 from .ffi import ffi, C, to_str
 
+
 def init_repository(path, bare=False,
                     flags=C.GIT_REPOSITORY_INIT_MKPATH,
                     mode=0,
@@ -98,7 +99,9 @@ def init_repository(path, bare=False,
     return Repository(path)
 
 
-@ffi.callback('int (*credentials)(git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types,	void *data)')
+@ffi.callback('int (*credentials)(git_cred **cred, const char *url,'
+              'const char *username_from_url, unsigned int allowed_types,'
+              'void *data)')
 def _credentials_cb(cred_out, url, username_from_url, allowed, data):
     d = ffi.from_handle(data)
 
@@ -110,6 +113,7 @@ def _credentials_cb(cred_out, url, username_from_url, allowed, data):
         return C.GIT_EUSER
 
     return 0
+
 
 def clone_repository(
         url, path, bare=False, ignore_cert_errors=False,
@@ -174,6 +178,7 @@ def clone_repository(
 
     return Repository(path)
 
+
 def clone_into(repo, remote, branch=None):
     """Clone into an empty repository from the specified remote
 
@@ -186,11 +191,12 @@ def clone_into(repo, remote, branch=None):
 
     This allows you specify arbitrary repository and remote configurations
     before performing the clone step itself. E.g. you can replicate git-clone's
-    '--mirror' option by setting a refspec of '+refs/*:refs/*', 'core.mirror' to true
-    and calling this function.
+    '--mirror' option by setting a refspec of '+refs/*:refs/*', 'core.mirror'
+    to true and calling this function.
     """
 
-    err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL, to_str(branch), ffi.NULL)
+    err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL,
+                           to_str(branch), ffi.NULL)
 
     if remote._stored_exception:
         raise remote._stored_exception

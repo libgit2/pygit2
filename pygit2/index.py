@@ -31,7 +31,8 @@ from __future__ import absolute_import, unicode_literals
 from _pygit2 import Oid, Tree, Diff
 
 from .ffi import ffi, C, to_str, is_string, strings_to_strarray
-from .errors import check_error, GitError
+from .errors import check_error
+
 
 class Index(object):
 
@@ -50,7 +51,7 @@ class Index(object):
 
     @classmethod
     def from_c(cls, repo, ptr):
-        index = cls.__new__(cls);
+        index = cls.__new__(cls)
         index._repo = repo
         index._index = ptr[0]
         index._cindex = ptr
@@ -88,7 +89,7 @@ class Index(object):
             raise KeyError(key)
 
         return IndexEntry._from_c(centry)
-    
+
     def __iter__(self):
         return IndexIterator(self)
 
@@ -96,10 +97,11 @@ class Index(object):
         """Update the contents the Index
 
         Update the contents by reading from a file
-        
+
         Arguments:
 
-        force: if True (the default) allways reload. If False, only if the file has changed
+        force: if True (the default) allways reload. If False, only if
+        the file has changed
         """
 
         err = C.git_index_read(self._index, force)
@@ -160,7 +162,6 @@ class Index(object):
         check_error(err)
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
-        
     def remove(self, path):
         """Remove an entry from the Index.
         """
@@ -170,12 +171,13 @@ class Index(object):
     def add_all(self, pathspecs=[]):
         """Add or update index entries matching files in the working directory.
 
-        If pathspecs are specified, only files matching those pathspecs will be added.
+        If pathspecs are specified, only files matching those pathspecs will
+        be added.
         """
         arr, refs = strings_to_strarray(pathspecs)
         err = C.git_index_add_all(self._index, arr, 0, ffi.NULL, ffi.NULL)
         check_error(err, True)
-        
+
     def add(self, path_or_entry):
         """add([path|entry])
 
@@ -185,8 +187,8 @@ class Index(object):
         relative to the root of the worktree and the Index must be associated
         with a repository.
 
-        If an IndexEntry is given, that entry will be added or update in the Index
-        without checking for the existence of the path or id.
+        If an IndexEntry is given, that entry will be added or update in the
+        Index without checking for the existence of the path or id.
         """
 
         if is_string(path_or_entry):
@@ -237,7 +239,8 @@ class Index(object):
         copts.interhunk_lines = interhunk_lines
 
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_index_to_workdir(cdiff, self._repo._repo, self._index, copts)
+        err = C.git_diff_index_to_workdir(cdiff, self._repo._repo,
+                                          self._index, copts)
         check_error(err)
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
@@ -247,8 +250,8 @@ class Index(object):
 
         Diff the index against a tree
 
-        Return a :py:class:`~pygit2.Diff` object with the differences between the
-        index and the given tree.
+        Return a :py:class:`~pygit2.Diff` object with the differences between
+        the index and the given tree.
 
         Arguments:
 
@@ -281,7 +284,8 @@ class Index(object):
         ffi.buffer(ctree)[:] = tree._pointer[:]
 
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_tree_to_index(cdiff, self._repo._repo, ctree[0], self._index, copts)
+        err = C.git_diff_tree_to_index(cdiff, self._repo._repo, ctree[0],
+                                       self._index, copts)
         check_error(err)
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
@@ -306,6 +310,7 @@ class Index(object):
             self._conflicts = ConflictCollection(self)
 
         return self._conflicts
+
 
 class IndexEntry(object):
     __slots__ = ['id', 'path', 'mode', '_index']
@@ -350,6 +355,7 @@ class IndexEntry(object):
 
         return entry
 
+
 class IndexIterator(object):
 
     def __init__(self, index):
@@ -369,6 +375,7 @@ class IndexIterator(object):
 
         return entry
 
+
 class ConflictCollection(object):
 
     def __init__(self, index):
@@ -379,7 +386,8 @@ class ConflictCollection(object):
         cours = ffi.new('git_index_entry **')
         ctheirs = ffi.new('git_index_entry **')
 
-        err = C.git_index_conflict_get(cancestor, cours, ctheirs, self._index._index, to_str(path))
+        err = C.git_index_conflict_get(cancestor, cours, ctheirs,
+                                       self._index._index, to_str(path))
         check_error(err)
 
         ancestor = IndexEntry._from_c(cancestor[0])
@@ -394,6 +402,7 @@ class ConflictCollection(object):
 
     def __iter__(self):
         return ConflictIterator(self._index)
+
 
 class ConflictIterator(object):
 

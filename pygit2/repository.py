@@ -30,7 +30,6 @@ from string import hexdigits
 
 # Import from pygit2
 from _pygit2 import Repository as _Repository
-from _pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
@@ -40,6 +39,7 @@ from .errors import check_error
 from .remote import Remote
 from .config import Config
 from .index import Index
+
 
 class Repository(_Repository):
 
@@ -59,20 +59,17 @@ class Repository(_Repository):
         value = self.git_object_lookup_prefix(key)
         return value if (value is not None) else default
 
-
     def __getitem__(self, key):
         value = self.git_object_lookup_prefix(key)
         if value is None:
             raise KeyError(key)
         return value
 
-
     def __contains__(self, key):
         return self.git_object_lookup_prefix(key) is not None
 
     def __repr__(self):
         return "pygit2.Repository(%r)" % self.path
-
 
     #
     # Remotes
@@ -85,7 +82,8 @@ class Repository(_Repository):
 
         cremote = ffi.new('git_remote **')
 
-        err = C.git_remote_create(cremote, self._repo, to_str(name), to_str(url))
+        err = C.git_remote_create(cremote, self._repo, to_str(name),
+                                  to_str(url))
         check_error(err)
 
         return Remote(self, cremote[0])
@@ -110,7 +108,6 @@ class Repository(_Repository):
             return l
         finally:
             C.git_strarray_free(names)
-
 
     #
     # Configuration
@@ -255,7 +252,6 @@ class Repository(_Repository):
 
         """
 
-
         # Case 1: Checkout index
         if refname is None:
             return self.checkout_index(**kwargs)
@@ -275,7 +271,6 @@ class Repository(_Repository):
         treeish = self[oid]
         self.checkout_tree(treeish, **kwargs)
         self.head = refname
-
 
     #
     # Diff

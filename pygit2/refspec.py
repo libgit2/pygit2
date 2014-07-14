@@ -31,6 +31,7 @@ from __future__ import absolute_import
 from .ffi import ffi, C, to_str
 from .errors import check_error
 
+
 class Refspec(object):
     def __init__(self, owner, ptr):
         self._owner = owner
@@ -70,7 +71,8 @@ class Refspec(object):
     def dst_matches(self, ref):
         """dst_matches(str) -> Bool
 
-        Returns whether the given string matches the destination of this refspec"""
+        Returns whether the given string matches the destination of this
+        refspec"""
         return bool(C.git_refspec_dst_matches(self._refspec, to_str(ref)))
 
     def _transform(self, ref, fn):
@@ -86,11 +88,13 @@ class Refspec(object):
     def transform(self, ref):
         """transform(str) -> str
 
-        Transform a reference name according to this refspec from the lhs to the rhs."""
+        Transform a reference name according to this refspec from the lhs to
+        the rhs."""
         return self._transform(ref, C.git_refspec_transform)
 
     def rtransform(self, ref):
         """transform(str) -> str
 
-        Transform a reference name according to this refspec from the lhs to the rhs"""
+        Transform a reference name according to this refspec from the lhs
+        to the rhs"""
         return self._transform(ref, C.git_refspec_rtransform)

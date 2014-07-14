@@ -28,15 +28,14 @@
 # Import from the future
 from __future__ import absolute_import, unicode_literals
 
-from _pygit2 import Oid
-
 from .ffi import ffi, C, to_str, is_string
-from .errors import check_error, GitError
-from .refspec import Refspec
+from .errors import check_error
+
 
 def assert_string(v, desc):
     if not is_string(v):
         raise TypeError("%s must be a string" % desc)
+
 
 class ConfigIterator(object):
 
@@ -67,11 +66,13 @@ class ConfigIterator(object):
 
         return name, value
 
+
 class ConfigMultivarIterator(ConfigIterator):
     def __next__(self):
         entry = self._next_entry()
 
         return ffi.string(entry.value).decode('utf-8')
+
 
 class Config(object):
     """Git configuration management"""
@@ -140,7 +141,8 @@ class Config(object):
         elif isinstance(value, int):
             err = C.git_config_set_int64(self._config, to_str(key), value)
         else:
-            err = C.git_config_set_string(self._config, to_str(key), to_str(value))
+            err = C.git_config_set_string(self._config, to_str(key),
+                                          to_str(value))
 
         check_error(err)
 
@@ -161,13 +163,14 @@ class Config(object):
         """get_multivar(name[, regex]) -> [str, ...]
 
         Get each value of a multivar ''name'' as a list. The optional ''regex''
-        parameter is expected to be a regular expression to filter the variables
-        we're interested in."""
+        parameter is expected to be a regular expression to filter the
+        variables we're interested in."""
 
         assert_string(name, "name")
 
         citer = ffi.new('git_config_iterator **')
-        err = C.git_config_multivar_iterator_new(citer, self._config, to_str(name), to_str(regex))
+        err = C.git_config_multivar_iterator_new(citer, self._config,
+                                                 to_str(name), to_str(regex))
         check_error(err)
 
         return ConfigMultivarIterator(self, citer[0])
@@ -175,20 +178,22 @@ class Config(object):
     def set_multivar(self, name, regex, value):
         """set_multivar(name, regex, value)
 
-        Set a multivar ''name'' to ''value''. ''regexp'' is a regular expression
-        to indicate which values to replace"""
+        Set a multivar ''name'' to ''value''. ''regexp'' is a regular
+        expression to indicate which values to replace"""
 
         assert_string(name, "name")
         assert_string(regex, "regex")
         assert_string(value, "value")
 
-        err = C.git_config_set_multivar(self._config, to_str(name), to_str(regex), to_str(value))
+        err = C.git_config_set_multivar(self._config, to_str(name),
+                                        to_str(regex), to_str(value))
         check_error(err)
 
     def get_bool(self, key):
         """get_bool(key) -> Bool
 
-        Look up *key* and parse its value as a boolean as per the git-config rules
+        Look up *key* and parse its value as a boolean as per the git-config
+        rules
 
         Truthy values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',
         0, 'off' and 'no'"""
@@ -203,10 +208,11 @@ class Config(object):
     def get_int(self, key):
         """get_int(key) -> int
 
-        Look up *key* and parse its value as an integer as per the git-config rules.
+        Look up *key* and parse its value as an integer as per the git-config
+        rules.
 
-        A value can have a suffix 'k', 'm' or 'g' which stand for 'kilo', 'mega' and
-        'giga' respectively"""
+        A value can have a suffix 'k', 'm' or 'g' which stand for 'kilo',
+        'mega' and 'giga' respectively"""
 
         val = self._get_string(key)
         res = ffi.new('int64_t *')
@@ -220,7 +226,8 @@ class Config(object):
 
         Add a config file instance to an existing config."""
 
-        err = C.git_config_add_file_ondisk(self._config, to_str(path), level, force)
+        err = C.git_config_add_file_ondisk(self._config, to_str(path), level,
+                                           force)
         check_error(err)
 
     def snapshot(self):
@@ -231,7 +238,7 @@ class Config(object):
         """
 
         ccfg = ffi.new('git_config **')
-        err = C.git_config_snapshot(cfg, self._config)
+        err = C.git_config_snapshot(ccfg, self._config)
         check_error(err)
 
         return Config.from_c(self._repo, ccfg[0])
@@ -243,7 +250,7 @@ class Config(object):
     @staticmethod
     def parse_bool(text):
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, to_str(text))
+        C.git_config_parse_bool(res, to_str(text))
 
         return res[0] != 0
 
