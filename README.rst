@@ -23,9 +23,9 @@ Pygit2 links:
 Quick install guide
 ===================
 
-1. Checkout the libgit2 stable branch::
+1. Checkout the libgit2 release which corresponds to the pygit2 version::
 
-   $ git clone git://github.com/libgit2/libgit2.git -b master
+   $ git clone git://github.com/libgit2/libgit2.git -b 0.21.0
 
 2. Build and install libgit2
    https://github.com/libgit2/libgit2/#building-libgit2---using-cmake
