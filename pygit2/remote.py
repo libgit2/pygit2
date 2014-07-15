@@ -34,6 +34,7 @@ from .ffi import ffi, C, to_str, strarray_to_strings, strings_to_strarray
 from .errors import check_error, GitError
 from .refspec import Refspec
 
+
 def maybe_string(ptr):
     if not ptr:
         return None
@@ -66,6 +67,7 @@ class TransferProgress(object):
 
         self.received_bytes = tp.received_bytes
         """"Number of bytes received up to now"""
+
 
 class Remote(object):
 
@@ -169,7 +171,7 @@ class Remote(object):
 
     @url.setter
     def url(self, value):
-        err = C.git_remote_set_url(self._remote, to_str(value))
+        C.git_remote_set_url(self._remote, to_str(value))
 
     @property
     def push_url(self):
@@ -261,14 +263,14 @@ class Remote(object):
 
         Add a fetch refspec to the remote"""
 
-        err = C.git_remote_add_fetch(self._remote, to_str(spec))
+        C.git_remote_add_fetch(self._remote, to_str(spec))
 
     def add_push(self, spec):
         """add_push(refspec)
 
         Add a push refspec to the remote"""
 
-        err = C.git_remote_add_push(self._remote, to_str(spec))
+        C.git_remote_add_push(self._remote, to_str(spec))
 
     @ffi.callback("int (*cb)(const char *ref, const char *msg, void *data)")
     def _push_cb(ref, msg, data):
@@ -303,7 +305,8 @@ class Remote(object):
             if not C.git_push_unpack_ok(push):
                 raise GitError("remote failed to unpack objects")
 
-            err = C.git_push_status_foreach(push, self._push_cb, ffi.new_handle(self))
+            err = C.git_push_status_foreach(push, self._push_cb,
+                                            ffi.new_handle(self))
             check_error(err)
 
             if hasattr(self, '_bad_message'):
@@ -327,7 +330,8 @@ class Remote(object):
     def _transfer_progress_cb(stats_ptr, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'transfer_progress') or not self.transfer_progress:
+        if not hasattr(self, 'transfer_progress') \
+           or not self.transfer_progress:
             return 0
 
         try:
@@ -354,7 +358,8 @@ class Remote(object):
 
         return 0
 
-    @ffi.callback('int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data)')
+    @ffi.callback('int (*update_tips)(const char *refname, const git_oid *a,'
+                  'const git_oid *b, void *data)')
     def _update_tips_cb(refname, a, b, data):
         self = ffi.from_handle(data)
 
@@ -373,7 +378,9 @@ class Remote(object):
 
         return 0
 
-    @ffi.callback('int (*credentials)(git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types,	void *data)')
+    @ffi.callback('int (*credentials)(git_cred **cred, const char *url,'
+                  'const char *username_from_url, unsigned int allowed_types,'
+                  'void *data)')
     def _credentials_cb(cred_out, url, username, allowed, data):
         self = ffi.from_handle(data)
 
@@ -390,6 +397,7 @@ class Remote(object):
 
         return 0
 
+
 def get_credentials(fn, url, username, allowed):
     """Call fn and return the credentials object"""
 
@@ -398,7 +406,8 @@ def get_credentials(fn, url, username, allowed):
 
     creds = fn(url_str, username_str, allowed)
 
-    if not hasattr(creds, 'credential_type') or not hasattr(creds, 'credential_tuple'):
+    if not hasattr(creds, 'credential_type') \
+       or not hasattr(creds, 'credential_tuple'):
         raise TypeError("credential does not implement interface")
 
     cred_type = creds.credential_type
@@ -409,12 +418,13 @@ def get_credentials(fn, url, username, allowed):
     ccred = ffi.new('git_cred **')
     if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
         name, passwd = creds.credential_tuple
-        err = C.git_cred_userpass_plaintext_new(ccred, to_str(name), to_str(passwd))
+        err = C.git_cred_userpass_plaintext_new(ccred, to_str(name),
+                                                to_str(passwd))
 
     elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
         name, pubkey, privkey, passphrase = creds.credential_tuple
-        err = C.git_cred_ssh_key_new(ccred, to_str(name),to_str(pubkey),
-                                    to_str(privkey), to_str(passphrase))
+        err = C.git_cred_ssh_key_new(ccred, to_str(name), to_str(pubkey),
+                                     to_str(privkey), to_str(passphrase))
 
     else:
         raise TypeError("unsupported credential type")

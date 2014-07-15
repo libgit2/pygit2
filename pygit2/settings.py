@@ -29,6 +29,7 @@ from _pygit2 import option
 from _pygit2 import GIT_OPT_GET_SEARCH_PATH, GIT_OPT_SET_SEARCH_PATH
 from _pygit2 import GIT_OPT_GET_MWINDOW_SIZE, GIT_OPT_SET_MWINDOW_SIZE
 
+
 class SearchPathList(object):
 
     def __getitem__(self, key):
@@ -36,6 +37,7 @@ class SearchPathList(object):
 
     def __setitem__(self, key, value):
         option(GIT_OPT_SET_SEARCH_PATH, key, value)
+
 
 class Settings(object):
     """Library-wide settings"""

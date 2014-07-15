@@ -25,10 +25,11 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from .ffi import ffi, C
+from .ffi import C
 
 GIT_CREDTYPE_USERPASS_PLAINTEXT = C.GIT_CREDTYPE_USERPASS_PLAINTEXT
 GIT_CREDTYPE_SSH_KEY = C.GIT_CREDTYPE_SSH_KEY
+
 
 class UserPass(object):
     """Username/Password credentials
@@ -52,6 +53,7 @@ class UserPass(object):
 
     def __call__(self, _url, _username, _allowed):
         return self
+
 
 class Keypair(object):
     """SSH key pair credentials

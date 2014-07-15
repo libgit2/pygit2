@@ -65,12 +65,14 @@ else:
 
 ffi = FFI()
 
+
 def strarray_to_strings(arr):
     l = [None] * arr.count
     for i in range(arr.count):
         l[i] = ffi.string(arr.strings[i]).decode()
 
     return l
+
 
 def strings_to_strarray(l):
     """Convert a list of strings to a git_strarray

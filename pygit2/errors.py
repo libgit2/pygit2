@@ -25,13 +25,11 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the Standard Library
-from string import hexdigits
-
 # ffi
 from .ffi import ffi, C
 
 from _pygit2 import GitError
+
 
 def check_error(err, io=False):
     if err >= 0:
@@ -42,7 +40,8 @@ def check_error(err, io=False):
     if giterr != ffi.NULL:
         message = ffi.string(giterr.message).decode()
 
-    if err in [C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS, C.GIT_EAMBIGUOUS]:
+    if err in [C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS,
+               C.GIT_EAMBIGUOUS]:
         raise ValueError(message)
     elif err == C.GIT_ENOTFOUND:
         if io:
@@ -55,4 +54,3 @@ def check_error(err, io=False):
         raise StopIteration()
 
     raise GitError(message)
-
