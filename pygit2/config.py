@@ -250,7 +250,8 @@ class Config(object):
     @staticmethod
     def parse_bool(text):
         res = ffi.new('int *')
-        C.git_config_parse_bool(res, to_str(text))
+        err = C.git_config_parse_bool(res, to_str(text))
+        check_error(err)
 
         return res[0] != 0
 

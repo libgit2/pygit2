@@ -171,7 +171,8 @@ class Remote(object):
 
     @url.setter
     def url(self, value):
-        C.git_remote_set_url(self._remote, to_str(value))
+        err = C.git_remote_set_url(self._remote, to_str(value))
+        check_error(err)
 
     @property
     def push_url(self):
@@ -263,14 +264,16 @@ class Remote(object):
 
         Add a fetch refspec to the remote"""
 
-        C.git_remote_add_fetch(self._remote, to_str(spec))
+        err = C.git_remote_add_fetch(self._remote, to_str(spec))
+        check_error(err)
 
     def add_push(self, spec):
         """add_push(refspec)
 
         Add a push refspec to the remote"""
 
-        C.git_remote_add_push(self._remote, to_str(spec))
+        err = C.git_remote_add_push(self._remote, to_str(spec))
+        check_error(err)
 
     @ffi.callback("int (*cb)(const char *ref, const char *msg, void *data)")
     def _push_cb(ref, msg, data):
