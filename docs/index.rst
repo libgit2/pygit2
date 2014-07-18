@@ -6,9 +6,6 @@
 Welcome to pygit2's documentation!
 ==================================
 
-.. image:: https://secure.travis-ci.org/libgit2/pygit2.png
-   :target: http://travis-ci.org/libgit2/pygit2
-
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
 implements the core of Git.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4 and
 pypy.
@@ -28,6 +25,7 @@ Start:
    :maxdepth: 1
 
    install
+   development
    recipes
 
 Usage guide:
