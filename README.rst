@@ -78,6 +78,42 @@ Authors
 Changelog
 ==============
 
+
+0.21.1 (2014-0X-XX)
+-------------------
+
+- Install fix
+  `#382 <https://github.com/libgit2/pygit2/pull/382>`_
+
+- Documentation improved, including
+  `#383 <https://github.com/libgit2/pygit2/pull/383>`_
+  `#385 <https://github.com/libgit2/pygit2/pull/385>`_
+  `#388 <https://github.com/libgit2/pygit2/pull/388>`_
+
+- Documentation, use the read-the-docs theme
+  `#387 <https://github.com/libgit2/pygit2/pull/387>`_
+
+- Coding style improvements
+  `#392 <https://github.com/libgit2/pygit2/pull/392>`_
+
+- New ``Repository.state_cleanup()``
+  `#386 <https://github.com/libgit2/pygit2/pull/386>`_
+
+- New ``Index.has_conflicts`` and ``Index.conflicts`` #345
+  `#345 <https://github.com/libgit2/pygit2/issues/345>`_
+  `#389 <https://github.com/libgit2/pygit2/pull/389>`_
+
+- New checkout option to define the target directory
+  `#390 <https://github.com/libgit2/pygit2/pull/390>`_
+
+- Now the checkout strategy must be a keyword argument.
+
+  Change ``Repository.checkout(refname, strategy)`` to
+  ``Repository.checkout(refname, strategy=strategy)``
+
+  Idem for checkout_head checkout_index and checkout_tree
+
+
 0.21.0 (2014-06-27)
 -------------------
 
