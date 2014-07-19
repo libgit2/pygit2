@@ -177,7 +177,7 @@ class Repository(_Repository):
     # Checkout
     #
     @staticmethod
-    def _checkout_args_to_options(**kwargs):
+    def _checkout_args_to_options(strategy=None, directory=None):
         # Create the options struct to pass
         copts = ffi.new('git_checkout_options *')
         check_error(C.git_checkout_init_options(copts, 1))
@@ -188,11 +188,9 @@ class Repository(_Repository):
         # pygit2's default is SAFE_CREATE
         copts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE
         # and go through the arguments to see what the user wanted
-        strategy = kwargs.get('strategy')
         if strategy:
             copts.checkout_strategy = strategy
 
-        directory = kwargs.get('directory')
         if directory:
             target_dir = ffi.new('char[]', to_str(directory))
             refs.append(target_dir)
