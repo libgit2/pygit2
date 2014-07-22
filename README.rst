@@ -336,30 +336,31 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-66 developers have contributed at least 1 commit to pygit2::
+68 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez            Rémi Duraffort             Adam Spiers
-  Nico von Geyso             Sebastian Thiel            Alexander Bayandin
-  Carlos Martín Nieto        Fraser Tweedale            Andrew Chin
-  W. Trevor King             Han-Wen Nienhuys           András Veres-Szentkirályi
-  Dave Borowitz              Leonardo Rhodes            Benjamin Kircher
-  Daniel Rodríguez Troitiño  Petr Viktorin              Benjamin Pollack
-  Richo Healey               Thomas Kluyver             Bryan O'Sullivan
-  Christian Boos             Alex Chamberlain           Daniel Bruce
-  Julien Miotte              Amit Bakshi                David Fischer
-  Xu Tao                     Andrey Devyatkin           David Sanders
-  Jose Plana                 Ben Davis                  Devaev Maxim
-  Martin Lenders             Eric Schrijver             Eric Davis
-  Petr Hosek                 Hervé Cauwelier            Erik Meusel
-  Victor Garcia              Huang Huang                Erik van Zijst
-  Xavier Delannoy            Ian P. McCullough          Ferengee
-  Yonggang Luo               Jack O'Connor              Gustavo Di Pietro
-  Valentin Haenel            Jared Flatow               Hugh Cole-Baker
+  J. David Ibáñez            Rémi Duraffort             Alexander Bayandin
+  Nico von Geyso             Sebastian Thiel            Andrew Chin
+  Carlos Martín Nieto        Fraser Tweedale            András Veres-Szentkirályi
+  W. Trevor King             Han-Wen Nienhuys           Benjamin Kircher
+  Dave Borowitz              Leonardo Rhodes            Benjamin Pollack
+  Daniel Rodríguez Troitiño  Petr Viktorin              Bryan O'Sullivan
+  Richo Healey               Thomas Kluyver             Daniel Bruce
+  Christian Boos             Alex Chamberlain           David Fischer
+  Julien Miotte              Amit Bakshi                David Sanders
+  Xu Tao                     Andrey Devyatkin           Devaev Maxim
+  Jose Plana                 Ben Davis                  Eric Davis
+  Martin Lenders             Eric Schrijver             Erik Meusel
+  Petr Hosek                 Hervé Cauwelier            Erik van Zijst
+  Victor Garcia              Huang Huang                Ferengee
+  Xavier Delannoy            Ian P. McCullough          Gustavo Di Pietro
+  Yonggang Luo               Jack O'Connor              Hugh Cole-Baker
+  Valentin Haenel            Jared Flatow               Jasper Lievisse Adriaanse
   Michael Jones              Jiunn Haur Lim             Josh Bleecher Snyder
   Bernardo Heynemann         Jun Omae                   Óscar San José
   John Szakmeister           Sarath Lakshman            Ridge Kennedy
   Brodie Rao                 Vicent Marti               Rui Abreu Ferreira
-  David Versmisse            Zoran Zaric                earl
+  Vlad Temian                Zoran Zaric                earl
+  David Versmisse            Adam Spiers
 
 
 License
