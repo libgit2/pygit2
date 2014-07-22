@@ -87,11 +87,16 @@ class Remote(object):
         be called and its return value used for authentication. Override
         it if you want to be able to perform authentication.
 
-        :param str url: The url of the remote
-        :param username_from_url: Username extracted from the url, if any
-        :type username_from_url: str or None
-        :param int allowed_types: credential types supported by the remote
-        :rtype: credential
+        Parameters:
+
+        - url (str) -- The url of the remote.
+
+        - username_from_url (str or None) -- Username extracted from the url,
+          if any.
+
+        - allowed_types (int) -- Credential types supported by the remote.
+
+        Return value: credential
         """
         pass
 
