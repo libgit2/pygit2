@@ -9,77 +9,23 @@ Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
 implements the core of Git.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4 and
 pypy.
 
-It is likely to work with Python 2.6 and 3.1, but these versions are not
-officially supported.
-
-
-Pygit2 links:
+Links:
 
 - http://github.com/libgit2/pygit2 -- Source code and issue tracker
 - http://www.pygit2.org/ -- Documentation
 - http://pypi.python.org/pypi/pygit2 -- Download
 
 
-Quick install guide
-===================
-
-1. Checkout the libgit2 release which corresponds to the pygit2 version::
-
-   $ git clone git://github.com/libgit2/libgit2.git -b 0.21.0
-
-2. Build and install libgit2
-   https://github.com/libgit2/libgit2/#building-libgit2---using-cmake
-
-3. Install pygit2 with *pip*::
-
-   $ pip install cffi
-   $ pip install pygit2
-
-For detailed instructions check the documentation,
-http://www.pygit2.org/install.html
-
-
-Contributing
-============
-
-Fork libgit2/pygit2 on GitHub, make it awesomer (preferably in a branch named
-for the topic), send a pull request.
-
-
-Authors
+How to install
 ==============
 
-66 developers have contributed at least 1 commit to pygit2::
-
-  J. David Ibáñez            Rémi Duraffort             Adam Spiers
-  Nico von Geyso             Sebastian Thiel            Alexander Bayandin
-  Carlos Martín Nieto        Fraser Tweedale            Andrew Chin
-  W. Trevor King             Han-Wen Nienhuys           András Veres-Szentkirályi
-  Dave Borowitz              Leonardo Rhodes            Benjamin Kircher
-  Daniel Rodríguez Troitiño  Petr Viktorin              Benjamin Pollack
-  Richo Healey               Thomas Kluyver             Bryan O'Sullivan
-  Christian Boos             Alex Chamberlain           Daniel Bruce
-  Julien Miotte              Amit Bakshi                David Fischer
-  Xu Tao                     Andrey Devyatkin           David Sanders
-  Jose Plana                 Ben Davis                  Devaev Maxim
-  Martin Lenders             Eric Schrijver             Eric Davis
-  Petr Hosek                 Hervé Cauwelier            Erik Meusel
-  Victor Garcia              Huang Huang                Erik van Zijst
-  Xavier Delannoy            Ian P. McCullough          Ferengee
-  Yonggang Luo               Jack O'Connor              Gustavo Di Pietro
-  Valentin Haenel            Jared Flatow               Hugh Cole-Baker
-  Michael Jones              Jiunn Haur Lim             Josh Bleecher Snyder
-  Bernardo Heynemann         Jun Omae                   Óscar San José
-  John Szakmeister           Sarath Lakshman            Ridge Kennedy
-  Brodie Rao                 Vicent Marti               Rui Abreu Ferreira
-  David Versmisse            Zoran Zaric                earl
+- Check http://www.pygit2.org/install.html
 
 
 Changelog
 ==============
 
-
-0.21.1 (2014-0X-XX)
+0.21.1 (2014-07-22)
 -------------------
 
 - Install fix
@@ -99,19 +45,22 @@ Changelog
 - New ``Repository.state_cleanup()``
   `#386 <https://github.com/libgit2/pygit2/pull/386>`_
 
-- New ```Index.conflicts``
+- New ``Index.conflicts``
   `#345 <https://github.com/libgit2/pygit2/issues/345>`_
   `#389 <https://github.com/libgit2/pygit2/pull/389>`_
 
 - New checkout option to define the target directory
   `#390 <https://github.com/libgit2/pygit2/pull/390>`_
 
+
+Backward incompatible changes:
+
 - Now the checkout strategy must be a keyword argument.
 
   Change ``Repository.checkout(refname, strategy)`` to
   ``Repository.checkout(refname, strategy=strategy)``
 
-  Idem for checkout_head checkout_index and checkout_tree
+  Idem for ``checkout_head``, ``checkout_index`` and ``checkout_tree``
 
 
 0.21.0 (2014-06-27)
@@ -382,6 +331,35 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 - Now ``Repository.listall_references()`` and
   ``Repository.listall_branches()`` return a list, not a tuple:
   `#289 <https://github.com/libgit2/pygit2/pull/289>`_
+
+
+Authors
+==============
+
+66 developers have contributed at least 1 commit to pygit2::
+
+  J. David Ibáñez            Rémi Duraffort             Adam Spiers
+  Nico von Geyso             Sebastian Thiel            Alexander Bayandin
+  Carlos Martín Nieto        Fraser Tweedale            Andrew Chin
+  W. Trevor King             Han-Wen Nienhuys           András Veres-Szentkirályi
+  Dave Borowitz              Leonardo Rhodes            Benjamin Kircher
+  Daniel Rodríguez Troitiño  Petr Viktorin              Benjamin Pollack
+  Richo Healey               Thomas Kluyver             Bryan O'Sullivan
+  Christian Boos             Alex Chamberlain           Daniel Bruce
+  Julien Miotte              Amit Bakshi                David Fischer
+  Xu Tao                     Andrey Devyatkin           David Sanders
+  Jose Plana                 Ben Davis                  Devaev Maxim
+  Martin Lenders             Eric Schrijver             Eric Davis
+  Petr Hosek                 Hervé Cauwelier            Erik Meusel
+  Victor Garcia              Huang Huang                Erik van Zijst
+  Xavier Delannoy            Ian P. McCullough          Ferengee
+  Yonggang Luo               Jack O'Connor              Gustavo Di Pietro
+  Valentin Haenel            Jared Flatow               Hugh Cole-Baker
+  Michael Jones              Jiunn Haur Lim             Josh Bleecher Snyder
+  Bernardo Heynemann         Jun Omae                   Óscar San José
+  John Szakmeister           Sarath Lakshman            Ridge Kennedy
+  Brodie Rao                 Vicent Marti               Rui Abreu Ferreira
+  David Versmisse            Zoran Zaric                earl
 
 
 License
