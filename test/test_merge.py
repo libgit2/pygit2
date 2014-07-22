@@ -81,7 +81,7 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
 
         self.repo.merge(branch_id)
-        self.assertTrue(self.repo.index.has_conflicts)
+        self.assertTrue(self.repo.index.conflicts is not None)
         status = pygit2.GIT_STATUS_WT_NEW | pygit2.GIT_STATUS_INDEX_DELETED
         # Asking twice to assure the reference counting is correct
         self.assertEqual({'.gitignore': status}, self.repo.status())
@@ -114,7 +114,7 @@ class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
         self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
 
         self.repo.merge(branch_id)
-        self.assertTrue(self.repo.index.has_conflicts)
+        self.assertTrue(self.repo.index.conflicts is not None)
         self.assertRaises(KeyError, self.repo.index.conflicts.__getitem__, 'some-file')
         ancestor, ours, theirs = self.repo.index.conflicts['.gitignore']
         self.assertEqual(None, ancestor)
@@ -126,13 +126,18 @@ class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
         # Checking the index works as expected
         self.repo.index.add('.gitignore')
         self.repo.index.write()
-        self.assertRaises(KeyError, self.repo.index.conflicts.__getitem__, '.gitignore')
+        self.assertTrue(self.repo.index.conflicts is None)
 
     def test_merge_remove_conflicts(self):
         other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
         self.repo.merge(other_branch_tip)
         idx = self.repo.index
-        self.assertTrue(idx.has_conflicts)
-        self.assertRaises(KeyError, idx.conflicts.__delitem__, 'some-file')
+        conflicts = idx.conflicts
+        self.assertTrue(conflicts is not None)
+        try:
+            conflicts['.gitignore']
+        except KeyError:
+            self.fail("conflicts['.gitignore'] raised KeyError unexpectedly")
         del idx.conflicts['.gitignore']
-        self.assertFalse(idx.has_conflicts)
+        self.assertRaises(KeyError, conflicts.__getitem__, '.gitignore')
+        self.assertTrue(idx.conflicts is None)

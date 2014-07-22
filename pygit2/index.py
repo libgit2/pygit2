@@ -203,12 +203,6 @@ class Index(object):
 
         check_error(err, True)
 
-    @property
-    def has_conflicts(self):
-        """Whether this Index contains conflict information
-        """
-        return C.git_index_has_conflicts(self._index) != 0
-
     def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
         """diff_to_workdir(flags=0, context_lines=3, interhunk_lines=0) -> Diff
 
@@ -290,11 +284,20 @@ class Index(object):
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
 
+
+    #
+    # Conflicts
+    #
+    _conflicts = None
+
     @property
     def conflicts(self):
         """A collection of conflict information
 
-        This presents a mapping interface with the paths as keys. You
+        If there are no conflicts None is returned. Otherwise return an object
+        that represents the conflicts in the index.
+
+        This object presents a mapping interface with the paths as keys. You
         can use the ``del`` operator to remove a conflict form the Index.
 
         Each conflict is made up of three elements. Access or iteration
@@ -306,7 +309,11 @@ class Index(object):
         These elements may be None depending on which sides exist for
         the particular conflict.
         """
-        if not hasattr(self, '_conflicts'):
+        if not C.git_index_has_conflicts(self._index):
+            self._conflicts = None
+            return None
+
+        if self._conflicts is None:
             self._conflicts = ConflictCollection(self)
 
         return self._conflicts

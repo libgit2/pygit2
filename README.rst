@@ -99,7 +99,7 @@ Changelog
 - New ``Repository.state_cleanup()``
   `#386 <https://github.com/libgit2/pygit2/pull/386>`_
 
-- New ``Index.has_conflicts`` and ``Index.conflicts`` #345
+- New ```Index.conflicts``
   `#345 <https://github.com/libgit2/pygit2/issues/345>`_
   `#389 <https://github.com/libgit2/pygit2/pull/389>`_
 
