@@ -130,7 +130,7 @@ class Config(object):
     def __getitem__(self, key):
         val = self._get_string(key)
 
-        return ffi.string(val).decode()
+        return ffi.string(val).decode('utf-8')
 
     def __setitem__(self, key, value):
         assert_string(key, "key")
