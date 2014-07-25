@@ -448,19 +448,11 @@ Diff_find_similar(Diff *self, PyObject *args, PyObject *kwds)
     int err;
     git_diff_find_options opts = GIT_DIFF_FIND_OPTIONS_INIT;
 
-    uint16_t rename_threshold, copy_threshold, rename_from_rewrite_threshold, break_rewrite_threshold;
-    size_t rename_limit;
     char *keywords[] = {"flags", "rename_threshold", "copy_threshold", "rename_from_rewrite_threshold", "break_rewrite_threshold", "rename_limit", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iHHHHI", keywords,
-                &opts.flags, &rename_threshold, &copy_threshold, &rename_from_rewrite_threshold, &break_rewrite_threshold, &rename_limit))
+                &opts.flags, &opts.rename_threshold, &opts.copy_threshold, &opts.rename_from_rewrite_threshold, &opts.break_rewrite_threshold, &opts.rename_limit))
         return NULL;
-
-    opts.rename_threshold = rename_threshold;
-    opts.copy_threshold = copy_threshold;
-    opts.rename_from_rewrite_threshold = rename_from_rewrite_threshold;
-    opts.break_rewrite_threshold = break_rewrite_threshold;
-    opts.rename_limit = rename_limit;
 
     err = git_diff_find_similar(self->list, &opts);
     if (err < 0)
