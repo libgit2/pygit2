@@ -116,7 +116,7 @@ py_oid_to_git_oid_expand(git_repository *repo, PyObject *py_str, git_oid *oid)
     int err;
     size_t len;
     git_odb *odb = NULL;
-    git_odb_object *obj = NULL;
+    git_oid tmp;
 
     len = py_oid_to_git_oid(py_str, oid);
     if (len == 0)
@@ -130,17 +130,16 @@ py_oid_to_git_oid_expand(git_repository *repo, PyObject *py_str, git_oid *oid)
     if (err < 0)
         goto error;
 
-    err = git_odb_read_prefix(&obj, odb, oid, len);
+    err = git_odb_exists_prefix(&tmp, odb, oid, len);
     if (err < 0)
         goto error;
 
-    git_oid_cpy(oid, git_odb_object_id(obj));
-    git_odb_object_free(obj);
+    git_oid_cpy(oid, &tmp);
+
     git_odb_free(odb);
     return 0;
 
 error:
-    git_odb_object_free(obj);
     git_odb_free(odb);
     Error_set(err);
     return -1;
