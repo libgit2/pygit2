@@ -36,9 +36,9 @@ from .ffi import ffi
 
 
 if version_info[0] < 3:
-    from .py2 import to_bytes, is_string
+    from .py2 import is_string, to_bytes, to_str
 else:
-    from .py3 import to_bytes, is_string
+    from .py3 import is_string, to_bytes, to_str
 
 
 

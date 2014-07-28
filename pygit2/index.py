@@ -32,7 +32,7 @@ from __future__ import absolute_import, unicode_literals
 from _pygit2 import Oid, Tree, Diff
 from .errors import check_error
 from .ffi import ffi, C
-from .utils import to_bytes, is_string, strings_to_strarray
+from .utils import is_string, strings_to_strarray, to_bytes, to_str
 
 
 class Index(object):
@@ -357,7 +357,7 @@ class IndexEntry(object):
             return None
 
         entry = cls.__new__(cls)
-        entry.path = ffi.string(centry.path).decode()
+        entry.path = to_str(ffi.string(centry.path))
         entry.mode = centry.mode
         entry.id = Oid(raw=bytes(ffi.buffer(ffi.addressof(centry, 'id'))[:]))
 

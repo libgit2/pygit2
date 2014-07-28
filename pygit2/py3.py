@@ -44,3 +44,13 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
 
 def is_string(s):
     return isinstance(s, str)
+
+
+def to_str(s):
+    if type(s) is str:
+        return s
+
+    if type(s) is bytes:
+        return s.decode()
+
+    raise TypeError('unexpected type "%s"' % repr(s))
