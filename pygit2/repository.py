@@ -25,6 +25,9 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+# Import from the future
+from __future__ import absolute_import
+
 # Import from the Standard Library
 from string import hexdigits
 
@@ -34,11 +37,12 @@ from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
 
-from .ffi import ffi, C, to_bytes
-from .errors import check_error
-from .remote import Remote
 from .config import Config
+from .errors import check_error
+from .ffi import ffi, C
 from .index import Index
+from .remote import Remote
+from .utils import to_bytes
 
 
 class Repository(_Repository):

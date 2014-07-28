@@ -29,31 +29,55 @@
 from __future__ import absolute_import
 
 # Import from the Standard Library
-import inspect
-import codecs
-from os import path, getenv
+from sys import version_info
 
-# Import from cffi
-from cffi import FFI
+# Import from pygit2
+from .ffi import ffi
 
 
+if version_info[0] < 3:
+    from .py2 import to_bytes, is_string
+else:
+    from .py3 import to_bytes, is_string
 
-ffi = FFI()
 
 
-dir_path = path.dirname(path.abspath(inspect.getfile(inspect.currentframe())))
+def strarray_to_strings(arr):
+    l = [None] * arr.count
+    for i in range(arr.count):
+        l[i] = ffi.string(arr.strings[i]).decode()
 
-decl_path = path.join(dir_path, 'decl.h')
-with codecs.open(decl_path, 'r', 'utf-8') as header:
-    ffi.cdef(header.read())
+    return l
 
-# if LIBGIT2 exists, set build and link against that version
-libgit2_path = getenv('LIBGIT2')
-if not libgit2_path:
-    libgit2_path = '/usr/local'
 
-include_dirs = [path.join(libgit2_path, 'include')]
-library_dirs = [path.join(libgit2_path, 'lib')]
+def strings_to_strarray(l):
+    """Convert a list of strings to a git_strarray
 
-C = ffi.verify("#include <git2.h>", libraries=["git2"],
-               include_dirs=include_dirs, library_dirs=library_dirs)
+    We return first the git_strarray* you can pass to libgit2 and a
+    list of references to the memory, which we must keep around for as
+    long as the git_strarray must live.
+    """
+
+    if not isinstance(l, list):
+        raise TypeError("Value must be a list")
+
+    arr = ffi.new('git_strarray *')
+    strings = ffi.new('char *[]', len(l))
+
+    # We need refs in order to keep a reference to the value returned
+    # by the ffi.new(). Otherwise, they will be freed and the memory
+    # re-used, with less than great consequences.
+    refs = [None] * len(l)
+
+    for i in range(len(l)):
+        if not is_string(l[i]):
+            raise TypeError("Value must be a string")
+
+        s = ffi.new('char []', to_bytes(l[i]))
+        refs[i] = s
+        strings[i] = s
+
+    arr.strings = strings
+    arr.count = len(l)
+
+    return arr, refs

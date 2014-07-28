@@ -28,32 +28,20 @@
 # Import from the future
 from __future__ import absolute_import
 
-# Import from the Standard Library
-import inspect
-import codecs
-from os import path, getenv
-
-# Import from cffi
-from cffi import FFI
+# Import from pygit2
+from .ffi import ffi
 
 
+def to_bytes(s, encoding='utf-8', errors='strict'):
+    if s == ffi.NULL or s is None:
+        return ffi.NULL
 
-ffi = FFI()
+    if isinstance(s, unicode):
+        encoding = encoding or 'utf-8'
+        return s.encode(encoding, errors)
+
+    return s
 
 
-dir_path = path.dirname(path.abspath(inspect.getfile(inspect.currentframe())))
-
-decl_path = path.join(dir_path, 'decl.h')
-with codecs.open(decl_path, 'r', 'utf-8') as header:
-    ffi.cdef(header.read())
-
-# if LIBGIT2 exists, set build and link against that version
-libgit2_path = getenv('LIBGIT2')
-if not libgit2_path:
-    libgit2_path = '/usr/local'
-
-include_dirs = [path.join(libgit2_path, 'include')]
-library_dirs = [path.join(libgit2_path, 'lib')]
-
-C = ffi.verify("#include <git2.h>", libraries=["git2"],
-               include_dirs=include_dirs, library_dirs=library_dirs)
+def is_string(s):
+    return isinstance(s, basestring)

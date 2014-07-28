@@ -32,15 +32,16 @@ from __future__ import absolute_import
 from _pygit2 import *
 
 # High level API
-from .repository import Repository
-from .version import __version__
-from .settings import Settings
-from .credentials import *
-from .remote import Remote, get_credentials
 from .config import Config
-from .index import Index, IndexEntry
+from .credentials import *
 from .errors import check_error
-from .ffi import ffi, C, to_bytes
+from .ffi import ffi, C
+from .index import Index, IndexEntry
+from .remote import Remote, get_credentials
+from .repository import Repository
+from .settings import Settings
+from .utils import to_bytes
+from .version import __version__
 
 
 def init_repository(path, bare=False,

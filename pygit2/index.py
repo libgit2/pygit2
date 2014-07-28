@@ -28,10 +28,11 @@
 # Import from the future
 from __future__ import absolute_import, unicode_literals
 
+# Import from pygit2
 from _pygit2 import Oid, Tree, Diff
-
-from .ffi import ffi, C, to_bytes, is_string, strings_to_strarray
 from .errors import check_error
+from .ffi import ffi, C
+from .utils import to_bytes, is_string, strings_to_strarray
 
 
 class Index(object):

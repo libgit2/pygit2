@@ -28,11 +28,12 @@
 # Import from the future
 from __future__ import absolute_import
 
+# Import from pygit2
 from _pygit2 import Oid
-
-from .ffi import ffi, C, to_bytes, strarray_to_strings, strings_to_strarray
 from .errors import check_error, GitError
+from .ffi import ffi, C
 from .refspec import Refspec
+from .utils import to_bytes, strarray_to_strings, strings_to_strarray
 
 
 def maybe_string(ptr):

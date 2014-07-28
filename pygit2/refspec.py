@@ -28,8 +28,10 @@
 # Import from the future
 from __future__ import absolute_import
 
-from .ffi import ffi, C, to_bytes
+# Import from pygit2
 from .errors import check_error
+from .ffi import ffi, C
+from .utils import to_bytes
 
 
 class Refspec(object):

@@ -28,8 +28,10 @@
 # Import from the future
 from __future__ import absolute_import, unicode_literals
 
-from .ffi import ffi, C, to_bytes, is_string
+# Import from pygit2
 from .errors import check_error
+from .ffi import ffi, C
+from .utils import to_bytes, is_string
 
 
 def assert_string(v, desc):
