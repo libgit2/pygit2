@@ -438,17 +438,20 @@ Diff_merge(Diff *self, PyObject *args)
 
 
 PyDoc_STRVAR(Diff_find_similar__doc__,
-  "find_similar([flags])\n"
+  "find_similar([flags, rename_threshold, copy_threshold, rename_from_rewrite_threshold, break_rewrite_threshold, rename_limit])\n"
   "\n"
   "Find renamed files in diff and updates them in-place in the diff itself.");
 
 PyObject *
-Diff_find_similar(Diff *self, PyObject *args)
+Diff_find_similar(Diff *self, PyObject *args, PyObject *kwds)
 {
     int err;
     git_diff_find_options opts = GIT_DIFF_FIND_OPTIONS_INIT;
 
-    if (!PyArg_ParseTuple(args, "|i", &opts.flags))
+    char *keywords[] = {"flags", "rename_threshold", "copy_threshold", "rename_from_rewrite_threshold", "break_rewrite_threshold", "rename_limit", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iHHHHI", keywords,
+                &opts.flags, &opts.rename_threshold, &opts.copy_threshold, &opts.rename_from_rewrite_threshold, &opts.break_rewrite_threshold, &opts.rename_limit))
         return NULL;
 
     err = git_diff_find_similar(self->list, &opts);
@@ -508,7 +511,7 @@ PyMappingMethods Diff_as_mapping = {
 
 static PyMethodDef Diff_methods[] = {
     METHOD(Diff, merge, METH_VARARGS),
-    METHOD(Diff, find_similar, METH_VARARGS),
+    METHOD(Diff, find_similar, METH_VARARGS | METH_KEYWORDS),
     METHOD(Diff, from_c, METH_STATIC | METH_VARARGS),
     {NULL}
 };
