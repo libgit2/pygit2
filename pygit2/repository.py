@@ -34,7 +34,7 @@ from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
 
-from .ffi import ffi, C, to_str
+from .ffi import ffi, C, to_bytes
 from .errors import check_error
 from .remote import Remote
 from .config import Config
@@ -82,8 +82,8 @@ class Repository(_Repository):
 
         cremote = ffi.new('git_remote **')
 
-        err = C.git_remote_create(cremote, self._repo, to_str(name),
-                                  to_str(url))
+        err = C.git_remote_create(cremote, self._repo, to_bytes(name),
+                                  to_bytes(url))
         check_error(err)
 
         return Remote(self, cremote[0])
@@ -192,7 +192,7 @@ class Repository(_Repository):
             copts.checkout_strategy = strategy
 
         if directory:
-            target_dir = ffi.new('char[]', to_str(directory))
+            target_dir = ffi.new('char[]', to_bytes(directory))
             refs.append(target_dir)
             copts.target_directory = target_dir
 

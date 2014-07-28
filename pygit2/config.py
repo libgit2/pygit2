@@ -28,7 +28,7 @@
 # Import from the future
 from __future__ import absolute_import, unicode_literals
 
-from .ffi import ffi, C, to_str, is_string
+from .ffi import ffi, C, to_bytes, is_string
 from .errors import check_error
 
 
@@ -83,7 +83,7 @@ class Config(object):
             err = C.git_config_new(cconfig)
         else:
             assert_string(path, "path")
-            err = C.git_config_open_ondisk(cconfig, to_str(path))
+            err = C.git_config_open_ondisk(cconfig, to_bytes(path))
 
         check_error(err, True)
         self._config = cconfig[0]
@@ -103,7 +103,7 @@ class Config(object):
         assert_string(key, "key")
 
         cstr = ffi.new('char **')
-        err = C.git_config_get_string(cstr, self._config, to_str(key))
+        err = C.git_config_get_string(cstr, self._config, to_bytes(key))
 
         return err, cstr
 
@@ -136,19 +136,19 @@ class Config(object):
 
         err = 0
         if isinstance(value, bool):
-            err = C.git_config_set_bool(self._config, to_str(key), value)
+            err = C.git_config_set_bool(self._config, to_bytes(key), value)
         elif isinstance(value, int):
-            err = C.git_config_set_int64(self._config, to_str(key), value)
+            err = C.git_config_set_int64(self._config, to_bytes(key), value)
         else:
-            err = C.git_config_set_string(self._config, to_str(key),
-                                          to_str(value))
+            err = C.git_config_set_string(self._config, to_bytes(key),
+                                          to_bytes(value))
 
         check_error(err)
 
     def __delitem__(self, key):
         assert_string(key, "key")
 
-        err = C.git_config_delete_entry(self._config, to_str(key))
+        err = C.git_config_delete_entry(self._config, to_bytes(key))
         check_error(err)
 
     def __iter__(self):
@@ -169,7 +169,8 @@ class Config(object):
 
         citer = ffi.new('git_config_iterator **')
         err = C.git_config_multivar_iterator_new(citer, self._config,
-                                                 to_str(name), to_str(regex))
+                                                 to_bytes(name),
+                                                 to_bytes(regex))
         check_error(err)
 
         return ConfigMultivarIterator(self, citer[0])
@@ -184,8 +185,8 @@ class Config(object):
         assert_string(regex, "regex")
         assert_string(value, "value")
 
-        err = C.git_config_set_multivar(self._config, to_str(name),
-                                        to_str(regex), to_str(value))
+        err = C.git_config_set_multivar(self._config, to_bytes(name),
+                                        to_bytes(regex), to_bytes(value))
         check_error(err)
 
     def get_bool(self, key):
@@ -225,7 +226,7 @@ class Config(object):
 
         Add a config file instance to an existing config."""
 
-        err = C.git_config_add_file_ondisk(self._config, to_str(path), level,
+        err = C.git_config_add_file_ondisk(self._config, to_bytes(path), level,
                                            force)
         check_error(err)
 
@@ -249,7 +250,7 @@ class Config(object):
     @staticmethod
     def parse_bool(text):
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, to_str(text))
+        err = C.git_config_parse_bool(res, to_bytes(text))
         check_error(err)
 
         return res[0] != 0
@@ -257,7 +258,7 @@ class Config(object):
     @staticmethod
     def parse_int(text):
         res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, to_str(text))
+        err = C.git_config_parse_int64(res, to_bytes(text))
         check_error(err)
 
         return res[0]

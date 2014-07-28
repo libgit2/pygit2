@@ -30,7 +30,7 @@ from __future__ import absolute_import
 
 from _pygit2 import Oid
 
-from .ffi import ffi, C, to_str, strarray_to_strings, strings_to_strarray
+from .ffi import ffi, C, to_bytes, strarray_to_strings, strings_to_strarray
 from .errors import check_error, GitError
 from .refspec import Refspec
 
@@ -160,7 +160,7 @@ class Remote(object):
             raise ValueError("New remote name must be a non-empty string")
 
         problems = ffi.new('git_strarray *')
-        err = C.git_remote_rename(problems, self._remote, to_str(new_name))
+        err = C.git_remote_rename(problems, self._remote, to_bytes(new_name))
         check_error(err)
 
         ret = strarray_to_strings(problems)
@@ -176,7 +176,7 @@ class Remote(object):
 
     @url.setter
     def url(self, value):
-        err = C.git_remote_set_url(self._remote, to_str(value))
+        err = C.git_remote_set_url(self._remote, to_bytes(value))
         check_error(err)
 
     @property
@@ -187,7 +187,7 @@ class Remote(object):
 
     @push_url.setter
     def push_url(self, value):
-        err = C.git_remote_set_pushurl(self._remote, to_str(value))
+        err = C.git_remote_set_pushurl(self._remote, to_bytes(value))
         check_error(err)
 
     def save(self):
@@ -210,7 +210,7 @@ class Remote(object):
             ptr = ffi.NULL
 
         self._stored_exception = None
-        err = C.git_remote_fetch(self._remote, ptr, to_str(message))
+        err = C.git_remote_fetch(self._remote, ptr, to_bytes(message))
         if self._stored_exception:
             raise self._stored_exception
 
@@ -269,7 +269,7 @@ class Remote(object):
 
         Add a fetch refspec to the remote"""
 
-        err = C.git_remote_add_fetch(self._remote, to_str(spec))
+        err = C.git_remote_add_fetch(self._remote, to_bytes(spec))
         check_error(err)
 
     def add_push(self, spec):
@@ -277,7 +277,7 @@ class Remote(object):
 
         Add a push refspec to the remote"""
 
-        err = C.git_remote_add_push(self._remote, to_str(spec))
+        err = C.git_remote_add_push(self._remote, to_bytes(spec))
         check_error(err)
 
     @ffi.callback("int (*cb)(const char *ref, const char *msg, void *data)")
@@ -304,7 +304,7 @@ class Remote(object):
         push = cpush[0]
 
         try:
-            err = C.git_push_add_refspec(push, to_str(spec))
+            err = C.git_push_add_refspec(push, to_bytes(spec))
             check_error(err)
 
             err = C.git_push_finish(push)
@@ -325,7 +325,7 @@ class Remote(object):
             else:
                 ptr = ffi.NULL
 
-            err = C.git_push_update_tips(push, ptr, to_str(message))
+            err = C.git_push_update_tips(push, ptr, to_bytes(message))
             check_error(err)
 
         finally:
@@ -426,13 +426,13 @@ def get_credentials(fn, url, username, allowed):
     ccred = ffi.new('git_cred **')
     if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
         name, passwd = creds.credential_tuple
-        err = C.git_cred_userpass_plaintext_new(ccred, to_str(name),
-                                                to_str(passwd))
+        err = C.git_cred_userpass_plaintext_new(ccred, to_bytes(name),
+                                                to_bytes(passwd))
 
     elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
         name, pubkey, privkey, passphrase = creds.credential_tuple
-        err = C.git_cred_ssh_key_new(ccred, to_str(name), to_str(pubkey),
-                                     to_str(privkey), to_str(passphrase))
+        err = C.git_cred_ssh_key_new(ccred, to_bytes(name), to_bytes(pubkey),
+                                     to_bytes(privkey), to_bytes(passphrase))
 
     else:
         raise TypeError("unsupported credential type")

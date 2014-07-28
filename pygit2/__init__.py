@@ -40,7 +40,7 @@ from .remote import Remote, get_credentials
 from .config import Config
 from .index import Index, IndexEntry
 from .errors import check_error
-from .ffi import ffi, C, to_str
+from .ffi import ffi, C, to_bytes
 
 
 def init_repository(path, bare=False,
@@ -84,15 +84,15 @@ def init_repository(path, bare=False,
     options.version = 1
     options.flags = flags
     options.mode = mode
-    options.workdir_path = to_str(workdir_path)
-    options.description = to_str(description)
-    options.template_path = to_str(template_path)
-    options.initial_head = to_str(initial_head)
-    options.origin_url = to_str(origin_url)
+    options.workdir_path = to_bytes(workdir_path)
+    options.description = to_bytes(description)
+    options.template_path = to_bytes(template_path)
+    options.initial_head = to_bytes(initial_head)
+    options.origin_url = to_bytes(origin_url)
 
     # Call
     crepository = ffi.new('git_repository **')
-    err = C.git_repository_init_ext(crepository, to_str(path), options)
+    err = C.git_repository_init_ext(crepository, to_bytes(path), options)
     check_error(err)
 
     # Ok
@@ -156,7 +156,7 @@ def clone_repository(
         checkout_branch_ref = ffi.new('char []', branch)
         opts.checkout_branch = checkout_branch_ref
 
-    remote_name_ref = ffi.new('char []', to_str(remote_name))
+    remote_name_ref = ffi.new('char []', to_bytes(remote_name))
     opts.remote_name = remote_name_ref
 
     opts.version = 1
@@ -168,7 +168,7 @@ def clone_repository(
         opts.remote_callbacks.credentials = _credentials_cb
         opts.remote_callbacks.payload = d_handle
 
-    err = C.git_clone(crepo, to_str(url), to_str(path), opts)
+    err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
     C.git_repository_free(crepo[0])
 
     if 'exception' in d:
@@ -196,7 +196,7 @@ def clone_into(repo, remote, branch=None):
     """
 
     err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL,
-                           to_str(branch), ffi.NULL)
+                           to_bytes(branch), ffi.NULL)
 
     if remote._stored_exception:
         raise remote._stored_exception

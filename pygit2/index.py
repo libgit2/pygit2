@@ -30,7 +30,7 @@ from __future__ import absolute_import, unicode_literals
 
 from _pygit2 import Oid, Tree, Diff
 
-from .ffi import ffi, C, to_str, is_string, strings_to_strarray
+from .ffi import ffi, C, to_bytes, is_string, strings_to_strarray
 from .errors import check_error
 
 
@@ -43,7 +43,7 @@ class Index(object):
         to read from and write to.
         """
         cindex = ffi.new('git_index **')
-        err = C.git_index_open(cindex, to_str(path))
+        err = C.git_index_open(cindex, to_bytes(path))
         check_error(err)
 
         self._index = cindex[0]
@@ -69,7 +69,7 @@ class Index(object):
         return C.git_index_entrycount(self._index)
 
     def __contains__(self, path):
-        err = C.git_index_find(ffi.NULL, self._index, to_str(path))
+        err = C.git_index_find(ffi.NULL, self._index, to_bytes(path))
         if err == C.GIT_ENOTFOUND:
             return False
 
@@ -79,7 +79,7 @@ class Index(object):
     def __getitem__(self, key):
         centry = ffi.NULL
         if is_string(key):
-            centry = C.git_index_get_bypath(self._index, to_str(key), 0)
+            centry = C.git_index_get_bypath(self._index, to_bytes(key), 0)
         elif not key >= 0:
             raise ValueError(key)
         else:
@@ -165,7 +165,7 @@ class Index(object):
     def remove(self, path):
         """Remove an entry from the Index.
         """
-        err = C.git_index_remove(self._index, to_str(path), 0)
+        err = C.git_index_remove(self._index, to_bytes(path), 0)
         check_error(err, True)
 
     def add_all(self, pathspecs=[]):
@@ -193,7 +193,7 @@ class Index(object):
 
         if is_string(path_or_entry):
             path = path_or_entry
-            err = C.git_index_add_bypath(self._index, to_str(path))
+            err = C.git_index_add_bypath(self._index, to_bytes(path))
         elif isinstance(path_or_entry, IndexEntry):
             entry = path_or_entry
             centry, str_ref = entry._to_c()
@@ -345,7 +345,7 @@ class IndexEntry(object):
         # basically memcpy()
         ffi.buffer(ffi.addressof(centry, 'id'))[:] = self.id.raw[:]
         centry.mode = self.mode
-        path = ffi.new('char[]', to_str(self.path))
+        path = ffi.new('char[]', to_bytes(self.path))
         centry.path = path
 
         return centry, path
@@ -394,7 +394,7 @@ class ConflictCollection(object):
         ctheirs = ffi.new('git_index_entry **')
 
         err = C.git_index_conflict_get(cancestor, cours, ctheirs,
-                                       self._index._index, to_str(path))
+                                       self._index._index, to_bytes(path))
         check_error(err)
 
         ancestor = IndexEntry._from_c(cancestor[0])
@@ -404,7 +404,7 @@ class ConflictCollection(object):
         return ancestor, ours, theirs
 
     def __delitem__(self, path):
-        err = C.git_index_conflict_remove(self._index._index, to_str(path))
+        err = C.git_index_conflict_remove(self._index._index, to_bytes(path))
         check_error(err)
 
     def __iter__(self):

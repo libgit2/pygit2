@@ -28,7 +28,7 @@
 # Import from the future
 from __future__ import absolute_import
 
-from .ffi import ffi, C, to_str
+from .ffi import ffi, C, to_bytes
 from .errors import check_error
 
 
@@ -66,18 +66,18 @@ class Refspec(object):
         """src_matches(str) -> Bool
 
         Returns whether the given string matches the source of this refspec"""
-        return bool(C.git_refspec_src_matches(self._refspec, to_str(ref)))
+        return bool(C.git_refspec_src_matches(self._refspec, to_bytes(ref)))
 
     def dst_matches(self, ref):
         """dst_matches(str) -> Bool
 
         Returns whether the given string matches the destination of this
         refspec"""
-        return bool(C.git_refspec_dst_matches(self._refspec, to_str(ref)))
+        return bool(C.git_refspec_dst_matches(self._refspec, to_bytes(ref)))
 
     def _transform(self, ref, fn):
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
-        err = fn(buf, self._refspec, to_str(ref))
+        err = fn(buf, self._refspec, to_bytes(ref))
         check_error(err)
 
         try:

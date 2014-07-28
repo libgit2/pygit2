@@ -37,7 +37,7 @@ import sys
 (major_version, _, _, _, _) = sys.version_info
 
 if major_version < 3:
-    def to_str(s, encoding='utf-8', errors='strict'):
+    def to_bytes(s, encoding='utf-8', errors='strict'):
         if s == ffi.NULL or s is None:
             return ffi.NULL
 
@@ -47,7 +47,7 @@ if major_version < 3:
 
         return s
 else:
-    def to_str(s, encoding='utf-8', errors='strict'):
+    def to_bytes(s, encoding='utf-8', errors='strict'):
         if s == ffi.NULL or s is None:
             return ffi.NULL
 
@@ -97,7 +97,7 @@ def strings_to_strarray(l):
         if not is_string(l[i]):
             raise TypeError("Value must be a string")
 
-        s = ffi.new('char []', to_str(l[i]))
+        s = ffi.new('char []', to_bytes(l[i]))
         refs[i] = s
         strings[i] = s
 
