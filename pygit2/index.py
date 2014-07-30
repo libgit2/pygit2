@@ -321,7 +321,7 @@ class Index(object):
 
 
 class IndexEntry(object):
-    __slots__ = ['id', 'path', 'mode', '_index']
+    __slots__ = ['id', 'path', 'mode']
 
     def __init__(self, path, object_id, mode):
         self.path = path
@@ -330,6 +330,11 @@ class IndexEntry(object):
         """The id of the referenced object"""
         self.mode = mode
         """The mode of this entry, a GIT_FILEMODE_ value"""
+
+    @property
+    def oid(self):
+        # For backwards compatibility
+        return self.id
 
     @property
     def hex(self):
