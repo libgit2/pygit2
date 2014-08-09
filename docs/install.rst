@@ -16,7 +16,7 @@ Requirements
 - Python 2.7, 3.2, 3.3, 3.4 or pypy.
   Including the development headers.
 
-- Libgit2 v0.21.0
+- Libgit2 v0.21.1
 
 - cffi 0.8.1+
 
@@ -34,11 +34,11 @@ match before filling un bug report.
 
    As illustration see this table of compatible releases:
 
-   +-----------+--------------+------------------------------+--------------+
-   |**libgit2**|0.21.0        |0.20.0                        |0.19.0        |
-   +-----------+--------------+------------------------------+--------------+
-   |**pygit2** |0.21.0, 0.21.1|0.20.0, 0.20.1, 0.20.2, 0.20.3|0.19.0, 0.19.1|
-   +-----------+--------------+------------------------------+--------------+
+   +-----------+-----------------------+------------------------------+
+   |**libgit2**|0.21.1                 |0.20.0                        |
+   +-----------+-----------------------+------------------------------+
+   |**pygit2** |0.21.0, 0.21.1, 0.21.2 |0.20.0, 0.20.1, 0.20.2, 0.20.3|
+   +-----------+-----------------------+------------------------------+
 
    **Warning!** Backwards compatibility is not guaranteed even between micro
    releases.  Please check the release notes for incompatible changes before
@@ -52,9 +52,9 @@ This works for me, it may work for you:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.0.tar.gz
-   $ tar xzf v0.21.0.tar.gz
-   $ cd libgit2-0.21.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz
+   $ tar xzf v0.21.1.tar.gz
+   $ cd libgit2-0.21.1/
    $ cmake .
    $ make
    $ sudo make install
@@ -164,9 +164,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.0.tar.gz
-   $ tar xzf v0.21.0.tar.gz
-   $ cd libgit2-0.21.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz
+   $ tar xzf v0.21.1.tar.gz
+   $ cd libgit2-0.21.1/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -192,9 +192,9 @@ from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.0.tar.gz
-   $ tar xzf v0.21.0.tar.gz
-   $ cd libgit2-0.21.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz
+   $ tar xzf v0.21.1.tar.gz
+   $ cd libgit2-0.21.1/
    $ mkdir build
    $ cd build
    $ cmake .. -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"

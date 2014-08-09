@@ -25,6 +25,24 @@ How to install
 Changelog
 ==============
 
+0.21.2 (2014-08-09)
+-------------------
+
+- Fix regression with Python 2, ``IndexEntry.path`` returns str
+  (bytes in Python 2 and unicode in Python 3)
+
+- Get back ``IndexEntry.oid`` for backwards compatibility
+
+- Config, iterate over the keys (instead of the key/value pairs)
+  `#395 <https://github.com/libgit2/pygit2/pull/395>`_
+
+- ``Diff.find_similar`` supports new threshold arguments
+  `#396 <https://github.com/libgit2/pygit2/pull/396>`_
+
+- Optimization, do not load the object when expanding an oid prefix
+  `#397 <https://github.com/libgit2/pygit2/pull/397>`_
+
+
 0.21.1 (2014-07-22)
 -------------------
 
@@ -336,31 +354,31 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-68 developers have contributed at least 1 commit to pygit2::
+69 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez            Rémi Duraffort             Alexander Bayandin
-  Nico von Geyso             Sebastian Thiel            Andrew Chin
-  Carlos Martín Nieto        Fraser Tweedale            András Veres-Szentkirályi
-  W. Trevor King             Han-Wen Nienhuys           Benjamin Kircher
-  Dave Borowitz              Leonardo Rhodes            Benjamin Pollack
-  Daniel Rodríguez Troitiño  Petr Viktorin              Bryan O'Sullivan
-  Richo Healey               Thomas Kluyver             Daniel Bruce
-  Christian Boos             Alex Chamberlain           David Fischer
-  Julien Miotte              Amit Bakshi                David Sanders
-  Xu Tao                     Andrey Devyatkin           Devaev Maxim
-  Jose Plana                 Ben Davis                  Eric Davis
-  Martin Lenders             Eric Schrijver             Erik Meusel
-  Petr Hosek                 Hervé Cauwelier            Erik van Zijst
-  Victor Garcia              Huang Huang                Ferengee
-  Xavier Delannoy            Ian P. McCullough          Gustavo Di Pietro
-  Yonggang Luo               Jack O'Connor              Hugh Cole-Baker
-  Valentin Haenel            Jared Flatow               Jasper Lievisse Adriaanse
-  Michael Jones              Jiunn Haur Lim             Josh Bleecher Snyder
-  Bernardo Heynemann         Jun Omae                   Óscar San José
-  John Szakmeister           Sarath Lakshman            Ridge Kennedy
-  Brodie Rao                 Vicent Marti               Rui Abreu Ferreira
-  Vlad Temian                Zoran Zaric                earl
-  David Versmisse            Adam Spiers
+  J. David Ibáñez            Rémi Duraffort             Adam Spiers
+  Nico von Geyso             Sebastian Thiel            Alexander Bayandin
+  Carlos Martín Nieto        Fraser Tweedale            Andrew Chin
+  W. Trevor King             Han-Wen Nienhuys           András Veres-Szentkirályi
+  Dave Borowitz              Leonardo Rhodes            Benjamin Kircher
+  Daniel Rodríguez Troitiño  Petr Viktorin              Benjamin Pollack
+  Richo Healey               Thomas Kluyver             Bryan O'Sullivan
+  Christian Boos             Alex Chamberlain           Daniel Bruce
+  Julien Miotte              Amit Bakshi                David Fischer
+  Xu Tao                     Andrey Devyatkin           David Sanders
+  Jose Plana                 Arno van Lumig             Devaev Maxim
+  Martin Lenders             Ben Davis                  Eric Davis
+  Petr Hosek                 Eric Schrijver             Erik Meusel
+  Victor Garcia              Hervé Cauwelier            Erik van Zijst
+  Xavier Delannoy            Huang Huang                Ferengee
+  Yonggang Luo               Ian P. McCullough          Gustavo Di Pietro
+  Valentin Haenel            Jack O'Connor              Hugh Cole-Baker
+  Michael Jones              Jared Flatow               Jasper Lievisse Adriaanse
+  Bernardo Heynemann         Jiunn Haur Lim             Josh Bleecher Snyder
+  John Szakmeister           Jun Omae                   Óscar San José
+  Brodie Rao                 Sarath Lakshman            Ridge Kennedy
+  Vlad Temian                Vicent Marti               Rui Abreu Ferreira
+  David Versmisse            Zoran Zaric                earl
 
 
 License
