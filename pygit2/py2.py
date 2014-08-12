@@ -54,4 +54,4 @@ def to_str(s):
     if type(s) is unicode:
         return s.encode()
 
-    raise TypeError, 'unexpected type "%s"' % repr(s)
+    raise TypeError('unexpected type "%s"' % repr(s))
