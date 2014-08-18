@@ -30,6 +30,7 @@
 
 import unittest
 import pygit2
+import sys
 from pygit2 import Oid
 from . import utils
 
@@ -162,6 +163,14 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual('new-name', self.repo.remotes[0].name)
         self.assertEqual('http://example.com/test.git',
                          self.repo.remotes[0].url)
+
+    def test_remote_refcount(self):
+        start = sys.getrefcount(self.repo)
+        remote = self.repo.remotes[0]
+        del remote
+        end = sys.getrefcount(self.repo)
+
+        self.assertEqual(start, end)
 
     def test_add_refspec(self):
         remote = self.repo.create_remote('test_add_refspec', REMOTE_URL)
