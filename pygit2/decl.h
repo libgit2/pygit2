@@ -12,6 +12,7 @@ typedef ... git_index_conflict_iterator;
 
 #define GIT_OID_RAWSZ ...
 #define GIT_PATH_MAX ...
+#define GIT_REMOTE_CALLBACKS_VERSION ...
 
 typedef struct git_oid {
 	unsigned char id[20];
@@ -136,6 +137,7 @@ int git_remote_add_push(git_remote *remote, const char *refspec);
 int git_remote_add_fetch(git_remote *remote, const char *refspec);
 int git_remote_save(const git_remote *remote);
 int git_remote_set_callbacks(git_remote *remote, const git_remote_callbacks *callbacks);
+int git_remote_init_callbacks(git_remote_callbacks *opts, unsigned int version);
 size_t git_remote_refspec_count(git_remote *remote);
 const git_refspec * git_remote_get_refspec(git_remote *remote, size_t n);
 
