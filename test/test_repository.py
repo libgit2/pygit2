@@ -156,7 +156,7 @@ class RepositoryTest(utils.BareRepoTestCase):
             commit.message)
         self.assertRaises(ValueError, self.repo.__getitem__, too_short_prefix)
 
-    @unittest.skipIf(__pypy__ is not None)
+    @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
     def test_lookup_commit_refcount(self):
         start = sys.getrefcount(self.repo)
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'

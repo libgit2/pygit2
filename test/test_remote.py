@@ -169,7 +169,7 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual('http://example.com/test.git',
                          self.repo.remotes[0].url)
 
-    @unittest.skipIf(__pypy__ is not None)
+    @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
     def test_remote_refcount(self):
         start = sys.getrefcount(self.repo)
         remote = self.repo.remotes[0]
