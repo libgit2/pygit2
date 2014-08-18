@@ -191,11 +191,12 @@ class Remote(object):
         Perform a fetch against this remote.
         """
 
+        # Get the default callbacks first
         defaultcallbacks = ffi.new('git_remote_callbacks *')
-        err = C.git_remote_init_callbacks(defaultcallbacks,
-                                          C.GIT_REMOTE_CALLBACKS_VERSION)
+        err = C.git_remote_init_callbacks(defaultcallbacks, 1)
+        check_error(err)
 
-        # Build the callback structure
+        # Build custom callback structure
         callbacks = ffi.new('git_remote_callbacks *')
         callbacks.version = 1
         callbacks.sideband_progress = self._sideband_progress_cb
