@@ -46,6 +46,11 @@ from pygit2 import Oid, Reference, hashfile
 import pygit2
 from . import utils
 
+try:
+    import __pypy__
+except ImportError:
+    __pypy__ = None
+
 
 HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
 PARENT_SHA = 'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87'  # HEAD^
@@ -151,6 +156,7 @@ class RepositoryTest(utils.BareRepoTestCase):
             commit.message)
         self.assertRaises(ValueError, self.repo.__getitem__, too_short_prefix)
 
+    @unittest.skipIf(__pypy__ is not None)
     def test_lookup_commit_refcount(self):
         start = sys.getrefcount(self.repo)
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'

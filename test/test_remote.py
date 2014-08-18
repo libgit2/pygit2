@@ -34,6 +34,11 @@ import sys
 from pygit2 import Oid
 from . import utils
 
+try:
+    import __pypy__
+except ImportError:
+    __pypy__ = None
+
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'
 REMOTE_FETCHSPEC_SRC = 'refs/heads/*'
@@ -164,12 +169,12 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual('http://example.com/test.git',
                          self.repo.remotes[0].url)
 
+    @unittest.skipIf(__pypy__ is not None)
     def test_remote_refcount(self):
         start = sys.getrefcount(self.repo)
         remote = self.repo.remotes[0]
         del remote
         end = sys.getrefcount(self.repo)
-
         self.assertEqual(start, end)
 
     def test_add_refspec(self):
