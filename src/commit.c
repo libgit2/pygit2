@@ -34,6 +34,8 @@
 #include "object.h"
 #include "oid.h"
 
+extern PyTypeObject CommitType;
+extern PyTypeObject RepositoryType;
 extern PyTypeObject TreeType;
 
 
@@ -236,6 +238,47 @@ PyGetSetDef Commit_getseters[] = {
     {NULL}
 };
 
+PyDoc_STRVAR(Commit_from_c__doc__, "Method exposed for Walker to hook into");
+
+PyObject *
+Commit_from_c(Commit *dummy, PyObject *args)
+{
+    PyObject *py_buffer, *py_repository;
+    Commit *py_commit;
+    git_commit *commit;
+    char *buffer;
+    Py_ssize_t length;
+
+    if (!PyArg_ParseTuple(args, "OO!", &py_buffer, &RepositoryType, &py_repository))
+        return NULL;
+
+    /* Here we need to do the opposite conversion from the _pointer getters */
+    if (PyBytes_AsStringAndSize(py_buffer, &buffer, &length))
+        return NULL;
+
+    if (length != sizeof(git_commit *)) {
+        PyErr_SetString(PyExc_TypeError, "passed value is not a pointer");
+        return NULL;
+    }
+
+    /* the "buffer" contains the pointer */
+    commit = *((git_commit **) buffer);
+
+    py_commit = PyObject_New(Commit, &CommitType);
+    if (py_commit) {
+        py_commit->commit = commit;
+        Py_INCREF(py_repository);
+        py_commit->repo = (Repository *)py_repository;
+    }
+    return (PyObject*)py_commit;
+}
+
+
+static PyMethodDef Commit_methods[] = {
+    METHOD(Commit, from_c, METH_STATIC | METH_VARARGS),
+    {NULL}
+};
+
 
 PyDoc_STRVAR(Commit__doc__, "Commit objects.");
 
@@ -267,7 +310,7 @@ PyTypeObject CommitType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Commit_methods,                            /* tp_methods        */
     0,                                         /* tp_members        */
     Commit_getseters,                          /* tp_getset         */
     0,                                         /* tp_base           */

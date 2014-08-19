@@ -42,6 +42,7 @@ from .repository import Repository
 from .settings import Settings
 from .utils import to_bytes
 from .version import __version__
+from .walker import Walker
 
 
 def init_repository(path, bare=False,

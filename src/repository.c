@@ -618,80 +618,6 @@ Repository_merge(Repository *self, PyObject *py_oid)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Repository_walk__doc__,
-  "walk(oid[, sort_mode]) -> iterator\n"
-  "\n"
-  "Generator that traverses the history starting from the given commit.\n"
-  "The following types of sorting could be used to control traversing\n"
-  "direction:\n"
-  "\n"
-  "* GIT_SORT_NONE. This is the default sorting for new walkers.\n"
-  "  Sort the repository contents in no particular ordering\n"
-  "* GIT_SORT_TOPOLOGICAL. Sort the repository contents in topological order\n"
-  "  (parents before children); this sorting mode can be combined with\n"
-  "  time sorting.\n"
-  "* GIT_SORT_TIME. Sort the repository contents by commit time\n"
-  "* GIT_SORT_REVERSE. Iterate through the repository contents in reverse\n"
-  "  order; this sorting mode can be combined with any of the above.\n"
-  "\n"
-  "Example:\n"
-  "\n"
-  "  >>> from pygit2 import Repository\n"
-  "  >>> from pygit2 import GIT_SORT_TOPOLOGICAL, GIT_SORT_REVERSE\n"
-  "  >>> repo = Repository('.git')\n"
-  "  >>> for commit in repo.walk(repo.head.target, GIT_SORT_TOPOLOGICAL):\n"
-  "  ...    print commit.message\n"
-  "  >>> for commit in repo.walk(repo.head.target, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE):\n"
-  "  ...    print commit.message\n"
-  "  >>>\n");
-
-PyObject *
-Repository_walk(Repository *self, PyObject *args)
-{
-    PyObject *value;
-    unsigned int sort = GIT_SORT_NONE;
-    int err;
-    git_oid oid;
-    git_revwalk *walk;
-    Walker *py_walker;
-
-    if (!PyArg_ParseTuple(args, "O|I", &value, &sort))
-        return NULL;
-
-    err = git_revwalk_new(&walk, self->repo);
-    if (err < 0)
-        return Error_set(err);
-
-    /* Sort */
-    git_revwalk_sorting(walk, sort);
-
-    /* Push */
-    if (value != Py_None) {
-        err = py_oid_to_git_oid_expand(self->repo, value, &oid);
-        if (err < 0) {
-            git_revwalk_free(walk);
-            return NULL;
-        }
-
-        err = git_revwalk_push(walk, &oid);
-        if (err < 0) {
-            git_revwalk_free(walk);
-            return Error_set(err);
-        }
-    }
-
-    py_walker = PyObject_New(Walker, &WalkerType);
-    if (!py_walker) {
-        git_revwalk_free(walk);
-        return NULL;
-    }
-
-    Py_INCREF(self);
-    py_walker->repo = self;
-    py_walker->walk = walk;
-    return (PyObject*)py_walker;
-}
-
 
 PyDoc_STRVAR(Repository_create_blob__doc__,
     "create_blob(data) -> Oid\n"
@@ -1484,7 +1410,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_commit, METH_VARARGS),
     METHOD(Repository, create_tag, METH_VARARGS),
     METHOD(Repository, TreeBuilder, METH_VARARGS),
-    METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
     METHOD(Repository, merge_analysis, METH_O),
     METHOD(Repository, merge, METH_O),

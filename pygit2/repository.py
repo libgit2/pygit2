@@ -42,7 +42,9 @@ from .errors import check_error
 from .ffi import ffi, C
 from .index import Index
 from .remote import Remote
+from .oid import oid_to_git_oid_expand
 from .utils import to_bytes
+from .walker import Walker
 
 
 class Repository(_Repository):
@@ -380,3 +382,52 @@ class Repository(_Repository):
         check_error(err, True)
 
         return Index.from_c(self, cindex)
+
+    #
+    # Walker
+    #
+    def walk(self, oid, sort_mode=0):
+        """walk(oid[, sort_mode]) -> iterator
+
+        Generator that traverses the history starting from the given commit.
+        The following types of sorting could be used to control traversing
+        direction:
+
+        * GIT_SORT_NONE. This is the default sorting for new walkers.
+          Sort the repository contents in no particular ordering
+        * GIT_SORT_TOPOLOGICAL. Sort the repository contents in topological order
+          (parents before children); this sorting mode can be combined with
+          time sorting.
+        * GIT_SORT_TIME. Sort the repository contents by commit time
+        * GIT_SORT_REVERSE. Iterate through the repository contents in reverse
+          order; this sorting mode can be combined with any of the above.
+
+        Example:
+
+          >>> from pygit2 import Repository
+          >>> from pygit2 import GIT_SORT_TOPOLOGICAL, GIT_SORT_REVERSE
+          >>> repo = Repository('.git')
+          >>> for commit in repo.walk(repo.head.target, GIT_SORT_TOPOLOGICAL):
+          ...    print commit.message
+          >>> for commit in repo.walk(repo.head.target, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE):
+          ...    print commit.message
+          >>>
+        """
+        cwalk = ffi.new('git_revwalk **')
+        err = C.git_revwalk_new(cwalk, self._repo)
+        check_error(err)
+
+        C.git_revwalk_sorting(cwalk[0], sort_mode)
+
+        if oid is not None:
+            coid = oid_to_git_oid_expand(self._repo, oid)
+            if not coid:
+                C.git_revwalk_free(cwalk[0])
+                return None
+
+            err = C.git_revwalk_push(cwalk[0], coid)
+            if err < 0:
+                C.git_revwalk_free(cwalk[0])
+                check_error(err)
+
+        return Walker.from_c(self, cwalk)

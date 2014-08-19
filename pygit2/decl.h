@@ -9,6 +9,9 @@ typedef ... git_signature;
 typedef ... git_index;
 typedef ... git_diff;
 typedef ... git_index_conflict_iterator;
+typedef ... git_revwalk;
+typedef ... git_odb;
+typedef ... git_commit;
 
 #define GIT_OID_RAWSZ ...
 #define GIT_PATH_MAX ...
@@ -505,3 +508,39 @@ int git_index_conflict_iterator_new(git_index_conflict_iterator **iterator_out, 
 int git_index_conflict_get(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index *index, const char *path);
 int git_index_conflict_next(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index_conflict_iterator *iterator);
 int git_index_conflict_remove(git_index *index, const char *path);
+
+/*
+ * git_revwalk
+ */
+#define GIT_SORT_NONE ...
+#define GIT_SORT_TOPOLOGICAL ...
+#define GIT_SORT_TIME ...
+#define GIT_SORT_REVERSE ...
+
+int git_revwalk_new(git_revwalk **out, git_repository *repo);
+void git_revwalk_reset(git_revwalk *walker);
+int git_revwalk_push(git_revwalk *walk, const git_oid *id);
+int git_revwalk_hide(git_revwalk *walk, const git_oid *commit_id);
+int git_revwalk_next(git_oid *out, git_revwalk *walk);
+void git_revwalk_sorting(git_revwalk *walk, unsigned int sort_mode);
+void git_revwalk_simplify_first_parent(git_revwalk *walk);
+void git_revwalk_free(git_revwalk *walk);
+
+/*
+ * git_odb
+ */
+void git_odb_free(git_odb *db);
+int git_odb_exists(git_odb *db, const git_oid *id);
+int git_odb_exists_prefix(git_oid *out, git_odb *db, const git_oid *short_id, size_t len);
+int git_repository_odb(git_odb **out, git_repository *repo);
+
+/*
+ * git_oid
+ */
+int git_oid_fromstrn(git_oid *out, const char *str, size_t length);
+void git_oid_cpy(git_oid *out, const git_oid *src);
+
+/*
+ * git_commit
+ */
+int git_commit_lookup(git_commit **commit, git_repository *repo, const git_oid *id);
