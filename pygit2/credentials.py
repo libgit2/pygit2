@@ -61,6 +61,12 @@ class Keypair(object):
     This is an object suitable for passing to a remote's credentials
     callback and for returning from said callback.
 
+    :param str username: the username being used to authenticate with the
+        remote server
+    :param str pubkey: the path to the user's public key file
+    :param str privkey: the path to the user's private key file
+    :param str passphrase: the password used to decrypt the private key file
+
     """
 
     def __init__(self, username, pubkey, privkey, passphrase):

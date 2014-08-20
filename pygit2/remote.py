@@ -49,7 +49,7 @@ class TransferProgress(object):
     def __init__(self, tp):
 
         self.total_objects = tp.total_objects
-        """Total number objects to download"""
+        """Total number of objects to download"""
 
         self.indexed_objects = tp.indexed_objects
         """Objects which have been indexed"""
@@ -291,7 +291,7 @@ class Remote(object):
     def push(self, spec, signature=None, message=None):
         """push(refspec, signature, message)
 
-        Push the given refspec to the remote. Raises ``GitError`` on error
+        Push the given refspec to the remote. Raises ``GitError`` on error.
 
         :param str spec: push refspec to use
         :param Signature signature: signature to use when updating the tips

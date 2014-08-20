@@ -11,12 +11,14 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys, os, platform
+from string import digits
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../build/lib.linux-x86_64-2.7'))
+version_string = sys.platform.rstrip(digits) + "-" + os.uname()[4] + "-" + ".".join(platform.python_version_tuple()[0:2])
+sys.path.insert(0, os.path.abspath('../build/lib.' + version_string))
 
 # -- General configuration -----------------------------------------------------
 
