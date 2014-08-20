@@ -329,7 +329,7 @@ class IndexEntry(object):
         self.id = object_id
         """The id of the referenced object"""
         self.mode = mode
-        """The mode of this entry, a GIT_FILEMODE_ value"""
+        """The mode of this entry, a GIT_FILEMODE_* value"""
 
     @property
     def oid(self):

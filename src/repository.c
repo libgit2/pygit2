@@ -548,7 +548,7 @@ PyDoc_STRVAR(Repository_merge_analysis__doc__,
   "them into the HEAD of the repository\n"
   "\n"
   "The first returned value is a mixture of the GIT_MERGE_ANALYSIS_NONE, _NORMAL,\n"
-  " _UP_TO_DATE, _FASTFORWARD and _UNBORN flags.\n"
+  "_UP_TO_DATE, _FASTFORWARD and _UNBORN flags.\n"
   "The second value is the user's preference from 'merge.ff'");
 
 PyObject *
