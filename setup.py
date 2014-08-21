@@ -31,8 +31,9 @@
 from __future__ import print_function
 
 import codecs
-from distutils.core import setup, Extension, Command
+from setuptools import setup, Extension, Command
 from distutils.command.build import build
+
 from distutils.command.sdist import sdist
 from distutils import log
 import os
@@ -155,15 +156,6 @@ class sdist_files_from_git(sdist):
         self.filelist.remove_duplicates()
         self.write_manifest()
 
-
-cmdclass = {
-    'test': TestCommand,
-    'sdist': sdist_files_from_git}
-
-if os.name == 'nt':
-    # BuildWithDLLs can copy external DLLs into source directory.
-    cmdclass['build'] = BuildWithDLLs
-
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -173,10 +165,31 @@ classifiers = [
 with codecs.open('README.rst', 'r', 'utf-8') as readme:
     long_description = readme.read()
 
-# This ffi is pygit2.ffi due to the path trick used in the beginning
-# of the file
-from ffi import ffi
-ffi_ext = ffi.verifier.get_extension()
+
+class CFFIBuild(build):
+    """Hack to combat the chicken and egg problem that we need cffi 
+    to add cffi as an extension.
+    """
+    def finalize_options(self):
+        # This ffi is pygit2.ffi due to the path trick used in the beginning
+        # of the file
+        from ffi import ffi
+
+        self.distribution.ext_modules.append(ffi.verifier.get_extension())
+        build.finalize_options(self)
+
+
+cmdclass = {
+    'test': TestCommand,
+    'sdist': sdist_files_from_git}
+
+if os.name == 'nt':
+    # BuildWithDLLs can copy external DLLs into source directory.
+    cmdclass['build'] = BuildWithDLLs
+else:
+    # Build cffi
+    cmdclass['build'] = CFFIBuild
+
 
 setup(name='pygit2',
       description='Python bindings for libgit2.',
@@ -191,11 +204,12 @@ setup(name='pygit2',
       packages=['pygit2'],
       package_data={'pygit2': ['decl.h']},
       install_requires=['cffi'],
+      zip_safe=False,
       ext_modules=[
           Extension('_pygit2', pygit2_exts,
                     include_dirs=[libgit2_include, 'include'],
                     library_dirs=[libgit2_lib],
                     libraries=['git2']),
-          ffi_ext,
+          # FFI is added in the build step
       ],
       cmdclass=cmdclass)
