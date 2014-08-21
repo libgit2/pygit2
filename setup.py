@@ -102,8 +102,20 @@ class TestCommand(Command):
         test_argv = test_argv0 + shlex.split(self.args)
         unittest.main(None, defaultTest='test.test_suite', argv=test_argv)
 
+class CFFIBuild(build):
+    """Hack to combat the chicken and egg problem that we need cffi 
+    to add cffi as an extension.
+    """
+    def finalize_options(self):
+        # This ffi is pygit2.ffi due to the path trick used in the beginning
+        # of the file
+        from ffi import ffi
 
-class BuildWithDLLs(build):
+        self.distribution.ext_modules.append(ffi.verifier.get_extension())
+        build.finalize_options(self)
+
+
+class BuildWithDLLs(CFFIBuild):
 
     # On Windows, we install the git2.dll too.
     def _get_dlls(self):
@@ -164,19 +176,6 @@ classifiers = [
 
 with codecs.open('README.rst', 'r', 'utf-8') as readme:
     long_description = readme.read()
-
-
-class CFFIBuild(build):
-    """Hack to combat the chicken and egg problem that we need cffi 
-    to add cffi as an extension.
-    """
-    def finalize_options(self):
-        # This ffi is pygit2.ffi due to the path trick used in the beginning
-        # of the file
-        from ffi import ffi
-
-        self.distribution.ext_modules.append(ffi.verifier.get_extension())
-        build.finalize_options(self)
 
 
 cmdclass = {
