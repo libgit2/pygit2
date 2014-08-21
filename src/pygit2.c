@@ -42,15 +42,6 @@ extern PyTypeObject RepositoryType;
 extern PyTypeObject OidType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
-extern PyTypeObject DiffType;
-extern PyTypeObject DiffIterType;
-extern PyTypeObject DiffFileType;
-extern PyTypeObject DiffDeltaType;
-extern PyTypeObject DiffHunkType;
-extern PyTypeObject DiffHunkIterType;
-extern PyTypeObject DiffLineType;
-extern PyTypeObject PatchType;
-extern PyTypeObject PatchIterType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject TreeEntryType;
@@ -295,18 +286,6 @@ moduleinit(PyObject* m)
     /*
      * Diff
      */
-    INIT_TYPE(DiffType, NULL, NULL)
-    INIT_TYPE(DiffIterType, NULL, NULL)
-    INIT_TYPE(DiffFileType, NULL, NULL)
-    INIT_TYPE(DiffDeltaType, NULL, NULL)
-    INIT_TYPE(DiffHunkType, NULL, NULL)
-    INIT_TYPE(DiffHunkIterType, NULL, NULL)
-    INIT_TYPE(DiffLineType, NULL, NULL)
-    ADD_TYPE(m, Diff)
-    ADD_TYPE(m, DiffFile)
-    ADD_TYPE(m, DiffDelta)
-    ADD_TYPE(m, DiffHunk)
-    ADD_TYPE(m, DiffLine)
     ADD_CONSTANT_INT(m, GIT_DIFF_NORMAL)
     ADD_CONSTANT_INT(m, GIT_DIFF_REVERSE)
     ADD_CONSTANT_INT(m, GIT_DIFF_FORCE_TEXT)
@@ -351,13 +330,6 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_DELTA_IGNORED)
     ADD_CONSTANT_INT(m, GIT_DELTA_UNTRACKED)
     ADD_CONSTANT_INT(m, GIT_DELTA_TYPECHANGE)
-
-    /*
-     * Patch
-     */
-    INIT_TYPE(PatchType, NULL, NULL)
-    INIT_TYPE(PatchIterType, NULL, NULL)
-    ADD_TYPE(m, Patch)
 
     /* Config */
     ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_LOCAL);

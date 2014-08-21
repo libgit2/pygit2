@@ -60,10 +60,19 @@ PyDoc_STRVAR(Blob_data__doc__,
   "The contents of the blob, a bytes string. This is the same as\n"
   "Blob.read_raw()");
 
+PyDoc_STRVAR(Blob__pointer__doc__, "Get the blob's pointer. For internal use only.");
+PyObject *
+Blob__pointer__get__(Blob *self)
+{
+    /* Bytes means a raw buffer */
+    return PyBytes_FromStringAndSize((char *) &self->blob, sizeof(git_blob *));
+}
+
 PyGetSetDef Blob_getseters[] = {
     GETTER(Blob, size),
     GETTER(Blob, is_binary),
     {"data", (getter)Object_read_raw, NULL, Blob_data__doc__, NULL},
+    GETTER(Blob, _pointer),
     {NULL}
 };
 

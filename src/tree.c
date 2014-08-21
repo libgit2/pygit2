@@ -33,13 +33,28 @@
 #include "repository.h"
 #include "oid.h"
 #include "tree.h"
-#include "diff.h"
 
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeEntryType;
-extern PyTypeObject DiffType;
 extern PyTypeObject TreeIterType;
 extern PyTypeObject IndexType;
+
+
+PyObject *wrap_diff(git_diff *diff, Repository *repo) {
+    PyObject *py_git2;
+    PyObject *py_diff;
+
+    py_git2 = PyImport_ImportModuleNoBlock("pygit2");
+    if (py_git2 == NULL)
+        return NULL;
+
+    py_diff = PyObject_GetAttrString(py_git2, "Diff");
+    if (py_diff == NULL)
+        return NULL;
+
+    return PyObject_CallMethod(py_diff, "_from_c", "(OO)",
+        PyBytes_FromStringAndSize((char *)&diff, sizeof(git_diff *)), repo);
+}
 
 void
 TreeEntry_dealloc(TreeEntry *self)

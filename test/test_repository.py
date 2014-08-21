@@ -322,8 +322,8 @@ class RepositoryTest_II(utils.RepoTestCase):
         #mixed reset will set the index to match working copy
         diff = self.repo.diff(cached=True)
 
-        self.assertTrue("hola mundo\n" in ''.join([str(patch) for patch in diff.patches()]))
-        self.assertTrue("bonjour le monde\n" in ''.join([str(patch) for patch in diff.patches()]))
+        self.assertTrue("hola mundo\n" in ''.join([str(patch) for patch in diff.patches]))
+        self.assertTrue("bonjour le monde\n" in ''.join([str(patch) for patch in diff.patches]))
 
 class RepositorySignatureTest(utils.RepoTestCase):
 

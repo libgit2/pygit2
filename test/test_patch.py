@@ -32,7 +32,7 @@ from __future__ import unicode_literals
 from os.path import dirname, join
 import unittest
 
-import pygit2
+from pygit2 import Patch
 from . import utils
 
 
@@ -72,22 +72,22 @@ class DiffTest(utils.BareRepoTestCase):
         commit_b = self.repo[COMMIT_SHA1_2]
 
         diff = commit_a.tree.diff_to_tree(commit_b.tree)
-        self.assertEqual(''.join([str(pygit2.Patch.from_diff(diff, i)) for i in range(len(diff))]), PATCH)
-        self.assertEqual(len(diff), len([patch for patch in diff]))
+        self.assertEqual(''.join([str(p) for p in diff.patches]), PATCH)
+        self.assertEqual(len(diff.deltas), len([patch for patch in diff.deltas]))
 
 class BlobTest(utils.RepoTestCase):
 
     def test_diff_blob(self):
         old_blob = self.repo[BLOB_SHA]
         new_blob = self.repo['3b18e512dba79e4c8300dd08aeb37f8e728b8dad']
-        patch = pygit2.Patch.from_blobs(old_blob, "hello.txt", new_blob)
-        self.assertEqual(len(patch), 1)
+        patch = Patch.from_blobs(old_blob, "hello.txt", new_blob)
+        self.assertEqual(len(patch.hunks), 1)
         self.assertEqual(patch.delta.old_file.path, "hello.txt")
 
     def test_diff_blob_to_buffer(self):
         old_blob = self.repo[BLOB_SHA]
-        patch = pygit2.Patch.from_blob_and_buffer(old_blob, buffer="hello world")
-        self.assertEqual(len(patch), 1)
+        patch = Patch.from_blob_and_buffer(old_blob, buffer="hello world")
+        self.assertEqual(len(patch.hunks), 1)
 
 if __name__ == '__main__':
     unittest.main()

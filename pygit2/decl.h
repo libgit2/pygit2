@@ -8,6 +8,8 @@ typedef ... git_tree;
 typedef ... git_signature;
 typedef ... git_index;
 typedef ... git_diff;
+typedef ... git_blob;
+typedef ... git_patch;
 typedef ... git_index_conflict_iterator;
 
 #define GIT_OID_RAWSZ ...
@@ -200,6 +202,12 @@ typedef enum {
 } git_submodule_ignore_t;
 
 typedef enum {
+	GIT_DIFF_FLAG_BINARY = 1,
+	GIT_DIFF_FLAG_NOT_BINARY = 2,
+	GIT_DIFF_FLAG_VALID_ID = 4
+} git_diff_flag_t;
+
+typedef enum {
 	GIT_DELTA_UNMODIFIED = 0,
 	GIT_DELTA_ADDED = 1,
 	GIT_DELTA_DELETED = 2,
@@ -252,8 +260,100 @@ typedef struct {
 } git_diff_options;
 
 int git_diff_init_options(git_diff_options *opts, unsigned int version);
-int git_diff_index_to_workdir(git_diff **diff, git_repository *repo, git_index *index, const git_diff_options *opts);
+
+typedef int (*git_diff_file_cb)(
+	const git_diff_delta *delta,
+	float progress,
+	void *payload);
+
+typedef struct git_diff_hunk {
+	int    old_start;
+	int    old_lines;
+	int    new_start;
+	int    new_lines;
+	size_t header_len;
+	char   header[128];
+} git_diff_hunk;
+
+typedef int (*git_diff_hunk_cb)(
+	const git_diff_delta *delta,
+	const git_diff_hunk *hunk,
+	void *payload);
+
+typedef enum { ... } git_diff_line_t;
+
+typedef struct git_diff_line {
+	char   origin;
+	int    old_lineno;
+	int    new_lineno;
+	int    num_lines;
+	size_t content_len;
+	git_off_t content_offset;
+	const char *content;
+} git_diff_line;
+
+typedef int (*git_diff_line_cb)(
+	const git_diff_delta *delta,
+	const git_diff_hunk *hunk,
+	const git_diff_line *line,
+	void *payload);
+
+typedef enum { ... } git_diff_find_t;
+
+typedef struct {
+	int (*file_signature)(void **out, const git_diff_file *file, const char *fullpath, void *payload);
+	int (*buffer_signature)(void **out, const git_diff_file *file, const char *buf, size_t buflen, void *payload);
+	void (*free_signature)(void *sig, void *payload);
+	int (*similarity)(int *score, void *siga, void *sigb, void *payload);
+	void *payload;
+} git_diff_similarity_metric;
+
+typedef struct {
+	unsigned int version;
+	
+	uint32_t flags;
+	
+	uint16_t rename_threshold;
+	uint16_t rename_from_rewrite_threshold;
+	uint16_t copy_threshold;
+	uint16_t break_rewrite_threshold;
+
+	size_t rename_limit;
+
+	git_diff_similarity_metric *metric;
+} git_diff_find_options;
+
+int git_diff_find_init_options(git_diff_find_options *opts, unsigned int version);
+
+void git_diff_free(git_diff *diff);
+int git_diff_tree_to_tree(git_diff **diff, git_repository *repo, git_tree *old_tree, git_tree *new_tree, const git_diff_options *opts);
 int git_diff_tree_to_index(git_diff **diff, git_repository *repo, git_tree *old_tree, git_index *index, const git_diff_options *opts);
+int git_diff_index_to_workdir(git_diff **diff, git_repository *repo, git_index *index, const git_diff_options *opts);
+int git_diff_tree_to_workdir_with_index(git_diff **diff, git_repository *repo, git_tree *old_tree, const git_diff_options *opts);
+int git_diff_merge(git_diff *onto, const git_diff *from);
+int git_diff_find_similar(git_diff *diff, const git_diff_find_options *options);
+size_t git_diff_num_deltas(const git_diff *diff);
+size_t git_diff_num_deltas_of_type(const git_diff *diff, git_delta_t type);
+const git_diff_delta *git_diff_get_delta(const git_diff *diff, size_t idx);
+char git_diff_status_char(git_delta_t status);
+
+/*
+ * git_patch
+ */
+
+int git_patch_from_diff(git_patch **out, git_diff *diff, size_t idx);
+int git_patch_from_blobs(git_patch **out, const git_blob *old_blob, const char *old_as_path, const git_blob *new_blob, const char *new_as_path, const git_diff_options *opts);
+int git_patch_from_blob_and_buffer(git_patch **out, const git_blob *old_blob, const char *old_as_path, const char *buffer, size_t buffer_len, const char *buffer_as_path, const git_diff_options *opts);
+int git_patch_from_buffers( git_patch **out, const void *old_buffer, size_t old_len, const char *old_as_path, const char *new_buffer, size_t new_len, const char *new_as_path, const git_diff_options *opts);
+void git_patch_free(git_patch *patch);
+const git_diff_delta *git_patch_get_delta(const git_patch *patch);
+size_t git_patch_num_hunks(const git_patch *patch);
+int git_patch_line_stats(size_t *total_context, size_t *total_additions, size_t *total_deletions, const git_patch *patch);
+int git_patch_get_hunk(const git_diff_hunk **out, size_t *lines_in_hunk, git_patch *patch, size_t hunk_idx);
+int git_patch_num_lines_in_hunk(const git_patch *patch, size_t hunk_idx);
+int git_patch_get_line_in_hunk(const git_diff_line **out, git_patch *patch, size_t hunk_idx, size_t line_of_hunk);
+size_t git_patch_size(git_patch *patch, int include_context, int include_hunk_headers, int include_file_headers);
+int git_patch_to_buf(git_buf *out, git_patch *patch);
 
 /*
  * git_checkout

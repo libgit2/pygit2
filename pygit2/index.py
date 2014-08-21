@@ -29,7 +29,8 @@
 from __future__ import absolute_import, unicode_literals
 
 # Import from pygit2
-from _pygit2 import Oid, Tree, Diff
+from _pygit2 import Oid, Tree
+from .diff import Diff
 from .errors import check_error
 from .ffi import ffi, C
 from .utils import is_string, strings_to_strarray, to_bytes, to_str
@@ -238,7 +239,7 @@ class Index(object):
                                           self._index, copts)
         check_error(err)
 
-        return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
+        return Diff._from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
 
     def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
         """diff_to_tree(flags=0, context_lines=3, interhunk_lines=0) -> Diff
@@ -283,7 +284,7 @@ class Index(object):
                                        self._index, copts)
         check_error(err)
 
-        return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
+        return Diff._from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
 
 
     #
