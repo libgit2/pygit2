@@ -203,6 +203,7 @@ setup(name='pygit2',
       long_description=long_description,
       packages=['pygit2'],
       package_data={'pygit2': ['decl.h']},
+      setup_requires=['cffi'],
       install_requires=['cffi'],
       zip_safe=False,
       ext_modules=[
