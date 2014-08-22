@@ -240,6 +240,8 @@ class Repository(_Repository):
 
           >>> checkout('HEAD')
 
+        This is identical to calling checkout_head().
+
         If no reference is given, checkout from the index.
 
         Arguments:
