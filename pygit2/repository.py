@@ -244,7 +244,7 @@ class Repository(_Repository):
 
         Arguments:
 
-        :param str refname: The reference to checkout. After checkout,
+        :param str|Reference refname: The reference to checkout. After checkout,
           the current branch will be switched to this one.
 
         :param int strategy: A ``GIT_CHECKOUT_`` value. The default is
