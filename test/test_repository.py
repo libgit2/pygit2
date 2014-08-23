@@ -221,6 +221,25 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.assertTrue('new' in head.tree)
         self.assertTrue('bye.txt' not in self.repo.status())
 
+    def test_checkout_branch(self):
+        branch_i18n = self.repo.lookup_branch('i18n')
+
+        # checkout i18n with conflicts and default strategy should
+        # not be possible
+        self.assertRaises(pygit2.GitError, self.repo.checkout, branch_i18n)
+
+        # checkout i18n with GIT_CHECKOUT_FORCE
+        head = self.repo.head
+        head = self.repo[head.target]
+        self.assertTrue('new' not in head.tree)
+        self.repo.checkout(branch_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
+
+        head = self.repo.head
+        head = self.repo[head.target]
+        self.assertEqual(head.hex, branch_i18n.target.hex)
+        self.assertTrue('new' in head.tree)
+        self.assertTrue('bye.txt' not in self.repo.status())
+
     def test_checkout_index(self):
         # some changes to working dir
         with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
