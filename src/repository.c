@@ -968,7 +968,8 @@ out:
 PyDoc_STRVAR(Repository_listall_branches__doc__,
   "listall_branches([flags]) -> [str, ...]\n"
   "\n"
-  "Return a tuple with all the branches in the repository.");
+  "Return a tuple with all the branches in the repository.\n"
+  "By default, it returns all local branches.");
 
 PyObject *
 Repository_listall_branches(Repository *self, PyObject *args)
