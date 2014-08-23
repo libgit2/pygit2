@@ -295,7 +295,9 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
 PyDoc_STRVAR(Repository_lookup_branch__doc__,
   "lookup_branch(branch_name, [branch_type]) -> Object\n"
   "\n"
-  "Returns the Git reference for the given branch name (local or remote).");
+  "Returns the Git reference for the given branch name (local or remote).\n"
+  "If branch_type is GIT_BRANCH_REMOTE, you must include the remote name\n"
+  "in the branch name (eg 'origin/master').");
 
 PyObject *
 Repository_lookup_branch(Repository *self, PyObject *args)
