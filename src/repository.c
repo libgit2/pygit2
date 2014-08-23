@@ -293,7 +293,7 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
 
 
 PyDoc_STRVAR(Repository_lookup_branch__doc__,
-  "lookup_branch(branch_name, [branch_type]) -> Object\n"
+  "lookup_branch(branch_name, [branch_type]) -> Branch\n"
   "\n"
   "Returns the Git reference for the given branch name (local or remote).\n"
   "If branch_type is GIT_BRANCH_REMOTE, you must include the remote name\n"
@@ -895,7 +895,7 @@ Repository_create_tag(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_branch__doc__,
-  "create_branch(name, commit, force=False) -> bytes\n"
+  "create_branch(name, commit, force=False) -> Branch\n"
   "\n"
   "Create a new branch \"name\" which points to a commit.\n"
   "\n"
