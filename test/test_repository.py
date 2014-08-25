@@ -428,6 +428,17 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
 
         self.assertFalse(repo.is_empty)
 
+    def test_clone_with_checkout_branch(self):
+        # create a test case which isolates the remote
+        test_repo = clone_repository('./test/data/testrepo.git',
+                                     os.path.join(self._temp_dir, 'testrepo-orig.git'),
+                                     bare=True)
+        test_repo.create_branch('test', test_repo[test_repo.head.target])
+        repo = clone_repository(test_repo.path,
+                                os.path.join(self._temp_dir, 'testrepo.git'),
+                                checkout_branch='test', bare=True)
+        self.assertEqual(repo.lookup_reference('HEAD').target, 'refs/heads/test')
+
     # FIXME The tests below are commented because they are broken:
     #
     # - test_clone_push_url: Passes, but does nothing useful.
@@ -437,8 +448,6 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
     #
     # - test_clone_push_spec: Passes, but does nothing useful.
     #
-    # - test_clone_checkout_branch: Fails, because the test fixture does not
-    #   have any branch named "test"
 
 #   def test_clone_push_url(self):
 #       repo_path = "./test/data/testrepo.git/"
@@ -469,16 +478,6 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
 #       # enable this test
 #       # not sure how to test this either... couldn't find pushspec
 #       # self.assertEqual(repo.remotes[0].fetchspec, "refs/heads/test")
-
-#   def test_clone_checkout_branch(self):
-#       repo_path = "./test/data/testrepo.git/"
-#       repo = clone_repository(repo_path, self._temp_dir,
-#                               checkout_branch="test")
-#       self.assertFalse(repo.is_empty)
-#       # FIXME: When pygit2 supports retrieving the current branch,
-#       # enable this test
-#       # self.assertEqual(repo.remotes[0].current_branch, "test")
-
 
 if __name__ == '__main__':
     unittest.main()
