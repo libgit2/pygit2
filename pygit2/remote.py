@@ -203,10 +203,15 @@ class Remote(object):
         callbacks.transfer_progress = self._transfer_progress_cb
         callbacks.update_tips = self._update_tips_cb
         callbacks.credentials = self._credentials_cb
-        callbacks.payload = ffi.new_handle(self)
+        # We need to make sure that this handle stays alive
+        self._self_handle = ffi.new_handle(self)
+        callbacks.payload = self._self_handle
 
         err = C.git_remote_set_callbacks(self._remote, callbacks)
-        check_error(err)
+        try:
+            check_error(err)
+        finally:
+            self._self_handle = None
 
         if signature:
             ptr = signature._pointer[:]
@@ -223,6 +228,7 @@ class Remote(object):
             check_error(err)
         finally:
             # Even on error, clear stored callbacks and reset to default
+            self._self_handle = None
             err = C.git_remote_set_callbacks(self._remote, defaultcallbacks)
             check_error(err)
 
