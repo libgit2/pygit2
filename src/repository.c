@@ -293,9 +293,11 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
 
 
 PyDoc_STRVAR(Repository_lookup_branch__doc__,
-  "lookup_branch(branch_name, [branch_type]) -> Object\n"
+  "lookup_branch(branch_name, [branch_type]) -> Branch\n"
   "\n"
-  "Returns the Git reference for the given branch name (local or remote).");
+  "Returns the Git reference for the given branch name (local or remote).\n"
+  "If branch_type is GIT_BRANCH_REMOTE, you must include the remote name\n"
+  "in the branch name (eg 'origin/master').");
 
 PyObject *
 Repository_lookup_branch(Repository *self, PyObject *args)
@@ -893,7 +895,7 @@ Repository_create_tag(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_branch__doc__,
-  "create_branch(name, commit, force=False) -> bytes\n"
+  "create_branch(name, commit, force=False) -> Branch\n"
   "\n"
   "Create a new branch \"name\" which points to a commit.\n"
   "\n"
@@ -968,7 +970,8 @@ out:
 PyDoc_STRVAR(Repository_listall_branches__doc__,
   "listall_branches([flags]) -> [str, ...]\n"
   "\n"
-  "Return a tuple with all the branches in the repository.");
+  "Return a tuple with all the branches in the repository.\n"
+  "By default, it returns all local branches.");
 
 PyObject *
 Repository_listall_branches(Repository *self, PyObject *args)

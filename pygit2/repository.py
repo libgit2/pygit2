@@ -240,11 +240,13 @@ class Repository(_Repository):
 
           >>> checkout('HEAD')
 
+        This is identical to calling checkout_head().
+
         If no reference is given, checkout from the index.
 
         Arguments:
 
-        :param str refname: The reference to checkout. After checkout,
+        :param str|Reference refname: The reference to checkout. After checkout,
           the current branch will be switched to this one.
 
         :param int strategy: A ``GIT_CHECKOUT_`` value. The default is
