@@ -263,7 +263,7 @@ class Repository(_Repository):
             return self.checkout_head(**kwargs)
 
         # Case 3: Reference
-        if type(refname) is Reference:
+        if isinstance(refname, Reference):
             reference = refname
             refname = refname.name
         else:
