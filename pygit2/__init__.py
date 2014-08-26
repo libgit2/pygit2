@@ -154,7 +154,7 @@ def clone_repository(
     # We need to keep the ref alive ourselves
     checkout_branch_ref = None
     if branch:
-        checkout_branch_ref = ffi.new('char []', branch)
+        checkout_branch_ref = ffi.new('char []', to_bytes(branch))
         opts.checkout_branch = checkout_branch_ref
 
     remote_name_ref = ffi.new('char []', to_bytes(remote_name))
