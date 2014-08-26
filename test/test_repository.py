@@ -37,6 +37,7 @@ import unittest
 import tempfile
 import os
 from os.path import join, realpath
+import sys
 
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
@@ -44,6 +45,11 @@ from pygit2 import init_repository, clone_repository, clone_into, discover_repos
 from pygit2 import Oid, Reference, hashfile
 import pygit2
 from . import utils
+
+try:
+    import __pypy__
+except ImportError:
+    __pypy__ = None
 
 
 HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
@@ -149,6 +155,15 @@ class RepositoryTest(utils.BareRepoTestCase):
              'This commit has some additional text.\n'),
             commit.message)
         self.assertRaises(ValueError, self.repo.__getitem__, too_short_prefix)
+
+    @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
+    def test_lookup_commit_refcount(self):
+        start = sys.getrefcount(self.repo)
+        commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
+        commit = self.repo[commit_sha]
+        del commit
+        end = sys.getrefcount(self.repo)
+        self.assertEqual(start, end)
 
     def test_get_path(self):
         directory = realpath(self.repo.path)

@@ -30,6 +30,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
+import sys
 
 from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
 from . import utils
@@ -45,6 +46,16 @@ COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 
 
 class CommitTest(utils.BareRepoTestCase):
+
+    @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
+    def test_commit_refcount(self):
+        commit = self.repo[COMMIT_SHA]
+        start = sys.getrefcount(commit)
+        tree = commit.tree
+        del tree
+        end = sys.getrefcount(commit)
+        self.assertEqual(start, end)
+
 
     def test_read_commit(self):
         commit = self.repo[COMMIT_SHA]

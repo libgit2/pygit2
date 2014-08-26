@@ -127,20 +127,6 @@ class Remote(object):
         self._remote = ptr
         self._stored_exception = None
 
-        # Build the callback structure
-        callbacks = ffi.new('git_remote_callbacks *')
-        callbacks.version = 1
-        callbacks.sideband_progress = self._sideband_progress_cb
-        callbacks.transfer_progress = self._transfer_progress_cb
-        callbacks.update_tips = self._update_tips_cb
-        callbacks.credentials = self._credentials_cb
-        # We need to make sure that this handle stays alive
-        self._self_handle = ffi.new_handle(self)
-        callbacks.payload = self._self_handle
-
-        err = C.git_remote_set_callbacks(self._remote, callbacks)
-        check_error(err)
-
     def __del__(self):
         C.git_remote_free(self._remote)
 
@@ -205,17 +191,46 @@ class Remote(object):
         Perform a fetch against this remote.
         """
 
+        # Get the default callbacks first
+        defaultcallbacks = ffi.new('git_remote_callbacks *')
+        err = C.git_remote_init_callbacks(defaultcallbacks, 1)
+        check_error(err)
+
+        # Build custom callback structure
+        callbacks = ffi.new('git_remote_callbacks *')
+        callbacks.version = 1
+        callbacks.sideband_progress = self._sideband_progress_cb
+        callbacks.transfer_progress = self._transfer_progress_cb
+        callbacks.update_tips = self._update_tips_cb
+        callbacks.credentials = self._credentials_cb
+        # We need to make sure that this handle stays alive
+        self._self_handle = ffi.new_handle(self)
+        callbacks.payload = self._self_handle
+
+        err = C.git_remote_set_callbacks(self._remote, callbacks)
+        try:
+            check_error(err)
+        finally:
+            self._self_handle = None
+
         if signature:
             ptr = signature._pointer[:]
         else:
             ptr = ffi.NULL
 
         self._stored_exception = None
-        err = C.git_remote_fetch(self._remote, ptr, to_bytes(message))
-        if self._stored_exception:
-            raise self._stored_exception
 
-        check_error(err)
+        try:
+            err = C.git_remote_fetch(self._remote, ptr, to_bytes(message))
+            if self._stored_exception:
+                raise self._stored_exception
+
+            check_error(err)
+        finally:
+            # Even on error, clear stored callbacks and reset to default
+            self._self_handle = None
+            err = C.git_remote_set_callbacks(self._remote, defaultcallbacks)
+            check_error(err)
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
