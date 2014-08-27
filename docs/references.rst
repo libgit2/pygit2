@@ -17,16 +17,18 @@ Example::
 The Reference type
 ====================
 
+.. autoclass:: pygit2.Reference
+
 .. autoattribute:: pygit2.Reference.name
 .. autoattribute:: pygit2.Reference.shorthand
 .. autoattribute:: pygit2.Reference.target
 .. autoattribute:: pygit2.Reference.type
 
+.. automethod:: pygit2.Reference.set_target
 .. automethod:: pygit2.Reference.delete
 .. automethod:: pygit2.Reference.rename
 .. automethod:: pygit2.Reference.resolve
 .. automethod:: pygit2.Reference.log
-.. automethod:: pygit2.Reference.log_append
 
    Example::
 
