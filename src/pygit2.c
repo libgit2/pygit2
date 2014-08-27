@@ -62,10 +62,6 @@ extern PyTypeObject RemoteType;
 extern PyTypeObject RefspecType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
-extern PyTypeObject BlameType;
-extern PyTypeObject BlameIterType;
-extern PyTypeObject BlameHunkType;
-
 
 
 PyDoc_STRVAR(discover_repository__doc__,
@@ -337,11 +333,6 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_CONFIG_LEVEL_SYSTEM);
 
     /* Blame */
-    INIT_TYPE(BlameType, NULL, NULL)
-    INIT_TYPE(BlameIterType, NULL, NULL)
-    INIT_TYPE(BlameHunkType, NULL, NULL)
-    ADD_TYPE(m, Blame)
-    ADD_TYPE(m, BlameHunk)
     ADD_CONSTANT_INT(m, GIT_BLAME_NORMAL)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_SAME_FILE)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES)

@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 import pygit2
-from pygit2 import Signature
+from pygit2 import Signature, Oid
 from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
 from pygit2 import GIT_DIFF_IGNORE_WHITESPACE, GIT_DIFF_IGNORE_WHITESPACE_EOL
 from . import utils
@@ -41,13 +41,13 @@ from datetime import datetime
 PATH = 'hello.txt'
 
 HUNKS = [
-    ('acecd5ea2924a4b900e7e149496e1f4b57976e51', 1,
+    (Oid(hex='acecd5ea2924a4b900e7e149496e1f4b57976e51'), 1,
      Signature('J. David Ibañez', 'jdavid@itaapy.com',
                1297179898, 60, encoding='utf-8'), True),
-    ('6aaa262e655dd54252e5813c8e5acd7780ed097d', 2,
+    (Oid(hex='6aaa262e655dd54252e5813c8e5acd7780ed097d'), 2,
      Signature('J. David Ibañez', 'jdavid@itaapy.com',
                1297696877, 60, encoding='utf-8'), False),
-    ('4ec4389a8068641da2d6578db0419484972284c8', 3,
+    (Oid(hex='4ec4389a8068641da2d6578db0419484972284c8'), 3,
      Signature('J. David Ibañez', 'jdavid@itaapy.com',
                1297696908, 60, encoding='utf-8'), False)
 ]

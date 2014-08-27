@@ -36,7 +36,6 @@
 #include "note.h"
 #include "repository.h"
 #include "branch.h"
-#include "blame.h"
 #include "signature.h"
 #include <git2/odb_backend.h>
 
@@ -1377,72 +1376,6 @@ Repository_lookup_note(Repository *self, PyObject* args)
     return (PyObject*) wrap_note(self, &annotated_id, ref);
 }
 
-PyDoc_STRVAR(Repository_blame__doc__,
-  "blame(path, [flags, min_match_characters, newest_commit, oldest_commit,\n"
-  "             min_line, max_line]) -> blame\n"
-  "\n"
-  "Get the blame for a single file.\n"
-  "\n"
-  "Arguments:\n"
-  "\n"
-  "path\n"
-  "    A path to file to consider.\n"
-  "flags\n"
-  "    A GIT_BLAME_* constant.\n"
-  "min_match_characters\n"
-  "    The number of alphanum chars that must be detected as moving/copying\n"
-  "    within a file for it to associate those lines with the parent commit.\n"
-  "newest_commit\n"
-  "    The id of the newest commit to consider.\n"
-  "oldest_commit\n"
-  "    The id of the oldest commit to consider.\n"
-  "min_line\n"
-  "    The first line in the file to blame.\n"
-  "max_line\n"
-  "    The last line in the file to blame.\n"
-  "\n"
-  "Examples::\n"
-  "\n"
-  "    repo.blame('foo.c', flags=GIT_BLAME_TRACK_COPIES_SAME_FILE)");
-
-PyObject *
-Repository_blame(Repository *self, PyObject *args, PyObject *kwds)
-{
-    git_blame_options opts = GIT_BLAME_OPTIONS_INIT;
-    git_blame *blame;
-    char *path;
-    PyObject *value1 = NULL;
-    PyObject *value2 = NULL;
-    int err;
-    char *keywords[] = {"path", "flags", "min_match_characters", "newest_commit",
-                        "oldest_commit", "min_line", "max_line", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|IHO!O!II", keywords,
-                                     &path, &opts.flags,
-                                     &opts.min_match_characters,
-                                     &OidType, &value1,
-                                     &OidType, &value2,
-                                     &opts.min_line, &opts.max_line))
-        return NULL;
-
-    if (value1) {
-        err = py_oid_to_git_oid_expand(self->repo, value1, &opts.newest_commit);
-        if (err < 0)
-            return NULL;
-    }
-    if (value2) {
-        err = py_oid_to_git_oid_expand(self->repo, value2, &opts.oldest_commit);
-        if (err < 0)
-            return NULL;
-    }
-
-    err = git_blame_file(&blame, self->repo, path, &opts);
-    if (err < 0)
-        return Error_set(err);
-
-    return wrap_blame(blame, self);
-}
-
 PyDoc_STRVAR(Repository_reset__doc__,
     "reset(oid, reset_type)\n"
     "\n"
@@ -1507,7 +1440,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, lookup_branch, METH_VARARGS),
     METHOD(Repository, listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
-    METHOD(Repository, blame, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, reset, METH_VARARGS),
     {NULL}
 };

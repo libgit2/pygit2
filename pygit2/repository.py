@@ -42,7 +42,8 @@ from .errors import check_error
 from .ffi import ffi, C
 from .index import Index
 from .remote import Remote
-from .utils import to_bytes
+from .blame import Blame
+from .utils import to_bytes, to_str
 
 
 class Repository(_Repository):
@@ -369,6 +370,61 @@ class Repository(_Repository):
         etc.
         """
         C.git_repository_state_cleanup(self._repo)
+
+    #
+    # blame
+    #
+    def blame(self, path, flags=None, min_match_characters=None, newest_commit=None, oldest_commit=None, min_line=None, max_line=None):
+        """blame(path, [flags, min_match_characters, newest_commit, oldest_commit,\n"
+                 min_line, max_line]) -> Blame
+
+        Get the blame for a single file.
+
+        Arguments:
+
+        path
+            Path to the file to blame.
+        flags
+            A GIT_BLAME_* constant.
+        min_match_characters
+            The number of alphanum chars that must be detected as moving/copying
+            within a file for it to associate those lines with the parent commit.
+        newest_commit
+            The id of the newest commit to consider.
+        oldest_commit
+          The id of the oldest commit to consider.
+        min_line
+            The first line in the file to blame.
+        max_line
+            The last line in the file to blame.
+
+        Examples::
+
+            repo.blame('foo.c', flags=GIT_BLAME_TRACK_COPIES_SAME_FILE)");
+        """
+
+        options = ffi.new('git_blame_options *')
+        C.git_blame_init_options(options, C.GIT_BLAME_OPTIONS_VERSION)
+        if min_match_characters:
+            options.min_match_characters = min_match_characters
+        if newest_commit:
+            if not isinstance(newest_commit, Oid):
+                newest_commit = Oid(hex=newest_commit)
+            ffi.buffer(ffi.addressof(options, 'newest_commit'))[:] = newest_commit.raw
+        if oldest_commit:
+            if not isinstance(oldest_commit, Oid):
+                oldest_commit = Oid(hex=oldest_commit)
+            ffi.buffer(ffi.addressof(options, 'oldest_commit'))[:] = oldest_commit.raw
+        if min_line:
+            options.min_line = min_line
+        if max_line:
+            options.max_line = max_line
+
+        cblame = ffi.new('git_blame **')
+        err = C.git_blame_file(cblame, self._repo, to_bytes(path), options)
+        check_error(err)
+
+        return Blame._from_c(self, cblame[0])
 
     #
     # Index

@@ -5,7 +5,6 @@ typedef ... git_push;
 typedef ... git_cred;
 typedef ... git_object;
 typedef ... git_tree;
-typedef ... git_signature;
 typedef ... git_index;
 typedef ... git_diff;
 typedef ... git_index_conflict_iterator;
@@ -29,6 +28,7 @@ typedef struct git_strarray {
 } git_strarray;
 
 typedef int64_t git_off_t;
+typedef int64_t git_time_t;
 
 typedef enum {
 	GIT_OK = 0,
@@ -54,6 +54,17 @@ typedef struct {
 	char *message;
 	int klass;
 } git_error;
+
+typedef struct git_time {
+	git_time_t time;
+	int offset;
+} git_time;
+
+typedef struct git_signature {
+	char *name;
+	char *email;
+	git_time when;
+} git_signature;
 
 const git_error * giterr_last(void);
 
@@ -506,3 +517,44 @@ int git_index_conflict_iterator_new(git_index_conflict_iterator **iterator_out, 
 int git_index_conflict_get(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index *index, const char *path);
 int git_index_conflict_next(const git_index_entry **ancestor_out, const git_index_entry **our_out, const git_index_entry **their_out, git_index_conflict_iterator *iterator);
 int git_index_conflict_remove(git_index *index, const char *path);
+
+/*
+ * git_blame
+ */
+
+typedef ... git_blame;
+
+typedef struct git_blame_options {
+	unsigned int version;
+
+	uint32_t flags;
+	uint16_t min_match_characters;
+	git_oid newest_commit;
+	git_oid oldest_commit;
+	uint32_t min_line;
+	uint32_t max_line;
+} git_blame_options;
+
+#define GIT_BLAME_OPTIONS_VERSION ...
+
+typedef struct git_blame_hunk {
+	uint16_t lines_in_hunk;
+
+	git_oid final_commit_id;
+	uint16_t final_start_line_number;
+	git_signature *final_signature;
+
+	git_oid orig_commit_id;
+	const char *orig_path;
+	uint16_t orig_start_line_number;
+	git_signature *orig_signature;
+
+	char boundary;
+} git_blame_hunk;
+
+int git_blame_init_options(git_blame_options *opts, unsigned int version);
+uint32_t git_blame_get_hunk_count(git_blame *blame);
+const git_blame_hunk *git_blame_get_hunk_byindex(git_blame *blame, uint32_t index);
+const git_blame_hunk *git_blame_get_hunk_byline(git_blame *blame, uint32_t lineno);
+int git_blame_file(git_blame **out, git_repository *repo, const char *path, git_blame_options *options);
+void git_blame_free(git_blame *blame);
