@@ -233,45 +233,88 @@ Reference_target__get__(Reference *self)
 int
 Reference_target__set__(Reference *self, PyObject *py_target)
 {
+    CHECK_REFERENCE_INT(self);
+
+    if (!PyObject_CallMethod(self, "set_target", "O", py_target))
+        return -1;
+
+    return 0;
+}
+
+PyDoc_STRVAR(Reference_set_target__doc__,
+    "set_target(target, [signature, message])\n"
+    "\n"
+    "Set the target of this reference.\n"
+    "\n"
+    "Update the reference using the given signature and message.\n"
+    "These will be used to fill the reflog entry which will be created\n"
+    "as a result of this update\n"
+    "\n"
+    "Arguments:\n"
+    "\n"
+    "target\n"
+    "    The new target for this reference\n"
+    "signature\n"
+    "    The signature to use for the reflog. If left out, the repository's\n"
+    "    default identity will be used.\n"
+    "message\n"
+    "    Message to use for the reflog.\n");
+
+PyObject *
+Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
+{
     git_oid oid;
     char *c_name;
     int err;
     git_reference *new_ref;
+    const git_signature *sig = NULL;
+    PyObject *py_target = NULL;
+    Signature *py_signature = NULL;
+    const char *message = NULL;
+    char *keywords[] = {"target", "signature", "message", NULL};
 
-    CHECK_REFERENCE_INT(self);
+    CHECK_REFERENCE(self);
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O!s", keywords,
+                                     &py_target, &SignatureType, &py_signature, &message))
+        return NULL;
+
+    if (py_signature)
+        sig = py_signature->signature;
 
     /* Case 1: Direct */
     if (GIT_REF_OID == git_reference_type(self->reference)) {
         err = py_oid_to_git_oid_expand(self->repo->repo, py_target, &oid);
         if (err < 0)
-            return err;
+            goto error;
 
-        err = git_reference_set_target(&new_ref, self->reference, &oid, NULL, NULL);
+        err = git_reference_set_target(&new_ref, self->reference, &oid, sig, message);
         if (err < 0)
             goto error;
 
         git_reference_free(self->reference);
         self->reference = new_ref;
-        return 0;
+        Py_RETURN_NONE;
     }
 
     /* Case 2: Symbolic */
     c_name = py_path_to_c_str(py_target);
     if (c_name == NULL)
-        return -1;
+        return NULL;
 
-    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, NULL, NULL);
+    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, sig, message);
     free(c_name);
     if (err < 0)
         goto error;
 
     git_reference_free(self->reference);
     self->reference = new_ref;
-    return 0;
+
+    Py_RETURN_NONE;
 
 error:
     Error_set(err);
-    return -1;
+    return NULL;
 }
 
 
@@ -516,6 +559,7 @@ PyMethodDef Reference_methods[] = {
     METHOD(Reference, log, METH_NOARGS),
     METHOD(Reference, log_append, METH_VARARGS),
     METHOD(Reference, get_object, METH_NOARGS),
+    METHOD(Reference, set_target, METH_VARARGS | METH_KEYWORDS),
     {NULL}
 };
 
