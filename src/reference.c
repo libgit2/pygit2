@@ -205,10 +205,7 @@ Reference_resolve(Reference *self, PyObject *args)
 PyDoc_STRVAR(Reference_target__doc__,
     "The reference target: If direct the value will be an Oid object, if it\n"
     "is symbolic it will be an string with the full name of the target\n"
-    "reference.\n"
-    "\n"
-    "The target is writable. Setting the Reference's target to another Oid\n"
-    "object will direct the reference to that Oid instead.");
+    "reference.\n");
 
 PyObject *
 Reference_target__get__(Reference *self)
@@ -228,17 +225,6 @@ Reference_target__get__(Reference *self)
         return NULL;
     }
     return to_path(c_name);
-}
-
-int
-Reference_target__set__(Reference *self, PyObject *py_target)
-{
-    CHECK_REFERENCE_INT(self);
-
-    if (!PyObject_CallMethod(self, "set_target", "O", py_target))
-        return -1;
-
-    return 0;
 }
 
 PyDoc_STRVAR(Reference_set_target__doc__,
@@ -499,7 +485,7 @@ PyMethodDef Reference_methods[] = {
 PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, name),
     GETTER(Reference, shorthand),
-    GETSET(Reference, target),
+    GETTER(Reference, target),
     GETTER(Reference, type),
     {NULL}
 };

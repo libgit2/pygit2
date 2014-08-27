@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
-from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC
+from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
 from . import utils
 
 
@@ -77,13 +77,13 @@ class ReferencesTest(utils.RepoTestCase):
     def test_reference_set_sha(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
-        reference.target = NEW_COMMIT
+        reference.set_target(NEW_COMMIT)
         self.assertEqual(reference.target.hex, NEW_COMMIT)
 
     def test_reference_set_sha_prefix(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
         reference = self.repo.lookup_reference('refs/heads/master')
-        reference.target = NEW_COMMIT[0:6]
+        reference.set_target(NEW_COMMIT[0:6])
         self.assertEqual(reference.target.hex, NEW_COMMIT)
 
 
@@ -100,7 +100,7 @@ class ReferencesTest(utils.RepoTestCase):
     def test_set_target(self):
         reference = self.repo.lookup_reference('HEAD')
         self.assertEqual(reference.target, 'refs/heads/master')
-        reference.target = 'refs/heads/i18n'
+        reference.set_target('refs/heads/i18n')
         self.assertEqual(reference.target, 'refs/heads/i18n')
 
     def test_get_shorthand(self):
@@ -108,6 +108,16 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.shorthand, 'master')
         reference = self.repo.create_reference('refs/remotes/origin/master', LAST_COMMIT)
         self.assertEqual(reference.shorthand, 'origin/master')
+
+    def test_set_target_with_message(self):
+        reference = self.repo.lookup_reference('HEAD')
+        self.assertEqual(reference.target, 'refs/heads/master')
+        sig = Signature('foo', 'bar')
+        msg = 'Hello log'
+        reference.set_target('refs/heads/i18n', signature=sig, message=msg)
+        self.assertEqual(reference.target, 'refs/heads/i18n')
+        self.assertEqual(list(reference.log())[0].message, msg)
+        self.assertEqualSignature(list(reference.log())[0].committer, sig)
 
     def test_delete(self):
         repo = self.repo
@@ -124,8 +134,6 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertRaises(GitError, getattr, reference, 'name')
         self.assertRaises(GitError, getattr, reference, 'type')
         self.assertRaises(GitError, getattr, reference, 'target')
-        self.assertRaises(GitError, setattr, reference, 'target', LAST_COMMIT)
-        self.assertRaises(GitError, setattr, reference, 'target', "a/b/c")
         self.assertRaises(GitError, reference.delete)
         self.assertRaises(GitError, reference.resolve)
         self.assertRaises(GitError, reference.rename, "refs/tags/version2")
