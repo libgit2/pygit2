@@ -625,3 +625,41 @@ class Repository(_Repository):
                 info.mode = 0o777 # symlinks get placeholder
 
             archive.addfile(info, StringIO(content))
+
+    #
+    # Ahead-behind, which mostly lives on its own namespace
+    #
+    def ahead_behind(self, local, upstream):
+        """ahead_behind(local, upstream) -> (int, int)
+
+        Calculate how many different commits are in the non-common parts
+        of the history between the two given ids.
+
+        Ahead is how many commits are in the ancestry of the 'local'
+        commit which are not in the 'upstream' commit. Behind is the
+        opposite.
+
+        Arguments
+
+        local
+            The commit which is considered the local or current state
+        upstream
+            The commit which is considered the upstream
+
+        Returns a tuple with the number of commits ahead and behind respectively.
+        """
+
+        if not isinstance(local, Oid):
+            local = self.expand_id(local)
+
+        if not isinstance(upstream, Oid):
+            upstream = self.expand_id(upstream)
+
+        ahead, behind = ffi.new('size_t*'), ffi.new('size_t*')
+        oid1, oid2 = ffi.new('git_oid *'), ffi.new('git_oid *')
+        ffi.buffer(oid1)[:] = local.raw[:]
+        ffi.buffer(oid2)[:] = upstream.raw[:]
+        err = C.git_graph_ahead_behind(ahead, behind, self._repo, oid1, oid2)
+        check_error(err)
+
+        return int(ahead[0]), int(behind[0])

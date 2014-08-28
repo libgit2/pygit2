@@ -300,6 +300,17 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.assertEqual(commit.hex,
                          'acecd5ea2924a4b900e7e149496e1f4b57976e51')
 
+    def test_ahead_behind(self):
+        ahead, behind = self.repo.ahead_behind('5ebeeebb320790caf276b9fc8b24546d63316533',
+                                               '4ec4389a8068641da2d6578db0419484972284c8')
+        self.assertEqual(1, ahead)
+        self.assertEqual(2, behind)
+
+        ahead, behind = self.repo.ahead_behind('4ec4389a8068641da2d6578db0419484972284c8',
+                                               '5ebeeebb320790caf276b9fc8b24546d63316533')
+        self.assertEqual(2, ahead)
+        self.assertEqual(1, behind)
+
     def test_reset_hard(self):
         ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
         with open(os.path.join(self.repo.workdir, "hello.txt")) as f:

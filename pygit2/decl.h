@@ -535,6 +535,7 @@ int git_repository_init_ext(
 
 int git_repository_set_head(git_repository *repo, const char *refname, const git_signature *signature, const char *log_message);
 int git_repository_set_head_detached(git_repository *repo, const git_oid *commitish, const git_signature *signature, const char *log_message);
+int git_graph_ahead_behind(size_t *ahead, size_t *behind, git_repository *repo, const git_oid *local, const git_oid *upstream);
 
 /*
  * git_index
