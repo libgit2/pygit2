@@ -178,38 +178,6 @@ Repository_head__get__(Repository *self)
     return wrap_reference(head, self);
 }
 
-int
-Repository_head__set__(Repository *self, PyObject *py_val)
-{
-    int err;
-    if (PyObject_TypeCheck(py_val, &OidType)) {
-        git_oid oid;
-        py_oid_to_git_oid(py_val, &oid);
-        err = git_repository_set_head_detached(self->repo, &oid, NULL, NULL);
-        if (err < 0) {
-            Error_set(err);
-            return -1;
-        }
-    } else {
-        const char *refname;
-        PyObject *trefname;
-
-        refname = py_str_borrow_c_str(&trefname, py_val, NULL);
-        if (refname == NULL)
-            return -1;
-
-        err = git_repository_set_head(self->repo, refname, NULL, NULL);
-        Py_DECREF(trefname);
-        if (err < 0) {
-            Error_set_str(err, refname);
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
-
 PyDoc_STRVAR(Repository_head_is_detached__doc__,
   "A repository's HEAD is detached when it points directly to a commit\n"
   "instead of a branch.");
@@ -1514,7 +1482,7 @@ PyMethodDef Repository_methods[] = {
 
 PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, path),
-    GETSET(Repository, head),
+    GETTER(Repository, head),
     GETTER(Repository, head_is_detached),
     GETTER(Repository, head_is_unborn),
     GETTER(Repository, is_empty),

@@ -31,6 +31,13 @@ typedef struct git_strarray {
 typedef int64_t git_off_t;
 
 typedef enum {
+	GIT_REF_INVALID = 0,
+	GIT_REF_OID = 1,
+	GIT_REF_SYMBOLIC = 2,
+	GIT_REF_LISTALL = 3,
+} git_ref_t;
+
+typedef enum {
 	GIT_OK = 0,
 	GIT_ERROR = -1,
 	GIT_ENOTFOUND = -3,
@@ -449,6 +456,9 @@ int git_repository_init_ext(
 	git_repository **out,
 	const char *repo_path,
 	git_repository_init_options *opts);
+
+int git_repository_set_head(git_repository *repo, const char *refname, const git_signature *signature, const char *log_message);
+int git_repository_set_head_detached(git_repository *repo, const git_oid *commitish, const git_signature *signature, const char *log_message);
 
 /*
  * git_index
