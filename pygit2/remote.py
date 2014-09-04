@@ -177,6 +177,14 @@ class Remote(object):
         err = C.git_remote_set_pushurl(self._remote, to_bytes(value))
         check_error(err)
 
+    def delete(self):
+        """Remove this remote
+
+        All remote-tracking branches and configuration settings for the remote will be removed.
+        """
+        err = C.git_remote_delete(self._remote)
+        check_error(err)
+
     def save(self):
         """save()
 

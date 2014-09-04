@@ -62,6 +62,17 @@ class RepositoryTest(utils.RepoTestCase):
 
         self.assertRaises(ValueError, self.repo.create_remote, *(name, url))
 
+    def test_remote_delete(self):
+        name = 'upstream'
+        url = 'git://github.com/libgit2/pygit2.git'
+
+        self.repo.create_remote(name, url)
+        self.assertEqual(2, len(self.repo.remotes))
+        remote = self.repo.remotes[1]
+
+        self.assertEqual(name, remote.name)
+        remote.delete()
+        self.assertEqual(1, len(self.repo.remotes))
 
     def test_remote_rename(self):
         remote = self.repo.remotes[0]
