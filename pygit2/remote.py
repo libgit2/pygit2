@@ -210,8 +210,9 @@ class Remote(object):
         err = C.git_remote_set_callbacks(self._remote, callbacks)
         try:
             check_error(err)
-        finally:
+        except:
             self._self_handle = None
+            raise
 
         if signature:
             ptr = signature._pointer[:]
