@@ -608,6 +608,7 @@ Repository_merge(Repository *self, PyObject *py_oid)
     if (err < 0)
         return Error_set(err);
 
+    checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE;
     err = git_merge(self->repo,
                     (const git_merge_head **)&oid_merge_head, 1,
                     &merge_opts, &checkout_opts);
