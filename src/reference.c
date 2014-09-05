@@ -205,10 +205,7 @@ Reference_resolve(Reference *self, PyObject *args)
 PyDoc_STRVAR(Reference_target__doc__,
     "The reference target: If direct the value will be an Oid object, if it\n"
     "is symbolic it will be an string with the full name of the target\n"
-    "reference.\n"
-    "\n"
-    "The target is writable. Setting the Reference's target to another Oid\n"
-    "object will direct the reference to that Oid instead.");
+    "reference.\n");
 
 PyObject *
 Reference_target__get__(Reference *self)
@@ -230,48 +227,80 @@ Reference_target__get__(Reference *self)
     return to_path(c_name);
 }
 
-int
-Reference_target__set__(Reference *self, PyObject *py_target)
+PyDoc_STRVAR(Reference_set_target__doc__,
+    "set_target(target, [signature, message])\n"
+    "\n"
+    "Set the target of this reference.\n"
+    "\n"
+    "Update the reference using the given signature and message.\n"
+    "These will be used to fill the reflog entry which will be created\n"
+    "as a result of this update\n"
+    "\n"
+    "Arguments:\n"
+    "\n"
+    "target\n"
+    "    The new target for this reference\n"
+    "signature\n"
+    "    The signature to use for the reflog. If left out, the repository's\n"
+    "    default identity will be used.\n"
+    "message\n"
+    "    Message to use for the reflog.\n");
+
+PyObject *
+Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
 {
     git_oid oid;
     char *c_name;
     int err;
     git_reference *new_ref;
+    const git_signature *sig = NULL;
+    PyObject *py_target = NULL;
+    Signature *py_signature = NULL;
+    const char *message = NULL;
+    char *keywords[] = {"target", "signature", "message", NULL};
 
-    CHECK_REFERENCE_INT(self);
+    CHECK_REFERENCE(self);
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O!s", keywords,
+                                     &py_target, &SignatureType, &py_signature, &message))
+        return NULL;
+
+    if (py_signature)
+        sig = py_signature->signature;
 
     /* Case 1: Direct */
     if (GIT_REF_OID == git_reference_type(self->reference)) {
         err = py_oid_to_git_oid_expand(self->repo->repo, py_target, &oid);
         if (err < 0)
-            return err;
+            goto error;
 
-        err = git_reference_set_target(&new_ref, self->reference, &oid, NULL, NULL);
+        err = git_reference_set_target(&new_ref, self->reference, &oid, sig, message);
         if (err < 0)
             goto error;
 
         git_reference_free(self->reference);
         self->reference = new_ref;
-        return 0;
+        Py_RETURN_NONE;
     }
 
     /* Case 2: Symbolic */
     c_name = py_path_to_c_str(py_target);
     if (c_name == NULL)
-        return -1;
+        return NULL;
 
-    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, NULL, NULL);
+    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, sig, message);
     free(c_name);
     if (err < 0)
         goto error;
 
     git_reference_free(self->reference);
     self->reference = new_ref;
-    return 0;
+
+    Py_RETURN_NONE;
 
 error:
     Error_set(err);
-    return -1;
+    return NULL;
 }
 
 
@@ -333,72 +362,6 @@ Reference_log(Reference *self)
         iter->i = 0;
     }
     return (PyObject*)iter;
-}
-
-PyDoc_STRVAR(Reference_log_append__doc__,
-  "log_append(oid, committer, message[, encoding])\n"
-  "\n"
-  "Append a reflog entry to the reference. If the oid is None then keep\n"
-  "the current reference's oid. The message parameter may be None.");
-
-PyObject *
-Reference_log_append(Reference *self, PyObject *args)
-{
-    git_signature *committer;
-    const char *message = NULL;
-    git_reflog *reflog;
-    git_oid oid;
-    const git_oid *ref_oid;
-    int err;
-    PyObject *py_oid = NULL;
-    Signature *py_committer;
-    PyObject *py_message = NULL;
-    char *encoding = NULL;
-    git_repository *repo;
-
-    CHECK_REFERENCE(self);
-
-    /* Input parameters */
-    if (!PyArg_ParseTuple(args, "OO!O|s", &py_oid,
-                          &SignatureType, &py_committer,
-                          &py_message, &encoding))
-        return NULL;
-
-    if (py_oid == Py_None)
-        ref_oid = git_reference_target(self->reference);
-    else {
-        err = py_oid_to_git_oid_expand(self->repo->repo, py_oid, &oid);
-        if (err < 0)
-            return NULL;
-        ref_oid = &oid;
-    }
-
-    if (py_message != Py_None) {
-        message = py_str_to_c_str(py_message, encoding);
-        if (message == NULL)
-            return NULL;
-    }
-
-    /* Go */
-    repo = git_reference_owner(self->reference);
-    err = git_reflog_read(&reflog, repo, git_reference_name(self->reference));
-    if (err < 0) {
-        free((void *)message);
-        return NULL;
-    }
-
-    committer = (git_signature *)py_committer->signature;
-    err = git_reflog_append(reflog, ref_oid, committer, message);
-    if (!err)
-        err = git_reflog_write(reflog);
-
-    git_reflog_free(reflog);
-    free((void *)message);
-
-    if (err < 0)
-        return NULL;
-
-    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(Reference_get_object__doc__,
@@ -514,15 +477,15 @@ PyMethodDef Reference_methods[] = {
     METHOD(Reference, rename, METH_O),
     METHOD(Reference, resolve, METH_NOARGS),
     METHOD(Reference, log, METH_NOARGS),
-    METHOD(Reference, log_append, METH_VARARGS),
     METHOD(Reference, get_object, METH_NOARGS),
+    METHOD(Reference, set_target, METH_VARARGS | METH_KEYWORDS),
     {NULL}
 };
 
 PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, name),
     GETTER(Reference, shorthand),
-    GETSET(Reference, target),
+    GETTER(Reference, target),
     GETTER(Reference, type),
     {NULL}
 };

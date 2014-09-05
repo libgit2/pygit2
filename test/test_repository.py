@@ -76,10 +76,10 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_set_head(self):
         # Test setting a detatched HEAD.
-        self.repo.head = Oid(hex=PARENT_SHA)
+        self.repo.set_head(Oid(hex=PARENT_SHA))
         self.assertEqual(self.repo.head.target.hex, PARENT_SHA)
         # And test setting a normal HEAD.
-        self.repo.head = "refs/heads/master"
+        self.repo.set_head("refs/heads/master")
         self.assertEqual(self.repo.head.name, "refs/heads/master")
         self.assertEqual(self.repo.head.target.hex, HEAD_SHA)
 

@@ -275,7 +275,57 @@ class Repository(_Repository):
         oid = reference.resolve().target
         treeish = self[oid]
         self.checkout_tree(treeish, **kwargs)
-        self.head = refname
+        head = self.lookup_reference('HEAD')
+        if head.type == C.GIT_REF_SYMBOLIC:
+            from_ = self.head.shorthand
+        else:
+            from_ = head.target.hex
+
+        try:
+            signature = self.default_signature
+        except:
+            signature = None
+
+        reflog_text = "checkout: moving from %s to %s" % (from_, reference)
+        self.set_head(refname, signature, reflog_text)
+
+    #
+    # Setting HEAD
+    #
+    def set_head(self, target, signature=None, message=None):
+        """Set HEAD to point to the given target
+
+        Arguments:
+
+        target
+            The new target for HEAD. Can be a string or Oid (to detach)
+
+        signature
+            Signature to use for the reflog. If not provided, the repository's
+            default will be used
+
+        message
+            Message to use for the reflog
+        """
+
+        sig_ptr = ffi.new('git_signature **')
+        if signature:
+            ffi.buffer(sig_ptr)[:] = signature._pointer[:]
+
+        message_ptr = ffi.NULL
+        if message_ptr:
+            message_ptr = to_bytes(message)
+
+        if isinstance(target, Oid):
+            oid = ffi.new('git_oid *')
+            ffi.buffer(oid)[:] = target.raw[:]
+            err = C.git_repository_set_head_detached(self._repo, oid, sig_ptr[0], message_ptr)
+            check_error(err)
+            return
+
+        # if it's a string, then it's a reference name
+        err = C.git_repository_set_head(self._repo, to_bytes(target), sig_ptr[0], message_ptr)
+        check_error(err)
 
     #
     # Diff
