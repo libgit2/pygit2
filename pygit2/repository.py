@@ -35,6 +35,7 @@ from string import hexdigits
 from _pygit2 import Repository as _Repository
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
+from _pygit2 import GIT_FILEMODE_LINK
 from _pygit2 import Reference, Tree, Commit, Blob
 
 from .config import Config
@@ -43,7 +44,7 @@ from .ffi import ffi, C
 from .index import Index
 from .remote import Remote
 from .blame import Blame
-from .utils import to_bytes, to_str
+from .utils import to_bytes, to_str, is_string
 
 
 class Repository(_Repository):
@@ -488,3 +489,73 @@ class Repository(_Repository):
         check_error(err, True)
 
         return Index.from_c(self, cindex)
+
+    #
+    # Utility for writing a tree into an archive
+    #
+    def write_archive(self, treeish, archive, timestamp=None):
+        """Write treeish into an archive
+
+        If no timestamp is provided and 'treeish' is a commit, its committer
+        timestamp will be used. Otherwise the current time will be used.
+
+        Arguments:
+
+        treeish
+            The treeish to write.
+        archive
+            An archive from the 'tarfile' module
+        timestamp
+            Timestamp to use for the files in the archive.
+
+        Example::
+
+            >>> import tarfile, pygit2
+            >>>> with tarfile.open('foo.tar', 'w') as archive:
+            >>>>     repo = pygit2.Repsitory('.')
+            >>>>     repo.write_archive(archive, repo.head.target)
+        """
+
+        import tarfile, sys
+        from time import time
+        if sys.version_info[0] < 3:
+            from cStringIO import StringIO
+        else:
+            from io import BytesIO as StringIO
+
+        # Try to get a tree form whatever we got
+        if isinstance(treeish, Tree):
+            tree = treeish
+
+        if isinstance(treeish, Oid) or is_string(treeish):
+            treeish = self[treeish]
+
+        # if we don't have a timestamp, try to get it from a commit
+        if not timestamp:
+            try:
+                commit = treeish.peel(Commit)
+                timestamp = commit.committer.time
+            except:
+                pass
+
+        # as a last resort, use the current timestamp
+        if not timestamp:
+            timestamp = int(time())
+
+        tree = treeish.peel(Tree)
+
+        index = Index()
+        index.read_tree(tree)
+
+        for entry in index:
+            content = self[entry.id].read_raw()
+            info = tarfile.TarInfo(entry.path)
+            info.size = len(content)
+            info.mtime = timestamp
+            info.uname = info.gname = 'root' # just because git does this
+            if entry.mode == GIT_FILEMODE_LINK:
+                info.type = archive.SYMTYPE
+                info.linkname = content
+                info.mode = 0o777 # symlinks get placeholder
+
+            archive.addfile(info, StringIO(content))
