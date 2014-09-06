@@ -35,12 +35,15 @@ import sys
 from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
 from . import utils
 
-# pypy raises TypeError on writing to read-only, so we need to check
-# and change the test accordingly
+# pypy (in python2 mode) raises TypeError on writing to read-only, so
+# we need to check and change the test accordingly
 try:
     import __pypy__
+    import __pypy__, sys
+    pypy2 =  sys.version_info[0] < 3
 except ImportError:
     __pypy__ = None
+    pypy2 = False
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 
@@ -149,7 +152,7 @@ class CommitTest(utils.BareRepoTestCase):
 
         commit = self.repo[COMMIT_SHA]
 
-        error_type = AttributeError if not __pypy__ else TypeError
+        error_type = AttributeError if not pypy2 else TypeError
         self.assertRaises(error_type, setattr, commit, 'message', message)
         self.assertRaises(error_type, setattr, commit, 'committer', committer)
         self.assertRaises(error_type, setattr, commit, 'author', author)
