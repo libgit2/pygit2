@@ -69,3 +69,4 @@ Below there are some general attributes and methods:
 .. automethod:: pygit2.Repository.write
 .. automethod:: pygit2.Repository.reset
 .. automethod:: pygit2.Repository.state_cleanup
+.. automethod:: pygit2.Repository.write_archive
