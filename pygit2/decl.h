@@ -204,6 +204,9 @@ int git_cred_ssh_key_new(
 	const char *publickey,
 	const char *privatekey,
 	const char *passphrase);
+int git_cred_ssh_key_from_agent(
+    git_cred **out,
+    const char *username);
 
 /*
  * git_diff

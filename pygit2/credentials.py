@@ -85,3 +85,8 @@ class Keypair(object):
 
     def __call__(self, _url, _username, _allowed):
         return self
+
+
+class KeypairFromAgent(Keypair):
+    def __init__(self, username):
+        super(KeypairFromAgent, self).__init__(username, None, None, None)

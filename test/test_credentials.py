@@ -31,6 +31,7 @@
 import unittest
 import pygit2
 from pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT
+from pygit2 import UserPass, Keypair, KeypairFromAgent
 from pygit2 import UserPass, Keypair
 from . import utils
 
@@ -59,6 +60,13 @@ class CredentialCreateTest(utils.NoRepoTestCase):
 
         cred = Keypair(username, pubkey, privkey, passphrase)
         self.assertEqual((username, pubkey, privkey, passphrase), cred.credential_tuple)
+
+    def test_ssh_agent(self):
+        username = "git"
+ 
+        cred = KeypairFromAgent(username)
+        self.assertEqual((username, None, None, None), cred.credential_tuple)
+
 
 class CredentialCallback(utils.RepoTestCase):
     def test_callback(self):
