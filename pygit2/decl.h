@@ -353,6 +353,9 @@ typedef struct git_clone_options {
 	git_signature *signature;
 } git_clone_options;
 
+#define GIT_CLONE_OPTIONS_VERSION ...
+int git_clone_init_options(git_clone_options *opts, unsigned int version);
+
 int git_clone(git_repository **out,
 	const char *url,
 	const char *local_path,
@@ -458,6 +461,9 @@ typedef struct {
 	const char *initial_head;
 	const char *origin_url;
 } git_repository_init_options;
+
+#define GIT_REPOSITORY_INIT_OPTIONS_VERSION ...
+int git_repository_init_init_options(git_repository_init_options *opts, int version);
 
 int git_repository_init(
 	git_repository **out,

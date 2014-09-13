@@ -82,7 +82,7 @@ def init_repository(path, bare=False,
 
     # Options
     options = ffi.new('git_repository_init_options *')
-    options.version = 1
+    C.git_repository_init_init_options(options, C.GIT_REPOSITORY_INIT_OPTIONS_VERSION)
     options.flags = flags
     options.mode = mode
     options.workdir_path = to_bytes(workdir_path)
@@ -151,6 +151,9 @@ def clone_repository(
     d['callback'] = credentials
     d_handle = ffi.new_handle(d)
 
+    # Perform the initialization with the version we compiled
+    C.git_clone_init_options(opts, C.GIT_CLONE_OPTIONS_VERSION)
+
     # We need to keep the ref alive ourselves
     checkout_branch_ref = None
     if branch:
@@ -160,11 +163,8 @@ def clone_repository(
     remote_name_ref = ffi.new('char []', to_bytes(remote_name))
     opts.remote_name = remote_name_ref
 
-    opts.version = 1
     opts.ignore_cert_errors = ignore_cert_errors
     opts.bare = bare
-    opts.remote_callbacks.version = 1
-    opts.checkout_opts.version = 1
     if credentials:
         opts.remote_callbacks.credentials = _credentials_cb
         opts.remote_callbacks.payload = d_handle
