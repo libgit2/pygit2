@@ -462,6 +462,9 @@ typedef struct {
 	const char *origin_url;
 } git_repository_init_options;
 
+#define GIT_REPOSITORY_INIT_OPTIONS_VERSION ...
+int git_repository_init_init_options(git_repository_init_options *opts, int version);
+
 int git_repository_init(
 	git_repository **out,
 	const char *path,

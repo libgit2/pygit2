@@ -82,7 +82,7 @@ def init_repository(path, bare=False,
 
     # Options
     options = ffi.new('git_repository_init_options *')
-    options.version = 1
+    C.git_repository_init_init_options(options, C.GIT_REPOSITORY_INIT_OPTIONS_VERSION)
     options.flags = flags
     options.mode = mode
     options.workdir_path = to_bytes(workdir_path)
