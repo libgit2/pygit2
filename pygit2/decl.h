@@ -353,6 +353,9 @@ typedef struct git_clone_options {
 	git_signature *signature;
 } git_clone_options;
 
+#define GIT_CLONE_OPTIONS_VERSION ...
+int git_clone_init_options(git_clone_options *opts, unsigned int version);
+
 int git_clone(git_repository **out,
 	const char *url,
 	const char *local_path,
