@@ -51,7 +51,7 @@ class ArchiveTest(utils.RepoTestCase):
             index.read_tree(treeish.peel(Tree))
         else:
             index.read_tree(self.repo[treeish].peel(Tree))
-    
+
         self.assertEqual(len(index), len(archive.getmembers()))
 
         if timestamp:
@@ -61,7 +61,7 @@ class ArchiveTest(utils.RepoTestCase):
         archive.close()
         self.assertTrue(os.path.isfile('foo.tar'))
         os.remove('foo.tar')
-    
+
     def test_write_tree(self):
         self.check_writing(TREE_HASH)
         self.check_writing(Oid(hex=TREE_HASH))

@@ -25,6 +25,62 @@ How to install
 Changelog
 ==============
 
+0.21.3 (2014-09-15)
+-------------------
+
+Breaking changes:
+
+- Now ``Repository.blame(...)`` returns ``Oid`` instead of string
+  `#413 <https://github.com/libgit2/pygit2/pull/413>`_
+
+- New ``Reference.set_target(...)`` replaces the ``Reference.target`` setter
+  and ``Reference.log_append(...)``
+  `#414 <https://github.com/libgit2/pygit2/pull/414>`_
+
+- New ``Repository.set_head(...)`` replaces the ``Repository.head`` setter
+  `#414 <https://github.com/libgit2/pygit2/pull/414>`_
+
+- ``Repository.merge(...)`` now uses the ``SAFE_CREATE`` strategy by default
+  `#417 <https://github.com/libgit2/pygit2/pull/417>`_
+
+Other changes:
+
+- New ``Remote.delete()``
+  `#418 <https://github.com/libgit2/pygit2/issues/418>`_
+  `#420 <https://github.com/libgit2/pygit2/pull/420>`_
+
+- New ``Repository.write_archive(...)``
+  `#421 <https://github.com/libgit2/pygit2/pull/421>`_
+
+- Now ``Repository.checkout(...)`` accepts branch objects
+  `#408 <https://github.com/libgit2/pygit2/pull/408>`_
+
+- Fix refcount leak in remotes
+  `#403 <https://github.com/libgit2/pygit2/issues/403>`_
+  `#404 <https://github.com/libgit2/pygit2/pull/404>`_
+  `#419 <https://github.com/libgit2/pygit2/pull/419>`_
+
+- Various fixes to ``clone_repository(...)``
+  `#399 <https://github.com/libgit2/pygit2/issues/399>`_
+  `#411 <https://github.com/libgit2/pygit2/pull/411>`_
+  `#425 <https://github.com/libgit2/pygit2/issues/425>`_
+  `#426 <https://github.com/libgit2/pygit2/pull/426>`_
+
+- Fix build error in Python 3
+  `#401 <https://github.com/libgit2/pygit2/pull/401>`_
+
+- Now ``pip install pygit2`` installs cffi first
+  `#380 <https://github.com/libgit2/pygit2/issues/380>`_
+  `#407 <https://github.com/libgit2/pygit2/pull/407>`_
+
+- Add support for pypy3
+  `#422 <https://github.com/libgit2/pygit2/pull/422>`_
+
+- Documentation improvements
+  `#398 <https://github.com/libgit2/pygit2/pull/398>`_
+  `#409 <https://github.com/libgit2/pygit2/pull/409>`_
+
+
 0.21.2 (2014-08-09)
 -------------------
 
@@ -354,31 +410,33 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-69 developers have contributed at least 1 commit to pygit2::
+73 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez            Rémi Duraffort             Adam Spiers
-  Nico von Geyso             Sebastian Thiel            Alexander Bayandin
-  Carlos Martín Nieto        Fraser Tweedale            Andrew Chin
-  W. Trevor King             Han-Wen Nienhuys           András Veres-Szentkirályi
-  Dave Borowitz              Leonardo Rhodes            Benjamin Kircher
-  Daniel Rodríguez Troitiño  Petr Viktorin              Benjamin Pollack
-  Richo Healey               Thomas Kluyver             Bryan O'Sullivan
-  Christian Boos             Alex Chamberlain           Daniel Bruce
-  Julien Miotte              Amit Bakshi                David Fischer
-  Xu Tao                     Andrey Devyatkin           David Sanders
-  Jose Plana                 Arno van Lumig             Devaev Maxim
-  Martin Lenders             Ben Davis                  Eric Davis
-  Petr Hosek                 Eric Schrijver             Erik Meusel
-  Victor Garcia              Hervé Cauwelier            Erik van Zijst
-  Xavier Delannoy            Huang Huang                Ferengee
-  Yonggang Luo               Ian P. McCullough          Gustavo Di Pietro
-  Valentin Haenel            Jack O'Connor              Hugh Cole-Baker
-  Michael Jones              Jared Flatow               Jasper Lievisse Adriaanse
-  Bernardo Heynemann         Jiunn Haur Lim             Josh Bleecher Snyder
-  John Szakmeister           Jun Omae                   Óscar San José
-  Brodie Rao                 Sarath Lakshman            Ridge Kennedy
-  Vlad Temian                Vicent Marti               Rui Abreu Ferreira
-  David Versmisse            Zoran Zaric                earl
+  J. David Ibáñez            Rémi Duraffort             Alexander Bayandin
+  Carlos Martín Nieto        Sebastian Thiel            Andrew Chin
+  Nico von Geyso             Fraser Tweedale            András Veres-Szentkirályi
+  W. Trevor King             Han-Wen Nienhuys           Benjamin Kircher
+  Dave Borowitz              Leonardo Rhodes            Benjamin Pollack
+  Daniel Rodríguez Troitiño  Petr Viktorin              Bryan O'Sullivan
+  Richo Healey               Ron Cohen                  Daniel Bruce
+  Christian Boos             Thomas Kluyver             David Fischer
+  Julien Miotte              Alex Chamberlain           David Sanders
+  Xu Tao                     Amit Bakshi                Devaev Maxim
+  Jose Plana                 Andrey Devyatkin           Eric Davis
+  Matthew Gamble             Arno van Lumig             Erik Meusel
+  Martin Lenders             Ben Davis                  Erik van Zijst
+  Petr Hosek                 Eric Schrijver             Ferengee
+  Victor Garcia              Hervé Cauwelier            Gustavo Di Pietro
+  Xavier Delannoy            Huang Huang                Hugh Cole-Baker
+  Yonggang Luo               Ian P. McCullough          Jasper Lievisse Adriaanse
+  Valentin Haenel            Jack O'Connor              Josh Bleecher Snyder
+  Michael Jones              Jared Flatow               Mathieu Bridon
+  Bernardo Heynemann         Jiunn Haur Lim             Óscar San José
+  John Szakmeister           Jun Omae                   Ridge Kennedy
+  Matthew Duggan             Sarath Lakshman            Rui Abreu Ferreira
+  Brodie Rao                 Vicent Marti               earl
+  Vlad Temian                Zoran Zaric
+  David Versmisse            Adam Spiers
 
 
 License

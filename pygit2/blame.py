@@ -141,7 +141,8 @@ class Blame(object):
             raise IndexError
 
         return BlameHunk._from_c(self, chunk)
-        
+
+
 class BlameIterator(object):
     def __init__(self, blame):
         self._count = len(blame)

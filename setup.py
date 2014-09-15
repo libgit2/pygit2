@@ -103,7 +103,7 @@ class TestCommand(Command):
         unittest.main(None, defaultTest='test.test_suite', argv=test_argv)
 
 class CFFIBuild(build):
-    """Hack to combat the chicken and egg problem that we need cffi 
+    """Hack to combat the chicken and egg problem that we need cffi
     to add cffi as an extension.
     """
     def finalize_options(self):
