@@ -77,7 +77,7 @@ class Remote(object):
 
         Override this function with your own progress reporting function
 
-        :param str string: Progress otuput from the remote
+        :param str string: Progress output from the remote
         """
         pass
 
