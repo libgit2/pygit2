@@ -67,7 +67,6 @@ Once libgit2 is instaleld, deploying pygit2 should be a snap:
 
 .. code-block:: sh
 
-   $ pip install cffi
    $ pip install pygit2
 
 
@@ -101,7 +100,6 @@ installation of pygit2:
    ...
    $ sudo ldconfig
    ...
-   $ pip install cffi
    $ pip install pygit2
 
 Now it should work. If it does not...
@@ -175,7 +173,6 @@ Install pygit2:
 
 .. code-block:: sh
 
-   $ pip install cffi
    $ pip install pygit2
 
 
