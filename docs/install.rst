@@ -67,7 +67,7 @@ Once libgit2 is instaleld, deploying pygit2 should be a snap:
 
 .. code-block:: sh
 
-   $ pìp install cffi
+   $ pip install cffi
    $ pip install pygit2
 
 
@@ -175,7 +175,7 @@ Install pygit2:
 
 .. code-block:: sh
 
-   $ pìp install cffi
+   $ pip install cffi
    $ pip install pygit2
 
 
