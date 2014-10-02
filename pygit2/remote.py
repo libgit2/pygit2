@@ -321,12 +321,37 @@ class Remote(object):
         :param Signature signature: signature to use when updating the tips
         :param str message: message to use when updating the tips
         """
+        # Get the default callbacks first
+        defaultcallbacks = ffi.new('git_remote_callbacks *')
+        err = C.git_remote_init_callbacks(defaultcallbacks, 1)
+        check_error(err)
+
+        # Build custom callback structure
+        callbacks = ffi.new('git_remote_callbacks *')
+        callbacks.version = 1
+        callbacks.sideband_progress = self._sideband_progress_cb
+        callbacks.transfer_progress = self._transfer_progress_cb
+        callbacks.update_tips = self._update_tips_cb
+        callbacks.credentials = self._credentials_cb
+        # We need to make sure that this handle stays alive
+        self._self_handle = ffi.new_handle(self)
+        callbacks.payload = self._self_handle
+
+        err = C.git_remote_set_callbacks(self._remote, callbacks)
+
+        try:
+            check_error(err)
+        except:
+            self._self_handle = None
+            raise
+
 
         cpush = ffi.new('git_push **')
         err = C.git_push_new(cpush, self._remote)
         check_error(err)
 
         push = cpush[0]
+
 
         try:
             err = C.git_push_add_refspec(push, to_bytes(spec))
