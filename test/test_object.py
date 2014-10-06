@@ -33,7 +33,7 @@ from os.path import dirname, join
 import unittest
 
 import pygit2
-from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag
+from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, GIT_OBJ_BLOB, Tree, Tag
 from . import utils
 
 
@@ -77,6 +77,13 @@ class ObjectTest(utils.RepoTestCase):
         commit = self.repo[commit_id]
 
         self.assertRaises(ValueError, commit.peel, Tag)
+
+    def test_nonzero(self):
+        empty_tree_id = self.repo.TreeBuilder().write()
+        self.assertTrue(self.repo[empty_tree_id])
+
+        empty_blob_id = self.repo.write(GIT_OBJ_BLOB, '')
+        self.assertTrue(self.repo[empty_tree_id])
 
 if __name__ == '__main__':
     unittest.main()
