@@ -94,6 +94,11 @@ class Index(object):
     def __iter__(self):
         return IndexIterator(self)
 
+    def __bool__(self):
+        return True
+
+    __nonzero__ = __bool__
+
     def read(self, force=True):
         """Update the contents the Index
 
