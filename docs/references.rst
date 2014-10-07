@@ -28,6 +28,7 @@ The Reference type
 .. automethod:: pygit2.Reference.delete
 .. automethod:: pygit2.Reference.rename
 .. automethod:: pygit2.Reference.resolve
+.. automethod:: pygit2.Reference.peel
 .. automethod:: pygit2.Reference.log
 
    Example::

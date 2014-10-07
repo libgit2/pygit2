@@ -384,6 +384,29 @@ Reference_get_object(Reference *self)
     return wrap_object(obj, self->repo);
 }
 
+PyDoc_STRVAR(Reference_peel__doc__,
+  "peel(type) -> object\n"
+  "\n"
+  "Retrieve an object of the given type by recursive peeling.");
+
+PyObject *
+Reference_peel(Reference *self, PyObject *py_type)
+{
+    int err, type;
+    git_object *obj;
+
+    CHECK_REFERENCE(self);
+
+    type = py_object_to_object_type(py_type);
+    if (type == -1)
+        return NULL;
+
+    err = git_reference_peel(&obj, self->reference, type);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_object(obj, self->repo);
+}
 
 PyDoc_STRVAR(RefLogEntry_committer__doc__, "Committer.");
 
@@ -479,6 +502,7 @@ PyMethodDef Reference_methods[] = {
     METHOD(Reference, log, METH_NOARGS),
     METHOD(Reference, get_object, METH_NOARGS),
     METHOD(Reference, set_target, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Reference, peel, METH_O),
     {NULL}
 };
 
