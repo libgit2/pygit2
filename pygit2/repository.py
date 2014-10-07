@@ -30,6 +30,12 @@ from __future__ import absolute_import
 
 # Import from the Standard Library
 from string import hexdigits
+import sys, tarfile
+from time import time
+if sys.version_info[0] < 3:
+    from cStringIO import StringIO
+else:
+    from io import BytesIO as StringIO
 
 # Import from pygit2
 from _pygit2 import Repository as _Repository
@@ -44,7 +50,7 @@ from .ffi import ffi, C
 from .index import Index
 from .remote import Remote
 from .blame import Blame
-from .utils import to_bytes, to_str, is_string
+from .utils import to_bytes, is_string
 
 
 class Repository(_Repository):
@@ -284,7 +290,7 @@ class Repository(_Repository):
 
         try:
             signature = self.default_signature
-        except:
+        except Exception:
             signature = None
 
         reflog_text = "checkout: moving from %s to %s" % (from_, reference)
@@ -375,20 +381,33 @@ class Repository(_Repository):
         API (Tree.diff_to_tree()) directly.
         """
 
-        def treeish_to_tree(obj):
+        def whatever_to_tree_or_blob(obj):
+            if obj is None:
+                return None
+
+            # Would be better to test by the type of obj, but it is boring to
+            # deal with Python 2 & 3 differences
             try:
                 obj = self.revparse_single(obj)
-            except:
+            except TypeError:
                 pass
+
+            # If reference, resolve
+            if isinstance(obj, Reference):
+                oid = obj.resolve().target
+                obj = self[oid]
 
             if isinstance(obj, Commit):
                 return obj.tree
-            elif isinstance(obj, Reference):
-                oid = obj.resolve().target
-                return self[oid]
 
-        a = treeish_to_tree(a) or a
-        b = treeish_to_tree(b) or b
+            if isinstance(obj, (Blob, Tree)):
+                return obj
+
+            raise TypeError('unexpected "%s"' % type(obj))
+
+
+        a = whatever_to_tree_or_blob(a)
+        b = whatever_to_tree_or_blob(b)
 
         opt_keys = ['flags', 'context_lines', 'interhunk_lines']
         opt_values = [flags, context_lines, interhunk_lines]
@@ -516,13 +535,6 @@ class Repository(_Repository):
             >>>>     repo.write_archive(archive, repo.head.target)
         """
 
-        import tarfile, sys
-        from time import time
-        if sys.version_info[0] < 3:
-            from cStringIO import StringIO
-        else:
-            from io import BytesIO as StringIO
-
         # Try to get a tree form whatever we got
         if isinstance(treeish, Tree):
             tree = treeish
@@ -535,7 +547,7 @@ class Repository(_Repository):
             try:
                 commit = treeish.peel(Commit)
                 timestamp = commit.committer.time
-            except:
+            except Exception:
                 pass
 
         # as a last resort, use the current timestamp
