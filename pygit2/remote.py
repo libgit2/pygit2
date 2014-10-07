@@ -456,11 +456,10 @@ def get_credentials(fn, url, username, allowed):
                                                 to_bytes(passwd))
 
     elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
-        if isinstance(creds, KeypairFromAgent):
-            username = creds.credential_tuple[0]
-            err = C.git_cred_ssh_key_from_agent(ccred, to_bytes(username))
+        name, pubkey, privkey, passphrase = creds.credential_tuple
+        if pubkey is None and privkey is None:
+            err = C.git_cred_ssh_key_from_agent(ccred, to_bytes(name))
         else:
-            name, pubkey, privkey, passphrase = creds.credential_tuple
             err = C.git_cred_ssh_key_new(ccred, to_bytes(name),
                                          to_bytes(pubkey), to_bytes(privkey),
                                          to_bytes(passphrase))
