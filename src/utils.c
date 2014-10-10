@@ -31,6 +31,10 @@
 #include "utils.h"
 
 extern PyTypeObject ReferenceType;
+extern PyTypeObject TreeType;
+extern PyTypeObject CommitType;
+extern PyTypeObject BlobType;
+extern PyTypeObject TagType;
 
 /**
  * py_str_to_c_str() returns a newly allocated C string holding the string
@@ -152,4 +156,45 @@ on_error:
     free(array->strings);
 
     return -1;
+}
+
+static git_otype
+py_type_to_git_type(PyTypeObject *py_type)
+{
+    git_otype type = GIT_OBJ_BAD;
+
+    if (py_type == &CommitType) {
+        type = GIT_OBJ_COMMIT;
+    } else if (py_type == &TreeType) {
+        type = GIT_OBJ_TREE;
+    } else if (py_type == &BlobType) {
+        type = GIT_OBJ_BLOB;
+    } else if (py_type == &TagType) {
+        type = GIT_OBJ_TAG;
+    }
+
+    return type;
+}
+
+int
+py_object_to_object_type(PyObject *py_type)
+{
+    int type = -1;
+
+    if (py_type == Py_None)
+        return GIT_OBJ_ANY;
+
+    if (PyLong_Check(py_type)) {
+        type = PyLong_AsLong(py_type);
+        if (type == -1 && PyErr_Occurred())
+            return -1;
+    } else if (PyType_Check(py_type)) {
+        type = py_type_to_git_type((PyTypeObject *) py_type);
+    }
+
+    if (type == -1) {
+        PyErr_SetString(PyExc_ValueError, "invalid target type");
+    }
+
+    return type;
 }

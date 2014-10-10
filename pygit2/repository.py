@@ -385,26 +385,24 @@ class Repository(_Repository):
             if obj is None:
                 return None
 
-            # Would be better to test by the type of obj, but it is boring to
-            # deal with Python 2 & 3 differences
-            try:
+            # If it's a string, then it has to be valid revspec
+            if is_string(obj):
                 obj = self.revparse_single(obj)
-            except TypeError:
+
+            # First we try to get to a blob
+            try:
+                obj = obj.peel(Blob)
+            except Exception:
                 pass
 
-            # If reference, resolve
-            if isinstance(obj, Reference):
-                oid = obj.resolve().target
-                obj = self[oid]
+            # And if that failed, try to get a tree, raising a type
+            # error if that still doesn't work
+            try:
+                obj = obj.peel(Tree)
+            except Exception:
+                raise TypeError('unexpected "%s"' % type(obj))
 
-            if isinstance(obj, Commit):
-                return obj.tree
-
-            if isinstance(obj, (Blob, Tree)):
-                return obj
-
-            raise TypeError('unexpected "%s"' % type(obj))
-
+            return obj
 
         a = whatever_to_tree_or_blob(a)
         b = whatever_to_tree_or_blob(b)

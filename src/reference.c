@@ -367,23 +367,45 @@ Reference_log(Reference *self)
 PyDoc_STRVAR(Reference_get_object__doc__,
   "get_object() -> object\n"
   "\n"
-  "Retrieves the object the current reference is pointing to.");
+  "Retrieves the object the current reference is pointing to.\n"
+  "\n"
+  "This method is deprecated, please use Reference.peel() instead.");
 
 PyObject *
 Reference_get_object(Reference *self)
 {
-    int err;
-    git_object* obj;
+    return PyObject_CallMethod((PyObject *) self, "peel", NULL);
+}
+
+PyDoc_STRVAR(Reference_peel__doc__,
+  "peel(type=None) -> object\n"
+  "\n"
+  "Retrieve an object of the given type by recursive peeling.\n"
+  "\n"
+  "If no type is provided, the first non-tag object will be returned.");
+
+PyObject *
+Reference_peel(Reference *self, PyObject *args)
+{
+    int err, type;
+    git_object *obj;
+    PyObject *py_type = Py_None;
 
     CHECK_REFERENCE(self);
 
-    err = git_reference_peel(&obj, self->reference, GIT_OBJ_ANY);
+    if (!PyArg_ParseTuple(args, "|O", &py_type))
+        return NULL;
+
+    type = py_object_to_object_type(py_type);
+    if (type == -1)
+        return NULL;
+
+    err = git_reference_peel(&obj, self->reference, type);
     if (err < 0)
         return Error_set(err);
 
     return wrap_object(obj, self->repo);
 }
-
 
 PyDoc_STRVAR(RefLogEntry_committer__doc__, "Committer.");
 
@@ -479,6 +501,7 @@ PyMethodDef Reference_methods[] = {
     METHOD(Reference, log, METH_NOARGS),
     METHOD(Reference, get_object, METH_NOARGS),
     METHOD(Reference, set_target, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Reference, peel, METH_VARARGS),
     {NULL}
 };
 

@@ -135,24 +135,6 @@ Object_read_raw(Object *self)
     return aux;
 }
 
-static git_otype
-py_type_to_git_type(PyTypeObject *py_type)
-{
-    git_otype type = GIT_OBJ_BAD;
-
-    if (py_type == &CommitType) {
-        type = GIT_OBJ_COMMIT;
-    } else if (py_type == &TreeType) {
-        type = GIT_OBJ_TREE;
-    } else if (py_type == &BlobType) {
-        type = GIT_OBJ_BLOB;
-    } else if (py_type == &TagType) {
-        type = GIT_OBJ_TAG;
-    }
-
-    return type;
-}
-
 PyDoc_STRVAR(Object_peel__doc__,
   "peel(target_type) -> Object\n"
   "\n"
@@ -164,18 +146,9 @@ Object_peel(Object *self, PyObject *py_type)
     int type = -1, err;
     git_object *peeled;
 
-    if (PyLong_Check(py_type)) {
-        type = PyLong_AsLong(py_type);
-        if (type == -1 && PyErr_Occurred())
-            return NULL;
-    } else if (PyType_Check(py_type)) {
-        type = py_type_to_git_type((PyTypeObject *) py_type);
-    }
-
-    if (type == -1) {
-        PyErr_SetString(PyExc_ValueError, "invalid target type");
+    type = py_object_to_object_type(py_type);
+    if (type == -1)
         return NULL;
-    }
 
     err = git_object_peel(&peeled, self->obj, (git_otype)type);
     if (err < 0)
