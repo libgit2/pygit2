@@ -181,6 +181,9 @@ py_object_to_object_type(PyObject *py_type)
 {
     int type = -1;
 
+    if (py_type == Py_None)
+        return GIT_OBJ_ANY;
+
     if (PyLong_Check(py_type)) {
         type = PyLong_AsLong(py_type);
         if (type == -1 && PyErr_Occurred())
