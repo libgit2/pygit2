@@ -32,6 +32,7 @@ from __future__ import absolute_import
 from _pygit2 import Oid
 from .errors import check_error, GitError
 from .ffi import ffi, C
+from .credentials import KeypairFromAgent
 from .refspec import Refspec
 from .utils import to_bytes, strarray_to_strings, strings_to_strarray
 
@@ -456,9 +457,12 @@ def get_credentials(fn, url, username, allowed):
 
     elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
         name, pubkey, privkey, passphrase = creds.credential_tuple
-        err = C.git_cred_ssh_key_new(ccred, to_bytes(name), to_bytes(pubkey),
-                                     to_bytes(privkey), to_bytes(passphrase))
-
+        if pubkey is None and privkey is None:
+            err = C.git_cred_ssh_key_from_agent(ccred, to_bytes(name))
+        else:
+            err = C.git_cred_ssh_key_new(ccred, to_bytes(name),
+                                         to_bytes(pubkey), to_bytes(privkey),
+                                         to_bytes(passphrase))
     else:
         raise TypeError("unsupported credential type")
 
