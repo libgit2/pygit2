@@ -120,6 +120,7 @@ class Remote(object):
         :param Oid old: the reference's old value
         :param Oid new: the reference's new value
         """
+        pass
 
     def __init__(self, repo, ptr):
         """The constructor is for internal use only"""
@@ -127,6 +128,7 @@ class Remote(object):
         self._repo = repo
         self._remote = ptr
         self._stored_exception = None
+        self._set_libgit2_callbacks()
 
     def __del__(self):
         C.git_remote_free(self._remote)
@@ -200,47 +202,17 @@ class Remote(object):
         Perform a fetch against this remote.
         """
 
-        # Get the default callbacks first
-        defaultcallbacks = ffi.new('git_remote_callbacks *')
-        err = C.git_remote_init_callbacks(defaultcallbacks, 1)
-        check_error(err)
-
-        # Build custom callback structure
-        callbacks = ffi.new('git_remote_callbacks *')
-        callbacks.version = 1
-        callbacks.sideband_progress = self._sideband_progress_cb
-        callbacks.transfer_progress = self._transfer_progress_cb
-        callbacks.update_tips = self._update_tips_cb
-        callbacks.credentials = self._credentials_cb
-        # We need to make sure that this handle stays alive
-        self._self_handle = ffi.new_handle(self)
-        callbacks.payload = self._self_handle
-
-        err = C.git_remote_set_callbacks(self._remote, callbacks)
-        try:
-            check_error(err)
-        except:
-            self._self_handle = None
-            raise
-
         if signature:
             ptr = signature._pointer[:]
         else:
             ptr = ffi.NULL
 
         self._stored_exception = None
+        err = C.git_remote_fetch(self._remote, ptr, to_bytes(message))
+        if self._stored_exception:
+            raise self._stored_exception
 
-        try:
-            err = C.git_remote_fetch(self._remote, ptr, to_bytes(message))
-            if self._stored_exception:
-                raise self._stored_exception
-
-            check_error(err)
-        finally:
-            # Even on error, clear stored callbacks and reset to default
-            self._self_handle = None
-            err = C.git_remote_set_callbacks(self._remote, defaultcallbacks)
-            check_error(err)
+        check_error(err)
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
@@ -333,7 +305,13 @@ class Remote(object):
             err = C.git_push_add_refspec(push, to_bytes(spec))
             check_error(err)
 
+            self._stored_exception = None
             err = C.git_push_finish(push)
+            if self._stored_exception:
+                # If user-defined callback throws, exception will get lost in
+                # libgit2 C stack trace. So we swallow the exception on the
+                # python side, return control to libgit2, then re-throw it here
+                raise self._stored_exception
             check_error(err)
 
             if not C.git_push_unpack_ok(push):
@@ -356,6 +334,29 @@ class Remote(object):
 
         finally:
             C.git_push_free(push)
+
+    def _set_libgit2_callbacks(self):
+        """Cause control to transfer back into this code when certain hooked
+        events occur in libgit2. If user has set callbacks (e.g. credentials),
+        we transfer control to them."""
+
+        # Build libgit2-compatible callback structure
+        callbacks = ffi.new('git_remote_callbacks *')
+        err = C.git_remote_init_callbacks(callbacks, 1)  # version 1
+        check_error(err)
+
+        callbacks.transfer_progress = self._transfer_progress_cb
+        callbacks.sideband_progress = self._sideband_progress_cb
+        callbacks.update_tips = self._update_tips_cb
+        callbacks.credentials = self._credentials_cb
+
+        # libgit2 callbacks back into python pass a void* as their last
+        # argument. We use this void* to retain a self pointer, allowing
+        # access back into this object
+        self._self_handle = ffi.new_handle(self)
+        callbacks.payload = self._self_handle
+
+        err = C.git_remote_set_callbacks(self._remote, callbacks)
 
     # These functions exist to be called by the git_remote as
     # callbacks. They proxy the call to whatever the user set
