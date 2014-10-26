@@ -29,7 +29,7 @@ You can now inspect the index file for conflicts and get back to the
 user to resolve if there are. Once there are no conflicts left, you
 can create a commit with these two parents.
 
-   >>> user = repo.default_signature()
+   >>> user = repo.default_signature
    >>> tree = repo.index.write_tree()
    >>> new_commit = repo.create_commit('HEAD', user, user, tree,
                                        [repo.head.target, other_branch_tip])
