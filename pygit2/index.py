@@ -241,7 +241,7 @@ class Index(object):
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
 
     def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
-        """diff_to_tree(flags=0, context_lines=3, interhunk_lines=0) -> Diff
+        """diff_to_tree(tree, flags=0, context_lines=3, interhunk_lines=0) -> Diff
 
         Diff the index against a tree
 
