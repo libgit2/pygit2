@@ -23,7 +23,7 @@ Requirements
 
 One common mistake users do is to choose incompatible versions of libgit2 and
 pygit2. Be sure to use the latest release of both, double check the versions do
-match before filling un bug report.
+match before filing a bug report.
 
 .. note::
 
