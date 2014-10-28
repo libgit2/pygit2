@@ -19,7 +19,7 @@ Iterate over all entries of the index::
 Index write::
 
     >>> index.add('path/to/file')          # git add
-    >>> del index['path/to/file']          # git rm
+    >>> index.remove('path/to/file')       # git rm
     >>> index.write()                      # don't forget to save the changes
 
 Custom entries::
