@@ -28,15 +28,16 @@
 
 """Setup file for pygit2."""
 
+# Import from the future
 from __future__ import print_function
 
+# Import from the Standard Library
 import codecs
-from setuptools import setup, Extension, Command
 from distutils.command.build import build
-
 from distutils.command.sdist import sdist
 from distutils import log
 import os
+from setuptools import setup, Extension, Command
 import shlex
 from subprocess import Popen, PIPE
 import sys
@@ -46,6 +47,7 @@ import unittest
 # pygit2/__init__.py
 sys.path.insert(0, 'pygit2')
 from version import __version__
+from libgit2 import get_libgit2_paths
 
 # Python 2 support
 # See https://github.com/libgit2/pygit2/pull/180 for a discussion about this.
@@ -55,18 +57,8 @@ else:
     u = str
 
 
-# Use environment variable LIBGIT2 to set your own libgit2 configuration.
-libgit2_path = os.getenv("LIBGIT2")
-if libgit2_path is None:
-    if os.name == 'nt':
-        program_files = os.getenv("ProgramFiles")
-        libgit2_path = '%s\libgit2' % program_files
-    else:
-        libgit2_path = '/usr/local'
+libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
 
-libgit2_bin = os.path.join(libgit2_path, 'bin')
-libgit2_include = os.path.join(libgit2_path, 'include')
-libgit2_lib = os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib'))
 pygit2_exts = [os.path.join('src', name) for name in os.listdir('src')
                if name.endswith('.c')]
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2010-2014 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
@@ -25,29 +23,27 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
-from __future__ import absolute_import
-
 # Import from the Standard Library
-import inspect
-import codecs
+from os import getenv
 import os
-from os.path import abspath, dirname
-
-# Import from cffi
-from cffi import FFI
-
-# Import from pygit2
-from libgit2 import get_libgit2_paths
 
 
-ffi = FFI()
+def _get_libgit2_path():
+    # LIBGIT2 environment variable takes precedence
+    libgit2_path = getenv("LIBGIT2")
+    if libgit2_path is not None:
+        return libgit2_path
 
-dir_path = dirname(abspath(inspect.getfile(inspect.currentframe())))
-decl_path = os.path.join(dir_path, 'decl.h')
-with codecs.open(decl_path, 'r', 'utf-8') as header:
-    ffi.cdef(header.read())
+    # Default
+    if os.name == 'nt':
+        return '%s\libgit2' % getenv("ProgramFiles")
+    return '/usr/local'
 
-libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
-C = ffi.verify("#include <git2.h>", libraries=["git2"],
-               include_dirs=[libgit2_include], library_dirs=[libgit2_lib])
+
+def get_libgit2_paths():
+    libgit2_path = _get_libgit2_path()
+    return (
+        os.path.join(libgit2_path, 'bin'),
+        os.path.join(libgit2_path, 'include'),
+        getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib')),
+    )
