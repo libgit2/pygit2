@@ -63,7 +63,7 @@ If this does not work for you, check the detailed instructions on building
 libgit2 in various platforms, see
 https://libgit2.github.com/docs/guides/build-and-link/
 
-Once libgit2 is instaleld, deploying pygit2 should be a snap:
+Once libgit2 is installed, deploying pygit2 should be a snap:
 
 .. code-block:: sh
 
