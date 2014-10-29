@@ -73,7 +73,8 @@ def init_ffi():
 
     # Load extension module
     libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
-    C = ffi.verify("#include <git2.h>", libraries=["git2"],
+    C = ffi.verify("#include <git2.h>", modulename='pygit2_cffi',
+                   libraries=["git2"],
                    include_dirs=[libgit2_include], library_dirs=[libgit2_lib])
 
 
