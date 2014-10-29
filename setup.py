@@ -47,7 +47,8 @@ import unittest
 # pygit2/__init__.py
 sys.path.insert(0, 'pygit2')
 from version import __version__
-from libgit2 import get_libgit2_paths
+import ffi
+del sys.path[0]
 
 # Python 2 support
 # See https://github.com/libgit2/pygit2/pull/180 for a discussion about this.
@@ -57,7 +58,7 @@ else:
     u = str
 
 
-libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
+libgit2_bin, libgit2_include, libgit2_lib = ffi.get_libgit2_paths()
 
 pygit2_exts = [os.path.join('src', name) for name in os.listdir('src')
                if name.endswith('.c')]
@@ -99,11 +100,7 @@ class CFFIBuild(build):
     to add cffi as an extension.
     """
     def finalize_options(self):
-        # This ffi is pygit2.ffi due to the path trick used in the beginning
-        # of the file
-        from ffi import ffi
-
-        self.distribution.ext_modules.append(ffi.verifier.get_extension())
+        self.distribution.ext_modules.append(ffi.ffi.verifier.get_extension())
         build.finalize_options(self)
 
 
