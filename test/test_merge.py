@@ -158,3 +158,10 @@ class MergeCommitsTest(utils.RepoTestCaseForMerging):
         merge_tree = index.write_tree()
 
         self.assertEqual(merge_tree, merge_commits_tree)
+
+    def test_merge_commits_favor(self):
+        branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+        merge_index = self.repo.merge_commits(self.repo.head.target, branch_head_hex, favor='ours')
+        self.assertTrue(merge_index.conflicts is None)
+
+        self.assertRaises(ValueError, self.repo.merge_commits, self.repo.head.target, branch_head_hex, favor='foo')
