@@ -508,6 +508,45 @@ class Repository(_Repository):
         return Index.from_c(self, cindex)
 
     #
+    # Merging
+    #
+    def merge_commits(self, ours, theirs):
+        """Merge two arbitrary commits
+
+        Arguments:
+
+        ours
+            The commit to take as "ours" or base.
+        theirs
+            The commit which will be merged into "ours"
+
+        Both can be any object which peels to a commit or the id
+        (string or Oid) of an object which peels to a commit.
+
+        Returns an index with the result of the merge
+
+        """
+
+        ours_ptr = ffi.new('git_commit **')
+        theirs_ptr = ffi.new('git_commit **')
+        cindex = ffi.new('git_index **')
+
+        if is_string(ours) or isinstance(ours, Oid):
+            ours = self[ours]
+        if is_string(theirs) or isinstance(theirs, Oid):
+            theirs = self[theirs]
+
+        ours = ours.peel(Commit)
+        theirs = theirs.peel(Commit)
+
+        ffi.buffer(ours_ptr)[:] = ours._pointer[:]
+        ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
+
+        err = C.git_merge_commits(cindex, self._repo, ours_ptr[0], theirs_ptr[0], ffi.NULL)
+        check_error(err)
+
+        return Index.from_c(self, cindex)
+    #
     # Utility for writing a tree into an archive
     #
     def write_archive(self, treeish, archive, timestamp=None):

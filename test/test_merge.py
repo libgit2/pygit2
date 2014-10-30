@@ -141,3 +141,20 @@ class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
         del idx.conflicts['.gitignore']
         self.assertRaises(KeyError, conflicts.__getitem__, '.gitignore')
         self.assertTrue(idx.conflicts is None)
+
+class MergeCommitsTest(utils.RepoTestCaseForMerging):
+
+    def test_merge_commits(self):
+        branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
+        branch_id = self.repo.get(branch_head_hex).id
+
+        merge_index = self.repo.merge_commits(self.repo.head.target, branch_head_hex)
+        self.assertTrue(merge_index.conflicts is None)
+        merge_commits_tree = merge_index.write_tree(self.repo)
+
+        self.repo.merge(branch_id)
+        index = self.repo.index
+        self.assertTrue(index.conflicts is None)
+        merge_tree = index.write_tree()
+
+        self.assertEqual(merge_tree, merge_commits_tree)

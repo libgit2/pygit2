@@ -5,6 +5,7 @@ typedef ... git_push;
 typedef ... git_cred;
 typedef ... git_object;
 typedef ... git_tree;
+typedef ... git_commit;
 typedef ... git_index;
 typedef ... git_diff;
 typedef ... git_index_conflict_iterator;
@@ -273,6 +274,18 @@ typedef struct {
 	const char *old_prefix;
 	const char *new_prefix;
 } git_diff_options;
+
+typedef struct {
+	int (*file_signature)(
+		void **out, const git_diff_file *file,
+		const char *fullpath, void *payload);
+	int (*buffer_signature)(
+		void **out, const git_diff_file *file,
+		const char *buf, size_t buflen, void *payload);
+	void (*free_signature)(void *sig, void *payload);
+	int (*similarity)(int *score, void *siga, void *sigb, void *payload);
+	void *payload;
+} git_diff_similarity_metric;
 
 int git_diff_init_options(git_diff_options *opts, unsigned int version);
 int git_diff_index_to_workdir(git_diff **diff, git_repository *repo, git_index *index, const git_diff_options *opts);
@@ -578,3 +591,23 @@ const git_blame_hunk *git_blame_get_hunk_byindex(git_blame *blame, uint32_t inde
 const git_blame_hunk *git_blame_get_hunk_byline(git_blame *blame, uint32_t lineno);
 int git_blame_file(git_blame **out, git_repository *repo, const char *path, git_blame_options *options);
 void git_blame_free(git_blame *blame);
+
+/*
+ * Merging
+ */
+
+typedef enum { ... } git_merge_tree_flag_t;
+
+typedef enum { ... } git_merge_file_favor_t;
+
+typedef struct {
+	unsigned int version;
+	git_merge_tree_flag_t flags;
+	unsigned int rename_threshold;
+	unsigned int target_limit;
+	git_diff_similarity_metric *metric;
+	git_merge_file_favor_t file_favor;
+} git_merge_options;
+
+
+int git_merge_commits(git_index **out, git_repository *repo, const git_commit *our_commit, const git_commit *their_commit, const git_merge_options *opts);
