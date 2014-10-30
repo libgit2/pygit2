@@ -13,67 +13,73 @@ Installation
 Requirements
 ============
 
-- Python 2.7, 3.2, 3.3, 3.4 or pypy.
-  Including the development headers.
-
-- Libgit2 v0.21.1
-
+- Python 2.7, 3.2+ or pypy (including the development headers)
+- Libgit2 v0.21.1+
 - cffi 0.8.1+
 
+.. warning::
 
-One common mistake users do is to choose incompatible versions of libgit2 and
-pygit2. Be sure to use the latest release of both, double check the versions do
-match before filing a bug report.
+   One common mistake users do is to choose incompatible versions of libgit2
+   and pygit2. See below for a reference table of compatible versions.  Double
+   check the versions do match before filing a bug report.
 
-.. note::
+Version numbers
+---------------
 
-   The version of pygit2 is composed of three numbers separated by dots
-   |lq| *major.minor.micro* |rq|, where the first two numbers
-   |lq| *major.minor* |rq| match the first two numbers of the libgit2 version,
-   while the last number |lq| *.micro* |rq| auto-increments independently.
+The version number of pygit2 is composed of three numbers separated by dots
+|lq| *major.minor.micro* |rq|, where the first two numbers
+|lq| *major.minor* |rq| match the first two numbers of the libgit2 version,
+while the last number |lq| *.micro* |rq| auto-increments independently.
 
-   As illustration see this table of compatible releases:
+As illustration see this table of compatible releases:
 
-   +-----------+-------------------------------+------------------------------+
-   |**libgit2**|0.21.1                         |0.20.0                        |
-   +-----------+-------------------------------+------------------------------+
-   |**pygit2** |0.21.0, 0.21.1, 0.21.2, 0.21.3 |0.20.0, 0.20.1, 0.20.2, 0.20.3|
-   +-----------+-------------------------------+------------------------------+
++-----------+-------------------------------+------------------------------+--------------+
+|**libgit2**|0.21.1, 0.21.2                 |0.20.0                        |0.19.0        |
++-----------+-------------------------------+------------------------------+--------------+
+|**pygit2** |0.21.0, 0.21.1, 0.21.2, 0.21.3 |0.20.0, 0.20.1, 0.20.2, 0.20.3|0.19.0, 0.19.1|
++-----------+-------------------------------+------------------------------+--------------+
 
-   **Warning!** Backwards compatibility is not guaranteed even between micro
-   releases.  Please check the release notes for incompatible changes before
-   upgrading to a new release.
+.. warning::
+
+   Backwards compatibility is not guaranteed even between micro releases.
+   Please check the release notes for incompatible changes before upgrading to
+   a new release.
 
 
 Quick install
 =============
 
-This works for me, it may work for you:
+To install the latest version of libgit2 system wide, in the ``/usr/local``
+directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz
-   $ tar xzf v0.21.1.tar.gz
-   $ cd libgit2-0.21.1/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.21.2.tar.gz
+   $ tar xzf v0.21.2.tar.gz
+   $ cd libgit2-0.21.2/
    $ cmake .
    $ make
    $ sudo make install
 
-If this does not work for you, check the detailed instructions on building
-libgit2 in various platforms, see
-https://libgit2.github.com/docs/guides/build-and-link/
+.. seealso::
 
-Once libgit2 is installed, deploying pygit2 should be a snap:
+   For detailed instructions on building libgit2 check
+   https://libgit2.github.com/docs/guides/build-and-link/
+
+Now install pygit2, and then verify it is correctly installed:
 
 .. code-block:: sh
 
    $ pip install pygit2
+   ...
+   $ python -c 'import pygit2'
 
 
 Troobleshooting
-===============
+---------------
 
-You may get an error like this one:
+The verification step may fail if the dynamic linker does not find the libgit2
+library:
 
 .. code-block:: sh
 
@@ -84,70 +90,40 @@ You may get an error like this one:
        from _pygit2 import *
    ImportError: libgit2.so.0: cannot open shared object file: No such file or directory
 
-It means the linker is not able to find the libgit2 library.
-
-This happens for instance in Ubuntu: the libgit2 library is installed within
+This happens for instance in Ubuntu, the libgit2 library is installed within
 the ``/usr/local/lib`` directory, but the linker does not look for it there. To
-fix this call ``ldconfig`` between the installation of libgit2 and the
-installation of pygit2:
+fix this call ``ldconfig``:
 
 .. code-block:: sh
 
-   ...
-   $ cmake .
-   $ make
-   $ sudo make install
-   ...
    $ sudo ldconfig
-   ...
-   $ pip install pygit2
+   $ python -c 'import pygit2'
 
-Now it should work. If it does not...
-
-Advanced: the runpath
----------------------
-
-If it does not work yet, you can always instruct pygit2 to search for libraries
-in some extra paths:
-
-.. code-block:: sh
-
-   $ export LIBGIT2="/usr/local"
-   $ export LDFLAGS="-Wl,-rpath='$LIBGIT2/lib',--enable-new-dtags $LDFLAGS"
-   $ pip install pygit2
-
-This compiles the pygit2 libraries with a ``RUNPATH``, which bakes extra
-library search paths directly into the binaries (see the `ld man page`_ for
-details).  With ``RUNPATH`` compiled in, you won't have to use
-``LD_LIBRARY_PATH``.  You can check to ensure ``RUNPATH`` was set with
-readelf_:
-
-.. code-block:: sh
-
-   $ readelf --dynamic build/lib.linux-x86_64-3.2/_pygit2.cpython-32.so | grep PATH
-   0x000000000000000f (RPATH)              Library rpath: [/usr/local/lib]
-   0x000000000000001d (RUNPATH)            Library runpath: [/usr/local/lib]
-
-.. _Shared libraries: http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
-.. _ld man page: http://linux.die.net/man/1/ld
-.. _readelf: http://www.gnu.org/software/binutils/
+If it still does not work, please open an issue at
+https://github.com/libgit2/pygit2/issues, I would like to know about it.
 
 
-The LIBGIT2 environment variable
-================================
+Build options
+=============
 
-If libgit2 is installed in some non standard location, you will have to set the
-``LIBGIT2`` environment variable before installing pygit2. This variables tells
-pygit2 where libgit2 is installed.
+``LIBGIT2`` -- If you install libgit2 in an unusual place, you will need to set
+the ``LIBGIT2`` environment variable before installing pygit2.  This variable
+tells pygit2 where libgit2 is installed.  We will see a concrete example later,
+when explaining how to install libgit2 within a virtual environment.
+
+``LIBGIT2_LIB`` -- This is a more rarely used build option, it allows to
+override the library directory where libgit2 is installed, useful if different
+from from ``$LIBGIT2/lib``.
 
 
-Use case: libgit2 within a Virtualenv
--------------------------------------
+libgit2 within a virtual environment
+====================================
 
-A use case for this is if you want to install libgit2 inside a virtualenv, so
-you may have several virtualenvs with different versions of libgit2/pygit2,
-isolated from each other. Or maybe you just don't have root access to install
-libgit2 in the system.
+This is how to install both libgit2 and pygit2 within a virtual environment.
+
+This is useful if you don't have root acces to install libgit2 system wide.
+Or if you wish to have different versions of libgit2/pygit2 installed in
+different virtual environments, isolated from each other.
 
 Create the virtualenv, activate it, and set the ``LIBGIT2`` environment
 variable:
@@ -162,9 +138,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz
-   $ tar xzf v0.21.1.tar.gz
-   $ cd libgit2-0.21.1/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.21.2.tar.gz
+   $ tar xzf v0.21.2.tar.gz
+   $ cd libgit2-0.21.2/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -173,10 +149,38 @@ Install pygit2:
 
 .. code-block:: sh
 
+   $ export LDFLAGS="-Wl,-rpath='$LIBGIT2/lib',--enable-new-dtags $LDFLAGS"
    $ pip install pygit2
+   $ python -c 'import pygit2'
 
 
-Building on Windows
+The run-path
+------------------------------------------
+
+Did you notice we set the `rpath <http://en.wikipedia.org/wiki/Rpath>`_ before
+installing pygit2?  Since libgit2 is installed in a non standard location, the
+dynamic linker will not find it at run-time, and ``lddconfig`` will not help
+this time.
+
+So you need to either set ``LD_LIBRARY_PATH`` before using pygit2, like:
+
+.. code-block:: sh
+
+   $ export LD_LIBRARY_PATH=$LIBGIT2/lib
+   $ python -c 'import pygit2'
+
+Or, like we have done in the instructions above, use the `rpath
+<http://en.wikipedia.org/wiki/Rpath>`_, it hard-codes extra search paths within
+the pygit2 extension modules, so you don't need to set ``LD_LIBRARY_PATH``
+everytime. Verify yourself if curious:
+
+.. code-block:: sh
+
+   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.21.3-py2.7-linux-x86_64.egg/pygit2_cffi.so | grep PATH
+    0x000000000000001d (RUNPATH)            Library runpath: [/tmp/venv/lib]
+
+
+Installing on Windows
 ===================================
 
 pygit2 expects to find the libgit2 installed files in the directory specified
@@ -189,14 +193,20 @@ from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz
-   $ tar xzf v0.21.1.tar.gz
-   $ cd libgit2-0.21.1/
-   $ mkdir build
-   $ cd build
-   $ cmake .. -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"
+   $ wget https://github.com/libgit2/libgit2/archive/v0.21.2.tar.gz
+   $ tar xzf v0.21.2.tar.gz
+   $ cd libgit2-0.21.2/
+   $ cmake . -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"
    $ cmake --build . --config release --target install
    $ ctest -v
 
 At this point, you're ready to execute the generic pygit2 installation
 steps described above.
+
+Installing on OS X
+===================================
+
+.. note::
+
+   Help wanted to write this section, please make a pull request
+   https://github.com/libgit2/pygit2/pulls
