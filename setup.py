@@ -195,10 +195,9 @@ setup(name='pygit2',
       install_requires=['cffi'],
       zip_safe=False,
       ext_modules=[
-          Extension('_pygit2', pygit2_exts,
-                    include_dirs=[libgit2_include, 'include'],
-                    library_dirs=[libgit2_lib],
-                    libraries=['git2']),
+          Extension('_pygit2', pygit2_exts, libraries=['git2'],
+                    include_dirs=[libgit2_include],
+                    library_dirs=[libgit2_lib]),
           # FFI is added in the build step
       ],
       cmdclass=cmdclass)
