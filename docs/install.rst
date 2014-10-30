@@ -176,7 +176,7 @@ everytime. Verify yourself if curious:
 
 .. code-block:: sh
 
-   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.21.3-py2.7-linux-x86_64.egg/pygit2_cffi.so | grep PATH
+   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.21.3-py2.7-linux-x86_64.egg/_pygit2.so | grep PATH
     0x000000000000001d (RUNPATH)            Library runpath: [/tmp/venv/lib]
 
 
