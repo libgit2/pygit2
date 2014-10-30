@@ -41,7 +41,7 @@ from .remote import Remote, get_credentials
 from .repository import Repository
 from .settings import Settings
 from .utils import to_bytes
-from .version import __version__
+from ._utils import __version__
 
 
 def init_repository(path, bare=False,

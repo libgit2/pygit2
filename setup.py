@@ -43,11 +43,9 @@ from subprocess import Popen, PIPE
 import sys
 import unittest
 
-# Read version from local pygit2/version.py without pulling in
-# pygit2/__init__.py
+# Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
-from version import __version__
-import ffi
+from _utils import __version__, get_libgit2_paths, get_ffi
 del sys.path[0]
 
 # Python 2 support
@@ -58,7 +56,7 @@ else:
     u = str
 
 
-libgit2_bin, libgit2_include, libgit2_lib = ffi.get_libgit2_paths()
+libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
 
 pygit2_exts = [os.path.join('src', name) for name in os.listdir('src')
                if name.endswith('.c')]
@@ -100,7 +98,8 @@ class CFFIBuild(build):
     to add cffi as an extension.
     """
     def finalize_options(self):
-        self.distribution.ext_modules.append(ffi.ffi.verifier.get_extension())
+        ffi, C = get_ffi()
+        self.distribution.ext_modules.append(ffi.verifier.get_extension())
         build.finalize_options(self)
 
 
