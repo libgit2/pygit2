@@ -508,6 +508,75 @@ class Repository(_Repository):
         return Index.from_c(self, cindex)
 
     #
+    # Merging
+    #
+    def merge_commits(self, ours, theirs, favor='normal'):
+        """Merge two arbitrary commits
+
+        Arguments:
+
+        ours
+            The commit to take as "ours" or base.
+        theirs
+            The commit which will be merged into "ours"
+        favor
+            How to deal with file-level conflicts. Can be one of
+
+            * normal (default). Conflicts will be preserved.
+            * ours. The "ours" side of the conflict region is used.
+            * theirs. The "theirs" side of the conflict region is used.
+            * union. Unique lines from each side will be used.
+
+            for all but NORMAL, the index will not record a conflict.
+
+        Both "ours" and "theirs" can be any object which peels to a commit or the id
+        (string or Oid) of an object which peels to a commit.
+
+        Returns an index with the result of the merge
+
+        """
+        def favor_to_enum(favor):
+            if favor == 'normal':
+                return C.GIT_MERGE_FILE_FAVOR_NORMAL
+            elif favor == 'ours':
+                return C.GIT_MERGE_FILE_FAVOR_OURS
+            elif favor == 'theirs':
+                return C.GIT_MERGE_FILE_FAVOR_THEIRS
+            elif favor == 'union':
+                return C.GIT_MERGE_FILE_FAVOR_UNION
+            else:
+                return None
+
+        ours_ptr = ffi.new('git_commit **')
+        theirs_ptr = ffi.new('git_commit **')
+        opts = ffi.new('git_merge_options *')
+        cindex = ffi.new('git_index **')
+
+        if is_string(ours) or isinstance(ours, Oid):
+            ours = self[ours]
+        if is_string(theirs) or isinstance(theirs, Oid):
+            theirs = self[theirs]
+
+        ours = ours.peel(Commit)
+        theirs = theirs.peel(Commit)
+
+        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
+        check_error(err)
+
+        favor_val = favor_to_enum(favor)
+        if favor_val is None:
+            raise ValueError("unkown favor value %s" % favor)
+
+        opts.file_favor = favor_val
+
+        ffi.buffer(ours_ptr)[:] = ours._pointer[:]
+        ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
+
+        err = C.git_merge_commits(cindex, self._repo, ours_ptr[0], theirs_ptr[0], opts)
+        check_error(err)
+
+        return Index.from_c(self, cindex)
+    #
     # Utility for writing a tree into an archive
     #
     def write_archive(self, treeish, archive, timestamp=None):
