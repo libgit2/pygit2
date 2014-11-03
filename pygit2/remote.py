@@ -353,6 +353,7 @@ class Remote(object):
 
         push = cpush[0]
 
+
         try:
             err = C.git_push_add_refspec(push, to_bytes(spec))
             check_error(err)
