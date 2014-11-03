@@ -25,6 +25,42 @@ How to install
 Changelog
 ==============
 
+0.21.4 (2014-11-XX)
+-------------------
+
+- Fix credentials callback not set when pushing
+  `#431 <https://github.com/libgit2/pygit2/pull/431>`_
+  `#435 <https://github.com/libgit2/pygit2/issues/435>`_
+  `#437 <https://github.com/libgit2/pygit2/issues/437>`_
+  `#438 <https://github.com/libgit2/pygit2/pull/438>`_
+
+- Fix ``Repository.diff(...)`` when treeish is "empty"
+  `#432 <https://github.com/libgit2/pygit2/issues/432>`_
+
+- New ``Reference.peel(...)`` renders ``Reference.get_object()`` obsolete
+  `#434 <https://github.com/libgit2/pygit2/pull/434>`_
+
+- New, authenticate using ssh agent
+  `#424 <https://github.com/libgit2/pygit2/pull/424>`_
+
+- New ``Repository.merge_commits(...)``
+  `#445 <https://github.com/libgit2/pygit2/pull/445>`_
+
+- Make it easier to run when libgit2 not in a standard location
+  `#441 <https://github.com/libgit2/pygit2/issues/441>`_
+
+- Documentation: review install chapter
+
+- Documentation: many corrections
+  `#427 <https://github.com/libgit2/pygit2/pull/427>`_
+  `#429 <https://github.com/libgit2/pygit2/pull/429>`_
+  `#439 <https://github.com/libgit2/pygit2/pull/439>`_
+  `#440 <https://github.com/libgit2/pygit2/pull/440>`_
+  `#442 <https://github.com/libgit2/pygit2/pull/442>`_
+  `#443 <https://github.com/libgit2/pygit2/pull/443>`_
+  `#444 <https://github.com/libgit2/pygit2/pull/444>`_
+
+
 0.21.3 (2014-09-15)
 -------------------
 
