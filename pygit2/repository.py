@@ -442,11 +442,10 @@ class Repository(_Repository):
     #
     # blame
     #
-    def blame(self, path, flags=None, min_match_characters=None, newest_commit=None, oldest_commit=None, min_line=None, max_line=None):
-        """blame(path, [flags, min_match_characters, newest_commit, oldest_commit,\n"
-                 min_line, max_line]) -> Blame
-
-        Get the blame for a single file.
+    def blame(self, path, flags=None, min_match_characters=None,
+              newest_commit=None, oldest_commit=None, min_line=None,
+              max_line=None):
+        """Return a Blame object for a single file.
 
         Arguments:
 

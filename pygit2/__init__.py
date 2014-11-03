@@ -32,6 +32,7 @@ from __future__ import absolute_import
 from _pygit2 import *
 
 # High level API
+from .blame import Blame, BlameHunk
 from .config import Config
 from .credentials import *
 from .errors import check_error
