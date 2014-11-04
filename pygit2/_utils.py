@@ -43,7 +43,7 @@ import sys
 #
 # The version number of pygit2
 #
-__version__ = '0.21.3'
+__version__ = '0.21.4'
 
 
 #

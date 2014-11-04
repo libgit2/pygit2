@@ -25,7 +25,7 @@ How to install
 Changelog
 ==============
 
-0.21.4 (2014-11-XX)
+0.21.4 (2014-11-04)
 -------------------
 
 - Fix credentials callback not set when pushing
@@ -446,33 +446,34 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-73 developers have contributed at least 1 commit to pygit2::
+77 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez            Rémi Duraffort             Alexander Bayandin
-  Carlos Martín Nieto        Sebastian Thiel            Andrew Chin
-  Nico von Geyso             Fraser Tweedale            András Veres-Szentkirályi
-  W. Trevor King             Han-Wen Nienhuys           Benjamin Kircher
-  Dave Borowitz              Leonardo Rhodes            Benjamin Pollack
-  Daniel Rodríguez Troitiño  Petr Viktorin              Bryan O'Sullivan
-  Richo Healey               Ron Cohen                  Daniel Bruce
-  Christian Boos             Thomas Kluyver             David Fischer
-  Julien Miotte              Alex Chamberlain           David Sanders
-  Xu Tao                     Amit Bakshi                Devaev Maxim
-  Jose Plana                 Andrey Devyatkin           Eric Davis
-  Matthew Gamble             Arno van Lumig             Erik Meusel
-  Martin Lenders             Ben Davis                  Erik van Zijst
-  Petr Hosek                 Eric Schrijver             Ferengee
-  Victor Garcia              Hervé Cauwelier            Gustavo Di Pietro
-  Xavier Delannoy            Huang Huang                Hugh Cole-Baker
-  Yonggang Luo               Ian P. McCullough          Jasper Lievisse Adriaanse
-  Valentin Haenel            Jack O'Connor              Josh Bleecher Snyder
+  J. David Ibáñez            Sebastian Thiel            András Veres-Szentkirályi
+  Carlos Martín Nieto        Fraser Tweedale            Ash Berlin
+  Nico von Geyso             Han-Wen Nienhuys           Benjamin Kircher
+  W. Trevor King             Leonardo Rhodes            Benjamin Pollack
+  Dave Borowitz              Petr Viktorin              Bryan O'Sullivan
+  Daniel Rodríguez Troitiño  Ron Cohen                  Daniel Bruce
+  Richo Healey               Thomas Kluyver             David Fischer
+  Christian Boos             Alex Chamberlain           David Sanders
+  Julien Miotte              Alexander Bayandin         Devaev Maxim
+  Xu Tao                     Amit Bakshi                Eric Davis
+  Jose Plana                 Andrey Devyatkin           Erik Meusel
+  Matthew Gamble             Arno van Lumig             Erik van Zijst
+  Martin Lenders             Ben Davis                  Ferengee
+  Petr Hosek                 Eric Schrijver             Gustavo Di Pietro
+  Victor Garcia              Hervé Cauwelier            Hugh Cole-Baker
+  Xavier Delannoy            Huang Huang                Jasper Lievisse Adriaanse
+  Yonggang Luo               Ian P. McCullough          Josh Bleecher Snyder
+  Valentin Haenel            Jack O'Connor              Kyriakos Oikonomakos
   Michael Jones              Jared Flatow               Mathieu Bridon
   Bernardo Heynemann         Jiunn Haur Lim             Óscar San José
   John Szakmeister           Jun Omae                   Ridge Kennedy
   Matthew Duggan             Sarath Lakshman            Rui Abreu Ferreira
-  Brodie Rao                 Vicent Marti               earl
-  Vlad Temian                Zoran Zaric
-  David Versmisse            Adam Spiers
+  Brodie Rao                 Vicent Marti               Soasme
+  Vlad Temian                Zoran Zaric                chengyuhang
+  David Versmisse            Adam Spiers                earl
+  Rémi Duraffort             Andrew Chin
 
 
 License
