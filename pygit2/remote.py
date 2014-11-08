@@ -494,3 +494,66 @@ def get_credentials(fn, url, username, allowed):
     check_error(err)
 
     return ccred
+
+class RemoteCollection(object):
+    """Collection of configured remotes
+
+    You can use this class to look up and manage the remotes configured
+    in a repository.  You can access repositories using index
+    access. E.g. to look up the "origin" remote, you can use
+
+    >>> repo.remotes["origin"]
+    """
+
+    def __init__(self, repo):
+        self._repo = repo;
+
+    def __len__(self):
+        names = ffi.new('git_strarray *')
+
+        try:
+            err = C.git_remote_list(names, self._repo._repo)
+            check_error(err)
+
+            return names.count
+        finally:
+            C.git_strarray_free(names)
+
+    def __iter__(self):
+        names = ffi.new('git_strarray *')
+
+        try:
+            err = C.git_remote_list(names, self._repo._repo)
+            check_error(err)
+
+            cremote = ffi.new('git_remote **')
+            for i in range(names.count):
+                err = C.git_remote_load(cremote, self._repo._repo, names.strings[i])
+                check_error(err)
+
+                yield Remote(self._repo, cremote[0])
+        finally:
+            C.git_strarray_free(names)
+
+    def __getitem__(self, name):
+        if isinstance(name, int):
+            return list(self)[name]
+
+        cremote = ffi.new('git_remote **')
+        err = C.git_remote_load(cremote, self._repo._repo, to_bytes(name))
+        check_error(err)
+
+        return Remote(self._repo, cremote[0])
+
+    def create(self, name, url):
+        """create(name, url) -> Remote
+
+        Create a new remote with the given name and url.
+        """
+
+        cremote = ffi.new('git_remote **')
+
+        err = C.git_remote_create(cremote, self._repo._repo, to_bytes(name), to_bytes(url))
+        check_error(err)
+
+        return Remote(self._repo, cremote[0])

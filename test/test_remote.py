@@ -167,6 +167,19 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.create_remote(name, url)
         self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
 
+    def test_remote_collection(self):
+        remote = self.repo.remotes['origin']
+        self.assertEqual(REMOTE_NAME, remote.name)
+        self.assertEqual(REMOTE_URL, remote.url)
+
+        with self.assertRaises(KeyError):
+            self.repo.remotes['upstream']
+
+        name = 'upstream'
+        url = 'git://github.com/libgit2/pygit2.git'
+        remote = self.repo.remotes.create(name, url)
+        self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
+
 
     def test_remote_save(self):
         remote = self.repo.remotes[0]
