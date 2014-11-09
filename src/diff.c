@@ -31,6 +31,7 @@
 #include "error.h"
 #include "types.h"
 #include "utils.h"
+#include "oid.h"
 #include "diff.h"
 
 extern PyObject *GitError;
@@ -81,8 +82,8 @@ wrap_patch(git_patch *patch)
         py_patch->status = git_diff_status_char(delta->status);
         py_patch->similarity = delta->similarity;
         py_patch->flags = delta->flags;
-        py_patch->old_id = git_oid_allocfmt(&delta->old_file.id);
-        py_patch->new_id = git_oid_allocfmt(&delta->new_file.id);
+        py_patch->old_id = git_oid_to_python(&delta->old_file.id);
+        py_patch->new_id = git_oid_to_python(&delta->new_file.id);
 
         git_patch_line_stats(NULL, &additions, &deletions, patch);
         py_patch->additions = additions;
@@ -150,8 +151,8 @@ static void
 Patch_dealloc(Patch *self)
 {
     Py_CLEAR(self->hunks);
-    free(self->old_id);
-    free(self->new_id);
+    Py_CLEAR(self->old_id);
+    Py_CLEAR(self->new_id);
     /* We do not have to free old_file_path and new_file_path, they will
      * be freed by git_diff_list_free in Diff_dealloc */
     PyObject_Del(self);
@@ -160,8 +161,8 @@ Patch_dealloc(Patch *self)
 PyMemberDef Patch_members[] = {
     MEMBER(Patch, old_file_path, T_STRING, "old file path"),
     MEMBER(Patch, new_file_path, T_STRING, "new file path"),
-    MEMBER(Patch, old_id, T_STRING, "old oid"),
-    MEMBER(Patch, new_id, T_STRING, "new oid"),
+    MEMBER(Patch, old_id, T_OBJECT, "old oid"),
+    MEMBER(Patch, new_id, T_OBJECT, "new oid"),
     MEMBER(Patch, status, T_CHAR, "status"),
     MEMBER(Patch, similarity, T_INT, "similarity"),
     MEMBER(Patch, hunks, T_OBJECT, "hunks"),

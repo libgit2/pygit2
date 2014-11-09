@@ -70,7 +70,7 @@ class NotesTest(utils.BareRepoTestCase):
 
     def test_iterate_notes(self):
         for i, note in enumerate(self.repo.notes()):
-            entry = (note.id.hex, note.message, note.annotated_id)
+            entry = (note.id.hex, note.message, note.annotated_id.hex)
             self.assertEqual(NOTES[i], entry)
 
     def test_iterate_non_existing_ref(self):
