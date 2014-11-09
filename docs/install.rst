@@ -203,10 +203,32 @@ from a bash shell:
 At this point, you're ready to execute the generic pygit2 installation
 steps described above.
 
+
 Installing on OS X
 ===================================
 
 .. note::
 
-   Help wanted to write this section, please make a pull request
-   https://github.com/libgit2/pygit2/pulls
+   You will need the `XCode <https://developer.apple.com/xcode/>`_ Developer
+   Tools from Apple. This free download from the Mac App Store will provide the
+   clang compiler needed for the installation of pygit2.
+
+   This section was tested on OS X 10.9 Mavericks and OS X 10.10 Yosemite with
+   Python 3.3 in a virtual environment.
+
+The easiest way is to first install libgit2 with the `Homebrew <http://brew.sh>`_
+package manager and then use pip3 for pygit2. The following example assumes that
+XCode and Hombrew are already installed.
+
+.. code-block:: sh
+
+   $ brew update
+   $ brew install libgit2
+   $ pip3 install pygit2
+
+If the installation of pygit2 is aborted, you might need to export the libgit2
+path before rerunning pip3:
+
+.. code-block:: sh
+
+   $ export LIBGIT2=/usr/local/Cellar/libgit2/<libgit2 version>/lib
