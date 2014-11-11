@@ -2,10 +2,14 @@
 Remotes
 **********************************************************************
 
-
 .. autoattribute:: pygit2.Repository.remotes
 .. automethod:: pygit2.Repository.create_remote
 
+The remote collection
+==========================
+
+.. autoclass:: pygit2.remote.RemoteCollection
+   :members:
 
 The Remote type
 ====================
