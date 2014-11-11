@@ -118,8 +118,8 @@ def _credentials_cb(cred_out, url, username_from_url, allowed, data):
 
 
 def clone_repository(
-        url, path, bare=False, ignore_cert_errors=False,
-        remote_name="origin", checkout_branch=None, credentials=None):
+        url, path, bare=False, remote_name="origin",
+        checkout_branch=None, credentials=None):
     """Clones a new Git repository from *url* in the given *path*.
 
     Returns a Repository class pointing to the newly cloned repository.
@@ -162,9 +162,7 @@ def clone_repository(
         opts.checkout_branch = checkout_branch_ref
 
     remote_name_ref = ffi.new('char []', to_bytes(remote_name))
-    opts.remote_name = remote_name_ref
 
-    opts.ignore_cert_errors = ignore_cert_errors
     opts.bare = bare
     if credentials:
         opts.remote_callbacks.credentials = _credentials_cb
