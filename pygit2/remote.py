@@ -148,7 +148,8 @@ class Remote(object):
             raise ValueError("New remote name must be a non-empty string")
 
         problems = ffi.new('git_strarray *')
-        err = C.git_remote_rename(problems, self._remote, to_bytes(new_name))
+        err = C.git_remote_rename(problems, self._repo, self.name,
+                                  to_bytes(new_name))
         check_error(err)
 
         ret = strarray_to_strings(problems)
@@ -181,9 +182,10 @@ class Remote(object):
     def delete(self):
         """Remove this remote
 
-        All remote-tracking branches and configuration settings for the remote will be removed.
+        All remote-tracking branches and configuration settings for the remote
+        will be removed.
         """
-        err = C.git_remote_delete(self._remote)
+        err = C.git_remote_delete(self._repo, self.name)
         check_error(err)
 
     def save(self):
@@ -231,7 +233,8 @@ class Remote(object):
         self._stored_exception = None
 
         try:
-            err = C.git_remote_fetch(self._remote, ptr, to_bytes(message))
+            err = C.git_remote_fetch(self._remote, self.fetch_refspecs, ptr,
+                                     to_bytes(message))
             if self._stored_exception:
                 raise self._stored_exception
 

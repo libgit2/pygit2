@@ -113,7 +113,8 @@ class Repository(_Repository):
             l = [None] * names.count
             cremote = ffi.new('git_remote **')
             for i in range(names.count):
-                err = C.git_remote_load(cremote, self._repo, names.strings[i])
+                err = C.git_remote_lookup(cremote, self._repo,
+                                          names.strings[i])
                 check_error(err)
 
                 l[i] = Remote(self, cremote[0])

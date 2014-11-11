@@ -38,6 +38,7 @@
 #include "branch.h"
 #include "signature.h"
 #include <git2/odb_backend.h>
+#include <git2/annotated_commit.h>
 
 extern PyObject *GitError;
 
@@ -524,22 +525,18 @@ PyObject *
 Repository_merge_analysis(Repository *self, PyObject *py_id)
 {
     int err;
-    size_t len;
-    git_oid id;
-    git_merge_head *merge_head;
+    git_reference *ref;
+    git_annotated_commit *annotated_commit;
     git_merge_analysis_t analysis;
-    git_merge_preference_t preference;
+    git_merge_preference_t *preference;
 
-    len = py_oid_to_git_oid(py_id, &id);
-    if (len == 0)
-        return NULL;
-
-    err = git_merge_head_from_id(&merge_head, self->repo, &id);
+    //err = git_merge_head_from_id(&merge_head, self->repo, &id);
+    err = git_annotated_commit_from_ref(&annotated_commit, self->repo, (const git_reference *)&ref);
     if (err < 0)
         return Error_set(err);
 
-    err = git_merge_analysis(&analysis, &preference, self->repo, (const git_merge_head **) &merge_head, 1);
-    git_merge_head_free(merge_head);
+    err = git_merge_analysis(&analysis, preference, self->repo, (const git_annotated_commit **)annotated_commit, 1);
+    git_annotated_commit_free(annotated_commit);
 
     if (err < 0)
         return Error_set(err);
@@ -561,27 +558,22 @@ PyDoc_STRVAR(Repository_merge__doc__,
 PyObject *
 Repository_merge(Repository *self, PyObject *py_oid)
 {
-    git_merge_head *oid_merge_head;
-    git_oid oid;
+    git_annotated_commit *annotated_commit;
+    git_reference *ref;
     int err;
-    size_t len;
     git_merge_options merge_opts = GIT_MERGE_OPTIONS_INIT;
     git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
 
-    len = py_oid_to_git_oid(py_oid, &oid);
-    if (len == 0)
-        return NULL;
-
-    err = git_merge_head_from_id(&oid_merge_head, self->repo, &oid);
+    err = git_annotated_commit_from_ref(&annotated_commit, self->repo, (const git_reference *)&ref);
     if (err < 0)
         return Error_set(err);
 
     checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE;
     err = git_merge(self->repo,
-                    (const git_merge_head **)&oid_merge_head, 1,
+                    (const git_annotated_commit **)&annotated_commit, 1,
                     &merge_opts, &checkout_opts);
 
-    git_merge_head_free(oid_merge_head);
+    git_annotated_commit_free(annotated_commit);
     if (err < 0)
         return Error_set(err);
 
@@ -1375,7 +1367,7 @@ Repository_reset(Repository *self, PyObject* args)
 
     err = git_object_lookup_prefix(&target, self->repo, &oid, len,
                                    GIT_OBJ_ANY);
-    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL, NULL);
+    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL, NULL, NULL);
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);

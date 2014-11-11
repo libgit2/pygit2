@@ -118,11 +118,26 @@ typedef int (*git_cred_acquire_cb)(
 	void *payload);
 typedef int (*git_transfer_progress_cb)(const git_transfer_progress *stats, void *payload);
 
+
+typedef enum git_cert_t {
+	GIT_CERT_X509,
+	GIT_CERT_HOSTKEY_LIBSSH2,
+} git_cert_t;
+
+typedef struct {
+	git_cert_t cert_type;
+} git_cert;
+
+
+
+typedef int (*git_transport_certificate_check_cb)(git_cert *cert, int valid, const char *host, void *payload);
+
 struct git_remote_callbacks {
 	unsigned int version;
 	git_transport_message_cb sideband_progress;
 	int (*completion)(git_remote_completion_type type, void *data);
 	git_cred_acquire_cb credentials;
+    git_transport_certificate_check_cb certificate_check;
 	git_transfer_progress_cb transfer_progress;
 	int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data);
 	void *payload;
@@ -131,26 +146,27 @@ struct git_remote_callbacks {
 typedef struct git_remote_callbacks git_remote_callbacks;
 
 int git_remote_list(git_strarray *out, git_repository *repo);
-int git_remote_load(git_remote **out, git_repository *repo, const char *name);
+int git_remote_lookup(git_remote **out, git_repository *repo, const char *name);
 int git_remote_create(
 	git_remote **out,
 	git_repository *repo,
 	const char *name,
 	const char *url);
-int git_remote_delete(git_remote *remote);
+int git_remote_delete(git_repository *repo, const char *name);
 int git_repository_state_cleanup(git_repository *repo);
 
 const char * git_remote_name(const git_remote *remote);
 
 int git_remote_rename(
 	git_strarray *problems,
-	git_remote *remote,
+	git_repository *remote,
+    const char *name,
 	const char *new_name);
 const char * git_remote_url(const git_remote *remote);
 int git_remote_set_url(git_remote *remote, const char* url);
 const char * git_remote_pushurl(const git_remote *remote);
 int git_remote_set_pushurl(git_remote *remote, const char* url);
-int git_remote_fetch(git_remote *remote, const git_signature *signature, const char *reflog_message);
+int git_remote_fetch(git_remote *repo, git_strarray *refspecs, const git_signature *signature, const char *reflog_message);
 const git_transfer_progress * git_remote_stats(git_remote *remote);
 int git_remote_add_push(git_remote *remote, const char *refspec);
 int git_remote_add_fetch(git_remote *remote, const char *refspec);
@@ -267,8 +283,8 @@ typedef struct {
 	git_diff_notify_cb notify_cb;
 	void              *notify_payload;
 
-	uint16_t    context_lines;
-	uint16_t    interhunk_lines;
+	uint32_t    context_lines;
+	uint32_t    interhunk_lines;
 	uint16_t    id_abbrev;
 	git_off_t   max_size;
 	const char *old_prefix;
@@ -355,6 +371,19 @@ int git_checkout_index(git_repository *repo, git_index *index, const git_checkou
  * git_clone
  */
 
+typedef int (*git_repository_create_cb)(
+	git_repository **out,
+	const char *path,
+	int bare,
+	void *payload);
+
+typedef int (*git_remote_create_cb)(
+	git_remote **out,
+	git_repository *repo,
+	const char *name,
+	const char *url,
+	void *payload);
+
 typedef struct git_clone_options {
 	unsigned int version;
 
@@ -362,11 +391,13 @@ typedef struct git_clone_options {
 	git_remote_callbacks remote_callbacks;
 
 	int bare;
-	int ignore_cert_errors;
 	git_clone_local_t local;
-	const char *remote_name;
 	const char* checkout_branch;
 	git_signature *signature;
+	git_repository_create_cb repository_cb;
+	void *repository_cb_payload;
+	git_remote_create_cb remote_cb;
+	void *remote_cb_payload;
 } git_clone_options;
 
 #define GIT_CLONE_OPTIONS_VERSION ...
@@ -376,13 +407,6 @@ int git_clone(git_repository **out,
 	const char *url,
 	const char *local_path,
 	const git_clone_options *options);
-
-int git_clone_into(
-	git_repository *repo,
-	git_remote *remote,
-	const git_checkout_options *co_opts,
-	const char *branch,
-	const git_signature *signature);
 
 /*
  * git_config
