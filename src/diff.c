@@ -44,7 +44,7 @@ extern PyTypeObject RepositoryType;
 
 PyTypeObject PatchType;
 
-PyObject*
+PyObject *
 wrap_diff(git_diff *diff, Repository *repo)
 {
     Diff *py_diff;
@@ -53,7 +53,7 @@ wrap_diff(git_diff *diff, Repository *repo)
     if (py_diff) {
         Py_INCREF(repo);
         py_diff->repo = repo;
-        py_diff->list = diff;
+        py_diff->diff = diff;
     }
 
     return (PyObject*) py_diff;
@@ -134,7 +134,7 @@ wrap_patch(git_patch *patch)
     return (PyObject*) py_patch;
 }
 
-PyObject*
+PyObject *
 diff_get_patch_byindex(git_diff *diff, size_t idx)
 {
     git_patch *patch = NULL;
@@ -235,7 +235,7 @@ PyObject *
 DiffIter_iternext(DiffIter *self)
 {
     if (self->i < self->n)
-        return diff_get_patch_byindex(self->diff->list, self->i++);
+        return diff_get_patch_byindex(self->diff->diff, self->i++);
 
     PyErr_SetNone(PyExc_StopIteration);
     return NULL;
@@ -284,8 +284,8 @@ PyTypeObject DiffIterType = {
 Py_ssize_t
 Diff_len(Diff *self)
 {
-    assert(self->list);
-    return (Py_ssize_t)git_diff_num_deltas(self->list);
+    assert(self->diff);
+    return (Py_ssize_t)git_diff_num_deltas(self->diff);
 }
 
 PyDoc_STRVAR(Diff_patch__doc__, "Patch diff string.");
@@ -299,12 +299,12 @@ Diff_patch__get__(Diff *self)
     size_t i, len, num;
     PyObject *py_patch = NULL;
 
-    num = git_diff_num_deltas(self->list);
+    num = git_diff_num_deltas(self->diff);
     if (num == 0)
         Py_RETURN_NONE;
 
     for (i = 0, len = 1; i < num ; ++i) {
-        err = git_patch_from_diff(&patch, self->list, i);
+        err = git_patch_from_diff(&patch, self->diff, i);
         if (err < 0)
             goto cleanup;
 
@@ -430,7 +430,7 @@ Diff_merge(Diff *self, PyObject *args)
     if (py_diff->repo->repo != self->repo->repo)
         return Error_set(GIT_ERROR);
 
-    err = git_diff_merge(self->list, py_diff->list);
+    err = git_diff_merge(self->diff, py_diff->diff);
     if (err < 0)
         return Error_set(err);
 
@@ -455,7 +455,7 @@ Diff_find_similar(Diff *self, PyObject *args, PyObject *kwds)
                 &opts.flags, &opts.rename_threshold, &opts.copy_threshold, &opts.rename_from_rewrite_threshold, &opts.break_rewrite_threshold, &opts.rename_limit))
         return NULL;
 
-    err = git_diff_find_similar(self->list, &opts);
+    err = git_diff_find_similar(self->diff, &opts);
     if (err < 0)
         return Error_set(err);
 
@@ -472,7 +472,7 @@ Diff_iter(Diff *self)
         Py_INCREF(self);
         iter->diff = self;
         iter->i = 0;
-        iter->n = git_diff_num_deltas(self->list);
+        iter->n = git_diff_num_deltas(self->diff);
     }
     return (PyObject*)iter;
 }
@@ -487,14 +487,14 @@ Diff_getitem(Diff *self, PyObject *value)
 
     i = PyLong_AsUnsignedLong(value);
 
-    return diff_get_patch_byindex(self->list, i);
+    return diff_get_patch_byindex(self->diff, i);
 }
 
 
 static void
 Diff_dealloc(Diff *self)
 {
-    git_diff_free(self->list);
+    git_diff_free(self->diff);
     Py_CLEAR(self->repo);
     PyObject_Del(self);
 }

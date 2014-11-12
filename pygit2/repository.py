@@ -48,7 +48,7 @@ from .config import Config
 from .errors import check_error
 from .ffi import ffi, C
 from .index import Index
-from .remote import Remote, RemoteCollection
+from .remote import RemoteCollection
 from .blame import Blame
 from .utils import to_bytes, is_string
 
@@ -58,7 +58,7 @@ class Repository(_Repository):
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
 
-        self._remotes = RemoteCollection(self)
+        self.remotes = RemoteCollection(self)
 
         # Get the pointer as the contents of a buffer and store it for
         # later access
@@ -97,12 +97,6 @@ class Repository(_Repository):
         """
 
         return self.remotes.create(name, url)
-
-    @property
-    def remotes(self):
-        """The collection of configured remotes"""
-
-        return self._remotes
 
     #
     # Configuration

@@ -39,7 +39,7 @@ extern PyTypeObject SignatureType;
 PyDoc_STRVAR(Note_remove__doc__,
     "Removes a note for an annotated object");
 
-PyObject*
+PyObject *
 Note_remove(Note *self, PyObject* args)
 {
     char *ref = "refs/notes/commits";
@@ -208,7 +208,7 @@ PyTypeObject NoteIterType = {
 };
 
 
-PyObject*
+PyObject *
 wrap_note(Repository* repo, git_oid* annotated_id, const char* ref)
 {
     Note* py_note = NULL;

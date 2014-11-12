@@ -90,12 +90,12 @@ typedef struct {
 } NoteIter;
 
 
-/* git _diff */
-SIMPLE_TYPE(Diff, git_diff, list)
+/* git_diff */
+SIMPLE_TYPE(Diff, git_diff, diff)
 
 typedef struct {
     PyObject_HEAD
-    Diff* diff;
+    Diff *diff;
     size_t i;
     size_t n;
 } DiffIter;
