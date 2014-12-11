@@ -210,7 +210,6 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_OBJ_BLOB)
     ADD_CONSTANT_INT(m, GIT_OBJ_TAG)
     /* Valid modes for index and tree entries. */
-    ADD_CONSTANT_INT(m, GIT_FILEMODE_NEW)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_TREE)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_BLOB)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_BLOB_EXECUTABLE)
@@ -347,7 +346,7 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_UNBORN)
 
     /* Global initialization of libgit2 */
-    git_threads_init();
+    git_libgit2_init();
 
     return m;
 }

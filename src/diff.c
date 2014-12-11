@@ -296,14 +296,14 @@ Diff_patch__get__(Diff *self)
     git_patch* patch;
     git_buf buf = {NULL};
     int err = GIT_ERROR;
-    size_t i, len, num;
+    size_t i, num;
     PyObject *py_patch = NULL;
 
     num = git_diff_num_deltas(self->diff);
     if (num == 0)
         Py_RETURN_NONE;
 
-    for (i = 0, len = 1; i < num ; ++i) {
+    for (i = 0; i < num ; ++i) {
         err = git_patch_from_diff(&patch, self->diff, i);
         if (err < 0)
             goto cleanup;

@@ -57,7 +57,18 @@ class Repository(_Repository):
 
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
+        self._common_init()
 
+    @classmethod
+    def _from_c(cls, ptr, owned):
+        cptr = ffi.new('git_repository **')
+        cptr[0] = ptr
+        repo = cls.__new__(cls)
+        super(cls, repo)._from_c(bytes(ffi.buffer(cptr)[:]), owned)
+        repo._common_init()
+        return repo
+
+    def _common_init(self):
         self.remotes = RemoteCollection(self)
 
         # Get the pointer as the contents of a buffer and store it for

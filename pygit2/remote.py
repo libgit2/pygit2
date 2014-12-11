@@ -137,25 +137,6 @@ class Remote(object):
 
         return maybe_string(C.git_remote_name(self._remote))
 
-    def rename(self, new_name):
-        """Rename this remote
-
-        Returns a list of fetch refspecs which were not in the standard format
-        and thus could not be remapped
-        """
-
-        if not new_name:
-            raise ValueError("New remote name must be a non-empty string")
-
-        problems = ffi.new('git_strarray *')
-        err = C.git_remote_rename(problems, self._remote, to_bytes(new_name))
-        check_error(err)
-
-        ret = strarray_to_strings(problems)
-        C.git_strarray_free(problems)
-
-        return ret
-
     @property
     def url(self):
         """Url of the remote"""
@@ -176,14 +157,6 @@ class Remote(object):
     @push_url.setter
     def push_url(self, value):
         err = C.git_remote_set_pushurl(self._remote, to_bytes(value))
-        check_error(err)
-
-    def delete(self):
-        """Remove this remote
-
-        All remote-tracking branches and configuration settings for the remote will be removed.
-        """
-        err = C.git_remote_delete(self._remote)
         check_error(err)
 
     def save(self):
@@ -231,7 +204,7 @@ class Remote(object):
         self._stored_exception = None
 
         try:
-            err = C.git_remote_fetch(self._remote, ptr, to_bytes(message))
+            err = C.git_remote_fetch(self._remote, ffi.NULL, ptr, to_bytes(message))
             if self._stored_exception:
                 raise self._stored_exception
 
@@ -360,9 +333,6 @@ class Remote(object):
 
             err = C.git_push_finish(push)
             check_error(err)
-
-            if not C.git_push_unpack_ok(push):
-                raise GitError("remote failed to unpack objects")
 
             err = C.git_push_status_foreach(push, self._push_cb,
                                             ffi.new_handle(self))
@@ -529,7 +499,7 @@ class RemoteCollection(object):
 
             cremote = ffi.new('git_remote **')
             for i in range(names.count):
-                err = C.git_remote_load(cremote, self._repo._repo, names.strings[i])
+                err = C.git_remote_lookup(cremote, self._repo._repo, names.strings[i])
                 check_error(err)
 
                 yield Remote(self._repo, cremote[0])
@@ -541,7 +511,7 @@ class RemoteCollection(object):
             return list(self)[name]
 
         cremote = ffi.new('git_remote **')
-        err = C.git_remote_load(cremote, self._repo._repo, to_bytes(name))
+        err = C.git_remote_lookup(cremote, self._repo._repo, to_bytes(name))
         check_error(err)
 
         return Remote(self._repo, cremote[0])
@@ -558,3 +528,36 @@ class RemoteCollection(object):
         check_error(err)
 
         return Remote(self._repo, cremote[0])
+
+    def rename(self, name, new_name):
+        """rename(name, new_name) -> [str]
+
+        Rename a remote in the configuration. The refspecs in strandard
+        format will be renamed.
+
+        Returns a list of fetch refspecs which were not in the standard format
+        and thus could not be remapped
+        """
+
+        if not new_name:
+            raise ValueError("Current remote name must be a non-empty string")
+
+        if not new_name:
+            raise ValueError("New remote name must be a non-empty string")
+
+        problems = ffi.new('git_strarray *')
+        err = C.git_remote_rename(problems, self._repo._repo, to_bytes(name), to_bytes(new_name))
+        check_error(err)
+
+        ret = strarray_to_strings(problems)
+        C.git_strarray_free(problems)
+
+        return ret
+
+    def delete(self, name):
+        """Remove a remote from the configuration
+
+        All remote-tracking branches and configuration settings for the remote will be removed.
+        """
+        err = C.git_remote_delete(self._repo._repo, to_bytes(name))
+        check_error(err)
