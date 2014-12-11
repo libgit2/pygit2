@@ -274,11 +274,11 @@ class PushTestCase(unittest.TestCase):
             'refs/heads/master', tip.author, tip.author, 'empty commit',
             tip.tree.id, [tip.id]
         )
-        self.remote.push('refs/heads/master')
+        self.remote.push(['refs/heads/master'])
         self.assertEqual(self.origin[self.origin.head.target].id, oid)
 
     def test_push_when_up_to_date_succeeds(self):
-        self.remote.push('refs/heads/master')
+        self.remote.push(['refs/heads/master'])
         origin_tip = self.origin[self.origin.head.target].id
         clone_tip = self.clone[self.clone.head.target].id
         self.assertEqual(origin_tip, clone_tip)
@@ -294,7 +294,8 @@ class PushTestCase(unittest.TestCase):
             'refs/heads/master', tip.author, tip.author, 'other commit',
             tip.tree.id, [tip.id]
         )
-        self.assertRaises(pygit2.GitError, self.remote.push, 'refs/heads/master')
+
+        self.assertRaises(pygit2.GitError, self.remote.push, ['refs/heads/master'])
 
 if __name__ == '__main__':
     unittest.main()

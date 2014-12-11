@@ -1,7 +1,6 @@
 typedef ... git_repository;
 typedef ... git_remote;
 typedef ... git_refspec;
-typedef ... git_push;
 typedef ... git_cred;
 typedef ... git_object;
 typedef ... git_tree;
@@ -175,6 +174,11 @@ struct git_remote_callbacks {
 
 typedef struct git_remote_callbacks git_remote_callbacks;
 
+typedef struct {
+	unsigned int version;
+	unsigned int pb_parallelism;
+} git_push_options;
+
 int git_remote_list(git_strarray *out, git_repository *repo);
 int git_remote_lookup(git_remote **out, git_repository *repo, const char *name);
 int git_remote_create(
@@ -193,6 +197,7 @@ int git_remote_set_url(git_remote *remote, const char* url);
 const char * git_remote_pushurl(const git_remote *remote);
 int git_remote_set_pushurl(git_remote *remote, const char* url);
 int git_remote_fetch(git_remote *remote, const git_strarray *refspecs, const git_signature *signature, const char *reflog_message);
+int git_remote_push(git_remote *remote,	git_strarray *refspecs,	const git_push_options *opts, const git_signature *signature, const char *reflog_message);
 const git_transfer_progress * git_remote_stats(git_remote *remote);
 int git_remote_add_push(git_remote *remote, const char *refspec);
 int git_remote_add_fetch(git_remote *remote, const char *refspec);
@@ -208,21 +213,6 @@ int git_remote_get_push_refspecs(git_strarray *array, git_remote *remote);
 int git_remote_set_push_refspecs(git_remote *remote, git_strarray *array);
 
 void git_remote_free(git_remote *remote);
-
-int git_push_new(git_push **push, git_remote *remote);
-int git_push_add_refspec(git_push *push, const char *refspec);
-int git_push_finish(git_push *push);
-
-int git_push_status_foreach(
-	git_push *push,
-	int (*cb)(const char *ref, const char *msg, void *data),
-	void *data);
-
-int git_push_update_tips(
-		git_push *push,
-		const git_signature *signature,
-		const char *reflog_message);
-void git_push_free(git_push *push);
 
 const char * git_refspec_src(const git_refspec *refspec);
 const char * git_refspec_dst(const git_refspec *refspec);

@@ -121,6 +121,16 @@ class Remote(object):
         :param Oid new: the reference's new value
         """
 
+    def push_update_reference(self, refname, message):
+        """Push update reference callback
+
+        Override with your own function to report the remote's
+        acceptace or rejection of reference updates.
+
+        :param str refname: the name of the reference (on the remote)
+        :param str messsage: rejection message from the remote. If None, the update was accepted.
+        """
+
     def __init__(self, repo, ptr):
         """The constructor is for internal use only"""
 
@@ -279,27 +289,30 @@ class Remote(object):
         err = C.git_remote_add_push(self._remote, to_bytes(spec))
         check_error(err)
 
-    @ffi.callback("int (*cb)(const char *ref, const char *msg, void *data)")
-    def _push_cb(ref, msg, data):
-        self = ffi.from_handle(data)
-        if msg:
-            self._bad_message = ffi.string(msg).decode()
-        return 0
+    def push(self, specs, signature=None, message=None):
+        """push(specs, signature, message)
 
-    def push(self, spec, signature=None, message=None):
-        """push(refspec, signature, message)
-
-        Push the given refspec to the remote. Raises ``GitError`` on error.
+        Push the given refspec to the remote. Raises ``GitError`` on
+        protocol error or unpack failure.
         May require libssh2.
 
-        :param str spec: push refspec to use
+        :param [str] specs: push refspecs to use
         :param Signature signature: signature to use when updating the tips
         :param str message: message to use when updating the tips
+
         """
         # Get the default callbacks first
         defaultcallbacks = ffi.new('git_remote_callbacks *')
         err = C.git_remote_init_callbacks(defaultcallbacks, 1)
         check_error(err)
+
+        refspecs, refspecs_refs = strings_to_strarray(specs)
+        if signature:
+            sig_cptr = ffi.new('git_signature **')
+            ffi.buffer(sig_cptr)[:] = signature._pointer[:]
+            sig_ptr = sig_cptr[0]
+        else:
+            sig_ptr = ffi.NULL
 
         # Build custom callback structure
         callbacks = ffi.new('git_remote_callbacks *')
@@ -308,50 +321,23 @@ class Remote(object):
         callbacks.transfer_progress = self._transfer_progress_cb
         callbacks.update_tips = self._update_tips_cb
         callbacks.credentials = self._credentials_cb
+        callbacks.push_update_reference = self._push_update_reference_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         callbacks.payload = self._self_handle
 
-        err = C.git_remote_set_callbacks(self._remote, callbacks)
-
         try:
+            err = C.git_remote_set_callbacks(self._remote, callbacks)
             check_error(err)
         except:
             self._self_handle = None
             raise
 
-
-        cpush = ffi.new('git_push **')
-        err = C.git_push_new(cpush, self._remote)
-        check_error(err)
-
-        push = cpush[0]
-
         try:
-            err = C.git_push_add_refspec(push, to_bytes(spec))
+            err = C.git_remote_push(self._remote, refspecs, ffi.NULL, sig_ptr, to_bytes(message))
             check_error(err)
-
-            err = C.git_push_finish(push)
-            check_error(err)
-
-            err = C.git_push_status_foreach(push, self._push_cb,
-                                            ffi.new_handle(self))
-            check_error(err)
-
-            if hasattr(self, '_bad_message'):
-                raise GitError(self._bad_message)
-
-            if signature:
-                ptr = signature._pointer[:]
-            else:
-                ptr = ffi.NULL
-
-            err = C.git_push_update_tips(push, ptr, to_bytes(message))
-            check_error(err)
-
         finally:
             self._self_handle = None
-            C.git_push_free(push)
 
     # These functions exist to be called by the git_remote as
     # callbacks. They proxy the call to whatever the user set
@@ -402,6 +388,23 @@ class Remote(object):
             b = Oid(raw=bytes(ffi.buffer(b)[:]))
 
             self.update_tips(s, a, b)
+        except Exception as e:
+            self._stored_exception = e
+            return C.GIT_EUSER
+
+        return 0
+
+    @ffi.callback("int (*push_update_reference)(const char *ref, const char *msg, void *data)")
+    def _push_update_reference_cb(ref, msg, data):
+        self = ffi.from_handle(data)
+
+        if not hasattr(self, 'push_update_reference') or not self.push_update_reference:
+            return 0
+
+        try:
+            refname = ffi.string(ref)
+            message = maybe_string(msg)
+            self.push_update_reference(refname, message)
         except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
