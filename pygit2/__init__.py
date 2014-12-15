@@ -161,9 +161,24 @@ def _remote_create_cb(remote_out, repo, name, url, data):
 
     return 0
 
+@ffi.callback('int (*git_transport_certificate_check_cb)'
+              '(git_cert *cert, int valid, const char *host, void *payload)')
+def _certificate_cb(cert_i, valid, host, data):
+    d = ffi.from_handle(data)
+    try:
+        # python's parting is deep in the libraries and assumes an OpenSSL-owned cert
+        val = d['certificate_cb'](None, bool(valid), ffi.string(host))
+        if not val:
+            return C.GIT_ECERTIFICATE
+    except Exception as e:
+        d['exception'] = e
+        return C.GIT_EUSER
+
+    return 0
 
 def clone_repository(
-        url, path, bare=False, repository=None, remote=None, checkout_branch=None, credentials=None):
+        url, path, bare=False, repository=None, remote=None,
+        checkout_branch=None, credentials=None, certificate=None):
     """Clones a new Git repository from *url* in the given *path*.
 
     Returns a Repository class pointing to the newly cloned repository.
@@ -184,6 +199,9 @@ def clone_repository(
     :param callable credentials: authentication to use if the remote
      requires it
 
+    :param callable certificate: callback to verify the host's
+     certificate or fingerprint.
+
     :rtype: Repository
 
     The repository callback has `(path, bare) -> Repository` as a
@@ -193,6 +211,10 @@ def clone_repository(
     The remote callback has `(Repository, name, url) -> Remote` as a
     signature. The Remote it returns will be used instead of the default
     one.
+
+    The certificate callback has `(cert, valid, hostname) -> bool` as
+    a signature. Return True to accept the connection, False to abort.
+
     """
 
     opts = ffi.new('git_clone_options *')
@@ -205,6 +227,7 @@ def clone_repository(
     d['credentials_cb'] = credentials
     d['repository_cb'] = repository
     d['remote_cb'] = remote
+    d['certificate_cb'] = certificate
     d_handle = ffi.new_handle(d)
 
     # Perform the initialization with the version we compiled
@@ -224,9 +247,14 @@ def clone_repository(
         opts.remote_cb = _remote_create_cb
         opts.remote_cb_payload = d_handle
 
+
     opts.bare = bare
     if credentials:
         opts.remote_callbacks.credentials = _credentials_cb
+        opts.remote_callbacks.payload = d_handle
+
+    if certificate:
+        opts.remote_callbacks.certificate_check = _certificate_cb
         opts.remote_callbacks.payload = d_handle
 
     err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
