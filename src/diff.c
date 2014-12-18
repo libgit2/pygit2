@@ -77,8 +77,8 @@ wrap_patch(git_patch *patch)
 
         delta = git_patch_get_delta(patch);
 
-        py_patch->old_file_path = delta->old_file.path;
-        py_patch->new_file_path = delta->new_file.path;
+        py_patch->old_file_path = strdup(delta->old_file.path);
+        py_patch->new_file_path = strdup(delta->new_file.path);
         py_patch->status = git_diff_status_char(delta->status);
         py_patch->similarity = delta->similarity;
         py_patch->flags = delta->flags;
@@ -153,8 +153,8 @@ Patch_dealloc(Patch *self)
     Py_CLEAR(self->hunks);
     Py_CLEAR(self->old_id);
     Py_CLEAR(self->new_id);
-    /* We do not have to free old_file_path and new_file_path, they will
-     * be freed by git_diff_list_free in Diff_dealloc */
+    free(self->old_file_path);
+    free(self->new_file_path);
     PyObject_Del(self);
 }
 
