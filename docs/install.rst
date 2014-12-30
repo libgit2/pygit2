@@ -14,7 +14,7 @@ Requirements
 ============
 
 - Python 2.7, 3.2+ or pypy (including the development headers)
-- Libgit2 v0.21.1+
+- Libgit2 v0.21.1+ (compiled with libssh2)
 - cffi 0.8.1+
 - Libssh2, optional, used for SSH network operations.
 
