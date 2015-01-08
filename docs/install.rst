@@ -204,8 +204,49 @@ from a bash shell:
 At this point, you're ready to execute the generic pygit2 installation
 steps described above.
 
+
 Installing on OS X
 ===================================
+
+Install pygit2 on OS X is almost the same as on linux,
+as pygit2 depends on libgit2, what you need to do is:
+
+Install libgit2
+-----------------------------------
+
+By source (Not tested):
+
+.. code-block:: sh
+
+   $ wget https://github.com/libgit2/libgit2/archive/v0.21.2.tar.gz
+   $ tar xzf v0.21.2.tar.gz
+   $ cd libgit2-0.21.2/
+   $ cmake .
+   $ make
+   $ sudo make install
+
+By HomeBrew:
+
+.. code-block:: sh
+
+   $ brew install libgit2
+
+.. seealso::
+
+   For detailed instructions on building libgit2 check
+   https://libgit2.github.com/docs/guides/build-and-link/
+
+Install pygit2 through pip
+-----------------------------------
+
+Now install pygit2, and then verify it is correctly installed:
+
+.. code-block:: sh
+
+   $ pip install pygit2
+   ...
+   $ python -c 'import pygit2'
+
 
 .. note::
 
