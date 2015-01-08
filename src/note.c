@@ -39,13 +39,13 @@ extern PyTypeObject SignatureType;
 PyDoc_STRVAR(Note_remove__doc__,
     "Removes a note for an annotated object");
 
-PyObject*
+PyObject *
 Note_remove(Note *self, PyObject* args)
 {
     char *ref = "refs/notes/commits";
     int err = GIT_ERROR;
-    git_oid annotated_id;
     Signature *py_author, *py_committer;
+    Oid *id;
 
     if (!PyArg_ParseTuple(args, "O!O!|s",
                           &SignatureType, &py_author,
@@ -53,12 +53,9 @@ Note_remove(Note *self, PyObject* args)
                           &ref))
         return NULL;
 
-    err = git_oid_fromstr(&annotated_id, self->annotated_id);
-    if (err < 0)
-        return Error_set(err);
-
+    id = (Oid *) self->annotated_id;
     err = git_note_remove(self->repo->repo, ref, py_author->signature,
-        py_committer->signature, &annotated_id);
+        py_committer->signature, &id->oid);
     if (err < 0)
         return Error_set(err);
 
@@ -90,7 +87,7 @@ static void
 Note_dealloc(Note *self)
 {
     Py_CLEAR(self->repo);
-    free(self->annotated_id);
+    Py_CLEAR(self->annotated_id);
     git_note_free(self->note);
     PyObject_Del(self);
 }
@@ -102,7 +99,7 @@ PyMethodDef Note_methods[] = {
 };
 
 PyMemberDef Note_members[] = {
-    MEMBER(Note, annotated_id, T_STRING, "id of the annotated object."),
+    MEMBER(Note, annotated_id, T_OBJECT, "id of the annotated object."),
     {NULL}
 };
 
@@ -211,7 +208,7 @@ PyTypeObject NoteIterType = {
 };
 
 
-PyObject*
+PyObject *
 wrap_note(Repository* repo, git_oid* annotated_id, const char* ref)
 {
     Note* py_note = NULL;
@@ -229,7 +226,7 @@ wrap_note(Repository* repo, git_oid* annotated_id, const char* ref)
 
     py_note->repo = repo;
     Py_INCREF(repo);
-    py_note->annotated_id = git_oid_allocfmt(annotated_id);
+    py_note->annotated_id = git_oid_to_python(annotated_id);
 
     return (PyObject*) py_note;
 }

@@ -79,7 +79,7 @@ typedef struct {
     PyObject_HEAD
     Repository *repo;
     git_note *note;
-    char* annotated_id;
+    PyObject* annotated_id;
 } Note;
 
 typedef struct {
@@ -90,12 +90,12 @@ typedef struct {
 } NoteIter;
 
 
-/* git _diff */
-SIMPLE_TYPE(Diff, git_diff, list)
+/* git_diff */
+SIMPLE_TYPE(Diff, git_diff, diff)
 
 typedef struct {
     PyObject_HEAD
-    Diff* diff;
+    Diff *diff;
     size_t i;
     size_t n;
 } DiffIter;
@@ -105,8 +105,8 @@ typedef struct {
     PyObject* hunks;
     const char * old_file_path;
     const char * new_file_path;
-    char* old_id;
-    char* new_id;
+    PyObject* old_id;
+    PyObject* new_id;
     char status;
     unsigned similarity;
     unsigned additions;
@@ -164,8 +164,8 @@ typedef Reference Branch;
 typedef struct {
     PyObject_HEAD
     git_signature *signature;
-    char *oid_old;
-    char *oid_new;
+    PyObject *oid_old;
+    PyObject *oid_new;
     char *message;
 } RefLogEntry;
 

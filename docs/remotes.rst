@@ -2,10 +2,18 @@
 Remotes
 **********************************************************************
 
+.. py:attribute:: Repository.remotes
 
-.. autoattribute:: pygit2.Repository.remotes
+   The collection of configured remotes, an instance of
+   :py:class:`pygit2.remote.RemoteCollection`
+
 .. automethod:: pygit2.Repository.create_remote
 
+The remote collection
+==========================
+
+.. autoclass:: pygit2.remote.RemoteCollection
+   :members:
 
 The Remote type
 ====================

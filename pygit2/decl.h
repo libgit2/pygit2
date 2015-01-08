@@ -598,7 +598,12 @@ void git_blame_free(git_blame *blame);
 
 typedef enum { ... } git_merge_tree_flag_t;
 
-typedef enum { ... } git_merge_file_favor_t;
+typedef enum {
+	GIT_MERGE_FILE_FAVOR_NORMAL = 0,
+	GIT_MERGE_FILE_FAVOR_OURS = 1,
+	GIT_MERGE_FILE_FAVOR_THEIRS = 2,
+	GIT_MERGE_FILE_FAVOR_UNION = 3,
+} git_merge_file_favor_t;
 
 typedef struct {
 	unsigned int version;
@@ -609,5 +614,7 @@ typedef struct {
 	git_merge_file_favor_t file_favor;
 } git_merge_options;
 
+#define GIT_MERGE_OPTIONS_VERSION ...
 
+int git_merge_init_options(git_merge_options *opts,	unsigned int version);
 int git_merge_commits(git_index **out, git_repository *repo, const git_commit *our_commit, const git_commit *their_commit, const git_merge_options *opts);

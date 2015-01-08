@@ -197,7 +197,7 @@ class Remote(object):
     def fetch(self, signature=None, message=None):
         """fetch(signature, message) -> TransferProgress
 
-        Perform a fetch against this remote.
+        Perform a fetch against this remote. May require libssh2.
         """
 
         # Get the default callbacks first
@@ -317,11 +317,36 @@ class Remote(object):
         """push(refspec, signature, message)
 
         Push the given refspec to the remote. Raises ``GitError`` on error.
+        May require libssh2.
 
         :param str spec: push refspec to use
         :param Signature signature: signature to use when updating the tips
         :param str message: message to use when updating the tips
         """
+        # Get the default callbacks first
+        defaultcallbacks = ffi.new('git_remote_callbacks *')
+        err = C.git_remote_init_callbacks(defaultcallbacks, 1)
+        check_error(err)
+
+        # Build custom callback structure
+        callbacks = ffi.new('git_remote_callbacks *')
+        callbacks.version = 1
+        callbacks.sideband_progress = self._sideband_progress_cb
+        callbacks.transfer_progress = self._transfer_progress_cb
+        callbacks.update_tips = self._update_tips_cb
+        callbacks.credentials = self._credentials_cb
+        # We need to make sure that this handle stays alive
+        self._self_handle = ffi.new_handle(self)
+        callbacks.payload = self._self_handle
+
+        err = C.git_remote_set_callbacks(self._remote, callbacks)
+
+        try:
+            check_error(err)
+        except:
+            self._self_handle = None
+            raise
+
 
         cpush = ffi.new('git_push **')
         err = C.git_push_new(cpush, self._remote)
@@ -355,6 +380,7 @@ class Remote(object):
             check_error(err)
 
         finally:
+            self._self_handle = None
             C.git_push_free(push)
 
     # These functions exist to be called by the git_remote as
@@ -469,3 +495,66 @@ def get_credentials(fn, url, username, allowed):
     check_error(err)
 
     return ccred
+
+class RemoteCollection(object):
+    """Collection of configured remotes
+
+    You can use this class to look up and manage the remotes configured
+    in a repository.  You can access repositories using index
+    access. E.g. to look up the "origin" remote, you can use
+
+    >>> repo.remotes["origin"]
+    """
+
+    def __init__(self, repo):
+        self._repo = repo;
+
+    def __len__(self):
+        names = ffi.new('git_strarray *')
+
+        try:
+            err = C.git_remote_list(names, self._repo._repo)
+            check_error(err)
+
+            return names.count
+        finally:
+            C.git_strarray_free(names)
+
+    def __iter__(self):
+        names = ffi.new('git_strarray *')
+
+        try:
+            err = C.git_remote_list(names, self._repo._repo)
+            check_error(err)
+
+            cremote = ffi.new('git_remote **')
+            for i in range(names.count):
+                err = C.git_remote_load(cremote, self._repo._repo, names.strings[i])
+                check_error(err)
+
+                yield Remote(self._repo, cremote[0])
+        finally:
+            C.git_strarray_free(names)
+
+    def __getitem__(self, name):
+        if isinstance(name, int):
+            return list(self)[name]
+
+        cremote = ffi.new('git_remote **')
+        err = C.git_remote_load(cremote, self._repo._repo, to_bytes(name))
+        check_error(err)
+
+        return Remote(self._repo, cremote[0])
+
+    def create(self, name, url):
+        """create(name, url) -> Remote
+
+        Create a new remote with the given name and url.
+        """
+
+        cremote = ffi.new('git_remote **')
+
+        err = C.git_remote_create(cremote, self._repo._repo, to_bytes(name), to_bytes(url))
+        check_error(err)
+
+        return Remote(self._repo, cremote[0])

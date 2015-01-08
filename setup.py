@@ -37,17 +37,17 @@ from distutils.command.build import build
 from distutils.command.sdist import sdist
 from distutils import log
 import os
+from os import getenv, listdir, pathsep
+from os.path import abspath, isfile
 from setuptools import setup, Extension, Command
 import shlex
 from subprocess import Popen, PIPE
 import sys
 import unittest
 
-# Read version from local pygit2/version.py without pulling in
-# pygit2/__init__.py
+# Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
-from version import __version__
-import ffi
+from _utils import __version__, get_libgit2_paths, get_ffi
 del sys.path[0]
 
 # Python 2 support
@@ -58,9 +58,9 @@ else:
     u = str
 
 
-libgit2_bin, libgit2_include, libgit2_lib = ffi.get_libgit2_paths()
+libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
 
-pygit2_exts = [os.path.join('src', name) for name in os.listdir('src')
+pygit2_exts = [os.path.join('src', name) for name in listdir('src')
                if name.endswith('.c')]
 
 
@@ -73,7 +73,6 @@ class TestCommand(Command):
 
     def initialize_options(self):
         self.args = ''
-        pass
 
     def finalize_options(self):
         pass
@@ -82,7 +81,7 @@ class TestCommand(Command):
         self.run_command('build')
         bld = self.distribution.get_command_obj('build')
         # Add build_lib in to sys.path so that unittest can found DLLs and libs
-        sys.path = [os.path.abspath(bld.build_lib)] + sys.path
+        sys.path = [abspath(bld.build_lib)] + sys.path
 
         test_argv0 = [sys.argv[0] + ' test --args=']
         # For transfering args to unittest, we have to split args by ourself,
@@ -95,12 +94,14 @@ class TestCommand(Command):
         test_argv = test_argv0 + shlex.split(self.args)
         unittest.main(None, defaultTest='test.test_suite', argv=test_argv)
 
+
 class CFFIBuild(build):
     """Hack to combat the chicken and egg problem that we need cffi
     to add cffi as an extension.
     """
     def finalize_options(self):
-        self.distribution.ext_modules.append(ffi.ffi.verifier.get_extension())
+        ffi, C = get_ffi()
+        self.distribution.ext_modules.append(ffi.verifier.get_extension())
         build.finalize_options(self)
 
 
@@ -117,12 +118,12 @@ class BuildWithDLLs(CFFIBuild):
             libgit2_dlls.append('git2.dll')
         elif compiler_type == 'mingw32':
             libgit2_dlls.append('libgit2.dll')
-        look_dirs = [libgit2_bin] + os.getenv("PATH", "").split(os.pathsep)
-        target = os.path.abspath(self.build_lib)
+        look_dirs = [libgit2_bin] + getenv("PATH", "").split(pathsep)
+        target = abspath(self.build_lib)
         for bin in libgit2_dlls:
             for look in look_dirs:
                 f = os.path.join(look, bin)
-                if os.path.isfile(f):
+                if isfile(f):
                     ret.append((f, target))
                     break
             else:
@@ -132,10 +133,9 @@ class BuildWithDLLs(CFFIBuild):
 
     def run(self):
         build.run(self)
-        if os.name == 'nt':
-            # On Windows we package up the dlls with the plugin.
-            for s, d in self._get_dlls():
-                self.copy_file(s, d)
+        # On Windows we package up the dlls with the plugin.
+        for s, d in self._get_dlls():
+            self.copy_file(s, d)
 
 
 class sdist_files_from_git(sdist):
@@ -168,16 +168,10 @@ with codecs.open('README.rst', 'r', 'utf-8') as readme:
 
 
 cmdclass = {
+    'build': BuildWithDLLs if os.name == 'nt' else CFFIBuild,
     'test': TestCommand,
-    'sdist': sdist_files_from_git}
-
-if os.name == 'nt':
-    # BuildWithDLLs can copy external DLLs into source directory.
-    cmdclass['build'] = BuildWithDLLs
-else:
-    # Build cffi
-    cmdclass['build'] = CFFIBuild
-
+    'sdist': sdist_files_from_git,
+    }
 
 setup(name='pygit2',
       description='Python bindings for libgit2.',
@@ -185,7 +179,7 @@ setup(name='pygit2',
       version=__version__,
       url='http://github.com/libgit2/pygit2',
       classifiers=classifiers,
-      license='GPLv2',
+      license='GPLv2 with linking exception',
       maintainer=u('J. David Ibáñez'),
       maintainer_email='jdavid.ibp@gmail.com',
       long_description=long_description,
@@ -195,10 +189,9 @@ setup(name='pygit2',
       install_requires=['cffi'],
       zip_safe=False,
       ext_modules=[
-          Extension('_pygit2', pygit2_exts,
-                    include_dirs=[libgit2_include, 'include'],
-                    library_dirs=[libgit2_lib],
-                    libraries=['git2']),
+          Extension('_pygit2', pygit2_exts, libraries=['git2'],
+                    include_dirs=[libgit2_include],
+                    library_dirs=[libgit2_lib]),
           # FFI is added in the build step
       ],
       cmdclass=cmdclass)

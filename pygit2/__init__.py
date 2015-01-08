@@ -32,6 +32,7 @@ from __future__ import absolute_import
 from _pygit2 import *
 
 # High level API
+from .blame import Blame, BlameHunk
 from .config import Config
 from .credentials import *
 from .errors import check_error
@@ -41,7 +42,7 @@ from .remote import Remote, get_credentials
 from .repository import Repository
 from .settings import Settings
 from .utils import to_bytes
-from .version import __version__
+from ._utils import __version__
 
 
 def init_repository(path, bare=False,

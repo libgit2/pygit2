@@ -149,7 +149,7 @@ PyMethodDef module_methods[] = {
     {NULL}
 };
 
-PyObject*
+PyObject *
 moduleinit(PyObject* m)
 {
     if (m == NULL)
