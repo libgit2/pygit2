@@ -936,10 +936,15 @@ out:
 
 
 PyDoc_STRVAR(Repository_listall_branches__doc__,
-  "listall_branches([flags]) -> [str, ...]\n"
+  "listall_branches([flag]) -> [str, ...]\n"
   "\n"
-  "Return a tuple with all the branches in the repository.\n"
-  "By default, it returns all local branches.");
+  "Return a list with all the branches in the repository.\n"
+  "\n"
+  "The *flag* may be:\n"
+  "\n"
+  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
+  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
+  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
 
 PyObject *
 Repository_listall_branches(Repository *self, PyObject *args)
