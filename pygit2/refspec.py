@@ -36,6 +36,7 @@ from .utils import to_bytes
 
 class Refspec(object):
     def __init__(self, owner, ptr):
+        """The constructor is for internal use only"""
         self._owner = owner
         self._refspec = ptr
 
@@ -95,7 +96,7 @@ class Refspec(object):
         return self._transform(ref, C.git_refspec_transform)
 
     def rtransform(self, ref):
-        """transform(str) -> str
+        """rtransform(str) -> str
 
         Transform a reference name according to this refspec from the lhs
         to the rhs"""

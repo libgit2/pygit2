@@ -83,22 +83,20 @@ class Remote(object):
         pass
 
     def credentials(self, url, username_from_url, allowed_types):
-        """Credentials callback
+        """credentials(url, username_from_url, allowed_types) -> Credential
+
+        Credentials callback
 
         If the remote server requires authentication, this function will
         be called and its return value used for authentication. Override
         it if you want to be able to perform authentication.
 
-        Parameters:
+        :param str url: The url of the remote.
 
-        - url (str) -- The url of the remote.
+        :param str|None username_from_url: Username extracted from the
+            url, if any.
 
-        - username_from_url (str or None) -- Username extracted from the url,
-          if any.
-
-        - allowed_types (int) -- Credential types supported by the remote.
-
-        Return value: credential
+        :param int allowed_types: Credential types supported by the remote.
         """
         pass
 
@@ -293,7 +291,10 @@ class Remote(object):
     def add_fetch(self, spec):
         """add_fetch(refspec)
 
-        Add a fetch refspec to the remote"""
+        Add a fetch refspec to the remote
+
+        :param str refspec: fetch refspec to add
+        """
 
         err = C.git_remote_add_fetch(self._remote, to_bytes(spec))
         check_error(err)
@@ -301,7 +302,10 @@ class Remote(object):
     def add_push(self, spec):
         """add_push(refspec)
 
-        Add a push refspec to the remote"""
+        Add a push refspec to the remote
+
+        :param str refspec: push refspec to add
+        """
 
         err = C.git_remote_add_push(self._remote, to_bytes(spec))
         check_error(err)
