@@ -65,7 +65,8 @@ class Keypair(object):
         remote server
     :param str pubkey: the path to the user's public key file
     :param str privkey: the path to the user's private key file
-    :param str passphrase: the password used to decrypt the private key file
+    :param str passphrase: the password used to decrypt the private key file,
+        or empty string if no passphrase is required.
 
     """
 
