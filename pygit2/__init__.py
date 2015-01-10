@@ -86,11 +86,26 @@ def init_repository(path, bare=False,
     C.git_repository_init_init_options(options, C.GIT_REPOSITORY_INIT_OPTIONS_VERSION)
     options.flags = flags
     options.mode = mode
-    options.workdir_path = to_bytes(workdir_path)
-    options.description = to_bytes(description)
-    options.template_path = to_bytes(template_path)
-    options.initial_head = to_bytes(initial_head)
-    options.origin_url = to_bytes(origin_url)
+
+    if workdir_path:
+        workdir_path_ref = ffi.new('char []', to_bytes(workdir_path))
+        options.workdir_path = workdir_path_ref
+
+    if description:
+        description_ref = ffi.new('char []', to_bytes(description))
+        options.description = description_ref
+
+    if template_path:
+        template_path_ref = ffi.new('char []', to_bytes(template_path))
+        options.template_path = template_path_ref
+
+    if initial_head:
+        initial_head_ref = ffi.new('char []', to_bytes(initial_head))
+        options.initial_head = initial_head_ref
+
+    if origin_url:
+        origin_url_ref = ffi.new('char []', to_bytes(origin_url))
+        options.origin_url = origin_url_ref
 
     # Call
     crepository = ffi.new('git_repository **')
