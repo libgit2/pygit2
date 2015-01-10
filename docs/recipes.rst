@@ -17,7 +17,6 @@ Main porcelain commands
 .. toctree::
    :maxdepth: 1
 
-   git-branch (List, create, or delete branches.) <recipes/git-branch>
    git-init (Create an empty git repository or reinitialize an existing one.) <recipes/git-init>
    git-log (Show commit logs.) <recipes/git-log>
    git-show (Show various types of objects.) <recipes/git-show>
