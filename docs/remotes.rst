@@ -32,6 +32,10 @@ This class contains the data which is available to us during a fetch.
 The Refspec type
 ===================
 
+Refspecs objects are not constructed directly, but returned by
+:meth:`pygit2.Remote.get_refspec`.  To create a new a refspec on a Remote, use
+:meth:`pygit2.Remote.add_fetch` or :meth:`pygit2.Remote.add_push`.
+
 .. autoclass:: pygit2.refspec.Refspec
    :members:
 
