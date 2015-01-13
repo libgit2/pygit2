@@ -293,7 +293,7 @@ class Remote(object):
     def add_fetch(self, spec):
         """add_fetch(refspec)
 
-        Add a fetch refspec to the remote"""
+        Add a fetch refspec (str) to the remote"""
 
         err = C.git_remote_add_fetch(self._remote, to_bytes(spec))
         check_error(err)
@@ -301,7 +301,7 @@ class Remote(object):
     def add_push(self, spec):
         """add_push(refspec)
 
-        Add a push refspec to the remote"""
+        Add a push refspec (str) to the remote"""
 
         err = C.git_remote_add_push(self._remote, to_bytes(spec))
         check_error(err)
