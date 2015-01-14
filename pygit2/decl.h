@@ -74,6 +74,12 @@ typedef struct git_signature {
 	git_time when;
 } git_signature;
 
+#define GIT_FEATURE_THREADS ...
+#define GIT_FEATURE_HTTPS ...
+#define GIT_FEATURE_SSH ...
+
+int git_libgit2_features(void);
+
 const git_error * giterr_last(void);
 
 void git_strarray_free(git_strarray *array);

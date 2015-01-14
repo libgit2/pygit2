@@ -47,6 +47,7 @@ Usage guide:
    remotes
    blame
    settings
+   features
 
 
 Indices and tables

@@ -221,3 +221,8 @@ def clone_into(repo, remote, branch=None):
     check_error(err)
 
 settings = Settings()
+
+features = C.git_libgit2_features()
+GIT_FEATURE_THREADS = C.GIT_FEATURE_THREADS
+GIT_FEATURE_HTTPS = C.GIT_FEATURE_HTTPS
+GIT_FEATURE_SSH = C.GIT_FEATURE_SSH
