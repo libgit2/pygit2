@@ -103,8 +103,8 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     PyObject* hunks;
-    const char * old_file_path;
-    const char * new_file_path;
+    char * old_file_path;
+    char * new_file_path;
     PyObject* old_id;
     PyObject* new_id;
     char status;
