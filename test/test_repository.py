@@ -41,7 +41,7 @@ import sys
 
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
-from pygit2 import init_repository, clone_repository, clone_into, discover_repository
+from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid, Reference, hashfile
 import pygit2
 from . import utils
@@ -440,19 +440,22 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
         self.assertFalse(repo.is_empty)
         self.assertTrue(repo.is_bare)
 
-    def test_clone_remote_name(self):
-        repo_path = "./test/data/testrepo.git/"
-        repo = clone_repository(
-            repo_path, self._temp_dir, remote_name="custom_remote")
-        self.assertFalse(repo.is_empty)
-        self.assertEqual(repo.remotes[0].name, "custom_remote")
+    def test_clone_repository_and_remote_callbacks(self):
+        src_repo_relpath = "./test/data/testrepo.git/"
+        repo_path = os.path.join(self._temp_dir, "clone-into")
+        url = 'file://' + os.path.realpath(src_repo_relpath)
 
-    def test_clone_into(self):
-        repo_path = "./test/data/testrepo.git/"
-        repo = init_repository(os.path.join(self._temp_dir, "clone-into"))
-        remote = repo.create_remote("origin", 'file://' + os.path.realpath(repo_path))
-        clone_into(repo, remote)
-        self.assertTrue('refs/remotes/origin/master' in repo.listall_references())
+        def create_repository(path, bare):
+            return init_repository(path, bare)
+
+        # here we override the name
+        def create_remote(repo, name, url):
+            return repo.remotes.create("custom_remote", url)
+
+        repo = clone_repository(url, repo_path, repository=create_repository, remote=create_remote)
+        self.assertFalse(repo.is_empty)
+        self.assertTrue('refs/remotes/custom_remote/master' in repo.listall_references())
+        self.assertIsNotNone(repo.remotes["custom_remote"])
 
     def test_clone_with_credentials(self):
         credentials = pygit2.UserPass("libgit2", "libgit2")

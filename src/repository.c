@@ -55,6 +55,9 @@ extern PyTypeObject ReferenceType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
 
+/* forward-declaration for Repsository._from_c() */
+PyTypeObject RepositoryType;
+
 git_otype
 int_to_loose_object_type(int type_id)
 {
@@ -88,10 +91,50 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
+    self->owned = 1;
     self->config = NULL;
     self->index = NULL;
 
     return 0;
+}
+
+PyDoc_STRVAR(Repository__from_c__doc__, "Init a Repository from a pointer. For internal use only.");
+PyObject *
+Repository__from_c(Repository *py_repo, PyObject *args)
+{
+    PyObject *py_pointer, *py_free;
+    char *buffer;
+    Py_ssize_t len;
+    int err;
+
+    py_repo->repo = NULL;
+    py_repo->config = NULL;
+    py_repo->index = NULL;
+
+    if (!PyArg_ParseTuple(args, "OO!", &py_pointer, &PyBool_Type, &py_free))
+        return NULL;
+
+    err = PyBytes_AsStringAndSize(py_pointer, &buffer, &len);
+    if (err < 0)
+        return NULL;
+
+    if (len != sizeof(git_repository *)) {
+        PyErr_SetString(PyExc_TypeError, "invalid pointer length");
+        return NULL;
+    }
+
+    py_repo->repo = *((git_repository **) buffer);
+    py_repo->owned = py_free == Py_True;
+
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Repository__disown__doc__, "Mark the object as not-owned by us. For internal use only.");
+PyObject *
+Repository__disown(Repository *py_repo)
+{
+    py_repo->owned = 0;
+    Py_RETURN_NONE;
 }
 
 void
@@ -100,7 +143,10 @@ Repository_dealloc(Repository *self)
     PyObject_GC_UnTrack(self);
     Py_CLEAR(self->index);
     Py_CLEAR(self->config);
-    git_repository_free(self->repo);
+
+    if (self->owned)
+        git_repository_free(self->repo);
+
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -526,7 +572,7 @@ Repository_merge_analysis(Repository *self, PyObject *py_id)
     int err;
     size_t len;
     git_oid id;
-    git_merge_head *merge_head;
+    git_annotated_commit *commit;
     git_merge_analysis_t analysis;
     git_merge_preference_t preference;
 
@@ -534,12 +580,12 @@ Repository_merge_analysis(Repository *self, PyObject *py_id)
     if (len == 0)
         return NULL;
 
-    err = git_merge_head_from_id(&merge_head, self->repo, &id);
+    err = git_annotated_commit_lookup(&commit, self->repo, &id);
     if (err < 0)
         return Error_set(err);
 
-    err = git_merge_analysis(&analysis, &preference, self->repo, (const git_merge_head **) &merge_head, 1);
-    git_merge_head_free(merge_head);
+    err = git_merge_analysis(&analysis, &preference, self->repo, (const git_annotated_commit **) &commit, 1);
+    git_annotated_commit_free(commit);
 
     if (err < 0)
         return Error_set(err);
@@ -561,7 +607,7 @@ PyDoc_STRVAR(Repository_merge__doc__,
 PyObject *
 Repository_merge(Repository *self, PyObject *py_oid)
 {
-    git_merge_head *oid_merge_head;
+    git_annotated_commit *commit;
     git_oid oid;
     int err;
     size_t len;
@@ -572,16 +618,16 @@ Repository_merge(Repository *self, PyObject *py_oid)
     if (len == 0)
         return NULL;
 
-    err = git_merge_head_from_id(&oid_merge_head, self->repo, &oid);
+    err = git_annotated_commit_lookup(&commit, self->repo, &oid);
     if (err < 0)
         return Error_set(err);
 
     checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE;
     err = git_merge(self->repo,
-                    (const git_merge_head **)&oid_merge_head, 1,
+                    (const git_annotated_commit **)&commit, 1,
                     &merge_opts, &checkout_opts);
 
-    git_merge_head_free(oid_merge_head);
+    git_annotated_commit_free(commit);
     if (err < 0)
         return Error_set(err);
 
@@ -1225,7 +1271,7 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
         }
     }
 
-    err = git_treebuilder_create(&bld, tree);
+    err = git_treebuilder_new(&bld, self->repo, tree);
     if (must_free != NULL)
         git_tree_free(must_free);
 
@@ -1318,8 +1364,8 @@ Repository_create_note(Repository *self, PyObject* args)
     if (err < 0)
         return Error_set(err);
 
-    err = git_note_create(&note_id, self->repo, py_author->signature,
-                          py_committer->signature, ref,
+    err = git_note_create(&note_id, self->repo, ref, py_author->signature,
+                          py_committer->signature,
                           &annotated_id, message, force);
     if (err < 0)
         return Error_set(err);
@@ -1380,7 +1426,7 @@ Repository_reset(Repository *self, PyObject* args)
 
     err = git_object_lookup_prefix(&target, self->repo, &oid, len,
                                    GIT_OBJ_ANY);
-    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL, NULL);
+    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL, NULL, NULL);
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);
@@ -1415,6 +1461,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, reset, METH_VARARGS),
+    METHOD(Repository, _from_c, METH_VARARGS),
+    METHOD(Repository, _disown, METH_NOARGS),
     {NULL}
 };
 

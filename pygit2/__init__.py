@@ -41,7 +41,7 @@ from .index import Index, IndexEntry
 from .remote import Remote, get_credentials
 from .repository import Repository
 from .settings import Settings
-from .utils import to_bytes
+from .utils import to_bytes, to_str
 from ._utils import __version__
 
 
@@ -113,7 +113,7 @@ def init_repository(path, bare=False,
     check_error(err)
 
     # Ok
-    return Repository(path)
+    return Repository(to_str(path))
 
 
 @ffi.callback('int (*credentials)(git_cred **cred, const char *url,'
@@ -123,7 +123,7 @@ def _credentials_cb(cred_out, url, username_from_url, allowed, data):
     d = ffi.from_handle(data)
 
     try:
-        ccred = get_credentials(d['callback'], url, username_from_url, allowed)
+        ccred = get_credentials(d['credentials_cb'], url, username_from_url, allowed)
         cred_out[0] = ccred[0]
     except Exception as e:
         d['exception'] = e
@@ -131,10 +131,54 @@ def _credentials_cb(cred_out, url, username_from_url, allowed, data):
 
     return 0
 
+@ffi.callback('int (*git_repository_create_cb)(git_repository **out,'
+              'const char *path, int bare, void *payload)')
+def _repository_create_cb(repo_out, path, bare, data):
+    d = ffi.from_handle(data)
+    try:
+        repository = d['repository_cb'](ffi.string(path), bare != 0)
+        # we no longer own the C object
+        repository._disown()
+        repo_out[0] = repository._repo
+    except Exception as e:
+        d['exception'] = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.callback('int (*git_remote_create_cb)(git_remote **out, git_repository *repo,'
+              'const char *name, const char *url, void *payload)')
+def _remote_create_cb(remote_out, repo, name, url, data):
+    d = ffi.from_handle(data)
+    try:
+        remote = d['remote_cb'](Repository._from_c(repo, False), ffi.string(name), ffi.string(url))
+        remote_out[0] = remote._remote
+        # we no longer own the C object
+        remote._remote = ffi.NULL
+    except Exception as e:
+        d['exception'] = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.callback('int (*git_transport_certificate_check_cb)'
+              '(git_cert *cert, int valid, const char *host, void *payload)')
+def _certificate_cb(cert_i, valid, host, data):
+    d = ffi.from_handle(data)
+    try:
+        # python's parting is deep in the libraries and assumes an OpenSSL-owned cert
+        val = d['certificate_cb'](None, bool(valid), ffi.string(host))
+        if not val:
+            return C.GIT_ECERTIFICATE
+    except Exception as e:
+        d['exception'] = e
+        return C.GIT_EUSER
+
+    return 0
 
 def clone_repository(
-        url, path, bare=False, ignore_cert_errors=False,
-        remote_name="origin", checkout_branch=None, credentials=None):
+        url, path, bare=False, repository=None, remote=None,
+        checkout_branch=None, credentials=None, certificate=None):
     """Clones a new Git repository from *url* in the given *path*.
 
     Returns a Repository class pointing to the newly cloned repository.
@@ -145,7 +189,9 @@ def clone_repository(
 
     :param bool bare: Whether the local repository should be bare
 
-    :param str remote_name: Name to give the remote at *url*.
+    :param callable remote: Callback for the remote to use.
+
+    :param callable repository: Callback for the repository to use.
 
     :param str checkout_branch: Branch to checkout after the
      clone. The default is to use the remote's default branch.
@@ -153,7 +199,21 @@ def clone_repository(
     :param callable credentials: authentication to use if the remote
      requires it
 
+    :param callable certificate: callback to verify the host's
+     certificate or fingerprint.
+
     :rtype: Repository
+
+    The repository callback has `(path, bare) -> Repository` as a
+    signature. The Repository it returns will be used instead of
+    creating a new one.
+
+    The remote callback has `(Repository, name, url) -> Remote` as a
+    signature. The Remote it returns will be used instead of the default
+    one.
+
+    The certificate callback has `(cert, valid, hostname) -> bool` as
+    a signature. Return True to accept the connection, False to abort.
 
     """
 
@@ -164,7 +224,10 @@ def clone_repository(
 
     # Data, let's use a dict as we don't really want much more
     d = {}
-    d['callback'] = credentials
+    d['credentials_cb'] = credentials
+    d['repository_cb'] = repository
+    d['remote_cb'] = remote
+    d['certificate_cb'] = certificate
     d_handle = ffi.new_handle(d)
 
     # Perform the initialization with the version we compiled
@@ -176,49 +239,32 @@ def clone_repository(
         checkout_branch_ref = ffi.new('char []', to_bytes(branch))
         opts.checkout_branch = checkout_branch_ref
 
-    remote_name_ref = ffi.new('char []', to_bytes(remote_name))
-    opts.remote_name = remote_name_ref
+    if repository:
+        opts.repository_cb = _repository_create_cb
+        opts.repository_cb_payload = d_handle
 
-    opts.ignore_cert_errors = ignore_cert_errors
+    if remote:
+        opts.remote_cb = _remote_create_cb
+        opts.remote_cb_payload = d_handle
+
+
     opts.bare = bare
     if credentials:
         opts.remote_callbacks.credentials = _credentials_cb
         opts.remote_callbacks.payload = d_handle
 
+    if certificate:
+        opts.remote_callbacks.certificate_check = _certificate_cb
+        opts.remote_callbacks.payload = d_handle
+
     err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
-    C.git_repository_free(crepo[0])
 
     if 'exception' in d:
         raise d['exception']
 
     check_error(err)
 
-    return Repository(path)
-
-
-def clone_into(repo, remote, branch=None):
-    """Clone into an empty repository from the specified remote
-
-    :param Repository repo: The empty repository into which to clone
-
-    :param Remote remote: The remote from which to clone
-
-    :param str branch: Branch to checkout after the clone. Pass None
-     to use the remotes's default branch.
-
-    This allows you specify arbitrary repository and remote configurations
-    before performing the clone step itself. E.g. you can replicate git-clone's
-    '--mirror' option by setting a refspec of '+refs/*:refs/*', 'core.mirror'
-    to true and calling this function.
-    """
-
-    err = C.git_clone_into(repo._repo, remote._remote, ffi.NULL,
-                           to_bytes(branch), ffi.NULL)
-
-    if remote._stored_exception:
-        raise remote._stored_exception
-
-    check_error(err)
+    return Repository._from_c(crepo[0], owned=True)
 
 settings = Settings()
 

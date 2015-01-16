@@ -88,7 +88,7 @@ TreeBuilder_write(TreeBuilder *self)
     int err;
     git_oid oid;
 
-    err = git_treebuilder_write(&oid, self->repo->repo, self->bld);
+    err = git_treebuilder_write(&oid, self->bld);
     if (err < 0)
         return Error_set(err);
 

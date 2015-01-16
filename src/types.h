@@ -32,8 +32,8 @@
 #include <Python.h>
 #include <git2.h>
 
-#if !(LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR == 21)
-#error You need a compatible libgit2 version (v0.21.x)
+#if !(LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR == 22)
+#error You need a compatible libgit2 version (v0.22.x)
 #endif
 
 /*
@@ -47,6 +47,7 @@ typedef struct {
     git_repository *repo;
     PyObject *index;  /* It will be None for a bare repository */
     PyObject *config; /* It will be None for a bare repository */
+    int owned;    /* _from_c() sometimes means we don't own the C pointer */
 } Repository;
 
 
