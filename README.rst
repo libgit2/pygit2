@@ -25,6 +25,62 @@ How to install
 Changelog
 ==============
 
+0.22.0 (2015-0X-XX)
+-------------------
+
+New:
+
+- Update to libgit2 v0.22
+  `#459 <https://github.com/libgit2/pygit2/pull/459>`_
+
+- Add support for libgit2 feature detection
+  (new ``pygit2.features`` and ``pygit2.GIT_FEATURE_*``)
+  `#475 <https://github.com/libgit2/pygit2/pull/475>`_
+
+- New ``Repository.remotes`` (``RemoteCollection``)
+  `#447 <https://github.com/libgit2/pygit2/pull/447>`_
+
+API Changes:
+
+- Prototype of ``clone_repository`` changed, check documentation
+
+- Removed ``clone_into``, use ``clone_repository`` with callbacks instead
+
+- Use ``Repository.remotes.rename(name, new_name)`` instead fo
+  ``Remote.rename(new_name)``
+
+- Use ``Repository.remotes.delete(name)`` instead fo ``Remote.delete()``
+
+- Now ``Remote.push(...)`` takes a list of refspecs instead of just one.
+
+- Change ``Patch.old_id``, ``Patch.new_id``, ``Note.annotated_id``,
+  ``RefLogEntry.oid_old`` and ``RefLogEntry.oid_new`` to be ``Oid`` objects
+  instead of strings
+  `#449 <https://github.com/libgit2/pygit2/pull/449>`_
+
+Other:
+
+- Fix ``init_repository`` when passing optional parameters ``workdir_path``,
+  ``description``, ``template_path``, ``initial_head`` or ``origin_url``
+  `#466 <https://github.com/libgit2/pygit2/issues/466>`_
+  `#471 <https://github.com/libgit2/pygit2/pull/471>`_
+
+- Fix use-after-free when patch outlives diff
+  `#457 <https://github.com/libgit2/pygit2/issues/457>`_
+  `#461 <https://github.com/libgit2/pygit2/pull/461>`_
+  `#474 <https://github.com/libgit2/pygit2/pull/474>`_
+
+- Documentation improvements
+  `#456 <https://github.com/libgit2/pygit2/issues/456>`_
+  `#462 <https://github.com/libgit2/pygit2/pull/462>`_
+  `#465 <https://github.com/libgit2/pygit2/pull/465>`_
+  `#472 <https://github.com/libgit2/pygit2/pull/472>`_
+  `#473 <https://github.com/libgit2/pygit2/pull/473>`_
+
+- Make the GPL exception explicit in setup.py
+  `#450 <https://github.com/libgit2/pygit2/pull/450>`_
+
+
 0.21.4 (2014-11-04)
 -------------------
 
