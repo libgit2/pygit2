@@ -439,8 +439,8 @@ RefLogEntry_dealloc(RefLogEntry *self)
 }
 
 PyMemberDef RefLogEntry_members[] = {
-    MEMBER(RefLogEntry, oid_new, T_STRING, "New oid."),
-    MEMBER(RefLogEntry, oid_old, T_STRING, "Old oid."),
+    MEMBER(RefLogEntry, oid_new, T_OBJECT, "New oid."),
+    MEMBER(RefLogEntry, oid_old, T_OBJECT, "Old oid."),
     MEMBER(RefLogEntry, message, T_STRING, "Message."),
     {NULL}
 };
