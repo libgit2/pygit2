@@ -25,7 +25,7 @@ How to install
 Changelog
 ==============
 
-0.22.0 (2015-0X-XX)
+0.22.0 (2015-01-16)
 -------------------
 
 New:
@@ -46,12 +46,12 @@ API Changes:
 
 - Removed ``clone_into``, use ``clone_repository`` with callbacks instead
 
-- Use ``Repository.remotes.rename(name, new_name)`` instead fo
+- Use ``Repository.remotes.rename(name, new_name)`` instead of
   ``Remote.rename(new_name)``
 
-- Use ``Repository.remotes.delete(name)`` instead fo ``Remote.delete()``
+- Use ``Repository.remotes.delete(name)`` instead of ``Remote.delete()``
 
-- Now ``Remote.push(...)`` takes a list of refspecs instead of just one.
+- Now ``Remote.push(...)`` takes a list of refspecs instead of just one
 
 - Change ``Patch.old_id``, ``Patch.new_id``, ``Note.annotated_id``,
   ``RefLogEntry.oid_old`` and ``RefLogEntry.oid_new`` to be ``Oid`` objects
@@ -502,7 +502,7 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-77 developers have contributed at least 1 commit to pygit2::
+83 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez            Sebastian Thiel            András Veres-Szentkirályi
   Carlos Martín Nieto        Fraser Tweedale            Ash Berlin

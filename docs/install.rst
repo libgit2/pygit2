@@ -139,9 +139,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.2.tar.gz
-   $ tar xzf v0.21.2.tar.gz
-   $ cd libgit2-0.21.2/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz
+   $ tar xzf v0.22.0.tar.gz
+   $ cd libgit2-0.22.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -194,9 +194,9 @@ from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ wget https://github.com/libgit2/libgit2/archive/v0.21.2.tar.gz
-   $ tar xzf v0.21.2.tar.gz
-   $ cd libgit2-0.21.2/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz
+   $ tar xzf v0.22.0.tar.gz
+   $ cd libgit2-0.22.0/
    $ cmake . -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"
    $ cmake --build . --config release --target install
    $ ctest -v
