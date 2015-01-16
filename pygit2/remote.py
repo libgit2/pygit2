@@ -197,7 +197,7 @@ class Remote(object):
     def fetch(self, signature=None, message=None):
         """fetch(signature, message) -> TransferProgress
 
-        Perform a fetch against this remote. May require libssh2.
+        Perform a fetch against this remote.
         """
 
         # Get the default callbacks first
@@ -317,7 +317,6 @@ class Remote(object):
         """push(refspec, signature, message)
 
         Push the given refspec to the remote. Raises ``GitError`` on error.
-        May require libssh2.
 
         :param str spec: push refspec to use
         :param Signature signature: signature to use when updating the tips
