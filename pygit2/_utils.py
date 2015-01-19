@@ -79,7 +79,11 @@ def get_ffi():
     ffi = cffi.FFI()
 
     # Load C definitions
-    dir_path = dirname(abspath(inspect.getfile(inspect.currentframe())))
+    if getattr(sys, 'frozen', False):
+        dir_path = dirname(abspath(sys.executable))
+    else:
+        dir_path = dirname(abspath(__file__))
+
     decl_path = os.path.join(dir_path, 'decl.h')
     with codecs.open(decl_path, 'r', 'utf-8') as header:
         ffi.cdef(header.read())
