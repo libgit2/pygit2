@@ -2,7 +2,7 @@
 pygit2 - libgit2 bindings in Python
 ######################################################################
 
-.. image:: https://secure.travis-ci.org/libgit2/pygit2.svg
+.. image:: https://travis-ci.org/libgit2/pygit2.svg?branch=master
    :target: http://travis-ci.org/libgit2/pygit2
 
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2

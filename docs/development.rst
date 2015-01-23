@@ -2,7 +2,7 @@
 The development version
 **********************************************************************
 
-.. image:: https://secure.travis-ci.org/libgit2/pygit2.png
+.. image:: https://travis-ci.org/libgit2/pygit2.svg?branch=master
    :target: http://travis-ci.org/libgit2/pygit2
 
 .. code-block:: sh
