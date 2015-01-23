@@ -45,7 +45,7 @@ extern PyTypeObject CommitType;
 extern PyTypeObject DiffType;
 extern PyTypeObject DiffIterType;
 extern PyTypeObject PatchType;
-extern PyTypeObject HunkType;
+extern PyTypeObject DiffHunkType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
 extern PyTypeObject TreeEntryType;
@@ -288,10 +288,10 @@ moduleinit(PyObject* m)
     INIT_TYPE(DiffType, NULL, NULL)
     INIT_TYPE(DiffIterType, NULL, NULL)
     INIT_TYPE(PatchType, NULL, NULL)
-    INIT_TYPE(HunkType, NULL, NULL)
+    INIT_TYPE(DiffHunkType, NULL, NULL)
     ADD_TYPE(m, Diff)
     ADD_TYPE(m, Patch)
-    ADD_TYPE(m, Hunk)
+    ADD_TYPE(m, DiffHunk)
     ADD_CONSTANT_INT(m, GIT_DIFF_NORMAL)
     ADD_CONSTANT_INT(m, GIT_DIFF_REVERSE)
     ADD_CONSTANT_INT(m, GIT_DIFF_FORCE_TEXT)

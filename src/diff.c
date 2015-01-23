@@ -39,7 +39,7 @@ extern PyObject *GitError;
 extern PyTypeObject TreeType;
 extern PyTypeObject IndexType;
 extern PyTypeObject DiffType;
-extern PyTypeObject HunkType;
+extern PyTypeObject DiffHunkType;
 extern PyTypeObject RepositoryType;
 
 PyTypeObject PatchType;
@@ -92,13 +92,13 @@ wrap_patch(git_patch *patch)
         hunk_amounts = git_patch_num_hunks(patch);
         py_patch->hunks = PyList_New(hunk_amounts);
         for (i = 0; i < hunk_amounts; ++i) {
-            Hunk *py_hunk = NULL;
+            DiffHunk *py_hunk = NULL;
 
             err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch, i);
             if (err < 0)
                 return Error_set(err);
 
-            py_hunk = PyObject_New(Hunk, &HunkType);
+            py_hunk = PyObject_New(DiffHunk, &DiffHunkType);
             if (py_hunk != NULL) {
                 py_hunk->old_start = hunk->old_start;
                 py_hunk->old_lines = hunk->old_lines;
@@ -326,30 +326,30 @@ cleanup:
 
 
 static void
-Hunk_dealloc(Hunk *self)
+DiffHunk_dealloc(DiffHunk *self)
 {
     Py_CLEAR(self->lines);
     PyObject_Del(self);
 }
 
-PyMemberDef Hunk_members[] = {
-    MEMBER(Hunk, old_start, T_INT, "Old start."),
-    MEMBER(Hunk, old_lines, T_INT, "Old lines."),
-    MEMBER(Hunk, new_start, T_INT, "New start."),
-    MEMBER(Hunk, new_lines, T_INT, "New lines."),
-    MEMBER(Hunk, lines, T_OBJECT, "Lines."),
+PyMemberDef DiffHunk_members[] = {
+    MEMBER(DiffHunk, old_start, T_INT, "Old start."),
+    MEMBER(DiffHunk, old_lines, T_INT, "Old lines."),
+    MEMBER(DiffHunk, new_start, T_INT, "New start."),
+    MEMBER(DiffHunk, new_lines, T_INT, "New lines."),
+    MEMBER(DiffHunk, lines, T_OBJECT, "Lines."),
     {NULL}
 };
 
 
-PyDoc_STRVAR(Hunk__doc__, "Hunk object.");
+PyDoc_STRVAR(DiffHunk__doc__, "DiffHunk object.");
 
-PyTypeObject HunkType = {
+PyTypeObject DiffHunkType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.Hunk",                            /* tp_name           */
-    sizeof(Hunk),                              /* tp_basicsize      */
+    "_pygit2.DiffHunk",                        /* tp_name           */
+    sizeof(DiffHunk),                          /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    (destructor)Hunk_dealloc,                  /* tp_dealloc        */
+    (destructor)DiffHunk_dealloc,              /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
@@ -365,7 +365,7 @@ PyTypeObject HunkType = {
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
-    Hunk__doc__,                               /* tp_doc            */
+    DiffHunk__doc__,                           /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
     0,                                         /* tp_richcompare    */
@@ -373,7 +373,7 @@ PyTypeObject HunkType = {
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
-    Hunk_members,                              /* tp_members        */
+    DiffHunk_members,                          /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */

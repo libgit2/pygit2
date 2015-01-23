@@ -122,7 +122,7 @@ typedef struct {
     int old_lines;
     int new_start;
     int new_lines;
-} Hunk;
+} DiffHunk;
 
 
 /* git_tree_walk , git_treebuilder*/

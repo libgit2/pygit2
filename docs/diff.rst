@@ -63,11 +63,11 @@ Getters:
 .. autoattribute:: pygit2.Patch.is_binary
 
 
-The Hunk type
+The DiffHunk type
 ====================
 
-.. autoattribute:: pygit2.Hunk.old_start
-.. autoattribute:: pygit2.Hunk.old_lines
-.. autoattribute:: pygit2.Hunk.new_start
-.. autoattribute:: pygit2.Hunk.new_lines
-.. autoattribute:: pygit2.Hunk.lines
+.. autoattribute:: pygit2.DiffHunk.old_start
+.. autoattribute:: pygit2.DiffHunk.old_lines
+.. autoattribute:: pygit2.DiffHunk.new_start
+.. autoattribute:: pygit2.DiffHunk.new_lines
+.. autoattribute:: pygit2.DiffHunk.lines

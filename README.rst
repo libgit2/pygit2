@@ -31,6 +31,8 @@ Changelog
 - Make pygit work in a frozen environment
   `#453 <https://github.com/libgit2/pygit2/pull/453>`_
 
+- Rename ``pygit2.Hunk`` to ``pygit2.DiffHunk``
+
 
 0.22.0 (2015-01-16)
 -------------------
