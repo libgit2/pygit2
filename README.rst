@@ -25,6 +25,13 @@ How to install
 Changelog
 ==============
 
+0.22.1 (not yet released)
+-------------------------
+
+- Make pygit work in a frozen environment
+  `#453 <https://github.com/libgit2/pygit2/pull/453>`_
+
+
 0.22.0 (2015-01-16)
 -------------------
 
