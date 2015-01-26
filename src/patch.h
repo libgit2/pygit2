@@ -25,17 +25,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDE_pygit2_diff_h
-#define INCLUDE_pygit2_diff_h
+#ifndef INCLUDE_pygit2_patch_h
+#define INCLUDE_pygit2_patch_h
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
-#include "types.h"
 
-PyObject* Diff_changes(Diff *self);
-PyObject* Diff_patch(Diff *self);
-
-PyObject* wrap_diff(git_diff *diff, Repository *repo);
+PyObject* wrap_patch(git_patch *patch);
 
 #endif

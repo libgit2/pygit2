@@ -27,11 +27,12 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include "blob.h"
 #include "diff.h"
 #include "error.h"
-#include "utils.h"
 #include "object.h"
-#include "blob.h"
+#include "patch.h"
+#include "utils.h"
 
 extern PyObject *GitError;
 
