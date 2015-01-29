@@ -623,5 +623,7 @@ class Repository(_Repository):
                 info.type = archive.SYMTYPE
                 info.linkname = content
                 info.mode = 0o777 # symlinks get placeholder
-
-            archive.addfile(info, StringIO(content))
+                info.size = 0
+                archive.addfile(info)
+            else:
+                archive.addfile(info, StringIO(content))
