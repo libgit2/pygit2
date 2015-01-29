@@ -31,6 +31,7 @@ from __future__ import absolute_import
 # Import from the Standard Library
 from string import hexdigits
 import sys, tarfile
+import os.path
 from time import time
 if sys.version_info[0] < 3:
     from cStringIO import StringIO
@@ -566,11 +567,15 @@ class Repository(_Repository):
     #
     # Utility for writing a tree into an archive
     #
-    def write_archive(self, treeish, archive, timestamp=None):
+    def write_archive(self, treeish, archive, timestamp=None, root_path=None):
         """Write treeish into an archive
 
         If no timestamp is provided and 'treeish' is a commit, its committer
         timestamp will be used. Otherwise the current time will be used.
+
+        If no root_path is provided, the archive will be created so that
+        extracting it will create files under root_path, instead of the current
+        directory (equivalent to "tar -C root_path ..." while extracting).
 
         Arguments:
 
@@ -580,6 +585,8 @@ class Repository(_Repository):
             An archive from the 'tarfile' module
         timestamp
             Timestamp to use for the files in the archive.
+        root_path
+            The path under which all the files will appear in the archive.
 
         Example::
 
@@ -608,6 +615,9 @@ class Repository(_Repository):
         if not timestamp:
             timestamp = int(time())
 
+        if root_path is None:
+            root_path = '.'
+
         tree = treeish.peel(Tree)
 
         index = Index()
@@ -615,7 +625,7 @@ class Repository(_Repository):
 
         for entry in index:
             content = self[entry.id].read_raw()
-            info = tarfile.TarInfo(entry.path)
+            info = tarfile.TarInfo(os.path.join(root_path, entry.path))
             info.size = len(content)
             info.mtime = timestamp
             info.uname = info.gname = 'root' # just because git does this
