@@ -28,6 +28,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <structmember.h>
+#include "diff.h"
 #include "error.h"
 #include "oid.h"
 #include "types.h"
@@ -53,15 +54,9 @@ wrap_patch(git_patch *patch)
         const git_diff_line *line;
         int err;
 
-        delta = git_patch_get_delta(patch);
+        py_patch->patch = patch;
 
-        py_patch->old_file_path = strdup(delta->old_file.path);
-        py_patch->new_file_path = strdup(delta->new_file.path);
-        py_patch->status = git_diff_status_char(delta->status);
-        py_patch->similarity = delta->similarity;
-        py_patch->flags = delta->flags;
-        py_patch->old_id = git_oid_to_python(&delta->old_file.id);
-        py_patch->new_id = git_oid_to_python(&delta->new_file.id);
+        delta = git_patch_get_delta(patch);
 
         git_patch_line_stats(NULL, &additions, &deletions, patch);
         py_patch->additions = additions;
@@ -107,7 +102,6 @@ wrap_patch(git_patch *patch)
             }
         }
     }
-    git_patch_free(patch);
 
     return (PyObject*) py_patch;
 }
@@ -116,39 +110,30 @@ static void
 Patch_dealloc(Patch *self)
 {
     Py_CLEAR(self->hunks);
-    Py_CLEAR(self->old_id);
-    Py_CLEAR(self->new_id);
-    free(self->old_file_path);
-    free(self->new_file_path);
+    git_patch_free(self->patch);
     PyObject_Del(self);
 }
 
+PyDoc_STRVAR(Patch_delta__doc__, "Get the delta associated with a patch.");
+
+PyObject *
+Patch_delta__get__(Patch *self)
+{
+    if (!self->patch)
+        Py_RETURN_NONE;
+
+    return wrap_diff_delta(git_patch_get_delta(self->patch));
+}
+
 PyMemberDef Patch_members[] = {
-    MEMBER(Patch, old_file_path, T_STRING, "old file path"),
-    MEMBER(Patch, new_file_path, T_STRING, "new file path"),
-    MEMBER(Patch, old_id, T_OBJECT, "old oid"),
-    MEMBER(Patch, new_id, T_OBJECT, "new oid"),
-    MEMBER(Patch, status, T_CHAR, "status"),
-    MEMBER(Patch, similarity, T_INT, "similarity"),
     MEMBER(Patch, hunks, T_OBJECT, "hunks"),
     MEMBER(Patch, additions, T_INT, "additions"),
     MEMBER(Patch, deletions, T_INT, "deletions"),
     {NULL}
 };
 
-PyDoc_STRVAR(Patch_is_binary__doc__, "True if binary data, False if not.");
-
-PyObject *
-Patch_is_binary__get__(Patch *self)
-{
-    if (!(self->flags & GIT_DIFF_FLAG_NOT_BINARY) &&
-            (self->flags & GIT_DIFF_FLAG_BINARY))
-        Py_RETURN_TRUE;
-    Py_RETURN_FALSE;
-}
-
 PyGetSetDef Patch_getseters[] = {
-    GETTER(Patch, is_binary),
+    GETTER(Patch, delta),
     {NULL}
 };
 

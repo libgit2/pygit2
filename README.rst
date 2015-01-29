@@ -31,7 +31,19 @@ Changelog
 - Make pygit work in a frozen environment
   `#453 <https://github.com/libgit2/pygit2/pull/453>`_
 
+- New ``pygit2.DiffDelta`` and ``pygit2.DiffFile``
+
 - Rename ``pygit2.Hunk`` to ``pygit2.DiffHunk``
+
+API changes::
+
+  Patch.old_file_path => Patch.delta.old_file.path
+  Patch.new_file_path => Patch.delta.new_file.path
+  Patch.old_id        => Patch.delta.old_file.id
+  Patch.new_id        => Patch.delta.new_file.id
+  Patch.status        => Patch.delta.status
+  Patch.similarity    => Patch.delta.similarity
+  Patch.is_binary     => Patch.delta.is_binary
 
 
 0.22.0 (2015-01-16)

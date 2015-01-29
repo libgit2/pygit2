@@ -90,6 +90,14 @@ typedef struct {
     char* ref;
 } NoteIter;
 
+/* git_patch */
+typedef struct {
+    PyObject_HEAD
+    git_patch *patch;
+    PyObject* hunks;
+    unsigned additions;
+    unsigned deletions;
+} Patch;
 
 /* git_diff */
 SIMPLE_TYPE(Diff, git_diff, diff)
@@ -103,17 +111,19 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    PyObject* hunks;
-    char * old_file_path;
-    char * new_file_path;
-    PyObject* old_id;
-    PyObject* new_id;
-    char status;
-    unsigned similarity;
-    unsigned additions;
-    unsigned deletions;
-    unsigned flags;
-} Patch;
+    PyObject *id;
+    char *path;
+} DiffFile;
+
+typedef struct {
+    PyObject_HEAD
+    git_delta_t status;
+    uint32_t flags;
+    uint16_t similarity;
+    uint16_t nfiles;
+    PyObject *old_file;
+    PyObject *new_file;
+} DiffDelta;
 
 typedef struct {
     PyObject_HEAD

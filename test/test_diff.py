@@ -107,11 +107,11 @@ class DiffDirtyTest(utils.DirtyRepoTestCase):
 
         head = repo[repo.lookup_reference('HEAD').resolve().target]
         diff = head.tree.diff_to_index(repo.index)
-        files = [patch.new_file_path for patch in diff]
+        files = [patch.delta.new_file.path for patch in diff]
         self.assertEqual(DIFF_HEAD_TO_INDEX_EXPECTED, files)
 
         diff = repo.diff('HEAD', cached=True)
-        files = [patch.new_file_path for patch in diff]
+        files = [patch.delta.new_file.path for patch in diff]
         self.assertEqual(DIFF_HEAD_TO_INDEX_EXPECTED, files)
 
     def test_workdir_to_tree(self):
@@ -119,16 +119,16 @@ class DiffDirtyTest(utils.DirtyRepoTestCase):
         head = repo[repo.lookup_reference('HEAD').resolve().target]
 
         diff = head.tree.diff_to_workdir()
-        files = [patch.new_file_path for patch in diff]
+        files = [patch.delta.new_file.path for patch in diff]
         self.assertEqual(DIFF_HEAD_TO_WORKDIR_EXPECTED, files)
 
         diff = repo.diff('HEAD')
-        files = [patch.new_file_path for patch in diff]
+        files = [patch.delta.new_file.path for patch in diff]
         self.assertEqual(DIFF_HEAD_TO_WORKDIR_EXPECTED, files)
 
     def test_index_to_workdir(self):
         diff = self.repo.diff()
-        files = [patch.new_file_path for patch in diff]
+        files = [patch.delta.new_file.path for patch in diff]
         self.assertEqual(DIFF_INDEX_TO_WORK_EXPECTED, files)
 
 
@@ -145,15 +145,15 @@ class DiffTest(utils.BareRepoTestCase):
         head = repo[repo.lookup_reference('HEAD').resolve().target]
 
         diff = self.repo.index.diff_to_tree(head.tree)
-        files = [patch.new_file_path.split('/')[0] for patch in diff]
+        files = [patch.delta.new_file.path.split('/')[0] for patch in diff]
         self.assertEqual([x.name for x in head.tree], files)
 
         diff = head.tree.diff_to_index(repo.index)
-        files = [patch.new_file_path.split('/')[0] for patch in diff]
+        files = [patch.delta.new_file.path.split('/')[0] for patch in diff]
         self.assertEqual([x.name for x in head.tree], files)
 
         diff = repo.diff('HEAD', cached=True)
-        files = [patch.new_file_path.split('/')[0] for patch in diff]
+        files = [patch.delta.new_file.path.split('/')[0] for patch in diff]
         self.assertEqual([x.name for x in head.tree], files)
 
     def test_diff_tree(self):
@@ -173,9 +173,9 @@ class DiffTest(utils.BareRepoTestCase):
             self.assertEqual(hunk.new_start, 1)
             self.assertEqual(hunk.new_lines, 1)
 
-            self.assertEqual(patch.old_file_path, 'a')
-            self.assertEqual(patch.new_file_path, 'a')
-            self.assertEqual(patch.is_binary, False)
+            self.assertEqual(patch.delta.old_file.path, 'a')
+            self.assertEqual(patch.delta.new_file.path, 'a')
+            self.assertEqual(patch.delta.is_binary, False)
 
         _test(commit_a.tree.diff_to_tree(commit_b.tree))
         _test(self.repo.diff(COMMIT_SHA1_1, COMMIT_SHA1_2))
@@ -190,12 +190,12 @@ class DiffTest(utils.BareRepoTestCase):
             lines = chain(*map(lambda x: x.lines, hunks))
             return map(lambda x: x[0], lines)
 
-        entries = [p.new_file_path for p in diff]
+        entries = [p.delta.new_file.path for p in diff]
         self.assertAll(lambda x: commit_a.tree[x], entries)
         self.assertAll(lambda x: '-' == x, get_context_for_lines(diff))
 
         diff_swaped = commit_a.tree.diff_to_tree(swap=True)
-        entries = [p.new_file_path for p in diff_swaped]
+        entries = [p.delta.new_file.path for p in diff_swaped]
         self.assertAll(lambda x: commit_a.tree[x], entries)
         self.assertAll(lambda x: '+' == x, get_context_for_lines(diff_swaped))
 
@@ -231,13 +231,13 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertTrue(diff_c is not None)
 
         # assertIn / assertNotIn are 2.7 only
-        self.assertFalse('b' in [patch.new_file_path for patch in diff_b])
-        self.assertTrue('b' in [patch.new_file_path for patch in diff_c])
+        self.assertFalse('b' in [patch.delta.new_file.path for patch in diff_b])
+        self.assertTrue('b' in [patch.delta.new_file.path for patch in diff_c])
 
         diff_b.merge(diff_c)
 
         # assertIn is 2.7 only
-        self.assertTrue('b' in [patch.new_file_path for patch in diff_b])
+        self.assertTrue('b' in [patch.delta.new_file.path for patch in diff_b])
 
         patch = diff_b[0]
         hunk = patch.hunks[0]
@@ -246,8 +246,8 @@ class DiffTest(utils.BareRepoTestCase):
         self.assertEqual(hunk.new_start, 1)
         self.assertEqual(hunk.new_lines, 1)
 
-        self.assertEqual(patch.old_file_path, 'a')
-        self.assertEqual(patch.new_file_path, 'a')
+        self.assertEqual(patch.delta.old_file.path, 'a')
+        self.assertEqual(patch.delta.new_file.path, 'a')
 
     def test_diff_patch(self):
         commit_a = self.repo[COMMIT_SHA1_1]
@@ -261,9 +261,9 @@ class DiffTest(utils.BareRepoTestCase):
         commit_a = self.repo[COMMIT_SHA1_1]
         commit_b = self.repo[COMMIT_SHA1_2]
         patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
-        self.assertEqual(patch.old_id.hex,
+        self.assertEqual(patch.delta.old_file.id.hex,
                          '7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        self.assertEqual(patch.new_id.hex,
+        self.assertEqual(patch.delta.new_file.id.hex,
                          'af431f20fc541ed6d5afede3e2dc7160f6f01f16')
 
     def test_hunk_content(self):
@@ -282,9 +282,9 @@ class DiffTest(utils.BareRepoTestCase):
         #~ --find-copies-harder during rename transformion...
         diff = commit_a.tree.diff_to_tree(commit_b.tree,
                                           GIT_DIFF_INCLUDE_UNMODIFIED)
-        self.assertAll(lambda x: x.status != 'R', diff)
+        self.assertAll(lambda x: x.delta.status != 'R', diff)
         diff.find_similar()
-        self.assertAny(lambda x: x.status == 'R', diff)
+        self.assertAny(lambda x: x.delta.status == 'R', diff)
 
 if __name__ == '__main__':
     unittest.main()

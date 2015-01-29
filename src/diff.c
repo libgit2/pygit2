@@ -40,6 +40,8 @@ extern PyObject *GitError;
 extern PyTypeObject TreeType;
 extern PyTypeObject IndexType;
 extern PyTypeObject DiffType;
+extern PyTypeObject DiffDeltaType;
+extern PyTypeObject DiffFileType;
 extern PyTypeObject DiffHunkType;
 extern PyTypeObject RepositoryType;
 
@@ -57,6 +59,180 @@ wrap_diff(git_diff *diff, Repository *repo)
 
     return (PyObject*) py_diff;
 }
+
+PyObject *
+wrap_diff_file(const git_diff_file *file)
+{
+    DiffFile *py_file;
+
+    if (!file)
+        Py_RETURN_NONE;
+
+    py_file = PyObject_New(DiffFile, &DiffFileType);
+    if (py_file) {
+        py_file->id = git_oid_to_python(&file->id);
+        py_file->path = file->path != NULL ? strdup(file->path) : NULL;
+    }
+
+    return (PyObject *) py_file;
+}
+
+PyObject *
+wrap_diff_delta(const git_diff_delta *delta)
+{
+    DiffDelta *py_delta;
+
+    if (!delta)
+        Py_RETURN_NONE;
+
+    py_delta = PyObject_New(DiffDelta, &DiffDeltaType);
+    if (py_delta) {
+        py_delta->status = git_diff_status_char(delta->status);
+        py_delta->flags = delta->flags;
+        py_delta->similarity = delta->similarity;
+        py_delta->nfiles = delta->nfiles;
+        py_delta->old_file = wrap_diff_file(&delta->old_file);
+        py_delta->new_file = wrap_diff_file(&delta->new_file);
+    }
+
+    return (PyObject *) py_delta;
+}
+
+static void
+DiffFile_dealloc(DiffFile *self)
+{
+    Py_CLEAR(self->id);
+    if (self->path)
+        free(self->path);
+    PyObject_Del(self);
+}
+
+PyMemberDef DiffFile_members[] = {
+    MEMBER(DiffFile, id, T_OBJECT, "Oid of the item."),
+    MEMBER(DiffFile, path, T_STRING, "Path to the entry."),
+    {NULL}
+};
+
+
+PyDoc_STRVAR(DiffFile__doc__, "DiffFile object.");
+
+PyTypeObject DiffFileType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.DiffFile",                        /* tp_name           */
+    sizeof(DiffFile),                          /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)DiffFile_dealloc,              /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    DiffFile__doc__,                           /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    DiffFile_members,                          /* tp_members        */
+    0,                                         /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
+PyDoc_STRVAR(DiffDelta_is_binary__doc__, "True if binary data, False if not.");
+
+PyObject *
+DiffDelta_is_binary__get__(DiffDelta *self)
+{
+    if (!(self->flags & GIT_DIFF_FLAG_NOT_BINARY) &&
+            (self->flags & GIT_DIFF_FLAG_BINARY))
+        Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
+}
+
+static void
+DiffDelta_dealloc(DiffDelta *self)
+{
+    Py_CLEAR(self->old_file);
+    Py_CLEAR(self->new_file);
+    PyObject_Del(self);
+}
+
+PyMemberDef DiffDelta_members[] = {
+    MEMBER(DiffDelta, status, T_CHAR, "A GIT_DELTA_* constant."),
+    MEMBER(DiffDelta, flags, T_UINT, "Combination of GIT_DIFF_FLAG_* flags."),
+    MEMBER(DiffDelta, similarity, T_USHORT, "For renamed and copied."),
+    MEMBER(DiffDelta, nfiles, T_USHORT, "Number of files in the delta."),
+    MEMBER(DiffDelta, old_file, T_OBJECT, "\"from\" side of the diff."),
+    MEMBER(DiffDelta, new_file, T_OBJECT, "\"to\" side of the diff."),
+    {NULL}
+};
+
+PyGetSetDef DiffDelta_getseters[] = {
+    GETTER(DiffDelta, is_binary),
+    {NULL}
+};
+
+PyDoc_STRVAR(DiffDelta__doc__, "DiffDelta object.");
+
+PyTypeObject DiffDeltaType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.DiffDelta",                       /* tp_name           */
+    sizeof(DiffDelta),                         /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)DiffDelta_dealloc,             /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    DiffDelta__doc__,                          /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    DiffDelta_members,                         /* tp_members        */
+    DiffDelta_getseters,                       /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
 
 PyObject *
 diff_get_patch_byindex(git_diff *diff, size_t idx)
