@@ -48,7 +48,7 @@ wrap_patch(git_patch *patch)
 
     py_patch = PyObject_New(Patch, &PatchType);
     if (py_patch) {
-        size_t i, j, hunk_amounts, lines_in_hunk, additions, deletions;
+        size_t i, j, hunk_amounts, lines_in_hunk;
         const git_diff_delta *delta;
         const git_diff_hunk *hunk;
         const git_diff_line *line;
@@ -57,10 +57,6 @@ wrap_patch(git_patch *patch)
         py_patch->patch = patch;
 
         delta = git_patch_get_delta(patch);
-
-        git_patch_line_stats(NULL, &additions, &deletions, patch);
-        py_patch->additions = additions;
-        py_patch->deletions = deletions;
 
         hunk_amounts = git_patch_num_hunks(patch);
         py_patch->hunks = PyList_New(hunk_amounts);
@@ -125,15 +121,34 @@ Patch_delta__get__(Patch *self)
     return wrap_diff_delta(git_patch_get_delta(self->patch));
 }
 
+PyDoc_STRVAR(Patch_line_stats__doc__,
+    "Get line counts of each type in a patch.");
+
+PyObject *
+Patch_line_stats__get__(Patch *self)
+{
+    size_t context, additions, deletions;
+    int err;
+
+    if (!self->patch)
+        Py_RETURN_NONE;
+
+    err = git_patch_line_stats(&context, &additions, &deletions,
+                               self->patch);
+    if (err < 0)
+        return Error_set(err);
+
+    return Py_BuildValue("III", context, additions, deletions);
+}
+
 PyMemberDef Patch_members[] = {
     MEMBER(Patch, hunks, T_OBJECT, "hunks"),
-    MEMBER(Patch, additions, T_INT, "additions"),
-    MEMBER(Patch, deletions, T_INT, "deletions"),
     {NULL}
 };
 
 PyGetSetDef Patch_getseters[] = {
     GETTER(Patch, delta),
+    GETTER(Patch, line_stats),
     {NULL}
 };
 

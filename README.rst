@@ -44,6 +44,8 @@ API changes::
   Patch.status        => Patch.delta.status
   Patch.similarity    => Patch.delta.similarity
   Patch.is_binary     => Patch.delta.is_binary
+  Patch.additions     => Patch.line_stats[1]
+  Patch.deletions     => Patch.line_stats[2]
 
 
 0.22.0 (2015-01-16)
