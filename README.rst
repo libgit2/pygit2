@@ -28,6 +28,9 @@ Changelog
 0.22.1 (not yet released)
 -------------------------
 
+- Expose the pygit2.GIT_REPOSITORY_INIT_* constants
+  `#483 <https://github.com/libgit2/pygit2/issues/483>`_
+
 - Make pygit work in a frozen environment
   `#453 <https://github.com/libgit2/pygit2/pull/453>`_
 
