@@ -199,7 +199,8 @@ def _certificate_cb(cert_i, valid, host, data):
 
 def clone_repository(
         url, path, bare=False, repository=None, remote=None,
-        checkout_branch=None, credentials=None, certificate=None):
+        checkout_branch=None, credentials=None, certificate=None,
+        checkout_strategy=None):
     """Clones a new Git repository from *url* in the given *path*.
 
     Returns a Repository class pointing to the newly cloned repository.
@@ -222,6 +223,9 @@ def clone_repository(
 
     :param callable certificate: callback to verify the host's
      certificate or fingerprint.
+
+    :param int checkout_strategy: When not set to None, set the
+     checkout strategy flags.
 
     :rtype: Repository
 
@@ -253,6 +257,10 @@ def clone_repository(
 
     # Perform the initialization with the version we compiled
     C.git_clone_init_options(opts, C.GIT_CLONE_OPTIONS_VERSION)
+
+    if checkout_strategy is not None:
+        opts.checkout_opts = C.GIT_CHECKOUT_OPTIONS_INIT
+        opts.checkout_opts.checkout_strategy = checkout_strategy
 
     # We need to keep the ref alive ourselves
     checkout_branch_ref = None
