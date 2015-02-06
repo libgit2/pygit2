@@ -34,7 +34,7 @@ from .errors import check_error, GitError
 from .ffi import ffi, C
 from .credentials import KeypairFromAgent
 from .refspec import Refspec
-from .utils import to_bytes, strarray_to_strings, strings_to_strarray
+from .utils import to_bytes, strarray_to_strings, StrArray
 
 
 def maybe_string(ptr):
@@ -253,9 +253,9 @@ class Remote(object):
 
     @fetch_refspecs.setter
     def fetch_refspecs(self, l):
-        arr, refs = strings_to_strarray(l)
-        err = C.git_remote_set_fetch_refspecs(self._remote, arr)
-        check_error(err)
+        with StrArray(l) as arr:
+            err = C.git_remote_set_fetch_refspecs(self._remote, arr)
+            check_error(err)
 
     @property
     def push_refspecs(self):
@@ -269,9 +269,9 @@ class Remote(object):
 
     @push_refspecs.setter
     def push_refspecs(self, l):
-        arr, refs = strings_to_strarray(l)
-        err = C.git_remote_set_push_refspecs(self._remote, arr)
-        check_error(err)
+        with StrArray(l) as arr:
+            err = C.git_remote_set_push_refspecs(self._remote, arr)
+            check_error(err)
 
     def add_fetch(self, spec):
         """add_fetch(refspec)
@@ -305,7 +305,6 @@ class Remote(object):
         err = C.git_remote_init_callbacks(defaultcallbacks, 1)
         check_error(err)
 
-        refspecs, refspecs_refs = strings_to_strarray(specs)
         if signature:
             sig_cptr = ffi.new('git_signature **')
             ffi.buffer(sig_cptr)[:] = signature._pointer[:]
@@ -333,8 +332,9 @@ class Remote(object):
             raise
 
         try:
-            err = C.git_remote_push(self._remote, refspecs, ffi.NULL, sig_ptr, to_bytes(message))
-            check_error(err)
+            with StrArray(specs) as refspecs:
+                err = C.git_remote_push(self._remote, refspecs, ffi.NULL, sig_ptr, to_bytes(message))
+                check_error(err)
         finally:
             self._self_handle = None
 

@@ -32,7 +32,7 @@ from __future__ import absolute_import, unicode_literals
 from _pygit2 import Oid, Tree, Diff
 from .errors import check_error
 from .ffi import ffi, C
-from .utils import is_string, strings_to_strarray, to_bytes, to_str
+from .utils import is_string, to_bytes, to_str, StrArray
 
 
 class Index(object):
@@ -175,9 +175,9 @@ class Index(object):
         If pathspecs are specified, only files matching those pathspecs will
         be added.
         """
-        arr, refs = strings_to_strarray(pathspecs)
-        err = C.git_index_add_all(self._index, arr, 0, ffi.NULL, ffi.NULL)
-        check_error(err, True)
+        with StrArray(pathspecs) as arr:
+            err = C.git_index_add_all(self._index, arr, 0, ffi.NULL, ffi.NULL)
+            check_error(err, True)
 
     def add(self, path_or_entry):
         """add([path|entry])
