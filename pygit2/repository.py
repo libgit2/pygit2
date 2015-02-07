@@ -566,11 +566,14 @@ class Repository(_Repository):
     #
     # Utility for writing a tree into an archive
     #
-    def write_archive(self, treeish, archive, timestamp=None):
+    def write_archive(self, treeish, archive, timestamp=None, prefix=''):
         """Write treeish into an archive
 
         If no timestamp is provided and 'treeish' is a commit, its committer
         timestamp will be used. Otherwise the current time will be used.
+
+        All path names in the archive are added to 'prefix', which defaults to
+        an empty string.
 
         Arguments:
 
@@ -580,6 +583,8 @@ class Repository(_Repository):
             An archive from the 'tarfile' module
         timestamp
             Timestamp to use for the files in the archive.
+        prefix
+            Extra prefix to add to the path names in the archive.
 
         Example::
 
@@ -615,7 +620,7 @@ class Repository(_Repository):
 
         for entry in index:
             content = self[entry.id].read_raw()
-            info = tarfile.TarInfo(entry.path)
+            info = tarfile.TarInfo(prefix + entry.path)
             info.size = len(content)
             info.mtime = timestamp
             info.uname = info.gname = 'root' # just because git does this
@@ -623,8 +628,10 @@ class Repository(_Repository):
                 info.type = archive.SYMTYPE
                 info.linkname = content
                 info.mode = 0o777 # symlinks get placeholder
-
-            archive.addfile(info, StringIO(content))
+                info.size = 0
+                archive.addfile(info)
+            else:
+                archive.addfile(info, StringIO(content))
 
     #
     # Ahead-behind, which mostly lives on its own namespace
