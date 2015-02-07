@@ -32,6 +32,7 @@ from __future__ import unicode_literals
 import operator
 import unittest
 
+from pygit2 import TreeEntry
 from . import utils
 
 
@@ -71,6 +72,18 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(tree['c/d'], sha, 'd', 0o0100644)
         self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree['ab/cd'])
 
+    def test_equality(self):
+        tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
+        tree_b = self.repo['2ad1d3456c5c4a1c9e40aeeddb9cd20b409623c8']
+
+        self.assertNotEqual(tree_a['a'], tree_b['a'])
+        self.assertNotEqual(tree_a['a'], tree_b['b'])
+        self.assertEqual(tree_a['b'], tree_b['b'])
+
+    def test_sorting(self):
+        tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
+        self.assertEqual(list(tree_a), sorted(reversed(list(tree_a))))
+        self.assertNotEqual(list(tree_a), reversed(list(tree_a)))
 
     def test_read_subtree(self):
         tree = self.repo[TREE_SHA]

@@ -87,10 +87,20 @@ TreeEntry_oid__get__(TreeEntry *self)
     return TreeEntry_id__get__(self);
 }
 
+static int
+compare_ids(TreeEntry *a, TreeEntry *b)
+{
+    const git_oid *id_a, *id_b;
+    id_a = git_tree_entry_id(a->entry);
+    id_b = git_tree_entry_id(b->entry);
+    return git_oid_cmp(id_a, id_b);
+}
+
 PyObject *
 TreeEntry_richcompare(PyObject *a, PyObject *b, int op)
 {
     PyObject *res;
+    TreeEntry *ta, *tb;
     int cmp;
 
     /* We only support comparing to another tree entry */
@@ -99,7 +109,14 @@ TreeEntry_richcompare(PyObject *a, PyObject *b, int op)
         return Py_NotImplemented;
     }
 
-    cmp =git_tree_entry_cmp(((TreeEntry*)a)->entry, ((TreeEntry*)b)->entry);
+    ta = (TreeEntry *) a;
+    tb = (TreeEntry *) b;
+
+    /* This is sorting order, if they sort equally, we still need to compare the ids */
+    cmp = git_tree_entry_cmp(ta->entry, tb->entry);
+    if (cmp == 0)
+        cmp = compare_ids(ta, tb);
+
     switch (op) {
         case Py_LT:
             res = (cmp <= 0) ? Py_True: Py_False;
@@ -146,7 +163,6 @@ PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, hex),
     {NULL}
 };
-
 
 PyDoc_STRVAR(TreeEntry__doc__, "TreeEntry objects.");
 
