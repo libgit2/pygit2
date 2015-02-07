@@ -1433,6 +1433,24 @@ Repository_reset(Repository *self, PyObject* args)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Repository_expand_id__doc__,
+    "expand_id(hex) -> Oid\n"
+    "\n"
+    "Expand a string into a full Oid according to the objects in this repsitory.\n");
+
+PyObject *
+Repository_expand_id(Repository *self, PyObject *py_hex)
+{
+    git_oid oid;
+    int err;
+
+    err = py_oid_to_git_oid_expand(self->repo, py_hex, &oid);
+    if (err < 0)
+        return NULL;
+
+    return git_oid_to_python(&oid);
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
@@ -1461,6 +1479,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, reset, METH_VARARGS),
+    METHOD(Repository, expand_id, METH_O),
     METHOD(Repository, _from_c, METH_VARARGS),
     METHOD(Repository, _disown, METH_NOARGS),
     {NULL}

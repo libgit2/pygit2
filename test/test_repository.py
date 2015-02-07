@@ -156,6 +156,11 @@ class RepositoryTest(utils.BareRepoTestCase):
             commit.message)
         self.assertRaises(ValueError, self.repo.__getitem__, too_short_prefix)
 
+    def test_expand_id(self):
+        commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
+        expanded = self.repo.expand_id(commit_sha[:7])
+        self.assertEqual(commit_sha, expanded.hex)
+
     @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
     def test_lookup_commit_refcount(self):
         start = sys.getrefcount(self.repo)
@@ -294,6 +299,17 @@ class RepositoryTest_II(utils.RepoTestCase):
             '4ec4389a8068641da2d6578db0419484972284c8')
         self.assertEqual(commit.hex,
                          'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+
+    def test_ahead_behind(self):
+        ahead, behind = self.repo.ahead_behind('5ebeeebb320790caf276b9fc8b24546d63316533',
+                                               '4ec4389a8068641da2d6578db0419484972284c8')
+        self.assertEqual(1, ahead)
+        self.assertEqual(2, behind)
+
+        ahead, behind = self.repo.ahead_behind('4ec4389a8068641da2d6578db0419484972284c8',
+                                               '5ebeeebb320790caf276b9fc8b24546d63316533')
+        self.assertEqual(2, ahead)
+        self.assertEqual(1, behind)
 
     def test_reset_hard(self):
         ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
