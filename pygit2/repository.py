@@ -497,6 +497,35 @@ class Repository(_Repository):
     #
     # Merging
     #
+
+    @staticmethod
+    def _merge_options(favor):
+        """Return a 'git_merge_opts *'
+        """
+        def favor_to_enum(favor):
+            if favor == 'normal':
+                return C.GIT_MERGE_FILE_FAVOR_NORMAL
+            elif favor == 'ours':
+                return C.GIT_MERGE_FILE_FAVOR_OURS
+            elif favor == 'theirs':
+                return C.GIT_MERGE_FILE_FAVOR_THEIRS
+            elif favor == 'union':
+                return C.GIT_MERGE_FILE_FAVOR_UNION
+            else:
+                return None
+
+        favor_val = favor_to_enum(favor)
+        if favor_val is None:
+            raise ValueError("unkown favor value %s" % favor)
+
+        opts = ffi.new('git_merge_options *')
+        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
+        check_error(err)
+
+        opts.file_favor = favor_val
+
+        return opts
+
     def merge_commits(self, ours, theirs, favor='normal'):
         """Merge two arbitrary commits
 
@@ -522,21 +551,9 @@ class Repository(_Repository):
         Returns an index with the result of the merge
 
         """
-        def favor_to_enum(favor):
-            if favor == 'normal':
-                return C.GIT_MERGE_FILE_FAVOR_NORMAL
-            elif favor == 'ours':
-                return C.GIT_MERGE_FILE_FAVOR_OURS
-            elif favor == 'theirs':
-                return C.GIT_MERGE_FILE_FAVOR_THEIRS
-            elif favor == 'union':
-                return C.GIT_MERGE_FILE_FAVOR_UNION
-            else:
-                return None
 
         ours_ptr = ffi.new('git_commit **')
         theirs_ptr = ffi.new('git_commit **')
-        opts = ffi.new('git_merge_options *')
         cindex = ffi.new('git_index **')
 
         if is_string(ours) or isinstance(ours, Oid):
@@ -547,14 +564,7 @@ class Repository(_Repository):
         ours = ours.peel(Commit)
         theirs = theirs.peel(Commit)
 
-        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
-        check_error(err)
-
-        favor_val = favor_to_enum(favor)
-        if favor_val is None:
-            raise ValueError("unkown favor value %s" % favor)
-
-        opts.file_favor = favor_val
+        opts = self._merge_options(favor)
 
         ffi.buffer(ours_ptr)[:] = ours._pointer[:]
         ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
@@ -563,6 +573,58 @@ class Repository(_Repository):
         check_error(err)
 
         return Index.from_c(self, cindex)
+
+    def merge_trees(self, ancestor, ours, theirs, favor='normal'):
+        """Merge two trees
+
+        Arguments:
+
+        ancestor
+            The tree which is the common ancestor between 'ours' and 'theirs'
+        ours
+            The commit to take as "ours" or base.
+        theirs
+            The commit which will be merged into "ours"
+        favor
+            How to deal with file-level conflicts. Can be one of
+
+            * normal (default). Conflicts will be preserved.
+            * ours. The "ours" side of the conflict region is used.
+            * theirs. The "theirs" side of the conflict region is used.
+            * union. Unique lines from each side will be used.
+
+            for all but NORMAL, the index will not record a conflict.
+
+        Returns an Index that reflects the result of the merge.
+        """
+
+        ancestor_ptr = ffi.new('git_tree **')
+        ours_ptr = ffi.new('git_tree **')
+        theirs_ptr = ffi.new('git_tree **')
+        cindex = ffi.new('git_index **')
+
+        if is_string(ancestor) or isinstance(ancestor, Oid):
+            ancestor = self[ancestor]
+        if is_string(ours) or isinstance(ours, Oid):
+            ours = self[ours]
+        if is_string(theirs) or isinstance(theirs, Oid):
+            theirs = self[theirs]
+
+        ancestor = ancestor.peel(Tree)
+        ours = ours.peel(Tree)
+        theirs = theirs.peel(Tree)
+
+        opts = self._merge_options(favor)
+
+        ffi.buffer(ancestor_ptr)[:] = ancestor._pointer[:]
+        ffi.buffer(ours_ptr)[:] = ours._pointer[:]
+        ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
+
+        err = C.git_merge_trees(cindex, self._repo, ancestor_ptr[0], ours_ptr[0], theirs_ptr[0], opts)
+        check_error(err)
+
+        return Index.from_c(self, cindex)
+
     #
     # Utility for writing a tree into an archive
     #
