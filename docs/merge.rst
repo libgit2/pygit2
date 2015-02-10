@@ -33,3 +33,13 @@ can create a commit with these two parents.
    >>> tree = repo.index.write_tree()
    >>> new_commit = repo.create_commit('HEAD', user, user, tree,
                                        [repo.head.target, other_branch_tip])
+
+Lower-level methods
+===================
+
+These methods allow more direct control over how to perform the
+merging. They do not modify the working directory and return an
+in-memory Index representing the result of the merge.
+
+.. automethod:: pygit2.Repository.merge_commits
+.. automethod:: pygit2.Repository.merge_trees

@@ -661,3 +661,4 @@ typedef struct {
 
 int git_merge_init_options(git_merge_options *opts,	unsigned int version);
 int git_merge_commits(git_index **out, git_repository *repo, const git_commit *our_commit, const git_commit *their_commit, const git_merge_options *opts);
+int git_merge_trees(git_index **out, git_repository *repo, const git_tree *ancestor_tree, const git_tree *our_tree, const git_tree *their_tree, const git_merge_options *opts);
