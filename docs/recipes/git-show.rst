@@ -31,7 +31,7 @@ Show SHA hash
 Show diff
 ======================================================================
 
-    >>> diff = commit.tree.diff()
+    >>> diff = commit.parents[0].tree.diff_to_tree(commit.tree)
 
 ======================================================================
 Show all files in commit
@@ -39,6 +39,22 @@ Show all files in commit
 
     >>> for e in commit.tree:
     >>>     print(e.name)
+
+======================================================================
+Produce something like a `git show` message
+======================================================================
+
+    >>> from __future__ import unicode_literals
+    >>> from datetime import datetime
+    >>> import pytz
+    >>> tzinfo  = pytz.timezone('Europe/Berlin')
+    >>> dt      = datetime.fromtimestamp(float(commit.commit_time), tzinfo)
+    >>> timestr = dt.strftime('%c %z')
+    >>> msg     = '\n'.join(['commit {}'.format(commit.tree_id.hex),
+    ...                      'Author: {} <{}>'.format(commit.author.name, commit.author.email),
+    ...                      'Date:   {}'.format(timestr),
+    ...                      '',
+    ...                      commit.message])
 
 ----------------------------------------------------------------------
 References
