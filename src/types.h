@@ -132,6 +132,15 @@ typedef struct {
     int new_lines;
 } DiffHunk;
 
+typedef struct {
+    PyObject_HEAD
+    char origin;
+    int old_lineno;
+    int new_lineno;
+    int num_lines;
+    git_off_t content_offset;
+    PyObject *content;
+} DiffLine;
 
 /* git_tree_walk , git_treebuilder*/
 SIMPLE_TYPE(TreeBuilder, git_treebuilder, bld)

@@ -76,21 +76,17 @@ wrap_patch(git_patch *patch)
 
                 py_hunk->lines = PyList_New(lines_in_hunk);
                 for (j = 0; j < lines_in_hunk; ++j) {
-                    PyObject *py_line_origin = NULL, *py_line = NULL;
+                    PyObject *py_line = NULL;
 
                     err = git_patch_get_line_in_hunk(&line, patch, i, j);
                     if (err < 0)
                         return Error_set(err);
 
-                    py_line_origin = to_unicode_n(&line->origin, 1,
-                        NULL, NULL);
-                    py_line = to_unicode_n(line->content, line->content_len,
-                        NULL, NULL);
-                    PyList_SetItem(py_hunk->lines, j,
-                        Py_BuildValue("OO", py_line_origin, py_line));
+                    py_line = wrap_diff_line(line);
+                    if (py_line == NULL)
+                        return NULL;
 
-                    Py_DECREF(py_line_origin);
-                    Py_DECREF(py_line);
+                    PyList_SetItem(py_hunk->lines, j, py_line);
                 }
 
                 PyList_SetItem((PyObject*) py_patch->hunks, i,

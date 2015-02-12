@@ -188,7 +188,7 @@ class DiffTest(utils.BareRepoTestCase):
         def get_context_for_lines(diff):
             hunks = chain(*map(lambda x: x.hunks, [p for p in diff]))
             lines = chain(*map(lambda x: x.lines, hunks))
-            return map(lambda x: x[0], lines)
+            return map(lambda x: x.origin, lines)
 
         entries = [p.delta.new_file.path for p in diff]
         self.assertAll(lambda x: commit_a.tree[x], entries)
@@ -271,7 +271,7 @@ class DiffTest(utils.BareRepoTestCase):
         commit_b = self.repo[COMMIT_SHA1_2]
         patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
         hunk = patch.hunks[0]
-        lines = ('{0} {1}'.format(*x) for x in hunk.lines)
+        lines = ('{0} {1}'.format(x.origin, x.content) for x in hunk.lines)
         self.assertEqual(HUNK_EXPECTED, ''.join(lines))
 
     def test_find_similar(self):

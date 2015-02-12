@@ -36,12 +36,11 @@ Changelog
 
 - New ``iter(pygit2.Blame)``
 
-- New ``pygit2.DiffDelta`` and ``pygit2.DiffFile``
+- New ``pygit2.DiffDelta``, ``pygit2.DiffFile`` and ``pygit.DiffLine``
 
-- Rename ``pygit2.Hunk`` to ``pygit2.DiffHunk``
+API changes, translation table::
 
-API changes::
-
+  Hunk                => DiffHunk
   Patch.old_file_path => Patch.delta.old_file.path
   Patch.new_file_path => Patch.delta.new_file.path
   Patch.old_id        => Patch.delta.old_file.id
@@ -51,6 +50,10 @@ API changes::
   Patch.is_binary     => Patch.delta.is_binary
   Patch.additions     => Patch.line_stats[1]
   Patch.deletions     => Patch.line_stats[2]
+
+API changes, more:
+
+- ``DiffHunk.lines`` is now a list of ``DiffLine`` objects, not tuples
 
 
 0.22.0 (2015-01-16)

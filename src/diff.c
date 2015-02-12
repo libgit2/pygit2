@@ -43,6 +43,7 @@ extern PyTypeObject DiffType;
 extern PyTypeObject DiffDeltaType;
 extern PyTypeObject DiffFileType;
 extern PyTypeObject DiffHunkType;
+extern PyTypeObject DiffLineType;
 extern PyTypeObject RepositoryType;
 
 PyObject *
@@ -96,6 +97,25 @@ wrap_diff_delta(const git_diff_delta *delta)
     }
 
     return (PyObject *) py_delta;
+}
+
+PyObject *
+wrap_diff_line(const git_diff_line *line)
+{
+    DiffLine *py_line;
+
+    py_line = PyObject_New(DiffLine, &DiffLineType);
+    if (py_line) {
+        py_line->origin = line->origin;
+        py_line->old_lineno = line->old_lineno;
+        py_line->new_lineno = line->new_lineno;
+        py_line->num_lines = line->num_lines;
+        py_line->content = to_unicode_n(line->content, line->content_len,
+                NULL, NULL);
+        py_line->content_offset = line->content_offset;
+    }
+
+    return (PyObject *) py_line;
 }
 
 static void
@@ -224,6 +244,70 @@ PyTypeObject DiffDeltaType = {
     0,                                         /* tp_methods        */
     DiffDelta_members,                         /* tp_members        */
     DiffDelta_getseters,                       /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
+static void
+DiffLine_dealloc(DiffLine *self)
+{
+    Py_CLEAR(self->content);
+    PyObject_Del(self);
+}
+
+PyMemberDef DiffLine_members[] = {
+    MEMBER(DiffLine, origin, T_CHAR, "Type of the diff line"),
+    MEMBER(DiffLine, old_lineno, T_INT,
+           "Line number in old file or -1 for added line"),
+    MEMBER(DiffLine, new_lineno, T_INT,
+           "Line number in new file or -1 for deleted line"),
+    MEMBER(DiffLine, num_lines, T_INT,
+           "Number of newline characters in content"),
+    MEMBER(DiffLine, content_offset, T_INT,
+           "Offset in the original file to the content"),
+    MEMBER(DiffLine, content, T_OBJECT, "Content of the diff line"),
+    {NULL}
+};
+
+PyDoc_STRVAR(DiffLine__doc__, "DiffLine object.");
+
+PyTypeObject DiffLineType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.DiffLine",                        /* tp_name           */
+    sizeof(DiffLine),                          /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)DiffLine_dealloc,              /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    DiffLine__doc__,                           /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    0,                                         /* tp_methods        */
+    DiffLine_members,                          /* tp_members        */
+    0,                                         /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */

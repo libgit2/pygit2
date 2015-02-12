@@ -47,6 +47,7 @@ extern PyTypeObject DiffIterType;
 extern PyTypeObject DiffDeltaType;
 extern PyTypeObject DiffFileType;
 extern PyTypeObject DiffHunkType;
+extern PyTypeObject DiffLineType;
 extern PyTypeObject PatchType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
@@ -292,11 +293,13 @@ moduleinit(PyObject* m)
     INIT_TYPE(DiffDeltaType, NULL, NULL)
     INIT_TYPE(DiffFileType, NULL, NULL)
     INIT_TYPE(DiffHunkType, NULL, NULL)
+    INIT_TYPE(DiffLineType, NULL, NULL)
     INIT_TYPE(PatchType, NULL, NULL)
     ADD_TYPE(m, Diff)
     ADD_TYPE(m, DiffDelta)
     ADD_TYPE(m, DiffFile)
     ADD_TYPE(m, DiffHunk)
+    ADD_TYPE(m, DiffLine)
     ADD_TYPE(m, Patch)
     ADD_CONSTANT_INT(m, GIT_DIFF_NORMAL)
     ADD_CONSTANT_INT(m, GIT_DIFF_REVERSE)
