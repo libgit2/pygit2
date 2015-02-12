@@ -226,10 +226,3 @@ XCode and Hombrew are already installed.
    $ brew update
    $ brew install libgit2
    $ pip3 install pygit2
-
-If the installation of pygit2 is aborted, you might need to export the libgit2
-path before rerunning pip3:
-
-.. code-block:: sh
-
-   $ export LIBGIT2=/usr/local/Cellar/libgit2/<libgit2 version>/lib
