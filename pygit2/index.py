@@ -32,7 +32,8 @@ from __future__ import absolute_import, unicode_literals
 from _pygit2 import Oid, Tree, Diff
 from .errors import check_error
 from .ffi import ffi, C
-from .utils import is_string, to_bytes, to_str, StrArray
+from .utils import is_string, to_bytes, to_str
+from .utils import GenericIterator, StrArray
 
 
 class Index(object):
@@ -92,7 +93,7 @@ class Index(object):
         return IndexEntry._from_c(centry)
 
     def __iter__(self):
-        return IndexIterator(self)
+        return GenericIterator(self)
 
     def read(self, force=True):
         """Update the contents the Index
@@ -365,26 +366,6 @@ class IndexEntry(object):
         entry.path = to_str(ffi.string(centry.path))
         entry.mode = centry.mode
         entry.id = Oid(raw=bytes(ffi.buffer(ffi.addressof(centry, 'id'))[:]))
-
-        return entry
-
-
-class IndexIterator(object):
-
-    def __init__(self, index):
-        self.index = index
-        self.n = 0
-        self.max = len(index)
-
-    def next(self):
-        return self.__next__()
-
-    def __next__(self):
-        if self.n >= self.max:
-            raise StopIteration
-
-        entry = self.index[self.n]
-        self.n += 1
 
         return entry
 

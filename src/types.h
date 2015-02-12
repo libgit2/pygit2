@@ -156,12 +156,6 @@ typedef struct {
     git_index_entry entry;
 } IndexEntry;
 
-typedef struct {
-    PyObject_HEAD
-    Index *owner;
-    int i;
-} IndexIter;
-
 
 /* git_reference, git_reflog */
 SIMPLE_TYPE(Walker, git_revwalk, walk)

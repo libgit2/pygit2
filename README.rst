@@ -34,6 +34,8 @@ Changelog
 - Make pygit work in a frozen environment
   `#453 <https://github.com/libgit2/pygit2/pull/453>`_
 
+- New ``iter(pygit2.Blame)``
+
 - New ``pygit2.DiffDelta`` and ``pygit2.DiffFile``
 
 - Rename ``pygit2.Hunk`` to ``pygit2.DiffHunk``

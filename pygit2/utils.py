@@ -81,3 +81,27 @@ class StrArray(object):
 
     def __exit__(self, type, value, traceback):
         pass
+
+
+class GenericIterator(object):
+    """Helper to easily implement an iterator.
+
+    The constructor gets a container which must implement __len__ and
+    __getitem__
+    """
+
+    def __init__(self, container):
+        self.container = container
+        self.length = len(container)
+        self.idx = 0
+
+    def next(self):
+        return self.__next__()
+
+    def __next__(self):
+        idx = self.idx
+        if idx >= self.length:
+            raise StopIteration
+
+        self.idx += 1
+        return self.container[idx]

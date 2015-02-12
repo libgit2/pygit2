@@ -32,7 +32,9 @@ from __future__ import absolute_import, unicode_literals
 from .errors import check_error
 from .ffi import ffi, C
 from .utils import to_bytes, is_string, to_str
+from .utils import GenericIterator
 from _pygit2 import Signature, Oid
+
 
 def wrap_signature(csig):
     if not csig:
@@ -142,21 +144,5 @@ class Blame(object):
 
         return BlameHunk._from_c(self, chunk)
 
-
-class BlameIterator(object):
-    def __init__(self, blame):
-        self._count = len(blame)
-        self._index = 0
-        self._blame = blame
-
-    def __next__(self):
-        if self._index >= self._count:
-            raise StopIteration
-
-        hunk = self._blame[self._blame]
-        self._index += 1
-
-        return hunk
-
-    def next(self):
-        return self.__next__()
+    def __iter__(self):
+        return GenericIterator(self)
