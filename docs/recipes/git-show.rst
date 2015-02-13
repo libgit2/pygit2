@@ -45,7 +45,9 @@ Produce something like a ``git show`` message
 ======================================================================
 
 In order to display time zone information you have to create a subclass
-of tzinfo as described in the `Python datetime documentation`_::
+of tzinfo. In Python 3.2+ you can do this fairly directly. In older
+versions you have to make your own class as described in the `Python
+datetime documentation`_::
 
     from datetime import tzinfo, timedelta
     class FixedOffset(tzinfo):
@@ -67,10 +69,15 @@ of tzinfo as described in the `Python datetime documentation`_::
 
 Then you can make your message:
 
+    >>> # Until Python 2.7.9:
     >>> from __future__ import unicode_literals
     >>> from datetime import datetime
-    >>>
     >>> tzinfo  = FixedOffset(commit.author.offset)
+
+    >>> # From Python 3.2:
+    >>> from datetime import datetime, timezone, timedelta
+    >>> tzinfo  = timezone( timedelta(minutes=commit.author.offset) )
+    >>>
     >>> dt      = datetime.fromtimestamp(float(commit.author.time), tzinfo)
     >>> timestr = dt.strftime('%c %z')
     >>> msg     = '\n'.join(['commit {}'.format(commit.tree_id.hex),
