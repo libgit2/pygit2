@@ -44,8 +44,8 @@ Show all files in commit
 Produce something like a ``git show`` message
 ======================================================================
 
-In order to display timezone information you have to create a subclass of
-tzinfo as described in the `Python datetime documentation`_::
+In order to display time zone information you have to create a subclass
+of tzinfo as described in the `Python datetime documentation`_::
 
     from datetime import tzinfo, timedelta
     class FixedOffset(tzinfo):
@@ -58,10 +58,10 @@ tzinfo as described in the `Python datetime documentation`_::
             return self.__offset
 
         def tzname(self, dt):
-            return None
+            return None # we don't know the time zone's name
 
         def dst(self, dt):
-            return timedelta(0) # dealing with DST would be too complicated
+            return timedelta(0) # we don't know about DST
 
 .. _Python datetime documentation: https://docs.python.org/2/library/datetime.html#tzinfo-objects
 
