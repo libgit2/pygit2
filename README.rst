@@ -28,32 +28,63 @@ Changelog
 0.22.1 (not yet released)
 -------------------------
 
-- Expose the pygit2.GIT_REPOSITORY_INIT_* constants
-  `#483 <https://github.com/libgit2/pygit2/issues/483>`_
-
-- Make pygit work in a frozen environment
-  `#453 <https://github.com/libgit2/pygit2/pull/453>`_
+Diff interface refactoring
+`#346 <https://github.com/libgit2/pygit2/pull/346>`_
+(in progress):
 
 - New ``iter(pygit2.Blame)``
 
 - New ``pygit2.DiffDelta``, ``pygit2.DiffFile`` and ``pygit.DiffLine``
 
-API changes, translation table::
+- API changes, translation table::
 
-  Hunk                => DiffHunk
-  Patch.old_file_path => Patch.delta.old_file.path
-  Patch.new_file_path => Patch.delta.new_file.path
-  Patch.old_id        => Patch.delta.old_file.id
-  Patch.new_id        => Patch.delta.new_file.id
-  Patch.status        => Patch.delta.status
-  Patch.similarity    => Patch.delta.similarity
-  Patch.is_binary     => Patch.delta.is_binary
-  Patch.additions     => Patch.line_stats[1]
-  Patch.deletions     => Patch.line_stats[2]
-
-API changes, more:
+    Hunk                => DiffHunk
+    Patch.old_file_path => Patch.delta.old_file.path
+    Patch.new_file_path => Patch.delta.new_file.path
+    Patch.old_id        => Patch.delta.old_file.id
+    Patch.new_id        => Patch.delta.new_file.id
+    Patch.status        => Patch.delta.status
+    Patch.similarity    => Patch.delta.similarity
+    Patch.is_binary     => Patch.delta.is_binary
+    Patch.additions     => Patch.line_stats[1]
+    Patch.deletions     => Patch.line_stats[2]
 
 - ``DiffHunk.lines`` is now a list of ``DiffLine`` objects, not tuples
+
+New features:
+
+- Make pygit work in a frozen environment
+  `#453 <https://github.com/libgit2/pygit2/pull/453>`_
+
+- New Repository.expand_id and Repository.ahead_behind
+  `#448 <https://github.com/libgit2/pygit2/pull/448>`_
+
+- Repository.write_archive new prefix parameter
+  `#481 <https://github.com/libgit2/pygit2/pull/481>`_
+
+- New Repository.merge_trees()
+  `#489 <https://github.com/libgit2/pygit2/pull/489>`_
+
+- New Repository.cherrypick()
+  `#492 <https://github.com/libgit2/pygit2/pull/492>`_
+
+Bugs fixed:
+
+- Safer handling of string arrays
+  `#477 <https://github.com/libgit2/pygit2/issues/477>`_
+  `#487 <https://github.com/libgit2/pygit2/pull/487>`_
+
+- Repository.write_archive fix handling of symlinks
+  `#480 <https://github.com/libgit2/pygit2/pull/480>`_
+
+Other:
+
+- Documentation improvements
+  `#448 <https://github.com/libgit2/pygit2/pull/448>`_
+  `#491 <https://github.com/libgit2/pygit2/pull/491>`_
+
+- Expose the pygit2.GIT_REPOSITORY_INIT_* constants
+  `#483 <https://github.com/libgit2/pygit2/issues/483>`_
 
 
 0.22.0 (2015-01-16)

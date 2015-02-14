@@ -1,5 +1,5 @@
 **********************************************************************
-Merge
+Merge & Cherrypick
 **********************************************************************
 
 .. contents::
@@ -33,6 +33,13 @@ can create a commit with these two parents.
    >>> tree = repo.index.write_tree()
    >>> new_commit = repo.create_commit('HEAD', user, user, tree,
                                        [repo.head.target, other_branch_tip])
+
+
+Cherrypick
+===================
+
+.. automethod:: pygit2.Repository.cherrypick
+
 
 Lower-level methods
 ===================
