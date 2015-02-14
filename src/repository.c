@@ -634,6 +634,46 @@ Repository_merge(Repository *self, PyObject *py_oid)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Repository_cherrypick__doc__,
+  "cherrypick(id)\n"
+  "\n"
+  "Cherry-pick the given oid, producing changes in the index and working directory.\n"
+  "\n"
+  "Merges the given commit into HEAD as a cherrypick, writing the results into the\n"
+  "working directory. Any changes are staged for commit and any conflicts\n"
+  "are written to the index. Callers should inspect the repository's\n"
+  "index after this completes, resolve any conflicts and prepare a\n"
+  "commit.");
+
+PyObject *
+Repository_cherrypick(Repository *self, PyObject *py_oid)
+{
+    git_commit *commit;
+    git_oid oid;
+    int err;
+    size_t len;
+    git_cherrypick_options cherrypick_opts = GIT_CHERRYPICK_OPTIONS_INIT;
+
+    len = py_oid_to_git_oid(py_oid, &oid);
+    if (len == 0)
+        return NULL;
+
+    err = git_commit_lookup(&commit, self->repo, &oid);
+    if (err < 0)
+        return Error_set(err);
+
+    cherrypick_opts.checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE;
+    err = git_cherrypick(self->repo,
+                    commit,
+                    (const git_cherrypick_options *)&cherrypick_opts);
+
+    git_commit_free(commit);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(Repository_walk__doc__,
   "walk(oid[, sort_mode]) -> iterator\n"
   "\n"
@@ -1462,6 +1502,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, merge_base, METH_VARARGS),
     METHOD(Repository, merge_analysis, METH_O),
     METHOD(Repository, merge, METH_O),
+    METHOD(Repository, cherrypick, METH_O),
     METHOD(Repository, read, METH_O),
     METHOD(Repository, write, METH_VARARGS),
     METHOD(Repository, create_reference_direct, METH_VARARGS),

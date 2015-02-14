@@ -70,5 +70,6 @@ PyObject* Repository_TreeBuilder(Repository *self, PyObject *args);
 PyObject* Repository_blame(Repository *self, PyObject *args, PyObject *kwds);
 
 PyObject* Repository_merge(Repository *self, PyObject *py_oid);
+PyObject* Repository_cherrypick(Repository *self, PyObject *py_oid);
 
 #endif
