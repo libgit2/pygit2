@@ -45,6 +45,7 @@ Usage guide:
    merge
    config
    remotes
+   submodule
    blame
    settings
    features

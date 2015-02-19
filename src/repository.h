@@ -33,6 +33,8 @@
 #include <git2.h>
 #include "types.h"
 
+PyObject *wrap_repository(git_repository *c_repo);
+
 int  Repository_init(Repository *self, PyObject *args, PyObject *kwds);
 int  Repository_traverse(Repository *self, visitproc visit, void *arg);
 int  Repository_clear(Repository *self);
