@@ -25,32 +25,40 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# ffi
+# Import from pygit2
 from .ffi import ffi, C
-
 from _pygit2 import GitError
 
+
+value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS,
+                    C.GIT_EAMBIGUOUS])
 
 def check_error(err, io=False):
     if err >= 0:
         return
 
-    message = "(no message provided)"
+    # Error message
     giterr = C.giterr_last()
     if giterr != ffi.NULL:
         message = ffi.string(giterr.message).decode()
+    else:
+        message = "err %d (no message provided)" % err
 
-    if err in [C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS,
-               C.GIT_EAMBIGUOUS]:
+    # Translate to Python errors
+    if err in value_errors:
         raise ValueError(message)
-    elif err == C.GIT_ENOTFOUND:
+
+    if err == C.GIT_ENOTFOUND:
         if io:
             raise IOError(message)
-        else:
-            raise KeyError(message)
-    elif err == C.GIT_EINVALIDSPEC:
+
+        raise KeyError(message)
+
+    if err == C.GIT_EINVALIDSPEC:
         raise ValueError(message)
-    elif err == C.GIT_ITEROVER:
+
+    if err == C.GIT_ITEROVER:
         raise StopIteration()
 
+    # Generic Git error
     raise GitError(message)
