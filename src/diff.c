@@ -582,11 +582,10 @@ Diff_getitem(Diff *self, PyObject *value)
 {
     size_t i;
 
-    if (PyLong_Check(value) < 0)
+    if (!PyLong_Check(value))
         return NULL;
 
     i = PyLong_AsUnsignedLong(value);
-
     return diff_get_patch_byindex(self->diff, i);
 }
 
