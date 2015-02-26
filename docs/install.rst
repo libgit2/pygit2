@@ -17,6 +17,7 @@ Requirements
 - Libgit2 v0.22.x
 - cffi 0.8.1+
 - Libssh2, optional, used for SSH network operations.
+- pkg-config
 
 .. warning::
 
