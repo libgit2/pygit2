@@ -80,6 +80,7 @@ wrap_repository(git_repository *c_repo)
         py_repo->repo = c_repo;
         py_repo->config = NULL;
         py_repo->index = NULL;
+        py_repo->owned = 1;
     }
 
     return (PyObject *)py_repo;

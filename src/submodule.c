@@ -69,7 +69,9 @@ PyDoc_STRVAR(Submodule_path__doc__,
 PyObject *
 Submodule_path__get__(Submodule *self)
 {
-    return to_unicode(git_submodule_path(self->submodule), NULL, NULL);
+    const char *path = git_submodule_path(self->submodule);
+    assert(path);
+    return to_unicode(path, NULL, NULL);
 }
 
 PyDoc_STRVAR(Submodule_url__doc__,
@@ -80,7 +82,7 @@ Submodule_url__get__(Submodule *self)
 {
     const char *url = git_submodule_url(self->submodule);
     if (url == NULL)
-        return Py_None;
+        Py_RETURN_NONE;
     return to_unicode(url, NULL, NULL);
 }
 
@@ -92,7 +94,7 @@ Submodule_branch__get__(Submodule *self)
 {
     const char *branch = git_submodule_branch(self->submodule);
     if (branch == NULL)
-        return Py_None;
+        Py_RETURN_NONE;
     return to_unicode(branch, NULL, NULL);
 }
 
@@ -168,8 +170,8 @@ wrap_submodule(Repository *repo, git_submodule *c_submodule)
     py_submodule = PyObject_New(Submodule, &SubmoduleType);
     if (py_submodule) {
         py_submodule->submodule = c_submodule;
+        py_submodule->repo = repo;
         if (repo) {
-            py_submodule->repo = repo;
             Py_INCREF(repo);
         }
     }
