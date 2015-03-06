@@ -159,3 +159,7 @@ class DirtyRepoTestCase(AutoRepoTestCase):
 class EmptyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'emptyrepo'
+
+class SubmoduleRepoTestCase(AutoRepoTestCase):
+
+    repo_spec = 'tar', 'submodulerepo'
