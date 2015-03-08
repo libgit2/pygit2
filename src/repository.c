@@ -39,6 +39,8 @@
 #include "signature.h"
 #include <git2/odb_backend.h>
 
+extern PyTypeObject PyIOBase_Type;
+
 extern PyObject *GitError;
 
 extern PyTypeObject IndexType;
@@ -751,13 +753,15 @@ int read_chunk(char *content, size_t max_length, void *payload)
 
     py_file  = (PyObject *)payload;
     py_bytes = PyObject_CallMethod(py_file, "read", "i", max_length);
-    if (!py_bytes) {
-        return 0;
-    }
+    if (!py_bytes)
+        return -1;
 
-    bytes = PyBytes_AsString(py_bytes);
-    size  = PyBytes_Size(py_bytes);
-    memcpy(content, bytes, size);
+    size = 0;
+    if (py_bytes != Py_None) {
+        bytes = PyBytes_AsString(py_bytes);
+        size  = PyBytes_Size(py_bytes);
+        memcpy(content, bytes, size);
+    }
 
     Py_DECREF(py_bytes);
     return size;
@@ -768,19 +772,27 @@ Repository_create_blob_fromiobase(Repository *self, PyObject *args)
 {
     git_oid   oid;
     PyObject *py_is_readable;
+    int       is_readable;
     PyObject *py_file;
     int       err;
 
-    if (!PyArg_ParseTuple(args, "O", &py_file))
+    if (!PyArg_ParseTuple(args, "O!", &PyIOBase_Type, &py_file))
         return NULL;
 
     py_is_readable = PyObject_CallMethod(py_file, "readable", NULL);
-    if (!py_is_readable || !PyObject_IsTrue(py_is_readable)) {
-        PyErr_SetString(PyExc_TypeError, "expected readable IO type");
-        Py_DECREF(py_is_readable);
+    if (!py_is_readable) {
+        Py_DECREF(py_file);
         return NULL;
     }
+
+    is_readable = PyObject_IsTrue(py_is_readable);
     Py_DECREF(py_is_readable);
+
+    if (!is_readable) {
+        Py_DECREF(py_file);
+        PyErr_SetString(PyExc_TypeError, "expected readable IO type");
+        return NULL;
+    }
 
     err = git_blob_create_fromchunks(&oid,
                                      self->repo,
