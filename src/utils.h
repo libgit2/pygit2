@@ -61,6 +61,7 @@
   #define PyInteger_Type PyLong_Type
   #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
+  #define PyString_FromFormat(s, ...) PyUnicode_FromFormat(s, __VA_ARGS__)
 #endif
 
 #ifdef PYPY_VERSION

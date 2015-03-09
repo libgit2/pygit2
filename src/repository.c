@@ -37,6 +37,7 @@
 #include "repository.h"
 #include "branch.h"
 #include "signature.h"
+#include "submodule.h"
 #include <git2/odb_backend.h>
 
 extern PyObject *GitError;
@@ -68,6 +69,21 @@ int_to_loose_object_type(int type_id)
         case GIT_OBJ_TAG: return GIT_OBJ_TAG;
         default: return GIT_OBJ_BAD;
     }
+}
+
+PyObject *
+wrap_repository(git_repository *c_repo)
+{
+    Repository *py_repo = PyObject_GC_New(Repository, &RepositoryType);
+
+    if (py_repo) {
+        py_repo->repo = c_repo;
+        py_repo->config = NULL;
+        py_repo->index = NULL;
+        py_repo->owned = 1;
+    }
+
+    return (PyObject *)py_repo;
 }
 
 int
@@ -1084,6 +1100,65 @@ error:
     return NULL;
 }
 
+PyDoc_STRVAR(Repository_lookup_submodule__doc__,
+  "lookup_submodule(path) -> Submodule\n"
+  "\n"
+  "Lookup a submodule by its path in a repository.");
+
+PyObject *
+Repository_lookup_submodule(Repository *self, PyObject *py_path)
+{
+    git_submodule *c_submodule;
+    char *c_name;
+    int err;
+
+    c_name = py_path_to_c_str(py_path);
+    if (c_name == NULL)
+        return NULL;
+
+    err = git_submodule_lookup(&c_submodule, self->repo, c_name);
+    if (err < 0) {
+        PyObject *err_obj = Error_set_str(err, c_name);
+        free(c_name);
+        return err_obj;
+    }
+    free(c_name);
+
+    return wrap_submodule(self, c_submodule);
+}
+
+PyDoc_STRVAR(Repository_listall_submodules__doc__,
+  "listall_submodules() -> [str, ...]\n"
+  "\n"
+  "Return a list with all submodule paths in the repository.\n");
+
+static int foreach_path_cb(git_submodule *submodule, const char *name, void *payload)
+{
+    PyObject *list = (PyObject *)payload;
+    PyObject *path = to_unicode(git_submodule_path(submodule), NULL, NULL);
+
+    return PyList_Append(list, path);
+}
+
+PyObject *
+Repository_listall_submodules(Repository *self, PyObject *args)
+{
+    int err;
+    PyObject *list;
+
+    list = PyList_New(0);
+    if (list == NULL)
+        return NULL;
+
+    err = git_submodule_foreach(self->repo, foreach_path_cb, list);
+    if (err != 0) {
+        Py_DECREF(list);
+        return Py_None;
+    }
+
+    return list;
+}
+
 
 PyDoc_STRVAR(Repository_lookup_reference__doc__,
   "lookup_reference(name) -> Reference\n"
@@ -1508,6 +1583,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
+    METHOD(Repository, lookup_submodule, METH_O),
+    METHOD(Repository, listall_submodules, METH_NOARGS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
