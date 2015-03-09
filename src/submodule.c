@@ -98,6 +98,15 @@ Submodule_branch__get__(Submodule *self)
     return to_unicode(branch, NULL, NULL);
 }
 
+PyObject *
+Submodule_repr(PyObject *self)
+{
+    Submodule *subm = (Submodule *)self;
+
+    return PyString_FromFormat("pygit2.Submodule(\"%s\")",
+        git_submodule_name(subm->submodule));
+}
+
 static void
 Submodule_dealloc(Submodule *self)
 {
@@ -131,7 +140,7 @@ PyTypeObject SubmoduleType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    Submodule_repr,                            /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
