@@ -48,26 +48,26 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
     def test_listall_submodules(self):
         submodules = self.repo.listall_submodules()
-        self.assertEquals(len(submodules), 1)
-        self.assertEquals(submodules[0], SUBM_PATH)
+        self.assertEqual(len(submodules), 1)
+        self.assertEqual(submodules[0], SUBM_PATH)
 
     def test_submodule_open(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
         r = s.open()
         self.assertIsNotNone(r)
-        self.assertEquals(str(r.head.target), SUBM_HEAD_SHA)
+        self.assertEqual(str(r.head.target), SUBM_HEAD_SHA)
 
     def test_name(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertEquals(SUBM_NAME, s.name)
+        self.assertEqual(SUBM_NAME, s.name)
 
     def test_path(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertEquals(SUBM_PATH, s.path)
+        self.assertEqual(SUBM_PATH, s.path)
 
     def test_url(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertEquals(SUBM_URL, s.url)
+        self.assertEqual(SUBM_URL, s.url)
 
 if __name__ == '__main__':
     unittest.main()
