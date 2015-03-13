@@ -198,6 +198,39 @@ class RepositoryTest(utils.BareRepoTestCase):
         written_sha1 = self.repo.create_blob(data)
         self.assertEqual(hashed_sha1, written_sha1)
 
+    def test_conflicts_in_bare_repository(self):
+        def create_conflict_file(repo, branch, content):
+            oid = repo.create_blob(content)
+            tb = repo.TreeBuilder()
+            tb.insert('conflict', oid, pygit2.GIT_FILEMODE_BLOB)
+            tree = tb.write()
+
+            sig = pygit2.Signature('Author', 'author@example.com')
+            commit = repo.create_commit(branch.name, sig, sig,
+                    'Conflict', tree, [branch.target])
+            self.assertIsNotNone(commit)
+            return commit
+
+        b1 = self.repo.create_branch('b1', self.repo.head.peel())
+        c1 = create_conflict_file(self.repo, b1, 'Conflict 1')
+        b2 = self.repo.create_branch('b2', self.repo.head.peel())
+        c2 = create_conflict_file(self.repo, b2, 'Conflict 2')
+
+        index = self.repo.merge_commits(c1, c2)
+        self.assertIsNotNone(index.conflicts)
+
+        # ConflictCollection does not allow calling len(...) on it directly so
+        # we have to calculate length by iterating over its entries
+        self.assertEqual(sum(1 for _ in index.conflicts), 1)
+
+        (a, t, o) = index.conflicts['conflict']
+        diff = self.repo.merge_file_from_index(a, t, o)
+        self.assertEqual(diff, '''<<<<<<< conflict
+Conflict 1
+=======
+Conflict 2
+>>>>>>> conflict
+''')
 
 class RepositoryTest_II(utils.RepoTestCase):
 

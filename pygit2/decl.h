@@ -657,8 +657,34 @@ typedef struct {
 	git_merge_file_favor_t file_favor;
 } git_merge_options;
 
+typedef struct {
+	unsigned int automergeable;
+	const char *path;
+	unsigned int mode;
+	const char *ptr;
+	size_t len;
+} git_merge_file_result;
+
+typedef enum {
+	GIT_MERGE_FILE_DEFAULT = 0,
+	GIT_MERGE_FILE_STYLE_MERGE = 1,
+	GIT_MERGE_FILE_STYLE_DIFF3 = 2,
+	GIT_MERGE_FILE_SIMPLIFY_ALNUM = 4,
+} git_merge_file_flags_t;
+
+typedef struct {
+	unsigned int version;
+	const char *ancestor_label;
+	const char *our_label;
+	const char *their_label;
+	git_merge_file_favor_t favor;
+	git_merge_file_flags_t flags;
+} git_merge_file_options;
+
 #define GIT_MERGE_OPTIONS_VERSION ...
 
 int git_merge_init_options(git_merge_options *opts,	unsigned int version);
 int git_merge_commits(git_index **out, git_repository *repo, const git_commit *our_commit, const git_commit *their_commit, const git_merge_options *opts);
 int git_merge_trees(git_index **out, git_repository *repo, const git_tree *ancestor_tree, const git_tree *our_tree, const git_tree *their_tree, const git_merge_options *opts);
+int git_merge_file_from_index(git_merge_file_result *out, git_repository *repo, const git_index_entry *ancestor, const git_index_entry *ours, const git_index_entry *theirs, const git_merge_file_options *opts);
+void git_merge_file_result_free(git_merge_file_result *result);

@@ -526,6 +526,40 @@ class Repository(_Repository):
 
         return opts
 
+    def merge_file_from_index(self, ancestor, ours, theirs):
+        """merge_file_from_index(ancestor, ours, theirs) -> str
+
+        Merge files from index.
+
+        Return a :py:class:`str` object with the merge result
+        containing possible conflicts.
+
+        ancestor
+            The index entry which will be used as a common
+            ancestor.
+        ours
+            The index entry to take as "ours" or base.
+        theirs
+            The index entry which will be merged into "ours"
+        """
+        cmergeresult = ffi.new('git_merge_file_result *')
+
+        cancestor = ancestor._to_c()[0] if ancestor is not None else ffi.NULL
+        cours = ours._to_c()[0] if ours is not None else ffi.NULL
+        ctheirs = theirs._to_c()[0] if theirs is not None else ffi.NULL
+
+        err = C.git_merge_file_from_index(
+                cmergeresult, self._repo,
+                cancestor, cours, ctheirs,
+                ffi.NULL);
+        check_error(err)
+
+        ret = ffi.string(cmergeresult.ptr,
+                cmergeresult.len).decode()
+        C.git_merge_file_result_free(cmergeresult)
+
+        return ret
+
     def merge_commits(self, ours, theirs, favor='normal'):
         """Merge two arbitrary commits
 
