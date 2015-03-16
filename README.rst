@@ -56,34 +56,48 @@ New features:
 - Make pygit work in a frozen environment
   `#453 <https://github.com/libgit2/pygit2/pull/453>`_
 
-- New Repository.expand_id and Repository.ahead_behind
+- New ``Repository.expand_id(...)`` and ``Repository.ahead_behind(...)``
   `#448 <https://github.com/libgit2/pygit2/pull/448>`_
 
-- Repository.write_archive new prefix parameter
+- New ``prefix`` parameter in ``Repository.write_archive``
   `#481 <https://github.com/libgit2/pygit2/pull/481>`_
 
-- New Repository.merge_trees()
+- New ``Repository.merge_trees(...)``
   `#489 <https://github.com/libgit2/pygit2/pull/489>`_
 
-- New Repository.cherrypick()
+- New ``Repository.cherrypick(...)``
   `#492 <https://github.com/libgit2/pygit2/pull/492>`_
 
+- New support for submodules
+  `#499 <https://github.com/libgit2/pygit2/pull/499>`_
+
+- New ``Repository.merge_file_from_index(...)``
+  `#503 <https://github.com/libgit2/pygit2/pull/503>`_
+
 Bugs fixed:
+
+- Fix TreeEntry equality testing
+  `#458 <https://github.com/libgit2/pygit2/issues/458>`_
+  `#488 <https://github.com/libgit2/pygit2/pull/488>`_
 
 - Safer handling of string arrays
   `#477 <https://github.com/libgit2/pygit2/issues/477>`_
   `#487 <https://github.com/libgit2/pygit2/pull/487>`_
 
-- Repository.write_archive fix handling of symlinks
+- ``Repository.write_archive`` fix handling of symlinks
   `#480 <https://github.com/libgit2/pygit2/pull/480>`_
+
+- Fix type check in ``Diff[...]``
+  `#495 <https://github.com/libgit2/pygit2/issues/495>`_
 
 Other:
 
 - Documentation improvements
   `#448 <https://github.com/libgit2/pygit2/pull/448>`_
   `#491 <https://github.com/libgit2/pygit2/pull/491>`_
+  `#497 <https://github.com/libgit2/pygit2/pull/497>`_
 
-- Expose the pygit2.GIT_REPOSITORY_INIT_* constants
+- Expose the ``pygit2.GIT_REPOSITORY_INIT_*`` constants
   `#483 <https://github.com/libgit2/pygit2/issues/483>`_
 
 
