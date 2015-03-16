@@ -118,6 +118,9 @@ typedef struct {
     PyObject_HEAD
     PyObject *id;
     char *path;
+    git_off_t size;
+    uint32_t flags;
+    uint16_t mode;
 } DiffFile;
 
 typedef struct {

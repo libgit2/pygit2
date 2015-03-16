@@ -73,6 +73,9 @@ wrap_diff_file(const git_diff_file *file)
     if (py_file) {
         py_file->id = git_oid_to_python(&file->id);
         py_file->path = file->path != NULL ? strdup(file->path) : NULL;
+        py_file->size = file->size;
+        py_file->flags = file->flags;
+        py_file->mode = file->mode;
     }
 
     return (PyObject *) py_file;
@@ -169,6 +172,9 @@ DiffFile_dealloc(DiffFile *self)
 PyMemberDef DiffFile_members[] = {
     MEMBER(DiffFile, id, T_OBJECT, "Oid of the item."),
     MEMBER(DiffFile, path, T_STRING, "Path to the entry."),
+    MEMBER(DiffFile, size, T_LONG, "Size of the entry."),
+    MEMBER(DiffFile, flags, T_UINT, "Combination of GIT_DIFF_FLAG_* flags."),
+    MEMBER(DiffFile, mode, T_USHORT, "Mode of the entry."),
     {NULL}
 };
 
