@@ -33,6 +33,7 @@ import unittest
 import pygit2
 from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
 from pygit2 import GIT_DIFF_IGNORE_WHITESPACE, GIT_DIFF_IGNORE_WHITESPACE_EOL
+from pygit2 import GIT_DELTA_RENAMED
 from . import utils
 from itertools import chain
 
@@ -282,9 +283,11 @@ class DiffTest(utils.BareRepoTestCase):
         #~ --find-copies-harder during rename transformion...
         diff = commit_a.tree.diff_to_tree(commit_b.tree,
                                           GIT_DIFF_INCLUDE_UNMODIFIED)
-        self.assertAll(lambda x: x.delta.status != 'R', diff)
+        self.assertAll(lambda x: x.delta.status != GIT_DELTA_RENAMED, diff)
+        self.assertAll(lambda x: x.delta.status_char() != 'R', diff)
         diff.find_similar()
-        self.assertAny(lambda x: x.delta.status == 'R', diff)
+        self.assertAny(lambda x: x.delta.status == GIT_DELTA_RENAMED, diff)
+        self.assertAny(lambda x: x.delta.status_char() == 'R', diff)
 
 if __name__ == '__main__':
     unittest.main()

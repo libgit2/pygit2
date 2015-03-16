@@ -91,7 +91,7 @@ wrap_diff_delta(const git_diff_delta *delta)
 
     py_delta = PyObject_New(DiffDelta, &DiffDeltaType);
     if (py_delta) {
-        py_delta->status = git_diff_status_char(delta->status);
+        py_delta->status = delta->status;
         py_delta->flags = delta->flags;
         py_delta->similarity = delta->similarity;
         py_delta->nfiles = delta->nfiles;
@@ -222,6 +222,25 @@ PyTypeObject DiffFileType = {
     0,                                         /* tp_new            */
 };
 
+
+PyDoc_STRVAR(DiffDelta_status_char__doc__,
+  "status_char()\n"
+  "\n"
+  "Return the single character abbreviation for a delta status code."
+);
+
+PyObject *
+DiffDelta_status_char(DiffDelta *self)
+{
+    char status = git_diff_status_char(self->status);
+
+#if PY_MAJOR_VERSION == 2
+    return Py_BuildValue("c", status);
+#else
+    return Py_BuildValue("C", status);
+#endif
+}
+
 PyDoc_STRVAR(DiffDelta_is_binary__doc__, "True if binary data, False if not.");
 
 PyObject *
@@ -241,8 +260,13 @@ DiffDelta_dealloc(DiffDelta *self)
     PyObject_Del(self);
 }
 
+static PyMethodDef DiffDelta_methods[] = {
+    METHOD(DiffDelta, status_char, METH_NOARGS),
+    {NULL}
+};
+
 PyMemberDef DiffDelta_members[] = {
-    MEMBER(DiffDelta, status, T_CHAR, "A GIT_DELTA_* constant."),
+    MEMBER(DiffDelta, status, T_UINT, "A GIT_DELTA_* constant."),
     MEMBER(DiffDelta, flags, T_UINT, "Combination of GIT_DIFF_FLAG_* flags."),
     MEMBER(DiffDelta, similarity, T_USHORT, "For renamed and copied."),
     MEMBER(DiffDelta, nfiles, T_USHORT, "Number of files in the delta."),
@@ -286,7 +310,7 @@ PyTypeObject DiffDeltaType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    DiffDelta_methods,                         /* tp_methods        */
     DiffDelta_members,                         /* tp_members        */
     DiffDelta_getseters,                       /* tp_getset         */
     0,                                         /* tp_base           */
