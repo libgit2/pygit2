@@ -42,56 +42,22 @@ PyObject *
 wrap_patch(git_patch *patch)
 {
     Patch *py_patch;
+    PyObject *py_hunk;
+    size_t i, hunk_amounts;
 
     if (!patch)
         Py_RETURN_NONE;
 
     py_patch = PyObject_New(Patch, &PatchType);
     if (py_patch) {
-        size_t i, j, hunk_amounts, lines_in_hunk;
-        const git_diff_delta *delta;
-        const git_diff_hunk *hunk;
-        const git_diff_line *line;
-        int err;
-
         py_patch->patch = patch;
-
-        delta = git_patch_get_delta(patch);
 
         hunk_amounts = git_patch_num_hunks(patch);
         py_patch->hunks = PyList_New(hunk_amounts);
         for (i = 0; i < hunk_amounts; ++i) {
-            DiffHunk *py_hunk = NULL;
-
-            err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch, i);
-            if (err < 0)
-                return Error_set(err);
-
-            py_hunk = PyObject_New(DiffHunk, &DiffHunkType);
-            if (py_hunk != NULL) {
-                py_hunk->old_start = hunk->old_start;
-                py_hunk->old_lines = hunk->old_lines;
-                py_hunk->new_start = hunk->new_start;
-                py_hunk->new_lines = hunk->new_lines;
-
-                py_hunk->lines = PyList_New(lines_in_hunk);
-                for (j = 0; j < lines_in_hunk; ++j) {
-                    PyObject *py_line = NULL;
-
-                    err = git_patch_get_line_in_hunk(&line, patch, i, j);
-                    if (err < 0)
-                        return Error_set(err);
-
-                    py_line = wrap_diff_line(line);
-                    if (py_line == NULL)
-                        return NULL;
-
-                    PyList_SetItem(py_hunk->lines, j, py_line);
-                }
-
-                PyList_SetItem((PyObject*) py_patch->hunks, i,
-                    (PyObject*) py_hunk);
-            }
+            py_hunk = wrap_diff_hunk(patch, i);
+            if (py_hunk)
+                PyList_SetItem((PyObject*) py_patch->hunks, i, py_hunk);
         }
     }
 

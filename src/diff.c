@@ -100,6 +100,45 @@ wrap_diff_delta(const git_diff_delta *delta)
 }
 
 PyObject *
+wrap_diff_hunk(git_patch *patch, size_t idx)
+{
+    DiffHunk *py_hunk;
+    const git_diff_hunk *hunk;
+    const git_diff_line *line;
+    size_t j, lines_in_hunk;
+    int err;
+
+    err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch, idx);
+    if (err < 0)
+        return Error_set(err);
+
+    py_hunk = PyObject_New(DiffHunk, &DiffHunkType);
+    if (py_hunk) {
+        py_hunk->old_start = hunk->old_start;
+        py_hunk->old_lines = hunk->old_lines;
+        py_hunk->new_start = hunk->new_start;
+        py_hunk->new_lines = hunk->new_lines;
+
+        py_hunk->lines = PyList_New(lines_in_hunk);
+        for (j = 0; j < lines_in_hunk; ++j) {
+            PyObject *py_line = NULL;
+
+            err = git_patch_get_line_in_hunk(&line, patch, idx, j);
+            if (err < 0)
+                return Error_set(err);
+
+            py_line = wrap_diff_line(line);
+            if (py_line == NULL)
+                return NULL;
+
+            PyList_SetItem(py_hunk->lines, j, py_line);
+        }
+    }
+
+    return (PyObject *) py_hunk;
+}
+
+PyObject *
 wrap_diff_line(const git_diff_line *line)
 {
     DiffLine *py_line;

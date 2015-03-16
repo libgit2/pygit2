@@ -39,6 +39,7 @@ PyObject* Diff_patch(Diff *self);
 PyObject* wrap_diff(git_diff *diff, Repository *repo);
 PyObject* wrap_diff_delta(const git_diff_delta *delta);
 PyObject* wrap_diff_file(const git_diff_file *file);
+PyObject * wrap_diff_hunk(git_patch *patch, size_t idx);
 PyObject* wrap_diff_line(const git_diff_line *line);
 
 #endif
