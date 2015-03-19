@@ -200,7 +200,7 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_conflicts_in_bare_repository(self):
         def create_conflict_file(repo, branch, content):
-            oid = repo.create_blob(content)
+            oid = repo.create_blob(content.encode('utf-8'))
             tb = repo.TreeBuilder()
             tb.insert('conflict', oid, pygit2.GIT_FILEMODE_BLOB)
             tree = tb.write()
@@ -212,9 +212,9 @@ class RepositoryTest(utils.BareRepoTestCase):
             return commit
 
         b1 = self.repo.create_branch('b1', self.repo.head.peel())
-        c1 = create_conflict_file(self.repo, b1, 'Conflict 1')
+        c1 = create_conflict_file(self.repo, b1, 'ASCII - abc')
         b2 = self.repo.create_branch('b2', self.repo.head.peel())
-        c2 = create_conflict_file(self.repo, b2, 'Conflict 2')
+        c2 = create_conflict_file(self.repo, b2, 'Unicode - äüö')
 
         index = self.repo.merge_commits(c1, c2)
         self.assertIsNotNone(index.conflicts)
@@ -226,9 +226,9 @@ class RepositoryTest(utils.BareRepoTestCase):
         (a, t, o) = index.conflicts['conflict']
         diff = self.repo.merge_file_from_index(a, t, o)
         self.assertEqual(diff, '''<<<<<<< conflict
-Conflict 1
+ASCII - abc
 =======
-Conflict 2
+Unicode - äüö
 >>>>>>> conflict
 ''')
 

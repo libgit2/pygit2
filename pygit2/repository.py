@@ -555,7 +555,7 @@ class Repository(_Repository):
         check_error(err)
 
         ret = ffi.string(cmergeresult.ptr,
-                cmergeresult.len).decode()
+                cmergeresult.len).decode('utf-8')
         C.git_merge_file_result_free(cmergeresult)
 
         return ret
