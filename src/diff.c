@@ -121,6 +121,8 @@ wrap_diff_hunk(git_patch *patch, size_t idx)
         py_hunk->old_lines = hunk->old_lines;
         py_hunk->new_start = hunk->new_start;
         py_hunk->new_lines = hunk->new_lines;
+        py_hunk->header = to_unicode_n((const char *) &hunk->header,
+                hunk->header_len, NULL, NULL);
 
         py_hunk->lines = PyList_New(lines_in_hunk);
         for (j = 0; j < lines_in_hunk; ++j) {
@@ -497,6 +499,7 @@ cleanup:
 static void
 DiffHunk_dealloc(DiffHunk *self)
 {
+    Py_CLEAR(self->header);
     Py_CLEAR(self->lines);
     PyObject_Del(self);
 }
@@ -506,6 +509,7 @@ PyMemberDef DiffHunk_members[] = {
     MEMBER(DiffHunk, old_lines, T_INT, "Old lines."),
     MEMBER(DiffHunk, new_start, T_INT, "New start."),
     MEMBER(DiffHunk, new_lines, T_INT, "New lines."),
+    MEMBER(DiffHunk, header, T_OBJECT, "Header."),
     MEMBER(DiffHunk, lines, T_OBJECT, "Lines."),
     {NULL}
 };

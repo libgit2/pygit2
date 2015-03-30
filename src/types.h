@@ -140,6 +140,7 @@ typedef struct {
     int old_lines;
     int new_start;
     int new_lines;
+    PyObject *header;
 } DiffHunk;
 
 typedef struct {
