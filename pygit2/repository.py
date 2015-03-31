@@ -381,14 +381,12 @@ class Repository(_Repository):
             try:
                 obj = obj.peel(Blob)
             except Exception:
-                pass
-
-            # And if that failed, try to get a tree, raising a type
-            # error if that still doesn't work
-            try:
-                obj = obj.peel(Tree)
-            except Exception:
-                raise TypeError('unexpected "%s"' % type(obj))
+              # And if that failed, try to get a tree, raising a type
+              # error if that still doesn't work
+              try:
+                  obj = obj.peel(Tree)
+              except Exception:
+                  raise TypeError('unexpected "%s"' % type(obj))
 
             return obj
 
