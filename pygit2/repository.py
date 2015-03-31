@@ -413,7 +413,7 @@ class Repository(_Repository):
 
         # Case 4: Diff blob to blob
         if isinstance(a, Blob) and isinstance(b, Blob):
-            raise NotImplementedError('git_diff_blob_to_blob()')
+            return a.diff(b)
 
         raise ValueError("Only blobs and treeish can be diffed")
 
