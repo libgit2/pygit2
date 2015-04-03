@@ -80,7 +80,10 @@ def get_ffi():
 
     # Load C definitions
     if getattr(sys, 'frozen', False):
-        dir_path = dirname(abspath(sys.executable))
+        if hasattr(sys, '_MEIPASS'):
+            dir_path = sys._MEIPASS
+        else:
+            dir_path = dirname(abspath(sys.executable))
     else:
         dir_path = dirname(abspath(__file__))
 
