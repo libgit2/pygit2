@@ -37,7 +37,6 @@
 #include "repository.h"
 #include "branch.h"
 #include "signature.h"
-#include "submodule.h"
 #include <git2/odb_backend.h>
 
 extern PyObject *GitError;
@@ -1100,33 +1099,6 @@ error:
     return NULL;
 }
 
-PyDoc_STRVAR(Repository_lookup_submodule__doc__,
-  "lookup_submodule(path) -> Submodule\n"
-  "\n"
-  "Lookup a submodule by its path in a repository.");
-
-PyObject *
-Repository_lookup_submodule(Repository *self, PyObject *py_path)
-{
-    git_submodule *c_submodule;
-    char *c_name;
-    int err;
-
-    c_name = py_path_to_c_str(py_path);
-    if (c_name == NULL)
-        return NULL;
-
-    err = git_submodule_lookup(&c_submodule, self->repo, c_name);
-    if (err < 0) {
-        PyObject *err_obj = Error_set_str(err, c_name);
-        free(c_name);
-        return err_obj;
-    }
-    free(c_name);
-
-    return wrap_submodule(self, c_submodule);
-}
-
 PyDoc_STRVAR(Repository_listall_submodules__doc__,
   "listall_submodules() -> [str, ...]\n"
   "\n"
@@ -1583,7 +1555,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
-    METHOD(Repository, lookup_submodule, METH_O),
     METHOD(Repository, listall_submodules, METH_NOARGS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, revparse_single, METH_O),
