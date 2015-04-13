@@ -11,7 +11,13 @@ dedicated subdirectory of the repositories tree.
 The Submodule type
 ====================
 
+.. automethod:: pygit2.Submodule.open
+
 .. autoattribute:: pygit2.Submodule.name
 .. autoattribute:: pygit2.Submodule.path
 .. autoattribute:: pygit2.Submodule.url
-.. automethod:: pygit2.Submodule.open
+.. autoattribute:: pygit2.Submodule.branch
+
+.. automethod:: pygit2.Submodule.sync
+.. automethod:: pygit2.Submodule.save
+.. automethod:: pygit2.Submodule.reload
