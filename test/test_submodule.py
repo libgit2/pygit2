@@ -40,6 +40,8 @@ SUBM_PATH = 'submodule'
 SUBM_URL = 'test.com/submodule.git'
 SUBM_HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
 
+SUBM_ALT_URL = 'example.com/submodule.git'
+
 class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
     def test_lookup_submodule(self):
@@ -68,6 +70,11 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
     def test_url(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
         self.assertEqual(SUBM_URL, s.url)
+
+    def test_set_url(self):
+        s = self.repo.lookup_submodule(SUBM_PATH)
+        s.url = SUBM_ALT_URL
+        self.assertEqual(SUBM_ALT_URL, s.url)
 
 if __name__ == '__main__':
     unittest.main()

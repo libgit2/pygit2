@@ -72,6 +72,11 @@ class Submodule(object):
         url = C.git_submodule_url(self._subm)
         return ffi.string(url).decode('utf-8')
 
+    @url.setter
+    def url(self, url):
+        err = C.git_submodule_set_url(self._subm, url)
+        check_error(err)
+
     @property
     def branch(self):
         """Branch that is to be tracked by the submodule."""

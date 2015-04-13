@@ -545,10 +545,14 @@ int git_graph_ahead_behind(size_t *ahead, size_t *behind, git_repository *repo, 
 int git_submodule_lookup(git_submodule **out, git_repository *repo, char *path);
 void git_submodule_free(git_submodule *subm);
 int git_submodule_open(git_repository **out, git_submodule *subm);
+
 const char *git_submodule_name(git_submodule *subm);
 const char *git_submodule_path(git_submodule *subm);
 const char *git_submodule_url(git_submodule *subm);
 const char *git_submodule_branch(git_submodule *subm);
+
+int git_submodule_set_url(git_submodule *subm, const char *url);
+
 
 /*
  * git_index
