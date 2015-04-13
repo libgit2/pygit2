@@ -42,7 +42,6 @@ extern PyTypeObject RepositoryType;
 extern PyTypeObject OidType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
-extern PyTypeObject SubmoduleType;
 extern PyTypeObject DiffType;
 extern PyTypeObject DiffIterType;
 extern PyTypeObject DiffDeltaType;
@@ -219,12 +218,6 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_BLOB_EXECUTABLE)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_LINK)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_COMMIT)
-
-    /*
-     * Submodules
-     */
-    INIT_TYPE(SubmoduleType, NULL, NULL);
-    ADD_TYPE(m, Submodule);
 
     /*
      * Log

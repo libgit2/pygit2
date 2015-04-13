@@ -51,6 +51,7 @@ from .index import Index
 from .remote import RemoteCollection
 from .blame import Blame
 from .utils import to_bytes, is_string
+from .submodule import Submodule
 
 
 class Repository(_Repository):
@@ -76,6 +77,12 @@ class Repository(_Repository):
         repo_cptr = ffi.new('git_repository **')
         ffi.buffer(repo_cptr)[:] = self._pointer[:]
         self._repo = repo_cptr[0]
+
+    def lookup_submodule(self, path):
+        csub = ffi.new('git_submodule **')
+        err = C.git_submodule_lookup(csub, self._repo, path)
+        check_error(err)
+        return Submodule._from_c(self, csub[0])
 
     #
     # Mapping interface
