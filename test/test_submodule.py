@@ -76,5 +76,27 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         s.url = SUBM_ALT_URL
         self.assertEqual(SUBM_ALT_URL, s.url)
 
+    def test_sync(self):
+        s = self.repo.lookup_submodule(SUBM_PATH)
+        self.assertNotEqual(s.open().remotes['origin'].url, SUBM_URL)
+        s.sync()
+        self.assertEqual(s.open().remotes['origin'].url, SUBM_URL)
+
+    def test_save(self):
+        s = self.repo.lookup_submodule(SUBM_PATH)
+        s.url = SUBM_URL
+        s.save()
+
+        s = self.repo.lookup_submodule(SUBM_PATH)
+        self.assertEqual(s.url, SUBM_URL)
+
+    def test_reload(self):
+        s = self.repo.lookup_submodule(SUBM_PATH)
+        url = s.url
+
+        s.url = SUBM_URL
+        s.reload()
+        self.assertEqual(s.url, url)
+
 if __name__ == '__main__':
     unittest.main()

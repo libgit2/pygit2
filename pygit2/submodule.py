@@ -82,3 +82,18 @@ class Submodule(object):
         """Branch that is to be tracked by the submodule."""
         branch = C.git_submodule_branch(self._subm)
         return ffi.string(branch).decode('utf-8')
+
+    def sync(self):
+        """Copy submodule remote info into submodule repo."""
+        err = C.git_submodule_sync(self._subm)
+        check_error(err)
+
+    def save(self):
+        """Write submodule settings to .gitmodules file."""
+        err = C.git_submodule_save(self._subm)
+        check_error(err)
+
+    def reload(self):
+        """Reread submodule info from config, index, and HEAD."""
+        err = C.git_submodule_reload(self._subm, True)
+        check_error(err)

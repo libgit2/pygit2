@@ -17,3 +17,7 @@ The Submodule type
 .. autoattribute:: pygit2.Submodule.path
 .. autoattribute:: pygit2.Submodule.url
 .. autoattribute:: pygit2.Submodule.branch
+
+.. automethod:: pygit2.Submodule.sync
+.. automethod:: pygit2.Submodule.save
+.. automethod:: pygit2.Submodule.reload
