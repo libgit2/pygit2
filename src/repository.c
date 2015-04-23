@@ -838,7 +838,7 @@ Repository_create_blob_fromdisk(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_commit__doc__,
-  "create_commit(reference, author, committer, message, tree, parents[, encoding]) -> Oid\n"
+  "create_commit(reference_name, author, committer, message, tree, parents[, encoding]) -> Oid\n"
   "\n"
   "Create a new commit object, return its oid.");
 
