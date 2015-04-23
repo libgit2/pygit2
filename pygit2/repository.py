@@ -551,9 +551,12 @@ class Repository(_Repository):
         """
         cmergeresult = ffi.new('git_merge_file_result *')
 
-        cancestor = ancestor._to_c()[0] if ancestor is not None else ffi.NULL
-        cours = ours._to_c()[0] if ours is not None else ffi.NULL
-        ctheirs = theirs._to_c()[0] if theirs is not None else ffi.NULL
+        cancestor, ancestor_str_ref = (
+            ancestor._to_c() if ancestor is not None else (ffi.NULL, ffi.NULL))
+        cours, ours_str_ref = (
+            ours._to_c() if ours is not None else (ffi.NULL, ffi.NULL))
+        ctheirs, theirs_str_ref = (
+            theirs._to_c() if theirs is not None else (ffi.NULL, ffi.NULL))
 
         err = C.git_merge_file_from_index(
                 cmergeresult, self._repo,
