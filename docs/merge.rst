@@ -40,6 +40,10 @@ Cherrypick
 
 .. automethod:: pygit2.Repository.cherrypick
 
+Note that after a successful cherrypick you have to run
+:py:meth:`.Repository.state_cleanup` in order to get the repository out
+of cherrypicking mode.
+
 
 Lower-level methods
 ===================
