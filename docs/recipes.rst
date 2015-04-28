@@ -22,5 +22,6 @@ Main porcelain commands
    git-log (Show commit logs.) <recipes/git-log>
    git-show (Show various types of objects.) <recipes/git-show>
    git-tag (Create, list, delete or verify a tag object signed with GPG.) <recipes/git-tag>
+   git clone --mirror (Clone with a mirroring configuration) <recipes/git-clone-mirror>
 
 .. _git man page: https://www.kernel.org/pub/software/scm/git/docs/git.html
