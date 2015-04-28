@@ -62,6 +62,19 @@ class RepositoryTest(utils.RepoTestCase):
 
         self.assertRaises(ValueError, self.repo.create_remote, *(name, url))
 
+    def test_remote_create_with_refspec(self):
+        name = 'upstream'
+        url = 'git://github.com/libgit2/pygit2.git'
+        fetch = "+refs/*:refs/*"
+
+        remote = self.repo.remotes.create(name, url, fetch)
+
+        self.assertEqual(type(remote), pygit2.Remote)
+        self.assertEqual(name, remote.name)
+        self.assertEqual(url, remote.url)
+        self.assertEqual([fetch], remote.fetch_refspecs)
+        self.assertEqual(None, remote.push_url)
+
     def test_remote_delete(self):
         name = 'upstream'
         url = 'git://github.com/libgit2/pygit2.git'

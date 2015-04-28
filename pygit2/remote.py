@@ -518,15 +518,21 @@ class RemoteCollection(object):
 
         return Remote(self._repo, cremote[0])
 
-    def create(self, name, url):
-        """create(name, url) -> Remote
+    def create(self, name, url, fetch=None):
+        """create(name, url [, fetch]) -> Remote
 
         Create a new remote with the given name and url.
+
+        If 'fetch' is provided, this fetch refspec will be used instead of the default
         """
 
         cremote = ffi.new('git_remote **')
 
-        err = C.git_remote_create(cremote, self._repo._repo, to_bytes(name), to_bytes(url))
+        if fetch:
+            err = C.git_remote_create_with_fetchspec(cremote, self._repo._repo, to_bytes(name), to_bytes(url), to_bytes(fetch))
+        else:
+            err = C.git_remote_create(cremote, self._repo._repo, to_bytes(name), to_bytes(url))
+
         check_error(err)
 
         return Remote(self._repo, cremote[0])
