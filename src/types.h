@@ -146,6 +146,8 @@ typedef struct {
     PyObject *content;
 } DiffLine;
 
+SIMPLE_TYPE(DiffStats, git_diff_stats, stats);
+
 /* git_tree_walk , git_treebuilder*/
 SIMPLE_TYPE(TreeBuilder, git_treebuilder, bld)
 

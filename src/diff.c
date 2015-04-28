@@ -44,6 +44,7 @@ extern PyTypeObject DiffDeltaType;
 extern PyTypeObject DiffFileType;
 extern PyTypeObject DiffHunkType;
 extern PyTypeObject DiffLineType;
+extern PyTypeObject DiffStatsType;
 extern PyTypeObject RepositoryType;
 
 PyObject *
@@ -141,6 +142,28 @@ wrap_diff_hunk(git_patch *patch, size_t idx)
     }
 
     return (PyObject *) py_hunk;
+}
+
+PyObject *
+wrap_diff_stats(git_diff *diff)
+{
+    git_diff_stats *stats;
+    DiffStats *py_stats;
+    int err;
+
+    err = git_diff_get_stats(&stats, diff);
+    if (err < 0)
+        return Error_set(err);
+
+    py_stats = PyObject_New(DiffStats, &DiffStatsType);
+    if (!py_stats) {
+        git_diff_stats_free(stats);
+        return NULL;
+    }
+
+    py_stats->stats = stats;
+
+    return (PyObject *) py_stats;
 }
 
 PyObject *
@@ -558,6 +581,132 @@ PyTypeObject DiffHunkType = {
     0,                                         /* tp_new            */
 };
 
+PyDoc_STRVAR(DiffStats_insertions__doc__, "Total number of insertions");
+
+PyObject *
+DiffStats_insertions__get__(DiffStats *self)
+{
+    return PyLong_FromSize_t(git_diff_stats_insertions(self->stats));
+}
+
+PyDoc_STRVAR(DiffStats_deletions__doc__, "Total number of deletions");
+
+PyObject *
+DiffStats_deletions__get__(DiffStats *self)
+{
+    return PyLong_FromSize_t(git_diff_stats_deletions(self->stats));
+}
+
+PyDoc_STRVAR(DiffStats_files_changed__doc__, "Total number of files changed");
+
+PyObject *
+DiffStats_files_changed__get__(DiffStats *self)
+{
+    return PyLong_FromSize_t(git_diff_stats_files_changed(self->stats));
+}
+
+PyDoc_STRVAR(DiffStats_format__doc__,
+    "format(format, width)-> str\n"
+    "\n"
+    "Format the stats as a string\n"
+    "\n"
+    "Arguments:\n"
+    "\n"
+    "format\n"
+    "    The format to use. A pygit2.GIT_DIFF_STATS_* constant\n"
+    "\n"
+    "width\n"
+    "    The width of the output. The output will be scaled to fit.");
+
+PyObject *
+DiffStats_format(DiffStats *self, PyObject *args, PyObject *kwds)
+{
+    int err, format;
+    git_buf buf = { 0 };
+    Py_ssize_t width;
+    PyObject *str;
+    char *keywords[] = {"format", "width", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "in", keywords, &format, &width))
+        return NULL;
+
+    if (width <= 0) {
+        PyErr_SetString(PyExc_ValueError, "width must be positive");
+        return NULL;
+    }
+
+    err = git_diff_stats_to_buf(&buf, self->stats, format, width);
+    if (err < 0)
+        return Error_set(err);
+
+    str = to_unicode(buf.ptr, NULL, NULL);
+    git_buf_free(&buf);
+
+    return str;
+}
+
+static void
+DiffStats_dealloc(DiffStats *self)
+{
+    git_diff_stats_free(self->stats);
+    PyObject_Del(self);
+}
+
+PyMethodDef DiffStats_methods[] = {
+    METHOD(DiffStats, format, METH_VARARGS | METH_KEYWORDS),
+    {NULL}
+};
+
+PyGetSetDef DiffStats_getseters[] = {
+    GETTER(DiffStats, insertions),
+    GETTER(DiffStats, deletions),
+    GETTER(DiffStats, files_changed),
+    {NULL}
+};
+
+PyDoc_STRVAR(DiffStats__doc__, "DiffStats object.");
+
+PyTypeObject DiffStatsType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.DiffStats",                       /* tp_name           */
+    sizeof(DiffStats),                          /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)DiffStats_dealloc,             /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    DiffStats__doc__,                          /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter           */
+    0,                                         /* tp_iternext       */
+    DiffStats_methods,                                         /* tp_methods        */
+    0,                                         /* tp_members        */
+    DiffStats_getseters,                       /* tp_getset         */
+    0,                                         /* tp_base           */
+    0,                                         /* tp_dict           */
+    0,                                         /* tp_descr_get      */
+    0,                                         /* tp_descr_set      */
+    0,                                         /* tp_dictoffset     */
+    0,                                         /* tp_init           */
+    0,                                         /* tp_alloc          */
+    0,                                         /* tp_new            */
+};
+
 PyDoc_STRVAR(Diff_from_c__doc__, "Method exposed for Index to hook into");
 
 PyObject *
@@ -662,6 +811,13 @@ Diff_getitem(Diff *self, PyObject *value)
     return diff_get_patch_byindex(self->diff, i);
 }
 
+PyDoc_STRVAR(Diff_stats__doc__, "Accumulate diff statistics for all patches");
+
+PyObject *
+Diff_stats__get__(Diff *self)
+{
+    return wrap_diff_stats(self->diff);
+}
 
 static void
 Diff_dealloc(Diff *self)
@@ -673,6 +829,7 @@ Diff_dealloc(Diff *self)
 
 PyGetSetDef Diff_getseters[] = {
     GETTER(Diff, patch),
+    GETTER(Diff, stats),
     {NULL}
 };
 

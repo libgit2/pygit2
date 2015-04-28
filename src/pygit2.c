@@ -48,6 +48,7 @@ extern PyTypeObject DiffDeltaType;
 extern PyTypeObject DiffFileType;
 extern PyTypeObject DiffHunkType;
 extern PyTypeObject DiffLineType;
+extern PyTypeObject DiffStatsType;
 extern PyTypeObject PatchType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
@@ -294,12 +295,14 @@ moduleinit(PyObject* m)
     INIT_TYPE(DiffFileType, NULL, NULL)
     INIT_TYPE(DiffHunkType, NULL, NULL)
     INIT_TYPE(DiffLineType, NULL, NULL)
+    INIT_TYPE(DiffStatsType, NULL, NULL)
     INIT_TYPE(PatchType, NULL, NULL)
     ADD_TYPE(m, Diff)
     ADD_TYPE(m, DiffDelta)
     ADD_TYPE(m, DiffFile)
     ADD_TYPE(m, DiffHunk)
     ADD_TYPE(m, DiffLine)
+    ADD_TYPE(m, DiffStats)
     ADD_TYPE(m, Patch)
     ADD_CONSTANT_INT(m, GIT_DIFF_NORMAL)
     ADD_CONSTANT_INT(m, GIT_DIFF_REVERSE)
@@ -322,6 +325,11 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_TYPECHANGE)
     ADD_CONSTANT_INT(m, GIT_DIFF_INCLUDE_TYPECHANGE_TREES)
     ADD_CONSTANT_INT(m, GIT_DIFF_RECURSE_IGNORED_DIRS)
+    ADD_CONSTANT_INT(m, GIT_DIFF_STATS_NONE)
+    ADD_CONSTANT_INT(m, GIT_DIFF_STATS_FULL)
+    ADD_CONSTANT_INT(m, GIT_DIFF_STATS_SHORT)
+    ADD_CONSTANT_INT(m, GIT_DIFF_STATS_NUMBER)
+    ADD_CONSTANT_INT(m, GIT_DIFF_STATS_INCLUDE_SUMMARY)
     /* Flags for diff find similar */
     /* --find-renames */
     ADD_CONSTANT_INT(m, GIT_DIFF_FIND_RENAMES)
