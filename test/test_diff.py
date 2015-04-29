@@ -101,6 +101,11 @@ HUNK_EXPECTED = """- a contents 2
 + a contents
 """
 
+STATS_EXPECTED = """ a   | 2 +-
+ c/d | 1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+ delete mode 100644 c/d
+"""
 
 class DiffDirtyTest(utils.DirtyRepoTestCase):
     def test_diff_empty_index(self):
@@ -288,6 +293,20 @@ class DiffTest(utils.BareRepoTestCase):
         diff.find_similar()
         self.assertAny(lambda x: x.delta.status == GIT_DELTA_RENAMED, diff)
         self.assertAny(lambda x: x.delta.status_char() == 'R', diff)
+
+    def test_diff_stats(self):
+        commit_a = self.repo[COMMIT_SHA1_1]
+        commit_b = self.repo[COMMIT_SHA1_2]
+
+        diff = commit_a.tree.diff_to_tree(commit_b.tree)
+        stats = diff.stats
+        self.assertEqual(1, stats.insertions)
+        self.assertEqual(2, stats.deletions)
+        self.assertEqual(2, stats.files_changed)
+        formatted = stats.format(format=pygit2.GIT_DIFF_STATS_FULL |
+                                        pygit2.GIT_DIFF_STATS_INCLUDE_SUMMARY,
+                                 width=80)
+        self.assertEqual(STATS_EXPECTED, formatted)
 
 if __name__ == '__main__':
     unittest.main()

@@ -23,6 +23,10 @@ Examples
     >>> diff = repo.diff('HEAD^', 'HEAD~3')
     >>> patches = [p for p in diff]
 
+    # Get the stats for a diff
+    >>> diff = repo.diff('HEAD^', 'HEAD~3')
+    >>> diff.stats
+
     # Diffing the empty tree
     >>> tree = revparse_single('HEAD').tree
     >>> tree.diff_to_tree()
@@ -89,3 +93,11 @@ The DiffHunk type
 .. autoattribute:: pygit2.DiffHunk.new_start
 .. autoattribute:: pygit2.DiffHunk.new_lines
 .. autoattribute:: pygit2.DiffHunk.lines
+
+The DiffStats type
+====================
+
+.. autoattribute :: pygit2.DiffStats.insertions
+.. autoattribute :: pygit2.DiffStats.deletions
+.. autoattribute :: pygit2.DiffStats.files_changed
+.. automethod :: pygit2.DiffStats.format
