@@ -30,6 +30,8 @@ working copy and on-disk index.
                            cherry.message, tree_id, [basket.target])
         del basket # outdated, prevent from accidentally using it
 
+        repo.state_cleanup()
+
 
 ----------------------------------------------------------------------
 Cherry-picking a commit without a working copy
