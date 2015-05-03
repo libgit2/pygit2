@@ -36,7 +36,6 @@ class UserPass(object):
 
     This is an object suitable for passing to a remote's credentials
     callback and for returning from said callback.
-
     """
 
     def __init__(self, username, password):
@@ -67,7 +66,6 @@ class Keypair(object):
     :param str privkey: the path to the user's private key file
     :param str passphrase: the password used to decrypt the private key file,
         or empty string if no passphrase is required.
-
     """
 
     def __init__(self, username, pubkey, privkey, passphrase):

@@ -66,16 +66,14 @@ class Refspec(object):
         return C.git_refspec_direction(self._refspec)
 
     def src_matches(self, ref):
-        """src_matches(str) -> Bool
-
-        Returns whether the given string matches the source of this refspec"""
+        """Return True if the given string matches the source of this refspec,
+        False otherwise.
+        """
         return bool(C.git_refspec_src_matches(self._refspec, to_bytes(ref)))
 
     def dst_matches(self, ref):
-        """dst_matches(str) -> Bool
-
-        Returns whether the given string matches the destination of this
-        refspec"""
+        """Return True if the given string matches the destination of this
+        refspec, False otherwise."""
         return bool(C.git_refspec_dst_matches(self._refspec, to_bytes(ref)))
 
     def _transform(self, ref, fn):
@@ -89,15 +87,13 @@ class Refspec(object):
             C.git_buf_free(buf)
 
     def transform(self, ref):
-        """transform(str) -> str
-
-        Transform a reference name according to this refspec from the lhs to
-        the rhs."""
+        """Transform a reference name according to this refspec from the lhs to
+        the rhs. Return an string.
+        """
         return self._transform(ref, C.git_refspec_transform)
 
     def rtransform(self, ref):
-        """rtransform(str) -> str
-
-        Transform a reference name according to this refspec from the lhs
-        to the rhs"""
+        """Transform a reference name according to this refspec from the lhs to
+        the rhs. Return an string.
+        """
         return self._transform(ref, C.git_refspec_rtransform)

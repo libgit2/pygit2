@@ -125,9 +125,7 @@ class Blame(object):
         return BlameHunk._from_c(self, chunk)
 
     def for_line(self, line_no):
-        """for_line(line_no) -> BlameHunk
-
-        Returns the blame hunk data for a given line given its number
+        """Returns the <BlameHunk> object for a given line given its number
         in the current Blame.
 
         Arguments:

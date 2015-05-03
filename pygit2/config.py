@@ -158,12 +158,11 @@ class Config(object):
         return ConfigIterator(self, citer[0])
 
     def get_multivar(self, name, regex=None):
-        """get_multivar(name[, regex]) -> [str, ...]
+        """Get each value of a multivar ''name'' as a list of strings.
 
-        Get each value of a multivar ''name'' as a list. The optional ''regex''
-        parameter is expected to be a regular expression to filter the
-        variables we're interested in."""
-
+        The optional ''regex'' parameter is expected to be a regular expression
+        to filter the variables we're interested in.
+        """
         assert_string(name, "name")
 
         citer = ffi.new('git_config_iterator **')
@@ -175,11 +174,9 @@ class Config(object):
         return ConfigMultivarIterator(self, citer[0])
 
     def set_multivar(self, name, regex, value):
-        """set_multivar(name, regex, value)
-
-        Set a multivar ''name'' to ''value''. ''regexp'' is a regular
-        expression to indicate which values to replace"""
-
+        """Set a multivar ''name'' to ''value''. ''regexp'' is a regular
+        expression to indicate which values to replace.
+        """
         assert_string(name, "name")
         assert_string(regex, "regex")
         assert_string(value, "value")
@@ -189,14 +186,12 @@ class Config(object):
         check_error(err)
 
     def get_bool(self, key):
-        """get_bool(key) -> Bool
-
-        Look up *key* and parse its value as a boolean as per the git-config
-        rules
+        """Look up *key* and parse its value as a boolean as per the git-config
+        rules. Return a boolean value (True or False).
 
         Truthy values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',
-        0, 'off' and 'no'"""
-
+        0, 'off' and 'no'
+        """
         val = self._get_string(key)
         res = ffi.new('int *')
         err = C.git_config_parse_bool(res, val)
@@ -205,14 +200,12 @@ class Config(object):
         return res[0] != 0
 
     def get_int(self, key):
-        """get_int(key) -> int
-
-        Look up *key* and parse its value as an integer as per the git-config
-        rules.
+        """Look up *key* and parse its value as an integer as per the git-config
+        rules. Return an integer.
 
         A value can have a suffix 'k', 'm' or 'g' which stand for 'kilo',
-        'mega' and 'giga' respectively"""
-
+        'mega' and 'giga' respectively.
+        """
         val = self._get_string(key)
         res = ffi.new('int64_t *')
         err = C.git_config_parse_int64(res, val)
@@ -221,21 +214,18 @@ class Config(object):
         return res[0]
 
     def add_file(self, path, level=0, force=0):
-        """add_file(path, level=0, force=0)
-
-        Add a config file instance to an existing config."""
+        """Add a config file instance to an existing config."""
 
         err = C.git_config_add_file_ondisk(self._config, to_bytes(path), level,
                                            force)
         check_error(err)
 
     def snapshot(self):
-        """Create a snapshot from this Config object
+        """Create a snapshot from this Config object.
 
         This means that looking up multiple values will use the same version
-        of the configuration files
+        of the configuration files.
         """
-
         ccfg = ffi.new('git_config **')
         err = C.git_config_snapshot(ccfg, self._config)
         check_error(err)
@@ -278,24 +268,18 @@ class Config(object):
 
     @staticmethod
     def get_system_config():
-        """get_system_config() -> Config
-
-        Return an object representing the system configuration file."""
-
+        """Return a <Config> object representing the system configuration file.
+        """
         return Config._from_found_config(C.git_config_find_system)
 
     @staticmethod
     def get_global_config():
-        """get_global_config() -> Config
-
-        Return an object representing the global configuration file."""
-
+        """Return a <Config> object representing the global configuration file.
+        """
         return Config._from_found_config(C.git_config_find_global)
 
     @staticmethod
     def get_xdg_config():
-        """get_xdg_config() -> Config
-
-        Return an object representing the global configuration file."""
-
+        """Return a <Config> object representing the global configuration file.
+        """
         return Config._from_found_config(C.git_config_find_xdg)

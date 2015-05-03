@@ -170,17 +170,14 @@ class Remote(object):
         check_error(err)
 
     def save(self):
-        """save()
-
-        Save a remote to its repository's configuration"""
+        """Save a remote to its repository's configuration."""
 
         err = C.git_remote_save(self._remote)
         check_error(err)
 
     def fetch(self, signature=None, message=None):
-        """fetch([signature[, message]]) -> TransferProgress
-
-        Perform a fetch against this remote.
+        """Perform a fetch against this remote. Returns a <TransferProgress>
+        object.
         """
 
         # Get the default callbacks first
@@ -234,10 +231,7 @@ class Remote(object):
         return C.git_remote_refspec_count(self._remote)
 
     def get_refspec(self, n):
-        """get_refspec(n) -> Refspec
-
-        Return the refspec at the given position
-        """
+        """Return the <Refspec> object at the given position."""
         spec = C.git_remote_get_refspec(self._remote, n)
         return Refspec(self, spec)
 
@@ -273,32 +267,23 @@ class Remote(object):
             err = C.git_remote_set_push_refspecs(self._remote, arr)
             check_error(err)
 
-    def add_fetch(self, spec):
-        """add_fetch(refspec)
-
-        Add a fetch refspec (str) to the remote"""
-
-        err = C.git_remote_add_fetch(self._remote, to_bytes(spec))
+    def add_fetch(self, refspec):
+        """Add a fetch refspec (str) to the remote."""
+        err = C.git_remote_add_fetch(self._remote, to_bytes(refspec))
         check_error(err)
 
-    def add_push(self, spec):
-        """add_push(refspec)
-
-        Add a push refspec (str) to the remote"""
-
-        err = C.git_remote_add_push(self._remote, to_bytes(spec))
+    def add_push(self, refspec):
+        """Add a push refspec (str) to the remote."""
+        err = C.git_remote_add_push(self._remote, to_bytes(refspec))
         check_error(err)
 
     def push(self, specs, signature=None, message=None):
-        """push(specs, signature, message)
-
-        Push the given refspec to the remote. Raises ``GitError`` on
+        """Push the given refspec to the remote. Raises ``GitError`` on
         protocol error or unpack failure.
 
         :param [str] specs: push refspecs to use
         :param Signature signature: signature to use when updating the tips (optional)
         :param str message: message to use when updating the tips (optional)
-
         """
         # Get the default callbacks first
         defaultcallbacks = ffi.new('git_remote_callbacks *')
@@ -519,9 +504,8 @@ class RemoteCollection(object):
         return Remote(self._repo, cremote[0])
 
     def create(self, name, url, fetch=None):
-        """create(name, url [, fetch]) -> Remote
-
-        Create a new remote with the given name and url.
+        """Create a new remote with the given name and url. Returns a <Remote>
+        object.
 
         If 'fetch' is provided, this fetch refspec will be used instead of the default
         """
@@ -538,13 +522,11 @@ class RemoteCollection(object):
         return Remote(self._repo, cremote[0])
 
     def rename(self, name, new_name):
-        """rename(name, new_name) -> [str]
-
-        Rename a remote in the configuration. The refspecs in strandard
+        """Rename a remote in the configuration. The refspecs in strandard
         format will be renamed.
 
-        Returns a list of fetch refspecs which were not in the standard format
-        and thus could not be remapped
+        Returns a list of fetch refspecs (list of strings) which were not in
+        the standard format and thus could not be remapped.
         """
 
         if not new_name:

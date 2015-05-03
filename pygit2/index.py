@@ -110,8 +110,7 @@ class Index(object):
         check_error(err, True)
 
     def write(self):
-        """Write the contents of the Index to disk
-        """
+        """Write the contents of the Index to disk."""
         err = C.git_index_write(self._index)
         check_error(err, True)
 
@@ -120,9 +119,8 @@ class Index(object):
         check_error(err)
 
     def read_tree(self, tree):
-        """read_tree([Tree|Oid])
-
-        Replace the contents of the Index with those of a tree
+        """Replace the contents of the Index with those of the given tree,
+        expressed either as a <Tree> object or as an oid (string or <Oid>).
 
         The tree will be read recursively and all its children will also be
         inserted into the Index.
@@ -144,9 +142,8 @@ class Index(object):
         check_error(err)
 
     def write_tree(self, repo=None):
-        """write_tree([repo]) -> Oid
-
-        Create a tree out of the Index
+        """Create a tree out of the Index. Return the <Oid> object of the
+        written tree.
 
         The contents of the index will be written out to the object
         database. If there is no associated repository, 'repo' must be
@@ -181,13 +178,11 @@ class Index(object):
             check_error(err, True)
 
     def add(self, path_or_entry):
-        """add([path|entry])
+        """Add or update an entry in the Index.
 
-        Add or update an entry in the Index
-
-        If a path is given, that file will be added. The path must be
-        relative to the root of the worktree and the Index must be associated
-        with a repository.
+        If a path is given, that file will be added. The path must be relative
+        to the root of the worktree and the Index must be associated with a
+        repository.
 
         If an IndexEntry is given, that entry will be added or update in the
         Index without checking for the existence of the path or id.
@@ -206,12 +201,8 @@ class Index(object):
         check_error(err, True)
 
     def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
-        """diff_to_workdir(flags=0, context_lines=3, interhunk_lines=0) -> Diff
-
-        Diff the index against the working directory
-
-        Return a :py:class:`~pygit2.Diff` object with the differences
-        between the index and the working copy.
+        """Diff the index against the working directory. Return a <Diff> object
+        with the differences between the index and the working copy.
 
         Arguments:
 
@@ -242,12 +233,8 @@ class Index(object):
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
 
     def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
-        """diff_to_tree(tree, flags=0, context_lines=3, interhunk_lines=0) -> Diff
-
-        Diff the index against a tree
-
-        Return a :py:class:`~pygit2.Diff` object with the differences between
-        the index and the given tree.
+        """Diff the index against a tree.  Return a <Diff> object with the
+        differences between the index and the given tree.
 
         Arguments:
 

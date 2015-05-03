@@ -109,13 +109,10 @@ class Repository(_Repository):
     # Remotes
     #
     def create_remote(self, name, url):
-        """create_remote(name, url) -> Remote
-
-        Creates a new remote.
+        """Create a new remote. Return a <Remote> object.
 
         This method is deprecated, please use Remote.remotes.create()
         """
-
         return self.remotes.create(name, url)
 
     #
@@ -123,12 +120,12 @@ class Repository(_Repository):
     #
     @property
     def config(self):
-        """The configuration file for this repository
+        """The configuration file for this repository.
 
         If a the configuration hasn't been set yet, the default config for
         repository will be returned, including global and system configurations
-        (if they are available)."""
-
+        (if they are available).
+        """
         cconfig = ffi.new('git_config **')
         err = C.git_repository_config(cconfig, self._repo)
         check_error(err)
@@ -140,8 +137,8 @@ class Repository(_Repository):
         """A snapshot for this repositiory's configuration
 
         This allows reads over multiple values to use the same version
-        of the configuration files"""
-
+        of the configuration files.
+        """
         cconfig = ffi.new('git_config **')
         err = C.git_repository_config_snapshot(cconfig, self._repo)
         check_error(err)
@@ -152,9 +149,8 @@ class Repository(_Repository):
     # References
     #
     def create_reference(self, name, target, force=False):
-        """
-        Create a new reference "name" which points to an object or to another
-        reference.
+        """Create a new reference "name" which points to an object or to
+        another reference.
 
         Based on the type and value of the target parameter, this method tries
         to guess whether it is a direct or a symbolic reference.
@@ -427,8 +423,7 @@ class Repository(_Repository):
         raise ValueError("Only blobs and treeish can be diffed")
 
     def state_cleanup(self):
-        """
-        Remove all the metadata associated with an ongoing command like
+        """Remove all the metadata associated with an ongoing command like
         merge, revert, cherry-pick, etc. For example: MERGE_HEAD, MERGE_MSG,
         etc.
         """
@@ -493,8 +488,7 @@ class Repository(_Repository):
     #
     @property
     def index(self):
-        """Index representing the repository's index file
-        """
+        """Index representing the repository's index file."""
         cindex = ffi.new('git_index **')
         err = C.git_repository_index(cindex, self._repo)
         check_error(err, True)
@@ -507,8 +501,7 @@ class Repository(_Repository):
 
     @staticmethod
     def _merge_options(favor):
-        """Return a 'git_merge_opts *'
-        """
+        """Return a 'git_merge_opts *'"""
         def favor_to_enum(favor):
             if favor == 'normal':
                 return C.GIT_MERGE_FILE_FAVOR_NORMAL
@@ -534,11 +527,7 @@ class Repository(_Repository):
         return opts
 
     def merge_file_from_index(self, ancestor, ours, theirs):
-        """merge_file_from_index(ancestor, ours, theirs) -> str
-
-        Merge files from index.
-
-        Return a :py:class:`str` object with the merge result
+        """Merge files from index. Return a string with the merge result
         containing possible conflicts.
 
         ancestor
@@ -740,9 +729,7 @@ class Repository(_Repository):
     # Ahead-behind, which mostly lives on its own namespace
     #
     def ahead_behind(self, local, upstream):
-        """ahead_behind(local, upstream) -> (int, int)
-
-        Calculate how many different commits are in the non-common parts
+        """Calculate how many different commits are in the non-common parts
         of the history between the two given ids.
 
         Ahead is how many commits are in the ancestry of the 'local'
@@ -756,7 +743,8 @@ class Repository(_Repository):
         upstream
             The commit which is considered the upstream
 
-        Returns a tuple with the number of commits ahead and behind respectively.
+        Returns a tuple of two integers with the number of commits ahead and
+        behind respectively.
         """
 
         if not isinstance(local, Oid):
