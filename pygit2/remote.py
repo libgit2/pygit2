@@ -178,7 +178,7 @@ class Remote(object):
         check_error(err)
 
     def fetch(self, signature=None, message=None):
-        """fetch(signature, message) -> TransferProgress
+        """fetch([signature[, message]]) -> TransferProgress
 
         Perform a fetch against this remote.
         """
@@ -296,8 +296,8 @@ class Remote(object):
         protocol error or unpack failure.
 
         :param [str] specs: push refspecs to use
-        :param Signature signature: signature to use when updating the tips
-        :param str message: message to use when updating the tips
+        :param Signature signature: signature to use when updating the tips (optional)
+        :param str message: message to use when updating the tips (optional)
 
         """
         # Get the default callbacks first
