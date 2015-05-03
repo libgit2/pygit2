@@ -64,7 +64,6 @@ class StrArray(object):
         if not isinstance(l, list):
             raise TypeError("Value must be a list")
 
-        arr = ffi.new('git_strarray *')
         strings = [None] * len(l)
         for i in range(len(l)):
             if not is_string(l[i]):

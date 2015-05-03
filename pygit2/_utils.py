@@ -32,7 +32,6 @@ pygit2 at run-time.
 
 # Import from the Standard Library
 from binascii import crc32
-import inspect
 import codecs
 import os
 from os import getenv
