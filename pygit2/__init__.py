@@ -41,6 +41,7 @@ from .index import Index, IndexEntry
 from .remote import Remote, get_credentials
 from .repository import Repository
 from .settings import Settings
+from .submodule import Submodule
 from .utils import to_bytes, to_str
 from ._utils import __version__
 
