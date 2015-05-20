@@ -764,3 +764,41 @@ class Repository(_Repository):
         check_error(err)
 
         return int(ahead[0]), int(behind[0])
+
+    #
+    # Git attributes
+    #
+    def get_attr(self, path, name, flags=0):
+        """Retrieve an attribute for a file by path
+
+        Arguments
+
+        path
+            The path of the file to look up attributes for, relative to the
+            workdir root
+        name
+            The name of the attribute to look up
+        flags
+            A combination of GIT_ATTR_CHECK_ flags which determine the
+            lookup order
+
+        Returns either a boolean, None (if the value is unspecified) or string
+        with the value of the attribute.
+        """
+
+        cvalue = ffi.new('char **')
+        err = C.git_attr_get(cvalue, self._repo, flags, to_bytes(path), to_bytes(name))
+        check_error(err)
+
+        # Now let's see if we can figure out what the value is
+        attr_kind = C.git_attr_value(cvalue[0])
+        if attr_kind == C.GIT_ATTR_UNSPECIFIED_T:
+            return None
+        elif attr_kind == C.GIT_ATTR_TRUE_T:
+            return True
+        elif attr_kind == C.GIT_ATTR_FALSE_T:
+            return False
+        elif attr_kind == C.GIT_ATTR_VALUE_T:
+            return ffi.string(cvalue[0]).decode('utf-8')
+
+        assert False, "the attribute value from libgit2 is invalid"

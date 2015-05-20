@@ -702,3 +702,18 @@ int git_merge_commits(git_index **out, git_repository *repo, const git_commit *o
 int git_merge_trees(git_index **out, git_repository *repo, const git_tree *ancestor_tree, const git_tree *our_tree, const git_tree *their_tree, const git_merge_options *opts);
 int git_merge_file_from_index(git_merge_file_result *out, git_repository *repo, const git_index_entry *ancestor, const git_index_entry *ours, const git_index_entry *theirs, const git_merge_file_options *opts);
 void git_merge_file_result_free(git_merge_file_result *result);
+
+#define GIT_ATTR_CHECK_FILE_THEN_INDEX ...
+#define GIT_ATTR_CHECK_INDEX_THEN_FILE ...
+#define GIT_ATTR_CHECK_INDEX_ONLY      ...
+#define GIT_ATTR_CHECK_NO_SYSTEM       ...
+
+typedef enum {
+	GIT_ATTR_UNSPECIFIED_T = 0,
+	GIT_ATTR_TRUE_T,
+	GIT_ATTR_FALSE_T,
+	GIT_ATTR_VALUE_T,
+} git_attr_t;
+
+int git_attr_get(const char **value_out, git_repository *repo, uint32_t flags, const char *path, const char *name);
+git_attr_t git_attr_value(const char *attr);
