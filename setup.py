@@ -47,7 +47,7 @@ import unittest
 
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
-from _utils import __version__, get_libgit2_paths, get_ffi
+from libgit2_build import __version__, get_libgit2_paths
 del sys.path[0]
 
 # Python 2 support
@@ -95,19 +95,42 @@ class TestCommand(Command):
         unittest.main(None, defaultTest='test.test_suite', argv=test_argv)
 
 
-class CFFIBuild(build):
-    """Hack to combat the chicken and egg problem that we need cffi
-    to add cffi as an extension.
-    """
-    def finalize_options(self):
-        ffi, C = get_ffi()
-        self.distribution.ext_modules.append(ffi.verifier.get_extension())
-        build.finalize_options(self)
+class sdist_files_from_git(sdist):
+    def get_file_list(self):
+        popen = Popen(['git', 'ls-files'], stdout=PIPE, stderr=PIPE)
+        stdoutdata, stderrdata = popen.communicate()
+        if popen.returncode != 0:
+            print(stderrdata)
+            sys.exit()
+
+        for line in stdoutdata.splitlines():
+            # Skip hidden files at the root
+            if line[0] == '.':
+                continue
+            self.filelist.append(line)
+
+        # Ok
+        self.filelist.sort()
+        self.filelist.remove_duplicates()
+        self.write_manifest()
 
 
-class BuildWithDLLs(CFFIBuild):
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Version Control"]
 
-    # On Windows, we install the git2.dll too.
+with codecs.open('README.rst', 'r', 'utf-8') as readme:
+    long_description = readme.read()
+
+cmdclass = {
+    'test': TestCommand,
+    'sdist': sdist_files_from_git,
+}
+
+
+# On Windows, we install the git2.dll too.
+class BuildWithDLLs(build):
     def _get_dlls(self):
         # return a list of (FQ-in-name, relative-out-name) tuples.
         ret = []
@@ -133,45 +156,12 @@ class BuildWithDLLs(CFFIBuild):
 
     def run(self):
         build.run(self)
-        # On Windows we package up the dlls with the plugin.
         for s, d in self._get_dlls():
             self.copy_file(s, d)
 
-
-class sdist_files_from_git(sdist):
-    def get_file_list(self):
-        popen = Popen(['git', 'ls-files'], stdout=PIPE, stderr=PIPE)
-        stdoutdata, stderrdata = popen.communicate()
-        if popen.returncode != 0:
-            print(stderrdata)
-            sys.exit()
-
-        for line in stdoutdata.splitlines():
-            # Skip hidden files at the root
-            if line[0] == '.':
-                continue
-            self.filelist.append(line)
-
-        # Ok
-        self.filelist.sort()
-        self.filelist.remove_duplicates()
-        self.write_manifest()
-
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Topic :: Software Development :: Version Control"]
-
-
-with codecs.open('README.rst', 'r', 'utf-8') as readme:
-    long_description = readme.read()
-
-
-cmdclass = {
-    'build': BuildWithDLLs if os.name == 'nt' else CFFIBuild,
-    'test': TestCommand,
-    'sdist': sdist_files_from_git,
-    }
+# On Windows we package up the dlls with the plugin.
+if os.name == 'nt':
+    cmdclass['build'] = BuildWithDLLs
 
 setup(name='pygit2',
       description='Python bindings for libgit2.',
@@ -185,6 +175,7 @@ setup(name='pygit2',
       long_description=long_description,
       packages=['pygit2'],
       package_data={'pygit2': ['decl.h']},
+      cffi_modules=['pygit2/libgit2_build.py:ffi'],
       setup_requires=['cffi'],
       install_requires=['cffi'],
       zip_safe=False,

@@ -69,42 +69,37 @@ def get_libgit2_paths():
     )
 
 
-#
-# Loads the cffi extension
-#
-def get_ffi():
-    import cffi
+import cffi
 
-    ffi = cffi.FFI()
+ffi = cffi.FFI()
 
-    # Load C definitions
-    if getattr(sys, 'frozen', False):
-        if hasattr(sys, '_MEIPASS'):
-            dir_path = sys._MEIPASS
-        else:
-            dir_path = dirname(abspath(sys.executable))
+# Load C definitions
+if getattr(sys, 'frozen', False):
+    if hasattr(sys, '_MEIPASS'):
+        dir_path = sys._MEIPASS
     else:
-        dir_path = dirname(abspath(__file__))
+        dir_path = dirname(abspath(sys.executable))
+else:
+    dir_path = dirname(abspath(__file__))
 
-    decl_path = os.path.join(dir_path, 'decl.h')
-    with codecs.open(decl_path, 'r', 'utf-8') as header:
-        ffi.cdef(header.read())
+decl_path = os.path.join(dir_path, 'decl.h')
+with codecs.open(decl_path, 'r', 'utf-8') as header:
+    C_HEADER_SRC = header.read()
 
-    # The modulename
-    # Simplified version of what cffi does: remove kwargs and vengine
-    preamble = "#include <git2.h>"
-    key = [sys.version[:3], cffi.__version__, preamble] + ffi._cdefsources
-    key = '\x00'.join(key)
-    if sys.version_info >= (3,):
-        key = key.encode('utf-8')
-    k1 = hex(crc32(key[0::2]) & 0xffffffff).lstrip('0x').rstrip('L')
-    k2 = hex(crc32(key[1::2]) & 0xffffffff).lstrip('0').rstrip('L')
-    modulename = 'pygit2_cffi_%s%s' % (k1, k2)
+libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
 
-    # Load extension module
-    libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
-    C = ffi.verify(preamble, modulename=modulename, libraries=["git2"],
-                   include_dirs=[libgit2_include], library_dirs=[libgit2_lib])
+C_KEYWORDS = dict(libraries=['git2'],
+                  library_dirs=[libgit2_lib],
+                  include_dirs=[libgit2_include])
 
-    # Ok
-    return ffi, C
+# The modulename
+# Simplified version of what cffi does: remove kwargs and vengine
+preamble = "#include <git2.h>"
+
+if hasattr(ffi, 'set_source'):
+    ffi.set_source("pygit2._libgit2", preamble, **C_KEYWORDS)
+
+ffi.cdef(C_HEADER_SRC)
+
+if __name__ == '__main__':
+    ffi.compile()

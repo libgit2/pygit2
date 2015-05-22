@@ -29,7 +29,8 @@
 from __future__ import absolute_import
 
 # Import from pygit2
-from ._utils import get_ffi
-
-
-ffi, C = get_ffi()
+try:
+    from ._libgit2 import ffi, lib as C
+except ImportError:
+    from .libgit2_build import ffi, C_HEADER_SRC, C_KEYWORDS
+    C = ffi.verify(C_HEADER_SRC, **C_KEYWORDS)
