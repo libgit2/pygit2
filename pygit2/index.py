@@ -161,10 +161,10 @@ class Index(object):
         check_error(err)
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
-    def remove(self, path):
+    def remove(self, path, level=0):
         """Remove an entry from the Index.
         """
-        err = C.git_index_remove(self._index, to_bytes(path), 0)
+        err = C.git_index_remove(self._index, to_bytes(path), level)
         check_error(err, True)
 
     def add_all(self, pathspecs=[]):
