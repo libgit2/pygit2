@@ -53,9 +53,6 @@ Diff interface refactoring
 
 New features:
 
-- Make pygit work in a frozen environment
-  `#453 <https://github.com/libgit2/pygit2/pull/453>`_
-
 - New ``Repository.expand_id(...)`` and ``Repository.ahead_behind(...)``
   `#448 <https://github.com/libgit2/pygit2/pull/448>`_
 
@@ -66,23 +63,50 @@ New features:
   `#489 <https://github.com/libgit2/pygit2/pull/489>`_
 
 - New ``Repository.cherrypick(...)``
+  `#436 <https://github.com/libgit2/pygit2/issues/436>`_
   `#492 <https://github.com/libgit2/pygit2/pull/492>`_
 
 - New support for submodules
   `#499 <https://github.com/libgit2/pygit2/pull/499>`_
+  `#514 <https://github.com/libgit2/pygit2/pull/514>`_
 
 - New ``Repository.merge_file_from_index(...)``
   `#503 <https://github.com/libgit2/pygit2/pull/503>`_
 
+- Now ``Repository.diff`` supports diffing two blobs
+  `#508 <https://github.com/libgit2/pygit2/pull/508>`_
+
+- New optional ``fetch`` parameter in ``Remote.create``
+  `#526 <https://github.com/libgit2/pygit2/pull/526>`_
+
+- New ``pygit2.DiffStats``
+  `#406 <https://github.com/libgit2/pygit2/issues/406>`_
+  `#525 <https://github.com/libgit2/pygit2/pull/525>`_
+
+- New ``Repository.get_attr(...)``
+  `#528 <https://github.com/libgit2/pygit2/pull/528>`_
+
+- New ``level`` optional parameter in ``Index.remove``
+  `#533 <https://github.com/libgit2/pygit2/pull/533>`_
+
+Build and install improvements:
+
+- Make pygit work in a frozen environment
+  `#453 <https://github.com/libgit2/pygit2/pull/453>`_
+
+- Make pygit2 work with pyinstaller
+  `#510 <https://github.com/libgit2/pygit2/pull/510>`_
+
 Bugs fixed:
+
+- Fix memory issues
+  `#477 <https://github.com/libgit2/pygit2/issues/477>`_
+  `#487 <https://github.com/libgit2/pygit2/pull/487>`_
+  `#520 <https://github.com/libgit2/pygit2/pull/520>`_
 
 - Fix TreeEntry equality testing
   `#458 <https://github.com/libgit2/pygit2/issues/458>`_
   `#488 <https://github.com/libgit2/pygit2/pull/488>`_
-
-- Safer handling of string arrays
-  `#477 <https://github.com/libgit2/pygit2/issues/477>`_
-  `#487 <https://github.com/libgit2/pygit2/pull/487>`_
 
 - ``Repository.write_archive`` fix handling of symlinks
   `#480 <https://github.com/libgit2/pygit2/pull/480>`_
@@ -90,12 +114,22 @@ Bugs fixed:
 - Fix type check in ``Diff[...]``
   `#495 <https://github.com/libgit2/pygit2/issues/495>`_
 
+- Fix error when merging files with unicode content
+  `#505 <https://github.com/libgit2/pygit2/pull/505>`_
+
 Other:
 
-- Documentation improvements
+- Documentation improvements and fixes
   `#448 <https://github.com/libgit2/pygit2/pull/448>`_
   `#491 <https://github.com/libgit2/pygit2/pull/491>`_
   `#497 <https://github.com/libgit2/pygit2/pull/497>`_
+  `#507 <https://github.com/libgit2/pygit2/pull/507>`_
+  `#517 <https://github.com/libgit2/pygit2/pull/517>`_
+  `#518 <https://github.com/libgit2/pygit2/pull/518>`_
+  `#519 <https://github.com/libgit2/pygit2/pull/519>`_
+  `#521 <https://github.com/libgit2/pygit2/pull/521>`_
+  `#523 <https://github.com/libgit2/pygit2/pull/523>`_
+  `#527 <https://github.com/libgit2/pygit2/pull/527>`_
 
 - Expose the ``pygit2.GIT_REPOSITORY_INIT_*`` constants
   `#483 <https://github.com/libgit2/pygit2/issues/483>`_
