@@ -163,7 +163,7 @@ Reference_rename(Reference *self, PyObject *py_name)
         return NULL;
 
     /* Rename */
-    err = git_reference_rename(&new_reference, self->reference, c_name, 0, NULL, NULL);
+    err = git_reference_rename(&new_reference, self->reference, c_name, 0, NULL);
     git_reference_free(self->reference);
     free(c_name);
     if (err < 0)
@@ -228,7 +228,7 @@ Reference_target__get__(Reference *self)
 }
 
 PyDoc_STRVAR(Reference_set_target__doc__,
-    "set_target(target, [signature, message])\n"
+    "set_target(target, [message])\n"
     "\n"
     "Set the target of this reference.\n"
     "\n"
@@ -240,9 +240,6 @@ PyDoc_STRVAR(Reference_set_target__doc__,
     "\n"
     "target\n"
     "    The new target for this reference\n"
-    "signature\n"
-    "    The signature to use for the reflog. If left out, the repository's\n"
-    "    default identity will be used.\n"
     "message\n"
     "    Message to use for the reflog.\n");
 
@@ -253,20 +250,15 @@ Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
     char *c_name;
     int err;
     git_reference *new_ref;
-    const git_signature *sig = NULL;
     PyObject *py_target = NULL;
-    Signature *py_signature = NULL;
     const char *message = NULL;
-    char *keywords[] = {"target", "signature", "message", NULL};
+    char *keywords[] = {"target", "message", NULL};
 
     CHECK_REFERENCE(self);
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O!s", keywords,
-                                     &py_target, &SignatureType, &py_signature, &message))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|s", keywords,
+                                     &py_target, &message))
         return NULL;
-
-    if (py_signature)
-        sig = py_signature->signature;
 
     /* Case 1: Direct */
     if (GIT_REF_OID == git_reference_type(self->reference)) {
@@ -274,7 +266,7 @@ Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
         if (err < 0)
             goto error;
 
-        err = git_reference_set_target(&new_ref, self->reference, &oid, sig, message);
+        err = git_reference_set_target(&new_ref, self->reference, &oid, message);
         if (err < 0)
             goto error;
 
@@ -288,7 +280,7 @@ Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
     if (c_name == NULL)
         return NULL;
 
-    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, sig, message);
+    err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, message);
     free(c_name);
     if (err < 0)
         goto error;

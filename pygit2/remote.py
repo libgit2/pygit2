@@ -153,21 +153,11 @@ class Remote(object):
 
         return maybe_string(C.git_remote_url(self._remote))
 
-    @url.setter
-    def url(self, value):
-        err = C.git_remote_set_url(self._remote, to_bytes(value))
-        check_error(err)
-
     @property
     def push_url(self):
         """Push url of the remote"""
 
         return maybe_string(C.git_remote_pushurl(self._remote))
-
-    @push_url.setter
-    def push_url(self, value):
-        err = C.git_remote_set_pushurl(self._remote, to_bytes(value))
-        check_error(err)
 
     def save(self):
         """Save a remote to its repository's configuration."""
@@ -175,52 +165,32 @@ class Remote(object):
         err = C.git_remote_save(self._remote)
         check_error(err)
 
-    def fetch(self, signature=None, message=None):
+    def fetch(self, refspecs=None, message=None):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
         """
 
-        # Get the default callbacks first
-        defaultcallbacks = ffi.new('git_remote_callbacks *')
-        err = C.git_remote_init_callbacks(defaultcallbacks, 1)
-        check_error(err)
+        fetch_opts = ffi.new('git_fetch_options *')
+        err = C.git_fetch_init_options(fetch_opts, C.GIT_FETCH_OPTIONS_VERSION)
 
-        # Build custom callback structure
-        callbacks = ffi.new('git_remote_callbacks *')
-        callbacks.version = 1
-        callbacks.sideband_progress = self._sideband_progress_cb
-        callbacks.transfer_progress = self._transfer_progress_cb
-        callbacks.update_tips = self._update_tips_cb
-        callbacks.credentials = self._credentials_cb
+        fetch_opts.callbacks.sideband_progress = self._sideband_progress_cb
+        fetch_opts.callbacks.transfer_progress = self._transfer_progress_cb
+        fetch_opts.callbacks.update_tips = self._update_tips_cb
+        fetch_opts.callbacks.credentials = self._credentials_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
-        callbacks.payload = self._self_handle
-
-        err = C.git_remote_set_callbacks(self._remote, callbacks)
-        try:
-            check_error(err)
-        except:
-            self._self_handle = None
-            raise
-
-        if signature:
-            ptr = signature._pointer[:]
-        else:
-            ptr = ffi.NULL
+        fetch_opts.callbacks.payload = self._self_handle
 
         self._stored_exception = None
 
         try:
-            err = C.git_remote_fetch(self._remote, ffi.NULL, ptr, to_bytes(message))
-            if self._stored_exception:
-                raise self._stored_exception
-
-            check_error(err)
+            with StrArray(refspecs) as arr:
+                err = C.git_remote_fetch(self._remote, arr, fetch_opts, to_bytes(message))
+                if self._stored_exception:
+                    raise self._stored_exception
+                check_error(err)
         finally:
-            # Even on error, clear stored callbacks and reset to default
             self._self_handle = None
-            err = C.git_remote_set_callbacks(self._remote, defaultcallbacks)
-            check_error(err)
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
@@ -245,12 +215,6 @@ class Remote(object):
 
         return strarray_to_strings(specs)
 
-    @fetch_refspecs.setter
-    def fetch_refspecs(self, l):
-        with StrArray(l) as arr:
-            err = C.git_remote_set_fetch_refspecs(self._remote, arr)
-            check_error(err)
-
     @property
     def push_refspecs(self):
         """Refspecs that will be used for pushing"""
@@ -261,64 +225,28 @@ class Remote(object):
 
         return strarray_to_strings(specs)
 
-    @push_refspecs.setter
-    def push_refspecs(self, l):
-        with StrArray(l) as arr:
-            err = C.git_remote_set_push_refspecs(self._remote, arr)
-            check_error(err)
-
-    def add_fetch(self, refspec):
-        """Add a fetch refspec (str) to the remote."""
-        err = C.git_remote_add_fetch(self._remote, to_bytes(refspec))
-        check_error(err)
-
-    def add_push(self, refspec):
-        """Add a push refspec (str) to the remote."""
-        err = C.git_remote_add_push(self._remote, to_bytes(refspec))
-        check_error(err)
-
-    def push(self, specs, signature=None, message=None):
+    def push(self, specs):
         """Push the given refspec to the remote. Raises ``GitError`` on
         protocol error or unpack failure.
 
         :param [str] specs: push refspecs to use
-        :param Signature signature: signature to use when updating the tips (optional)
-        :param str message: message to use when updating the tips (optional)
         """
-        # Get the default callbacks first
-        defaultcallbacks = ffi.new('git_remote_callbacks *')
-        err = C.git_remote_init_callbacks(defaultcallbacks, 1)
-        check_error(err)
-
-        if signature:
-            sig_cptr = ffi.new('git_signature **')
-            ffi.buffer(sig_cptr)[:] = signature._pointer[:]
-            sig_ptr = sig_cptr[0]
-        else:
-            sig_ptr = ffi.NULL
+        push_opts = ffi.new('git_push_options *')
+        err = C.git_push_init_options(push_opts, C.GIT_PUSH_OPTIONS_VERSION)
 
         # Build custom callback structure
-        callbacks = ffi.new('git_remote_callbacks *')
-        callbacks.version = 1
-        callbacks.sideband_progress = self._sideband_progress_cb
-        callbacks.transfer_progress = self._transfer_progress_cb
-        callbacks.update_tips = self._update_tips_cb
-        callbacks.credentials = self._credentials_cb
-        callbacks.push_update_reference = self._push_update_reference_cb
+        push_opts.callbacks.sideband_progress = self._sideband_progress_cb
+        push_opts.callbacks.transfer_progress = self._transfer_progress_cb
+        push_opts.callbacks.update_tips = self._update_tips_cb
+        push_opts.callbacks.credentials = self._credentials_cb
+        push_opts.callbacks.push_update_reference = self._push_update_reference_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
-        callbacks.payload = self._self_handle
-
-        try:
-            err = C.git_remote_set_callbacks(self._remote, callbacks)
-            check_error(err)
-        except:
-            self._self_handle = None
-            raise
+        push_opts.callbacks.payload = self._self_handle
 
         try:
             with StrArray(specs) as refspecs:
-                err = C.git_remote_push(self._remote, refspecs, ffi.NULL, sig_ptr, to_bytes(message))
+                err = C.git_remote_push(self._remote, refspecs, ffi.NULL)
                 check_error(err)
         finally:
             self._self_handle = None
@@ -550,4 +478,30 @@ class RemoteCollection(object):
         All remote-tracking branches and configuration settings for the remote will be removed.
         """
         err = C.git_remote_delete(self._repo._repo, to_bytes(name))
+        check_error(err)
+
+    def set_url(self, name, url):
+        """ Set the URL for a remote
+        """
+        err = C.git_remote_set_url(self._repo._repo, to_bytes(name), to_bytes(url))
+        check_error(err)
+
+    def set_push_url(self, name, url):
+        """Set the push-URL for a remote
+        """
+        err = C.git_remote_set_pushurl(self._repo._repo, to_bytes(name), to_bytes(url))
+        check_error(err)
+
+    def add_fetch(self, name, refspec):
+        """Add a fetch refspec (str) to the remote
+        """
+
+        err = C.git_remote_add_fetch(self._repo._repo, to_bytes(name), to_bytes(refspec))
+        check_error(err)
+
+    def add_push(self, name, refspec):
+        """Add a push refspec (str) to the remote
+        """
+
+        err = C.git_remote_add_push(self._repo._repo, to_bytes(name), to_bytes(refspec))
         check_error(err)

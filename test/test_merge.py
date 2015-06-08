@@ -82,7 +82,7 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
 
         self.repo.merge(branch_id)
         self.assertTrue(self.repo.index.conflicts is not None)
-        status = pygit2.GIT_STATUS_WT_NEW | pygit2.GIT_STATUS_INDEX_DELETED
+        status = pygit2.GIT_STATUS_CONFLICTED
         # Asking twice to assure the reference counting is correct
         self.assertEqual({'.gitignore': status}, self.repo.status())
         self.assertEqual({'.gitignore': status}, self.repo.status())

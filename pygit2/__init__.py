@@ -278,12 +278,12 @@ def clone_repository(
 
     opts.bare = bare
     if credentials:
-        opts.remote_callbacks.credentials = _credentials_cb
-        opts.remote_callbacks.payload = d_handle
+        opts.fetch_opts.callbacks.credentials = _credentials_cb
+        opts.fetch_opts.callbacks.payload = d_handle
 
     if certificate:
-        opts.remote_callbacks.certificate_check = _certificate_cb
-        opts.remote_callbacks.payload = d_handle
+        opts.fetch_opts.callbacks.certificate_check = _certificate_cb
+        opts.fetch_opts.callbacks.payload = d_handle
 
     err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
 

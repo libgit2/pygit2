@@ -637,7 +637,7 @@ Repository_merge(Repository *self, PyObject *py_oid)
     if (err < 0)
         return Error_set(err);
 
-    checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE;
+    checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING;
     err = git_merge(self->repo,
                     (const git_annotated_commit **)&commit, 1,
                     &merge_opts, &checkout_opts);
@@ -677,7 +677,7 @@ Repository_cherrypick(Repository *self, PyObject *py_oid)
     if (err < 0)
         return Error_set(err);
 
-    cherrypick_opts.checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE;
+    cherrypick_opts.checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
     err = git_cherrypick(self->repo,
                     commit,
                     (const git_cherrypick_options *)&cherrypick_opts);
@@ -989,7 +989,7 @@ Repository_create_branch(Repository *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "sO!|i", &c_name, &CommitType, &py_commit, &force))
         return NULL;
 
-    err = git_branch_create(&c_reference, self->repo, c_name, py_commit->commit, force, NULL, NULL);
+    err = git_branch_create(&c_reference, self->repo, c_name, py_commit->commit, force);
     if (err < 0)
         return Error_set(err);
 
@@ -1194,7 +1194,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
     if (err < 0)
         return NULL;
 
-    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force, NULL, NULL);
+    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1228,7 +1228,7 @@ Repository_create_reference_symbolic(Repository *self,  PyObject *args,
         return NULL;
 
     err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
-                                        c_target, force, NULL, NULL);
+                                        c_target, force, NULL);
     if (err < 0)
         return Error_set(err);
 
@@ -1513,7 +1513,7 @@ Repository_reset(Repository *self, PyObject* args)
 
     err = git_object_lookup_prefix(&target, self->repo, &oid, len,
                                    GIT_OBJ_ANY);
-    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL, NULL, NULL);
+    err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL);
     git_object_free(target);
     if (err < 0)
         return Error_set_oid(err, &oid, len);

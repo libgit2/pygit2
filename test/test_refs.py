@@ -114,8 +114,9 @@ class ReferencesTest(utils.RepoTestCase):
         reference = self.repo.lookup_reference('HEAD')
         self.assertEqual(reference.target, 'refs/heads/master')
         sig = Signature('foo', 'bar')
+        self.repo.set_ident('foo', 'bar')
         msg = 'Hello log'
-        reference.set_target('refs/heads/i18n', signature=sig, message=msg)
+        reference.set_target('refs/heads/i18n', message=msg)
         self.assertEqual(reference.target, 'refs/heads/i18n')
         self.assertEqual(list(reference.log())[0].message, msg)
         self.assertEqualSignature(list(reference.log())[0].committer, sig)
