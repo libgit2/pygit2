@@ -7,7 +7,8 @@ involves setting the refspec to one which copies all refs and a mirror
 option for push in the remote.
 
 .. code-block:: bash
-    $> git clone --mirror https://github.com/libgit2/pygit2
+
+   $> git clone --mirror https://github.com/libgit2/pygit2
 
 .. code-block:: python
 
