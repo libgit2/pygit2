@@ -522,7 +522,7 @@ class RemoteCollection(object):
         return Remote(self._repo, cremote[0])
 
     def rename(self, name, new_name):
-        """Rename a remote in the configuration. The refspecs in strandard
+        """Rename a remote in the configuration. The refspecs in standard
         format will be renamed.
 
         Returns a list of fetch refspecs (list of strings) which were not in
