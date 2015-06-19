@@ -242,6 +242,16 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         self.assertEqual(stats.indexed_objects, REMOTE_REPO_OBJECTS)
         self.assertEqual(stats.received_objects, REMOTE_REPO_OBJECTS)
 
+    def test_fetch_insecure(self):
+        def no_check(certificate, valid, host):
+            return True
+        remote = self.repo.remotes[0]
+        remote.certificate_check = no_check
+        stats = remote.fetch()
+        self.assertEqual(stats.received_bytes, REMOTE_REPO_BYTES)
+        self.assertEqual(stats.indexed_objects, REMOTE_REPO_OBJECTS)
+        self.assertEqual(stats.received_objects, REMOTE_REPO_OBJECTS)
+
     def test_transfer_progress(self):
         self.tp = None
         def tp_cb(stats):
