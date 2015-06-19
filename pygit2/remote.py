@@ -70,7 +70,6 @@ class TransferProgress(object):
         self.received_bytes = tp.received_bytes
         """"Number of bytes received up to now"""
 
-
 class Remote(object):
 
     def sideband_progress(self, string):
@@ -192,6 +191,7 @@ class Remote(object):
         callbacks.transfer_progress = self._transfer_progress_cb
         callbacks.update_tips = self._update_tips_cb
         callbacks.credentials = self._credentials_cb
+        callbacks.certificate_check = self._certificate_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         callbacks.payload = self._self_handle
@@ -304,6 +304,7 @@ class Remote(object):
         callbacks.transfer_progress = self._transfer_progress_cb
         callbacks.update_tips = self._update_tips_cb
         callbacks.credentials = self._credentials_cb
+        callbacks.certificate_check = self._certificate_cb
         callbacks.push_update_reference = self._push_update_reference_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
@@ -413,6 +414,25 @@ class Remote(object):
             return C.GIT_EUSER
 
         return 0
+
+    @ffi.callback('int (*git_transport_certificate_check_cb)'
+                  '(git_cert *cert, int valid, const char *host, void *payload)')
+    def _certificate_cb(cert_i, valid, host, data):
+        self = ffi.from_handle(data)
+
+        if not hasattr(self, 'certificate_check') or not self.certificate_check:
+            return 0
+
+        try:
+            val = self.certificate_cb(None, bool(valid), ffi.string(host))
+            if not val:
+                return C.GIT_ECERTIFICATE
+        except Exception as e:
+            self._stored_exception = e
+            return C.GIT_EUSER
+
+        return 0
+
 
 
 def get_credentials(fn, url, username, allowed):
