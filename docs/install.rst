@@ -35,11 +35,11 @@ while the last number |lq| *.micro* |rq| auto-increments independently.
 
 As illustration see this table of compatible releases:
 
-+-----------+--------+----------------------------------------+-------------------------------+
-|**libgit2**| 0.22.0 | 0.21.1, 0.21.2                         |0.20.0                         |
-+-----------+--------+----------------------------------------+-------------------------------+
-|**pygit2** | 0.22.0 | 0.21.0, 0.21.1, 0.21.2, 0.21.3, 0.21.4 | 0.20.0, 0.20.1, 0.20.2, 0.20.3|
-+-----------+--------+----------------------------------------+-------------------------------+
++-----------+--------+--------+----------------------------------------+
+|**libgit2**| 0.23.0 | 0.22.0 | 0.21.1, 0.21.2                         |
++-----------+--------+--------+----------------------------------------+
+|**pygit2** | 0.23.0 | 0.22.0 | 0.21.0, 0.21.1, 0.21.2, 0.21.3, 0.21.4 |
++-----------+--------+--------+----------------------------------------+
 
 .. warning::
 
@@ -56,9 +56,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz
-   $ tar xzf v0.22.0.tar.gz
-   $ cd libgit2-0.22.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.23.0.tar.gz
+   $ tar xzf v0.23.0.tar.gz
+   $ cd libgit2-0.23.0/
    $ cmake .
    $ make
    $ sudo make install
@@ -140,9 +140,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz
-   $ tar xzf v0.22.0.tar.gz
-   $ cd libgit2-0.22.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.23.0.tar.gz
+   $ tar xzf v0.23.0.tar.gz
+   $ cd libgit2-0.23.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -178,7 +178,7 @@ everytime. Verify yourself if curious:
 
 .. code-block:: sh
 
-   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.21.3-py2.7-linux-x86_64.egg/_pygit2.so | grep PATH
+   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.23.0-py2.7-linux-x86_64.egg/_pygit2.so | grep PATH
     0x000000000000001d (RUNPATH)            Library runpath: [/tmp/venv/lib]
 
 
@@ -195,9 +195,9 @@ from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ wget https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz
-   $ tar xzf v0.22.0.tar.gz
-   $ cd libgit2-0.22.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.23.0.tar.gz
+   $ tar xzf v0.23.0.tar.gz
+   $ cd libgit2-0.23.0/
    $ cmake . -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"
    $ cmake --build . --config release --target install
    $ ctest -v
