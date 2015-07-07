@@ -154,6 +154,16 @@ TreeEntry_hex__get__(TreeEntry *self)
     return git_oid_to_py_str(git_tree_entry_id(self->entry));
 }
 
+PyObject *
+TreeEntry_repr(TreeEntry *self)
+{
+    char str[GIT_OID_HEXSZ + 1] = { 0 };
+    const char *typename;
+
+    typename = git_object_type2string(git_tree_entry_type(self->entry));
+    git_oid_fmt(str, git_tree_entry_id(self->entry));
+    return PyString_FromFormat("pygit2.TreeEntry('%s', %s, %s)", git_tree_entry_name(self->entry), typename, str);
+}
 
 PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, filemode),
@@ -176,7 +186,7 @@ PyTypeObject TreeEntryType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)TreeEntry_repr,                  /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
