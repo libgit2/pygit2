@@ -61,6 +61,11 @@ class StrArray(object):
     """
 
     def __init__(self, l):
+        # Allow passing in None as lg2 typically considers them the same as empty
+        if l is None:
+            self.array = ffi.NULL
+            return
+
         if not isinstance(l, list):
             raise TypeError("Value must be a list")
 

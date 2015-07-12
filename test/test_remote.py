@@ -100,22 +100,23 @@ class RepositoryTest(utils.RepoTestCase):
 
 
     def test_remote_set_url(self):
-        remote = self.repo.remotes[0]
-
+        remote = self.repo.remotes["origin"]
         self.assertEqual(REMOTE_URL, remote.url)
+
         new_url = 'git://github.com/cholin/pygit2.git'
-        remote.url = new_url
+        self.repo.remotes.set_url("origin", new_url)
+        remote = self.repo.remotes["origin"]
         self.assertEqual(new_url, remote.url)
 
-        self.assertRaisesAssign(ValueError, remote, 'url', '')
+        self.assertRaises(ValueError, self.repo.remotes.set_url, "origin", "")
 
-        remote.push_url = new_url
+        self.repo.remotes.set_push_url("origin", new_url)
+        remote = self.repo.remotes["origin"]
         self.assertEqual(new_url, remote.push_url)
-        self.assertRaisesAssign(ValueError, remote, 'push_url', '')
-
+        self.assertRaises(ValueError, self.repo.remotes.set_push_url, "origin", "")
 
     def test_refspec(self):
-        remote = self.repo.remotes[0]
+        remote = self.repo.remotes["origin"]
 
         self.assertEqual(remote.refspec_count, 1)
         refspec = remote.get_refspec(0)
@@ -140,34 +141,20 @@ class RepositoryTest(utils.RepoTestCase):
         self.assertEqual(list, type(push_specs))
         self.assertEqual(0, len(push_specs))
 
-        remote.fetch_refspecs = ['+refs/*:refs/remotes/*']
-        self.assertEqual('+refs/*:refs/remotes/*', remote.fetch_refspecs[0])
+        self.repo.remotes.add_fetch("origin", '+refs/test/*:refs/test/remotes/*')
+        remote = self.repo.remotes["origin"]
 
         fetch_specs = remote.fetch_refspecs
         self.assertEqual(list, type(fetch_specs))
-        self.assertEqual(1, len(fetch_specs))
-        self.assertEqual('+refs/*:refs/remotes/*', fetch_specs[0])
+        self.assertEqual(2, len(fetch_specs))
+        self.assertEqual(['+refs/heads/*:refs/remotes/origin/*', '+refs/test/*:refs/test/remotes/*'], fetch_specs)
 
-        remote.fetch_refspecs = ['+refs/*:refs/remotes/*',
-                                 '+refs/test/*:refs/test/remotes/*']
-        self.assertEqual('+refs/*:refs/remotes/*', remote.fetch_refspecs[0])
-        self.assertEqual('+refs/test/*:refs/test/remotes/*',
-                         remote.fetch_refspecs[1])
+        self.repo.remotes.add_push("origin", '+refs/test/*:refs/test/remotes/*')
 
-        remote.push_refspecs = ['+refs/*:refs/remotes/*',
-                                '+refs/test/*:refs/test/remotes/*']
+        self.assertRaises(TypeError, self.repo.remotes.add_fetch, ['+refs/*:refs/*', 5])
 
-        self.assertRaises(TypeError, setattr, remote, 'push_refspecs',
-                          '+refs/*:refs/*')
-        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs',
-                          '+refs/*:refs/*')
-        self.assertRaises(TypeError, setattr, remote, 'fetch_refspecs',
-                          ['+refs/*:refs/*', 5])
-
-        self.assertEqual('+refs/*:refs/remotes/*', remote.push_refspecs[0])
-        self.assertEqual('+refs/test/*:refs/test/remotes/*',
-                         remote.push_refspecs[1])
-
+        remote = self.repo.remotes["origin"]
+        self.assertEqual(['+refs/test/*:refs/test/remotes/*'], remote.push_refspecs)
 
     def test_remote_list(self):
         self.assertEqual(1, len(self.repo.remotes))
@@ -193,15 +180,6 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.remotes.create(name, url)
         self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
 
-
-    def test_remote_save(self):
-        remote = self.repo.remotes[0]
-        remote.url = 'http://example.com/test.git'
-        remote.save()
-
-        self.assertEqual('http://example.com/test.git',
-                         self.repo.remotes[0].url)
-
     @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
     def test_remote_refcount(self):
         start = sys.getrefcount(self.repo)
@@ -209,15 +187,6 @@ class RepositoryTest(utils.RepoTestCase):
         del remote
         end = sys.getrefcount(self.repo)
         self.assertEqual(start, end)
-
-    def test_add_refspec(self):
-        remote = self.repo.create_remote('test_add_refspec', REMOTE_URL)
-        remote.add_push('refs/heads/*:refs/heads/test_refspec/*')
-        self.assertEqual('refs/heads/*:refs/heads/test_refspec/*',
-                         remote.push_refspecs[0])
-        remote.add_fetch('+refs/heads/*:refs/remotes/test_refspec/*')
-        self.assertEqual('+refs/heads/*:refs/remotes/test_refspec/*',
-                         remote.fetch_refspecs[1])
 
     def test_remote_callback_typecheck(self):
         remote = self.repo.remotes[0]

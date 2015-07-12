@@ -40,7 +40,7 @@ else:
 # Import from pygit2
 from _pygit2 import Repository as _Repository
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
+from _pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
 from _pygit2 import GIT_FILEMODE_LINK
 from _pygit2 import Reference, Tree, Commit, Blob
 
@@ -190,8 +190,8 @@ class Repository(_Repository):
         # References we need to keep to strings and so forth
         refs = []
 
-        # pygit2's default is SAFE_CREATE
-        copts.checkout_strategy = GIT_CHECKOUT_SAFE_CREATE
+        # pygit2's default is SAFE | RECREATE_MISSING
+        copts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING
         # and go through the arguments to see what the user wanted
         if strategy:
             copts.checkout_strategy = strategy
@@ -235,7 +235,7 @@ class Repository(_Repository):
         Checkout the given reference using the given strategy, and update
         the HEAD.
         The reference may be a reference name or a Reference object.
-        The default strategy is GIT_CHECKOUT_SAFE_CREATE.
+        The default strategy is GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING.
 
         To checkout from the HEAD, just pass 'HEAD'::
 
@@ -251,7 +251,7 @@ class Repository(_Repository):
           the current branch will be switched to this one.
 
         :param int strategy: A ``GIT_CHECKOUT_`` value. The default is
-          ``GIT_CHECKOUT_SAFE_CREATE``.
+          ``GIT_CHECKOUT_SAFE``.
 
         :param str directory: Alternative checkout path to workdir.
 
@@ -281,50 +281,29 @@ class Repository(_Repository):
         else:
             from_ = head.target.hex
 
-        try:
-            signature = self.default_signature
-        except Exception:
-            signature = None
-
-        reflog_text = "checkout: moving from %s to %s" % (from_, reference)
-        self.set_head(refname, signature, reflog_text)
+        self.set_head(refname)
 
     #
     # Setting HEAD
     #
-    def set_head(self, target, signature=None, message=None):
+    def set_head(self, target):
         """Set HEAD to point to the given target
 
         Arguments:
 
         target
             The new target for HEAD. Can be a string or Oid (to detach)
-
-        signature
-            Signature to use for the reflog. If not provided, the repository's
-            default will be used
-
-        message
-            Message to use for the reflog
         """
-
-        sig_ptr = ffi.new('git_signature **')
-        if signature:
-            ffi.buffer(sig_ptr)[:] = signature._pointer[:]
-
-        message_ptr = ffi.NULL
-        if message_ptr:
-            message_ptr = to_bytes(message)
 
         if isinstance(target, Oid):
             oid = ffi.new('git_oid *')
             ffi.buffer(oid)[:] = target.raw[:]
-            err = C.git_repository_set_head_detached(self._repo, oid, sig_ptr[0], message_ptr)
+            err = C.git_repository_set_head_detached(self._repo, oid)
             check_error(err)
             return
 
         # if it's a string, then it's a reference name
-        err = C.git_repository_set_head(self._repo, to_bytes(target), sig_ptr[0], message_ptr)
+        err = C.git_repository_set_head(self._repo, to_bytes(target))
         check_error(err)
 
     #
@@ -802,3 +781,27 @@ class Repository(_Repository):
             return ffi.string(cvalue[0]).decode('utf-8')
 
         assert False, "the attribute value from libgit2 is invalid"
+
+    #
+    # Identity for reference operations
+    #
+    @property
+    def ident(self):
+        cname = ffi.new('char **')
+        cemail = ffi.new('char **')
+
+        err = C.git_repository_ident(cname, cemail, self._repo)
+        check_error(err)
+
+        return (ffi.string(cname).decode('utf-8'), ffi.string(cemail).decode('utf-8'))
+
+    def set_ident(self, name, email):
+        """Set the identity to be used for reference operations
+
+        Updates to some references also append data to their
+        reflog. You can use this method to set what identity will be
+        used. If none is set, it will be read from the configuration.
+        """
+
+        err = C.git_repository_set_ident(self._repo, to_bytes(name), to_bytes(email))
+        check_error(err)

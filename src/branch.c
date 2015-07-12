@@ -101,7 +101,7 @@ Branch_rename(Branch *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i", &c_name, &force))
         return NULL;
 
-    err = git_branch_move(&c_out, self->reference, c_name, force, NULL, NULL);
+    err = git_branch_move(&c_out, self->reference, c_name, force);
     if (err == GIT_OK)
         return wrap_branch(c_out, self->repo);
     else

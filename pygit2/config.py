@@ -101,19 +101,19 @@ class Config(object):
     def _get(self, key):
         assert_string(key, "key")
 
-        cstr = ffi.new('char **')
-        err = C.git_config_get_string(cstr, self._config, to_bytes(key))
+        entry = ffi.new('git_config_entry **')
+        err = C.git_config_get_entry(entry, self._config, to_bytes(key))
 
-        return err, cstr
+        return err, ConfigEntry._from_c(entry[0])
 
-    def _get_string(self, key):
-        err, cstr = self._get(key)
+    def _get_entry(self, key):
+        err, entry = self._get(key)
 
         if err == C.GIT_ENOTFOUND:
             raise KeyError(key)
 
         check_error(err)
-        return cstr[0]
+        return entry
 
     def __contains__(self, key):
         err, cstr = self._get(key)
@@ -126,9 +126,9 @@ class Config(object):
         return True
 
     def __getitem__(self, key):
-        val = self._get_string(key)
+        entry = self._get_entry(key)
 
-        return ffi.string(val).decode('utf-8')
+        return ffi.string(entry.value).decode('utf-8')
 
     def __setitem__(self, key, value):
         assert_string(key, "key")
@@ -192,9 +192,10 @@ class Config(object):
         Truthy values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',
         0, 'off' and 'no'
         """
-        val = self._get_string(key)
+
+        entry = self._get_entry(key)
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, val)
+        err = C.git_config_parse_bool(res, entry.value)
         check_error(err)
 
         return res[0] != 0
@@ -206,9 +207,10 @@ class Config(object):
         A value can have a suffix 'k', 'm' or 'g' which stand for 'kilo',
         'mega' and 'giga' respectively.
         """
-        val = self._get_string(key)
+
+        entry = self._get_entry(key)
         res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, val)
+        err = C.git_config_parse_int64(res, entry.value)
         check_error(err)
 
         return res[0]
@@ -283,3 +285,20 @@ class Config(object):
         """Return a <Config> object representing the global configuration file.
         """
         return Config._from_found_config(C.git_config_find_xdg)
+
+class ConfigEntry(object):
+    """An entry in a configuation object
+    """
+
+    @classmethod
+    def _from_c(cls, ptr):
+        entry = cls.__new__(cls)
+        entry._entry = ptr
+        return entry
+
+    def __del__(self):
+        C.git_config_entry_free(self._entry)
+
+    @property
+    def value(self):
+        return self._entry.value
