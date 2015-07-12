@@ -25,7 +25,7 @@ How to install
 Changelog
 ==============
 
-0.22.1 (not yet released)
+0.22.1 (2015-07-12)
 -------------------------
 
 Diff interface refactoring
@@ -89,6 +89,9 @@ New features:
 - New ``level`` optional parameter in ``Index.remove``
   `#533 <https://github.com/libgit2/pygit2/pull/533>`_
 
+- New ``repr(TreeEntry)``
+  `#543 <https://github.com/libgit2/pygit2/pull/543>`_
+
 Build and install improvements:
 
 - Make pygit work in a frozen environment
@@ -130,6 +133,7 @@ Other:
   `#521 <https://github.com/libgit2/pygit2/pull/521>`_
   `#523 <https://github.com/libgit2/pygit2/pull/523>`_
   `#527 <https://github.com/libgit2/pygit2/pull/527>`_
+  `#536 <https://github.com/libgit2/pygit2/pull/536>`_
 
 - Expose the ``pygit2.GIT_REPOSITORY_INIT_*`` constants
   `#483 <https://github.com/libgit2/pygit2/issues/483>`_
@@ -612,34 +616,39 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-83 developers have contributed at least 1 commit to pygit2::
+93 developers have contributed at least 1 commit to pygit2::
 
-  J. David Ibáñez            Sebastian Thiel            András Veres-Szentkirályi
-  Carlos Martín Nieto        Fraser Tweedale            Ash Berlin
-  Nico von Geyso             Han-Wen Nienhuys           Benjamin Kircher
-  W. Trevor King             Leonardo Rhodes            Benjamin Pollack
-  Dave Borowitz              Petr Viktorin              Bryan O'Sullivan
-  Daniel Rodríguez Troitiño  Ron Cohen                  Daniel Bruce
-  Richo Healey               Thomas Kluyver             David Fischer
-  Christian Boos             Alex Chamberlain           David Sanders
-  Julien Miotte              Alexander Bayandin         Devaev Maxim
-  Xu Tao                     Amit Bakshi                Eric Davis
-  Jose Plana                 Andrey Devyatkin           Erik Meusel
-  Matthew Gamble             Arno van Lumig             Erik van Zijst
-  Martin Lenders             Ben Davis                  Ferengee
-  Petr Hosek                 Eric Schrijver             Gustavo Di Pietro
-  Victor Garcia              Hervé Cauwelier            Hugh Cole-Baker
-  Xavier Delannoy            Huang Huang                Jasper Lievisse Adriaanse
-  Yonggang Luo               Ian P. McCullough          Josh Bleecher Snyder
-  Valentin Haenel            Jack O'Connor              Kyriakos Oikonomakos
-  Michael Jones              Jared Flatow               Mathieu Bridon
-  Bernardo Heynemann         Jiunn Haur Lim             Óscar San José
-  John Szakmeister           Jun Omae                   Ridge Kennedy
-  Matthew Duggan             Sarath Lakshman            Rui Abreu Ferreira
-  Brodie Rao                 Vicent Marti               Soasme
-  Vlad Temian                Zoran Zaric                chengyuhang
-  David Versmisse            Adam Spiers                earl
-  Rémi Duraffort             Andrew Chin
+  J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
+  W. Trevor King            Dave Borowitz             Daniel Rodríguez Troitiño
+  Richo Healey              Christian Boos            Julien Miotte
+  Richard Möhn              Xu Tao                    Jose Plana
+  Matthew Duggan            Matthew Gamble            Martin Lenders
+  Petr Hosek                Victor Garcia             Xavier Delannoy
+  Yonggang Luo              Patrick Steinhardt        Valentin Haenel
+  Michael Jones             Bernardo Heynemann        John Szakmeister
+  Vlad Temian               Brodie Rao                David Versmisse
+  Rémi Duraffort            Sebastian Thiel           Alok Singhal
+  Fraser Tweedale           Han-Wen Nienhuys          Leonardo Rhodes
+  Petr Viktorin             Ron Cohen                 Santiago Perez De Rosso
+  Thomas Kluyver            Alex Chamberlain          Alexander Bayandin
+  Amit Bakshi               Andrey Devyatkin          Arno van Lumig
+  Ben Davis                 Eric Schrijver            Greg Fitzgerald
+  Hervé Cauwelier           Huang Huang               Ian P. McCullough
+  Jack O'Connor             Jared Flatow              Jiunn Haur Lim
+  Jun Omae                  Kaarel Kitsemets          Kevin KIN-FOO
+  Sarath Lakshman           Vicent Marti              Zoran Zaric
+  Adam Spiers               Andrew Chin               András Veres-Szentkirályi
+  Ash Berlin                Benjamin Kircher          Benjamin Pollack
+  Bryan O'Sullivan          Colin Watson              Daniel Bruce
+  David Fischer             David Sanders             Devaev Maxim
+  Eric Davis                Erik Meusel               Erik van Zijst
+  Ferengee                  Gustavo Di Pietro         Holger Frey
+  Hugh Cole-Baker           Jasper Lievisse           Josh Bleecher Snyder
+  Justin Clift              Kyriakos Oikonomakos      Lukas Fleischer
+  Mathieu Bridon            Michael Sondergaard       Óscar San José
+  Peter Dave Hello          Philippe Ombredanne       Ridge Kennedy
+  Ross Nicoll               Rui Abreu Ferreira        Soasme
+  Vladimir Rutsky           chengyuhang               earl
 
 
 License
