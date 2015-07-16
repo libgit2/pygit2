@@ -101,3 +101,12 @@ The DiffStats type
 .. autoattribute :: pygit2.DiffStats.deletions
 .. autoattribute :: pygit2.DiffStats.files_changed
 .. automethod :: pygit2.DiffStats.format
+
+The DiffLine type
+====================
+
+.. autoattribute :: pygit2.DiffLine.origin
+.. autoattribute :: pygit2.DiffLine.content
+.. autoattribute :: pygit2.DiffLine.old_lineno
+.. autoattribute :: pygit2.DiffLine.old_lineno
+.. autoattribute :: pygit2.DiffLine.num_lines
