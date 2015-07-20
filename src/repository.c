@@ -24,6 +24,11 @@
  * the Free Software Foundation, 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
  */
+#include <stdio.h>
+#include <stdint.h>
+
+#include <my_global.h>
+#include <mysql.h>
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
@@ -58,6 +63,49 @@ extern PyTypeObject NoteIterType;
 /* forward-declaration for Repsository._from_c() */
 PyTypeObject RepositoryType;
 
+
+static MYSQL *mariadb_connect(
+    const char *mariadb_host,
+    int mariadb_port,
+    const char *mariadb_user,
+    const char *mariadb_passwd,
+    const char *mariadb_unix_socket,
+    int mariadb_client_flag,
+    const char *mariadb_db)
+{
+    my_bool reconnect = TRUE;
+    MYSQL *db = mysql_init(NULL);
+
+    if (!db) {
+        fprintf(stderr, "mysql_init() failed: %s\n", mysql_error(db));
+        return NULL;
+    }
+
+    // allow libmysql to reconnect gracefully
+    if (mysql_options(db, MYSQL_OPT_RECONNECT, &reconnect) != 0) {
+        fprintf(stderr, "mysql_options() failed: %s\n", mysql_error(db));
+        goto error;
+    }
+
+    // make the connection
+    if (mysql_real_connect(db, mariadb_host, mariadb_user,
+          mariadb_passwd, mariadb_db, mariadb_port, mariadb_unix_socket,
+          mariadb_client_flag) != db) {
+        fprintf(stderr, "mysql_real_connect() failed: %s\n", mysql_error(db));
+        goto error;
+    }
+
+    mysql_autocommit(db, FALSE);
+
+    return db;
+
+error:
+    if (db)
+        mysql_close(db);
+    return NULL;
+}
+
+
 git_otype
 int_to_loose_object_type(int type_id)
 {
@@ -85,17 +133,55 @@ wrap_repository(git_repository *c_repo)
     return (PyObject *)py_repo;
 }
 
+
 int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 {
     char *path;
     int err;
+    char *mariadb_host;
+    int mariadb_port;
+    char *mariadb_user;
+    char *mariadb_passwd;
+    char *mariadb_socket;
+    char *mariadb_db;
+    MYSQL *db;
+    uint32_t repository_id;
+
+    self->owned = 1;
+    self->config = NULL;
+    self->index = NULL;
+    self->repo = NULL;
+    self->db = NULL;
 
     if (kwds && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError,
                         "Repository takes no keyword arguments");
         return -1;
     }
+
+    if (PyArg_ParseTuple(args, "zisszsI",
+            &mariadb_host, &mariadb_port,
+            &mariadb_user, &mariadb_passwd,
+            &mariadb_socket, &mariadb_db, &repository_id)) {
+
+        db = mariadb_connect(mariadb_host, mariadb_port, mariadb_user,
+            mariadb_passwd, mariadb_socket, 0 /* flags */, mariadb_db);
+        if (!db) {
+            PyErr_SetString(GitError, "Failed to connect to MariaDB");
+            return -1;
+        }
+        self->db = db;
+        /* TODO */
+        return 0;
+    }
+
+    /* PyArg_ParseTuple() failed. Probably because it didn't get enough
+     * arguments. However, getting 1 argument is also valid.
+     * Since it failed, it set an exception. Here we remove this
+     * exception.
+     */
+    PyErr_Clear();
 
     if (!PyArg_ParseTuple(args, "s", &path))
         return -1;
@@ -105,10 +191,6 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
         Error_set_str(err, path);
         return -1;
     }
-
-    self->owned = 1;
-    self->config = NULL;
-    self->index = NULL;
 
     return 0;
 }
@@ -155,6 +237,11 @@ Repository__disown(Repository *py_repo)
 void
 Repository_dealloc(Repository *self)
 {
+    if (self->db) {
+        mysql_close(self->db);
+        self->db = NULL;
+    }
+
     PyObject_GC_UnTrack(self);
     Py_CLEAR(self->index);
     Py_CLEAR(self->config);

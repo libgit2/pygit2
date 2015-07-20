@@ -43,6 +43,7 @@ import sys
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid, Reference, hashfile
+from pygit2.repository import Repository
 import pygit2
 from . import utils
 
@@ -564,6 +565,38 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
 #       # enable this test
 #       # not sure how to test this either... couldn't find pushspec
 #       # self.assertEqual(repo.remotes[0].fetchspec, "refs/heads/test")
+
+
+class MariadbRepositoryTest(unittest.TestCase):
+    TEST_DB_HOST = "localhost"
+    TEST_DB_PORT = 3306
+    TEST_DB_USER = "pygit2"
+    TEST_DB_PASSWD = "pygit2"
+    TEST_DB_SOCKET = "/var/run/mysqld/mysqld.sock"
+    TEST_DB_DB = "pygit2"
+    TEST_DB_REPOSITORY_ID = 42
+
+    def test_failed_repository_init(self):
+        try:
+            Repository("invalidhost", 3306, "invaliduser", "invalidpasswd",
+                None, "invaliddb", self.TEST_DB_REPOSITORY_ID)  # should fail
+            self.assertTrue(False)
+        except pygit2.GitError:
+            self.assertTrue(True)
+
+    def test_successful_repository_init_tcp(self):
+        rep = Repository(self.TEST_DB_HOST, self.TEST_DB_PORT,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB, self.TEST_DB_REPOSITORY_ID)
+        self.assertTrue(True)
+
+    def test_successful_repository_init_socket(self):
+        rep = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_REPOSITORY_ID)
+        self.assertTrue(True)
+
 
 if __name__ == '__main__':
     unittest.main()
