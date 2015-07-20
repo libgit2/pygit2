@@ -585,13 +585,13 @@ class MariadbRepositoryTest(unittest.TestCase):
             self.assertTrue(True)
 
     def test_successful_repository_init_tcp(self):
-        rep = Repository(self.TEST_DB_HOST, self.TEST_DB_PORT,
+        Repository(self.TEST_DB_HOST, self.TEST_DB_PORT,
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
                 None, self.TEST_DB_DB, self.TEST_DB_REPOSITORY_ID)
         self.assertTrue(True)
 
     def test_successful_repository_init_socket(self):
-        rep = Repository(None, 0,
+        Repository(None, 0,
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
                 self.TEST_DB_SOCKET, self.TEST_DB_DB,
                 self.TEST_DB_REPOSITORY_ID)
