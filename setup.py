@@ -47,7 +47,7 @@ import unittest
 
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
-from _utils import __version__, get_libgit2_paths, get_ffi
+from _utils import __version__, get_libgit2_paths, get_ffi, get_mariadb_lib
 del sys.path[0]
 
 # Python 2 support
@@ -59,6 +59,7 @@ else:
 
 
 libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
+(mariadb_include, mariadb_lib) = get_mariadb_lib()
 
 pygit2_exts = [os.path.join('src', name) for name in listdir('src')
                if name.endswith('.c')]
@@ -189,8 +190,8 @@ setup(name='pygit2',
       install_requires=['cffi'],
       zip_safe=False,
       ext_modules=[
-          Extension('_pygit2', pygit2_exts, libraries=['git2'],
-                    include_dirs=[libgit2_include],
+          Extension('_pygit2', pygit2_exts, libraries=['git2', mariadb_lib],
+                    include_dirs=[libgit2_include, mariadb_include],
                     library_dirs=[libgit2_lib]),
           # FFI is added in the build step
       ],
