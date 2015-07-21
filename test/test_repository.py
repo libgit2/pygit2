@@ -574,12 +574,13 @@ class MariadbRepositoryTest(unittest.TestCase):
     TEST_DB_PASSWD = "pygit2"
     TEST_DB_SOCKET = "/var/run/mysqld/mysqld.sock"
     TEST_DB_DB = "pygit2"
-    TEST_DB_REPOSITORY_ID = 42
+    TEST_DB_TABLE_PREFIX = "pygit2"
+    TEST_DB_REPO_ID = 42
 
     def test_failed_repository_init(self):
         try:
             Repository("invalidhost", 3306, "invaliduser", "invalidpasswd",
-                None, "invaliddb", self.TEST_DB_REPOSITORY_ID)  # should fail
+                None, "invaliddb", "invalidprefix", 42)  # should fail
             self.assertTrue(False)
         except pygit2.GitError:
             self.assertTrue(True)
@@ -587,14 +588,16 @@ class MariadbRepositoryTest(unittest.TestCase):
     def test_successful_repository_init_tcp(self):
         Repository(self.TEST_DB_HOST, self.TEST_DB_PORT,
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
-                None, self.TEST_DB_DB, self.TEST_DB_REPOSITORY_ID)
+                None, self.TEST_DB_DB, self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID)
         self.assertTrue(True)
 
     def test_successful_repository_init_socket(self):
         Repository(None, 0,
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
                 self.TEST_DB_SOCKET, self.TEST_DB_DB,
-                self.TEST_DB_REPOSITORY_ID)
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID)
         self.assertTrue(True)
 
 

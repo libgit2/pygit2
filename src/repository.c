@@ -24,8 +24,9 @@
  * the Free Software Foundation, 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
  */
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <my_global.h>
 #include <mysql.h>
@@ -42,6 +43,7 @@
 #include "repository.h"
 #include "branch.h"
 #include "signature.h"
+#include "mariadb_odb.h"
 #include <git2/odb_backend.h>
 
 extern PyObject *GitError;
@@ -78,12 +80,14 @@ static MYSQL *mariadb_connect(
 
     if (!db) {
         fprintf(stderr, "mysql_init() failed: %s\n", mysql_error(db));
+        PyErr_SetString(GitError, "mysql_init() failed");
         return NULL;
     }
 
     // allow libmysql to reconnect gracefully
     if (mysql_options(db, MYSQL_OPT_RECONNECT, &reconnect) != 0) {
         fprintf(stderr, "mysql_options() failed: %s\n", mysql_error(db));
+        PyErr_SetString(GitError, "mysql_options() failed");
         goto error;
     }
 
@@ -92,6 +96,7 @@ static MYSQL *mariadb_connect(
           mariadb_passwd, mariadb_db, mariadb_port, mariadb_unix_socket,
           mariadb_client_flag) != db) {
         fprintf(stderr, "mysql_real_connect() failed: %s\n", mysql_error(db));
+        PyErr_SetString(GitError, "mysql_real_connect() failed");
         goto error;
     }
 
@@ -106,6 +111,64 @@ error:
 }
 
 
+static void free_mariadb_repo(Repository *self)
+{
+    if (self->db) {
+        mysql_close(self->db);
+        self->db = NULL;
+    }
+    if (self->odb) {
+        git_odb_free(self->odb);
+        self->odb = NULL;
+        self->odb_backend = NULL;
+    }
+}
+
+
+static int make_mariadb_repo(Repository *self,
+    const char *db_table_prefix, uint32_t repository_id)
+{
+    int error;
+    char odb_table[256];
+
+    snprintf(odb_table, sizeof(odb_table), "%s_odb", db_table_prefix);
+
+    error = git_odb_new(&self->odb);
+    if (error) {
+        PyErr_SetString(GitError, "git_odb_new() failed");
+        goto error;
+    }
+
+    error = git_repository_wrap_odb(&self->repo, self->odb);
+    if (error) {
+        PyErr_SetString(GitError, "git_repository_wrap_odb() failed");
+        goto error;
+    }
+
+    error = git_odb_backend_mariadb(&self->odb_backend,
+        self->db, odb_table, repository_id);
+    if (error) {
+        goto error;
+    }
+
+    error = git_odb_add_backend(self->odb, self->odb_backend, 1);
+    if (error) {
+        fprintf(stderr, "git_odb_add_backend() failed: %s\n",
+            giterr_last()->message);
+        PyErr_SetString(GitError, "git_odb_add_backend() failed");
+        goto error;
+    }
+
+    /* TODO: refdb */
+
+    return 1;
+
+error:
+    free_mariadb_repo(self);
+    return 0;
+}
+
+
 git_otype
 int_to_loose_object_type(int type_id)
 {
@@ -117,6 +180,7 @@ int_to_loose_object_type(int type_id)
         default: return GIT_OBJ_BAD;
     }
 }
+
 
 PyObject *
 wrap_repository(git_repository *c_repo)
@@ -145,14 +209,18 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
     char *mariadb_passwd;
     char *mariadb_socket;
     char *mariadb_db;
-    MYSQL *db;
+    char *mariadb_table_prefix;
     uint32_t repository_id;
+    MYSQL *db;
 
-    self->owned = 1;
+    self->repo = NULL;
     self->config = NULL;
     self->index = NULL;
-    self->repo = NULL;
     self->db = NULL;
+    self->odb = NULL;
+    self->odb_backend = NULL;
+
+    self->owned = 1;
 
     if (kwds && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError,
@@ -160,19 +228,21 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (PyArg_ParseTuple(args, "zisszsI",
+    if (PyArg_ParseTuple(args, "zisszssI",
             &mariadb_host, &mariadb_port,
             &mariadb_user, &mariadb_passwd,
-            &mariadb_socket, &mariadb_db, &repository_id)) {
+            &mariadb_socket, &mariadb_db, &mariadb_table_prefix,
+            &repository_id)) {
 
         db = mariadb_connect(mariadb_host, mariadb_port, mariadb_user,
             mariadb_passwd, mariadb_socket, 0 /* flags */, mariadb_db);
         if (!db) {
-            PyErr_SetString(GitError, "Failed to connect to MariaDB");
             return -1;
         }
         self->db = db;
-        /* TODO */
+        if (!make_mariadb_repo(self, mariadb_table_prefix, repository_id)) {
+            return -1;
+        }
         return 0;
     }
 
@@ -237,10 +307,7 @@ Repository__disown(Repository *py_repo)
 void
 Repository_dealloc(Repository *self)
 {
-    if (self->db) {
-        mysql_close(self->db);
-        self->db = NULL;
-    }
+    free_mariadb_repo(self);
 
     PyObject_GC_UnTrack(self);
     Py_CLEAR(self->index);

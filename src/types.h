@@ -50,7 +50,10 @@ typedef struct {
     PyObject *index;  /* It will be None for a bare repository */
     PyObject *config; /* It will be None for a bare repository */
     int owned;    /* _from_c() sometimes means we don't own the C pointer */
+
     MYSQL *db;
+    git_odb *odb;
+    git_odb_backend  *odb_backend;
 } Repository;
 
 
