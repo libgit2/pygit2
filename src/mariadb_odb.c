@@ -15,7 +15,7 @@
 
 
 #define SQL_CREATE \
-        "CREATE TABLE `%s` (" /* %s = table name */ \
+        "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
         "  `repository_id` INTEGER UNSIGNED NOT NULL," \
         "  `oid` binary(20) NOT NULL DEFAULT ''," \
         "  `type` tinyint(1) unsigned NOT NULL," \
@@ -31,9 +31,6 @@
          /* XXX(Jflesch): 256 partitions is rough, but it should be effective */ \
         " PARTITIONS 256" \
         ";"
-
-#define SQL_CHECK \
-        "SHOW TABLES LIKE '%s';"
 
 #define SQL_READ \
         "SELECT `type`, `size`, UNCOMPRESS(`data`) FROM `%s` WHERE `oid` = ?;"
@@ -342,7 +339,7 @@ static void mariadb_odb_backend__free(git_odb_backend *_backend)
 }
 
 
-static int create_table(MYSQL *db, const char *table_name)
+static int init_db(MYSQL *db, const char *table_name)
 {
     char sql_create[MAX_QUERY_LEN];
 
@@ -352,38 +349,6 @@ static int create_table(MYSQL *db, const char *table_name)
         return GIT_ERROR;
 
     return GIT_OK;
-}
-
-
-static int init_db(MYSQL *db, const char *table_name)
-{
-    char sql_check[MAX_QUERY_LEN];
-    MYSQL_RES *res;
-    int error;
-    my_ulonglong num_rows;
-
-    snprintf(sql_check, sizeof(sql_check), SQL_CHECK, table_name);
-
-    if (mysql_real_query(db, sql_check, strlen(sql_check)) != 0)
-        return GIT_ERROR;
-
-    res = mysql_store_result(db);
-    if (res == NULL)
-        return GIT_ERROR;
-
-    num_rows = mysql_num_rows(res);
-    if (num_rows == 0) {
-        /* the table was not found */
-        error = create_table(db, table_name);
-    } else if (num_rows > 0) {
-        /* the table was found */
-        error = GIT_OK;
-    } else {
-        error = GIT_ERROR;
-    }
-
-    mysql_free_result(res);
-    return error;
 }
 
 
