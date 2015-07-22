@@ -71,7 +71,6 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     assert(len_p && type_p && _backend && oid);
 
     backend = (mariadb_odb_backend_t *)_backend;
-    error = GIT_ERROR;
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
     memset(result_buffers, 0, sizeof(result_buffers));
@@ -81,15 +80,17 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     bind_buffers[0].buffer_length = 20;
     bind_buffers[0].length = &bind_buffers[0].buffer_length;
     bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
-    if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0)
-        return 0;
+    if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0) {
+        return GIT_ERROR;
+    }
 
     /* execute the statement */
-    if (mysql_stmt_execute(backend->st_read_header) != 0)
-        return 0;
+    if (mysql_stmt_execute(backend->st_read_header) != 0) {
+        return GIT_ERROR;
+    }
 
     if (mysql_stmt_store_result(backend->st_read_header) != 0)
-        return 0;
+        return GIT_ERROR;
 
     /*
     this should either be 0 or 1
@@ -120,7 +121,7 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
 
     /* reset the statement for further use */
     if (mysql_stmt_reset(backend->st_read_header) != 0)
-        return 0;
+        return GIT_ERROR;
 
     return error;
 }
@@ -138,7 +139,6 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     assert(len_p && type_p && _backend && oid);
 
     backend = (mariadb_odb_backend_t *)_backend;
-    error = GIT_ERROR;
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
     memset(result_buffers, 0, sizeof(result_buffers));
@@ -149,14 +149,14 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     bind_buffers[0].length = &bind_buffers[0].buffer_length;
     bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read, bind_buffers) != 0)
-        return 0;
+        return GIT_ERROR;
 
     /* execute the statement */
     if (mysql_stmt_execute(backend->st_read) != 0)
-        return 0;
+        return GIT_ERROR;
 
     if (mysql_stmt_store_result(backend->st_read) != 0)
-        return 0;
+        return GIT_ERROR;
 
     /*
      this should either be 0 or 1
@@ -190,11 +190,8 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
             return GIT_ERROR;
 
         /* this should populate the buffers at *type_p, *len_p and &data_len */
-        error = mysql_stmt_fetch(backend->st_read);
-#if 0
-        if(error != 0 || error != MYSQL_DATA_TRUNCATED)
-            return GIT_ERROR;
-#endif
+        mysql_stmt_fetch(backend->st_read);
+        /* XXX(Jflesch): should we check the return value of mysql_stmt_fetch() ? */
 
         if (data_len > 0) {
             *data_p = malloc(data_len);
@@ -213,9 +210,9 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
 
     /* reset the statement for further use */
     if (mysql_stmt_reset(backend->st_read) != 0)
-        return 0;
+        return GIT_ERROR;
 
-      return error;
+    return error;
 }
 
 
