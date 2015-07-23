@@ -79,15 +79,18 @@ static MYSQL *mariadb_connect(
     MYSQL *db = mysql_init(NULL);
 
     if (!db) {
-        fprintf(stderr, "mysql_init() failed: %s\n", mysql_error(db));
-        PyErr_SetString(GitError, "mysql_init() failed");
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_init() failed",
+                __FUNCTION__, __LINE__);
         return NULL;
     }
 
     // allow libmysql to reconnect gracefully
     if (mysql_options(db, MYSQL_OPT_RECONNECT, &reconnect) != 0) {
-        fprintf(stderr, "mysql_options() failed: %s\n", mysql_error(db));
-        PyErr_SetString(GitError, "mysql_options() failed");
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_options() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(db));
         goto error;
     }
 
@@ -95,8 +98,10 @@ static MYSQL *mariadb_connect(
     if (mysql_real_connect(db, mariadb_host, mariadb_user,
           mariadb_passwd, mariadb_db, mariadb_port, mariadb_unix_socket,
           mariadb_client_flag) != db) {
-        fprintf(stderr, "mysql_real_connect() failed: %s\n", mysql_error(db));
-        PyErr_SetString(GitError, "mysql_real_connect() failed");
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_real_connect() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(db));
         goto error;
     }
 
@@ -135,27 +140,37 @@ static int make_mariadb_repo(Repository *self,
 
     error = git_odb_new(&self->odb);
     if (error) {
-        PyErr_SetString(GitError, "git_odb_new() failed");
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "git_odb_new() failed: %d",
+                __FUNCTION__, __LINE__,
+                error);
         goto error;
     }
 
     error = git_repository_wrap_odb(&self->repo, self->odb);
     if (error) {
-        PyErr_SetString(GitError, "git_repository_wrap_odb() failed");
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "git_repository_wrap_odb() failed: %d",
+                __FUNCTION__, __LINE__,
+                error);
         goto error;
     }
 
     error = git_odb_backend_mariadb(&self->odb_backend,
         self->db, odb_table, repository_id);
     if (error) {
+        /* do not call PyErr_xxx() here : git_odb_backend_mariadb
+         * took already care of setting the exception
+         */
         goto error;
     }
 
     error = git_odb_add_backend(self->odb, self->odb_backend, 1);
     if (error) {
-        fprintf(stderr, "git_odb_add_backend() failed: %s\n",
-            giterr_last()->message);
-        PyErr_SetString(GitError, "git_odb_add_backend() failed");
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "git_odb_add_backend() failed: %d",
+                __FUNCTION__, __LINE__,
+                error);
         goto error;
     }
 

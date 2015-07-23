@@ -15,7 +15,7 @@
 
 
 #define SQL_CREATE \
-        "CREATE TABLE `%s` (" /* %s = table name */ \
+        "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
         "  `repository_id` INTEGER UNSIGNED NOT NULL," \
         "  `oid` binary(20) NOT NULL DEFAULT ''," \
         "  `type` tinyint(1) unsigned NOT NULL," \
@@ -31,9 +31,6 @@
          /* XXX(Jflesch): 256 partitions is rough, but it should be effective */ \
         " PARTITIONS 256" \
         ";"
-
-#define SQL_CHECK \
-        "SHOW TABLES LIKE '%s';"
 
 #define SQL_READ \
         "SELECT `type`, `size`, UNCOMPRESS(`data`) FROM `%s` WHERE `oid` = ?;"
@@ -71,7 +68,6 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     assert(len_p && type_p && _backend && oid);
 
     backend = (mariadb_odb_backend_t *)_backend;
-    error = GIT_ERROR;
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
     memset(result_buffers, 0, sizeof(result_buffers));
@@ -81,15 +77,30 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     bind_buffers[0].buffer_length = 20;
     bind_buffers[0].length = &bind_buffers[0].buffer_length;
     bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
-    if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0)
-        return 0;
+    if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
     /* execute the statement */
-    if (mysql_stmt_execute(backend->st_read_header) != 0)
-        return 0;
+    if (mysql_stmt_execute(backend->st_read_header) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
-    if (mysql_stmt_store_result(backend->st_read_header) != 0)
-        return 0;
+    if (mysql_stmt_store_result(backend->st_read_header) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_store_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
     /*
     this should either be 0 or 1
@@ -106,12 +117,22 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
         result_buffers[1].buffer_length = sizeof(*len_p);
         memset(len_p, 0, sizeof(*len_p));
 
-        if(mysql_stmt_bind_result(backend->st_read_header, result_buffers) != 0)
+        if(mysql_stmt_bind_result(backend->st_read_header, result_buffers) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
             return GIT_ERROR;
+        }
 
         /* this should populate the buffers at *type_p and *len_p */
-        if(mysql_stmt_fetch(backend->st_read_header) != 0)
-          return GIT_ERROR;
+        if(mysql_stmt_fetch(backend->st_read_header) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_fetch() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+            return GIT_ERROR;
+        }
 
         error = GIT_OK;
     } else {
@@ -119,8 +140,13 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_read_header) != 0)
-        return 0;
+    if (mysql_stmt_reset(backend->st_read_header) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
     return error;
 }
@@ -138,7 +164,6 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     assert(len_p && type_p && _backend && oid);
 
     backend = (mariadb_odb_backend_t *)_backend;
-    error = GIT_ERROR;
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
     memset(result_buffers, 0, sizeof(result_buffers));
@@ -148,15 +173,30 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     bind_buffers[0].buffer_length = 20;
     bind_buffers[0].length = &bind_buffers[0].buffer_length;
     bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
-    if (mysql_stmt_bind_param(backend->st_read, bind_buffers) != 0)
-        return 0;
+    if (mysql_stmt_bind_param(backend->st_read, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
     /* execute the statement */
-    if (mysql_stmt_execute(backend->st_read) != 0)
-        return 0;
+    if (mysql_stmt_execute(backend->st_read) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
-    if (mysql_stmt_store_result(backend->st_read) != 0)
-        return 0;
+    if (mysql_stmt_store_result(backend->st_read) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_store_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
     /*
      this should either be 0 or 1
@@ -186,15 +226,17 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         result_buffers[2].buffer_length = 0;
         result_buffers[2].length = &data_len;
 
-        if(mysql_stmt_bind_result(backend->st_read, result_buffers) != 0)
+        if(mysql_stmt_bind_result(backend->st_read, result_buffers) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
             return GIT_ERROR;
+        }
 
         /* this should populate the buffers at *type_p, *len_p and &data_len */
-        error = mysql_stmt_fetch(backend->st_read);
-#if 0
-        if(error != 0 || error != MYSQL_DATA_TRUNCATED)
-            return GIT_ERROR;
-#endif
+        mysql_stmt_fetch(backend->st_read);
+        /* XXX(Jflesch): should we check the return value of mysql_stmt_fetch() ? */
 
         if (data_len > 0) {
             *data_p = malloc(data_len);
@@ -202,8 +244,13 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
             result_buffers[2].buffer_length = data_len;
 
             if (mysql_stmt_fetch_column(backend->st_read,
-                    &result_buffers[2], 2, 0) != 0)
+                    &result_buffers[2], 2, 0) != 0) {
+                PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                        "mysql_stmt_fetch_column() failed: %s",
+                        __FUNCTION__, __LINE__,
+                        mysql_error(backend->db));
                 return GIT_ERROR;
+            }
         }
 
         error = GIT_OK;
@@ -212,10 +259,15 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_read) != 0)
-        return 0;
+    if (mysql_stmt_reset(backend->st_read) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
 
-      return error;
+    return error;
 }
 
 
@@ -237,15 +289,30 @@ static int mariadb_odb_backend__exists(git_odb_backend *_backend, const git_oid 
     bind_buffers[0].buffer_length = 20;
     bind_buffers[0].length = &bind_buffers[0].buffer_length;
     bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
-    if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0)
+    if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return 0;
+    }
 
     /* execute the statement */
-    if (mysql_stmt_execute(backend->st_read_header) != 0)
+    if (mysql_stmt_execute(backend->st_read_header) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return 0;
+    }
 
-    if (mysql_stmt_store_result(backend->st_read_header) != 0)
+    if (mysql_stmt_store_result(backend->st_read_header) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_store_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return 0;
+    }
 
     /*
     now lets see if any rows matched our query
@@ -257,8 +324,13 @@ static int mariadb_odb_backend__exists(git_odb_backend *_backend, const git_oid 
     }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_read_header) != 0)
+    if (mysql_stmt_reset(backend->st_read_header) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return 0;
+    }
 
     return found;
 }
@@ -300,8 +372,13 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *
     bind_buffers[4].length = &bind_buffers[3].buffer_length;
     bind_buffers[4].buffer_type = MYSQL_TYPE_BLOB;
 
-    if (mysql_stmt_bind_param(backend->st_write, bind_buffers) != 0)
+    if (mysql_stmt_bind_param(backend->st_write, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return GIT_ERROR;
+    }
 
     /*
     TODO: use the streaming backend API so this actually makes sense to use :P
@@ -311,17 +388,32 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *
     */
 
     /* execute the statement */
-    if (mysql_stmt_execute(backend->st_write) != 0)
+    if (mysql_stmt_execute(backend->st_write) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return GIT_ERROR;
+    }
 
     /* now lets see if the insert worked */
     affected_rows = mysql_stmt_affected_rows(backend->st_write);
-    if (affected_rows != 1)
+    if (affected_rows != 1) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_affected_rows() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return GIT_ERROR;
+    }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_read_header) != 0)
+    if (mysql_stmt_reset(backend->st_read_header) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
         return GIT_ERROR;
+    }
 
     return GIT_OK;
 }
@@ -345,48 +437,21 @@ static void mariadb_odb_backend__free(git_odb_backend *_backend)
 }
 
 
-static int create_table(MYSQL *db, const char *table_name)
+static int init_db(MYSQL *db, const char *table_name)
 {
     char sql_create[MAX_QUERY_LEN];
 
     snprintf(sql_create, sizeof(sql_create), SQL_CREATE, table_name);
 
-    if (mysql_real_query(db, sql_create, strlen(sql_create)) != 0)
+    if (mysql_real_query(db, sql_create, strlen(sql_create)) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_real_query() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(db));
         return GIT_ERROR;
-
-    return GIT_OK;
-}
-
-
-static int init_db(MYSQL *db, const char *table_name)
-{
-    char sql_check[MAX_QUERY_LEN];
-    MYSQL_RES *res;
-    int error;
-    my_ulonglong num_rows;
-
-    snprintf(sql_check, sizeof(sql_check), SQL_CHECK, table_name);
-
-    if (mysql_real_query(db, sql_check, strlen(sql_check)) != 0)
-        return GIT_ERROR;
-
-    res = mysql_store_result(db);
-    if (res == NULL)
-        return GIT_ERROR;
-
-    num_rows = mysql_num_rows(res);
-    if (num_rows == 0) {
-        /* the table was not found */
-        error = create_table(db, table_name);
-    } else if (num_rows > 0) {
-        /* the table was found */
-        error = GIT_OK;
-    } else {
-        error = GIT_ERROR;
     }
 
-    mysql_free_result(res);
-    return error;
+    return GIT_OK;
 }
 
 
@@ -404,54 +469,51 @@ static int init_statements(mariadb_odb_backend_t *backend, const char *mysql_tab
 
     backend->st_read = mysql_stmt_init(backend->db);
     if (backend->st_read == NULL) {
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_init() failed");
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
         return GIT_ERROR;
     }
 
     if (mysql_stmt_attr_set(backend->st_read, STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_attr_set() failed");
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_attr_set() failed");
         return GIT_ERROR;
     }
 
     if (mysql_stmt_prepare(backend->st_read, sql_read, strlen(sql_read)) != 0) {
-        fprintf(stderr, "mariadb: mysql_stmt_prepare(read statement) failed: %s\n", mysql_error(backend->db));
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_prepare(read statement) failed");
+        PyErr_Format(GitError, __FILE__ ": mysql_stmt_prepare(read statement) failed: %s", mysql_error(backend->db));
         return GIT_ERROR;
     }
 
 
     backend->st_read_header = mysql_stmt_init(backend->db);
     if (backend->st_read_header == NULL) {
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_init() failed");
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
         return GIT_ERROR;
     }
 
     if (mysql_stmt_attr_set(backend->st_read_header, STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_attr_set() failed");
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_attr_set() failed");
         return GIT_ERROR;
     }
 
     if (mysql_stmt_prepare(backend->st_read_header, sql_read_header, strlen(sql_read)) != 0) {
-        fprintf(stderr, "mariadb: mysql_stmt_prepare(read header statement) failed: %s\n", mysql_error(backend->db));
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_prepare(read header statement) failed");
+        PyErr_Format(GitError, __FILE__ ": mysql_stmt_prepare(read header statement) failed: %s", mysql_error(backend->db));
         return GIT_ERROR;
     }
 
 
     backend->st_write = mysql_stmt_init(backend->db);
     if (backend->st_write == NULL) {
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_init() failed");
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
         return GIT_ERROR;
     }
 
     if (mysql_stmt_attr_set(backend->st_write, STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_attr_set() failed");
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_attr_set() failed");
         return GIT_ERROR;
     }
 
     if (mysql_stmt_prepare(backend->st_write, sql_write, strlen(sql_read)) != 0) {
-        fprintf(stderr, "mariadb: mysql_stmt_prepare(write statement) failed: %s\n", mysql_error(backend->db));
-        PyErr_SetString(GitError, "mariadb: mysql_stmt_prepare(write statement) failed");
+        PyErr_Format(GitError, __FILE__ ": mysql_stmt_prepare(write statement) failed: %s", mysql_error(backend->db));
         return GIT_ERROR;
     }
 
@@ -469,7 +531,7 @@ int git_odb_backend_mariadb(git_odb_backend **backend_out,
 
     backend = calloc(1, sizeof(mariadb_odb_backend_t));
     if (backend == NULL) {
-        PyErr_SetString(GitError, "out of memory");
+        PyErr_SetString(GitError, "Out of memory");
         return GIT_ERROR;
     }
 
@@ -482,7 +544,6 @@ int git_odb_backend_mariadb(git_odb_backend **backend_out,
     /* check for and possibly create the database */
     error = init_db(db, mariadb_table);
     if (error < 0) {
-        PyErr_SetString(GitError, "mariadb: init_db() failed");
         goto cleanup;
     }
 
