@@ -145,7 +145,7 @@ static int mariadb_refdb_unlock(git_refdb_backend *backend, void *payload,
 
 static void mariadb_refdb_free(git_refdb_backend *backend)
 {
-    /* TODO */
+    free(backend);
 }
 
 

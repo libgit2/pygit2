@@ -44,6 +44,8 @@
 #include "branch.h"
 #include "signature.h"
 #include "mariadb_odb.h"
+#include "mariadb_refdb.h"
+#include <git2/sys/repository.h>
 #include <git2/odb_backend.h>
 
 extern PyObject *GitError;
@@ -135,8 +137,11 @@ static int make_mariadb_repo(Repository *self,
 {
     int error;
     char odb_table[256];
+    char refdb_table[256];
+
 
     snprintf(odb_table, sizeof(odb_table), "%s_odb", db_table_prefix);
+    snprintf(refdb_table, sizeof(refdb_table), "%s_refdb", db_table_prefix);
 
     error = git_odb_new(&self->odb);
     if (error) {
@@ -174,7 +179,33 @@ static int make_mariadb_repo(Repository *self,
         goto error;
     }
 
-    /* TODO: refdb */
+    error = git_refdb_new(&self->refdb, self->repo);
+    if (error) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "git_refdb_new() failed: %d",
+                __FUNCTION__, __LINE__, error);
+        goto error;
+    }
+
+    error = git_refdb_backend_mariadb(&self->refdb_backend,
+            self->db, refdb_table, repository_id);
+    if (error) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "git_refdb_backend_mariadb() failed: %d",
+                __FUNCTION__, __LINE__, error);
+        goto error;
+    }
+
+    error = git_refdb_set_backend(self->refdb,
+            self->refdb_backend);
+    if (error) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "git_refdb_set_backend() failed: %d",
+                __FUNCTION__, __LINE__, error);
+        goto error;
+    }
+
+    git_repository_set_refdb(self->repo, self->refdb);
 
     return 1;
 

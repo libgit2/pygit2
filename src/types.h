@@ -52,8 +52,12 @@ typedef struct {
     int owned;    /* _from_c() sometimes means we don't own the C pointer */
 
     MYSQL *db;
-    git_odb *odb;
-    git_odb_backend  *odb_backend;
+
+    git_odb            *odb;
+    git_odb_backend    *odb_backend;
+
+    git_refdb            *refdb;
+    git_refdb_backend    *refdb_backend;
 } Repository;
 
 
