@@ -1,10 +1,32 @@
 #include <stdlib.h>
 
 #include <Python.h>
-#include "error.h"
 
+#include <git2/sys/refs.h>
+
+#include "error.h"
 #include "mariadb_refdb.h"
 
+
+#define GIT2_STORAGE_ENGINE "InnoDB"
+#define MAX_QUERY_LEN 1024 /* without the values */
+
+
+#define SQL_CREATE \
+        "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
+        "  `repository_id` INTEGER UNSIGNED NOT NULL," \
+        "  `refname` VARCHAR(255) NOT NULL," \
+        "  `target_oid` binary(20) NULL," \
+        "  `target_symbolic` VARCHAR(255) NULL," \
+        "  `peel_oid` binary(20) NULL," \
+        "  PRIMARY KEY (`repository_id`, `refname`)," \
+        ") ENGINE=" GIT2_STORAGE_ENGINE \
+        " DEFAULT CHARSET=utf8" \
+        " COLLATE=utf8_bin" \
+        " PARTITION BY KEY(`repository_id`)" \
+         /* XXX(Jflesch): 256 partitions is rough, but it should be effective */ \
+        " PARTITIONS 4" \
+        ";"
 
 typedef struct {
     git_refdb_backend parent;
@@ -22,6 +44,12 @@ typedef struct {
 
 
 extern PyObject *GitError;
+
+/*!
+ * \brief libgit2's custom internal implementation of fnmatch()
+ * see man fnmatch()
+ */
+extern int p_fnmatch(const char *pattern, const char *string, int flags);
 
 
 static int mariadb_reference_iterator_next(git_reference **ref,
