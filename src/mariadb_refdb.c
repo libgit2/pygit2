@@ -2,6 +2,7 @@
 
 #include <Python.h>
 
+#include <git2/oid.h>
 #include <git2/sys/refs.h>
 
 #include "error.h"
@@ -12,12 +13,16 @@
 #define MAX_QUERY_LEN 1024 /* without the values */
 
 
+#define MAX_REFNAME_LEN    (255)
+#define MAX_REFNAME_LEN_STR    "255"
+
+
 #define SQL_CREATE \
     "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
     "  `repository_id` INTEGER UNSIGNED NOT NULL," \
-    "  `refname` VARCHAR(255) NOT NULL," \
+    "  `refname` VARCHAR(" MAX_REFNAME_LEN_STR ") NOT NULL," \
     "  `target_oid` binary(20) NULL," \
-    "  `target_symbolic` VARCHAR(255) NULL," \
+    "  `target_symbolic` VARCHAR(" MAX_REFNAME_LEN_STR ") NULL," \
     "  `peel_oid` binary(20) NULL," \
     "  PRIMARY KEY (`repository_id`, `refname`)" \
     ") ENGINE=" GIT2_STORAGE_ENGINE \
@@ -201,23 +206,171 @@ static int mariadb_reference_iterator_next_name(const char **ref_name,
 
 static void mariadb_reference_iterator_free(git_reference_iterator *iter)
 {
-    /* TODO */
+    free(iter);
 }
 
 
-static int mariadb_refdb_exists(int *exists, git_refdb_backend *backend,
-        const char *ref_name)
+static int mariadb_refdb_exists(int *exists, git_refdb_backend *_backend,
+        const char *refname)
 {
-    /* TODO */
-    return GIT_ERROR;
+    mariadb_refdb_backend_t *backend;
+    MYSQL_BIND bind_buffers[2];
+
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+
+    /* bind the oid passed to the statement */
+    bind_buffers[0].buffer = &backend->repository_id;
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+
+    bind_buffers[1].buffer = (void *)refname; /* cast because of 'const' */
+    bind_buffers[1].buffer_length = strlen(refname);
+    bind_buffers[1].length = &bind_buffers[0].buffer_length;
+    bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
+
+    if (mysql_stmt_bind_param(backend->st_exists, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* execute the statement */
+    if (mysql_stmt_execute(backend->st_exists) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_store_result(backend->st_exists) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_store_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    *exists = (mysql_stmt_num_rows(backend->st_exists) > 0);
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(backend->st_exists) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    return GIT_OK;
 }
 
 
-static int mariadb_refdb_lookup(git_reference **out, git_refdb_backend *backend,
-        const char *ref_name)
+static int mariadb_refdb_lookup(git_reference **out,
+        git_refdb_backend *_backend,
+        const char *refname)
 {
-    /* TODO */
-    return GIT_ERROR;
+    mariadb_refdb_backend_t *backend;
+    MYSQL_BIND bind_buffers[2];
+    MYSQL_BIND result_buffers[3];
+
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    *out = NULL;
+
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+
+    /* bind the oid passed to the statement */
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+    bind_buffers[0].buffer = &backend->repository_id;
+
+    bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
+    bind_buffers[1].buffer = (void *)refname; /* cast because of 'const' */
+    bind_buffers[1].buffer_length = strlen(refname);
+    bind_buffers[1].length = &bind_buffers[0].buffer_length;
+
+    if (mysql_stmt_bind_param(backend->st_lookup, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* execute the statement */
+    if (mysql_stmt_execute(backend->st_lookup) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_store_result(backend->st_lookup) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_store_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_num_rows(backend->st_lookup) > 0) {
+        git_oid target_oid;
+        char target_symbolic[MAX_REFNAME_LEN + 1];
+        git_oid peel_oid;
+
+        result_buffers[0].buffer_type = MYSQL_TYPE_LONG_BLOB;
+        result_buffers[0].buffer = &target_oid.id;
+        result_buffers[0].buffer_length = sizeof(target_oid.id);
+        result_buffers[0].length = &result_buffers[0].buffer_length;
+
+        result_buffers[1].buffer_type = MYSQL_TYPE_STRING;
+        result_buffers[1].buffer = target_symbolic;
+        result_buffers[1].buffer_length = sizeof(target_symbolic) - 1;
+        result_buffers[1].length = &result_buffers[1].buffer_length;
+
+        result_buffers[2].buffer_type = MYSQL_TYPE_LONG_BLOB;
+        result_buffers[2].buffer = &peel_oid.id;
+        result_buffers[2].buffer_length = sizeof(peel_oid.id);
+        result_buffers[2].length = &result_buffers[2].buffer_length;
+
+        if(mysql_stmt_bind_result(backend->st_lookup, result_buffers) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+            return GIT_ERROR;
+        }
+
+        /* this should populate the buffers */
+        mysql_stmt_fetch(backend->st_lookup);
+
+        target_symbolic[sizeof(target_symbolic) - 1] = '\0'; /* safety */
+
+        if (result_buffers[0].buffer_length > 0) {
+            if (result_buffers[2].buffer_length > 0)
+                *out = git_reference__alloc(refname, &target_oid, &peel_oid);
+            else
+                *out = git_reference__alloc(refname, &target_oid, NULL);
+        } else {
+            assert(result_buffers[1].buffer_length > 1);
+            *out = git_reference__alloc_symbolic(refname, target_symbolic);
+        }
+    }
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(backend->st_exists) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    return GIT_OK;
 }
 
 
