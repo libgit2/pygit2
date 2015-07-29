@@ -13,20 +13,122 @@
 
 
 #define SQL_CREATE \
-        "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
-        "  `repository_id` INTEGER UNSIGNED NOT NULL," \
-        "  `refname` VARCHAR(255) NOT NULL," \
-        "  `target_oid` binary(20) NULL," \
-        "  `target_symbolic` VARCHAR(255) NULL," \
-        "  `peel_oid` binary(20) NULL," \
-        "  PRIMARY KEY (`repository_id`, `refname`)," \
-        ") ENGINE=" GIT2_STORAGE_ENGINE \
-        " DEFAULT CHARSET=utf8" \
-        " COLLATE=utf8_bin" \
-        " PARTITION BY KEY(`repository_id`)" \
-         /* XXX(Jflesch): 256 partitions is rough, but it should be effective */ \
-        " PARTITIONS 4" \
-        ";"
+    "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
+    "  `repository_id` INTEGER UNSIGNED NOT NULL," \
+    "  `refname` VARCHAR(255) NOT NULL," \
+    "  `target_oid` binary(20) NULL," \
+    "  `target_symbolic` VARCHAR(255) NULL," \
+    "  `peel_oid` binary(20) NULL," \
+    "  PRIMARY KEY (`repository_id`, `refname`)," \
+    ") ENGINE=" GIT2_STORAGE_ENGINE \
+    " DEFAULT CHARSET=utf8" \
+    " COLLATE=utf8_bin" \
+    " PARTITION BY KEY(`repository_id`)" \
+    " PARTITIONS 4" \
+    ";"
+
+
+#define SQL_EXISTS \
+    "SELECT refname FROM `%s`" /* %s = table name */ \
+    " WHERE `repository_id` = ? AND `refname` = ?" \
+    " LIMIT 1;"
+
+
+#define SQL_LOOKUP \
+    "SELECT `target_oid`, `target_symbolic`, `peel_oid`" \
+    " FROM `%s`" /* %s = table name */ \
+    " WHERE `repository_id` = ? AND `refname` = ?" \
+    " LIMIT 1;"
+
+
+/* for the iterator, we have to use the custom p_fnmatch() on each ref
+ * so we must go through all of them. Hopefully there won't be too many
+ */
+#define SQL_ITERATOR \
+    "SELECT `target_oid`, `target_symbolic`, `peel_oid`" \
+    " FROM `%s`" /* %s = table name */ \
+    " WHERE `repository_id` = ?;"
+
+
+/* will automatically fail if the primary key is already used */
+#define SQL_WRITE_NO_FORCE \
+    "INSERT INTO `%s`" /* %s = table name */ \
+    " (`repository_id`, `refname`, `target_oid`, `target_symbolic`," \
+    " `peel_oid`)" \
+    " VALUES (?, ?, ?, ?, ?);"
+
+
+/* try to insert ; if there is a primary key conflict, tell it to update
+ * the existing entry instead */
+#define SQL_WRITE_FORCE \
+    "INSERT INTO `%s`" /* %s = table name */ \
+    " (`repository_id`, `refname`, `target_oid`, `target_symbolic`," \
+    " `peel_oid`)" \
+    " VALUES (?, ?, ?, ?, ?)" \
+    " ON DUPLICATE KEY" \
+    " UPDATE `target_oid`=?, `target_symbolic`=?, `peel_oid`=?;"
+
+
+#define SQL_RENAME \
+    "UPDATE `%s`" /* %s = table name */ \
+    " SET `refname`=?" \
+    " WHERE `repository_id` = ? AND `refname` = ?" \
+    " LIMIT 1;"
+
+
+#define SQL_DELETE \
+    "DELETE FROM `%s`" /* %s = table name */ \
+    " WHERE `repository_id` = ? AND `refname` = ?" \
+    " LIMIT 1;"
+
+
+/****
+ * XXX(Jflesch):
+ * For the write() operation, we need to access the content of git_reference
+ * (typedef-ed from (struct git_reference)).
+ * There doesn't seem to be any accessor available, and the structure
+ * definition is not in the public #include of libgit2.
+ * So we have to make this really ugly copy-and-pasta from the private header
+ * libgit2/src/refs.h
+ ****/
+
+/*
+ * See if our compiler is known to support flexible array members.
+ */
+#ifndef GIT_FLEX_ARRAY
+#    if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+#        define GIT_FLEX_ARRAY /* empty */
+#    elif defined(__GNUC__)
+#        if (__GNUC__ >= 3)
+#            define GIT_FLEX_ARRAY /* empty */
+#        else
+#            define GIT_FLEX_ARRAY 0 /* older GNU extension */
+#        endif
+#    endif
+
+/* Default to safer but a bit wasteful traditional style */
+#    ifndef GIT_FLEX_ARRAY
+#        define GIT_FLEX_ARRAY 1
+#    endif
+#endif
+
+struct git_reference {
+    git_refdb *db;
+    git_ref_t type;
+
+    union {
+        git_oid oid;
+        char *symbolic;
+    } target;
+
+    git_oid peel;
+    char name[GIT_FLEX_ARRAY];
+};
+
+/***
+ * End of ugly copy-and-pasta
+ ***/
+
 
 typedef struct {
     git_refdb_backend parent;
@@ -120,6 +222,15 @@ static int mariadb_refdb_iterator(git_reference_iterator **iter,
 }
 
 
+/*!
+ * \param ref ref to add to the db
+ * \param force if TRUE (1), smash any previously ref with the same name ;
+ *   if FALSE (0), fail if there is already a ref with this name
+ * \param who used for reflog ; ignored in this implementation
+ * \param message used for reflog ; ignore in this implementation
+ * \param old used for reflog ; ignored in this implementation
+ * \param old_target used for reflog ; ignored in this implementation
+ */
 static int mariadb_refdb_write(git_refdb_backend *backend,
         const git_reference *ref, int force,
         const git_signature *who, const char *message,
@@ -157,8 +268,8 @@ static int mariadb_refdb_compress(git_refdb_backend *backend)
 static int mariadb_refdb_lock(void **payload_out, git_refdb_backend *backend,
         const char *refname)
 {
-    /* TODO */
-    return GIT_ERROR;
+    /* Meh, who needs locking ? :P */
+    return GIT_OK;
 }
 
 
@@ -166,8 +277,8 @@ static int mariadb_refdb_unlock(git_refdb_backend *backend, void *payload,
         int success, int update_reflog, const git_reference *ref,
         const git_signature *sig, const char *message)
 {
-    /* TODO */
-    return GIT_ERROR;
+    /* Meh, who needs locking ? :P */
+    return GIT_OK;
 }
 
 
@@ -192,6 +303,34 @@ static int mariadb_refdb_ensure_log(git_refdb_backend *backend,
     return GIT_OK;
 }
 
+
+static int mariadb_refdb_reflog_read(git_reflog **out,
+        git_refdb_backend *backend, const char *name)
+{
+    /* We don't use reflogs */
+    return GIT_ERROR;
+}
+
+static int mariadb_refdb_reflog_write(git_refdb_backend *backend,
+        git_reflog *reflog)
+{
+    /* We don't use reflogs */
+    return GIT_OK;
+}
+
+static int mariadb_refdb_reflog_rename(git_refdb_backend *_backend,
+        const char *old_name, const char *new_name)
+{
+    /* We don't use reflogs */
+    return GIT_OK;
+}
+
+static int mariadb_refdb_reflog_delete(git_refdb_backend *backend,
+        const char *name)
+{
+    /* We don't use reflogs */
+    return GIT_OK;
+}
 
 
 int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
@@ -222,10 +361,10 @@ int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
     backend->parent.has_log = mariadb_refdb_has_log;
     backend->parent.ensure_log = mariadb_refdb_ensure_log;
     backend->parent.free = mariadb_refdb_free;
-    backend->parent.reflog_read = NULL; /* unused */
-    backend->parent.reflog_write = NULL; /* unused */
-    backend->parent.reflog_rename = NULL; /* unused */
-    backend->parent.reflog_delete = NULL; /* unused */
+    backend->parent.reflog_read = mariadb_refdb_reflog_read;
+    backend->parent.reflog_write = mariadb_refdb_reflog_write;
+    backend->parent.reflog_rename = mariadb_refdb_reflog_rename;
+    backend->parent.reflog_delete = mariadb_refdb_reflog_delete;
     backend->parent.lock = mariadb_refdb_lock;
     backend->parent.unlock = mariadb_refdb_unlock;
 
