@@ -19,7 +19,7 @@
     "  `target_oid` binary(20) NULL," \
     "  `target_symbolic` VARCHAR(255) NULL," \
     "  `peel_oid` binary(20) NULL," \
-    "  PRIMARY KEY (`repository_id`, `refname`)," \
+    "  PRIMARY KEY (`repository_id`, `refname`)" \
     ") ENGINE=" GIT2_STORAGE_ENGINE \
     " DEFAULT CHARSET=utf8" \
     " COLLATE=utf8_bin" \
@@ -135,12 +135,19 @@ typedef struct {
 
     MYSQL *db;
     uint32_t repository_id;
+
+    MYSQL_STMT *st_exists;
+    MYSQL_STMT *st_lookup;
+    MYSQL_STMT *st_iterator;
+    MYSQL_STMT *st_write_no_force;
+    MYSQL_STMT *st_write_force;
+    MYSQL_STMT *st_rename;
+    MYSQL_STMT *st_delete;
 } mariadb_refdb_backend_t;
 
 
 typedef struct {
     git_reference_iterator parent;
-
     /* TODO */
 } mariadb_reference_iterator_t;
 
@@ -311,12 +318,14 @@ static int mariadb_refdb_reflog_read(git_reflog **out,
     return GIT_ERROR;
 }
 
+
 static int mariadb_refdb_reflog_write(git_refdb_backend *backend,
         git_reflog *reflog)
 {
     /* We don't use reflogs */
     return GIT_OK;
 }
+
 
 static int mariadb_refdb_reflog_rename(git_refdb_backend *_backend,
         const char *old_name, const char *new_name)
@@ -325,10 +334,98 @@ static int mariadb_refdb_reflog_rename(git_refdb_backend *_backend,
     return GIT_OK;
 }
 
+
 static int mariadb_refdb_reflog_delete(git_refdb_backend *backend,
         const char *name)
 {
     /* We don't use reflogs */
+    return GIT_OK;
+}
+
+
+static int init_db(MYSQL *db, const char *table_name)
+{
+    char sql_create[MAX_QUERY_LEN];
+
+    snprintf(sql_create, sizeof(sql_create), SQL_CREATE, table_name);
+
+    if (mysql_real_query(db, sql_create, strlen(sql_create)) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_real_query() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(db));
+        return GIT_ERROR;
+    }
+
+    return GIT_OK;
+}
+
+
+static int init_statement(MYSQL *db,
+    const char *sql_query_short_name,
+    const char *sql_statement,
+    const char *mysql_table,
+    MYSQL_STMT **statement)
+{
+    my_bool truth = 1;
+    char sql_query[MAX_QUERY_LEN];
+
+    snprintf(sql_query, sizeof(sql_query), sql_statement, mysql_table);
+
+    *statement = mysql_stmt_init(db);
+    if (*statement == NULL) {
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_attr_set(*statement, STMT_ATTR_UPDATE_MAX_LENGTH,
+            &truth) != 0) {
+        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_attr_set() failed");
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_prepare(*statement, sql_query, strlen(sql_query)) != 0) {
+        PyErr_Format(GitError, __FILE__ ": mysql_stmt_prepare(%s) failed: %s",
+            sql_query_short_name,
+            mysql_error(db));
+        return GIT_ERROR;
+    }
+
+    return GIT_OK;
+}
+
+
+static int init_statements(mariadb_refdb_backend_t *backend,
+        const char *mysql_table)
+{
+    if (init_statement(backend->db, "exists", SQL_EXISTS, mysql_table,
+            &backend->st_exists) != GIT_OK)
+        return GIT_ERROR;
+
+    if (init_statement(backend->db, "lookup", SQL_LOOKUP, mysql_table,
+            &backend->st_lookup) != GIT_OK)
+        return GIT_ERROR;
+
+    if (init_statement(backend->db, "iterator", SQL_ITERATOR, mysql_table,
+            &backend->st_iterator) != GIT_OK)
+        return GIT_ERROR;
+
+    if (init_statement(backend->db, "write no force", SQL_WRITE_NO_FORCE,
+            mysql_table, &backend->st_write_no_force) != GIT_OK)
+        return GIT_ERROR;
+
+    if (init_statement(backend->db, "write force", SQL_WRITE_FORCE,
+            mysql_table, &backend->st_write_force) != GIT_OK)
+        return GIT_ERROR;
+
+    if (init_statement(backend->db, "rename", SQL_RENAME, mysql_table,
+            &backend->st_rename) != GIT_OK)
+        return GIT_ERROR;
+
+    if (init_statement(backend->db, "delete", SQL_DELETE, mysql_table,
+            &backend->st_delete) != GIT_OK)
+        return GIT_ERROR;
+
     return GIT_OK;
 }
 
@@ -339,6 +436,7 @@ int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
         uint32_t git_repository_id)
 {
     mariadb_refdb_backend_t *backend;
+    int error;
 
     backend = calloc(1, sizeof(mariadb_refdb_backend_t));
     if (backend == NULL) {
@@ -347,8 +445,18 @@ int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
     }
 
     *backend_out = &backend->parent;
-
     backend->db = db;
+
+    error = init_db(db, mariadb_table);
+    if (error < 0) {
+        goto error;
+    }
+
+    error = init_statements(backend, mariadb_table);
+    if (error < 0) {
+        goto error;
+    }
+
     backend->repository_id = git_repository_id;
 
     backend->parent.exists = mariadb_refdb_exists;
@@ -369,4 +477,8 @@ int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
     backend->parent.unlock = mariadb_refdb_unlock;
 
     return GIT_OK;
+
+error:
+    mariadb_refdb_free(&backend->parent);
+    return GIT_ERROR;
 }

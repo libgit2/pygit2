@@ -190,9 +190,9 @@ static int make_mariadb_repo(Repository *self,
     error = git_refdb_backend_mariadb(&self->refdb_backend,
             self->db, refdb_table, repository_id);
     if (error) {
-        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
-                "git_refdb_backend_mariadb() failed: %d",
-                __FUNCTION__, __LINE__, error);
+        /* do not call PyErr_xxx() here : git_refdb_backend_mariadb
+         * took already care of setting the exception
+         */
         goto error;
     }
 
