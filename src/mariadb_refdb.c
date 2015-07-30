@@ -87,6 +87,10 @@
     " LIMIT 1;"
 
 
+#define SQL_OPTIMIZE \
+    "OPTIMIZE TABLE `%s`" /* %s = table name */
+
+
 /****
  * XXX(Jflesch):
  * For the write() operation, we need to access the content of git_reference
@@ -148,6 +152,7 @@ typedef struct {
     MYSQL_STMT *st_write_force;
     MYSQL_STMT *st_rename;
     MYSQL_STMT *st_delete;
+    MYSQL_STMT *st_optimize;
 } mariadb_refdb_backend_t;
 
 
@@ -206,6 +211,7 @@ static int mariadb_reference_iterator_next_name(const char **ref_name,
 
 static void mariadb_reference_iterator_free(git_reference_iterator *iter)
 {
+    /* TODO: clear statements */
     free(iter);
 }
 
@@ -391,13 +397,172 @@ static int mariadb_refdb_iterator(git_reference_iterator **iter,
  * \param old used for reflog ; ignored in this implementation
  * \param old_target used for reflog ; ignored in this implementation
  */
-static int mariadb_refdb_write(git_refdb_backend *backend,
+static int mariadb_refdb_write(git_refdb_backend *_backend,
         const git_reference *ref, int force,
         const git_signature *who, const char *message,
         const git_oid *old, const char *old_target)
 {
-    /* TODO */
-    return GIT_ERROR;
+    mariadb_refdb_backend_t *backend;
+    MYSQL_BIND bind_buffers[8];
+    my_ulonglong affected_rows;
+    MYSQL_STMT *sql_statement;
+
+    assert(backend);
+    assert(ref);
+
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+    bind_buffers[0].buffer = &backend->repository_id;
+
+    bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
+    bind_buffers[1].buffer = (void *)ref->name; /* cast because of 'const' */
+    bind_buffers[1].buffer_length = strlen(ref->name);
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
+
+    switch(ref->type)
+    {
+        case GIT_REF_OID:
+            bind_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
+            bind_buffers[2].buffer = &ref->target.oid.id;
+            bind_buffers[2].buffer_length = sizeof(ref->target.oid.id);
+            bind_buffers[2].length = &bind_buffers[2].buffer_length;
+
+            bind_buffers[3].buffer_type = MYSQL_TYPE_NULL;
+            bind_buffers[3].buffer = NULL;
+            bind_buffers[3].buffer_length = 0;
+            bind_buffers[3].length = &bind_buffers[3].buffer_length;
+            break;
+
+        case GIT_REF_SYMBOLIC:
+            bind_buffers[2].buffer_type = MYSQL_TYPE_NULL;
+            bind_buffers[2].buffer = NULL;
+            bind_buffers[2].buffer_length = 0;
+            bind_buffers[2].length = &bind_buffers[2].buffer_length;
+
+            bind_buffers[3].buffer_type = MYSQL_TYPE_STRING;
+            bind_buffers[3].buffer = ref->target.symbolic;
+            bind_buffers[3].buffer_length = strlen(ref->target.symbolic);
+            bind_buffers[3].length = &bind_buffers[3].buffer_length;
+            break;
+
+        case GIT_REF_LISTALL: /* BREAKTHROUGH */
+        case GIT_REF_INVALID:
+            assert(ref->type != GIT_REF_LISTALL);
+            assert(ref->type != GIT_REF_INVALID);
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "invalid ref. Cannot insert",
+                __FUNCTION__, __LINE__);
+            return GIT_ERROR;
+    }
+
+    if (git_oid_iszero(&ref->peel)) {
+        bind_buffers[4].buffer_type = MYSQL_TYPE_NULL;
+        bind_buffers[4].buffer = NULL;
+        bind_buffers[4].buffer_length = 0;
+        bind_buffers[4].length = &bind_buffers[4].buffer_length;
+    } else {
+        bind_buffers[4].buffer_type = MYSQL_TYPE_BLOB;
+        bind_buffers[4].buffer = &ref->peel.id;
+        bind_buffers[4].buffer_length = sizeof(ref->peel.id);
+        bind_buffers[4].length = &bind_buffers[4].buffer_length;
+    }
+
+    if (force) {
+        /* we have to repeat some values */
+
+        switch(ref->type)
+        {
+            case GIT_REF_OID:
+                bind_buffers[5].buffer_type = MYSQL_TYPE_BLOB;
+                bind_buffers[5].buffer = &ref->target.oid.id;
+                bind_buffers[5].buffer_length = sizeof(ref->target.oid.id);
+                bind_buffers[5].length = &bind_buffers[2].buffer_length;
+
+                bind_buffers[6].buffer_type = MYSQL_TYPE_NULL;
+                bind_buffers[6].buffer = NULL;
+                bind_buffers[6].buffer_length = 0;
+                bind_buffers[6].length = &bind_buffers[3].buffer_length;
+                break;
+
+            case GIT_REF_SYMBOLIC:
+                bind_buffers[5].buffer_type = MYSQL_TYPE_NULL;
+                bind_buffers[5].buffer = NULL;
+                bind_buffers[5].buffer_length = 0;
+                bind_buffers[5].length = &bind_buffers[2].buffer_length;
+
+                bind_buffers[6].buffer_type = MYSQL_TYPE_STRING;
+                bind_buffers[6].buffer = ref->target.symbolic;
+                bind_buffers[6].buffer_length = strlen(ref->target.symbolic);
+                bind_buffers[6].length = &bind_buffers[3].buffer_length;
+                break;
+
+            case GIT_REF_LISTALL: /* BREAKTHROUGH */
+            case GIT_REF_INVALID:
+                assert(ref->type != GIT_REF_LISTALL);
+                assert(ref->type != GIT_REF_INVALID);
+                PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                    "invalid ref. Cannot insert",
+                    __FUNCTION__, __LINE__);
+                return GIT_ERROR;
+        }
+
+        if (git_oid_iszero(&ref->peel)) {
+            bind_buffers[7].buffer_type = MYSQL_TYPE_NULL;
+            bind_buffers[7].buffer = NULL;
+            bind_buffers[7].buffer_length = 0;
+            bind_buffers[7].length = &bind_buffers[4].buffer_length;
+        } else {
+            bind_buffers[7].buffer_type = MYSQL_TYPE_BLOB;
+            bind_buffers[7].buffer = &ref->peel.id;
+            bind_buffers[7].buffer_length = sizeof(ref->peel.id);
+            bind_buffers[7].length = &bind_buffers[4].buffer_length;
+        }
+    }
+
+    sql_statement = (force
+            ? backend->st_write_force
+            : backend->st_write_no_force);
+
+    if (mysql_stmt_bind_param(sql_statement, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* execute the statement */
+    if (mysql_stmt_execute(sql_statement) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* now lets see if the insert worked */
+    affected_rows = mysql_stmt_affected_rows(sql_statement);
+    if (affected_rows != 1) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_affected_rows() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(sql_statement) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    return GIT_OK;
 }
 
 
@@ -577,6 +742,10 @@ static int init_statements(mariadb_refdb_backend_t *backend,
 
     if (init_statement(backend->db, "delete", SQL_DELETE, mysql_table,
             &backend->st_delete) != GIT_OK)
+        return GIT_ERROR;
+
+    if (init_statement(backend->db, "optimize", SQL_OPTIMIZE, mysql_table,
+            &backend->st_optimize) != GIT_OK)
         return GIT_ERROR;
 
     return GIT_OK;

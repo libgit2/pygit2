@@ -355,7 +355,7 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *
     /* bind the oid */
     bind_buffers[1].buffer = (void*)oid->id;
     bind_buffers[1].buffer_length = 20;
-    bind_buffers[1].length = &bind_buffers[0].buffer_length;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
 
     /* bind the type */
@@ -369,7 +369,7 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *
     /* bind the data */
     bind_buffers[4].buffer = (void*)data;
     bind_buffers[4].buffer_length = len;
-    bind_buffers[4].length = &bind_buffers[3].buffer_length;
+    bind_buffers[4].length = &bind_buffers[4].buffer_length;
     bind_buffers[4].buffer_type = MYSQL_TYPE_BLOB;
 
     if (mysql_stmt_bind_param(backend->st_write, bind_buffers) != 0) {
@@ -407,7 +407,7 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *
     }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_read_header) != 0) {
+    if (mysql_stmt_reset(backend->st_write) != 0) {
         PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                 "mysql_stmt_reset() failed: %s",
                 __FUNCTION__, __LINE__,
