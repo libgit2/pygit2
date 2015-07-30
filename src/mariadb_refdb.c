@@ -762,8 +762,29 @@ static int mariadb_refdb_unlock(git_refdb_backend *backend, void *payload,
 }
 
 
-static void mariadb_refdb_free(git_refdb_backend *backend)
+static void mariadb_refdb_free(git_refdb_backend *_backend)
 {
+    mariadb_refdb_backend_t *backend;
+
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    if (backend->st_exists)
+        mysql_stmt_close(backend->st_exists);
+    if (backend->st_lookup)
+        mysql_stmt_close(backend->st_lookup);
+    if (backend->st_iterator)
+        mysql_stmt_close(backend->st_iterator);
+    if (backend->st_write_no_force)
+        mysql_stmt_close(backend->st_write_no_force);
+    if (backend->st_write_force)
+        mysql_stmt_close(backend->st_write_force);
+    if (backend->st_rename)
+        mysql_stmt_close(backend->st_rename);
+    if (backend->st_delete)
+        mysql_stmt_close(backend->st_delete);
+    if (backend->st_optimize)
+        mysql_stmt_close(backend->st_optimize);
+
     free(backend);
 }
 
