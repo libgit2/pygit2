@@ -407,7 +407,7 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
     my_ulonglong affected_rows;
     MYSQL_STMT *sql_statement;
 
-    assert(backend);
+    assert(_backend);
     assert(ref);
 
     backend = (mariadb_refdb_backend_t *)_backend;
@@ -565,27 +565,182 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
     return GIT_OK;
 }
 
+static int mariadb_refdb_del(git_refdb_backend *backend, const char *ref_name,
+        const git_oid *old_id, const char *old_target);
 
-static int mariadb_refdb_rename(git_reference **out, git_refdb_backend *backend,
+static int mariadb_refdb_rename(git_reference **out,
+        git_refdb_backend *_backend,
         const char *old_name, const char *new_name, int force,
         const git_signature *who, const char *message)
 {
-    /* TODO */
+    mariadb_refdb_backend_t *backend;
+    MYSQL_BIND bind_buffers[3];
+    my_ulonglong affected_rows;
+
+    assert(_backend);
+    assert(old_name);
+    assert(new_name);
+
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    if (force) {
+        /* smash existing reference having the name 'new_name' */
+
+        int exists = 0;
+
+        if (mariadb_refdb_exists(&exists, _backend, new_name) != GIT_OK) {
+            /* it already set a python exception for us */
+            return GIT_ERROR;
+        }
+
+        if (exists
+                && (mariadb_refdb_del(_backend, new_name, NULL, NULL)
+                    != GIT_OK)) {
+            /* it already set a python exception for us */
+            return GIT_ERROR;
+        }
+    }
+
+    bind_buffers[0].buffer_type = MYSQL_TYPE_STRING;
+    bind_buffers[0].buffer = (void *)new_name; /* cast because of 'const' */
+    bind_buffers[0].buffer_length = strlen(new_name);
+    bind_buffers[0].length = &bind_buffers[0].buffer_length;
+
+    bind_buffers[1].buffer_type = MYSQL_TYPE_LONG;
+    bind_buffers[1].buffer = &backend->repository_id;
+
+    bind_buffers[2].buffer_type = MYSQL_TYPE_STRING;
+    bind_buffers[2].buffer = (void *)old_name; /* cast because of 'const' */
+    bind_buffers[2].buffer_length = strlen(old_name);
+    bind_buffers[2].length = &bind_buffers[0].buffer_length;
+
+    if (mysql_stmt_bind_param(backend->st_rename, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* execute the statement */
+    if (mysql_stmt_execute(backend->st_rename) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* now lets see if the update worked */
+    affected_rows = mysql_stmt_affected_rows(backend->st_rename);
+    if (affected_rows != 1) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_affected_rows() failed: %s, %d",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db), affected_rows);
+        return GIT_ERROR;
+    }
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(backend->st_rename) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
     return GIT_ERROR;
 }
 
 
-static int mariadb_refdb_del(git_refdb_backend *backend, const char *ref_name,
+static int mariadb_refdb_del(git_refdb_backend *_backend, const char *ref_name,
         const git_oid *old_id, const char *old_target)
 {
-    /* TODO */
+    /* XXX(JFlesch):
+     * refdb_fs check old_id and old_target before deleting the ref.
+     * but we are crazy daredevils, so we don't.
+     */
+
+    mariadb_refdb_backend_t *backend;
+    MYSQL_BIND bind_buffers[2];
+    my_ulonglong affected_rows;
+
+    assert(_backend);
+    assert(ref_name);
+
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+    bind_buffers[0].buffer = &backend->repository_id;
+
+    bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
+    bind_buffers[1].buffer = (void *)ref_name; /* cast because of 'const' */
+    bind_buffers[1].buffer_length = strlen(ref_name);
+    bind_buffers[1].length = &bind_buffers[0].buffer_length;
+
+    if (mysql_stmt_bind_param(backend->st_delete, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* execute the statement */
+    if (mysql_stmt_execute(backend->st_delete) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* now lets see if the delete worked */
+    affected_rows = mysql_stmt_affected_rows(backend->st_delete);
+    if (affected_rows != 1) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_affected_rows() failed: %s, %d",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db), affected_rows);
+        return GIT_ERROR;
+    }
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(backend->st_delete) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
     return GIT_ERROR;
 }
 
 
-static int mariadb_refdb_compress(git_refdb_backend *backend)
+static int mariadb_refdb_compress(git_refdb_backend *_backend)
 {
-    /* TODO */
+    mariadb_refdb_backend_t *backend;
+
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    if (mysql_stmt_execute(backend->st_optimize) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_reset(backend->st_optimize) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
     return GIT_ERROR;
 }
 
