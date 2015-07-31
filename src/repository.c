@@ -541,7 +541,8 @@ Repository_workdir__set__(Repository *self, PyObject *py_workdir)
 PyDoc_STRVAR(Repository_merge_base__doc__,
   "merge_base(oid, oid) -> Oid\n"
   "\n"
-  "Find as good common ancestors as possible for a merge.");
+  "Find as good common ancestors as possible for a merge.\n"
+  "Returns None if there is no merge base between the commits");
 
 PyObject *
 Repository_merge_base(Repository *self, PyObject *args)
@@ -565,6 +566,10 @@ Repository_merge_base(Repository *self, PyObject *args)
         return NULL;
 
     err = git_merge_base(&oid, self->repo, &oid1, &oid2);
+
+    if (err == GIT_ENOTFOUND)
+        Py_RETURN_NONE;
+
     if (err < 0)
         return Error_set(err);
 
