@@ -3,6 +3,7 @@
 #include <Python.h>
 
 #include <git2/oid.h>
+#include <git2/refs.h>
 #include <git2/sys/refs.h>
 
 #include "error.h"
@@ -50,7 +51,7 @@
  * so we must go through all of them. Hopefully there won't be too many
  */
 #define SQL_ITERATOR \
-    "SELECT `target_oid`, `target_symbolic`, `peel_oid`" \
+    "SELECT `target_oid`, `target_symbolic`, `peel_oid`, `refname`" \
     " FROM `%s`" /* %s = table name */ \
     " WHERE `repository_id` = ?;"
 
@@ -89,6 +90,35 @@
 
 #define SQL_OPTIMIZE \
     "OPTIMIZE TABLE `%s`" /* %s = table name */
+
+
+typedef struct {
+    git_refdb_backend parent;
+
+    MYSQL *db;
+    uint32_t repository_id;
+
+    MYSQL_STMT *st_exists;
+    MYSQL_STMT *st_lookup;
+    MYSQL_STMT *st_iterator;
+    MYSQL_STMT *st_write_no_force;
+    MYSQL_STMT *st_write_force;
+    MYSQL_STMT *st_rename;
+    MYSQL_STMT *st_delete;
+    MYSQL_STMT *st_optimize;
+} mariadb_refdb_backend_t;
+
+
+typedef struct mariadb_reference_iterator_node_s {
+    struct git_reference *reference;
+    struct mariadb_reference_iterator_node_s *next;
+} mariadb_reference_iterator_node_t;
+
+
+typedef struct {
+    git_reference_iterator parent;
+    mariadb_reference_iterator_node_t *head;
+} mariadb_reference_iterator_t;
 
 
 /****
@@ -139,30 +169,8 @@ struct git_reference {
  ***/
 
 
-typedef struct {
-    git_refdb_backend parent;
-
-    MYSQL *db;
-    uint32_t repository_id;
-
-    MYSQL_STMT *st_exists;
-    MYSQL_STMT *st_lookup;
-    MYSQL_STMT *st_iterator;
-    MYSQL_STMT *st_write_no_force;
-    MYSQL_STMT *st_write_force;
-    MYSQL_STMT *st_rename;
-    MYSQL_STMT *st_delete;
-    MYSQL_STMT *st_optimize;
-} mariadb_refdb_backend_t;
-
-
-typedef struct {
-    git_reference_iterator parent;
-    /* TODO */
-} mariadb_reference_iterator_t;
-
-
 extern PyObject *GitError;
+
 
 /*!
  * \brief libgit2's custom internal implementation of fnmatch()
@@ -289,7 +297,6 @@ static int mariadb_refdb_lookup(git_reference **out,
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
 
-    /* bind the oid passed to the statement */
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
 
@@ -356,13 +363,16 @@ static int mariadb_refdb_lookup(git_reference **out,
 
         target_symbolic[sizeof(target_symbolic) - 1] = '\0'; /* safety */
 
-        if (result_buffers[0].buffer_length > 0) {
-            if (result_buffers[2].buffer_length > 0)
+        if (result_buffers[0].buffer_length > 0
+                && !result_buffers[0].is_null) {
+            if (result_buffers[2].buffer_length > 0
+                    && !result_buffers[2].is_null)
                 *out = git_reference__alloc(refname, &target_oid, &peel_oid);
             else
                 *out = git_reference__alloc(refname, &target_oid, NULL);
         } else {
-            assert(result_buffers[1].buffer_length > 1);
+            assert(result_buffers[1].buffer_length > 0
+                    && !result_buffers[1].is_null);
             *out = git_reference__alloc_symbolic(refname, target_symbolic);
         }
     }
@@ -380,11 +390,142 @@ static int mariadb_refdb_lookup(git_reference **out,
 }
 
 
-static int mariadb_refdb_iterator(git_reference_iterator **iter,
-        struct git_refdb_backend *backend, const char *glob)
+static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
+        struct git_refdb_backend *_backend, const char *glob)
 {
-    /* TODO */
-    return GIT_ERROR;
+    mariadb_refdb_backend_t *backend;
+    MYSQL_BIND bind_buffers[1];
+    MYSQL_BIND result_buffers[4];
+    git_oid target_oid;
+    char target_symbolic[MAX_REFNAME_LEN + 1];
+    char refname[MAX_REFNAME_LEN + 1];
+    git_oid peel_oid;
+    int fetch_result;
+    mariadb_reference_iterator_t *iterator;
+    mariadb_reference_iterator_node_t *current_node = NULL;
+    mariadb_reference_iterator_node_t *previous_node = NULL;
+
+    _iterator = NULL;
+    backend = (mariadb_refdb_backend_t *)_backend;
+
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+    memset(result_buffers, 0, sizeof(result_buffers));
+
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+    bind_buffers[0].buffer = &backend->repository_id;
+
+    if (mysql_stmt_bind_param(backend->st_iterator, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        /* TODO */
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_execute(backend->st_iterator) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        /* TODO */
+        return GIT_ERROR;
+    }
+
+    iterator = calloc(1, sizeof(*iterator));
+    if (iterator == NULL) {
+        PyErr_SetString(GitError, "out of memory");
+        /* TODO */
+        return GIT_ERROR;
+    }
+
+    result_buffers[0].buffer_type = MYSQL_TYPE_LONG_BLOB;
+    result_buffers[0].buffer = &target_oid.id;
+    result_buffers[0].buffer_length = sizeof(target_oid.id);
+    result_buffers[0].length = &result_buffers[0].buffer_length;
+
+    result_buffers[1].buffer_type = MYSQL_TYPE_STRING;
+    result_buffers[1].buffer = target_symbolic;
+    result_buffers[1].buffer_length = sizeof(target_symbolic) - 1;
+    result_buffers[1].length = &result_buffers[1].buffer_length;
+
+    result_buffers[2].buffer_type = MYSQL_TYPE_LONG_BLOB;
+    result_buffers[2].buffer = &peel_oid.id;
+    result_buffers[2].buffer_length = sizeof(peel_oid.id);
+    result_buffers[2].length = &result_buffers[2].buffer_length;
+
+    result_buffers[3].buffer_type = MYSQL_TYPE_STRING;
+    result_buffers[3].buffer = refname;
+    result_buffers[3].buffer_length = sizeof(refname) - 1;
+    result_buffers[3].length = &result_buffers[3].buffer_length;
+
+    if(mysql_stmt_bind_result(backend->st_iterator, result_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+            "mysql_stmt_bind_result() failed: %s",
+            __FUNCTION__, __LINE__,
+            mysql_error(backend->db));
+        /* TODO */
+        return GIT_ERROR;
+    }
+
+
+    /* while there is still row to fetch --> while mysql_stmt_fetch()
+     * returns no error.
+     */
+    while( (fetch_result = mysql_stmt_fetch(backend->st_iterator)) == 0 ) {
+        current_node = calloc(1, sizeof(*current_node));
+        if (current_node == NULL) {
+            PyErr_Format(GitError, "out of memory");
+            /* TODO */
+            return GIT_ERROR;
+        }
+
+        if (result_buffers[0].buffer_length > 0
+                && !result_buffers[0].is_null) {
+            if (result_buffers[2].buffer_length > 0
+                    && !result_buffers[2].is_null)
+                current_node->reference = \
+                    git_reference__alloc(refname, &target_oid, &peel_oid);
+            else
+                current_node->reference = \
+                    git_reference__alloc(refname, &target_oid, NULL);
+        } else {
+            assert(result_buffers[1].buffer_length > 0
+                    && !result_buffers[1].is_null);
+            current_node->reference = \
+                git_reference__alloc_symbolic(refname, target_symbolic);
+        }
+
+        if (previous_node == NULL) {
+            iterator->head = current_node;
+        } else {
+            previous_node->next = current_node;
+        }
+        previous_node = current_node;
+    }
+
+    if (fetch_result != MYSQL_NO_DATA) {
+        /* an error occurred */
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+            "mysql_stmt_fetch() failed: %s",
+            __FUNCTION__, __LINE__,
+            mysql_error(backend->db));
+        /* TODO */
+        return GIT_ERROR;
+    }
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(backend->st_exists) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        /* the next one may fail, but meh, we got our data for now */
+        return GIT_OK;
+    }
+
+    *_iterator = &iterator->parent;
+    return GIT_OK;
 }
 
 
