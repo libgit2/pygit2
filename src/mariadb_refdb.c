@@ -121,54 +121,6 @@ typedef struct {
 } mariadb_reference_iterator_t;
 
 
-/****
- * XXX(Jflesch):
- * For the write() operation, we need to access the content of git_reference
- * (typedef-ed from (struct git_reference)).
- * There doesn't seem to be any accessor available, and the structure
- * definition is not in the public #include of libgit2.
- * So we have to make this really ugly copy-and-pasta from the private header
- * libgit2/src/refs.h
- ****/
-
-/*
- * See if our compiler is known to support flexible array members.
- */
-#ifndef GIT_FLEX_ARRAY
-#    if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-#        define GIT_FLEX_ARRAY /* empty */
-#    elif defined(__GNUC__)
-#        if (__GNUC__ >= 3)
-#            define GIT_FLEX_ARRAY /* empty */
-#        else
-#            define GIT_FLEX_ARRAY 0 /* older GNU extension */
-#        endif
-#    endif
-
-/* Default to safer but a bit wasteful traditional style */
-#    ifndef GIT_FLEX_ARRAY
-#        define GIT_FLEX_ARRAY 1
-#    endif
-#endif
-
-struct git_reference {
-    git_refdb *db;
-    git_ref_t type;
-
-    union {
-        git_oid oid;
-        char *symbolic;
-    } target;
-
-    git_oid peel;
-    char name[GIT_FLEX_ARRAY];
-};
-
-/***
- * End of ugly copy-and-pasta
- ***/
-
-
 extern PyObject *GitError;
 
 
@@ -530,6 +482,95 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
 
 
 /*!
+ * \warning assumes len(bind_buffers) >= 3 !
+ */
+static int _bind_ref_values(MYSQL_BIND *bind_buffers, const git_reference *ref)
+{
+    git_ref_t ref_type;
+    const git_oid *ref_oid_target;
+    const git_oid *ref_target_peel;
+    const char *ref_symbolic_target;
+
+    ref_type = git_reference_type(ref);
+
+    ref_oid_target = NULL;
+    ref_symbolic_target = NULL;
+
+    ref_target_peel = git_reference_target_peel(ref);
+
+    switch(ref_type) {
+        case GIT_REF_OID:
+            ref_oid_target = git_reference_target(ref);
+            break;
+        case GIT_REF_SYMBOLIC:
+            ref_symbolic_target = git_reference_symbolic_target(ref);
+            break;
+        case GIT_REF_INVALID: /* BREAKTHROUGH */
+        case GIT_REF_LISTALL:
+            assert(ref_type != GIT_REF_INVALID);
+            assert(ref_type != GIT_REF_LISTALL);
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "invalid ref. Cannot insert",
+                __FUNCTION__, __LINE__);
+            return GIT_ERROR;
+    }
+
+    switch(ref_type)
+    {
+        case GIT_REF_OID:
+            bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
+            /* cast because of const */
+            bind_buffers[0].buffer = (void *)ref_oid_target;
+            bind_buffers[0].buffer_length = sizeof(*ref_oid_target);
+            bind_buffers[0].length = &bind_buffers[0].buffer_length;
+
+            bind_buffers[1].buffer_type = MYSQL_TYPE_NULL;
+            bind_buffers[1].buffer = NULL;
+            bind_buffers[1].buffer_length = 0;
+            bind_buffers[1].length = &bind_buffers[1].buffer_length;
+            break;
+
+        case GIT_REF_SYMBOLIC:
+            bind_buffers[0].buffer_type = MYSQL_TYPE_NULL;
+            bind_buffers[0].buffer = NULL;
+            bind_buffers[0].buffer_length = 0;
+            bind_buffers[0].length = &bind_buffers[0].buffer_length;
+
+            bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
+            /* case because of const */
+            bind_buffers[1].buffer = (void *)ref_symbolic_target;
+            bind_buffers[1].buffer_length = strlen(ref_symbolic_target);
+            bind_buffers[1].length = &bind_buffers[1].buffer_length;
+            break;
+
+        case GIT_REF_LISTALL: /* BREAKTHROUGH */
+        case GIT_REF_INVALID:
+            assert(ref->type != GIT_REF_LISTALL);
+            assert(ref->type != GIT_REF_INVALID);
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "invalid ref. Cannot insert",
+                __FUNCTION__, __LINE__);
+            return GIT_ERROR;
+    }
+
+    if (ref_target_peel == NULL || git_oid_iszero(ref_target_peel)) {
+        bind_buffers[2].buffer_type = MYSQL_TYPE_NULL;
+        bind_buffers[2].buffer = NULL;
+        bind_buffers[2].buffer_length = 0;
+        bind_buffers[2].length = &bind_buffers[2].buffer_length;
+    } else {
+        bind_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
+        /* cast because of const */
+        bind_buffers[2].buffer = (void *)ref_target_peel;
+        bind_buffers[2].buffer_length = sizeof(*ref_target_peel);
+        bind_buffers[2].length = &bind_buffers[2].buffer_length;
+    }
+
+    return GIT_OK;
+}
+
+
+/*!
  * \param ref ref to add to the db
  * \param force if TRUE (1), smash any previously ref with the same name ;
  *   if FALSE (0), fail if there is already a ref with this name
@@ -548,10 +589,15 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
     my_ulonglong affected_rows;
     MYSQL_STMT *sql_statement;
 
+    const char *ref_name;
+
     assert(_backend);
     assert(ref);
 
     backend = (mariadb_refdb_backend_t *)_backend;
+
+    ref_name = git_reference_name(ref);
+
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
 
@@ -559,108 +605,18 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
     bind_buffers[0].buffer = &backend->repository_id;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
-    bind_buffers[1].buffer = (void *)ref->name; /* cast because of 'const' */
-    bind_buffers[1].buffer_length = strlen(ref->name);
+    bind_buffers[1].buffer = (void *)ref_name; /* cast because of 'const' */
+    bind_buffers[1].buffer_length = strlen(ref_name);
     bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
-    switch(ref->type)
-    {
-        case GIT_REF_OID:
-            bind_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
-            bind_buffers[2].buffer = &ref->target.oid.id;
-            bind_buffers[2].buffer_length = sizeof(ref->target.oid.id);
-            bind_buffers[2].length = &bind_buffers[2].buffer_length;
+    if (_bind_ref_values(bind_buffers + 2, ref) != GIT_OK)
+        return GIT_ERROR;
 
-            bind_buffers[3].buffer_type = MYSQL_TYPE_NULL;
-            bind_buffers[3].buffer = NULL;
-            bind_buffers[3].buffer_length = 0;
-            bind_buffers[3].length = &bind_buffers[3].buffer_length;
-            break;
-
-        case GIT_REF_SYMBOLIC:
-            bind_buffers[2].buffer_type = MYSQL_TYPE_NULL;
-            bind_buffers[2].buffer = NULL;
-            bind_buffers[2].buffer_length = 0;
-            bind_buffers[2].length = &bind_buffers[2].buffer_length;
-
-            bind_buffers[3].buffer_type = MYSQL_TYPE_STRING;
-            bind_buffers[3].buffer = ref->target.symbolic;
-            bind_buffers[3].buffer_length = strlen(ref->target.symbolic);
-            bind_buffers[3].length = &bind_buffers[3].buffer_length;
-            break;
-
-        case GIT_REF_LISTALL: /* BREAKTHROUGH */
-        case GIT_REF_INVALID:
-            assert(ref->type != GIT_REF_LISTALL);
-            assert(ref->type != GIT_REF_INVALID);
-            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
-                "invalid ref. Cannot insert",
-                __FUNCTION__, __LINE__);
-            return GIT_ERROR;
-    }
-
-    if (git_oid_iszero(&ref->peel)) {
-        bind_buffers[4].buffer_type = MYSQL_TYPE_NULL;
-        bind_buffers[4].buffer = NULL;
-        bind_buffers[4].buffer_length = 0;
-        bind_buffers[4].length = &bind_buffers[4].buffer_length;
-    } else {
-        bind_buffers[4].buffer_type = MYSQL_TYPE_BLOB;
-        bind_buffers[4].buffer = &ref->peel.id;
-        bind_buffers[4].buffer_length = sizeof(ref->peel.id);
-        bind_buffers[4].length = &bind_buffers[4].buffer_length;
-    }
 
     if (force) {
         /* we have to repeat some values */
-
-        switch(ref->type)
-        {
-            case GIT_REF_OID:
-                bind_buffers[5].buffer_type = MYSQL_TYPE_BLOB;
-                bind_buffers[5].buffer = &ref->target.oid.id;
-                bind_buffers[5].buffer_length = sizeof(ref->target.oid.id);
-                bind_buffers[5].length = &bind_buffers[2].buffer_length;
-
-                bind_buffers[6].buffer_type = MYSQL_TYPE_NULL;
-                bind_buffers[6].buffer = NULL;
-                bind_buffers[6].buffer_length = 0;
-                bind_buffers[6].length = &bind_buffers[3].buffer_length;
-                break;
-
-            case GIT_REF_SYMBOLIC:
-                bind_buffers[5].buffer_type = MYSQL_TYPE_NULL;
-                bind_buffers[5].buffer = NULL;
-                bind_buffers[5].buffer_length = 0;
-                bind_buffers[5].length = &bind_buffers[2].buffer_length;
-
-                bind_buffers[6].buffer_type = MYSQL_TYPE_STRING;
-                bind_buffers[6].buffer = ref->target.symbolic;
-                bind_buffers[6].buffer_length = strlen(ref->target.symbolic);
-                bind_buffers[6].length = &bind_buffers[3].buffer_length;
-                break;
-
-            case GIT_REF_LISTALL: /* BREAKTHROUGH */
-            case GIT_REF_INVALID:
-                assert(ref->type != GIT_REF_LISTALL);
-                assert(ref->type != GIT_REF_INVALID);
-                PyErr_Format(GitError, __FILE__ ": %s: L%d: "
-                    "invalid ref. Cannot insert",
-                    __FUNCTION__, __LINE__);
-                return GIT_ERROR;
-        }
-
-        if (git_oid_iszero(&ref->peel)) {
-            bind_buffers[7].buffer_type = MYSQL_TYPE_NULL;
-            bind_buffers[7].buffer = NULL;
-            bind_buffers[7].buffer_length = 0;
-            bind_buffers[7].length = &bind_buffers[4].buffer_length;
-        } else {
-            bind_buffers[7].buffer_type = MYSQL_TYPE_BLOB;
-            bind_buffers[7].buffer = &ref->peel.id;
-            bind_buffers[7].buffer_length = sizeof(ref->peel.id);
-            bind_buffers[7].length = &bind_buffers[4].buffer_length;
-        }
+        if (_bind_ref_values(bind_buffers + 5, ref) != GIT_OK)
+            return GIT_ERROR;
     }
 
     sql_statement = (force
