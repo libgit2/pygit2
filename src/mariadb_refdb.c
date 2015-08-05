@@ -7,6 +7,7 @@
 #include <git2/sys/refs.h>
 
 #include "error.h"
+#include "fnmatch.h"
 #include "mariadb_refdb.h"
 
 
@@ -125,13 +126,6 @@ typedef struct {
 extern PyObject *GitError;
 
 
-/*!
- * \brief libgit2's custom internal implementation of fnmatch()
- * see man fnmatch()
- */
-extern int p_fnmatch(const char *pattern, const char *string, int flags);
-
-
 static int mariadb_reference_iterator_next(git_reference **ref,
         git_reference_iterator *iter);
 static int mariadb_reference_iterator_next_name(const char **ref_name,
@@ -155,18 +149,44 @@ static const mariadb_reference_iterator_t reference_iterator_template = {
 
 
 static int mariadb_reference_iterator_next(git_reference **ref,
-        git_reference_iterator *iter)
+        git_reference_iterator *_iterator)
 {
-    /* TODO */
-    return GIT_ERROR;
+    mariadb_reference_iterator_t *iterator;
+
+    assert(ref);
+    assert(_iterator);
+
+    iterator = (mariadb_reference_iterator_t *)_iterator;
+
+    if (iterator->current == NULL) {
+        *ref = NULL;
+        return GIT_ITEROVER;
+    }
+
+    *ref = iterator->current->reference;
+    iterator->current = iterator->current->next;
+    return GIT_OK;
 }
 
 
 static int mariadb_reference_iterator_next_name(const char **ref_name,
-        git_reference_iterator *iter)
+        git_reference_iterator *_iterator)
 {
-    /* TODO */
-    return GIT_ERROR;
+    mariadb_reference_iterator_t *iterator;
+
+    assert(ref_name);
+    assert(_iterator);
+
+    iterator = (mariadb_reference_iterator_t *)_iterator;
+
+    if (iterator->current == NULL) {
+        *ref_name = NULL;
+        return GIT_ITEROVER;
+    }
+
+    *ref_name = git_reference_name(iterator->current->reference);
+    iterator->current = iterator->current->next;
+    return GIT_OK;
 }
 
 
@@ -175,8 +195,7 @@ static void mariadb_reference_iterator_free(git_reference_iterator *_iterator)
     mariadb_reference_iterator_t *iterator;
     mariadb_reference_iterator_node_t *node;
 
-    if (_iterator == NULL)
-        return;
+    assert(_iterator);
 
     iterator = (mariadb_reference_iterator_t *)_iterator;
 
@@ -438,6 +457,9 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
      * returns no error.
      */
     while( (fetch_result = mysql_stmt_fetch(backend->st_iterator)) == 0 ) {
+        if (glob != NULL && p_fnmatch(glob, refname, 0) != 0)
+            continue;
+
         current_node = calloc(1, sizeof(*current_node));
         if (current_node == NULL) {
             mariadb_reference_iterator_free(&iterator->parent);
