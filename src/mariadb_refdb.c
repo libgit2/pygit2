@@ -118,6 +118,7 @@ typedef struct mariadb_reference_iterator_node_s {
 typedef struct {
     git_reference_iterator parent;
     mariadb_reference_iterator_node_t *head;
+    mariadb_reference_iterator_node_t *current;
 } mariadb_reference_iterator_t;
 
 
@@ -169,10 +170,23 @@ static int mariadb_reference_iterator_next_name(const char **ref_name,
 }
 
 
-static void mariadb_reference_iterator_free(git_reference_iterator *iter)
+static void mariadb_reference_iterator_free(git_reference_iterator *_iterator)
 {
-    /* TODO: clear statements */
-    free(iter);
+    mariadb_reference_iterator_t *iterator;
+    mariadb_reference_iterator_node_t *node;
+
+    if (_iterator == NULL)
+        return;
+
+    iterator = (mariadb_reference_iterator_t *)_iterator;
+
+    for (node = iterator->head ; node != NULL ; node = node->next) {
+        assert(node->reference);
+        git_reference_free(node->reference);
+        free(node);
+    }
+
+    free(iterator);
 }
 
 
@@ -371,7 +385,6 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
                 "mysql_stmt_bind_param() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db));
-        /* TODO */
         return GIT_ERROR;
     }
 
@@ -380,14 +393,13 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
                 "mysql_stmt_execute() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db));
-        /* TODO */
         return GIT_ERROR;
     }
 
     iterator = calloc(1, sizeof(*iterator));
     if (iterator == NULL) {
         PyErr_SetString(GitError, "out of memory");
-        /* TODO */
+        mysql_stmt_reset(backend->st_exists);
         return GIT_ERROR;
     }
 
@@ -416,7 +428,8 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
             "mysql_stmt_bind_result() failed: %s",
             __FUNCTION__, __LINE__,
             mysql_error(backend->db));
-        /* TODO */
+        mysql_stmt_reset(backend->st_exists);
+        mariadb_reference_iterator_free(&iterator->parent);
         return GIT_ERROR;
     }
 
@@ -427,8 +440,9 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
     while( (fetch_result = mysql_stmt_fetch(backend->st_iterator)) == 0 ) {
         current_node = calloc(1, sizeof(*current_node));
         if (current_node == NULL) {
+            mariadb_reference_iterator_free(&iterator->parent);
             PyErr_Format(GitError, "out of memory");
-            /* TODO */
+            mysql_stmt_reset(backend->st_exists);
             return GIT_ERROR;
         }
 
@@ -450,6 +464,7 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
 
         if (previous_node == NULL) {
             iterator->head = current_node;
+            iterator->current = current_node;
         } else {
             previous_node->next = current_node;
         }
@@ -462,18 +477,18 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
             "mysql_stmt_fetch() failed: %s",
             __FUNCTION__, __LINE__,
             mysql_error(backend->db));
-        /* TODO */
+        mysql_stmt_reset(backend->st_exists);
+        mariadb_reference_iterator_free(&iterator->parent);
         return GIT_ERROR;
     }
 
     /* reset the statement for further use */
     if (mysql_stmt_reset(backend->st_exists) != 0) {
-        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+        fprintf(stderr, __FILE__ ": %s: L%d: "
                 "mysql_stmt_reset() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db));
         /* the next one may fail, but meh, we got our data for now */
-        return GIT_OK;
     }
 
     *_iterator = &iterator->parent;
