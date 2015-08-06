@@ -5,8 +5,6 @@
 #include <Python.h>
 #include "error.h"
 
-#include <mysql.h>
-
 #include "mariadb_odb.h"
 
 
@@ -40,7 +38,7 @@
  */
 #define SQL_READ_PREFIX \
         "SELECT `oid`, `type`, `size`, UNCOMPRESS(`data`) FROM `%s`" \
-        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT('%%', ?)" \
+        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT(?, '%%')" \
         " LIMIT 2"
 
 #define SQL_READ_HEADER \
@@ -50,14 +48,23 @@
 /* We set limit to 2 here, because we must detect hash prefix collision.
  */
 #define SQL_READ_HEADER_PREFIX \
-        "SELECT `oid`, `type`, `size` FROM `%s`" \
-        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT('%%', ?)" \
+        "SELECT `oid` FROM `%s`" \
+        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT(?, '%%')" \
         " LIMIT 2;"
 
 #define SQL_WRITE \
         "INSERT IGNORE INTO `%s` VALUES (?, ?, ?, ?, COMPRESS(?));"
 
 #define LEN(x) (sizeof(x) / sizeof(x[0]))
+
+#define UNIMPLEMENTED_CALLBACK(cb_name) static int cb_name() \
+{ \
+    fprintf(stderr, \
+        "MariaDB ODB: WARNING: %s called but not implemented !\n", \
+        __FUNCTION__); \
+    assert(0); \
+    return GIT_ERROR; \
+}
 
 typedef struct {
     git_odb_backend parent;
@@ -197,7 +204,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
 
     /* bind the oid passed to the statement */
     bind_buffers[1].buffer = (void*)oid->id;
-    bind_buffers[1].buffer_length = 20;
+    bind_buffers[1].buffer_length = GIT_OID_RAWSZ;
     bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read, bind_buffers) != 0) {
@@ -298,6 +305,132 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
 }
 
 
+static int mariadb_odb_backend__read_prefix(
+        git_oid *out_oid, void **data_p, size_t *len_p, git_otype *type_p,
+        git_odb_backend *_backend, const git_oid *short_oid, size_t len) {
+
+    mariadb_odb_backend_t *backend;
+    int error;
+    MYSQL_BIND bind_buffers[2];
+    MYSQL_BIND result_buffers[4];
+    unsigned long data_len;
+
+    assert(out_oid && len_p && type_p && _backend && short_oid);
+
+    backend = (mariadb_odb_backend_t *)_backend;
+
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+    memset(result_buffers, 0, sizeof(result_buffers));
+
+    /* bind the repository_id */
+    bind_buffers[0].buffer = &backend->git_repository_id;
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+
+    /* bind the oid passed to the statement */
+    bind_buffers[1].buffer = (void*)short_oid->id;
+    bind_buffers[1].buffer_length = len;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
+    bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
+    if (mysql_stmt_bind_param(backend->st_read_prefix, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* execute the statement */
+    if (mysql_stmt_execute(backend->st_read_prefix) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_store_result(backend->st_read_prefix) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_store_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_num_rows(backend->st_read) > 1) {
+        error = GIT_EAMBIGUOUS;
+    } else if (mysql_stmt_num_rows(backend->st_read) < 1) {
+        error = GIT_ENOTFOUND;
+    } else {
+        result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
+        result_buffers[0].buffer = (void*)out_oid->id,
+        result_buffers[0].buffer_length = GIT_OID_RAWSZ;
+        result_buffers[0].length = &result_buffers[0].buffer_length;
+
+        result_buffers[1].buffer_type = MYSQL_TYPE_TINY;
+        result_buffers[1].buffer = type_p;
+        result_buffers[1].buffer_length = sizeof(*type_p);
+        memset(type_p, 0, sizeof(*type_p));
+
+        result_buffers[2].buffer_type = MYSQL_TYPE_LONGLONG;
+        result_buffers[2].buffer = len_p;
+        result_buffers[2].buffer_length = sizeof(*len_p);
+        memset(len_p, 0, sizeof(*len_p));
+
+        /*
+        by setting buffer and buffer_length to 0, this tells libmysql
+        we want it to set data_len to the *actual* length of that field
+        this way we can malloc exactly as much memory as we need for the buffer
+
+        come to think of it, we can probably just use the length set in *len_p
+        once we fetch the result ?
+        */
+        result_buffers[3].buffer_type = MYSQL_TYPE_LONG_BLOB;
+        result_buffers[3].buffer = 0;
+        result_buffers[3].buffer_length = 0;
+        result_buffers[3].length = &data_len;
+
+        if(mysql_stmt_bind_result(backend->st_read, result_buffers) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+            return GIT_ERROR;
+        }
+
+        /* this should populate the buffers at *type_p, *len_p and &data_len */
+        mysql_stmt_fetch(backend->st_read);
+        /* XXX(Jflesch): should we check the return value of mysql_stmt_fetch() ? */
+
+        if (data_len > 0) {
+            *data_p = malloc(data_len);
+            result_buffers[2].buffer = *data_p;
+            result_buffers[2].buffer_length = data_len;
+
+            if (mysql_stmt_fetch_column(backend->st_read,
+                    &result_buffers[2], 2, 0) != 0) {
+                PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                        "mysql_stmt_fetch_column() failed: %s",
+                        __FUNCTION__, __LINE__,
+                        mysql_error(backend->db));
+                return GIT_ERROR;
+            }
+        }
+
+        error = GIT_OK;
+    }
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(backend->st_read) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+    return error;
+}
+
+
 static int mariadb_odb_backend__exists(git_odb_backend *_backend, const git_oid *oid)
 {
     mariadb_odb_backend_t *backend;
@@ -365,6 +498,93 @@ static int mariadb_odb_backend__exists(git_odb_backend *_backend, const git_oid 
 
     return found;
 }
+
+
+static int mariadb_odb_backend__exists_prefix(
+        git_oid *out_oid, git_odb_backend *_backend,
+        const git_oid *short_oid, size_t len)
+{
+    mariadb_odb_backend_t *backend;
+    int error;
+    MYSQL_BIND bind_buffers[2];
+    MYSQL_BIND result_buffers[1];
+
+    assert(out_oid && _backend && short_id);
+
+    backend = (mariadb_odb_backend_t *)_backend;
+
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+    memset(result_buffers, 0, sizeof(result_buffers));
+
+    /* bind the repository_id */
+    bind_buffers[0].buffer = &backend->git_repository_id;
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+
+    /* bind the oid passed to the statement */
+    bind_buffers[1].buffer = (void*)short_oid->id;
+    bind_buffers[1].buffer_length = len;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
+    bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
+    if (mysql_stmt_bind_param(backend->st_read_prefix, bind_buffers) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_param() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    /* execute the statement */
+    if (mysql_stmt_execute(backend->st_read_prefix) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_execute() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_store_result(backend->st_read_prefix) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_store_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+
+    if (mysql_stmt_num_rows(backend->st_read) > 1) {
+        error = GIT_EAMBIGUOUS;
+    } else if (mysql_stmt_num_rows(backend->st_read) < 1) {
+        error = GIT_ENOTFOUND;
+    } else {
+        result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
+        result_buffers[0].buffer = (void*)out_oid->id,
+        result_buffers[0].buffer_length = GIT_OID_RAWSZ;
+        result_buffers[0].length = &result_buffers[0].buffer_length;
+
+        if(mysql_stmt_bind_result(backend->st_read, result_buffers) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_bind_result() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+            return GIT_ERROR;
+        }
+
+        /* this should populate the buffers */
+        mysql_stmt_fetch(backend->st_read);
+        /* XXX(Jflesch): should we check the return value of mysql_stmt_fetch() ? */
+        error = GIT_OK;
+    }
+
+    /* reset the statement for further use */
+    if (mysql_stmt_reset(backend->st_read) != 0) {
+        PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_reset() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+        return GIT_ERROR;
+    }
+    return error;
+}
+
 
 static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *oid,
     const void *data, size_t len, git_otype type)
@@ -449,6 +669,26 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *
     return GIT_OK;
 }
 
+
+static int mariadb_odb_backend__refresh(git_odb_backend *backend) {
+    /* no-op here */
+    return GIT_OK;
+}
+
+
+/* disable -Wstrict-prototype: we are actually in one of the only cases
+ * where it is handy to have functions with an undefined list of
+ * arguments.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
+
+UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__writestream)
+UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__readstream)
+UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__foreach)
+UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__writepack)
+
+#pragma GCC diagnostic pop
 
 static void mariadb_odb_backend__free(git_odb_backend *_backend)
 {
@@ -595,16 +835,17 @@ int git_odb_backend_mariadb(git_odb_backend **backend_out,
     }
 
     backend->parent.read = mariadb_odb_backend__read;
-    /* TODO(Jflesch) ! (warning: hash collisions must be taken into account) */
-    backend->parent.read_prefix = NULL;
+    backend->parent.read_prefix = mariadb_odb_backend__read_prefix;
     backend->parent.read_header = mariadb_odb_backend__read_header;
     backend->parent.write = mariadb_odb_backend__write;
+    backend->parent.writestream = mariadb_odb_backend__writestream;
+    backend->parent.readstream = mariadb_odb_backend__readstream;
     backend->parent.exists = mariadb_odb_backend__exists;
-    /* TODO(Jflesch) ! (warning: hash collisions must be taken into account) */
-    backend->parent.exists_prefix = NULL;
+    backend->parent.exists_prefix = mariadb_odb_backend__exists_prefix;
+    backend->parent.refresh = mariadb_odb_backend__refresh;
     backend->parent.free = mariadb_odb_backend__free;
-    backend->parent.foreach = NULL; /* XXX(Jflesch): is it ever used ? */
-    backend->parent.writepack = NULL; /* TODO(Jflesch) */
+    backend->parent.foreach = mariadb_odb_backend__foreach;
+    backend->parent.writepack = mariadb_odb_backend__writepack;
 
 
     *backend_out = &backend->parent;
