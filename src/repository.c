@@ -28,8 +28,12 @@
 #include <stdio.h>
 #include <string.h>
 
+/* disable -Wstrict-prototypes because mysql's devs don't know C ... */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #include <my_global.h>
 #include <mysql.h>
+#pragma GCC diagnostic pop
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>

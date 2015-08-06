@@ -3,7 +3,11 @@
 
 #include <stdint.h>
 
+/* disable -Wstrict-prototypes because mysql's devs don't know C ... */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #include <mysql.h>
+#pragma GCC diagnostic pop
 
 #include <git2.h>
 #include <git2/errors.h>
