@@ -32,10 +32,13 @@
         ";"
 
 #define SQL_READ \
-        "SELECT `type`, `size`, UNCOMPRESS(`data`) FROM `%s` WHERE `oid` = ?;"
+        "SELECT `type`, `size`, UNCOMPRESS(`data`) FROM `%s`" \
+        " WHERE `repository_id` = ? AND `oid` = ?" \
+        " LIMIT 1;"
 
 #define SQL_READ_HEADER \
-        "SELECT `type`, `size` FROM `%s` WHERE `oid` = ?;"
+        "SELECT `type`, `size` FROM `%s`" \
+        " WHERE `repository_id` = ? AND `oid` = ? LIMIT 1;"
 
 #define SQL_WRITE \
         "INSERT IGNORE INTO `%s` VALUES (?, ?, ?, ?, COMPRESS(?));"
@@ -71,11 +74,15 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     memset(bind_buffers, 0, sizeof(bind_buffers));
     memset(result_buffers, 0, sizeof(result_buffers));
 
+    /* bind the repository_id */
+    bind_buffers[0].buffer = &backend->git_repository_id;
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+
     /* bind the oid passed to the statement */
-    bind_buffers[0].buffer = (void*)oid->id;
-    bind_buffers[0].buffer_length = 20;
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
-    bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
+    bind_buffers[1].buffer = (void*)oid->id;
+    bind_buffers[1].buffer_length = 20;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
+    bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0) {
         PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_param() failed: %s",
@@ -167,11 +174,15 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     memset(bind_buffers, 0, sizeof(bind_buffers));
     memset(result_buffers, 0, sizeof(result_buffers));
 
+    /* bind the repository_id */
+    bind_buffers[0].buffer = &backend->git_repository_id;
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+
     /* bind the oid passed to the statement */
-    bind_buffers[0].buffer = (void*)oid->id;
-    bind_buffers[0].buffer_length = 20;
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
-    bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
+    bind_buffers[1].buffer = (void*)oid->id;
+    bind_buffers[1].buffer_length = 20;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
+    bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read, bind_buffers) != 0) {
         PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_param() failed: %s",
@@ -283,11 +294,15 @@ static int mariadb_odb_backend__exists(git_odb_backend *_backend, const git_oid 
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
 
+    /* bind the repository_id */
+    bind_buffers[0].buffer = &backend->git_repository_id;
+    bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+
     /* bind the oid passed to the statement */
-    bind_buffers[0].buffer = (void*)oid->id;
-    bind_buffers[0].buffer_length = 20;
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
-    bind_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
+    bind_buffers[1].buffer = (void*)oid->id;
+    bind_buffers[1].buffer_length = 20;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
+    bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0) {
         PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_param() failed: %s",
