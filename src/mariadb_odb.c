@@ -64,7 +64,7 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
 {
     mariadb_odb_backend_t *backend;
     int error;
-    MYSQL_BIND bind_buffers[1];
+    MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[2];
 
     assert(len_p && type_p && _backend && oid);
@@ -163,7 +163,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
 {
     mariadb_odb_backend_t *backend;
     int error;
-    MYSQL_BIND bind_buffers[1];
+    MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[3];
     unsigned long data_len;
 
@@ -285,7 +285,7 @@ static int mariadb_odb_backend__exists(git_odb_backend *_backend, const git_oid 
 {
     mariadb_odb_backend_t *backend;
     int found;
-    MYSQL_BIND bind_buffers[1];
+    MYSQL_BIND bind_buffers[2];
 
     assert(_backend && oid);
 
