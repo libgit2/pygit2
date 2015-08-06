@@ -60,6 +60,9 @@ class Repository(_Repository):
         super(Repository, self).__init__(*args, **kwargs)
         self._common_init()
 
+    def commit(self):
+        super(Repository, self).commit()
+
     @classmethod
     def _from_c(cls, ptr, owned):
         cptr = ffi.new('git_repository **')

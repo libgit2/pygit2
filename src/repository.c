@@ -118,8 +118,21 @@ error:
 }
 
 
+PyDoc_STRVAR(Repository_commit__doc__,
+    "Apply the changes in the DB");
+
+PyObject *
+Repository_commit(Repository *self)
+{
+    if (self->db)
+        mysql_commit(self->db);
+    Py_RETURN_NONE;
+}
+
 static void free_mariadb_repo(Repository *self)
 {
+    if (self->db)
+        mysql_commit(self->db);
     if (self->db) {
         mysql_close(self->db);
         self->db = NULL;
