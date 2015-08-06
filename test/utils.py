@@ -36,6 +36,8 @@ import tempfile
 import unittest
 import hashlib
 
+import mysql.connector
+
 import pygit2
 
 
@@ -160,6 +162,43 @@ class EmptyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'emptyrepo'
 
+
 class SubmoduleRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'submodulerepo'
+
+
+class MariadbRepositoryTestCase(unittest.TestCase):
+    TEST_DB_HOST = "localhost"
+    TEST_DB_PORT = 3306
+    TEST_DB_USER = "pygit2"
+    TEST_DB_PASSWD = "pygit2"
+    TEST_DB_SOCKET = "/var/run/mysqld/mysqld.sock"
+    TEST_DB_DB = "pygit2"
+    TEST_DB_TABLE_PREFIX = "pygit2"
+    TEST_DB_REPO_ID = 42
+
+    def setUp(self):
+        # purge the db
+        cnx = mysql.connector.connect(user=self.TEST_DB_USER,
+            password=self.TEST_DB_PASSWD,
+            host=self.TEST_DB_HOST, database=self.TEST_DB_DB)
+        try:
+            # shoot all existing tables in the DB
+            table_names = []
+            cursor = cnx.cursor()
+            try:
+                cursor.execute("SHOW TABLES;")
+                for table_name in cursor:
+                    table_names.append(table_name)
+            finally:
+                cursor.close()
+
+            cursor = cnx.cursor()
+            try:
+                for table in table_names:
+                    cursor.execute("DROP TABLE %s;" % table)
+            finally:
+                cursor.close()
+        finally:
+            cnx.close()
