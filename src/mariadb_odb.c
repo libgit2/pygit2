@@ -28,8 +28,7 @@
         " DEFAULT CHARSET=utf8" \
         " COLLATE=utf8_bin" \
         " PARTITION BY KEY(`repository_id`)" \
-         /* XXX(Jflesch): 256 partitions is rough, but it should be effective */ \
-        " PARTITIONS 256" \
+        " PARTITIONS %d" \
         ";"
 
 #define SQL_READ \
@@ -437,11 +436,12 @@ static void mariadb_odb_backend__free(git_odb_backend *_backend)
 }
 
 
-static int init_db(MYSQL *db, const char *table_name)
+static int init_db(MYSQL *db, const char *table_name, int odb_partitions)
 {
     char sql_create[MAX_QUERY_LEN];
 
-    snprintf(sql_create, sizeof(sql_create), SQL_CREATE, table_name);
+    snprintf(sql_create, sizeof(sql_create), SQL_CREATE, table_name,
+        odb_partitions);
 
     if (mysql_real_query(db, sql_create, strlen(sql_create)) != 0) {
         PyErr_Format(GitError, __FILE__ ": %s: L%d: "
@@ -524,7 +524,8 @@ static int init_statements(mariadb_odb_backend_t *backend, const char *mysql_tab
 int git_odb_backend_mariadb(git_odb_backend **backend_out,
         MYSQL *db,
         const char *mariadb_table,
-        uint32_t git_repository_id)
+        uint32_t git_repository_id,
+        int odb_partitions)
 {
     mariadb_odb_backend_t *backend;
     int error;
@@ -542,7 +543,7 @@ int git_odb_backend_mariadb(git_odb_backend **backend_out,
     backend->db = db;
 
     /* check for and possibly create the database */
-    error = init_db(db, mariadb_table);
+    error = init_db(db, mariadb_table, odb_partitions);
     if (error < 0) {
         goto cleanup;
     }

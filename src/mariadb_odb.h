@@ -14,6 +14,7 @@
 int git_odb_backend_mariadb(git_odb_backend **backend_out,
         MYSQL *db,
         const char *mariadb_table,
-        uint32_t git_repository_id);
+        uint32_t git_repository_id,
+        int odb_partitions);
 
 #endif

@@ -31,7 +31,7 @@
     " DEFAULT CHARSET=utf8" \
     " COLLATE=utf8_bin" \
     " PARTITION BY KEY(`repository_id`)" \
-    " PARTITIONS 4" \
+    " PARTITIONS %d" \
     ";"
 
 
@@ -971,11 +971,12 @@ static int mariadb_refdb_reflog_delete(git_refdb_backend *backend,
 }
 
 
-static int init_db(MYSQL *db, const char *table_name)
+static int init_db(MYSQL *db, const char *table_name, int refdb_partitions)
 {
     char sql_create[MAX_QUERY_LEN];
 
-    snprintf(sql_create, sizeof(sql_create), SQL_CREATE, table_name);
+    snprintf(sql_create, sizeof(sql_create), SQL_CREATE, table_name,
+        refdb_partitions);
 
     if (mysql_real_query(db, sql_create, strlen(sql_create)) != 0) {
         PyErr_Format(GitError, __FILE__ ": %s: L%d: "
@@ -1065,7 +1066,8 @@ static int init_statements(mariadb_refdb_backend_t *backend,
 int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
         MYSQL *db,
         const char *mariadb_table,
-        uint32_t git_repository_id)
+        uint32_t git_repository_id,
+        int refdb_partitions)
 {
     mariadb_refdb_backend_t *backend;
     int error;
@@ -1079,7 +1081,7 @@ int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
     *backend_out = &backend->parent;
     backend->db = db;
 
-    error = init_db(db, mariadb_table);
+    error = init_db(db, mariadb_table, refdb_partitions);
     if (error < 0) {
         goto error;
     }

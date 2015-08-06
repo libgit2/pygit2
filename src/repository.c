@@ -133,7 +133,8 @@ static void free_mariadb_repo(Repository *self)
 
 
 static int make_mariadb_repo(Repository *self,
-    const char *db_table_prefix, uint32_t repository_id)
+    const char *db_table_prefix, uint32_t repository_id,
+    int odb_partitions, int refdb_partitions)
 {
     int error;
     char odb_table[256];
@@ -162,7 +163,7 @@ static int make_mariadb_repo(Repository *self,
     }
 
     error = git_odb_backend_mariadb(&self->odb_backend,
-        self->db, odb_table, repository_id);
+        self->db, odb_table, repository_id, odb_partitions);
     if (error) {
         /* do not call PyErr_xxx() here : git_odb_backend_mariadb
          * took already care of setting the exception
@@ -188,7 +189,7 @@ static int make_mariadb_repo(Repository *self,
     }
 
     error = git_refdb_backend_mariadb(&self->refdb_backend,
-            self->db, refdb_table, repository_id);
+            self->db, refdb_table, repository_id, refdb_partitions);
     if (error) {
         /* do not call PyErr_xxx() here : git_refdb_backend_mariadb
          * took already care of setting the exception
@@ -245,7 +246,7 @@ wrap_repository(git_repository *c_repo)
 
 
 int
-Repository_init(Repository *self, PyObject *args, PyObject *kwds)
+Repository_init(Repository *self, PyObject *args, PyObject *kwargs)
 {
     char *path;
     int err;
@@ -259,6 +260,10 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
     uint32_t repository_id;
     MYSQL *db;
 
+    /* XXX(Jflesch): 256 partitions is rough, but it should be effective */
+    int odb_partitions = 256;
+    int refdb_partitions = 4;
+
     self->repo = NULL;
     self->config = NULL;
     self->index = NULL;
@@ -268,10 +273,45 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 
     self->owned = 1;
 
-    if (kwds && PyDict_Size(kwds) > 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "Repository takes no keyword arguments");
-        return -1;
+    if (kwargs && PyDict_Size(kwargs) > 0) {
+        /* check if the caller specified the number of Mariadb's partitions
+         * to use
+         */
+        PyObject *partitions_str;
+        PyObject *partitions_obj;
+        long nb_partitions;
+
+        partitions_str = PyUnicode_FromString("odb_partitions");
+        partitions_obj = PyDict_GetItem(kwargs, partitions_str);
+        Py_CLEAR(partitions_str);
+        if (partitions_obj != NULL) {
+            if (!PyLong_Check(partitions_obj)) {
+                PyErr_SetString(GitError, "odb_partitions must be an integer");
+                return -1;
+            }
+            nb_partitions = PyLong_AsLong(partitions_obj);
+            if (nb_partitions > 1024) {
+                PyErr_SetString(GitError, "odb_partitions is too big (>1024)");
+                return -1;
+            }
+            odb_partitions = nb_partitions;
+        }
+
+        partitions_str = PyUnicode_FromString("refdb_partitions");
+        partitions_obj = PyDict_GetItem(kwargs, partitions_str);
+        Py_CLEAR(partitions_str);
+        if (partitions_obj != NULL) {
+            if (!PyLong_Check(partitions_obj)) {
+                PyErr_SetString(GitError, "refdb_partitions must be an integer");
+                return -1;
+            }
+            nb_partitions = PyLong_AsLong(partitions_obj);
+            if (nb_partitions > 1024) {
+                PyErr_SetString(GitError, "refdb_partitions is too big (>1024)");
+                return -1;
+            }
+            refdb_partitions = nb_partitions;
+        }
     }
 
     if (PyArg_ParseTuple(args, "zisszssI",
@@ -286,7 +326,8 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
             return -1;
         }
         self->db = db;
-        if (!make_mariadb_repo(self, mariadb_table_prefix, repository_id)) {
+        if (!make_mariadb_repo(self, mariadb_table_prefix, repository_id,
+                odb_partitions, refdb_partitions)) {
             return -1;
         }
         return 0;

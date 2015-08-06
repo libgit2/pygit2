@@ -12,6 +12,7 @@
 int git_refdb_backend_mariadb(git_refdb_backend **backend_out,
         MYSQL *db,
         const char *mariadb_table,
-        uint32_t git_repository_id);
+        uint32_t git_repository_id,
+        int refdb_partitions);
 
 #endif
