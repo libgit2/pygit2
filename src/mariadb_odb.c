@@ -554,10 +554,17 @@ int git_odb_backend_mariadb(git_odb_backend **backend_out,
     }
 
     backend->parent.read = mariadb_odb_backend__read;
+    /* TODO(Jflesch) ! (warning: hash collisions must be taken into account) */
+    backend->parent.read_prefix = NULL;
     backend->parent.read_header = mariadb_odb_backend__read_header;
     backend->parent.write = mariadb_odb_backend__write;
     backend->parent.exists = mariadb_odb_backend__exists;
+    /* TODO(Jflesch) ! (warning: hash collisions must be taken into account) */
+    backend->parent.exists_prefix = NULL;
     backend->parent.free = mariadb_odb_backend__free;
+    backend->parent.foreach = NULL; /* XXX(Jflesch): is it ever used ? */
+    backend->parent.writepack = NULL; /* TODO(Jflesch) */
+
 
     *backend_out = &backend->parent;
     return GIT_OK;
