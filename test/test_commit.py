@@ -33,6 +33,8 @@ import unittest
 import sys
 
 from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
+from pygit2.repository import Repository
+
 from . import utils
 
 # pypy (in python2 mode) raises TypeError on writing to read-only, so
@@ -158,6 +160,81 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertRaises(error_type, setattr, commit, 'author', author)
         self.assertRaises(error_type, setattr, commit, 'tree', None)
         self.assertRaises(error_type, setattr, commit, 'parents', None)
+
+
+class MariadbCommitTest(utils.MariadbRepositoryTestCase):
+    def test_new_commit(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
+        committer = Signature('John Doe', 'jdoe@example.com', 12346, 0)
+        author = Signature(
+            'J. David Ibáñez', 'jdavid@example.com', 12345, 0,
+            encoding='utf-8')
+        tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+        tree_prefix = tree[:5]
+        too_short_prefix = tree[:3]
+
+        parents = []
+        self.assertRaises(ValueError, repo.create_commit, None, author,
+                          committer, message, too_short_prefix, parents)
+
+        sha = repo.create_commit(None, author, committer, message,
+                                 tree_prefix, parents)
+        commit = repo[sha]
+
+        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
+        self.assertEqual('98286caaab3f1fde5bf52c8369b2b0423bad743b',
+                         commit.hex)
+        self.assertEqual(None, commit.message_encoding)
+        self.assertEqual(message, commit.message)
+        self.assertEqual(12346, commit.commit_time)
+        self.assertEqualSignature(committer, commit.committer)
+        self.assertEqualSignature(author, commit.author)
+        self.assertEqual(tree, commit.tree.hex)
+        self.assertEqual(Oid(hex=tree), commit.tree_id)
+        self.assertEqual(1, len(commit.parents))
+        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
+        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
+        repo.commit()
+
+    def test_new_commit_encoding(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        encoding = 'iso-8859-1'
+        message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
+        committer = Signature('John Doe', 'jdoe@example.com', 12346, 0,
+                              encoding)
+        author = Signature('J. David Ibáñez', 'jdavid@example.com', 12345, 0,
+                           encoding)
+        tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+        tree_prefix = tree[:5]
+
+        parents = [COMMIT_SHA[:5]]
+        sha = repo.create_commit(None, author, committer, message,
+                                 tree_prefix, parents, encoding)
+        commit = repo[sha]
+
+        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
+        self.assertEqual('iso-8859-1', commit.message_encoding)
+        self.assertEqual(message.encode(encoding), commit.raw_message)
+        self.assertEqual(12346, commit.commit_time)
+        self.assertEqualSignature(committer, commit.committer)
+        self.assertEqualSignature(author, commit.author)
+        self.assertEqual(tree, commit.tree.hex)
+        self.assertEqual(Oid(hex=tree), commit.tree_id)
+        self.assertEqual(1, len(commit.parents))
+        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
+        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
+        repo.commit()
 
 
 if __name__ == '__main__':

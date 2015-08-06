@@ -586,13 +586,14 @@ class MariadbRepositoryTest(utils.MariadbRepositoryTestCase):
         self.assertTrue(True)
 
     def test_successful_repository_init_socket(self):
-        Repository(None, 0,
+        repo = Repository(None, 0,
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
                 self.TEST_DB_SOCKET, self.TEST_DB_DB,
                 self.TEST_DB_TABLE_PREFIX,
                 self.TEST_DB_REPO_ID,
                 odb_partitions=2, refdb_partitions=2)
         self.assertTrue(True)
+        repo.commit()
 
 
 if __name__ == '__main__':
