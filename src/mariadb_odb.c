@@ -36,13 +36,28 @@
         " WHERE `repository_id` = ? AND `oid` = ?" \
         " LIMIT 1;"
 
+/* We set limit to 2 here, because we must detect hash prefix collision.
+ */
+#define SQL_READ_PREFIX \
+        "SELECT `oid`, `type`, `size`, UNCOMPRESS(`data`) FROM `%s`" \
+        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT('%%', ?)" \
+        " LIMIT 2"
+
 #define SQL_READ_HEADER \
         "SELECT `type`, `size` FROM `%s`" \
         " WHERE `repository_id` = ? AND `oid` = ? LIMIT 1;"
 
+/* We set limit to 2 here, because we must detect hash prefix collision.
+ */
+#define SQL_READ_HEADER_PREFIX \
+        "SELECT `oid`, `type`, `size` FROM `%s`" \
+        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT('%%', ?)" \
+        " LIMIT 2;"
+
 #define SQL_WRITE \
         "INSERT IGNORE INTO `%s` VALUES (?, ?, ?, ?, COMPRESS(?));"
 
+#define LEN(x) (sizeof(x) / sizeof(x[0]))
 
 typedef struct {
     git_odb_backend parent;
@@ -51,8 +66,10 @@ typedef struct {
 
     MYSQL *db;
     MYSQL_STMT *st_read;
+    MYSQL_STMT *st_read_prefix;
     MYSQL_STMT *st_write;
     MYSQL_STMT *st_read_header;
+    MYSQL_STMT *st_read_header_prefix;
 } mariadb_odb_backend_t;
 
 
@@ -442,8 +459,12 @@ static void mariadb_odb_backend__free(git_odb_backend *_backend)
 
     if (backend->st_read)
         mysql_stmt_close(backend->st_read);
+    if (backend->st_read_prefix)
+        mysql_stmt_close(backend->st_read_prefix);
     if (backend->st_read_header)
         mysql_stmt_close(backend->st_read_header);
+    if (backend->st_read_header_prefix);
+        mysql_stmt_close(backend->st_read_header_prefix);
     if (backend->st_write)
         mysql_stmt_close(backend->st_write);
 
@@ -474,62 +495,67 @@ static int init_statements(mariadb_odb_backend_t *backend, const char *mysql_tab
 {
     my_bool truth = 1;
 
-    char sql_read[MAX_QUERY_LEN];
-    char sql_read_header[MAX_QUERY_LEN];
-    char sql_write[MAX_QUERY_LEN];
+    char buffer[MAX_QUERY_LEN];
 
-    snprintf(sql_read, sizeof(sql_read), SQL_READ, mysql_table);
-    snprintf(sql_read_header, sizeof(sql_read_header), SQL_READ_HEADER, mysql_table);
-    snprintf(sql_write, sizeof(sql_write), SQL_WRITE, mysql_table);
+    struct {
+        const char *query;
+        const char *short_name;
+        MYSQL_STMT **stmt;
+    } statements[] = {
+        {
+            .query = SQL_READ,
+            .short_name = "read",
+            .stmt = &backend->st_read,
+        },
+        {
+            .query = SQL_READ_PREFIX,
+            .short_name = "read_prefix",
+            .stmt = &backend->st_read_prefix,
+        },
+        {
+            .query = SQL_READ_HEADER,
+            .short_name = "read_header",
+            .stmt = &backend->st_read_header,
+        },
+        {
+            .query = SQL_READ_HEADER_PREFIX,
+            .short_name = "read_header_prefix",
+            .stmt = &backend->st_read_header_prefix,
+        },
+        {
+            .query = SQL_WRITE,
+            .short_name = "write",
+            .stmt = &backend->st_write,
+        },
+    };
 
-    backend->st_read = mysql_stmt_init(backend->db);
-    if (backend->st_read == NULL) {
-        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
-        return GIT_ERROR;
-    }
+    size_t st_idx;
 
-    if (mysql_stmt_attr_set(backend->st_read, STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
-        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_attr_set() failed");
-        return GIT_ERROR;
-    }
+    for (st_idx = 0 ; st_idx < LEN(statements); st_idx++) {
+        snprintf(buffer, sizeof(buffer),
+            statements[st_idx].query, mysql_table);
 
-    if (mysql_stmt_prepare(backend->st_read, sql_read, strlen(sql_read)) != 0) {
-        PyErr_Format(GitError, __FILE__ ": mysql_stmt_prepare(read statement) failed: %s", mysql_error(backend->db));
-        return GIT_ERROR;
-    }
+        *(statements[st_idx].stmt) = mysql_stmt_init(backend->db);
+        if (*(statements[st_idx].stmt) == NULL) {
+            PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
+            return GIT_ERROR;
+        }
 
+        if (mysql_stmt_attr_set(*(statements[st_idx].stmt),
+                    STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
+            PyErr_SetString(GitError, __FILE__
+                ": mysql_stmt_attr_set() failed");
+            return GIT_ERROR;
+        }
 
-    backend->st_read_header = mysql_stmt_init(backend->db);
-    if (backend->st_read_header == NULL) {
-        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
-        return GIT_ERROR;
-    }
-
-    if (mysql_stmt_attr_set(backend->st_read_header, STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
-        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_attr_set() failed");
-        return GIT_ERROR;
-    }
-
-    if (mysql_stmt_prepare(backend->st_read_header, sql_read_header, strlen(sql_read)) != 0) {
-        PyErr_Format(GitError, __FILE__ ": mysql_stmt_prepare(read header statement) failed: %s", mysql_error(backend->db));
-        return GIT_ERROR;
-    }
-
-
-    backend->st_write = mysql_stmt_init(backend->db);
-    if (backend->st_write == NULL) {
-        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
-        return GIT_ERROR;
-    }
-
-    if (mysql_stmt_attr_set(backend->st_write, STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
-        PyErr_SetString(GitError, __FILE__ ": mysql_stmt_attr_set() failed");
-        return GIT_ERROR;
-    }
-
-    if (mysql_stmt_prepare(backend->st_write, sql_write, strlen(sql_read)) != 0) {
-        PyErr_Format(GitError, __FILE__ ": mysql_stmt_prepare(write statement) failed: %s", mysql_error(backend->db));
-        return GIT_ERROR;
+        if (mysql_stmt_prepare(*(statements[st_idx].stmt),
+                    buffer, strlen(buffer)) != 0) {
+            PyErr_Format(GitError, __FILE__
+                ": mysql_stmt_prepare(%s) failed: %s",
+                statements[st_idx].short_name,
+                mysql_error(backend->db));
+            return GIT_ERROR;
+        }
     }
 
     return GIT_OK;
