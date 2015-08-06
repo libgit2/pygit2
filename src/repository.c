@@ -1793,6 +1793,7 @@ Repository_expand_id(Repository *self, PyObject *py_hex)
 }
 
 PyMethodDef Repository_methods[] = {
+    METHOD(Repository, commit, METH_NOARGS),
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
     METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
