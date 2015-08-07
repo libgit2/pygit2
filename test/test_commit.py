@@ -166,76 +166,88 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
     def test_new_commit(self):
         repo = Repository(None, 0,
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
-                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                None, self.TEST_DB_DB,
                 self.TEST_DB_TABLE_PREFIX,
                 self.TEST_DB_REPO_ID,
                 odb_partitions=2, refdb_partitions=2)
-        message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
-        committer = Signature('John Doe', 'jdoe@example.com', 12346, 0)
-        author = Signature(
-            'J. David Ibáñez', 'jdavid@example.com', 12345, 0,
-            encoding='utf-8')
-        tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
-        tree_prefix = tree[:5]
-        too_short_prefix = tree[:3]
+        try:
+            repo.create_reference('refs/tags/foo', 'refs/heads/master')
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            sha = repo.create_commit(
+                    'refs/heads/master',  # the name of the reference to update
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(sha, None)
+        finally:
+            repo.close()
 
-        parents = []
-        self.assertRaises(ValueError, repo.create_commit, None, author,
-                          committer, message, too_short_prefix, parents)
-
-        sha = repo.create_commit(None, author, committer, message,
-                                 tree_prefix, parents)
-        commit = repo[sha]
-
-        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
-        self.assertEqual('98286caaab3f1fde5bf52c8369b2b0423bad743b',
-                         commit.hex)
-        self.assertEqual(None, commit.message_encoding)
-        self.assertEqual(message, commit.message)
-        self.assertEqual(12346, commit.commit_time)
-        self.assertEqualSignature(committer, commit.committer)
-        self.assertEqualSignature(author, commit.author)
-        self.assertEqual(tree, commit.tree.hex)
-        self.assertEqual(Oid(hex=tree), commit.tree_id)
-        self.assertEqual(1, len(commit.parents))
-        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
-        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
-        repo.commit()
-
-    def test_new_commit_encoding(self):
+    def test_fetch_commit(self):
         repo = Repository(None, 0,
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
                 self.TEST_DB_SOCKET, self.TEST_DB_DB,
                 self.TEST_DB_TABLE_PREFIX,
                 self.TEST_DB_REPO_ID,
                 odb_partitions=2, refdb_partitions=2)
-        encoding = 'iso-8859-1'
-        message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
-        committer = Signature('John Doe', 'jdoe@example.com', 12346, 0,
-                              encoding)
-        author = Signature('J. David Ibáñez', 'jdavid@example.com', 12345, 0,
-                           encoding)
-        tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
-        tree_prefix = tree[:5]
+        try:
+            repo.create_reference('refs/tags/foo', 'refs/heads/master')
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            sha = repo.create_commit(
+                    'refs/heads/master',  # the name of the reference to update
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(sha, None)
 
-        parents = [COMMIT_SHA[:5]]
-        sha = repo.create_commit(None, author, committer, message,
-                                 tree_prefix, parents, encoding)
-        commit = repo[sha]
+            # fetch
+            commit = repo[sha]
+            self.assertNotEqual(commit, None)
+            self.assertEqual(commit.author.name, author.name)
+        finally:
+            repo.close()
 
-        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
-        self.assertEqual('iso-8859-1', commit.message_encoding)
-        self.assertEqual(message.encode(encoding), commit.raw_message)
-        self.assertEqual(12346, commit.commit_time)
-        self.assertEqualSignature(committer, commit.committer)
-        self.assertEqualSignature(author, commit.author)
-        self.assertEqual(tree, commit.tree.hex)
-        self.assertEqual(Oid(hex=tree), commit.tree_id)
-        self.assertEqual(1, len(commit.parents))
-        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
-        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
-        repo.commit()
+    def test_reopen_fetch_commit(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            repo.create_reference('refs/tags/foo', 'refs/heads/master')
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            sha = repo.create_commit(
+                    'refs/heads/master',  # the name of the reference to update
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(sha, None)
+        finally:
+            repo.close()
 
+        # reopen
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            # fetch
+            commit = repo[sha]
+            self.assertNotEqual(commit, None)
+            self.assertEqual(commit.author.name, author.name)
+        finally:
+            repo.close()
 
 if __name__ == '__main__':
     unittest.main()

@@ -275,6 +275,7 @@ static int mariadb_refdb_lookup(git_reference **out,
     mariadb_refdb_backend_t *backend;
     MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[3];
+    int error;
 
     backend = (mariadb_refdb_backend_t *)_backend;
 
@@ -315,7 +316,9 @@ static int mariadb_refdb_lookup(git_reference **out,
         return GIT_ERROR;
     }
 
-    if (mysql_stmt_num_rows(backend->st_lookup) > 0) {
+    if (mysql_stmt_num_rows(backend->st_lookup) <= 0) {
+        error = GIT_ENOTFOUND;
+    } else {
         git_oid target_oid;
         char target_symbolic[MAX_REFNAME_LEN + 1];
         git_oid peel_oid;
@@ -360,6 +363,8 @@ static int mariadb_refdb_lookup(git_reference **out,
                     && !result_buffers[1].is_null);
             *out = git_reference__alloc_symbolic(refname, target_symbolic);
         }
+
+        error = GIT_OK;
     }
 
     /* reset the statement for further use */
@@ -371,7 +376,7 @@ static int mariadb_refdb_lookup(git_reference **out,
         return GIT_ERROR;
     }
 
-    return GIT_OK;
+    return error;
 }
 
 
