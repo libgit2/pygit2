@@ -133,6 +133,22 @@ Repository_commit(Repository *self)
     Py_RETURN_NONE;
 }
 
+
+PyDoc_STRVAR(Repository_close__doc__,
+    "Apply the changes in the DB");
+
+PyObject *
+Repository_close(Repository *self)
+{
+    if (self->db) {
+        mysql_commit(self->db);
+        mysql_close(self->db);
+        self->db = NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+
 static void free_mariadb_repo(Repository *self)
 {
     if (self->db)
@@ -1798,6 +1814,7 @@ Repository_expand_id(Repository *self, PyObject *py_hex)
 
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, commit, METH_NOARGS),
+    METHOD(Repository, close, METH_NOARGS),
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
     METHOD(Repository, create_blob_fromdisk, METH_VARARGS),

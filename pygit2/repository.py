@@ -63,6 +63,9 @@ class Repository(_Repository):
     def commit(self):
         super(Repository, self).commit()
 
+    def close(self):
+        super(Repository, self).close()
+
     @classmethod
     def _from_c(cls, ptr, owned):
         cptr = ffi.new('git_repository **')
