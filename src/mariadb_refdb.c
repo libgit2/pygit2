@@ -582,8 +582,8 @@ static int _bind_ref_values(MYSQL_BIND *bind_buffers, const git_reference *ref)
 
         case GIT_REF_LISTALL: /* BREAKTHROUGH */
         case GIT_REF_INVALID:
-            assert(ref->type != GIT_REF_LISTALL);
-            assert(ref->type != GIT_REF_INVALID);
+            assert(ref_type != GIT_REF_LISTALL);
+            assert(ref_type != GIT_REF_INVALID);
             PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                 "invalid ref. Cannot insert",
                 __FUNCTION__, __LINE__);

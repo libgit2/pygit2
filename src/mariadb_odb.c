@@ -509,7 +509,7 @@ static int mariadb_odb_backend__exists_prefix(
     MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[1];
 
-    assert(out_oid && _backend && short_id);
+    assert(out_oid && _backend && short_oid);
 
     backend = (mariadb_odb_backend_t *)_backend;
 
