@@ -777,14 +777,16 @@ static int init_statements(mariadb_odb_backend_t *backend, const char *mysql_tab
 
         *(statements[st_idx].stmt) = mysql_stmt_init(backend->db);
         if (*(statements[st_idx].stmt) == NULL) {
-            PyErr_SetString(GitError, __FILE__ ": mysql_stmt_init() failed");
+            PyErr_Format(GitError, __FILE__ ": mysql_stmt_init(%s) failed: %s",
+                statements[st_idx].short_name, mysql_error(backend->db));
             return GIT_ERROR;
         }
 
         if (mysql_stmt_attr_set(*(statements[st_idx].stmt),
                     STMT_ATTR_UPDATE_MAX_LENGTH, &truth) != 0) {
-            PyErr_SetString(GitError, __FILE__
-                ": mysql_stmt_attr_set() failed");
+            PyErr_Format(GitError, __FILE__
+                ": mysql_stmt_attr_set(%s) failed: %s",
+                statements[st_idx].short_name, mysql_error(backend->db));
             return GIT_ERROR;
         }
 
