@@ -176,7 +176,7 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
             committer = Signature('Cecil Committer', 'cecil@committers.tld')
             tree = repo.TreeBuilder().write()
             sha = repo.create_commit(
-                    'refs/heads/master',  # the name of the reference to update
+                    'refs/heads/master',  # create the branch
                     author, committer, 'one line commit message\n\ndetails',
                     tree,  # binary string representing the tree object ID
                     []  # parents of the new commit
@@ -197,7 +197,7 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
             committer = Signature('Cecil Committer', 'cecil@committers.tld')
             tree = repo.TreeBuilder().write()
             sha = repo.create_commit(
-                    'refs/heads/master',  # the name of the reference to update
+                    'refs/heads/master',  # create the branch
                     author, committer, 'one line commit message\n\ndetails',
                     tree,  # binary string representing the tree object ID
                     []  # parents of the new commit
@@ -223,7 +223,7 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
             committer = Signature('Cecil Committer', 'cecil@committers.tld')
             tree = repo.TreeBuilder().write()
             sha = repo.create_commit(
-                    'refs/heads/master',  # the name of the reference to update
+                    'refs/heads/master',  # create the branch
                     author, committer, 'one line commit message\n\ndetails',
                     tree,  # binary string representing the tree object ID
                     []  # parents of the new commit
@@ -244,6 +244,70 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
             commit = repo[sha]
             self.assertNotEqual(commit, None)
             self.assertEqual(commit.author.name, author.name)
+        finally:
+            repo.close()
+
+    def test_double_commit(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    'refs/heads/master',  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+
+            hex_parent = oid_parent.hex
+            hex_parent = hex_parent[:12]
+
+            commit_parent = repo[oid_parent]
+
+            # will fail because the branch already exists
+            self.assertRaises(ValueError, repo.create_commit,
+                    'refs/heads/master',
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    [hex_parent]  # parents of the new commit
+                )
+
+            oid_child = repo.create_commit(
+                    None,
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    [hex_parent]  # parents of the new commit
+                )
+            self.assertNotEqual(oid_child, None)
+        finally:
+            repo.close()
+
+        # reopen
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            # fetch
+            commit_parent = repo[oid_parent]
+            self.assertNotEqual(commit_parent, None)
+            self.assertEqual(commit_parent.parents, [])
+            self.assertEqual(commit_parent.parent_ids, [])
+
+            commit_child = repo[oid_child]
+            self.assertNotEqual(commit_child, None)
+            self.assertEqual(len(commit_child.parents), 1)
+            self.assertEqual(commit_child.parents[0].id, commit_parent.id)
+            self.assertEqual(commit_child.parent_ids, [oid_parent])
         finally:
             repo.close()
 

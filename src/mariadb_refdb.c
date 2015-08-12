@@ -220,13 +220,14 @@ static int mariadb_refdb_exists(int *exists, git_refdb_backend *_backend,
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
 
-    /* bind the oid passed to the statement */
     bind_buffers[0].buffer = &backend->repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
+    bind_buffers[0].buffer_length = sizeof(backend->repository_id);
+    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer = (void *)refname; /* cast because of 'const' */
     bind_buffers[1].buffer_length = strlen(refname);
-    bind_buffers[1].length = &bind_buffers[0].buffer_length;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
 
     if (mysql_stmt_bind_param(backend->st_exists, bind_buffers) != 0) {
@@ -683,9 +684,18 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
     /* execute the statement */
     if (mysql_stmt_execute(sql_statement) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
-                "mysql_stmt_execute() failed: %s",
+                "mysql_stmt_execute() failed: %s (force ? %d)",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_error(backend->db), force);
+        mysql_stmt_reset(sql_statement);
+        if (!force) {
+            /* see if an existing ref messed things up */
+            int err, exists = 0;
+            err = mariadb_refdb_exists(&exists, _backend, ref_name);
+            if (err == 0 && exists) {
+                return GIT_EEXISTS;
+            }
+        }
         return GIT_EUSER;
     }
 
