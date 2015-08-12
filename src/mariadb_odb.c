@@ -424,7 +424,9 @@ static int mariadb_odb_backend__read_prefix(
             return GIT_EUSER;
         }
 
-        if (data_len > 0) {
+        if (data_len <= 0) {
+            *data_p = NULL;
+        } else {
             *data_p = malloc(data_len);
             result_buffers[2].buffer = *data_p;
             result_buffers[2].buffer_length = data_len;
