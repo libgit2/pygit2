@@ -777,7 +777,7 @@ static int mariadb_refdb_rename(git_reference **out,
                 "mysql_stmt_affected_rows() failed: %s, %d",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db), affected_rows);
-        return GIT_ERROR;
+        return GIT_ENOTFOUND;
     }
 
     /* reset the statement for further use */
@@ -789,7 +789,7 @@ static int mariadb_refdb_rename(git_reference **out,
         return GIT_ERROR;
     }
 
-    return GIT_ERROR;
+    return GIT_OK;
 }
 
 
@@ -842,7 +842,7 @@ static int mariadb_refdb_del(git_refdb_backend *_backend, const char *ref_name,
                 "mysql_stmt_affected_rows() failed: %s, %d",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db), affected_rows);
-        return GIT_ERROR;
+        return GIT_ENOTFOUND;
     }
 
     /* reset the statement for further use */
@@ -854,7 +854,7 @@ static int mariadb_refdb_del(git_refdb_backend *_backend, const char *ref_name,
         return GIT_ERROR;
     }
 
-    return GIT_ERROR;
+    return GIT_OK;
 }
 
 
@@ -880,7 +880,7 @@ static int mariadb_refdb_compress(git_refdb_backend *_backend)
         return GIT_ERROR;
     }
 
-    return GIT_ERROR;
+    return GIT_OK;
 }
 
 
