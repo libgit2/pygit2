@@ -37,7 +37,7 @@
 /* We set limit to 2 here, because we must detect hash prefix collision.
  */
 #define SQL_READ_PREFIX \
-        "SELECT `oid`, `type`, `size`, UNCOMPRESS(`data`) FROM `%s`" \
+        "SELECT `type`, `size`, `oid`, UNCOMPRESS(`data`) FROM `%s`" \
         " WHERE `repository_id` = ? AND `oid` LIKE CONCAT(?, '%%')" \
         " LIMIT 2"
 
@@ -53,7 +53,9 @@
         " LIMIT 2;"
 
 #define SQL_WRITE \
-        "INSERT IGNORE INTO `%s` VALUES (?, ?, ?, ?, COMPRESS(?));"
+        "INSERT INTO `%s`" \
+        " (`repository_id`, `oid`, `type`, `size`, `data`)" \
+        " VALUES (?, ?, ?, ?, COMPRESS(?));"
 
 #define LEN(x) (sizeof(x) / sizeof(x[0]))
 
@@ -137,10 +139,12 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     if it's > 1 MySQL's unique index failed and we should all fear for our lives
     */
     if (mysql_stmt_num_rows(backend->st_read_header) == 1) {
+        char type;
+
         result_buffers[0].buffer_type = MYSQL_TYPE_TINY;
-        result_buffers[0].buffer = type_p;
-        result_buffers[0].buffer_length = sizeof(*type_p);
-        memset(type_p, 0, sizeof(*type_p));
+        result_buffers[0].buffer = &type;
+        result_buffers[0].buffer_length = sizeof(type);
+        *type_p = 0;
 
         result_buffers[1].buffer_type = MYSQL_TYPE_LONGLONG;
         result_buffers[1].buffer = len_p;
@@ -163,6 +167,8 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
                 mysql_stmt_error(backend->st_read_header));
             return GIT_EUSER;
         }
+
+        *type_p = type;
 
         error = GIT_OK;
     } else {
@@ -238,10 +244,12 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
      if it's > 1 MySQL's unique index failed and we should all fear for our lives
     */
     if (mysql_stmt_num_rows(backend->st_read) == 1) {
+        char type;
+
         result_buffers[0].buffer_type = MYSQL_TYPE_TINY;
-        result_buffers[0].buffer = type_p;
-        result_buffers[0].buffer_length = sizeof(*type_p);
-        memset(type_p, 0, sizeof(*type_p));
+        result_buffers[0].buffer = &type;
+        result_buffers[0].buffer_length = sizeof(type);
+        *type_p = 0;
 
         result_buffers[1].buffer_type = MYSQL_TYPE_LONGLONG;
         result_buffers[1].buffer = len_p;
@@ -283,7 +291,11 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
             return GIT_EUSER;
         }
 
-        if (data_len > 0) {
+        *type_p = type;
+
+        if (data_len <= 0) {
+            *data_p = NULL;
+        } else {
             *data_p = malloc(data_len);
             result_buffers[2].buffer = *data_p;
             result_buffers[2].buffer_length = data_len;
@@ -329,6 +341,10 @@ static int mariadb_odb_backend__read_prefix(
 
     assert(out_oid && len_p && type_p && _backend && short_oid);
 
+    /* len is a number of hex digits, but we work we raw strings here
+     */
+    len /= 2;
+
     backend = (mariadb_odb_backend_t *)_backend;
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
@@ -373,20 +389,25 @@ static int mariadb_odb_backend__read_prefix(
     } else if (mysql_stmt_num_rows(backend->st_read_prefix) < 1) {
         error = GIT_ENOTFOUND;
     } else {
-        result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
-        result_buffers[0].buffer = (void*)out_oid->id,
-        result_buffers[0].buffer_length = GIT_OID_RAWSZ;
+        char type;
+
+        result_buffers[0].buffer_type = MYSQL_TYPE_TINY;
+        result_buffers[0].buffer = &type;
+        result_buffers[0].buffer_length = sizeof(type);
         result_buffers[0].length = &result_buffers[0].buffer_length;
+        *type_p = 0;
 
-        result_buffers[1].buffer_type = MYSQL_TYPE_TINY;
-        result_buffers[1].buffer = type_p;
-        result_buffers[1].buffer_length = sizeof(*type_p);
-        memset(type_p, 0, sizeof(*type_p));
-
-        result_buffers[2].buffer_type = MYSQL_TYPE_LONGLONG;
-        result_buffers[2].buffer = len_p;
-        result_buffers[2].buffer_length = sizeof(*len_p);
+        result_buffers[1].buffer_type = MYSQL_TYPE_LONGLONG;
+        result_buffers[1].buffer = len_p;
+        result_buffers[1].buffer_length = sizeof(*len_p);
+        result_buffers[1].length = &result_buffers[1].buffer_length;
         memset(len_p, 0, sizeof(*len_p));
+
+        result_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
+        result_buffers[2].buffer = (void*)out_oid->id,
+        result_buffers[2].buffer_length = GIT_OID_RAWSZ;
+        result_buffers[2].length = &result_buffers[1].buffer_length;
+        memset(out_oid->id, 0, sizeof(out_oid->id));
 
         /*
         by setting buffer and buffer_length to 0, this tells libmysql
@@ -424,15 +445,17 @@ static int mariadb_odb_backend__read_prefix(
             return GIT_EUSER;
         }
 
+        *type_p = type;
+
         if (data_len <= 0) {
             *data_p = NULL;
         } else {
             *data_p = malloc(data_len);
-            result_buffers[2].buffer = *data_p;
-            result_buffers[2].buffer_length = data_len;
+            result_buffers[3].buffer = *data_p;
+            result_buffers[3].buffer_length = data_len;
 
             if (mysql_stmt_fetch_column(backend->st_read_prefix,
-                    &result_buffers[2], 2, 0) != 0) {
+                    &result_buffers[3], 3, 0) != 0) {
                 PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                         "mysql_stmt_fetch_column() failed: %s",
                         __FUNCTION__, __LINE__,
