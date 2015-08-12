@@ -347,7 +347,13 @@ static int mariadb_refdb_lookup(git_reference **out,
         }
 
         /* this should populate the buffers */
-        mysql_stmt_fetch(backend->st_lookup);
+        if (mysql_stmt_fetch(backend->st_lookup) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_fetch() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+            return GIT_EUSER;
+        }
 
         target_symbolic[sizeof(target_symbolic) - 1] = '\0'; /* safety */
 

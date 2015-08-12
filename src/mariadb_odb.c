@@ -269,8 +269,13 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         }
 
         /* this should populate the buffers at *type_p, *len_p and &data_len */
-        mysql_stmt_fetch(backend->st_read);
-        /* XXX(Jflesch): should we check the return value of mysql_stmt_fetch() ? */
+        if (mysql_stmt_fetch(backend->st_read) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_fetch() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+            return GIT_EUSER;
+        }
 
         if (data_len > 0) {
             *data_p = malloc(data_len);
@@ -570,8 +575,14 @@ static int mariadb_odb_backend__exists_prefix(
         }
 
         /* this should populate the buffers */
-        mysql_stmt_fetch(backend->st_read);
-        /* XXX(Jflesch): should we check the return value of mysql_stmt_fetch() ? */
+        if (mysql_stmt_fetch(backend->st_read) != 0) {
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_fetch() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_error(backend->db));
+            return GIT_EUSER;
+        }
+
         error = GIT_OK;
     }
 
