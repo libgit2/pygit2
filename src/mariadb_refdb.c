@@ -509,14 +509,14 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
         PyErr_Format(GitError, __FILE__ ": %s: L%d: "
             "mysql_stmt_fetch() failed: %s",
             __FUNCTION__, __LINE__,
-            mysql_error(backend->db));
-        mysql_stmt_reset(backend->st_exists);
+            mysql_stmt_error(backend->st_iterator));
+        mysql_stmt_reset(backend->st_iterator);
         mariadb_reference_iterator_free(&iterator->parent);
         return GIT_EUSER;
     }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_exists) != 0) {
+    if (mysql_stmt_reset(backend->st_iterator) != 0) {
         fprintf(stderr, __FILE__ ": %s: L%d: "
                 "mysql_stmt_reset() failed: %s",
                 __FUNCTION__, __LINE__,
