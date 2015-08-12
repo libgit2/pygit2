@@ -190,6 +190,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[3];
     unsigned long data_len;
+    int fetch_result;
 
     assert(len_p && type_p && _backend && oid);
 
@@ -269,7 +270,12 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         }
 
         /* this should populate the buffers at *type_p, *len_p and &data_len */
-        if (mysql_stmt_fetch(backend->st_read) != 0) {
+        fetch_result = mysql_stmt_fetch(backend->st_read);
+        if (fetch_result != 0 && fetch_result != MYSQL_DATA_TRUNCATED) {
+            fprintf(stderr, __FILE__ ": %s: L%d: "
+                        "mysql_stmt_fetch() failed: %s\n",
+                        __FUNCTION__, __LINE__,
+                        mysql_stmt_error(backend->st_read));
             PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                 "mysql_stmt_fetch() failed: %s",
                 __FUNCTION__, __LINE__,
@@ -319,6 +325,7 @@ static int mariadb_odb_backend__read_prefix(
     MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[4];
     unsigned long data_len;
+    int fetch_result;
 
     assert(out_oid && len_p && type_p && _backend && short_oid);
 
@@ -404,8 +411,18 @@ static int mariadb_odb_backend__read_prefix(
         }
 
         /* this should populate the buffers at *type_p, *len_p and &data_len */
-        mysql_stmt_fetch(backend->st_read);
-        /* XXX(Jflesch): should we check the return value of mysql_stmt_fetch() ? */
+        fetch_result = mysql_stmt_fetch(backend->st_read_prefix);
+        if (fetch_result != 0 && fetch_result != MYSQL_DATA_TRUNCATED) {
+            fprintf(stderr, __FILE__ ": %s: L%d: "
+                        "mysql_stmt_fetch() failed: %s\n",
+                        __FUNCTION__, __LINE__,
+                        mysql_stmt_error(backend->st_read_prefix));
+            PyErr_Format(GitError, __FILE__ ": %s: L%d: "
+                "mysql_stmt_fetch() failed: %s",
+                __FUNCTION__, __LINE__,
+                mysql_stmt_error(backend->st_read_prefix));
+            return GIT_EUSER;
+        }
 
         if (data_len > 0) {
             *data_p = malloc(data_len);
@@ -514,6 +531,7 @@ static int mariadb_odb_backend__exists_prefix(
     int error;
     MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[1];
+    int fetch_result;
 
     assert(out_oid && _backend && short_oid);
 
@@ -575,11 +593,16 @@ static int mariadb_odb_backend__exists_prefix(
         }
 
         /* this should populate the buffers */
-        if (mysql_stmt_fetch(backend->st_read) != 0) {
+        fetch_result = mysql_stmt_fetch(backend->st_read_prefix);
+        if (fetch_result != 0 && fetch_result != MYSQL_DATA_TRUNCATED) {
+            fprintf(stderr, __FILE__ ": %s: L%d: "
+                        "mysql_stmt_fetch() failed: %s\n",
+                        __FUNCTION__, __LINE__,
+                        mysql_stmt_error(backend->st_read_prefix));
             PyErr_Format(GitError, __FILE__ ": %s: L%d: "
                 "mysql_stmt_fetch() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read_prefix));
             return GIT_EUSER;
         }
 
