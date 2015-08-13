@@ -240,6 +240,10 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
                 self.TEST_DB_REPO_ID,
                 odb_partitions=2, refdb_partitions=2)
         try:
+            # invalid sha
+            self.assertRaises(KeyError, repo.__getitem__,
+                Oid(hex='abcdef012345'))
+
             # fetch
             commit = repo[sha]
             self.assertNotEqual(commit, None)
