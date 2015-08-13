@@ -116,6 +116,7 @@ typedef struct {
 
 typedef struct mariadb_reference_iterator_node_s {
     struct git_reference *reference;
+    int must_free_ref;
     struct mariadb_reference_iterator_node_s *next;
 } mariadb_reference_iterator_node_t;
 
@@ -168,6 +169,9 @@ static int mariadb_reference_iterator_next(git_reference **ref,
     }
 
     *ref = iterator->current->reference;
+    /* we gave the ref back to the caller --> it takes care of it */
+    iterator->current->must_free_ref = 0;
+
     iterator->current = iterator->current->next;
     return GIT_OK;
 }
@@ -189,6 +193,8 @@ static int mariadb_reference_iterator_next_name(const char **ref_name,
     }
 
     *ref_name = git_reference_name(iterator->current->reference);
+    /* we are only giving the ref name back --> it's up to us to free the ref */
+    iterator->current->must_free_ref = 1;
     iterator->current = iterator->current->next;
     return GIT_OK;
 }
@@ -205,7 +211,9 @@ static void mariadb_reference_iterator_free(git_reference_iterator *_iterator)
 
     for (node = iterator->head ; node != NULL ; node = node->next) {
         assert(node->reference);
-        git_reference_free(node->reference);
+        if (node->must_free_ref) {
+            git_reference_free(node->reference);
+        }
         free(node);
     }
 
@@ -414,11 +422,13 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
     mariadb_reference_iterator_node_t *current_node = NULL;
     mariadb_reference_iterator_node_t *previous_node = NULL;
 
-    _iterator = NULL;
+    assert(_iterator);
+    assert(_backend);
+
+    *_iterator = NULL;
     backend = (mariadb_refdb_backend_t *)_backend;
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
-    memset(result_buffers, 0, sizeof(result_buffers));
 
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
@@ -445,6 +455,11 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
         mysql_stmt_reset(backend->st_exists);
         return GIT_EUSER;
     }
+    iterator->parent.next = mariadb_reference_iterator_next;
+    iterator->parent.next_name = mariadb_reference_iterator_next_name;
+    iterator->parent.free = mariadb_reference_iterator_free;
+
+    memset(result_buffers, 0, sizeof(result_buffers));
 
     result_buffers[0].buffer_type = MYSQL_TYPE_LONG_BLOB;
     result_buffers[0].buffer = &target_oid.id;
@@ -491,6 +506,7 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
             mysql_stmt_reset(backend->st_exists);
             return GIT_EUSER;
         }
+        current_node->must_free_ref = 1; /* default */
 
         if (result_buffers[0].buffer_length > 0
                 && !result_buffers[0].is_null) {
@@ -515,6 +531,18 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
             previous_node->next = current_node;
         }
         previous_node = current_node;
+
+        result_buffers[0].buffer_length = sizeof(target_oid.id);
+        result_buffers[0].length = &result_buffers[0].buffer_length;
+
+        result_buffers[1].buffer_length = sizeof(target_symbolic) - 1;
+        result_buffers[1].length = &result_buffers[1].buffer_length;
+
+        result_buffers[2].buffer_length = sizeof(peel_oid.id);
+        result_buffers[2].length = &result_buffers[2].buffer_length;
+
+        result_buffers[3].buffer_length = sizeof(refname) - 1;
+        result_buffers[3].length = &result_buffers[3].buffer_length;
     }
 
     if (fetch_result != MYSQL_NO_DATA) {

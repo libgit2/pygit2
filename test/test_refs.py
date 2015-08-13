@@ -327,6 +327,106 @@ class MariadbRefTest(utils.MariadbRepositoryTestCase):
         finally:
             repo.close()
 
+    def test_listall_references(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    None,  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+
+            hex_parent = oid_parent.hex[:12]
+
+            ref = repo.create_reference('refs/heads/master', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+            ref = repo.create_reference('refs/heads/lapin', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+            ref = repo.create_reference('refs/heads/zodiac', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+        finally:
+            repo.close()
+
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            refs = repo.listall_references()
+            refs.sort()
+            self.assertEqual(refs, sorted([
+                    'refs/heads/master',
+                    'refs/heads/lapin',
+                    'refs/heads/zodiac',
+                ]))
+        finally:
+            repo.close()
+
+    def test_listall_branches(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    None,  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+
+            hex_parent = oid_parent.hex[:12]
+
+            ref = repo.create_reference('refs/heads/master', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+            ref = repo.create_reference('refs/heads/lapin', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+            ref = repo.create_reference('refs/heads/zodiac', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+        finally:
+            repo.close()
+
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            refs = repo.listall_branches()
+            refs.sort()
+            self.assertEqual(refs, sorted([
+                    'master',
+                    'lapin',
+                    'zodiac',
+                ]))
+        finally:
+            repo.close()
+
 
 if __name__ == '__main__':
     unittest.main()
