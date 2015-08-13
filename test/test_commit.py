@@ -171,7 +171,6 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
                 self.TEST_DB_REPO_ID,
                 odb_partitions=2, refdb_partitions=2)
         try:
-            repo.create_reference('refs/tags/foo', 'refs/heads/master')
             author = Signature('Alice Author', 'alice@authors.tld')
             committer = Signature('Cecil Committer', 'cecil@committers.tld')
             tree = repo.TreeBuilder().write()

@@ -74,7 +74,10 @@
     " `peel_oid`)" \
     " VALUES (?, ?, ?, ?, ?)" \
     " ON DUPLICATE KEY" \
-    " UPDATE `target_oid`=?, `target_symbolic`=?, `peel_oid`=?;"
+    " UPDATE " \
+    " `target_oid`=VALUES(`target_oid`)," \
+    " `target_symbolic`=VALUES(`target_symbolic`)," \
+    " `peel_oid`=VALUES(`peel_oid`);"
 
 
 #define SQL_RENAME \
@@ -635,7 +638,7 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
         const git_oid *old, const char *old_target)
 {
     mariadb_refdb_backend_t *backend;
-    MYSQL_BIND bind_buffers[8];
+    MYSQL_BIND bind_buffers[5];
     my_ulonglong affected_rows;
     MYSQL_STMT *sql_statement;
 
@@ -661,13 +664,6 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
 
     if (_bind_ref_values(bind_buffers + 2, ref) != GIT_OK)
         return GIT_EUSER;
-
-
-    if (force) {
-        /* we have to repeat some values */
-        if (_bind_ref_values(bind_buffers + 5, ref) != GIT_OK)
-            return GIT_EUSER;
-    }
 
     sql_statement = (force
             ? backend->st_write_force
@@ -701,11 +697,12 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
 
     /* now lets see if the insert worked */
     affected_rows = mysql_stmt_affected_rows(sql_statement);
-    if (affected_rows != 1) {
+    if ((!force && affected_rows != 1)
+            || (force && affected_rows > 2)) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
-                "mysql_stmt_affected_rows() failed: %s",
-                __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                "mysql_stmt_affected_rows() failed: %lld, %s (force ? %d)",
+                __FUNCTION__, __LINE__, affected_rows,
+                mysql_stmt_error(sql_statement), force);
         return GIT_EUSER;
     }
 

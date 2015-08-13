@@ -35,6 +35,8 @@ from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
 from pygit2 import Commit, Tree
 from . import utils
 
+from pygit2.repository import Repository
+
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
@@ -228,6 +230,59 @@ class ReferencesTest(utils.RepoTestCase):
         ref = self.repo.lookup_reference('refs/heads/master')
         commit = ref.peel(Commit)
         self.assertEqual(commit.tree.id, ref.peel(Tree).id)
+
+
+class MariadbRefTest(utils.MariadbRepositoryTestCase):
+    def test_create_reference_direct(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    None,  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+
+            hex_parent = oid_parent.hex[:12]
+
+            oid_child = repo.create_commit(
+                    None,
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    [hex_parent]  # parents of the new commit
+                )
+            self.assertNotEqual(oid_child, None)
+
+            hex_child = oid_child.hex[:12]
+
+            ref = repo.create_reference('refs/heads/master', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+            # ref already exists
+            self.assertRaises(ValueError, repo.create_reference,
+                'refs/heads/master', hex_parent, force=False)
+            self.assertRaises(KeyError, repo.create_reference,
+                'refs/heads/foo', '0abcdef', force=False)  # non-existing obj
+            ref = repo.create_reference('refs/heads/foo2', hex_parent,
+                force=True)
+            self.assertNotEqual(ref, None)
+            ref = repo.create_reference('refs/heads/master', hex_parent,
+                force=True)
+            self.assertNotEqual(ref, None)
+            ref = repo.create_reference('refs/heads/master', hex_child,
+                force=True)
+            self.assertNotEqual(ref, None)
+        finally:
+            repo.close()
 
 
 if __name__ == '__main__':
