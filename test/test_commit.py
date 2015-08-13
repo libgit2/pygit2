@@ -274,16 +274,8 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
 
             commit_parent = repo[oid_parent]
 
-            # will fail because the branch already exists
-            self.assertRaises(ValueError, repo.create_commit,
-                    'refs/heads/master',
-                    author, committer, 'one line commit message\n\ndetails',
-                    tree,  # binary string representing the tree object ID
-                    [hex_parent]  # parents of the new commit
-                )
-
             oid_child = repo.create_commit(
-                    None,
+                    'refs/heads/master',
                     author, committer, 'one line commit message\n\ndetails',
                     tree,  # binary string representing the tree object ID
                     [hex_parent]  # parents of the new commit

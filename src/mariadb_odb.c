@@ -403,7 +403,7 @@ static int mariadb_odb_backend__read_prefix(
         result_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
         result_buffers[2].buffer = (void*)out_oid->id,
         result_buffers[2].buffer_length = GIT_OID_RAWSZ;
-        result_buffers[2].length = &result_buffers[1].buffer_length;
+        result_buffers[2].length = &result_buffers[2].buffer_length;
         memset(out_oid->id, 0, sizeof(out_oid->id));
 
         /*

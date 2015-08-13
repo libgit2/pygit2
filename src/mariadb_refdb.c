@@ -280,6 +280,11 @@ static int mariadb_refdb_lookup(git_reference **out,
     mariadb_refdb_backend_t *backend;
     MYSQL_BIND bind_buffers[2];
     MYSQL_BIND result_buffers[3];
+
+    git_oid target_oid;
+    char target_symbolic[MAX_REFNAME_LEN + 1];
+    git_oid peel_oid;
+
     int error;
 
     backend = (mariadb_refdb_backend_t *)_backend;
@@ -290,11 +295,13 @@ static int mariadb_refdb_lookup(git_reference **out,
 
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
+    bind_buffers[0].buffer_length = sizeof(backend->repository_id);
+    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[1].buffer = (void *)refname; /* cast because of 'const' */
     bind_buffers[1].buffer_length = strlen(refname);
-    bind_buffers[1].length = &bind_buffers[0].buffer_length;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_lookup, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -309,7 +316,7 @@ static int mariadb_refdb_lookup(git_reference **out,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_execute() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_lookup));
         return GIT_EUSER;
     }
 
@@ -317,37 +324,38 @@ static int mariadb_refdb_lookup(git_reference **out,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_store_result() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_lookup));
         return GIT_EUSER;
     }
 
     if (mysql_stmt_num_rows(backend->st_lookup) <= 0) {
         error = GIT_ENOTFOUND;
     } else {
-        git_oid target_oid;
-        char target_symbolic[MAX_REFNAME_LEN + 1];
-        git_oid peel_oid;
+        memset(result_buffers, 0, sizeof(result_buffers));
 
-        result_buffers[0].buffer_type = MYSQL_TYPE_LONG_BLOB;
-        result_buffers[0].buffer = &target_oid.id;
-        result_buffers[0].buffer_length = sizeof(target_oid.id);
+        result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
+        result_buffers[0].buffer = (void*)target_oid.id;
+        result_buffers[0].buffer_length = GIT_OID_RAWSZ;
         result_buffers[0].length = &result_buffers[0].buffer_length;
+        memset(&target_oid, 0, sizeof(target_oid));
 
         result_buffers[1].buffer_type = MYSQL_TYPE_STRING;
         result_buffers[1].buffer = target_symbolic;
         result_buffers[1].buffer_length = sizeof(target_symbolic) - 1;
         result_buffers[1].length = &result_buffers[1].buffer_length;
+        memset(target_symbolic, 0, sizeof(target_symbolic));
 
-        result_buffers[2].buffer_type = MYSQL_TYPE_LONG_BLOB;
-        result_buffers[2].buffer = &peel_oid.id;
-        result_buffers[2].buffer_length = sizeof(peel_oid.id);
+        result_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
+        result_buffers[2].buffer = (void*)peel_oid.id;
+        result_buffers[2].buffer_length = GIT_OID_RAWSZ;
         result_buffers[2].length = &result_buffers[2].buffer_length;
+        memset(&peel_oid, 0, sizeof(peel_oid));
 
         if(mysql_stmt_bind_result(backend->st_lookup, result_buffers) != 0) {
             RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_result() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_lookup));
             return GIT_EUSER;
         }
 
@@ -379,7 +387,7 @@ static int mariadb_refdb_lookup(git_reference **out,
     }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_exists) != 0) {
+    if (mysql_stmt_reset(backend->st_lookup) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_reset() failed: %s",
                 __FUNCTION__, __LINE__,
