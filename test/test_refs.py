@@ -281,6 +281,8 @@ class MariadbRefTest(utils.MariadbRepositoryTestCase):
             ref = repo.create_reference('refs/heads/master', hex_child,
                 force=True)
             self.assertNotEqual(ref, None)
+            obj = ref.peel()
+            self.assertNotEqual(obj, None)
         finally:
             repo.close()
 

@@ -34,6 +34,10 @@ import unittest
 import pygit2
 from . import utils
 
+from pygit2 import Signature, Oid
+from pygit2.repository import Repository
+
+
 # pypy (in python2 mode) raises TypeError on writing to read-only, so
 # we need to check and change the test accordingly
 try:
@@ -103,6 +107,59 @@ class TagTest(utils.BareRepoTestCase):
         tag = repo[TAG_SHA]
         self.assertEqual(repo[tag.target].id, tag.get_object().id)
 
+
+class MariadbTagTest(utils.MariadbRepositoryTestCase):
+    def test_write_read_tag(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            commit_oid = repo.create_commit(
+                    'refs/heads/master',  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(commit_oid, None)
+
+            name = 'thetag'
+            target = commit_oid.hex
+            message = 'Tag a blob.\n'
+            tagger = pygit2.Signature('John Doe', 'jdoe@example.com', 12347, 0)
+
+            target_prefix = target[:10]
+            too_short_prefix = target[:3]
+            self.assertRaises(ValueError, repo.create_tag, name,
+                          too_short_prefix, pygit2.GIT_OBJ_COMMIT, tagger,
+                          message)
+            tag_oid = repo.create_tag(name, target_prefix,
+                    pygit2.GIT_OBJ_COMMIT, tagger, message)
+        finally:
+            repo.close()
+
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            tag = repo[tag_oid]
+
+            self.assertEqual(tag_oid.hex, tag.hex)
+            self.assertEqual(name, tag.name)
+            self.assertEqual(target, tag.target.hex)
+            self.assertEqual(message, tag.message)
+            self.assertEqual(name, repo[tag.hex].name)
+
+        finally:
+            repo.close()
 
 if __name__ == '__main__':
     unittest.main()
