@@ -553,6 +553,10 @@ static int mariadb_odb_backend__exists_prefix(
 
     assert(out_oid && _backend && short_oid);
 
+    /* len is a number of hex digits, but we work we raw strings here
+     */
+    len /= 2;
+
     backend = (mariadb_odb_backend_t *)_backend;
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
@@ -567,7 +571,8 @@ static int mariadb_odb_backend__exists_prefix(
     bind_buffers[1].buffer_length = len;
     bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
-    if (mysql_stmt_bind_param(backend->st_read_prefix, bind_buffers) != 0) {
+    if (mysql_stmt_bind_param(backend->st_read_header_prefix,
+            bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_param() failed: %s",
                 __FUNCTION__, __LINE__,
@@ -576,7 +581,7 @@ static int mariadb_odb_backend__exists_prefix(
     }
 
     /* execute the statement */
-    if (mysql_stmt_execute(backend->st_read_prefix) != 0) {
+    if (mysql_stmt_execute(backend->st_read_header_prefix) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_execute() failed: %s",
                 __FUNCTION__, __LINE__,
@@ -584,7 +589,7 @@ static int mariadb_odb_backend__exists_prefix(
         return GIT_EUSER;
     }
 
-    if (mysql_stmt_store_result(backend->st_read_prefix) != 0) {
+    if (mysql_stmt_store_result(backend->st_read_header_prefix) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_store_result() failed: %s",
                 __FUNCTION__, __LINE__,
@@ -592,9 +597,9 @@ static int mariadb_odb_backend__exists_prefix(
         return GIT_EUSER;
     }
 
-    if (mysql_stmt_num_rows(backend->st_read_prefix) > 1) {
+    if (mysql_stmt_num_rows(backend->st_read_header_prefix) > 1) {
         error = GIT_EAMBIGUOUS;
-    } else if (mysql_stmt_num_rows(backend->st_read_prefix) < 1) {
+    } else if (mysql_stmt_num_rows(backend->st_read_header_prefix) < 1) {
         error = GIT_ENOTFOUND;
     } else {
         result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
@@ -602,7 +607,8 @@ static int mariadb_odb_backend__exists_prefix(
         result_buffers[0].buffer_length = GIT_OID_RAWSZ;
         result_buffers[0].length = &result_buffers[0].buffer_length;
 
-        if(mysql_stmt_bind_result(backend->st_read_prefix, result_buffers) != 0) {
+        if(mysql_stmt_bind_result(backend->st_read_header_prefix,
+                result_buffers) != 0) {
             RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_result() failed: %s",
                 __FUNCTION__, __LINE__,
@@ -611,12 +617,12 @@ static int mariadb_odb_backend__exists_prefix(
         }
 
         /* this should populate the buffers */
-        fetch_result = mysql_stmt_fetch(backend->st_read_prefix);
+        fetch_result = mysql_stmt_fetch(backend->st_read_header_prefix);
         if (fetch_result != 0 && fetch_result != MYSQL_DATA_TRUNCATED) {
             RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_fetch() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_stmt_error(backend->st_read_prefix));
+                mysql_stmt_error(backend->st_read_header_prefix));
             return GIT_EUSER;
         }
 
@@ -624,7 +630,7 @@ static int mariadb_odb_backend__exists_prefix(
     }
 
     /* reset the statement for further use */
-    if (mysql_stmt_reset(backend->st_read_prefix) != 0) {
+    if (mysql_stmt_reset(backend->st_read_header_prefix) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_reset() failed: %s",
                 __FUNCTION__, __LINE__,
