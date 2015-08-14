@@ -25,6 +25,53 @@ How to install
 Changelog
 ==============
 
+0.23.0 (2015-08-14)
+-------------------------
+
+- Update to libgit2 v0.23
+  `#540 <https://github.com/libgit2/pygit2/pull/540>`_
+
+- Now ``Repository.merge_base(...)`` returns ``None`` if no merge base is found
+  `#550 <https://github.com/libgit2/pygit2/pull/550>`_
+
+- Documentation updates
+  `#547 <https://github.com/libgit2/pygit2/pull/547>`_
+
+API changes:
+
+- How to set identity (aka signature) in a reflog has changed::
+
+    # Before
+    signature = Signature('foo', 'bar')
+    ...
+    reference.set_target(target, signature=signature, message=message)
+    repo.set_head(target, signature=signature)
+    remote.fetch(signature=signature)
+    remote.push(signature=signature)
+
+    # Now
+    repo.set_ident('foo', 'bar')
+    ...
+    reference.set_target(target, message=message)
+    repo.set_head(target)
+    remote.push()
+
+    # The current identity can be get with
+    repo.ident
+
+- Some remote setters have been replaced by methods::
+
+    # Before                       # Now
+    Remote.url = url               Repository.remotes.set_url(name, url)
+    Remote.push_url = url          Repository.remotes.set_push_url(name, url)
+
+    Remote.add_fetch(refspec)      Repository.remotes.add_fetch(name, refspec)
+    Remote.add_push(refspec)       Repository.remotes.add_push(name, refspec)
+
+    Remote.fetch_refspecs = [...]  removed, use the config API instead
+    Remote.push_refspecs = [...]   removed, use the config API instead
+
+
 0.22.1 (2015-07-12)
 -------------------------
 
