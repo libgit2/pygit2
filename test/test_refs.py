@@ -427,6 +427,46 @@ class MariadbRefTest(utils.MariadbRepositoryTestCase):
         finally:
             repo.close()
 
+    def test_rename_reference(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    None,
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+
+            hex_parent = oid_parent.hex[:12]
+
+            ref = repo.create_reference('refs/heads/master', hex_parent,
+                force=False)
+            self.assertNotEqual(ref, None)
+
+            ref.rename('refs/heads/toto')
+        finally:
+            repo.close()
+
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            refs = repo.listall_branches()
+            self.assertEqual(refs, ['toto'])
+        finally:
+            repo.close()
 
 if __name__ == '__main__':
     unittest.main()

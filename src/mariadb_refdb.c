@@ -432,6 +432,8 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
 
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
+    bind_buffers[0].buffer_length = sizeof(backend->repository_id);
+    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_iterator, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -687,11 +689,12 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
 
     ref_name = git_reference_name(ref);
 
-
     memset(bind_buffers, 0, sizeof(bind_buffers));
 
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
+    bind_buffers[0].buffer_length = sizeof(backend->repository_id);
+    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[1].buffer = (void *)ref_name; /* cast because of 'const' */
@@ -770,6 +773,7 @@ static int mariadb_refdb_rename(git_reference **out,
     assert(old_name);
     assert(new_name);
 
+    *out = NULL;
     backend = (mariadb_refdb_backend_t *)_backend;
 
     if (force) {
@@ -790,6 +794,8 @@ static int mariadb_refdb_rename(git_reference **out,
         }
     }
 
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+
     bind_buffers[0].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[0].buffer = (void *)new_name; /* cast because of 'const' */
     bind_buffers[0].buffer_length = strlen(new_name);
@@ -797,17 +803,19 @@ static int mariadb_refdb_rename(git_reference **out,
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[1].buffer = &backend->repository_id;
+    bind_buffers[1].buffer_length = sizeof(backend->repository_id);
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
     bind_buffers[2].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[2].buffer = (void *)old_name; /* cast because of 'const' */
     bind_buffers[2].buffer_length = strlen(old_name);
-    bind_buffers[2].length = &bind_buffers[0].buffer_length;
+    bind_buffers[2].length = &bind_buffers[2].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_rename, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_param() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_rename));
         return GIT_EUSER;
     }
 
@@ -816,18 +824,21 @@ static int mariadb_refdb_rename(git_reference **out,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_execute() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_rename));
         return GIT_EUSER;
     }
 
     /* now lets see if the update worked */
     affected_rows = mysql_stmt_affected_rows(backend->st_rename);
     if (affected_rows != 1) {
+        mysql_stmt_reset(backend->st_rename);
         RAISE_EXC(__FILE__ ": %s: L%d: "
-                "mysql_stmt_affected_rows() failed: %s, %lld",
+                "mysql_stmt_affected_rows() failed: %s, %lld (force ? %d)",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db), affected_rows);
-        return GIT_ENOTFOUND;
+                mysql_stmt_error(backend->st_rename), affected_rows, force);
+        if (affected_rows == 0)
+            return GIT_ENOTFOUND;
+        return GIT_EUSER;
     }
 
     /* reset the statement for further use */
@@ -839,7 +850,7 @@ static int mariadb_refdb_rename(git_reference **out,
         return GIT_EUSER;
     }
 
-    return GIT_OK;
+    return mariadb_refdb_lookup(out, _backend, new_name);
 }
 
 
@@ -860,13 +871,17 @@ static int mariadb_refdb_del(git_refdb_backend *_backend, const char *ref_name,
 
     backend = (mariadb_refdb_backend_t *)_backend;
 
+    memset(bind_buffers, 0, sizeof(bind_buffers));
+
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
+    bind_buffers[0].buffer_length = sizeof(backend->repository_id);
+    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[1].buffer = (void *)ref_name; /* cast because of 'const' */
     bind_buffers[1].buffer_length = strlen(ref_name);
-    bind_buffers[1].length = &bind_buffers[0].buffer_length;
+    bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_delete, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
