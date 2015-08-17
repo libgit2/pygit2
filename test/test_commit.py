@@ -241,9 +241,11 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
                 self.TEST_DB_REPO_ID,
                 odb_partitions=2, refdb_partitions=2)
         try:
-            # invalid sha
+            # invalid oid
             self.assertRaises(KeyError, repo.__getitem__,
                 Oid(hex='abcdef012345'))
+            # invalid short id
+            self.assertRaises(KeyError, repo.__getitem__, 'abcdef012345')
 
             # fetch
             commit = repo[sha]
@@ -271,8 +273,7 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
                 )
             self.assertNotEqual(oid_parent, None)
 
-            hex_parent = oid_parent.hex
-            hex_parent = hex_parent[:12]
+            hex_parent = oid_parent.hex[:12]
 
             commit_parent = repo[oid_parent]
 
