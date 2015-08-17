@@ -493,7 +493,6 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
         return GIT_EUSER;
     }
 
-
     /* while there is still row to fetch --> while mysql_stmt_fetch()
      * returns no error.
      */
