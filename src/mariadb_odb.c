@@ -12,6 +12,10 @@
 #define GIT2_STORAGE_ENGINE "InnoDB"
 #define MAX_QUERY_LEN 1024 /* without the values */
 
+/* Maximum size of a stream, and so, maximum size of a file
+ */
+#define STREAM_MAX_SIZE (20*1024*1024)
+
 
 #define SQL_CREATE \
         "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
@@ -69,6 +73,7 @@
     return GIT_EUSER; \
 }
 
+
 typedef struct {
     git_odb_backend parent;
 
@@ -82,6 +87,21 @@ typedef struct {
     MYSQL_STMT *st_read_header_prefix;
 } mariadb_odb_backend_t;
 
+
+typedef struct {
+    git_odb_stream parent;
+
+    git_otype otype;
+
+    /* currently, we do it the very lazy way:
+     * we load everything in memory, and we call mariadb_odb_backend__write()
+     * on it ...
+     */
+    char *buffer;
+
+    size_t written;
+    size_t total;
+} mariadb_odb_writestream_t;
 
 extern PyObject *GitError;
 
@@ -656,8 +676,8 @@ static int mariadb_odb_backend__exists_prefix(
 }
 
 
-static int mariadb_odb_backend__write(git_odb_backend *_backend, const git_oid *oid,
-    const void *data, size_t len, git_otype type)
+static int mariadb_odb_backend__write(git_odb_backend *_backend,
+    const git_oid *oid, const void *data, size_t len, git_otype type)
 {
     mariadb_odb_backend_t *backend;
     MYSQL_BIND bind_buffers[5];
@@ -759,12 +779,6 @@ static int mariadb_odb_backend__refresh(git_odb_backend *backend) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
 
-/* int writestream(git_odb_stream **, git_odb_backend *, size_t,
- * git_otype);
- * https://dev.mysql.com/doc/refman/5.0/en/mysql-stmt-send-long-data.html
- */
-UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__writestream)
-
 /* int readstream(git_odb_stream **, git_odb_backend *, const git_oid *); */
 UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__readstream)
 
@@ -777,6 +791,89 @@ UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__foreach)
 UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__writepack)
 
 #pragma GCC diagnostic pop
+
+
+static int mariadb_odb_backend__writestream_write(git_odb_stream *_stream,
+        const char *buffer, size_t len)
+{
+    mariadb_odb_writestream_t *stream = (void *)_stream;
+
+    if (stream->written + len > stream->total) {
+        /* not enough room left in the buffer.
+         * total size declared by the caller was wrong.
+         */
+        fprintf(stderr, "%s: Object too big: %zd + %zd > %zd\n",
+            __FUNCTION__, stream->written, len, stream->total);
+        return GIT_EBUFS;
+    }
+
+    memcpy(stream->buffer + stream->written, buffer, len);
+    stream->written += len;
+    return GIT_OK;
+}
+
+static int mariadb_odb_backend__writestream_finalize_write(
+        git_odb_stream *_stream, const git_oid *oid)
+{
+    mariadb_odb_writestream_t *stream = (void *)_stream;
+
+    assert(stream->written == stream->total);
+
+    return mariadb_odb_backend__write(stream->parent.backend,
+        oid, stream->buffer, stream->written, stream->otype);
+}
+
+static void mariadb_odb_backend__writestream_free(git_odb_stream *_stream)
+{
+    mariadb_odb_writestream_t *stream = (void *)_stream;
+
+    if (stream) {
+        free(stream->buffer);
+    }
+    free(stream);
+}
+
+static int mariadb_odb_backend__writestream(git_odb_stream **out_stream,
+    git_odb_backend *_backend, size_t len, git_otype otype)
+{
+    mariadb_odb_writestream_t *stream;
+    mariadb_odb_backend_t *backend = (void *)_backend;
+
+    if (len > STREAM_MAX_SIZE) {
+        fprintf(stderr, "%s: Object too big: %zd\n", __FUNCTION__, len);
+        return GIT_EBUFS ;
+    }
+
+    stream = calloc(1, sizeof(mariadb_odb_writestream_t));
+    if (stream == NULL) {
+        PyErr_SetString(GitError, "Out of memory");
+        return GIT_EUSER;
+    }
+
+    stream->buffer = malloc(len + 1);
+    if (stream->buffer == NULL) {
+        free(stream);
+        PyErr_SetString(GitError, "Out of memory");
+        return GIT_EUSER;
+    }
+    stream->otype = otype;
+    stream->total = len;
+    stream->written = 0;
+
+    stream->parent.backend = &backend->parent;
+    stream->parent.hash_ctx = NULL; /* TODO(Jflesch) */
+    stream->parent.mode = GIT_STREAM_WRONLY;
+    /* stream->parent.declared_size is set by the caller */
+    /* stream->parent.received_bytes is set by the caller */
+    stream->parent.read = NULL; /* write-only stream */
+    stream->parent.write = mariadb_odb_backend__writestream_write;
+    stream->parent.finalize_write = \
+            mariadb_odb_backend__writestream_finalize_write;
+    stream->parent.free = mariadb_odb_backend__writestream_free;
+
+    *out_stream = &stream->parent;
+    return GIT_OK;
+}
 
 static void mariadb_odb_backend__free(git_odb_backend *_backend)
 {

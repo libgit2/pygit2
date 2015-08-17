@@ -32,6 +32,7 @@ from __future__ import unicode_literals
 import unittest
 import sys
 
+from pygit2 import GIT_FILEMODE_BLOB
 from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
 from pygit2.repository import Repository
 
@@ -369,6 +370,80 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
             self.assertNotEqual(commit, None)
         finally:
             repo.close()
+
+
+class MariadbParrallelCommitTest(utils.MariadbRepositoryTestCase):
+    def test_two_repos_two_commits(self):
+        repo1 = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            repo2 = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID + 1,
+                odb_partitions=2, refdb_partitions=2)
+            try:
+                blob_oid2 = repo2.create_blob("abcdef\ntoto\n")
+
+                author = Signature('Alice Author', 'alice@authors.tld')
+                committer = Signature('Cecil Committer', 'cecil@committers.tld')
+                tree1 = repo1.TreeBuilder().write()
+                oid_1 = repo1.create_commit(
+                        'refs/heads/master',  # create the branch
+                        author, committer, 'one line commit message\n\ndetails',
+                        tree1,  # binary string representing the tree object ID
+                        []  # parents of the new commit
+                    )
+                self.assertNotEqual(oid_1, None)
+
+                author = Signature('Alice Author 2', 'alice@authors.tld')
+                tree2 = repo1.TreeBuilder()
+                tree2.insert('toto.txt', blob_oid2, GIT_FILEMODE_BLOB)
+                tree2 = tree2.write()
+                import time
+                time.sleep(3)
+                oid_2 = repo2.create_commit(
+                        'refs/heads/master',  # create the branch
+                        author, committer, 'one line commit message\n\ndetails',
+                        tree2,  # binary string representing the tree object ID
+                        []  # parents of the new commit
+                    )
+                self.assertNotEqual(oid_2, None)
+            finally:
+                repo2.close()
+        finally:
+            repo1.close()
+
+        # reopen
+        repo1 = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            repo2 = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+            try:
+                # fetch
+                commit_1 = repo1[oid_1]
+                self.assertNotEqual(commit_1, None)
+
+                commit_2 = repo2[oid_2]
+                self.assertNotEqual(commit_2, None)
+            finally:
+                repo2.close()
+        finally:
+            repo1.close()
 
 
 if __name__ == '__main__':

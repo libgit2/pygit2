@@ -113,6 +113,8 @@ static MYSQL *mariadb_connect(
 
     mysql_autocommit(db, FALSE);
 
+    mysql_query(db, "BEGIN;");
+
     return db;
 
 error:
