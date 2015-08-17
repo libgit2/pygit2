@@ -346,7 +346,9 @@ static int mariadb_odb_backend__read_prefix(
 
     assert(out_oid && len_p && type_p && _backend && short_oid);
 
-    /* len is a number of hex digits, but we work we raw strings here
+    *data_p = NULL;
+
+    /* len is a number of hex digits, but we work with raw strings here
      */
     len /= 2;
 

@@ -37,6 +37,8 @@ from pygit2.repository import Repository
 
 from . import utils
 
+import mysql.connector
+
 # pypy (in python2 mode) raises TypeError on writing to read-only, so
 # we need to check and change the test accordingly
 try:
@@ -305,6 +307,68 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
             self.assertEqual(commit_child.parent_ids, [oid_parent])
         finally:
             repo.close()
+
+    def test_conflicting_oid(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    'refs/heads/master',  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+        finally:
+            repo.close()
+
+        short_oid = oid_parent.hex[:12]
+
+        ## create a commit with a fake sha starting like the oid_parent
+        ## so we can have a conflict
+
+        cnx = mysql.connector.connect(user=self.TEST_DB_USER,
+            password=self.TEST_DB_PASSWD,
+            host=self.TEST_DB_HOST, database=self.TEST_DB_DB)
+        try:
+            cursor = cnx.cursor()
+            try:
+                query = ("INSERT INTO `%s_odb`"
+                            " (`repository_id`, `oid`, `type`, `size`, `data`)"
+                            " VALUES (%d, UNHEX('%sabcdef'), 1, 0,"
+                            "  UNHEX('0000'));"
+                            % (self.TEST_DB_TABLE_PREFIX, self.TEST_DB_REPO_ID,
+                                short_oid))
+                cursor.execute(query)
+            finally:
+                cursor.close()
+            cnx.commit()
+        finally:
+            cnx.close()
+
+        # reopen
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            commit = repo[oid_parent]
+            self.assertNotEqual(commit, None)
+            self.assertRaises(ValueError, repo.__getitem__, short_oid)
+            commit = repo[oid_parent.hex[:16]]
+            self.assertNotEqual(commit, None)
+        finally:
+            repo.close()
+
 
 if __name__ == '__main__':
     unittest.main()
