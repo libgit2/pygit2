@@ -759,9 +759,21 @@ static int mariadb_odb_backend__refresh(git_odb_backend *backend) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
 
+/* int writestream(git_odb_stream **, git_odb_backend *, size_t,
+ * git_otype);
+ * https://dev.mysql.com/doc/refman/5.0/en/mysql-stmt-send-long-data.html
+ */
 UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__writestream)
+
+/* int readstream(git_odb_stream **, git_odb_backend *, const git_oid *); */
 UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__readstream)
+
+/* int foreach(git_odb_backend *, git_odb_foreach_cb cb, void *payload); */
 UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__foreach)
+
+/* int writepack(git_odb_writepack **, git_odb_backend *, git_odb *odb,
+ * git_transfer_progress_cb progress_cb, void *progress_payload);
+ */
 UNIMPLEMENTED_CALLBACK(mariadb_odb_backend__writepack)
 
 #pragma GCC diagnostic pop
