@@ -776,7 +776,13 @@ PyDoc_STRVAR(Repository_path__doc__,
 PyObject *
 Repository_path__get__(Repository *self, void *closure)
 {
-    return to_path(git_repository_path(self->repo));
+    const char *c_path;
+
+    c_path = git_repository_path(self->repo);
+    if (c_path == NULL)
+        Py_RETURN_NONE;
+
+    return to_path(c_path);
 }
 
 
