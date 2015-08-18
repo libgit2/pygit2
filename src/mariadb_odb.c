@@ -874,7 +874,7 @@ static int mariadb_odb_backend__writestream(git_odb_stream **out_stream,
     stream->written = 0;
 
     stream->parent.backend = &backend->parent;
-    stream->parent.hash_ctx = NULL; /* TODO(Jflesch) */
+    stream->parent.hash_ctx = NULL; /* XXX(Jflesch): unused ? */
     stream->parent.mode = GIT_STREAM_WRONLY;
     /* stream->parent.declared_size is set by the caller */
     /* stream->parent.received_bytes is set by the caller */
