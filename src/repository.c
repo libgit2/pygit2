@@ -197,6 +197,9 @@ static int make_mariadb_repo(Repository *self,
         goto error;
     }
 
+    /* mark it as bare to avoid later issues */
+    git_repository_set_bare(self->repo);
+
     error = git_odb_backend_mariadb(&self->odb_backend,
         self->db, odb_table, repository_id, odb_partitions);
     if (error) {
