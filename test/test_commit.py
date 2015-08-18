@@ -402,11 +402,9 @@ class MariadbParrallelCommitTest(utils.MariadbRepositoryTestCase):
                 self.assertNotEqual(oid_1, None)
 
                 author = Signature('Alice Author 2', 'alice@authors.tld')
-                tree2 = repo1.TreeBuilder()
+                tree2 = repo2.TreeBuilder()
                 tree2.insert('toto.txt', blob_oid2, GIT_FILEMODE_BLOB)
                 tree2 = tree2.write()
-                import time
-                time.sleep(3)
                 oid_2 = repo2.create_commit(
                         'refs/heads/master',  # create the branch
                         author, committer, 'one line commit message\n\ndetails',
@@ -431,7 +429,7 @@ class MariadbParrallelCommitTest(utils.MariadbRepositoryTestCase):
                 self.TEST_DB_USER, self.TEST_DB_PASSWD,
                 self.TEST_DB_SOCKET, self.TEST_DB_DB,
                 self.TEST_DB_TABLE_PREFIX,
-                self.TEST_DB_REPO_ID,
+                self.TEST_DB_REPO_ID + 1,
                 odb_partitions=2, refdb_partitions=2)
             try:
                 # fetch
