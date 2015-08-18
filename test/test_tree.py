@@ -33,6 +33,10 @@ import operator
 import unittest
 
 from pygit2 import TreeEntry
+from pygit2 import GIT_FILEMODE_BLOB
+from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
+from pygit2.repository import Repository
+
 from . import utils
 
 
@@ -140,6 +144,52 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTrue('c/d' in tree)
         self.assertFalse('c/e' in tree)
         self.assertFalse('d' in tree)
+
+
+class MariadbTreeTest(utils.MariadbRepositoryTestCase):
+    def test_simple_tree_write(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            blob_oid = repo.create_blob(b"abcdef\ntoto\n")
+
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            author = Signature('Alice Author 2', 'alice@authors.tld')
+            tree = repo.TreeBuilder()
+            tree.insert('toto.txt', blob_oid, GIT_FILEMODE_BLOB)
+            tree = tree.write()
+            oid = repo.create_commit(
+                    'refs/heads/master',  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid, None)
+        finally:
+            repo.close()
+
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            commit = repo[oid]
+            self.assertNotEqual(commit, None)
+            tree = commit.tree
+            self.assertNotEqual(tree, None)
+            tree_entry = tree['toto.txt']
+            self.assertNotEqual(tree_entry, None)
+            blob = repo.get(tree_entry.id)
+            self.assertNotEqual(blob, None)
+            self.assertEqual(blob.data, b"abcdef\ntoto\n")
+        finally:
+            repo.close()
 
 if __name__ == '__main__':
     unittest.main()
