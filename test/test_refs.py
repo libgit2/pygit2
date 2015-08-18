@@ -37,6 +37,8 @@ from . import utils
 
 from pygit2.repository import Repository
 
+import mysql.connector
+
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
@@ -538,6 +540,65 @@ class MariadbRefTest(utils.MariadbRepositoryTestCase):
 
             refs = repo.listall_references()
             self.assertEqual(refs, [])
+        finally:
+            repo.close()
+
+    def test_create_reference_ambiguous(self):
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    None,  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+
+            hex_parent = oid_parent.hex[:12]
+        finally:
+            repo.close()
+
+        ## create a commit with a fake sha starting like the oid_parent
+        ## so we can have a conflict
+
+        cnx = mysql.connector.connect(user=self.TEST_DB_USER,
+            password=self.TEST_DB_PASSWD,
+            host=self.TEST_DB_HOST, database=self.TEST_DB_DB)
+        try:
+            cursor = cnx.cursor()
+            try:
+                query = ("INSERT INTO `%s_odb`"
+                            " (`repository_id`, `oid`, `type`, `size`, `data`)"
+                            " VALUES (%d, UNHEX('%sabcdef'), 1, 0,"
+                            "  UNHEX('0000'));"
+                            % (self.TEST_DB_TABLE_PREFIX, self.TEST_DB_REPO_ID,
+                                hex_parent))
+                cursor.execute(query)
+            finally:
+                cursor.close()
+            cnx.commit()
+        finally:
+            cnx.close()
+
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                None, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            self.assertRaises(ValueError, repo.create_reference,
+                'refs/heads/master', hex_parent, force=False)
+            self.assertRaises(ValueError, repo.create_reference,
+                'refs/heads/master', hex_parent, force=True)
         finally:
             repo.close()
 
