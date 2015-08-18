@@ -21,6 +21,7 @@
         "CREATE TABLE IF NOT EXISTS `%s` (" /* %s = table name */ \
         "  `repository_id` INTEGER UNSIGNED NOT NULL," \
         "  `oid` binary(20) NOT NULL DEFAULT ''," \
+        "  `oid_hex` VARCHAR(40) NOT NULL DEFAULT ''," \
         "  `type` tinyint(1) unsigned NOT NULL," \
         "  `size` bigint(20) unsigned NOT NULL," \
         "  `data` longblob NOT NULL," \
@@ -43,7 +44,8 @@
  */
 #define SQL_READ_PREFIX \
         "SELECT `type`, `size`, `oid`, UNCOMPRESS(`data`) FROM `%s`" \
-        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT(?, '%%')" \
+        " WHERE `repository_id` = ?" \
+        " AND `oid_hex` LIKE CONCAT(UPPER(HEX(?)), '%%')" \
         " LIMIT 2"
 
 #define SQL_READ_HEADER \
@@ -54,13 +56,14 @@
  */
 #define SQL_READ_HEADER_PREFIX \
         "SELECT `oid` FROM `%s`" \
-        " WHERE `repository_id` = ? AND `oid` LIKE CONCAT(?, '%%')" \
+        " WHERE `repository_id` = ?" \
+        " AND `oid_hex` LIKE CONCAT(UPPER(HEX(?)), '%%')" \
         " LIMIT 2;"
 
 #define SQL_WRITE \
         "INSERT INTO `%s`" \
-        " (`repository_id`, `oid`, `type`, `size`, `data`)" \
-        " VALUES (?, ?, ?, ?, COMPRESS(?));"
+        " (`repository_id`, `oid`, `oid_hex`, `type`, `size`, `data`)" \
+        " VALUES (?, ?, UPPER(?), ?, ?, COMPRESS(?));"
 
 #define LEN(x) (sizeof(x) / sizeof(x[0]))
 
@@ -256,6 +259,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
                 "mysql_stmt_bind_param() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db));
+        mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
 
@@ -265,6 +269,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
                 "mysql_stmt_execute() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db));
+        mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
 
@@ -273,6 +278,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
                 "mysql_stmt_store_result() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db));
+        mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
 
@@ -313,6 +319,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
                 "mysql_stmt_bind_result() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_error(backend->db));
+            mysql_stmt_reset(backend->st_read);
             return GIT_EUSER;
         }
 
@@ -323,6 +330,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
                 "mysql_stmt_fetch() failed: %s",
                 __FUNCTION__, __LINE__,
                 mysql_stmt_error(backend->st_read));
+            mysql_stmt_reset(backend->st_read);
             return GIT_EUSER;
         }
 
@@ -341,6 +349,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
                         "mysql_stmt_fetch_column() failed: %s",
                         __FUNCTION__, __LINE__,
                         mysql_error(backend->db));
+                mysql_stmt_reset(backend->st_read);
                 return GIT_EUSER;
             }
         }
@@ -693,12 +702,16 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend,
     const git_oid *oid, const void *data, size_t len, git_otype type)
 {
     mariadb_odb_backend_t *backend;
-    MYSQL_BIND bind_buffers[5];
+    MYSQL_BIND bind_buffers[6];
     my_ulonglong affected_rows;
+    char oid_hex[GIT_OID_HEXSZ + 1];
 
     assert(oid && _backend && data);
 
     backend = (mariadb_odb_backend_t *)_backend;
+
+    git_oid_fmt(oid_hex, oid);
+    oid_hex[sizeof(oid_hex) - 1] = '\0';
 
     memset(bind_buffers, 0, sizeof(bind_buffers));
 
@@ -714,23 +727,32 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend,
     bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
 
-    /* bind the type */
-    bind_buffers[2].buffer = &type;
-    bind_buffers[2].buffer_type = MYSQL_TYPE_TINY;
-    bind_buffers[2].buffer_length = sizeof(type);
+    /* bind the oid_hex : it's actually a copy of the oid, but written
+     * as a VARCHAR instead of a BLOB. It's useful only when we have to
+     * search a row by a OID prefix.
+     */
+    bind_buffers[2].buffer = oid_hex;
+    bind_buffers[2].buffer_length = GIT_OID_HEXSZ;
     bind_buffers[2].length = &bind_buffers[2].buffer_length;
+    bind_buffers[2].buffer_type = MYSQL_TYPE_STRING;
 
-    /* bind the size of the data */
-    bind_buffers[3].buffer = &len;
-    bind_buffers[3].buffer_type = MYSQL_TYPE_LONG;
-    bind_buffers[3].buffer_length = sizeof(len);
+    /* bind the type */
+    bind_buffers[3].buffer = &type;
+    bind_buffers[3].buffer_type = MYSQL_TYPE_TINY;
+    bind_buffers[3].buffer_length = sizeof(type);
     bind_buffers[3].length = &bind_buffers[3].buffer_length;
 
-    /* bind the data */
-    bind_buffers[4].buffer = (void*)data;
-    bind_buffers[4].buffer_length = len;
+    /* bind the size of the data */
+    bind_buffers[4].buffer = &len;
+    bind_buffers[4].buffer_type = MYSQL_TYPE_LONG;
+    bind_buffers[4].buffer_length = sizeof(len);
     bind_buffers[4].length = &bind_buffers[4].buffer_length;
-    bind_buffers[4].buffer_type = MYSQL_TYPE_BLOB;
+
+    /* bind the data */
+    bind_buffers[5].buffer = (void*)data;
+    bind_buffers[5].buffer_length = len;
+    bind_buffers[5].length = &bind_buffers[5].buffer_length;
+    bind_buffers[5].buffer_type = MYSQL_TYPE_BLOB;
 
     if (mysql_stmt_bind_param(backend->st_write, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "

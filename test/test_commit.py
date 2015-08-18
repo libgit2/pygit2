@@ -343,11 +343,12 @@ class MariadbCommitTest(utils.MariadbRepositoryTestCase):
             cursor = cnx.cursor()
             try:
                 query = ("INSERT INTO `%s_odb`"
-                            " (`repository_id`, `oid`, `type`, `size`, `data`)"
-                            " VALUES (%d, UNHEX('%sabcdef'), 1, 0,"
+                            " (`repository_id`, `oid`, `oid_hex`, `type`,"
+                            " `size`, `data`)"
+                            " VALUES (%d, UNHEX('%sABCDEF'), '%sABCDEF', 1, 0,"
                             "  UNHEX('0000'));"
                             % (self.TEST_DB_TABLE_PREFIX, self.TEST_DB_REPO_ID,
-                                short_oid))
+                                short_oid.upper(), short_oid.upper()))
                 cursor.execute(query)
             finally:
                 cursor.close()
