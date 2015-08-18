@@ -65,13 +65,22 @@
 #define LEN(x) (sizeof(x) / sizeof(x[0]))
 
 #define UNIMPLEMENTED_CALLBACK(cb_name) static int cb_name() \
-{ \
-    fprintf(stderr, \
-        "MariaDB ODB: WARNING: %s called but not implemented !\n", \
-        __FUNCTION__); \
-    assert(0); \
-    return GIT_EUSER; \
-}
+    { \
+        fprintf(stderr, \
+            "MariaDB ODB: WARNING: %s called but not implemented !\n", \
+            __FUNCTION__); \
+        assert(0); \
+        return GIT_EUSER; \
+    }
+
+#define OID_NOT_FOUND(repo_id, oid) \
+    do { \
+        char _oid_str[GIT_OID_HEXSZ + 1]; \
+        git_oid_fmt(_oid_str, oid); \
+        _oid_str[sizeof(_oid_str) - 1] = '\0'; \
+        fprintf(stderr, "%s: GIT_ENOTFOUND: %d, %s\n", __FUNCTION__, \
+            repo_id, _oid_str); \
+    } while(0);
 
 
 typedef struct {
@@ -197,6 +206,7 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
 
         error = GIT_OK;
     } else {
+        OID_NOT_FOUND(backend->git_repository_id, oid);
         error = GIT_ENOTFOUND;
     }
 
@@ -337,6 +347,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
 
         error = GIT_OK;
     } else {
+        OID_NOT_FOUND(backend->git_repository_id, oid);
         error = GIT_ENOTFOUND;
     }
 
@@ -416,6 +427,7 @@ static int mariadb_odb_backend__read_prefix(
     if (mysql_stmt_num_rows(backend->st_read_prefix) > 1) {
         error = GIT_EAMBIGUOUS;
     } else if (mysql_stmt_num_rows(backend->st_read_prefix) < 1) {
+        OID_NOT_FOUND(backend->git_repository_id, short_oid);
         error = GIT_ENOTFOUND;
     } else {
         char type;
@@ -636,6 +648,7 @@ static int mariadb_odb_backend__exists_prefix(
         error = GIT_EAMBIGUOUS;
     } else if (mysql_stmt_num_rows(backend->st_read_header_prefix) < 1) {
         error = GIT_ENOTFOUND;
+        OID_NOT_FOUND(backend->git_repository_id, short_oid);
     } else {
         result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
         result_buffers[0].buffer = (void*)out_oid->id,

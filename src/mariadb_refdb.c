@@ -337,6 +337,7 @@ static int mariadb_refdb_lookup(git_reference **out,
     }
 
     if (mysql_stmt_num_rows(backend->st_lookup) <= 0) {
+        fprintf(stderr, "%s : GIT_ENOTFOUND : %s\n", __FUNCTION__, refname);
         error = GIT_ENOTFOUND;
     } else {
         memset(result_buffers, 0, sizeof(result_buffers));
@@ -835,8 +836,11 @@ static int mariadb_refdb_rename(git_reference **out,
                 "mysql_stmt_affected_rows() failed: %s, %lld (force ? %d)",
                 __FUNCTION__, __LINE__,
                 mysql_stmt_error(backend->st_rename), affected_rows, force);
-        if (affected_rows == 0)
+        if (affected_rows == 0) {
+            fprintf(stderr, "%s : GIT_ENOTFOUND : %s : %s\n",
+                __FUNCTION__, old_name, new_name);
             return GIT_ENOTFOUND;
+        }
         return GIT_EUSER;
     }
 
