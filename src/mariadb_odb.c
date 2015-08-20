@@ -73,12 +73,12 @@
         return GIT_EUSER; \
     }
 
-#define OID_NOT_FOUND(repo_id, oid) \
+#define REPORT_OID_PROBLEM(repo_id, oid, error) \
     do { \
         char _oid_str[GIT_OID_HEXSZ + 1]; \
         git_oid_fmt(_oid_str, oid); \
         _oid_str[sizeof(_oid_str) - 1] = '\0'; \
-        fprintf(stderr, "%s: GIT_ENOTFOUND: %d, %s\n", __FUNCTION__, \
+        fprintf(stderr, "%s: " #error ": %d, %s\n", __FUNCTION__, \
             repo_id, _oid_str); \
     } while(0);
 
@@ -206,8 +206,8 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
 
         error = GIT_OK;
     } else {
-        OID_NOT_FOUND(backend->git_repository_id, oid);
         error = GIT_ENOTFOUND;
+        REPORT_OID_PROBLEM(backend->git_repository_id, oid, error);
     }
 
     /* reset the statement for further use */
@@ -347,8 +347,8 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
 
         error = GIT_OK;
     } else {
-        OID_NOT_FOUND(backend->git_repository_id, oid);
         error = GIT_ENOTFOUND;
+        REPORT_OID_PROBLEM(backend->git_repository_id, oid, error);
     }
 
     /* reset the statement for further use */
@@ -426,9 +426,10 @@ static int mariadb_odb_backend__read_prefix(
 
     if (mysql_stmt_num_rows(backend->st_read_prefix) > 1) {
         error = GIT_EAMBIGUOUS;
+        REPORT_OID_PROBLEM(backend->git_repository_id, short_oid, error);
     } else if (mysql_stmt_num_rows(backend->st_read_prefix) < 1) {
-        OID_NOT_FOUND(backend->git_repository_id, short_oid);
         error = GIT_ENOTFOUND;
+        REPORT_OID_PROBLEM(backend->git_repository_id, short_oid, error);
     } else {
         char type;
 
@@ -646,9 +647,10 @@ static int mariadb_odb_backend__exists_prefix(
 
     if (mysql_stmt_num_rows(backend->st_read_header_prefix) > 1) {
         error = GIT_EAMBIGUOUS;
+        REPORT_OID_PROBLEM(backend->git_repository_id, short_oid, error);
     } else if (mysql_stmt_num_rows(backend->st_read_header_prefix) < 1) {
         error = GIT_ENOTFOUND;
-        OID_NOT_FOUND(backend->git_repository_id, short_oid);
+        REPORT_OID_PROBLEM(backend->git_repository_id, short_oid, error);
     } else {
         result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
         result_buffers[0].buffer = (void*)out_oid->id,
