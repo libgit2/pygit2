@@ -387,7 +387,6 @@ static int mariadb_refdb_lookup(git_reference **out,
                 && strlen(target_symbolic) > 0
                 && !result_buffers[1].is_null) {
             *out = git_reference__alloc_symbolic(refname, target_symbolic);
-            fprintf(stderr, "SYMBOLIC: %s\n", target_symbolic);
         } else {
             assert(result_buffers[0].buffer_length > 0
                     && !result_buffers[0].is_null);
