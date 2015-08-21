@@ -53,6 +53,7 @@ def make_config():
         config["db"]["user"], config["db"]["passwd"],
         None, config["db"]["db"],
         config["db"]["table_prefix"], 0)
+    repo.close()
 
     print ("Writing config ...")
     config.write()
