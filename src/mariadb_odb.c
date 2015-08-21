@@ -258,7 +258,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_param() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
@@ -268,7 +268,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_execute() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
@@ -277,7 +277,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_store_result() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
@@ -318,7 +318,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
             RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_result() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
             mysql_stmt_reset(backend->st_read);
             return GIT_EUSER;
         }
@@ -365,7 +365,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_reset() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         return GIT_EUSER;
     }
 
