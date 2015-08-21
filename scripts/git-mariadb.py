@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import argparse
 import configparser
 import os
 import sys
@@ -20,15 +21,7 @@ class Config(configparser.ConfigParser):
             super(Config, self).write(file_descriptor)
 
 
-def help():
-    print ("%s <command> [opt]" % sys.argv[0])
-    print ("")
-    print ("Available commands:")
-    for (cmd, (_, desc)) in CMDS.items():
-        print ("\t%s : %s" % (cmd, desc))
-
-
-def make_config():
+def make_config(args):
     config = Config()
 
     config['db'] = {}
@@ -41,7 +34,7 @@ def make_config():
                 ("db", "db", "Database name", "pygit2"),
                 ("db", "table_prefix", "Table prefix", "pygit2"),
             ]:
-        print ("%s ? [%s]" % (question, default))
+        print (("%s ? [%s]" % (question, default)))
         value = input().strip()
         if value == "":
             value = default
@@ -59,12 +52,12 @@ def make_config():
     config.write()
     print ("Done")
 
-def make_repo():
+
+def make_repo(args):
     print ("Let's make a repo !")
 
 
 CMDS = {
-    'help': (help, "Help"),
     'make-config': (make_config, "Create a git-mariadb config file"),
     'make-repo': (make_repo, "Build a repository containing the whole"
         " current repository"),
@@ -72,10 +65,17 @@ CMDS = {
 
 
 def main():
-    if len(sys.argv) <= 1 or sys.argv[1] not in CMDS:
-        help()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("cmd",
+        help="Command (possible values: %s)" % ", ".join(list(CMDS.keys())))
+    parser.add_argument("-r", help="Repository id (default: 0)", type=int,
+        default=0)
+    args = parser.parse_args()
+    if not args.cmd in CMDS:
+        parser.print_help()
         return os.EX_USAGE
-    CMDS[sys.argv[1]][0]()
+
+    CMDS[args.cmd][0](args)
     return os.EX_OK
 
 
