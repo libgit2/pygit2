@@ -383,17 +383,20 @@ static int mariadb_refdb_lookup(git_reference **out,
 
         target_symbolic[sizeof(target_symbolic) - 1] = '\0'; /* safety */
 
-        if (result_buffers[0].buffer_length > 0
-                && !result_buffers[0].is_null) {
+        if (result_buffers[1].buffer_length > 0
+                && strlen(target_symbolic) > 0
+                && !result_buffers[1].is_null) {
+            *out = git_reference__alloc_symbolic(refname, target_symbolic);
+            fprintf(stderr, "SYMBOLIC: %s\n", target_symbolic);
+        } else {
+            assert(result_buffers[0].buffer_length > 0
+                    && !result_buffers[0].is_null);
+
             if (result_buffers[2].buffer_length > 0
                     && !result_buffers[2].is_null)
                 *out = git_reference__alloc(refname, &target_oid, &peel_oid);
             else
                 *out = git_reference__alloc(refname, &target_oid, NULL);
-        } else {
-            assert(result_buffers[1].buffer_length > 0
-                    && !result_buffers[1].is_null);
-            *out = git_reference__alloc_symbolic(refname, target_symbolic);
         }
 
         error = GIT_OK;
