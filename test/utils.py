@@ -175,7 +175,7 @@ class MariadbRepositoryTestCase(unittest.TestCase):
     TEST_DB_PASSWD = "pygit2"
     TEST_DB_SOCKET = "/var/run/mysqld/mysqld.sock"
     TEST_DB_DB = "pygit2"
-    TEST_DB_TABLE_PREFIX = "pygit2"
+    TEST_DB_TABLE_PREFIX = "pygit2_test"
     TEST_DB_REPO_ID = 42
 
     def setUp(self):
@@ -197,7 +197,9 @@ class MariadbRepositoryTestCase(unittest.TestCase):
             cursor = cnx.cursor()
             try:
                 for table in table_names:
-                    cursor.execute("DROP TABLE %s;" % table)
+                    table = table[0]
+                    if table.startswith(self.TEST_DB_TABLE_PREFIX):
+                        cursor.execute("DROP TABLE %s;" % table)
             finally:
                 cursor.close()
         finally:
