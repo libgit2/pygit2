@@ -137,7 +137,6 @@ def make_repo(args):
             print ("HEAD: %s" % parent.hex)
             if parent != pygit2.Oid(hex='0'):
                 parents = [parent]
-
         if parents == []:
             print ("HEAD not found")
 
@@ -165,10 +164,57 @@ def make_repo(args):
         repo.close()
 
 
+def _checkout_tree(repo, parent_path, tree):
+    for node in tree:
+        path = os.path.join(parent_path, node.name)
+        print (("Checking out %s (%d) ..." % (str(path), node.filemode)))
+
+        if (node.filemode == pygit2.GIT_FILEMODE_BLOB
+                or node.filemode == pygit2.GIT_FILEMODE_BLOB_EXECUTABLE):
+            blob = repo.get(node.id)
+            data = blob.data
+            with open(path, 'wb') as file_descriptor:
+                file_descriptor.write(data)
+        elif node.filemode == pygit2.GIT_FILEMODE_TREE:
+            try:
+                os.mkdir(path)
+            except FileExistsError:
+                pass
+            node_id = node.id
+            tree = repo.get(node_id)
+            _checkout_tree(repo, path, tree)
+            print ("<--")
+        else:
+            print (("WARNING: Unmanaged tree element type: %d, %s"
+                    % (node.filemode, node.id.hex)))
+
+
+def checkout(args):
+    workdir = args.workdir
+    repo_id = args.repository_id
+    revision = args.revision
+
+    print (("=== Checking out revision '%s' to '%s'" % (revision, workdir)))
+
+    os.chdir(workdir)
+    config = Config()
+    repo = pygit2.Repository(
+        config["db"]["host"], int(config["db"]["port"]),
+        config["db"]["user"], config["db"]["passwd"],
+        None, config["db"]["db"],
+        config["db"]["table_prefix"], repo_id)
+    try:
+        commit = repo[repo.head.target]
+        tree = commit.tree
+        _checkout_tree(repo, ".", tree)
+    finally:
+        repo.close()
+
 CMDS = {
     'make-config': (make_config, "Create a git-mariadb config file"),
     'commit-all': (make_repo, "Build/update a repository containing the whole"
         " work directory)"),
+    'checkout': (checkout, "Checkout repository content"),
 }
 
 
@@ -176,13 +222,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("cmd",
         help="Command (possible values: %s)" % ", ".join(list(CMDS.keys())))
-    parser.add_argument("-r", "--repository-id",
+    parser.add_argument("-R", "--repository-id",
         help="Repository id (default: 0)", type=int, default=0)
     parser.add_argument("-w", "--workdir",
         help="Workdir path (default: \".\")",
         default=".")
     parser.add_argument("-m", "--msg", help="Commit message",
         default="maintenance")
+    parser.add_argument("-r", "--revision", help="Revision/ref to checkout",
+        default="HEAD")
     args = parser.parse_args()
 
     if not args.cmd in CMDS:
