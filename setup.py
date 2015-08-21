@@ -195,4 +195,7 @@ setup(name='pygit2',
                     library_dirs=[libgit2_lib]),
           # FFI is added in the build step
       ],
+      scripts=[
+          'scripts/git-mariadb.py',
+      ],
       cmdclass=cmdclass)
