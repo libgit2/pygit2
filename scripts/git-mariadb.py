@@ -132,11 +132,14 @@ def make_repo(args):
 
         print ("Looking for HEAD ...")
         parents = []
-        parent = repo.head.target
-        if parent is not None:
-            print ("HEAD: %s" % parent.hex)
-            if parent != pygit2.Oid(hex='0'):
-                parents = [parent]
+        try:
+            parent = repo.head.target
+            if parent is not None:
+                print ("HEAD: %s" % parent.hex)
+                if parent != pygit2.Oid(hex='0'):
+                    parents = [parent]
+        except pygit2.GitError:
+            pass
         if parents == []:
             print ("HEAD not found")
 
