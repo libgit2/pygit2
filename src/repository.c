@@ -197,6 +197,9 @@ static int make_mariadb_repo(Repository *self,
         goto error;
     }
 
+    /* mark it as bare to avoid later issues */
+    git_repository_set_bare(self->repo);
+
     error = git_odb_backend_mariadb(&self->odb_backend,
         self->db, odb_table, repository_id, odb_partitions);
     if (error) {
@@ -773,7 +776,13 @@ PyDoc_STRVAR(Repository_path__doc__,
 PyObject *
 Repository_path__get__(Repository *self, void *closure)
 {
-    return to_path(git_repository_path(self->repo));
+    const char *c_path;
+
+    c_path = git_repository_path(self->repo);
+    if (c_path == NULL)
+        Py_RETURN_NONE;
+
+    return to_path(c_path);
 }
 
 
