@@ -504,8 +504,14 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
         }
         current_node->must_free_ref = 1; /* default */
 
-        if (result_buffers[0].buffer_length > 0
-                && !result_buffers[0].is_null) {
+        if (result_buffers[1].buffer_length > 0
+                && strlen(target_symbolic) > 0
+                && !result_buffers[1].is_null) {
+            current_node->reference = \
+                git_reference__alloc_symbolic(refname, target_symbolic);
+        } else {
+            assert(result_buffers[0].buffer_length > 0
+                    && !result_buffers[0].is_null);
             if (result_buffers[2].buffer_length > 0
                     && !result_buffers[2].is_null)
                 current_node->reference = \
@@ -513,11 +519,6 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
             else
                 current_node->reference = \
                     git_reference__alloc(refname, &target_oid, NULL);
-        } else {
-            assert(result_buffers[1].buffer_length > 0
-                    && !result_buffers[1].is_null);
-            current_node->reference = \
-                git_reference__alloc_symbolic(refname, target_symbolic);
         }
 
         if (previous_node == NULL) {
