@@ -80,7 +80,7 @@
         _oid_str[sizeof(_oid_str) - 1] = '\0'; \
         fprintf(stderr, "%s: " #error ": %d, %s\n", __FUNCTION__, \
             repo_id, _oid_str); \
-    } while(0);
+    } while(0)
 
 
 typedef struct {
