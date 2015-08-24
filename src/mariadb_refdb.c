@@ -203,18 +203,22 @@ static int mariadb_reference_iterator_next_name(const char **ref_name,
 static void mariadb_reference_iterator_free(git_reference_iterator *_iterator)
 {
     mariadb_reference_iterator_t *iterator;
-    mariadb_reference_iterator_node_t *node;
+    mariadb_reference_iterator_node_t *node, *nnode;
 
     assert(_iterator);
 
     iterator = (mariadb_reference_iterator_t *)_iterator;
 
-    for (node = iterator->head ; node != NULL ; node = node->next) {
+    for (node = iterator->head, nnode = (node != NULL ? node->next : NULL) ;
+            node != NULL ;
+            node = nnode, nnode = (node != NULL ? node->next : NULL)) {
+
         assert(node->reference);
         if (node->must_free_ref) {
             git_reference_free(node->reference);
         }
         free(node);
+
     }
 
     free(iterator);
