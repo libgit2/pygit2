@@ -47,8 +47,7 @@
 #include "repository.h"
 #include "branch.h"
 #include "signature.h"
-#include "mariadb_odb.h"
-#include "mariadb_refdb.h"
+#include <git2/mariadb.h>
 #include <git2/sys/repository.h>
 #include <git2/odb_backend.h>
 
