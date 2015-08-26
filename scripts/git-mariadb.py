@@ -236,12 +236,70 @@ def clone(args):
     )
 
 
+def push_all(args):
+    workdir = args.workdir
+    repo_id = args.repository_id
+
+    print (("=== Pushing repository '%s' to '%d' ..." % (workdir, repo_id)))
+
+    os.chdir(workdir)
+
+    config = Config()
+
+    remote_uri = ("mariadb://host=%s&port=%d&user=%s&passwd=%s"
+         "&db_name=%s&table_prefix=%s&repository_id=%d" % (
+            config["db"]["host"], int(config["db"]["port"]),
+            config["db"]["user"], config["db"]["passwd"],
+            config["db"]["db"],
+            config["db"]["table_prefix"],
+            repo_id
+        )
+    )
+
+    fs_repo = pygit2.Repository(".")
+    try:
+        # delete any existing origin (don't know where it points to, and don't
+        # care)
+        fs_repo.remotes.delete("mariadb")
+    except KeyError:
+        pass
+    remote = fs_repo.remotes.create("mariadb", remote_uri)
+
+    # will push branches, tags, etc
+    for reference in fs_repo.listall_references():
+        if reference.startswith("refs/remote"):
+            continue
+        print (("Pushing '%s'" % reference))
+        remote.push([reference])
+
+    head = fs_repo.head.resolve().name
+
+    del fs_repo
+
+    print (("Pushing HEAD (%s)" % head))
+    # AFAIK, there is no way using libgit2 to update the remote HEAD yet
+    # so here, we cheat ...
+    mariadb_repo = pygit2.Repository(
+        config["db"]["host"], int(config["db"]["port"]),
+        config["db"]["user"], config["db"]["passwd"],
+        None, config["db"]["db"],
+        config["db"]["table_prefix"], repo_id)
+    try:
+        mariadb_repo.set_head(head)
+    finally:
+        mariadb_repo.close()
+
+    print (("All done !"))
+
+
 CMDS = {
     'make-config': (make_config, "Create a git-mariadb config file"),
-    'commit-all': (make_repo, "Build/update a repository containing the whole"
-        " work directory)"),
     'checkout': (checkout, "Checkout repository content"),
     'clone': (clone, "Clone a Mariadb as a classic Git repository"),
+    'commit-all': (make_repo, "Build/update a repository containing the whole"
+                   " work directory)"),
+    'push-all': (push_all, "Push all the branches and other refs from a classic"
+                 " Git repository to a Mariadb one")
 }
 
 
