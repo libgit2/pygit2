@@ -69,6 +69,12 @@ def get_libgit2_paths():
     )
 
 
+def get_mariadb_lib():
+    return (
+        "/usr/include/mysql",  # TODO(Jflesch): likely to work only on Debian
+        "mysqlclient",
+    )
+
 #
 # Loads the cffi extension
 #
