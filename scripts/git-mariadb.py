@@ -222,7 +222,7 @@ def clone(args):
     os.chdir(workdir)
 
     config = Config()
-    pygit2.clone_repository(
+    repo = pygit2.clone_repository(
         ("mariadb://host=%s&port=%d&user=%s&passwd=%s"
          "&db_name=%s&table_prefix=%s&repository_id=%d" % (
             config["db"]["host"], int(config["db"]["port"]),
@@ -234,6 +234,22 @@ def clone(args):
         ".",
         bare=False
     )
+
+    # Make sure we get all the branches
+    for refname in repo.listall_references():
+        if not refname.startswith("refs/remotes/origin/"):
+            continue
+        reference = repo.lookup_reference(refname)
+        branch_name = refname[len("refs/remotes/origin/"):]
+        print (("Creating branch '%s' from remote" % str(branch_name)))
+        try:
+            repo.create_branch(branch_name, repo[reference.target])
+        except ValueError:
+            # happens when we try the branch pointed by HEAD
+            # because clone_repository() already created it for us
+            pass
+
+    print (("All done !"))
 
 
 def push_all(args):
