@@ -204,3 +204,11 @@ class MariadbRepositoryTestCase(unittest.TestCase):
                 cursor.close()
         finally:
             cnx.close()
+
+        self._temp_dir = tempfile.mkdtemp()
+        self.repo = None
+
+    def tearDown(self):
+        if self.repo:
+            del self.repo
+        rmtree(self._temp_dir)
