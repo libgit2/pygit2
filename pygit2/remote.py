@@ -246,7 +246,7 @@ class Remote(object):
 
         try:
             with StrArray(specs) as refspecs:
-                err = C.git_remote_push(self._remote, refspecs, ffi.NULL)
+                err = C.git_remote_push(self._remote, refspecs, push_opts)
                 check_error(err)
         finally:
             self._self_handle = None
