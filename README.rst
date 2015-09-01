@@ -28,29 +28,29 @@ Dependencies
 Pygit2-mariadb requires a patched version of libgit2 including Mariadb support
 (ODB, RefDB, and transport).
 
-```
-
 $ sudo apt-get install libmysqlclient-dev
-$ git clone https://github.com/jflesch/libgit2.git
-$ cd libgit2
-$ git checkout v0.22_mariadb
-$ cmake .
-$ make -j4
-$ sudo make install
 
-```
+$ git clone https://github.com/jflesch/libgit2.git
+
+$ cd libgit2
+
+$ git checkout v0.22_mariadb
+
+$ cmake .
+
+$ make -j4
+
+$ sudo make install
 
 
 Shell
 -----
 
-```
-
 $ sudo python3 ./setup.py install
-$ git-mariadb.py make-config
-$ git-mariadb.py --help
 
-```
+$ git-mariadb.py make-config
+
+$ git-mariadb.py --help
 
 Note that it won't create the Mariadb database or user. But it will create
 (silently) the tables if required. Table creation can take some time
