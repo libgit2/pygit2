@@ -75,7 +75,6 @@ def get_mariadb_lib():
         "mysqlclient",
     )
 
-
 #
 # Loads the cffi extension
 #

@@ -190,7 +190,7 @@ setup(name='pygit2',
       install_requires=['cffi'],
       zip_safe=False,
       ext_modules=[
-          Extension('_pygit2', pygit2_exts, libraries=['git2', mariadb_lib],
+           Extension('_pygit2', pygit2_exts, libraries=['git2', mariadb_lib],
                     include_dirs=[libgit2_include, mariadb_include],
                     library_dirs=[libgit2_lib]),
           # FFI is added in the build step

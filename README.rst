@@ -21,10 +21,24 @@ Tested only with:
 How to use it
 =============
 
+Dependencies
+------------
+
+Pygit2-mariadb requires a patched version of libgit2 including Mariadb support
+(ODB, RefDB, and transport).
+
+$ sudo apt-get install libmysqlclient-dev
+$ git clone https://github.com/jflesch/libgit2.git
+$ cd libgit2
+$ git checkout v0.22_mariadb
+$ cmake .
+$ make -j4
+$ sudo make install
+
+
 Shell
 -----
 
-$ sudo apt-get install libmysqlclient-dev
 $ sudo python3 ./setup.py install
 $ git-mariadb.py make-config
 $ git-mariadb.py --help
@@ -71,7 +85,7 @@ How to run tests
 tests/utils.py:MariadbRepositoryTestCase contains the settings used for testing.
 You may have to update it before running the tests
 
-$ sudo python3 ./setup.py test
+$ python3 ./setup.py test
 
 
 Performances
