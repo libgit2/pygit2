@@ -67,16 +67,18 @@ As of now, only 2 commands are available with git-mariadb.py:
 Python 3
 --------
 
-```
-
 repo = pygit2.Repository(
+
         str(db_host) or None if db_socket, int(db_port),
+
         str(db_user), str(db_passwd),
+
         str(db_socket) or None, str(db_database),
+
         str(table_name_prefix), int(repo_id),
+
         odb_partitions=2, refdb_partitions=2)
 
-```
 
 You can then use the repo object as any bare pygit2.Repository object.
 Note that:
