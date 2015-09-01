@@ -354,6 +354,7 @@ class MariadbCloneTest(utils.MariadbRepositoryTestCase):
         finally:
             repo.close()
 
+        # clone it
         self.repo = pygit2.clone_repository(
                 ("mariadb://host=%s&port=%d&user=%s&passwd=%s"
                 "&db_name=%s&table_prefix=%s&repository_id=%d" % (
@@ -369,6 +370,77 @@ class MariadbCloneTest(utils.MariadbRepositoryTestCase):
         self.assertNotEqual(commit_parent, None)
         commit_child = repo[oid_child]
         self.assertNotEqual(commit_child, None)
+
+
+class MariadbPushTest(utils.MariadbRepositoryTestCase):
+    def test_push(self):
+        # Make a mariadb repository with 2 commits
+        mariadb_repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            # need a HEAD, otherwise the remote is an invalid repository
+            mariadb_repo.set_head("refs/heads/master")
+        finally:
+            mariadb_repo.close()
+
+        # clone it
+        remote_uri = ("mariadb://host=%s&port=%d&user=%s&passwd=%s"
+                "&db_name=%s&table_prefix=%s&repository_id=%d" % (
+                self.TEST_DB_HOST, self.TEST_DB_PORT,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_DB, self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID))
+
+        self.repo = pygit2.clone_repository(remote_uri, self._temp_dir,
+            bare=False
+        )
+        author = Signature('Alice Author', 'alice@authors.tld')
+        committer = Signature('Cecil Committer', 'cecil@committers.tld')
+        tree = self.repo.TreeBuilder().write()
+        oid_parent = self.repo.create_commit(
+                'refs/heads/master',  # create the branch
+                author, committer, 'one line commit message\n\ndetails',
+                tree,  # binary string representing the tree object ID
+                []  # parents of the new commit
+            )
+        self.assertNotEqual(oid_parent, None)
+
+        hex_parent = oid_parent.hex[:12]
+
+        commit_parent = self.repo[oid_parent]
+
+        oid_child = self.repo.create_commit(
+                'refs/heads/master',
+                author, committer, 'one line commit message\n\ndetails',
+                tree,  # binary string representing the tree object ID
+                [hex_parent]  # parents of the new commit
+            )
+        self.assertNotEqual(oid_child, None)
+
+        # push back the changes
+        remote = self.repo.remotes["origin"]
+        remote.add_push("refs/heads/master:refs/heads/master")
+        remote.push(['refs/heads/master'])
+
+        # reopen the repo, and check the commits are in it
+        mariadb_repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            commit_parent = mariadb_repo[oid_parent]
+            self.assertNotEqual(commit_parent, None)
+            commit_child = mariadb_repo[oid_child]
+            self.assertNotEqual(commit_child, None)
+        finally:
+            mariadb_repo.close()
+
 
 
 if __name__ == '__main__':
