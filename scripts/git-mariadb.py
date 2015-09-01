@@ -89,7 +89,7 @@ def _insert_trees(trees, tree_path):
 def make_repo(args):
     workdir = args.workdir
     repo_id = args.repository_id
-    print (("=== Loading workdir '%s' in DB, as repository %d ==="
+    print (("=== Loading workdir '%s' in DB, as repository %d ..."
         % (workdir, repo_id)))
 
     os.chdir(workdir)
@@ -196,7 +196,7 @@ def checkout(args):
     repo_id = args.repository_id
     revision = args.revision
 
-    print (("=== Checking out revision '%s' to '%s'" % (revision, workdir)))
+    print (("=== Checking out revision '%s' to '%s' ..." % (revision, workdir)))
 
     os.chdir(workdir)
     config = Config()
@@ -212,11 +212,36 @@ def checkout(args):
     finally:
         repo.close()
 
+
+def clone(args):
+    workdir = args.workdir
+    repo_id = args.repository_id
+
+    print (("=== Cloning repository '%d' to '%s' ..." % (repo_id, workdir)))
+
+    os.chdir(workdir)
+
+    config = Config()
+    pygit2.clone_repository(
+        ("mariadb://host=%s&port=%d&user=%s&passwd=%s"
+         "&db_name=%s&table_prefix=%s&repository_id=%d" % (
+            config["db"]["host"], int(config["db"]["port"]),
+            config["db"]["user"], config["db"]["passwd"],
+            config["db"]["db"],
+            config["db"]["table_prefix"],
+            repo_id
+        )),
+        ".",
+        bare=False
+    )
+
+
 CMDS = {
     'make-config': (make_config, "Create a git-mariadb config file"),
     'commit-all': (make_repo, "Build/update a repository containing the whole"
         " work directory)"),
     'checkout': (checkout, "Checkout repository content"),
+    'clone': (clone, "Clone a Mariadb as a classic Git repository"),
 }
 
 

@@ -34,6 +34,11 @@ import sys
 from pygit2 import Oid
 from . import utils
 
+from pygit2 import GIT_FILEMODE_BLOB
+from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
+from pygit2 import clone_repository
+from pygit2.repository import Repository
+
 try:
     import __pypy__
 except ImportError:
@@ -309,6 +314,62 @@ class PushTestCase(unittest.TestCase):
         )
 
         self.assertRaises(pygit2.GitError, self.remote.push, ['refs/heads/master'])
+
+
+class MariadbCloneTest(utils.MariadbRepositoryTestCase):
+    def test_clone(self):
+        # Make a mariadb repository with 2 commits
+        repo = Repository(None, 0,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_SOCKET, self.TEST_DB_DB,
+                self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+                odb_partitions=2, refdb_partitions=2)
+        try:
+            author = Signature('Alice Author', 'alice@authors.tld')
+            committer = Signature('Cecil Committer', 'cecil@committers.tld')
+            tree = repo.TreeBuilder().write()
+            oid_parent = repo.create_commit(
+                    'refs/heads/master',  # create the branch
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    []  # parents of the new commit
+                )
+            self.assertNotEqual(oid_parent, None)
+
+            hex_parent = oid_parent.hex[:12]
+
+            commit_parent = repo[oid_parent]
+
+            oid_child = repo.create_commit(
+                    'refs/heads/master',
+                    author, committer, 'one line commit message\n\ndetails',
+                    tree,  # binary string representing the tree object ID
+                    [hex_parent]  # parents of the new commit
+                )
+            self.assertNotEqual(oid_child, None)
+
+            # need a HEAD, otherwise the remote is an invalid repository
+            repo.set_head("refs/heads/master")
+        finally:
+            repo.close()
+
+        self.repo = pygit2.clone_repository(
+                ("mariadb://host=%s&port=%d&user=%s&passwd=%s"
+                "&db_name=%s&table_prefix=%s&repository_id=%d" % (
+                self.TEST_DB_HOST, self.TEST_DB_PORT,
+                self.TEST_DB_USER, self.TEST_DB_PASSWD,
+                self.TEST_DB_DB, self.TEST_DB_TABLE_PREFIX,
+                self.TEST_DB_REPO_ID,
+            )),
+            self._temp_dir,
+            bare=False
+        )
+        commit_parent = repo[oid_parent]
+        self.assertNotEqual(commit_parent, None)
+        commit_child = repo[oid_child]
+        self.assertNotEqual(commit_child, None)
+
 
 if __name__ == '__main__':
     unittest.main()
