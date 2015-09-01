@@ -29,11 +29,17 @@ Pygit2-mariadb requires a patched version of libgit2 including Mariadb support
 (ODB, RefDB, and transport).
 
     $ sudo apt-get install libmysqlclient-dev
+
     $ git clone https://github.com/jflesch/libgit2.git
+
     $ cd libgit2
+
     $ git checkout v0.22_mariadb
+
     $ cmake .
+
     $ make -j4
+
     $ sudo make install
 
 
@@ -41,7 +47,9 @@ Shell
 -----
 
     $ sudo python3 ./setup.py install
+
     $ git-mariadb.py make-config
+
     $ git-mariadb.py --help
 
 Note that it won't create the Mariadb database or user. But it will create
@@ -60,10 +68,15 @@ Python 3
 --------
 
     repo = pygit2.Repository(
+
         str(db_host) or None if db_socket, int(db_port),
+
         str(db_user), str(db_passwd),
+
         str(db_socket) or None, str(db_database),
+
         str(table_name_prefix), int(repo_id),
+
         odb_partitions=2, refdb_partitions=2)
 
 
