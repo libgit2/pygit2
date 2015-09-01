@@ -380,6 +380,13 @@ static int mariadb_odb_backend__read_prefix(
 
     *data_p = NULL;
 
+    if (len >= GIT_OID_HEXSZ) {
+        /* read() is *much* faster than read_prefix() */
+        memcpy(out_oid, short_oid, sizeof(*out_oid));
+        return mariadb_odb_backend__read(data_p, len_p, type_p, _backend,
+            short_oid);
+    }
+
     /* len is a number of hex digits, but we work with raw strings here
      */
     len /= 2;
@@ -592,6 +599,12 @@ static int mariadb_odb_backend__exists_prefix(
     int fetch_result;
 
     assert(out_oid && _backend && short_oid);
+
+    if (len >= GIT_OID_HEXSZ) {
+        /* exists() is *much* faster than exists_prefix() */
+        memcpy(out_oid, short_oid, sizeof(*out_oid));
+        return mariadb_odb_backend__exists(_backend, short_oid);
+    }
 
     /* len is a number of hex digits, but we work we raw strings here
      */
