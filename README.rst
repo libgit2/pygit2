@@ -69,6 +69,7 @@ Python 3
 
 You can then use the repo object as any bare pygit2.Repository object.
 Note that:
+
 - by default, the repository is *empty* (no HEAD reference, no master branch,
   etc)
 - The ODB and refdb are created using Mariadb's partitioning.
