@@ -137,12 +137,10 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
     bind_buffers[0].buffer = &backend->git_repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer_length = sizeof(backend->git_repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     /* bind the oid passed to the statement */
     bind_buffers[1].buffer = (void*)oid->id;
     bind_buffers[1].buffer_length = 20;
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -179,13 +177,11 @@ static int mariadb_odb_backend__read_header(size_t *len_p, git_otype *type_p,
         result_buffers[0].buffer_type = MYSQL_TYPE_TINY;
         result_buffers[0].buffer = &type;
         result_buffers[0].buffer_length = sizeof(type);
-        result_buffers[0].length = &bind_buffers[0].buffer_length;
         *type_p = 0;
 
         result_buffers[1].buffer_type = MYSQL_TYPE_LONGLONG;
         result_buffers[1].buffer = len_p;
         result_buffers[1].buffer_length = sizeof(*len_p);
-        result_buffers[1].length = &bind_buffers[1].buffer_length;
         memset(len_p, 0, sizeof(*len_p));
 
         if(mysql_stmt_bind_result(backend->st_read_header, result_buffers) != 0) {
@@ -247,18 +243,16 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
     bind_buffers[0].buffer = &backend->git_repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer_length = sizeof(backend->git_repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     /* bind the oid passed to the statement */
     bind_buffers[1].buffer = (void*)oid->id;
     bind_buffers[1].buffer_length = GIT_OID_RAWSZ;
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_param() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
@@ -268,7 +262,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_execute() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
@@ -277,7 +271,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_store_result() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         mysql_stmt_reset(backend->st_read);
         return GIT_EUSER;
     }
@@ -292,13 +286,11 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         result_buffers[0].buffer_type = MYSQL_TYPE_TINY;
         result_buffers[0].buffer = &type;
         result_buffers[0].buffer_length = sizeof(type);
-        result_buffers[0].length = &result_buffers[0].buffer_length;
         *type_p = 0;
 
         result_buffers[1].buffer_type = MYSQL_TYPE_LONGLONG;
         result_buffers[1].buffer = len_p;
         result_buffers[1].buffer_length = sizeof(*len_p);
-        result_buffers[1].length = &result_buffers[1].buffer_length;
         memset(len_p, 0, sizeof(*len_p));
 
         /*
@@ -318,7 +310,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
             RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_bind_result() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
             mysql_stmt_reset(backend->st_read);
             return GIT_EUSER;
         }
@@ -365,7 +357,7 @@ static int mariadb_odb_backend__read(void **data_p, size_t *len_p,
         RAISE_EXC(__FILE__ ": %s: L%d: "
                 "mysql_stmt_reset() failed: %s",
                 __FUNCTION__, __LINE__,
-                mysql_error(backend->db));
+                mysql_stmt_error(backend->st_read));
         return GIT_EUSER;
     }
 
@@ -401,12 +393,10 @@ static int mariadb_odb_backend__read_prefix(
     bind_buffers[0].buffer = &backend->git_repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer_length = sizeof(backend->git_repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     /* bind the oid passed to the statement */
     bind_buffers[1].buffer = (void*)short_oid->id;
     bind_buffers[1].buffer_length = len;
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read_prefix, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -445,19 +435,16 @@ static int mariadb_odb_backend__read_prefix(
         result_buffers[0].buffer_type = MYSQL_TYPE_TINY;
         result_buffers[0].buffer = &type;
         result_buffers[0].buffer_length = sizeof(type);
-        result_buffers[0].length = &result_buffers[0].buffer_length;
         *type_p = 0;
 
         result_buffers[1].buffer_type = MYSQL_TYPE_LONGLONG;
         result_buffers[1].buffer = len_p;
         result_buffers[1].buffer_length = sizeof(*len_p);
-        result_buffers[1].length = &result_buffers[1].buffer_length;
         memset(len_p, 0, sizeof(*len_p));
 
         result_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
         result_buffers[2].buffer = (void*)out_oid->id,
         result_buffers[2].buffer_length = GIT_OID_RAWSZ;
-        result_buffers[2].length = &result_buffers[2].buffer_length;
         memset(out_oid->id, 0, sizeof(out_oid->id));
 
         /*
@@ -542,12 +529,10 @@ static int mariadb_odb_backend__exists(git_odb_backend *_backend, const git_oid 
     bind_buffers[0].buffer = &backend->git_repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer_length = sizeof(backend->git_repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     /* bind the oid passed to the statement */
     bind_buffers[1].buffer = (void*)oid->id;
     bind_buffers[1].buffer_length = 20;
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read_header, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -621,12 +606,10 @@ static int mariadb_odb_backend__exists_prefix(
     bind_buffers[0].buffer = &backend->git_repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer_length = sizeof(backend->git_repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     /* bind the oid passed to the statement */
     bind_buffers[1].buffer = (void*)short_oid->id;
     bind_buffers[1].buffer_length = len;
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
     if (mysql_stmt_bind_param(backend->st_read_header_prefix,
             bind_buffers) != 0) {
@@ -664,7 +647,6 @@ static int mariadb_odb_backend__exists_prefix(
         result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
         result_buffers[0].buffer = (void*)out_oid->id,
         result_buffers[0].buffer_length = GIT_OID_RAWSZ;
-        result_buffers[0].length = &result_buffers[0].buffer_length;
 
         if(mysql_stmt_bind_result(backend->st_read_header_prefix,
                 result_buffers) != 0) {
@@ -721,12 +703,10 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend,
     bind_buffers[0].buffer = &backend->git_repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer_length = sizeof(backend->git_repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     /* bind the oid */
     bind_buffers[1].buffer = (void*)oid->id;
     bind_buffers[1].buffer_length = 20;
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_BLOB;
 
     /* bind the oid_hex : it's actually a copy of the oid, but written
@@ -735,25 +715,21 @@ static int mariadb_odb_backend__write(git_odb_backend *_backend,
      */
     bind_buffers[2].buffer = oid_hex;
     bind_buffers[2].buffer_length = GIT_OID_HEXSZ;
-    bind_buffers[2].length = &bind_buffers[2].buffer_length;
     bind_buffers[2].buffer_type = MYSQL_TYPE_STRING;
 
     /* bind the type */
     bind_buffers[3].buffer = &type;
     bind_buffers[3].buffer_type = MYSQL_TYPE_TINY;
     bind_buffers[3].buffer_length = sizeof(type);
-    bind_buffers[3].length = &bind_buffers[3].buffer_length;
 
     /* bind the size of the data */
     bind_buffers[4].buffer = &len;
     bind_buffers[4].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[4].buffer_length = sizeof(len);
-    bind_buffers[4].length = &bind_buffers[4].buffer_length;
 
     /* bind the data */
     bind_buffers[5].buffer = (void*)data;
     bind_buffers[5].buffer_length = len;
-    bind_buffers[5].length = &bind_buffers[5].buffer_length;
     bind_buffers[5].buffer_type = MYSQL_TYPE_BLOB;
 
     if (mysql_stmt_bind_param(backend->st_write, bind_buffers) != 0) {

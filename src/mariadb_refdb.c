@@ -238,11 +238,9 @@ static int mariadb_refdb_exists(int *exists, git_refdb_backend *_backend,
     bind_buffers[0].buffer = &backend->repository_id;
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer_length = sizeof(backend->repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer = (void *)refname; /* cast because of 'const' */
     bind_buffers[1].buffer_length = strlen(refname);
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
 
     if (mysql_stmt_bind_param(backend->st_exists, bind_buffers) != 0) {
@@ -308,12 +306,10 @@ static int mariadb_refdb_lookup(git_reference **out,
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
     bind_buffers[0].buffer_length = sizeof(backend->repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[1].buffer = (void *)refname; /* cast because of 'const' */
     bind_buffers[1].buffer_length = strlen(refname);
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_lookup, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -349,19 +345,16 @@ static int mariadb_refdb_lookup(git_reference **out,
         result_buffers[0].buffer_type = MYSQL_TYPE_BLOB;
         result_buffers[0].buffer = (void*)target_oid.id;
         result_buffers[0].buffer_length = GIT_OID_RAWSZ;
-        result_buffers[0].length = &result_buffers[0].buffer_length;
         memset(&target_oid, 0, sizeof(target_oid));
 
         result_buffers[1].buffer_type = MYSQL_TYPE_STRING;
         result_buffers[1].buffer = target_symbolic;
         result_buffers[1].buffer_length = sizeof(target_symbolic) - 1;
-        result_buffers[1].length = &result_buffers[1].buffer_length;
         memset(target_symbolic, 0, sizeof(target_symbolic));
 
         result_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
         result_buffers[2].buffer = (void*)peel_oid.id;
         result_buffers[2].buffer_length = GIT_OID_RAWSZ;
-        result_buffers[2].length = &result_buffers[2].buffer_length;
         memset(&peel_oid, 0, sizeof(peel_oid));
 
         if(mysql_stmt_bind_result(backend->st_lookup, result_buffers) != 0) {
@@ -383,17 +376,19 @@ static int mariadb_refdb_lookup(git_reference **out,
 
         target_symbolic[sizeof(target_symbolic) - 1] = '\0'; /* safety */
 
-        if (result_buffers[0].buffer_length > 0
-                && !result_buffers[0].is_null) {
+        if (result_buffers[1].buffer_length > 0
+                && strlen(target_symbolic) > 0
+                && !result_buffers[1].is_null) {
+            *out = git_reference__alloc_symbolic(refname, target_symbolic);
+        } else {
+            assert(result_buffers[0].buffer_length > 0
+                    && !result_buffers[0].is_null);
+
             if (result_buffers[2].buffer_length > 0
                     && !result_buffers[2].is_null)
                 *out = git_reference__alloc(refname, &target_oid, &peel_oid);
             else
                 *out = git_reference__alloc(refname, &target_oid, NULL);
-        } else {
-            assert(result_buffers[1].buffer_length > 0
-                    && !result_buffers[1].is_null);
-            *out = git_reference__alloc_symbolic(refname, target_symbolic);
         }
 
         error = GIT_OK;
@@ -438,7 +433,6 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
     bind_buffers[0].buffer_length = sizeof(backend->repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_iterator, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -471,22 +465,18 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
     result_buffers[0].buffer_type = MYSQL_TYPE_LONG_BLOB;
     result_buffers[0].buffer = &target_oid.id;
     result_buffers[0].buffer_length = sizeof(target_oid.id);
-    result_buffers[0].length = &result_buffers[0].buffer_length;
 
     result_buffers[1].buffer_type = MYSQL_TYPE_STRING;
     result_buffers[1].buffer = target_symbolic;
     result_buffers[1].buffer_length = sizeof(target_symbolic) - 1;
-    result_buffers[1].length = &result_buffers[1].buffer_length;
 
     result_buffers[2].buffer_type = MYSQL_TYPE_LONG_BLOB;
     result_buffers[2].buffer = &peel_oid.id;
     result_buffers[2].buffer_length = sizeof(peel_oid.id);
-    result_buffers[2].length = &result_buffers[2].buffer_length;
 
     result_buffers[3].buffer_type = MYSQL_TYPE_STRING;
     result_buffers[3].buffer = refname;
     result_buffers[3].buffer_length = sizeof(refname) - 1;
-    result_buffers[3].length = &result_buffers[3].buffer_length;
 
     if(mysql_stmt_bind_result(backend->st_iterator, result_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -514,8 +504,14 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
         }
         current_node->must_free_ref = 1; /* default */
 
-        if (result_buffers[0].buffer_length > 0
-                && !result_buffers[0].is_null) {
+        if (result_buffers[1].buffer_length > 0
+                && strlen(target_symbolic) > 0
+                && !result_buffers[1].is_null) {
+            current_node->reference = \
+                git_reference__alloc_symbolic(refname, target_symbolic);
+        } else {
+            assert(result_buffers[0].buffer_length > 0
+                    && !result_buffers[0].is_null);
             if (result_buffers[2].buffer_length > 0
                     && !result_buffers[2].is_null)
                 current_node->reference = \
@@ -523,11 +519,6 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
             else
                 current_node->reference = \
                     git_reference__alloc(refname, &target_oid, NULL);
-        } else {
-            assert(result_buffers[1].buffer_length > 0
-                    && !result_buffers[1].is_null);
-            current_node->reference = \
-                git_reference__alloc_symbolic(refname, target_symbolic);
         }
 
         if (previous_node == NULL) {
@@ -537,18 +528,6 @@ static int mariadb_refdb_iterator(git_reference_iterator **_iterator,
             previous_node->next = current_node;
         }
         previous_node = current_node;
-
-        result_buffers[0].buffer_length = sizeof(target_oid.id);
-        result_buffers[0].length = &result_buffers[0].buffer_length;
-
-        result_buffers[1].buffer_length = sizeof(target_symbolic) - 1;
-        result_buffers[1].length = &result_buffers[1].buffer_length;
-
-        result_buffers[2].buffer_length = sizeof(peel_oid.id);
-        result_buffers[2].length = &result_buffers[2].buffer_length;
-
-        result_buffers[3].buffer_length = sizeof(refname) - 1;
-        result_buffers[3].length = &result_buffers[3].buffer_length;
     }
 
     if (fetch_result != MYSQL_NO_DATA) {
@@ -617,25 +596,21 @@ static int _bind_ref_values(MYSQL_BIND *bind_buffers, const git_reference *ref)
             /* cast because of const */
             bind_buffers[0].buffer = (void *)ref_oid_target;
             bind_buffers[0].buffer_length = sizeof(*ref_oid_target);
-            bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
             bind_buffers[1].buffer_type = MYSQL_TYPE_NULL;
             bind_buffers[1].buffer = NULL;
             bind_buffers[1].buffer_length = 0;
-            bind_buffers[1].length = &bind_buffers[1].buffer_length;
             break;
 
         case GIT_REF_SYMBOLIC:
             bind_buffers[0].buffer_type = MYSQL_TYPE_NULL;
             bind_buffers[0].buffer = NULL;
             bind_buffers[0].buffer_length = 0;
-            bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
             bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
             /* case because of const */
             bind_buffers[1].buffer = (void *)ref_symbolic_target;
             bind_buffers[1].buffer_length = strlen(ref_symbolic_target);
-            bind_buffers[1].length = &bind_buffers[1].buffer_length;
             break;
 
         case GIT_REF_LISTALL: /* BREAKTHROUGH */
@@ -652,13 +627,11 @@ static int _bind_ref_values(MYSQL_BIND *bind_buffers, const git_reference *ref)
         bind_buffers[2].buffer_type = MYSQL_TYPE_NULL;
         bind_buffers[2].buffer = NULL;
         bind_buffers[2].buffer_length = 0;
-        bind_buffers[2].length = &bind_buffers[2].buffer_length;
     } else {
         bind_buffers[2].buffer_type = MYSQL_TYPE_BLOB;
         /* cast because of const */
         bind_buffers[2].buffer = (void *)ref_target_peel;
         bind_buffers[2].buffer_length = sizeof(*ref_target_peel);
-        bind_buffers[2].length = &bind_buffers[2].buffer_length;
     }
 
     return GIT_OK;
@@ -698,12 +671,10 @@ static int mariadb_refdb_write(git_refdb_backend *_backend,
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
     bind_buffers[0].buffer_length = sizeof(backend->repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[1].buffer = (void *)ref_name; /* cast because of 'const' */
     bind_buffers[1].buffer_length = strlen(ref_name);
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
     if (_bind_ref_values(bind_buffers + 2, ref) != GIT_OK)
         return GIT_EUSER;
@@ -803,17 +774,14 @@ static int mariadb_refdb_rename(git_reference **out,
     bind_buffers[0].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[0].buffer = (void *)new_name; /* cast because of 'const' */
     bind_buffers[0].buffer_length = strlen(new_name);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[1].buffer = &backend->repository_id;
     bind_buffers[1].buffer_length = sizeof(backend->repository_id);
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
     bind_buffers[2].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[2].buffer = (void *)old_name; /* cast because of 'const' */
     bind_buffers[2].buffer_length = strlen(old_name);
-    bind_buffers[2].length = &bind_buffers[2].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_rename, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "
@@ -883,12 +851,10 @@ static int mariadb_refdb_del(git_refdb_backend *_backend, const char *ref_name,
     bind_buffers[0].buffer_type = MYSQL_TYPE_LONG;
     bind_buffers[0].buffer = &backend->repository_id;
     bind_buffers[0].buffer_length = sizeof(backend->repository_id);
-    bind_buffers[0].length = &bind_buffers[0].buffer_length;
 
     bind_buffers[1].buffer_type = MYSQL_TYPE_STRING;
     bind_buffers[1].buffer = (void *)ref_name; /* cast because of 'const' */
     bind_buffers[1].buffer_length = strlen(ref_name);
-    bind_buffers[1].length = &bind_buffers[1].buffer_length;
 
     if (mysql_stmt_bind_param(backend->st_delete, bind_buffers) != 0) {
         RAISE_EXC(__FILE__ ": %s: L%d: "

@@ -151,6 +151,19 @@ Repository_close(Repository *self)
 }
 
 
+PyDoc_STRVAR(Repository_rollback__doc__,
+    "Cancel the changes in the DB");
+
+PyObject *
+Repository_rollback(Repository *self)
+{
+    if (self->db) {
+        mysql_rollback(self->db);
+    }
+    Py_RETURN_NONE;
+}
+
+
 static void free_mariadb_repo(Repository *self)
 {
     if (self->db)
@@ -1831,6 +1844,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
     METHOD(Repository, create_commit, METH_VARARGS),
     METHOD(Repository, create_tag, METH_VARARGS),
+    METHOD(Repository, rollback, METH_NOARGS),
     METHOD(Repository, TreeBuilder, METH_VARARGS),
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
