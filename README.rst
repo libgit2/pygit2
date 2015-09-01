@@ -12,6 +12,7 @@ in the normal tree of Pygit2.
 Repositories don't have names. They only have an id (integer).
 
 Tested only with:
+
 - Python3
 - Mariadb 10.0
 - GNU/Linux Debian 8
@@ -27,6 +28,8 @@ Dependencies
 Pygit2-mariadb requires a patched version of libgit2 including Mariadb support
 (ODB, RefDB, and transport).
 
+```
+
 $ sudo apt-get install libmysqlclient-dev
 $ git clone https://github.com/jflesch/libgit2.git
 $ cd libgit2
@@ -35,13 +38,19 @@ $ cmake .
 $ make -j4
 $ sudo make install
 
+```
+
 
 Shell
 -----
 
+```
+
 $ sudo python3 ./setup.py install
 $ git-mariadb.py make-config
 $ git-mariadb.py --help
+
+```
 
 Note that it won't create the Mariadb database or user. But it will create
 (silently) the tables if required. Table creation can take some time
@@ -49,6 +58,7 @@ Note that it won't create the Mariadb database or user. But it will create
 partitions).
 
 As of now, only 2 commands are available with git-mariadb.py:
+
 - commit-all : commit all the files in workdir directory as-is to
   refs/head/master (create the tables and the repository if required)
 - checkout : checkout all the files of the specified revision (default: HEAD)
@@ -58,12 +68,14 @@ Python 3
 --------
 
 ```
+
 repo = pygit2.Repository(
         str(db_host) or None if db_socket, int(db_port),
         str(db_user), str(db_passwd),
         str(db_socket) or None, str(db_database),
         str(table_name_prefix), int(repo_id),
         odb_partitions=2, refdb_partitions=2)
+
 ```
 
 You can then use the repo object as any bare pygit2.Repository object.
