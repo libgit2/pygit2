@@ -36,7 +36,7 @@ Pygit2-mariadb requires a patched version of libgit2 including Mariadb support
 
     $ git checkout v0.22_mariadb
 
-    $ cmake .
+    $ cmake -DUSE_MARIADB=on .
 
     $ make -j4
 
