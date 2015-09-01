@@ -1,4 +1,111 @@
 ######################################################################
+pygit2-mariadb - libgit2 bindings in Python + Mariadb support
+######################################################################
+
+This version of Pygit2 make it possible to store the repositories in MariaDB
+instead of plain files. It can be useful if you intend to use some functions
+of MariaDB like Galera (replication across multiple servers).
+
+This version is in the branch 'mariadb'. As-is, it is not ready for inclusion
+in the normal tree of Pygit2.
+
+Repositories don't have names. They only have an id (integer).
+
+Tested only with:
+- Python3
+- Mariadb 10.0
+- GNU/Linux Debian 8
+- Libgit2 0.22
+
+
+How to use it
+=============
+
+Shell
+-----
+
+$ sudo apt-get install libmysqlclient-dev
+$ sudo python3 ./setup.py install
+$ git-mariadb.py make-config
+$ git-mariadb.py --help
+
+Note that it won't create the Mariadb database or user. But it will create
+(silently) the tables if required. Table creation can take some time
+(git-mariadb.py uses the default settings --> it make the table with a lot of
+partitions).
+
+As of now, only 2 commands are available with git-mariadb.py:
+- commit-all : commit all the files in workdir directory as-is to
+  refs/head/master (create the tables and the repository if required)
+- checkout : checkout all the files of the specified revision (default: HEAD)
+
+
+Python 3
+--------
+
+```
+repo = pygit2.Repository(
+        str(db_host) or None if db_socket, int(db_port),
+        str(db_user), str(db_passwd),
+        str(db_socket) or None, str(db_database),
+        str(table_name_prefix), int(repo_id),
+        odb_partitions=2, refdb_partitions=2)
+```
+
+You can then use the repo object as any bare pygit2.Repository object.
+Note that:
+- by default, the repository is *empty* (no HEAD reference, no master branch,
+  etc)
+- The ODB and refdb are created using Mariadb's partitioning.
+  By default, a *big* number of partitions are created (this is designed to
+  handle a *lot* of repositories). So the table creation can take quite a long
+  time.
+- If you don't specify the correct number of arguments (or types), you will get
+  an Exception refering to the usual constructor of pygit2.Repository, not this
+  one.
+
+
+How to run tests
+================
+
+tests/utils.py:MariadbRepositoryTestCase contains the settings used for testing.
+You may have to update it before running the tests
+
+$ sudo python3 ./setup.py test
+
+
+Performances
+============
+
+Tested on a computer with only SSH and Mariadb running (basic config).
+The Linux source code was used (690MB and 54002 text files in each copy).
+There were about 4 copies in the database (so about 2070MB of files).
+Caches were purged and Mariadb restarted before each test.
+
+- "cp -Ra linux_a linux_b" : 21s (about 32MB/s)
+- "git-mariadb.py -R 1 -w ~/tmp/linux_checkout" : 97s (about 7.1MB/s)
+- "git-mariadb.py -R 22 -w ~/tmp/linux_checkout -m 'commit all in a new repo'":
+  227s (~3MB/s)
+
+
+New files and changes
+=====================
+
+- added: mariadb.h: common macros
+- added: fnmatch.h/.c: Copy-pasta from libgit2. The function p_fnmatch() was
+  required to ensure a behavior identical to filesystem repositories.
+- added: mariadb_odb.h/.c: Support for Git ODB stored in a Mariadb table
+- added: mariadb_refdb.h/.c: Support for Git RefDB stored in a Mariadb table
+- modified: repository.c: Mariadb ODB + RefDB support + minor fix when
+  Repository.path is None
+- modified: tests/test_commit.py: new tests
+- modified: tests/test_refs.py: new tests
+- modified: tests/test_tree.py: new tests
+- modified: tests/test_repository.py: new tests
+- modified: tests/test_tag.py: new tests
+
+
+######################################################################
 pygit2 - libgit2 bindings in Python
 ######################################################################
 
