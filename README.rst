@@ -121,7 +121,6 @@ New files and changes
 =====================
 
 - added: mariadb.h: common macros
-- added: fnmatch.h/.c: Copy-pasta from libgit2. The function p_fnmatch() was
   required to ensure a behavior identical to filesystem repositories.
 - added: mariadb_odb.h/.c: Support for Git ODB stored in a Mariadb table
 - added: mariadb_refdb.h/.c: Support for Git RefDB stored in a Mariadb table
