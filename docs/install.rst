@@ -13,9 +13,9 @@ Installation
 Requirements
 ============
 
-- Python 2.7, 3.2+ or pypy (including the development headers)
+- Python 2.7, 3.2+ or PyPy 2.6+ (including the development headers)
 - Libgit2 v0.23.x
-- cffi 0.8.1+
+- cffi 1.0+
 - Libssh2, optional, used for SSH network operations.
 - pkg-config, optional, used for SSH network operations.
 

@@ -7,7 +7,7 @@ pygit2 - libgit2 bindings in Python
 
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
 implements the core of Git.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4 and
-pypy.
+PyPy 2.6
 
 Links:
 
@@ -24,6 +24,16 @@ How to install
 
 Changelog
 ==============
+
+0.23.1 (2015-XX-XX)
+-------------------------
+
+- Upgrade to cffi 1.0+
+  `#529 <https://github.com/libgit2/pygit2/pull/529>`_
+
+- Fix ``Remote.push``
+  `#557 <https://github.com/libgit2/pygit2/pull/557>`_
+
 
 0.23.0 (2015-08-14)
 -------------------------
@@ -326,7 +336,7 @@ Other changes:
   `#380 <https://github.com/libgit2/pygit2/issues/380>`_
   `#407 <https://github.com/libgit2/pygit2/pull/407>`_
 
-- Add support for pypy3
+- Add support for PyPy3
   `#422 <https://github.com/libgit2/pygit2/pull/422>`_
 
 - Documentation improvements
@@ -490,7 +500,7 @@ Other:
 0.20.2 (2014-02-04)
 -------------------
 
-- Support pypy
+- Support PyPy
   `#209 <https://github.com/libgit2/pygit2/issues/209>`_
   `#327 <https://github.com/libgit2/pygit2/pull/327>`_
   `#333 <https://github.com/libgit2/pygit2/pull/333>`_
