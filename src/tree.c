@@ -67,6 +67,15 @@ TreeEntry_name__get__(TreeEntry *self)
 }
 
 
+PyDoc_STRVAR(TreeEntry_type__doc__, "Type.");
+
+PyObject *
+TreeEntry_type__get__(TreeEntry *self)
+{
+    return to_path(git_object_type2string(git_tree_entry_type(self->entry)));
+}
+
+
 PyDoc_STRVAR(TreeEntry_id__doc__, "Object id.");
 
 PyObject *
@@ -171,6 +180,7 @@ PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, oid),
     GETTER(TreeEntry, id),
     GETTER(TreeEntry, hex),
+    GETTER(TreeEntry, type),
     {NULL}
 };
 

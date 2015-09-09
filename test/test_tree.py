@@ -32,7 +32,7 @@ from __future__ import unicode_literals
 import operator
 import unittest
 
-from pygit2 import TreeEntry
+from pygit2 import TreeEntry, GIT_FILEMODE_TREE
 from . import utils
 
 
@@ -89,6 +89,7 @@ class TreeTest(utils.BareRepoTestCase):
         tree = self.repo[TREE_SHA]
         subtree_entry = tree['c']
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
+        self.assertEquals(subtree_entry.type, 'tree')
 
         subtree = self.repo[subtree_entry.id]
         self.assertEqual(1, len(subtree))
@@ -100,21 +101,34 @@ class TreeTest(utils.BareRepoTestCase):
         repo = self.repo
         b0 = repo.create_blob('1')
         b1 = repo.create_blob('2')
+        st = repo.TreeBuilder()
+        st.insert('a', b0, 0o0100644)
+        subtree = repo[st.write()]
+
         t = repo.TreeBuilder()
         t.insert('x', b0, 0o0100644)
         t.insert('y', b1, 0o0100755)
+        t.insert('z', subtree.id, GIT_FILEMODE_TREE)
         tree = repo[t.write()]
 
         self.assertTrue('x' in tree)
         self.assertTrue('y' in tree)
+        self.assertTrue('z' in tree)
 
         x = tree['x']
         y = tree['y']
+        z = tree['z']
         self.assertEqual(x.filemode, 0o0100644)
         self.assertEqual(y.filemode, 0o0100755)
+        self.assertEqual(z.filemode, GIT_FILEMODE_TREE)
 
         self.assertEqual(repo[x.id].id, b0)
         self.assertEqual(repo[y.id].id, b1)
+        self.assertEqual(repo[z.id].id, subtree.id)
+
+        self.assertEqual(x.type, 'blob')
+        self.assertEqual(y.type, 'blob')
+        self.assertEqual(z.type, 'tree')
 
 
     def test_modify_tree(self):
