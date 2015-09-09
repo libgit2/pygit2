@@ -5,14 +5,14 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
-#  - "pypy"
-#  - "pypy3"
+  - "pypy"
+  - "pypy3"
 
 env: LIBGIT2=~/libgit2/_install/ LD_LIBRARY_PATH=~/libgit2/_install/lib
 
 before_install:
   - sudo apt-get install cmake
-  - pip install 'cffi>=1.0.0'
+  - pip install cffi
   - "./.travis.sh"
 
 script:
