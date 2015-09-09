@@ -45,9 +45,16 @@ from subprocess import Popen, PIPE
 import sys
 import unittest
 
+# Get cffi major version
+import cffi
+cffi_major_version = cffi.__version_info__[0]
+
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
 from libgit2_build import __version__, get_libgit2_paths
+if cffi_major_version == 0:
+    from libgit2_build import ffi, preamble, C_KEYWORDS
+    ffi.verify(preamble, **C_KEYWORDS)
 del sys.path[0]
 
 # Python 2 support
@@ -163,6 +170,21 @@ class BuildWithDLLs(build):
 if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
+extra_args = {
+    'ext_modules': [
+        Extension('_pygit2', pygit2_exts, libraries=['git2'],
+                  include_dirs=[libgit2_include],
+                  library_dirs=[libgit2_lib]),
+        # FFI is added in the build step
+    ],
+}
+
+if cffi_major_version == 0:
+    extra_args['ext_modules'].append(ffi.verifier.get_extension())
+else:
+    extra_args['cffi_modules']=['pygit2/libgit2_build.py:ffi']
+
+
 setup(name='pygit2',
       description='Python bindings for libgit2.',
       keywords='git',
@@ -175,14 +197,8 @@ setup(name='pygit2',
       long_description=long_description,
       packages=['pygit2'],
       package_data={'pygit2': ['decl.h']},
-      cffi_modules=['pygit2/libgit2_build.py:ffi'],
       setup_requires=['cffi'],
       install_requires=['cffi'],
       zip_safe=False,
-      ext_modules=[
-          Extension('_pygit2', pygit2_exts, libraries=['git2'],
-                    include_dirs=[libgit2_include],
-                    library_dirs=[libgit2_lib]),
-          # FFI is added in the build step
-      ],
-      cmdclass=cmdclass)
+      cmdclass=cmdclass,
+      **extra_args)

@@ -32,5 +32,5 @@ from __future__ import absolute_import
 try:
     from ._libgit2 import ffi, lib as C
 except ImportError:
-    from .libgit2_build import ffi, C_HEADER_SRC, C_KEYWORDS
-    C = ffi.verify(C_HEADER_SRC, **C_KEYWORDS)
+    from .libgit2_build import ffi, preamble, C_KEYWORDS
+    C = ffi.verify(preamble, **C_KEYWORDS)
