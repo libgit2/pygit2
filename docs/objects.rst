@@ -176,6 +176,7 @@ Tree entries
 .. autoattribute:: pygit2.TreeEntry.id
 .. autoattribute:: pygit2.TreeEntry.hex
 .. autoattribute:: pygit2.TreeEntry.filemode
+.. autoattribute:: pygit2.TreeEntry.type
 
 .. method:: TreeEntry.__cmp__(TreeEntry)
 
@@ -188,14 +189,14 @@ Example::
     6
 
     >>> for entry in tree:               # Iteration
-    ...     print(entry.id, entry.name)
+    ...     print(entry.id, entry.type, entry.name)
     ...
-    7151ca7cd3e59f3eab19c485cfbf3cb30928d7fa .gitignore
-    c36f4cf1e38ec1bb9d9ad146ed572b89ecfc9f18 COPYING
-    32b30b90b062f66957d6790c3c155c289c34424e README.md
-    c87dae4094b3a6d10e08bc6c5ef1f55a7e448659 pygit2.c
-    85a67270a49ef16cdd3d328f06a3e4b459f09b27 setup.py
-    3d8985bbec338eb4d47c5b01b863ee89d044bd53 test
+    7151ca7cd3e59f3eab19c485cfbf3cb30928d7fa blob .gitignore
+    c36f4cf1e38ec1bb9d9ad146ed572b89ecfc9f18 blob COPYING
+    32b30b90b062f66957d6790c3c155c289c34424e blob README.md
+    c87dae4094b3a6d10e08bc6c5ef1f55a7e448659 blob pygit2.c
+    85a67270a49ef16cdd3d328f06a3e4b459f09b27 blob setup.py
+    3d8985bbec338eb4d47c5b01b863ee89d044bd53 tree test
 
     >>> entry = tree['pygit2.c']         # Get an entry by name
     >>> entry
