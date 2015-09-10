@@ -89,7 +89,7 @@ class TreeTest(utils.BareRepoTestCase):
         tree = self.repo[TREE_SHA]
         subtree_entry = tree['c']
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
-        self.assertEquals(subtree_entry.type, 'tree')
+        self.assertEqual(subtree_entry.type, 'tree')
 
         subtree = self.repo[subtree_entry.id]
         self.assertEqual(1, len(subtree))
