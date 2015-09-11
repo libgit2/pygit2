@@ -124,27 +124,28 @@ typedef enum git_cert_t {
 	GIT_CERT_HOSTKEY_LIBSSH2,
 } git_cert_t;
 
+
+typedef struct {
+	git_cert_t cert_type;
+} git_cert;
+
 typedef enum {
 	GIT_CERT_SSH_MD5 = 1,
 	GIT_CERT_SSH_SHA1 = 2,
 } git_cert_ssh_t;
 
 typedef struct {
-	git_cert_t cert_type;
+	git_cert parent;
 	git_cert_ssh_t type;
 	unsigned char hash_md5[16];
     unsigned char hash_sha1[20];
 } git_cert_hostkey;
 
 typedef struct {
-	git_cert_t cert_type;
+	git_cert parent;
 	void *data;
 	size_t len;
 } git_cert_x509;
-
-typedef struct {
-	git_cert_t cert_type;
-} git_cert;
 
 typedef int (*git_transport_message_cb)(const char *str, int len, void *data);
 typedef int (*git_cred_acquire_cb)(
