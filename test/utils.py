@@ -160,6 +160,12 @@ class EmptyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'emptyrepo'
 
+
 class SubmoduleRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'submodulerepo'
+
+
+class BinaryFileRepoTestCase(AutoRepoTestCase):
+
+    repo_spec = 'tar', 'binaryfilerepo'

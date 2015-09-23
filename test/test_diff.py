@@ -33,6 +33,7 @@ import unittest
 import pygit2
 from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
 from pygit2 import GIT_DIFF_IGNORE_WHITESPACE, GIT_DIFF_IGNORE_WHITESPACE_EOL
+from pygit2 import GIT_DIFF_SHOW_BINARY
 from pygit2 import GIT_DELTA_RENAMED
 from . import utils
 from itertools import chain
@@ -61,6 +62,21 @@ index 297efb8..0000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -c/d contents
+"""
+
+PATCH_BINARY = """diff --git a/binary_file b/binary_file
+index 86e5c10..b835d73 100644
+Binary files a/binary_file and b/binary_file differ
+"""
+
+PATCH_BINARY_SHOW = """diff --git a/binary_file b/binary_file
+index 86e5c1008b5ce635d3e3fffa4434c5eccd8f00b6..b835d73543244b6694f36a8c5dfdffb71b153db7 100644
+GIT binary patch
+literal 8
+Pc${NM%FIhFs^kIy3n&7R
+
+literal 8
+Pc${NM&PdElPvrst3ey5{
 """
 
 DIFF_HEAD_TO_INDEX_EXPECTED = [
@@ -307,6 +323,16 @@ class DiffTest(utils.BareRepoTestCase):
                                         pygit2.GIT_DIFF_STATS_INCLUDE_SUMMARY,
                                  width=80)
         self.assertEqual(STATS_EXPECTED, formatted)
+
+
+class BinaryDiffTest(utils.BinaryFileRepoTestCase):
+    def test_binary_diff(self):
+        repo = self.repo
+        diff = repo.diff('HEAD', 'HEAD^')
+        self.assertEqual(PATCH_BINARY, diff.patch)
+        diff = repo.diff('HEAD', 'HEAD^', flags=GIT_DIFF_SHOW_BINARY)
+        self.assertEqual(PATCH_BINARY_SHOW, diff.patch)
+
 
 if __name__ == '__main__':
     unittest.main()
