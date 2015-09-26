@@ -35,10 +35,10 @@ from _pygit2 import *
 from .blame import Blame, BlameHunk
 from .config import Config
 from .credentials import *
-from .errors import check_error
+from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .index import Index, IndexEntry
-from .remote import Remote, get_credentials
+from .remote import Remote, RemoteCallbacks, get_credentials
 from .repository import Repository
 from .settings import Settings
 from .submodule import Submodule

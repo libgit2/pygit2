@@ -213,30 +213,37 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
 
     def test_transfer_progress(self):
         self.tp = None
-        def tp_cb(stats):
-            self.tp = stats
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def transfer_progress(self, stats):
+                self.tp = stats
 
+        callbacks = MyCallbacks()
         remote = self.repo.remotes[0]
-        remote.transfer_progress = tp_cb
-        stats = remote.fetch()
-        self.assertEqual(stats.received_bytes, self.tp.received_bytes)
-        self.assertEqual(stats.indexed_objects, self.tp.indexed_objects)
-        self.assertEqual(stats.received_objects, self.tp.received_objects)
+        stats = remote.fetch(callbacks=callbacks)
+        self.assertEqual(stats.received_bytes, callbacks.tp.received_bytes)
+        self.assertEqual(stats.indexed_objects, callbacks.tp.indexed_objects)
+        self.assertEqual(stats.received_objects, callbacks.tp.received_objects)
 
     def test_update_tips(self):
         remote = self.repo.remotes[0]
-        self.i = 0
-        self.tips = [('refs/remotes/origin/master', Oid(hex='0'*40),
-                      Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78')),
-                     ('refs/tags/root', Oid(hex='0'*40),
-                      Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'))]
+        tips = [('refs/remotes/origin/master', Oid(hex='0'*40),
+                 Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78')),
+                ('refs/tags/root', Oid(hex='0'*40),
+                 Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'))]
 
-        def ut_cb(name, old, new):
-            self.assertEqual(self.tips[self.i], (name, old, new))
-            self.i += 1
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def __init__(self, test_self, tips):
+                self.test = test_self
+                self.tips = tips
+                self.i = 0
 
-        remote.update_tips = ut_cb
-        remote.fetch()
+            def update_tips(self, name, old, new):
+                self.test.assertEqual(self.tips[self.i], (name, old, new))
+                self.i += 1
+
+        callbacks = MyCallbacks(self, tips)
+        remote.fetch(callbacks=callbacks)
+        self.assertTrue(callbacks.i > 0)
 
 class PushTestCase(unittest.TestCase):
     def setUp(self):

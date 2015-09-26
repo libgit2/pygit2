@@ -70,32 +70,33 @@ class CredentialCreateTest(utils.NoRepoTestCase):
 
 class CredentialCallback(utils.RepoTestCase):
     def test_callback(self):
-        def credentials_cb(url, username, allowed):
-            self.assertTrue(allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT)
-            raise Exception("I don't know the password")
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def credentials(url, username, allowed):
+                self.assertTrue(allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT)
+                raise Exception("I don't know the password")
 
         remote = self.repo.create_remote("github", "https://github.com/github/github")
-        remote.credentials = credentials_cb
 
-        self.assertRaises(Exception, remote.fetch)
+        self.assertRaises(Exception, lambda: remote.fetch(callbacks=MyCallbacks()))
 
     def test_bad_cred_type(self):
-        def credentials_cb(url, username, allowed):
-            self.assertTrue(allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT)
-            return Keypair("git", "foo.pub", "foo", "sekkrit")
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def credentials(url, username, allowed):
+                self.assertTrue(allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT)
+                return Keypair("git", "foo.pub", "foo", "sekkrit")
 
         remote = self.repo.create_remote("github", "https://github.com/github/github")
-        remote.credentials = credentials_cb
-
-        self.assertRaises(TypeError, remote.fetch)
+        self.assertRaises(TypeError, lambda: remote.fetch(callbacks=MyCallbacks()))
 
 class CallableCredentialTest(utils.RepoTestCase):
 
     def test_user_pass(self):
-        remote = self.repo.create_remote("bb", "https://bitbucket.org/libgit2/testgitrepository.git")
-        remote.credentials = UserPass("libgit2", "libgit2")
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def __init__(self):
+                self.credentials = UserPass("libgit2", "libgit2")
 
-        remote.fetch()
+        remote = self.repo.create_remote("bb", "https://bitbucket.org/libgit2/testgitrepository.git")
+        remote.fetch(callbacks=MyCallbacks())
 
 if __name__ == '__main__':
     unittest.main()
