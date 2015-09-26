@@ -122,6 +122,25 @@ class RemoteCallbacks(object):
         """
         raise Passthrough
 
+    def certificate_check(self, certificate, valid, host):
+        """Certificate callback
+
+        Override with your own function to determine whether the accept
+        the server's certificate.
+
+        :param None certificate: The certificate. It is currently always None
+         while we figure out how to represent it cross-platform
+
+        :param bool valid: Whether the TLS/SSH library thinks the certificate
+         is valid
+
+        :param str host: The hostname we want to connect to
+
+        Return value: True to connect, False to abort
+        """
+
+        raise Passthrough
+
     def transfer_progress(self, stats):
         """Transfer progress callback
 
@@ -156,6 +175,7 @@ class RemoteCallbacks(object):
         fetch_opts.callbacks.transfer_progress = self._transfer_progress_cb
         fetch_opts.callbacks.update_tips = self._update_tips_cb
         fetch_opts.callbacks.credentials = self._credentials_cb
+        fetch_opts.callbacks.certificate_check = self._certificate_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         fetch_opts.callbacks.payload = self._self_handle
@@ -167,6 +187,7 @@ class RemoteCallbacks(object):
         push_opts.callbacks.transfer_progress = self._transfer_progress_cb
         push_opts.callbacks.update_tips = self._update_tips_cb
         push_opts.callbacks.credentials = self._credentials_cb
+        push_opts.callbacks.certificate_check = self._certificate_cb
         push_opts.callbacks.push_update_reference = self._push_update_reference_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
@@ -260,6 +281,39 @@ class RemoteCallbacks(object):
         except Exception as e:
             if e is Passthrough:
                 return C.GIT_PASSTHROUGH
+
+            self._stored_exception = e
+            return C.GIT_EUSER
+
+        return 0
+
+    @ffi.callback('int (*git_transport_certificate_check_cb)'
+                  '(git_cert *cert, int valid, const char *host, void *payload)')
+    def _certificate_cb(cert_i, valid, host, data):
+        self = ffi.from_handle(data)
+
+        # We want to simulate what should happen if libgit2 supported pass-through for
+        # this callback. For SSH, 'valid' is always False, because it doesn't look
+        # at known_hosts, but we do want to let it through in order to do what libgit2 would
+        # if the callback were not set.
+        try:
+            is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
+
+            if not hasattr(self, 'certificate_check') or not self.certificate_check:
+                raise Passthrough
+
+            # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
+            val = self.certificate_check(None, bool(valid), ffi.string(host))
+            if not val:
+                return C.GIT_ECERTIFICATE
+        except Exception as e:
+            if e is Passthrough:
+                if is_ssh:
+                    return 0
+                elif valid:
+                    return 0
+                else:
+                    return C.GIT_ECERTIFICATE
 
             self._stored_exception = e
             return C.GIT_EUSER
