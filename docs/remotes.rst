@@ -21,6 +21,12 @@ The Remote type
 .. autoclass:: pygit2.Remote
    :members:
 
+The RemoteCallbacks type
+========================
+
+.. autoclass:: pygit2.RemoteCallbacks
+   :members:
+
 The TransferProgress type
 ===========================
 

@@ -143,22 +143,6 @@ def init_repository(path, bare=False,
     # Ok
     return Repository(to_str(path))
 
-
-@ffi.callback('int (*credentials)(git_cred **cred, const char *url,'
-              'const char *username_from_url, unsigned int allowed_types,'
-              'void *data)')
-def _credentials_cb(cred_out, url, username_from_url, allowed, data):
-    d = ffi.from_handle(data)
-
-    try:
-        ccred = get_credentials(d['credentials_cb'], url, username_from_url, allowed)
-        cred_out[0] = ccred[0]
-    except Exception as e:
-        d['exception'] = e
-        return C.GIT_EUSER
-
-    return 0
-
 @ffi.callback('int (*git_repository_create_cb)(git_repository **out,'
               'const char *path, int bare, void *payload)')
 def _repository_create_cb(repo_out, path, bare, data):
@@ -189,24 +173,9 @@ def _remote_create_cb(remote_out, repo, name, url, data):
 
     return 0
 
-@ffi.callback('int (*git_transport_certificate_check_cb)'
-              '(git_cert *cert, int valid, const char *host, void *payload)')
-def _certificate_cb(cert_i, valid, host, data):
-    d = ffi.from_handle(data)
-    try:
-        # python's parting is deep in the libraries and assumes an OpenSSL-owned cert
-        val = d['certificate_cb'](None, bool(valid), ffi.string(host))
-        if not val:
-            return C.GIT_ECERTIFICATE
-    except Exception as e:
-        d['exception'] = e
-        return C.GIT_EUSER
-
-    return 0
-
 def clone_repository(
         url, path, bare=False, repository=None, remote=None,
-        checkout_branch=None, credentials=None, certificate=None):
+        checkout_branch=None, callbacks=None):
     """Clones a new Git repository from *url* in the given *path*.
 
     Returns a Repository class pointing to the newly cloned repository.
@@ -224,11 +193,8 @@ def clone_repository(
     :param str checkout_branch: Branch to checkout after the
      clone. The default is to use the remote's default branch.
 
-    :param callable credentials: authentication to use if the remote
-     requires it
-
-    :param callable certificate: callback to verify the host's
-     certificate or fingerprint.
+    :param RemoteCallbacks callbacks: object which implements the
+     callbacks as methods.
 
     :rtype: Repository
 
@@ -240,8 +206,8 @@ def clone_repository(
     signature. The Remote it returns will be used instead of the default
     one.
 
-    The certificate callback has `(cert, valid, hostname) -> bool` as
-    a signature. Return True to accept the connection, False to abort.
+    The callbacks should be an object which inherits from
+    `pyclass:RemoteCallbacks`.
 
     """
 
@@ -252,10 +218,8 @@ def clone_repository(
 
     # Data, let's use a dict as we don't really want much more
     d = {}
-    d['credentials_cb'] = credentials
     d['repository_cb'] = repository
     d['remote_cb'] = remote
-    d['certificate_cb'] = certificate
     d_handle = ffi.new_handle(d)
 
     # Perform the initialization with the version we compiled
@@ -277,13 +241,11 @@ def clone_repository(
 
 
     opts.bare = bare
-    if credentials:
-        opts.fetch_opts.callbacks.credentials = _credentials_cb
-        opts.fetch_opts.callbacks.payload = d_handle
 
-    if certificate:
-        opts.fetch_opts.callbacks.certificate_check = _certificate_cb
-        opts.fetch_opts.callbacks.payload = d_handle
+    if callbacks is None:
+        callbacks = RemoteCallbacks()
+
+    callbacks._fill_fetch_options(opts.fetch_opts)
 
     err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
 
