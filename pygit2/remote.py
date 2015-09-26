@@ -78,6 +78,21 @@ class RemoteCallbacks(object):
     in your class, which you can then pass to the network operations.
     """
 
+    def __init__(self, credentials=None, certificate=None):
+        """Initialize some callbacks in-line
+
+        Use this constructor to provide credentials and certificate
+        callbacks in-line, instead of defining your own class for these ones.
+
+        You can e.g. also pass in one of the credential objects as 'credentials'
+        instead of creating a function which returns a hard-coded object.
+        """
+
+        if credentials is not None:
+            self.credentials = credentials
+        if certificate is not None:
+            self.certificate = certificate
+
     def sideband_progress(self, string):
         """Progress output callback
 

@@ -514,13 +514,9 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
         self.assertIsNotNone(repo.remotes["custom_remote"])
 
     def test_clone_with_credentials(self):
-        class MyCallbacks(pygit2.RemoteCallbacks):
-            def __init__(self):
-                self.credentials = pygit2.UserPass("libgit2", "libgit2")
-
         repo = clone_repository(
             "https://bitbucket.org/libgit2/testgitrepository.git",
-            self._temp_dir, callbacks=MyCallbacks())
+            self._temp_dir, callbacks=pygit2.RemoteCallbacks(credentials=pygit2.UserPass("libgit2", "libgit2")))
 
         self.assertFalse(repo.is_empty)
 
