@@ -19,6 +19,9 @@ Requirements
 - Libssh2, optional, used for SSH network operations.
 - pkg-config, optional, used for SSH network operations.
 
+It should work with older versions of cffi and PyPy, but using cffi 1.0+
+(and PyPy 2.6+) is strongly encouraged.
+
 .. warning::
 
    One common mistake users do is to choose incompatible versions of libgit2
