@@ -25,7 +25,7 @@ How to install
 Changelog
 ==============
 
-0.23.1 (2015-XX-XX)
+0.23.1 (2015-09-26)
 -------------------------
 
 - Improve support for cffi 1.0+
@@ -680,10 +680,10 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-93 developers have contributed at least 1 commit to pygit2::
+97 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
-  W. Trevor King            Dave Borowitz             Daniel Rodríguez Troitiño
+  W. Trevor King            Dave Borowitz             Daniel Rodríguez Troitiño
   Richo Healey              Christian Boos            Julien Miotte
   Richard Möhn              Xu Tao                    Jose Plana
   Matthew Duggan            Matthew Gamble            Martin Lenders
@@ -691,28 +691,30 @@ Authors
   Yonggang Luo              Patrick Steinhardt        Valentin Haenel
   Michael Jones             Bernardo Heynemann        John Szakmeister
   Vlad Temian               Brodie Rao                David Versmisse
-  Rémi Duraffort            Sebastian Thiel           Alok Singhal
-  Fraser Tweedale           Han-Wen Nienhuys          Leonardo Rhodes
-  Petr Viktorin             Ron Cohen                 Santiago Perez De Rosso
-  Thomas Kluyver            Alex Chamberlain          Alexander Bayandin
-  Amit Bakshi               Andrey Devyatkin          Arno van Lumig
-  Ben Davis                 Eric Schrijver            Greg Fitzgerald
-  Hervé Cauwelier           Huang Huang               Ian P. McCullough
-  Jack O'Connor             Jared Flatow              Jiunn Haur Lim
-  Jun Omae                  Kaarel Kitsemets          Kevin KIN-FOO
-  Sarath Lakshman           Vicent Marti              Zoran Zaric
-  Adam Spiers               Andrew Chin               András Veres-Szentkirályi
-  Ash Berlin                Benjamin Kircher          Benjamin Pollack
-  Bryan O'Sullivan          Colin Watson              Daniel Bruce
-  David Fischer             David Sanders             Devaev Maxim
+  Rémi Duraffort            Santiago Perez De Rosso   Sebastian Thiel
+  Alok Singhal              Fraser Tweedale           Han-Wen Nienhuys
+  Leonardo Rhodes           Nicolas Dandrimont        Petr Viktorin
+  Ron Cohen                 Thomas Kluyver            Alex Chamberlain
+  Alexander Bayandin        Amit Bakshi               Andrey Devyatkin
+  Arno van Lumig            Ben Davis                 Eric Schrijver
+  Greg Fitzgerald           Hervé Cauwelier           Huang Huang
+  Ian P. McCullough         Jack O'Connor             Jared Flatow
+  Jiunn Haur Lim            Jun Omae                  Kaarel Kitsemets
+  Kevin KIN-FOO             Michael Sondergaard       Sarath Lakshman
+  Vicent Marti              Zoran Zaric               Adam Spiers
+  Andrew Chin               András Veres-Szentkirályi Ash Berlin
+  Benjamin Kircher          Benjamin Pollack          Bryan O'Sullivan
+  Colin Watson              Daniel Bruce              David Fischer
+  David Sanders             David Six                 Devaev Maxim
   Eric Davis                Erik Meusel               Erik van Zijst
-  Ferengee                  Gustavo Di Pietro         Holger Frey
-  Hugh Cole-Baker           Jasper Lievisse           Josh Bleecher Snyder
-  Justin Clift              Kyriakos Oikonomakos      Lukas Fleischer
-  Mathieu Bridon            Michael Sondergaard       Óscar San José
+  Ferengee                  Guille -bisho-            Gustavo Di Pietro
+  Holger Frey               Hugh Cole-Baker           Jasper Lievisse Adriaanse
+  Josh Bleecher Snyder      Justin Clift              Kyriakos Oikonomakos
+  Lukas Fleischer           Mathieu Bridon            Óscar San José
   Peter Dave Hello          Philippe Ombredanne       Ridge Kennedy
-  Ross Nicoll               Rui Abreu Ferreira        Soasme
-  Vladimir Rutsky           chengyuhang               earl
+  Ross Nicoll               Rui Abreu Ferreira        Sheeo
+  Soasme                    Vladimir Rutsky           chengyuhang
+  earl
 
 
 License
