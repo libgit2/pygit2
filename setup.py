@@ -46,8 +46,12 @@ import sys
 import unittest
 
 # Get cffi major version
-import cffi
-cffi_major_version = cffi.__version_info__[0]
+try:
+    import cffi
+except ImportError:
+    cffi_major_version = None
+else:
+    cffi_major_version = cffi.__version_info__[0]
 
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
