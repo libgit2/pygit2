@@ -83,6 +83,9 @@ Attributes:
 
 .. autoattribute:: pygit2.DiffFile.path
 .. autoattribute:: pygit2.DiffFile.id
+.. autoattribute:: pygit2.DiffFile.size
+.. autoattribute:: pygit2.DiffFile.flags
+.. autoattribute:: pygit2.DiffFile.mode
 
 
 The DiffHunk type
