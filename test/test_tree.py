@@ -45,6 +45,7 @@ class TreeTest(utils.BareRepoTestCase):
     def assertTreeEntryEqual(self, entry, sha, name, filemode):
         self.assertEqual(entry.hex, sha)
         self.assertEqual(entry.name, name)
+        self.assertEqual(entry._name, name.encode('utf-8'))
         self.assertEqual(entry.filemode, filemode,
                          '0%o != 0%o' % (entry.filemode, filemode))
 

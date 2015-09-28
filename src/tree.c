@@ -67,6 +67,15 @@ TreeEntry_name__get__(TreeEntry *self)
 }
 
 
+PyDoc_STRVAR(TreeEntry__name__doc__, "Name (bytes).");
+
+PyObject *
+TreeEntry__name__get__(TreeEntry *self)
+{
+    return PyBytes_FromString(git_tree_entry_name(self->entry));
+}
+
+
 PyDoc_STRVAR(TreeEntry_type__doc__, "Type.");
 
 PyObject *
@@ -177,6 +186,7 @@ TreeEntry_repr(TreeEntry *self)
 PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, filemode),
     GETTER(TreeEntry, name),
+    GETTER(TreeEntry, _name),
     GETTER(TreeEntry, oid),
     GETTER(TreeEntry, id),
     GETTER(TreeEntry, hex),
