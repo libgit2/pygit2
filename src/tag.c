@@ -111,7 +111,11 @@ PyDoc_STRVAR(Tag__message__doc__, "Tag message (bytes).");
 PyObject *
 Tag__message__get__(Tag *self)
 {
-    return PyBytes_FromString(git_tag_message(self->tag));
+    const char *message;
+    message = git_tag_message(self->tag);
+    if (!message)
+        Py_RETURN_NONE;
+    return PyBytes_FromString(message);
 }
 
 PyMethodDef Tag_methods[] = {
