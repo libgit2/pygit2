@@ -25,12 +25,52 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
-from __future__ import absolute_import
+"""
+This is an special module, it provides stuff used by by pygit2 at run-time.
+"""
+
+# Import from the Standard Library
+import codecs
+import os
+from os.path import abspath, dirname
+import sys
+
+# Import from cffi
+from cffi import FFI
 
 # Import from pygit2
-try:
-    from ._libgit2 import ffi, lib as C
-except ImportError:
-    from ._run import ffi, preamble, C_KEYWORDS
-    C = ffi.verify(preamble, **C_KEYWORDS)
+from _build import get_libgit2_paths
+
+
+# C_HEADER_SRC
+if getattr(sys, 'frozen', False):
+    dir_path = getattr(sys, '_MEIPASS', None)
+    if dir_path is None:
+        dir_path = dirname(abspath(sys.executable))
+else:
+    dir_path = dirname(abspath(__file__))
+
+decl_path = os.path.join(dir_path, 'decl.h')
+with codecs.open(decl_path, 'r', 'utf-8') as header:
+    C_HEADER_SRC = header.read()
+
+# C_KEYWORDS
+libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
+C_KEYWORDS = dict(libraries=['git2'],
+                  library_dirs=[libgit2_lib],
+                  include_dirs=[libgit2_include])
+
+# preamble
+preamble = "#include <git2.h>"
+
+# ffi
+ffi = FFI()
+set_source = getattr(ffi, 'set_source', None)
+if set_source is not None:
+    set_source("pygit2._libgit2", preamble, **C_KEYWORDS)
+
+ffi.cdef(C_HEADER_SRC)
+
+
+if __name__ == '__main__':
+    ffi.compile()

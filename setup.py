@@ -55,9 +55,9 @@ else:
 
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
-from libgit2_build import __version__, get_libgit2_paths
+from _build import __version__, get_libgit2_paths
 if cffi_major_version == 0:
-    from libgit2_build import ffi, preamble, C_KEYWORDS
+    from _run import ffi, preamble, C_KEYWORDS
     ffi.verify(preamble, **C_KEYWORDS)
 del sys.path[0]
 
@@ -186,7 +186,7 @@ extra_args = {
 if cffi_major_version == 0:
     extra_args['ext_modules'].append(ffi.verifier.get_extension())
 else:
-    extra_args['cffi_modules']=['pygit2/libgit2_build.py:ffi']
+    extra_args['cffi_modules']=['pygit2/_run.py:ffi']
 
 
 setup(name='pygit2',

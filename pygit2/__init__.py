@@ -43,7 +43,7 @@ from .repository import Repository
 from .settings import Settings
 from .submodule import Submodule
 from .utils import to_bytes, to_str
-from .libgit2_build import __version__
+from ._build import __version__
 
 
 # Features
