@@ -30,9 +30,8 @@ from __future__ import absolute_import
 
 # Import from pygit2
 from _pygit2 import Oid
-from .errors import check_error, GitError, Passthrough
+from .errors import check_error, Passthrough
 from .ffi import ffi, C
-from .credentials import KeypairFromAgent
 from .refspec import Refspec
 from .utils import to_bytes, strarray_to_strings, StrArray
 
@@ -100,7 +99,6 @@ class RemoteCallbacks(object):
 
         :param str string: Progress output from the remote
         """
-        pass
 
     def credentials(self, url, username_from_url, allowed_types):
         """Credentials callback
@@ -148,7 +146,6 @@ class RemoteCallbacks(object):
 
         :param TransferProgress stats: The progress up to now
         """
-        pass
 
     def update_tips(self, refname, old, new):
         """Update tips callabck
@@ -200,12 +197,12 @@ class RemoteCallbacks(object):
     def _transfer_progress_cb(stats_ptr, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'transfer_progress') \
-           or not self.transfer_progress:
+        transfer_progress = getattr(self, 'transfer_progress', None)
+        if not transfer_progress:
             return 0
 
         try:
-            self.transfer_progress(TransferProgress(stats_ptr))
+            transfer_progress(TransferProgress(stats_ptr))
         except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
@@ -216,12 +213,13 @@ class RemoteCallbacks(object):
     def _sideband_progress_cb(string, length, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'progress') or not self.progress:
+        progress = getattr(self, 'progress', None)
+        if not progress:
             return 0
 
         try:
             s = ffi.string(string, length).decode()
-            self.progress(s)
+            progress(s)
         except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
@@ -233,7 +231,8 @@ class RemoteCallbacks(object):
     def _update_tips_cb(refname, a, b, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'update_tips') or not self.update_tips:
+        update_tips = getattr(self, 'update_tips', None)
+        if not update_tips:
             return 0
 
         try:
@@ -241,7 +240,7 @@ class RemoteCallbacks(object):
             a = Oid(raw=bytes(ffi.buffer(a)[:]))
             b = Oid(raw=bytes(ffi.buffer(b)[:]))
 
-            self.update_tips(s, a, b)
+            update_tips(s, a, b)
         except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
@@ -252,13 +251,14 @@ class RemoteCallbacks(object):
     def _push_update_reference_cb(ref, msg, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'push_update_reference') or not self.push_update_reference:
+        push_update_reference = getattr(self, 'push_update_reference', None)
+        if not push_update_reference:
             return 0
 
         try:
             refname = ffi.string(ref)
             message = maybe_string(msg)
-            self.push_update_reference(refname, message)
+            push_update_reference(refname, message)
         except Exception as e:
             self._stored_exception = e
             return C.GIT_EUSER
@@ -271,11 +271,12 @@ class RemoteCallbacks(object):
     def _credentials_cb(cred_out, url, username, allowed, data):
         self = ffi.from_handle(data)
 
-        if not hasattr(self, 'credentials') or not self.credentials:
+        credentials = getattr(self, 'credentials', None)
+        if not credentials:
             return 0
 
         try:
-            ccred = get_credentials(self.credentials, url, username, allowed)
+            ccred = get_credentials(credentials, url, username, allowed)
             cred_out[0] = ccred[0]
 
         except Exception as e:
@@ -299,11 +300,12 @@ class RemoteCallbacks(object):
         try:
             is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
 
-            if not hasattr(self, 'certificate_check') or not self.certificate_check:
+            certificate_check = getattr(self, 'certificate_check', None)
+            if not certificate_check:
                 raise Passthrough
 
             # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
-            val = self.certificate_check(None, bool(valid), ffi.string(host))
+            val = certificate_check(None, bool(valid), ffi.string(host))
             if not val:
                 return C.GIT_ECERTIFICATE
         except Exception as e:
@@ -440,23 +442,24 @@ def get_credentials(fn, url, username, allowed):
 
     creds = fn(url_str, username_str, allowed)
 
-    if not hasattr(creds, 'credential_type') \
-       or not hasattr(creds, 'credential_tuple'):
+    credential_type = getattr(creds, 'credential_type', None)
+    credential_tuple = getattr(creds, 'credential_tuple', None)
+    if not credential_type or not credential_tuple:
         raise TypeError("credential does not implement interface")
 
-    cred_type = creds.credential_type
+    cred_type = credential_type
 
     if not (allowed & cred_type):
         raise TypeError("invalid credential type")
 
     ccred = ffi.new('git_cred **')
     if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
-        name, passwd = creds.credential_tuple
+        name, passwd = credential_tuple
         err = C.git_cred_userpass_plaintext_new(ccred, to_bytes(name),
                                                 to_bytes(passwd))
 
     elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
-        name, pubkey, privkey, passphrase = creds.credential_tuple
+        name, pubkey, privkey, passphrase = credential_tuple
         if pubkey is None and privkey is None:
             err = C.git_cred_ssh_key_from_agent(ccred, to_bytes(name))
         else:

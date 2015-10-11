@@ -31,7 +31,6 @@ pygit2 at run-time.
 """
 
 # Import from the Standard Library
-from binascii import crc32
 import codecs
 import os
 from os import getenv
@@ -75,9 +74,8 @@ ffi = cffi.FFI()
 
 # Load C definitions
 if getattr(sys, 'frozen', False):
-    if hasattr(sys, '_MEIPASS'):
-        dir_path = sys._MEIPASS
-    else:
+    dir_path = getattr(sys, '_MEIPASS', None)
+    if dir_path is None:
         dir_path = dirname(abspath(sys.executable))
 else:
     dir_path = dirname(abspath(__file__))
@@ -94,10 +92,10 @@ C_KEYWORDS = dict(libraries=['git2'],
 
 # The modulename
 # Simplified version of what cffi does: remove kwargs and vengine
-preamble = "#include <git2.h>"
-
-if hasattr(ffi, 'set_source'):
-    ffi.set_source("pygit2._libgit2", preamble, **C_KEYWORDS)
+set_source = getattr(ffi, 'set_source', None)
+if set_source is not None:
+    preamble = "#include <git2.h>"
+    set_source("pygit2._libgit2", preamble, **C_KEYWORDS)
 
 ffi.cdef(C_HEADER_SRC)
 

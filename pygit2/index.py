@@ -48,6 +48,7 @@ class Index(object):
         err = C.git_index_open(cindex, to_bytes(path))
         check_error(err)
 
+        self._repo = None
         self._index = cindex[0]
         self._cindex = cindex
 
@@ -125,14 +126,15 @@ class Index(object):
         The tree will be read recursively and all its children will also be
         inserted into the Index.
         """
+        repo = self._repo
         if is_string(tree):
-            tree = self._repo[tree]
+            tree = repo[tree]
 
         if isinstance(tree, Oid):
-            if not hasattr(self, '_repo'):
+            if repo is None:
                 raise TypeError("id given but no associated repository")
 
-            tree = self._repo[tree]
+            tree = repo[tree]
         elif not isinstance(tree, Tree):
             raise TypeError("argument must be Oid or Tree")
 
@@ -214,7 +216,8 @@ class Index(object):
         interhunk_lines: the maximum number of unchanged lines between hunk
         boundaries before the hunks will be merged into a one
         """
-        if not hasattr(self, '_repo'):
+        repo = self._repo
+        if repo is None:
             raise ValueError('diff needs an associated repository')
 
         copts = ffi.new('git_diff_options *')
@@ -226,11 +229,11 @@ class Index(object):
         copts.interhunk_lines = interhunk_lines
 
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_index_to_workdir(cdiff, self._repo._repo,
-                                          self._index, copts)
+        err = C.git_diff_index_to_workdir(cdiff, repo._repo, self._index,
+                                          copts)
         check_error(err)
 
-        return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
+        return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
 
     def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
         """Diff the index against a tree.  Return a <Diff> object with the
@@ -248,8 +251,8 @@ class Index(object):
         interhunk_lines: the maximum number of unchanged lines between hunk
         boundaries before the hunks will be merged into a one.
         """
-
-        if not hasattr(self, '_repo'):
+        repo = self._repo
+        if repo is None:
             raise ValueError('diff needs an associated repository')
 
         if not isinstance(tree, Tree):
@@ -267,11 +270,11 @@ class Index(object):
         ffi.buffer(ctree)[:] = tree._pointer[:]
 
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_tree_to_index(cdiff, self._repo._repo, ctree[0],
+        err = C.git_diff_tree_to_index(cdiff, repo._repo, ctree[0],
                                        self._index, copts)
         check_error(err)
 
-        return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), self._repo)
+        return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
 
 
     #
