@@ -355,7 +355,7 @@ class Remote(object):
         err = C.git_remote_save(self._remote)
         check_error(err)
 
-    def fetch(self, refspecs=None, callbacks=None, message=None):
+    def fetch(self, refspecs=None, message=None, callbacks=None):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
         """

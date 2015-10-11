@@ -212,7 +212,6 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         self.assertEqual(stats.received_objects, REMOTE_REPO_OBJECTS)
 
     def test_transfer_progress(self):
-        self.tp = None
         class MyCallbacks(pygit2.RemoteCallbacks):
             def transfer_progress(self, stats):
                 self.tp = stats

@@ -25,6 +25,52 @@ How to install
 Changelog
 ==============
 
+0.23.2 (2015-1X-XX)
+-------------------------
+
+- Unify callbacks system for remotes and clone
+  `#568 <https://github.com/libgit2/pygit2/pull/568>`_
+
+- New ``TreeEntry._name``
+  `#570 <https://github.com/libgit2/pygit2/pull/570>`_
+
+- Fix segfault in ``Tag._message``
+  `#572 <https://github.com/libgit2/pygit2/pull/572>`_
+
+- Documentation improvements
+  `#569 <https://github.com/libgit2/pygit2/pull/569>`_
+  `#574 <https://github.com/libgit2/pygit2/pull/574>`_
+
+API changes to clone::
+
+  # Before
+  clone_repository(..., credentials, certificate)
+
+  # Now
+  callbacks = RemoteCallbacks(credentials, certificate)
+  clone_repository(..., callbacks)
+
+API changes to remote::
+
+  # Before
+  def transfer_progress(stats):
+      ...
+
+  remote.credentials = credentials
+  remote.transfer_progress = transfer_progress
+  remote.fetch()
+  remote.push(specs)
+
+  # Now
+  class MyCallbacks(RemoteCallbacks):
+      def transfer_progress(self, stats):
+          ...
+
+  callbacks = MyCallbacks(credentials)
+  remote.fetch(callbacks=callbacks)
+  remote.push(specs, callbacks=callbacks)
+
+
 0.23.1 (2015-09-26)
 -------------------------
 

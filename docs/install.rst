@@ -16,9 +16,11 @@ Requirements
 - Python 2.7, 3.2+ or PyPy 2.6+ (including the development headers)
 - Libgit2 v0.23.x
 - cffi 1.0+
-- OpenSSL development headers, optional, used for HTTPS network operations.
-- Libssh2, optional, used for SSH network operations.
-- pkg-config, optional, used for SSH network operations.
+
+Optional libgit2 dependecies to support ssh and https:
+
+- https: WinHTTP (Windows), SecureTransport (OS X) or OpenSSL.
+- ssh: libssh2, pkg-config
 
 It should work with older versions of cffi and PyPy, but using cffi 1.0+
 (and PyPy 2.6+) is strongly encouraged.
