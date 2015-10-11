@@ -25,7 +25,7 @@ How to install
 Changelog
 ==============
 
-0.23.2 (2015-1X-XX)
+0.23.2 (2015-10-11)
 -------------------------
 
 - Unify callbacks system for remotes and clone
