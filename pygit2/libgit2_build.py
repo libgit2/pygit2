@@ -92,9 +92,10 @@ C_KEYWORDS = dict(libraries=['git2'],
 
 # The modulename
 # Simplified version of what cffi does: remove kwargs and vengine
+preamble = "#include <git2.h>"
+
 set_source = getattr(ffi, 'set_source', None)
 if set_source is not None:
-    preamble = "#include <git2.h>"
     set_source("pygit2._libgit2", preamble, **C_KEYWORDS)
 
 ffi.cdef(C_HEADER_SRC)
