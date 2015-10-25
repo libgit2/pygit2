@@ -30,6 +30,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from os.path import dirname, join
+import io
 import unittest
 
 import pygit2
@@ -111,6 +112,17 @@ class BlobTest(utils.RepoTestCase):
 
         self.assertTrue(isinstance(blob, pygit2.Blob))
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+
+    def test_create_blob_fromiobase(self):
+        f = io.BytesIO(BLOB_CONTENT)
+        blob_oid = self.repo.create_blob_fromiobase(f)
+        blob = self.repo[blob_oid]
+
+        self.assertTrue(isinstance(blob, pygit2.Blob))
+        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+
+        self.assertEqual(blob_oid, blob.id)
+        self.assertEqual(BLOB_SHA, blob_oid.hex)
 
     def test_diff_blob(self):
         blob = self.repo[BLOB_SHA]

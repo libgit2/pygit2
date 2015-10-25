@@ -132,6 +132,7 @@ them to the Git object database:
 
 .. automethod:: pygit2.Repository.create_blob_fromworkdir
 .. automethod:: pygit2.Repository.create_blob_fromdisk
+.. automethod:: pygit2.Repository.create_blob_fromiobase
 
 There are also some functions to calculate the id for a byte string without
 creating the blob object:
