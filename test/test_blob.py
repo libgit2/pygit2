@@ -114,6 +114,8 @@ class BlobTest(utils.RepoTestCase):
         self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
 
     def test_create_blob_fromiobase(self):
+        self.assertRaises(TypeError, self.repo.create_blob_fromiobase, 'bad type')
+
         f = io.BytesIO(BLOB_CONTENT)
         blob_oid = self.repo.create_blob_fromiobase(f)
         blob = self.repo[blob_oid]

@@ -39,8 +39,6 @@
 #include "signature.h"
 #include <git2/odb_backend.h>
 
-extern PyTypeObject PyIOBase_Type;
-
 extern PyObject *GitError;
 
 extern PyTypeObject IndexType;
@@ -874,20 +872,18 @@ int read_chunk(char *content, size_t max_length, void *payload)
 }
 
 PyObject *
-Repository_create_blob_fromiobase(Repository *self, PyObject *args)
+Repository_create_blob_fromiobase(Repository *self, PyObject *py_file)
 {
     git_oid   oid;
     PyObject *py_is_readable;
     int       is_readable;
-    PyObject *py_file;
     int       err;
-
-    if (!PyArg_ParseTuple(args, "O!", &PyIOBase_Type, &py_file))
-        return NULL;
 
     py_is_readable = PyObject_CallMethod(py_file, "readable", NULL);
     if (!py_is_readable) {
         Py_DECREF(py_file);
+        if (PyErr_ExceptionMatches(PyExc_AttributeError))
+          PyErr_SetObject(PyExc_TypeError, py_file);
         return NULL;
     }
 
@@ -900,10 +896,7 @@ Repository_create_blob_fromiobase(Repository *self, PyObject *args)
         return NULL;
     }
 
-    err = git_blob_create_fromchunks(&oid,
-                                     self->repo,
-                                     NULL,
-                                     &read_chunk,
+    err = git_blob_create_fromchunks(&oid, self->repo, NULL, &read_chunk,
                                      py_file);
     Py_DECREF(py_file);
 
@@ -1619,7 +1612,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
     METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
-    METHOD(Repository, create_blob_fromiobase, METH_VARARGS),
+    METHOD(Repository, create_blob_fromiobase, METH_O),
     METHOD(Repository, create_commit, METH_VARARGS),
     METHOD(Repository, create_tag, METH_VARARGS),
     METHOD(Repository, TreeBuilder, METH_VARARGS),
