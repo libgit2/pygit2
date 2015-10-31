@@ -881,7 +881,6 @@ Repository_create_blob_fromiobase(Repository *self, PyObject *py_file)
 
     py_is_readable = PyObject_CallMethod(py_file, "readable", NULL);
     if (!py_is_readable) {
-        Py_DECREF(py_file);
         if (PyErr_ExceptionMatches(PyExc_AttributeError))
           PyErr_SetObject(PyExc_TypeError, py_file);
         return NULL;
@@ -898,8 +897,6 @@ Repository_create_blob_fromiobase(Repository *self, PyObject *py_file)
 
     err = git_blob_create_fromchunks(&oid, self->repo, NULL, &read_chunk,
                                      py_file);
-    Py_DECREF(py_file);
-
     if (err < 0)
         return Error_set(err);
 
