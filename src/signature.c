@@ -38,7 +38,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 {
     char *keywords[] = {"name", "email", "time", "offset", "encoding", NULL};
     PyObject *py_name, *tname;
-    char *email, *encoding = "ascii";
+    char *email, *encoding = "utf-8";
     const char *name;
     long long time = -1;
     int offset = 0;
