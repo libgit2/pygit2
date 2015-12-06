@@ -381,6 +381,11 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_FASTFORWARD)
     ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_UNBORN)
 
+    /* Describe */
+    ADD_CONSTANT_INT(m, GIT_DESCRIBE_DEFAULT);
+    ADD_CONSTANT_INT(m, GIT_DESCRIBE_TAGS);
+    ADD_CONSTANT_INT(m, GIT_DESCRIBE_ALL);
+
     /* Global initialization of libgit2 */
     git_libgit2_init();
 

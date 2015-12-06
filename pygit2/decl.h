@@ -756,6 +756,47 @@ int git_merge_trees(git_index **out, git_repository *repo, const git_tree *ances
 int git_merge_file_from_index(git_merge_file_result *out, git_repository *repo, const git_index_entry *ancestor, const git_index_entry *ours, const git_index_entry *theirs, const git_merge_file_options *opts);
 void git_merge_file_result_free(git_merge_file_result *result);
 
+/*
+ * Describe
+ */
+
+typedef enum {
+	GIT_DESCRIBE_DEFAULT,
+	GIT_DESCRIBE_TAGS,
+	GIT_DESCRIBE_ALL,
+} git_describe_strategy_t;
+
+typedef struct git_describe_options {
+	unsigned int version;
+	unsigned int max_candidates_tags;
+	unsigned int describe_strategy;
+	const char *pattern;
+	int only_follow_first_parent;
+	int show_commit_oid_as_fallback;
+} git_describe_options;
+
+#define GIT_DESCRIBE_OPTIONS_VERSION ...
+
+int git_describe_init_options(git_describe_options *opts, unsigned int version);
+
+typedef struct {
+	unsigned int version;
+	unsigned int abbreviated_size;
+	int always_use_long_format;
+	const char *dirty_suffix;
+} git_describe_format_options;
+
+#define GIT_DESCRIBE_FORMAT_OPTIONS_VERSION ...
+
+int git_describe_init_format_options(git_describe_format_options *opts, unsigned int version);
+
+typedef ... git_describe_result;
+
+int git_describe_commit(git_describe_result **result, git_object *committish, git_describe_options *opts);
+int git_describe_workdir(git_describe_result **out, git_repository *repo, git_describe_options *opts);
+int git_describe_format(git_buf *out, const git_describe_result *result, const git_describe_format_options *opts);
+void git_describe_result_free(git_describe_result *result);
+
 #define GIT_ATTR_CHECK_FILE_THEN_INDEX ...
 #define GIT_ATTR_CHECK_INDEX_THEN_FILE ...
 #define GIT_ATTR_CHECK_INDEX_ONLY      ...

@@ -638,6 +638,100 @@ class Repository(_Repository):
         return Index.from_c(self, cindex)
 
     #
+    # Describe
+    #
+    def describe(self, committish=None, max_candidates_tags=None,
+                 describe_strategy=None, pattern=None,
+                 only_follow_first_parent=None,
+                 show_commit_oid_as_fallback=None, abbreviated_size=None,
+                 always_use_long_format=None, dirty_suffix=None):
+        """Describe a commit-ish or the current working tree.
+
+        :param committish: Commit-ish object or object name to describe, or
+            `None` to describe the current working tree.
+        :type committish: `str`, :class:`~.Reference`, or :class:`~.Commit`
+
+        :param int max_candidates_tags: The number of candidate tags to
+            consider. Increasing above 10 will take slightly longer but may
+            produce a more accurate result. A value of 0 will cause only exact
+            matches to be output.
+        :param int describe_strategy: A GIT_DESCRIBE_* constant.
+        :param str pattern: Only consider tags matching the given `glob(7)`
+            pattern, excluding the "refs/tags/" prefix.
+        :param bool only_follow_first_parent: Follow only the first parent
+            commit upon seeing a merge commit.
+        :param bool show_commit_oid_as_fallback: Show uniquely abbreviated
+            commit object as fallback.
+        :param int abbreviated_size: The minimum number of hexadecimal digits
+            to show for abbreviated object names. A value of 0 will suppress
+            long format, only showing the closest tag.
+        :param bool always_use_long_format: Always output the long format (the
+            nearest tag, the number of commits, and the abbrevated commit name)
+            even when the committish matches a tag.
+        :param str dirty_suffix: A string to append if the working tree is
+            dirty.
+
+        :returns: The description.
+        :rtype: `str`
+
+        Example::
+
+            repo.describe(pattern='public/*', dirty_suffix='-dirty')
+        """
+
+        options = ffi.new('git_describe_options *')
+        C.git_describe_init_options(options, C.GIT_DESCRIBE_OPTIONS_VERSION)
+
+        if max_candidates_tags is not None:
+            options.max_candidates_tags = max_candidates_tags
+        if describe_strategy is not None:
+            options.describe_strategy = describe_strategy
+        if pattern:
+            options.pattern = ffi.new('char[]', to_bytes(pattern))
+        if only_follow_first_parent is not None:
+            options.only_follow_first_parent = only_follow_first_parent
+        if show_commit_oid_as_fallback is not None:
+            options.show_commit_oid_as_fallback = show_commit_oid_as_fallback
+
+        result = ffi.new('git_describe_result **')
+        if committish:
+            if is_string(committish):
+                committish = self.revparse_single(committish)
+
+            commit = committish.peel(Commit)
+
+            cptr = ffi.new('git_object **')
+            ffi.buffer(cptr)[:] = commit._pointer[:]
+
+            err = C.git_describe_commit(result, cptr[0], options)
+        else:
+            err = C.git_describe_workdir(result, self._repo, options)
+        check_error(err)
+
+        try:
+            format_options = ffi.new('git_describe_format_options *')
+            C.git_describe_init_format_options(format_options, C.GIT_DESCRIBE_FORMAT_OPTIONS_VERSION)
+
+            if abbreviated_size is not None:
+                format_options.abbreviated_size = abbreviated_size
+            if always_use_long_format is not None:
+                format_options.always_use_long_format = always_use_long_format
+            if dirty_suffix:
+                format_options.dirty_suffix = ffi.new('char[]', to_bytes(dirty_suffix))
+
+            buf = ffi.new('git_buf *', (ffi.NULL, 0))
+
+            err = C.git_describe_format(buf, result[0], format_options)
+            check_error(err)
+
+            try:
+                return ffi.string(buf.ptr).decode('utf-8')
+            finally:
+                C.git_buf_free(buf)
+        finally:
+            C.git_describe_result_free(result[0])
+
+    #
     # Utility for writing a tree into an archive
     #
     def write_archive(self, treeish, archive, timestamp=None, prefix=''):
