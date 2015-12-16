@@ -77,6 +77,7 @@ Pc${NM%FIhFs^kIy3n&7R
 
 literal 8
 Pc${NM&PdElPvrst3ey5{
+
 """
 
 DIFF_HEAD_TO_INDEX_EXPECTED = [
