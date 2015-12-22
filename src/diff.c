@@ -482,7 +482,8 @@ Diff_len(Diff *self)
     return (Py_ssize_t)git_diff_num_deltas(self->diff);
 }
 
-PyDoc_STRVAR(Diff_patch__doc__, "Patch diff string.");
+PyDoc_STRVAR(Diff_patch__doc__,
+    "Patch diff string. Can be None in some cases, such as empty commits.");
 
 PyObject *
 Diff_patch__get__(Diff *self)
