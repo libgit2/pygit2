@@ -41,11 +41,11 @@ while the last number |lq| *.micro* |rq| auto-increments independently.
 
 As illustration see this table of compatible releases:
 
-+-----------+--------------------------------+--------------------------------+
-|**libgit2**| 0.23.0, 0.23.1, 0.23.2, 0.23.3 | 0.22.0, 0.22.1, 0.22.2, 0.22.3 |
-+-----------+--------------------------------+--------------------------------+
-|**pygit2** | 0.23.0, 0.23.1, 0.23.2         | 0.22.0, 0.22.1                 |
-+-----------+--------------------------------+--------------------------------+
++-----------+----------------------------------------+--------------------------------+
+|**libgit2**| 0.23.0, 0.23.1, 0.23.2, 0.23.3, 0.23.4 | 0.22.0, 0.22.1, 0.22.2, 0.22.3 |
++-----------+----------------------------------------+--------------------------------+
+|**pygit2** | 0.23.0, 0.23.1, 0.23.2, 0.23.3         | 0.22.0, 0.22.1                 |
++-----------+----------------------------------------+--------------------------------+
 
 .. warning::
 
@@ -62,9 +62,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.23.2.tar.gz
-   $ tar xzf v0.23.2.tar.gz
-   $ cd libgit2-0.23.2/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz
+   $ tar xzf v0.23.4.tar.gz
+   $ cd libgit2-0.23.4/
    $ cmake .
    $ make
    $ sudo make install
@@ -146,9 +146,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.23.2.tar.gz
-   $ tar xzf v0.23.2.tar.gz
-   $ cd libgit2-0.23.2/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz
+   $ tar xzf v0.23.4.tar.gz
+   $ cd libgit2-0.23.4/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -201,9 +201,9 @@ from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ wget https://github.com/libgit2/libgit2/archive/v0.23.2.tar.gz
-   $ tar xzf v0.23.2.tar.gz
-   $ cd libgit2-0.23.2/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz
+   $ tar xzf v0.23.4.tar.gz
+   $ cd libgit2-0.23.4/
    $ cmake . -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"
    $ cmake --build . --config release --target install
    $ ctest -v

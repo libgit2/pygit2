@@ -18,7 +18,7 @@ library that has been built against. The version number has a
 .. py:data:: LIBGIT2_VER_MAJOR
 
    Integer value of the major version number. For example, for the version
-   ``0.23.2``::
+   ``0.23.3``::
 
       >>> print LIBGIT2_VER_MAJOR
       0
@@ -26,7 +26,7 @@ library that has been built against. The version number has a
 .. py:data:: LIBGIT2_VER_MINOR
 
    Integer value of the minor version number. For example, for the version
-   ``0.23.2``::
+   ``0.23.3``::
 
       >>> print LIBGIT2_VER_MINOR
       23
@@ -34,17 +34,17 @@ library that has been built against. The version number has a
 .. py:data:: LIBGIT2_VER_REVISION
 
    Integer value of the revision version number. For example, for the version
-   ``0.23.2``::
+   ``0.23.3``::
 
       >>> print LIBGIT2_VER_REVISION
-      2
+      3
 
 .. py:data:: LIBGIT2_VERSION
 
    The libgit2 version number as a string::
 
       >>> print LIBGIT2_VERSION
-      '0.23.2'
+      '0.23.3'
 
 Errors
 ======

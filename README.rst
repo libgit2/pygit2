@@ -25,6 +25,28 @@ How to install
 Changelog
 ==============
 
+0.23.3 (2016-01-01)
+-------------------------
+
+- New ``Repository.create_blob_fromiobase(...)``
+  `#490 <https://github.com/libgit2/pygit2/pull/490>`_
+  `#577 <https://github.com/libgit2/pygit2/pull/577>`_
+
+- New ``Repository.describe(...)``
+  `#585 <https://github.com/libgit2/pygit2/pull/585>`_
+
+- Fix ``Signature`` default encoding, UTF-8 now
+  `#581 <https://github.com/libgit2/pygit2/issues/581>`_
+
+- Fixing ``pip install pygit2``, should install cffi first
+
+- Unit tests, fix binary diff test
+  `#586 <https://github.com/libgit2/pygit2/pull/586>`_
+
+- Document that ``Diff.patch`` can be ``None``
+  `#587 <https://github.com/libgit2/pygit2/pull/587>`_
+
+
 0.23.2 (2015-10-11)
 -------------------------
 
@@ -726,7 +748,7 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-97 developers have contributed at least 1 commit to pygit2::
+102 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
   W. Trevor King            Dave Borowitz             Daniel Rodríguez Troitiño
@@ -736,31 +758,32 @@ Authors
   Petr Hosek                Victor Garcia             Xavier Delannoy
   Yonggang Luo              Patrick Steinhardt        Valentin Haenel
   Michael Jones             Bernardo Heynemann        John Szakmeister
-  Vlad Temian               Brodie Rao                David Versmisse
-  Rémi Duraffort            Santiago Perez De Rosso   Sebastian Thiel
-  Alok Singhal              Fraser Tweedale           Han-Wen Nienhuys
-  Leonardo Rhodes           Nicolas Dandrimont        Petr Viktorin
+  Vlad Temian               Brodie Rao                Nicolas Dandrimont
+  David Versmisse           Rémi Duraffort            Santiago Perez De Rosso
+  Sebastian Thiel           Alok Singhal              Fraser Tweedale
+  Han-Wen Nienhuys          Leonardo Rhodes           Petr Viktorin
   Ron Cohen                 Thomas Kluyver            Alex Chamberlain
   Alexander Bayandin        Amit Bakshi               Andrey Devyatkin
   Arno van Lumig            Ben Davis                 Eric Schrijver
   Greg Fitzgerald           Hervé Cauwelier           Huang Huang
   Ian P. McCullough         Jack O'Connor             Jared Flatow
   Jiunn Haur Lim            Jun Omae                  Kaarel Kitsemets
-  Kevin KIN-FOO             Michael Sondergaard       Sarath Lakshman
-  Vicent Marti              Zoran Zaric               Adam Spiers
-  Andrew Chin               András Veres-Szentkirályi Ash Berlin
-  Benjamin Kircher          Benjamin Pollack          Bryan O'Sullivan
+  Kevin KIN-FOO             Masud Rahman              Michael Sondergaard
+  Sarath Lakshman           Vicent Marti              Zoran Zaric
+  Adam Spiers               Andrew Chin               András Veres-Szentkirályi
+  Ash Berlin                Benjamin Kircher          Benjamin Pollack
+  Bryan O'Sullivan          Chason Chaffin            Chris Rebert
   Colin Watson              Daniel Bruce              David Fischer
   David Sanders             David Six                 Devaev Maxim
   Eric Davis                Erik Meusel               Erik van Zijst
   Ferengee                  Guille -bisho-            Gustavo Di Pietro
   Holger Frey               Hugh Cole-Baker           Jasper Lievisse Adriaanse
   Josh Bleecher Snyder      Justin Clift              Kyriakos Oikonomakos
-  Lukas Fleischer           Mathieu Bridon            Óscar San José
-  Peter Dave Hello          Philippe Ombredanne       Ridge Kennedy
-  Ross Nicoll               Rui Abreu Ferreira        Sheeo
-  Soasme                    Vladimir Rutsky           chengyuhang
-  earl
+  Lukas Fleischer           Mathieu Bridon            Nicolás Sanguinetti
+  Noah Fontes               Óscar San José            Peter Dave Hello
+  Philippe Ombredanne       Ridge Kennedy             Ross Nicoll
+  Rui Abreu Ferreira        Sheeo                     Soasme
+  Vladimir Rutsky           chengyuhang               earl
 
 
 License
