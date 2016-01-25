@@ -349,6 +349,26 @@ Repository_lookup_branch(Repository *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Repository_path_is_ignored__doc__,
+  "Check if a path is ignored in the repository.");
+
+PyObject *
+Repository_path_is_ignored(Repository *self, PyObject *args)
+{
+    int ignored;
+    char *path;
+
+    if (!PyArg_ParseTuple(args, "s", &path))
+        return NULL;
+
+    git_ignore_path_is_ignored(&ignored, self->repo, path);
+    if (ignored == 1)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+
 PyDoc_STRVAR(Repository_revparse_single__doc__,
   "revparse_single(revision) -> Object\n"
   "\n"
@@ -1633,6 +1653,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, lookup_note, METH_VARARGS),
     METHOD(Repository, git_object_lookup_prefix, METH_O),
     METHOD(Repository, lookup_branch, METH_VARARGS),
+    METHOD(Repository, path_is_ignored, METH_VARARGS),
     METHOD(Repository, listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, reset, METH_VARARGS),
