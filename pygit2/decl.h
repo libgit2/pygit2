@@ -54,6 +54,16 @@ typedef enum {
 	GIT_EINVALIDSPEC = -12,
 	GIT_ECONFLICT = -13,
 	GIT_ELOCKED = -14,
+	GIT_EMODIFIED       = -15,
+	GIT_EAUTH           = -16,
+	GIT_ECERTIFICATE    = -17,
+	GIT_EAPPLIED        = -18,
+	GIT_EPEEL           = -19,
+	GIT_EEOF            = -20,
+	GIT_EINVALID        = -21,
+	GIT_EUNCOMMITTED    = -22,
+	GIT_EDIRECTORY      = -23,
+	GIT_EMERGECONFLICT  = -24,
 
 	GIT_PASSTHROUGH = -30,
 	GIT_ITEROVER = -31,
@@ -131,20 +141,20 @@ typedef enum {
 
 typedef struct {
 	git_cert_t cert_type;
+} git_cert;
+
+typedef struct {
+    git_cert parent;
 	git_cert_ssh_t type;
 	unsigned char hash_md5[16];
     unsigned char hash_sha1[20];
 } git_cert_hostkey;
 
 typedef struct {
-	git_cert_t cert_type;
+    git_cert parent;
 	void *data;
 	size_t len;
 } git_cert_x509;
-
-typedef struct {
-	git_cert_t cert_type;
-} git_cert;
 
 typedef int (*git_transport_message_cb)(const char *str, int len, void *data);
 typedef int (*git_cred_acquire_cb)(
@@ -201,6 +211,7 @@ typedef struct {
 	unsigned int version;
 	unsigned int pb_parallelism;
 	git_remote_callbacks callbacks;
+    git_strarray custom_headers;
 } git_push_options;
 
 #define GIT_PUSH_OPTIONS_VERSION ...
@@ -225,6 +236,7 @@ typedef struct {
 	git_fetch_prune_t prune;
 	int update_fetchhead;
 	git_remote_autotag_option_t download_tags;
+    git_strarray custom_headers;
 } git_fetch_options;
 
 #define GIT_FETCH_OPTIONS_VERSION ...
@@ -336,13 +348,20 @@ typedef int (*git_diff_notify_cb)(
 	const char *matched_pathspec,
 	void *payload);
 
+typedef int (*git_diff_progress_cb)(
+	const git_diff *diff_so_far,
+	const char *old_path,
+	const char *new_path,
+	void *payload);
+
 typedef struct {
 	unsigned int version;
 	uint32_t flags;
 	git_submodule_ignore_t ignore_submodules;
 	git_strarray       pathspec;
-	git_diff_notify_cb notify_cb;
-	void              *notify_payload;
+	git_diff_notify_cb   notify_cb;
+	git_diff_progress_cb progress_cb;
+	void                *payload;
 	uint32_t    context_lines;
 	uint32_t    interhunk_lines;
 	uint16_t    id_abbrev;
@@ -478,11 +497,12 @@ typedef ... git_config;
 typedef ... git_config_iterator;
 
 typedef enum {
-	GIT_CONFIG_LEVEL_SYSTEM = 1,
-	GIT_CONFIG_LEVEL_XDG = 2,
-	GIT_CONFIG_LEVEL_GLOBAL = 3,
-	GIT_CONFIG_LEVEL_LOCAL = 4,
-	GIT_CONFIG_LEVEL_APP = 5,
+    GIT_CONFIG_LEVEL_PROGRAMDATA = 1,
+	GIT_CONFIG_LEVEL_SYSTEM = 2,
+	GIT_CONFIG_LEVEL_XDG = 3,
+	GIT_CONFIG_LEVEL_GLOBAL = 4,
+	GIT_CONFIG_LEVEL_LOCAL = 5,
+	GIT_CONFIG_LEVEL_APP = 6,
 	GIT_CONFIG_HIGHEST_LEVEL = -1,
 } git_config_level_t;
 
@@ -671,22 +691,22 @@ typedef struct git_blame_options {
 	uint16_t min_match_characters;
 	git_oid newest_commit;
 	git_oid oldest_commit;
-	uint32_t min_line;
-	uint32_t max_line;
+	size_t min_line;
+	size_t max_line;
 } git_blame_options;
 
 #define GIT_BLAME_OPTIONS_VERSION ...
 
 typedef struct git_blame_hunk {
-	uint16_t lines_in_hunk;
+	size_t lines_in_hunk;
 
 	git_oid final_commit_id;
-	uint16_t final_start_line_number;
+	size_t final_start_line_number;
 	git_signature *final_signature;
 
 	git_oid orig_commit_id;
 	const char *orig_path;
-	uint16_t orig_start_line_number;
+	size_t orig_start_line_number;
 	git_signature *orig_signature;
 
 	char boundary;
@@ -695,7 +715,7 @@ typedef struct git_blame_hunk {
 int git_blame_init_options(git_blame_options *opts, unsigned int version);
 uint32_t git_blame_get_hunk_count(git_blame *blame);
 const git_blame_hunk *git_blame_get_hunk_byindex(git_blame *blame, uint32_t index);
-const git_blame_hunk *git_blame_get_hunk_byline(git_blame *blame, uint32_t lineno);
+const git_blame_hunk *git_blame_get_hunk_byline(git_blame *blame, size_t lineno);
 int git_blame_file(git_blame **out, git_repository *repo, const char *path, git_blame_options *options);
 void git_blame_free(git_blame *blame);
 
@@ -703,7 +723,7 @@ void git_blame_free(git_blame *blame);
  * Merging
  */
 
-typedef enum { ... } git_merge_tree_flag_t;
+typedef enum { ... } git_merge_flag_t;
 
 typedef enum {
 	GIT_MERGE_FILE_FAVOR_NORMAL = 0,
@@ -714,10 +734,11 @@ typedef enum {
 
 typedef struct {
 	unsigned int version;
-	git_merge_tree_flag_t tree_flags;
+	git_merge_flag_t flags;
 	unsigned int rename_threshold;
 	unsigned int target_limit;
 	git_diff_similarity_metric *metric;
+    unsigned int recursion_limit;
 	git_merge_file_favor_t file_favor;
 	unsigned int file_flags;
 } git_merge_options;
@@ -737,7 +758,12 @@ typedef enum {
 	GIT_MERGE_FILE_STYLE_MERGE = 1,
 	GIT_MERGE_FILE_STYLE_DIFF3 = 2,
 	GIT_MERGE_FILE_SIMPLIFY_ALNUM = 4,
-} git_merge_file_flags_t;
+	GIT_MERGE_FILE_IGNORE_WHITESPACE = 8,
+	GIT_MERGE_FILE_IGNORE_WHITESPACE_CHANGE = 16,
+	GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL = 32,
+	GIT_MERGE_FILE_DIFF_PATIENCE = 64,
+	GIT_MERGE_FILE_DIFF_MINIMAL = 128,
+} git_merge_file_flag_t;
 
 typedef struct {
 	unsigned int version;
@@ -745,7 +771,7 @@ typedef struct {
 	const char *our_label;
 	const char *their_label;
 	git_merge_file_favor_t favor;
-	git_merge_file_flags_t flags;
+	git_merge_file_flag_t flags;
 } git_merge_file_options;
 
 #define GIT_MERGE_OPTIONS_VERSION ...
