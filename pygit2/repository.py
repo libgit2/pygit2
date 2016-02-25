@@ -716,8 +716,10 @@ class Repository(_Repository):
                 format_options.abbreviated_size = abbreviated_size
             if always_use_long_format is not None:
                 format_options.always_use_long_format = always_use_long_format
+            dirty_ptr = None
             if dirty_suffix:
-                format_options.dirty_suffix = ffi.new('char[]', to_bytes(dirty_suffix))
+                dirty_ptr = ffi.new('char[]', to_bytes(dirty_suffix))
+                format_options.dirty_suffix = dirty_ptr
 
             buf = ffi.new('git_buf *', (ffi.NULL, 0))
 
