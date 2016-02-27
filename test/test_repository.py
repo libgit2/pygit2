@@ -482,6 +482,13 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         self.assertFalse(self.repo.head_is_detached)
 
 
+class BytesStringRepositoryTest(utils.NoRepoTestCase):
+
+    def test_bytes_string(self):
+        repo_path = b'./test/data/testrepo.git/'
+        pygit2.Repository(repo_path)
+
+
 class CloneRepositoryTest(utils.NoRepoTestCase):
 
     def test_clone_repository(self):
