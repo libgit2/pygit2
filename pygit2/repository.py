@@ -37,6 +37,8 @@ if sys.version_info[0] < 3:
 else:
     from io import BytesIO as StringIO
 
+import six
+
 # Import from pygit2
 from _pygit2 import Repository as _Repository
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
@@ -56,8 +58,10 @@ from .submodule import Submodule
 
 class Repository(_Repository):
 
-    def __init__(self, *args, **kwargs):
-        super(Repository, self).__init__(*args, **kwargs)
+    def __init__(self, path, *args, **kwargs):
+        if not isinstance(path, six.string_types):
+            path = path.decode('utf-8')
+        super(Repository, self).__init__(path, *args, **kwargs)
         self._common_init()
 
     @classmethod

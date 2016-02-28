@@ -63,6 +63,7 @@ del sys.path[0]
 
 # Python 2 support
 # See https://github.com/libgit2/pygit2/pull/180 for a discussion about this.
+# Using six isn't an option here yet, we don't necessarily have six installed
 if sys.version_info[0] == 2:
     u = lambda s: unicode(s, 'utf-8')
 else:
@@ -186,7 +187,7 @@ extra_args = {
 if cffi_major_version == 0:
     extra_args['ext_modules'].append(ffi.verifier.get_extension())
 else:
-    extra_args['cffi_modules']=['pygit2/_run.py:ffi']
+    extra_args['cffi_modules'] = ['pygit2/_run.py:ffi']
 
 
 setup(name='pygit2',
@@ -202,7 +203,7 @@ setup(name='pygit2',
       packages=['pygit2'],
       package_data={'pygit2': ['decl.h']},
       setup_requires=['cffi'],
-      install_requires=['cffi'],
+      install_requires=['cffi', 'six'],
       zip_safe=False,
       cmdclass=cmdclass,
       **extra_args)
