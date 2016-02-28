@@ -3,6 +3,7 @@ build
 dist
 pygit2.so
 _pygit2.so
+.tox/
 test/*.pyc
 test/__pycache__
 pygit2/*.pyc

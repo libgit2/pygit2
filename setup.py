@@ -108,7 +108,8 @@ class TestCommand(Command):
 
 class sdist_files_from_git(sdist):
     def get_file_list(self):
-        popen = Popen(['git', 'ls-files'], stdout=PIPE, stderr=PIPE)
+        popen = Popen(['git', 'ls-files'], stdout=PIPE, stderr=PIPE,
+                      universal_newlines=True)
         stdoutdata, stderrdata = popen.communicate()
         if popen.returncode != 0:
             print(stderrdata)
