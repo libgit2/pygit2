@@ -7,8 +7,8 @@ Welcome to pygit2's documentation!
 ==================================
 
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
-implements the core of Git.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4 and
-pypy.
+implements the core of Git.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4, 3.5
+and pypy.
 
 It is likely to work with Python 2.6 and 3.1, but these versions are not
 officially supported.

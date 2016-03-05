@@ -6,7 +6,7 @@ pygit2 - libgit2 bindings in Python
    :target: http://travis-ci.org/libgit2/pygit2
 
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
-implements Git plumbing.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4 and
+implements Git plumbing.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4, 3.5 and
 PyPy 2.6
 
 Links:
@@ -24,6 +24,32 @@ How to install
 
 Changelog
 ==============
+
+0.24.0 (2016-03-05)
+-------------------------
+
+- Update to libgit2 v0.24
+  `#594 <https://github.com/libgit2/pygit2/pull/594>`_
+
+- Support Python 3.5
+
+- New dependency, `six <https://pypi.python.org/pypi/six/>`_
+
+- New ``Repository.path_is_ignored(path)``
+  `#589 <https://github.com/libgit2/pygit2/pull/589>`_
+
+- Fix error in ``Repository(path)`` when path is a bytes string
+  `#588 <https://github.com/libgit2/pygit2/issues/588>`_
+  `#593 <https://github.com/libgit2/pygit2/pull/593>`_
+
+- Fix memory issue in ``Repository.describe(...)``
+  `#592 <https://github.com/libgit2/pygit2/issues/592>`_
+  `#597 <https://github.com/libgit2/pygit2/issues/597>`_
+  `#599 <https://github.com/libgit2/pygit2/pull/599>`_
+
+- Allow testing with `tox <https://pypi.python.org/pypi/tox/>`_
+  `#600 <https://github.com/libgit2/pygit2/pull/600>`_
+
 
 0.23.3 (2016-01-01)
 -------------------------
@@ -748,7 +774,7 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-102 developers have contributed at least 1 commit to pygit2::
+104 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
   W. Trevor King            Dave Borowitz             Daniel Rodríguez Troitiño
@@ -760,30 +786,31 @@ Authors
   Michael Jones             Bernardo Heynemann        John Szakmeister
   Vlad Temian               Brodie Rao                Nicolas Dandrimont
   David Versmisse           Rémi Duraffort            Santiago Perez De Rosso
-  Sebastian Thiel           Alok Singhal              Fraser Tweedale
-  Han-Wen Nienhuys          Leonardo Rhodes           Petr Viktorin
-  Ron Cohen                 Thomas Kluyver            Alex Chamberlain
-  Alexander Bayandin        Amit Bakshi               Andrey Devyatkin
-  Arno van Lumig            Ben Davis                 Eric Schrijver
-  Greg Fitzgerald           Hervé Cauwelier           Huang Huang
-  Ian P. McCullough         Jack O'Connor             Jared Flatow
-  Jiunn Haur Lim            Jun Omae                  Kaarel Kitsemets
-  Kevin KIN-FOO             Masud Rahman              Michael Sondergaard
-  Sarath Lakshman           Vicent Marti              Zoran Zaric
-  Adam Spiers               Andrew Chin               András Veres-Szentkirályi
-  Ash Berlin                Benjamin Kircher          Benjamin Pollack
-  Bryan O'Sullivan          Chason Chaffin            Chris Rebert
-  Colin Watson              Daniel Bruce              David Fischer
-  David Sanders             David Six                 Devaev Maxim
-  Eric Davis                Erik Meusel               Erik van Zijst
-  Ferengee                  Guille -bisho-            Gustavo Di Pietro
-  Holger Frey               Hugh Cole-Baker           Jasper Lievisse Adriaanse
-  Josh Bleecher Snyder      Justin Clift              Kyriakos Oikonomakos
-  Lukas Fleischer           Mathieu Bridon            Nicolás Sanguinetti
-  Noah Fontes               Óscar San José            Peter Dave Hello
-  Philippe Ombredanne       Ridge Kennedy             Ross Nicoll
-  Rui Abreu Ferreira        Sheeo                     Soasme
-  Vladimir Rutsky           chengyuhang               earl
+  Sebastian Thiel           Thom Wiggers              Alok Singhal
+  Fraser Tweedale           Han-Wen Nienhuys          Leonardo Rhodes
+  Petr Viktorin             Ron Cohen                 Thomas Kluyver
+  Alex Chamberlain          Alexander Bayandin        Amit Bakshi
+  Andrey Devyatkin          Arno van Lumig            Ben Davis
+  Eric Schrijver            Greg Fitzgerald           Hervé Cauwelier
+  Huang Huang               Ian P. McCullough         Jack O'Connor
+  Jared Flatow              Jiunn Haur Lim            Jun Omae
+  Kaarel Kitsemets          Kevin KIN-FOO             Masud Rahman
+  Michael Sondergaard       Sarath Lakshman           Vicent Marti
+  Zoran Zaric               Adam Spiers               Andrew Chin
+  András Veres-Szentkirályi Ash Berlin                Benjamin Kircher
+  Benjamin Pollack          Bryan O'Sullivan          Cam Cope
+  Chason Chaffin            Chris Rebert              Colin Watson
+  Daniel Bruce              David Fischer             David Sanders
+  David Six                 Devaev Maxim              Eric Davis
+  Erik Meusel               Erik van Zijst            Ferengee
+  Guille -bisho-            Gustavo Di Pietro         Holger Frey
+  Hugh Cole-Baker           Jasper Lievisse Adriaanse Josh Bleecher Snyder
+  Justin Clift              Kyriakos Oikonomakos      Lukas Fleischer
+  Mathieu Bridon            Nicolás Sanguinetti       Noah Fontes
+  Óscar San José            Peter Dave Hello          Philippe Ombredanne
+  Ridge Kennedy             Ross Nicoll               Rui Abreu Ferreira
+  Sheeo                     Soasme                    Vladimir Rutsky
+  chengyuhang               earl
 
 
 License
