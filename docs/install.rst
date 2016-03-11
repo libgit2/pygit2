@@ -64,7 +64,7 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz
+   $ wget https://github.com/libgit2/libgit2/archive/v0.24.0.tar.gz
    $ tar xzf v0.24.0.tar.gz
    $ cd libgit2-0.24.0/
    $ cmake .
