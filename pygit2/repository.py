@@ -765,7 +765,7 @@ class Repository(_Repository):
             >>> import tarfile, pygit2
             >>>> with tarfile.open('foo.tar', 'w') as archive:
             >>>>     repo = pygit2.Repsitory('.')
-            >>>>     repo.write_archive(archive, repo.head.target)
+            >>>>     repo.write_archive(repo.head.target, archive)
         """
 
         # Try to get a tree form whatever we got
