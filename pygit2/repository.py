@@ -37,6 +37,7 @@ if sys.version_info[0] < 3:
 else:
     from io import BytesIO as StringIO
 
+import os
 import six
 
 # Import from pygit2
@@ -805,6 +806,7 @@ class Repository(_Repository):
                 info.size = 0
                 archive.addfile(info)
             else:
+                info.mode = oct(os.stat(self[entry.id]).st_mode & 0o777)
                 archive.addfile(info, StringIO(content))
 
     #
