@@ -799,7 +799,7 @@ class Repository(_Repository):
             info.mtime = timestamp
             info.uname = info.gname = 'root' # just because git does this
             if entry.mode == GIT_FILEMODE_LINK:
-                info.type = archive.SYMTYPE
+                info.type = tarfile.SYMTYPE
                 info.linkname = content
                 info.mode = 0o777 # symlinks get placeholder
                 info.size = 0
