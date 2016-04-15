@@ -800,7 +800,7 @@ class Repository(_Repository):
             info.uname = info.gname = 'root' # just because git does this
             if entry.mode == GIT_FILEMODE_LINK:
                 info.type = archive.SYMTYPE
-                info.linkname = content
+                info.linkname = content.decode("utf-8")
                 info.mode = 0o777 # symlinks get placeholder
                 info.size = 0
                 archive.addfile(info)
