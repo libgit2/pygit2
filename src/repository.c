@@ -1575,8 +1575,8 @@ PyDoc_STRVAR(Repository_reset__doc__,
     "\n"
     "Resets current head to the provided oid.\n"
     "reset_type:\n"
-    "GIT_RESET_SOFT: resets head to point to oid, but does not modfy working copy, and leaves the changes in the index.\n"
-    "GIT_RESET_MIXED: resets head to point to oid, but does not modfy working copy. It empties the index too.\n"
+    "GIT_RESET_SOFT: resets head to point to oid, but does not modify working copy, and leaves the changes in the index.\n"
+    "GIT_RESET_MIXED: resets head to point to oid, but does not modify working copy. It empties the index too.\n"
     "GIT_RESET_HARD: resets head to point to oid, and resets too the working copy and the content of the index.\n");
 
 PyObject *
