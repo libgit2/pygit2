@@ -188,21 +188,6 @@ class RepositoryTest(utils.RepoTestCase):
         end = sys.getrefcount(self.repo)
         self.assertEqual(start, end)
 
-    def test_remote_callback_typecheck(self):
-        remote = self.repo.remotes[0]
-        remote.progress = 5
-        self.assertRaises(TypeError, remote, 'fetch')
-
-        remote = self.repo.remotes[0]
-        remote.transfer_progress = 5
-        self.assertRaises(TypeError, remote, 'fetch')
-
-        remote = self.repo.remotes[0]
-        remote.update_tips = 5
-        self.assertRaises(TypeError, remote, 'fetch')
-
-
-
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
     def test_fetch(self):
         remote = self.repo.remotes[0]
