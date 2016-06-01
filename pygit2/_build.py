@@ -32,7 +32,6 @@ But also used by pygit2 at run time.
 
 # Import from the Standard Library
 import os
-from os import getenv
 
 #
 # The version number of pygit2
@@ -45,13 +44,13 @@ __version__ = '0.24.1'
 #
 def _get_libgit2_path():
     # LIBGIT2 environment variable takes precedence
-    libgit2_path = getenv("LIBGIT2")
+    libgit2_path = os.getenv("LIBGIT2")
     if libgit2_path is not None:
         return libgit2_path
 
     # Default
     if os.name == 'nt':
-        return '%s\libgit2' % getenv("ProgramFiles")
+        return '%s\libgit2' % os.getenv("ProgramFiles")
     return '/usr/local'
 
 
@@ -60,5 +59,5 @@ def get_libgit2_paths():
     return (
         os.path.join(libgit2_path, 'bin'),
         os.path.join(libgit2_path, 'include'),
-        getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib')),
+        os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib')),
     )
