@@ -1123,6 +1123,56 @@ out:
 }
 
 
+PyDoc_STRVAR(Repository_listall_reference_objects__doc__,
+  "listall_reference_objects() -> [Reference, ...]\n"
+  "\n"
+  "Return a list with all the reference objects in the repository.");
+
+PyObject *
+Repository_listall_reference_objects(Repository *self, PyObject *args)
+{
+    git_reference_iterator *iter;
+    git_reference *ref = NULL;
+    int err;
+    PyObject *list;
+
+    list = PyList_New(0);
+    if (list == NULL)
+        return NULL;
+
+    if ((err = git_reference_iterator_new(&iter, self->repo)) < 0)
+        return Error_set(err);
+
+    while ((err = git_reference_next(&ref, iter)) == 0) {
+        PyObject *py_ref = wrap_reference(ref, self);
+        if (py_ref == NULL)
+            goto error;
+
+        err = PyList_Append(list, py_ref);
+        Py_DECREF(py_ref);
+
+        if (err < 0)
+            goto error;
+    }
+
+    git_reference_iterator_free(iter);
+    if (err == GIT_ITEROVER)
+        err = 0;
+
+    if (err < 0) {
+        Py_CLEAR(list);
+        return Error_set(err);
+    }
+
+    return list;
+
+error:
+    git_reference_iterator_free(iter);
+    Py_CLEAR(list);
+    return NULL;
+}
+
+
 PyDoc_STRVAR(Repository_listall_branches__doc__,
   "listall_branches([flag]) -> [str, ...]\n"
   "\n"
@@ -1643,6 +1693,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
+    METHOD(Repository, listall_reference_objects, METH_NOARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, revparse_single, METH_O),

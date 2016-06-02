@@ -4,6 +4,7 @@ References
 
 .. contents::
 
+.. automethod:: pygit2.Repository.listall_reference_objects
 .. automethod:: pygit2.Repository.listall_references
 .. automethod:: pygit2.Repository.lookup_reference
 
