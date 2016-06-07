@@ -72,7 +72,7 @@ else:
 
 libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
 
-pygit2_exts = [os.path.join('src', name) for name in listdir('src')
+pygit2_exts = [os.path.join('src', name) for name in sorted(listdir('src'))
                if name.endswith('.c')]
 
 
