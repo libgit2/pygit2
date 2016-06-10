@@ -38,6 +38,10 @@ import os
 #
 __version__ = '0.24.1'
 
+#
+# The checksum of libgit2
+#
+__sha__ = 'fe934dce35d83c298b9037aacef1cd430a6ed7a3be38b873203144a07bc360ff'
 
 #
 # Utility functions to get the paths required for bulding extensions
@@ -49,9 +53,7 @@ def _get_libgit2_path():
         return libgit2_path
 
     # Default
-    if os.name == 'nt':
-        return '%s\libgit2' % os.getenv("ProgramFiles")
-    return '/usr/local'
+    return os.path.abspath(os.path.join('build', 'libgit2'))
 
 
 def get_libgit2_paths():
