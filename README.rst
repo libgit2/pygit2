@@ -25,6 +25,29 @@ How to install
 Changelog
 ==============
 
+0.24.1 (2016-06-21)
+-------------------------
+
+- New ``Repository.listall_reference_objects()``
+  `#634 <https://github.com/libgit2/pygit2/pull/634>`_
+
+- Fix ``Repository.write_archive(...)``
+  `#619 <https://github.com/libgit2/pygit2/pull/619>`_
+  `#621 <https://github.com/libgit2/pygit2/pull/621>`_
+
+- Reproducible builds
+  `#636 <https://github.com/libgit2/pygit2/pull/636>`_
+
+- Documentation fixes
+  `#606 <https://github.com/libgit2/pygit2/pull/606>`_
+  `#607 <https://github.com/libgit2/pygit2/pull/607>`_
+  `#609 <https://github.com/libgit2/pygit2/pull/609>`_
+  `#623 <https://github.com/libgit2/pygit2/pull/623>`_
+
+- Test updates
+  `#629 <https://github.com/libgit2/pygit2/pull/629>`_
+
+
 0.24.0 (2016-03-05)
 -------------------------
 
@@ -774,7 +797,7 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-104 developers have contributed at least 1 commit to pygit2::
+108 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
   W. Trevor King            Dave Borowitz             Daniel Rodríguez Troitiño
@@ -783,19 +806,20 @@ Authors
   Matthew Duggan            Matthew Gamble            Martin Lenders
   Petr Hosek                Victor Garcia             Xavier Delannoy
   Yonggang Luo              Patrick Steinhardt        Valentin Haenel
-  Michael Jones             Bernardo Heynemann        John Szakmeister
-  Vlad Temian               Brodie Rao                Nicolas Dandrimont
+  Michael Jones             Bernardo Heynemann        Brodie Rao
+  John Szakmeister          Vlad Temian               Nicolas Dandrimont
   David Versmisse           Rémi Duraffort            Santiago Perez De Rosso
   Sebastian Thiel           Thom Wiggers              Alok Singhal
   Fraser Tweedale           Han-Wen Nienhuys          Leonardo Rhodes
   Petr Viktorin             Ron Cohen                 Thomas Kluyver
   Alex Chamberlain          Alexander Bayandin        Amit Bakshi
   Andrey Devyatkin          Arno van Lumig            Ben Davis
-  Eric Schrijver            Greg Fitzgerald           Hervé Cauwelier
-  Huang Huang               Ian P. McCullough         Jack O'Connor
-  Jared Flatow              Jiunn Haur Lim            Jun Omae
-  Kaarel Kitsemets          Kevin KIN-FOO             Masud Rahman
-  Michael Sondergaard       Sarath Lakshman           Vicent Marti
+  Dustin Raimondi           Eric Schrijver            Greg Fitzgerald
+  Hervé Cauwelier           Huang Huang               Ian P. McCullough
+  Igor Gnatenko             Jack O'Connor             Jared Flatow
+  Jiunn Haur Lim            Jun Omae                  Kaarel Kitsemets
+  Kevin KIN-FOO             Masud Rahman              Michael Sondergaard
+  Ondřej Nový               Sarath Lakshman           Vicent Marti
   Zoran Zaric               Adam Spiers               Andrew Chin
   András Veres-Szentkirályi Ash Berlin                Benjamin Kircher
   Benjamin Pollack          Bryan O'Sullivan          Cam Cope
@@ -810,7 +834,7 @@ Authors
   Óscar San José            Peter Dave Hello          Philippe Ombredanne
   Ridge Kennedy             Ross Nicoll               Rui Abreu Ferreira
   Sheeo                     Soasme                    Vladimir Rutsky
-  chengyuhang               earl
+  Yu Jianjian               chengyuhang               earl
 
 
 License
