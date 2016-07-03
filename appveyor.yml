@@ -24,6 +24,8 @@ build_script:
     
     %PIP% install wheel
     %PYTHON% setup.py bdist_wheel 
+    %PIP% install .
+    
 test_script:
 - cmd: '%PYTHON% setup.py test'
 artifacts:
