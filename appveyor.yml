@@ -16,4 +16,4 @@ build_script:
     C:\Python35-x64\python.exe setup.py bdist_wheel 
   
 artifacts:
-- path: build\*
+- path: dist\*.whl
