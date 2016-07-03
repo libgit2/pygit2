@@ -1,7 +1,7 @@
 version: 1.0.{build}
 image: Visual Studio 2015
 configuration: Release
-  matrix:
+matrix:
   - ARCH: 32
     GENERATOR: '"Visual Studio 11"'
     PYTHON: '"C:\Python35\python.exe"'
