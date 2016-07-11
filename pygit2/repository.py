@@ -322,8 +322,23 @@ class Repository(_Repository):
 
         Keyword arguments:
 
+        a
+            None, a str (that refers to an Object, see revparse_single()) or a 
+            Reference object.
+            If None, b must be None, too. In this case the working directory is
+            compared with the index. Otherwise the referred object is compared to
+            'b'.
+        
+        b
+            None, a str (that refers to an Object, see revparse_single()) or a
+            Reference object.
+            If None, the working directory is compared to 'a'. (except
+            'cached' is True, in which case the index is compared to 'a').
+            Otherwise the referred object is compared to 'a'
+    
         cached
-            use staged changes instead of workdir
+            if 'b' is None, by default the working directory is compared to 'a'.
+            If 'cached' is set to True, the index/staging area is used for comparing.
 
         flag
             a GIT_DIFF_* constant
