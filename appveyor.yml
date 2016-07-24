@@ -26,7 +26,8 @@ build_script:
     
     "%PYTHON%" setup.py bdist_wheel 
     "%PIP%" install .
-    
+on_failure:
+- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 test_script:
 - ps: >-
     & $env:PYTHON setup.py nosetests --with-xunit
