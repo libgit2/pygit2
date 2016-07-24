@@ -27,6 +27,11 @@ build_script:
     %PIP% install .
     
 test_script:
-- cmd: '%PYTHON% setup.py test'
+- ps: >-
+    & $env:PYTHON setup.py nosetests --with-xunit
+    # upload results to AppVeyor
+    $wc = New-Object 'System.Net.WebClient'
+    $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\nosetests.xml))
+
 artifacts:
 - path: dist\*.whl
