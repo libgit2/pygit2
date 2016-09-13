@@ -40,7 +40,7 @@ def check_error(err, io=False):
     # Error message
     giterr = C.giterr_last()
     if giterr != ffi.NULL:
-        message = ffi.string(giterr.message).decode()
+        message = ffi.string(giterr.message).decode('utf8')
     else:
         message = "err %d (no message provided)" % err
 
