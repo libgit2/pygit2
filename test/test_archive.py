@@ -58,6 +58,7 @@ class ArchiveTest(utils.RepoTestCase):
             fileinfo = archive.getmembers()[0]
             self.assertEqual(timestamp, fileinfo.mtime)
 
+        del index
         archive.close()
         self.assertTrue(os.path.isfile('foo.tar'))
         os.remove('foo.tar')
