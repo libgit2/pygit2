@@ -20,7 +20,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received  copy of the GNU General Public License
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
@@ -73,3 +73,4 @@ class ArchiveTest(utils.RepoTestCase):
         self.check_writing(COMMIT_HASH, commit_timestamp)
         self.check_writing(Oid(hex=COMMIT_HASH), commit_timestamp)
         self.check_writing(self.repo[COMMIT_HASH], commit_timestamp)
+        print("test complete")
