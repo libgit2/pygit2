@@ -47,6 +47,7 @@ class Index(object):
         cindex = ffi.new('git_index **')
         err = C.git_index_open(cindex, to_bytes(path))
         check_error(err)
+        print("index opened")
 
         self._repo = None
         self._index = cindex[0]
@@ -67,6 +68,7 @@ class Index(object):
 
     def __del__(self):
         C.git_index_free(self._index)
+        print("index closed")
 
     def __len__(self):
         return C.git_index_entrycount(self._index)
