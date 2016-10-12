@@ -69,8 +69,9 @@ class ArchiveTest(utils.RepoTestCase):
         self.check_writing(self.repo[TREE_HASH])
 
     def test_write_commit(self):
+        print("--- test start")
         commit_timestamp = self.repo[COMMIT_HASH].committer.time
         self.check_writing(COMMIT_HASH, commit_timestamp)
         self.check_writing(Oid(hex=COMMIT_HASH), commit_timestamp)
         self.check_writing(self.repo[COMMIT_HASH], commit_timestamp)
-        print("test complete")
+        print("--- test complete")
