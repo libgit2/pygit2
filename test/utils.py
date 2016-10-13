@@ -35,6 +35,7 @@ import tarfile
 import tempfile
 import unittest
 import hashlib
+import gc
 
 import pygit2
 
@@ -94,6 +95,7 @@ class NoRepoTestCase(unittest.TestCase):
 
     def tearDown(self):
         del self.repo
+        gc.collect()
         rmtree(self._temp_dir)
 
     def assertRaisesAssign(self, exc_class, instance, name, value):
@@ -132,8 +134,8 @@ class AutoRepoTestCase(NoRepoTestCase):
         self.repo = pygit2.Repository(self.repo_path)
 
     def tearDown(self):
-        self.repo_ctxtmgr.__exit__(None, None, None)
         super(AutoRepoTestCase, self).tearDown()
+        self.repo_ctxtmgr.__exit__(None, None, None)
 
 
 class BareRepoTestCase(AutoRepoTestCase):
