@@ -29,7 +29,7 @@ build_script:
 test_script:
 - ps: |
     cp build\Release\git2.dll .
-    try { & $env:PYTHON setup.py nosetests --with-xunit }
+    &$env:PYTHON setup.py nosetests --with-xunit
     # upload results to AppVeyor
     $wc = New-Object 'System.Net.WebClient'
     $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\nosetests.xml))
