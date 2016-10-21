@@ -519,7 +519,12 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
     def test_clone_repository_and_remote_callbacks(self):
         src_repo_relpath = "./test/data/testrepo.git/"
         repo_path = os.path.join(self._temp_dir, "clone-into")
-        url = 'file:' + pathname2url(os.path.realpath(src_repo_relpath))
+        url = pathname2url(os.path.realpath(src_repo_relpath))
+        
+        if url.startswith('///'):
+            url = 'file:' + url
+        else:
+            url = 'file://' + url
 
         def create_repository(path, bare):
             return init_repository(path, bare)
