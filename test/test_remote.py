@@ -33,6 +33,7 @@ import pygit2
 import sys
 from pygit2 import Oid
 from . import utils
+import gc
 
 try:
     import __pypy__
@@ -238,6 +239,11 @@ class PushTestCase(unittest.TestCase):
         self.remote = self.clone.create_remote('origin', self.origin.path)
 
     def tearDown(self):
+        self.origin = None
+        self.clone = None
+        self.remote = None
+        gc.collect()
+        
         self.origin_ctxtmgr.__exit__(None, None, None)
         self.clone_ctxtmgr.__exit__(None, None, None)
 

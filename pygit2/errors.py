@@ -64,4 +64,6 @@ def check_error(err, io=False):
     raise GitError(message)
 
 # Indicate that we want libgit2 to pretend a function was not set
-Passthrough = Exception("The function asked for pass-through")
+class Passthrough(Exception):
+    def __init__(self):
+        super(Passthrough, self).__init__( "The function asked for pass-through")

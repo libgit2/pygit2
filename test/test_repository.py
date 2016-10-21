@@ -41,6 +41,12 @@ import sys
 
 import six
 
+if six.PY2:
+    from urllib import pathname2url
+    
+if six.PY3:
+    from urllib.request import pathname2url
+
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
 from pygit2 import init_repository, clone_repository, discover_repository
@@ -192,8 +198,8 @@ class RepositoryTest(utils.BareRepoTestCase):
 
     def test_hashfile(self):
         data = "bazbarfoo"
-        tempfile_path = tempfile.mkstemp()[1]
-        with open(tempfile_path, 'w') as fh:
+        handle, tempfile_path = tempfile.mkstemp()
+        with os.fdopen(handle, 'w') as fh:
             fh.write(data)
         hashed_sha1 = hashfile(tempfile_path)
         os.unlink(tempfile_path)
@@ -513,7 +519,7 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
     def test_clone_repository_and_remote_callbacks(self):
         src_repo_relpath = "./test/data/testrepo.git/"
         repo_path = os.path.join(self._temp_dir, "clone-into")
-        url = 'file://' + os.path.realpath(src_repo_relpath)
+        url = 'file:' + pathname2url(os.path.realpath(src_repo_relpath))
 
         def create_repository(path, bare):
             return init_repository(path, bare)

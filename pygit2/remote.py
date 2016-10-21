@@ -278,11 +278,9 @@ class RemoteCallbacks(object):
         try:
             ccred = get_credentials(credentials, url, username, allowed)
             cred_out[0] = ccred[0]
-
+        except Passthrough as e:
+            return C.GIT_PASSTHROUGH
         except Exception as e:
-            if e is Passthrough:
-                return C.GIT_PASSTHROUGH
-
             self._stored_exception = e
             return C.GIT_EUSER
 
@@ -308,15 +306,14 @@ class RemoteCallbacks(object):
             val = certificate_check(None, bool(valid), ffi.string(host))
             if not val:
                 return C.GIT_ECERTIFICATE
+        except Passthrough as e:
+            if is_ssh:
+                return 0
+            elif valid:
+                return 0
+            else:
+                return C.GIT_ECERTIFICATE
         except Exception as e:
-            if e is Passthrough:
-                if is_ssh:
-                    return 0
-                elif valid:
-                    return 0
-                else:
-                    return C.GIT_ECERTIFICATE
-
             self._stored_exception = e
             return C.GIT_EUSER
 
