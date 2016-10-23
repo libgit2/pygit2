@@ -413,6 +413,12 @@ class Remote(object):
         """Push the given refspec to the remote. Raises ``GitError`` on
         protocol error or unpack failure.
 
+        When the remote has a githook installed, that denies the reference
+        this function will return successfully. Thus it is stronly recommended
+        to install a callback, that implements
+        :py:meth:`RemoteCallbacks.push_update_reference` and check the passed
+        parameters for successfull operations.
+
         :param [str] specs: push refspecs to use
         """
         push_opts = ffi.new('git_push_options *')
