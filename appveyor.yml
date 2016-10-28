@@ -4,10 +4,10 @@ configuration: Release
 environment:
   matrix:
   - ARCH: 32
-    GENERATOR: 'Visual Studio 15'
+    GENERATOR: 'Visual Studio 14 2015'
     PYTHON: 'C:\Python35\python.exe'
   - ARCH: 64
-    GENERATOR: 'Visual Studio 15 Win64'
+    GENERATOR: 'Visual Studio 14 2015 Win64'
     PYTHON: 'C:\Python35-x64\python.exe'
 init:
 - cmd: '%PYTHON% -m pip install nose wheel'
