@@ -28,6 +28,8 @@
 # Import from the future
 from __future__ import absolute_import, unicode_literals
 
+import weakref
+
 # Import from pygit2
 from _pygit2 import Oid, Tree, Diff
 from .errors import check_error
@@ -305,10 +307,12 @@ class Index(object):
             self._conflicts = None
             return None
 
-        if self._conflicts is None:
-            self._conflicts = ConflictCollection(self)
+        if self._conflicts is None or self._conflicts() is None:
+            conflicts = ConflictCollection(self)
+            self._conflicts = weakref.ref(conflicts)
+            return conflicts
 
-        return self._conflicts
+        return self._conflicts()
 
 
 class IndexEntry(object):
