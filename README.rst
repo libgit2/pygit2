@@ -28,6 +28,27 @@ How to install
 Changelog
 ==============
 
+0.24.2 (2016-11-01)
+-------------------------
+
+- Unit tests pass on Windows, integration with AppVeyor
+  `#641 <https://github.com/libgit2/pygit2/pull/641>`_
+  `#655 <https://github.com/libgit2/pygit2/issues/655>`_
+  `#657 <https://github.com/libgit2/pygit2/pull/657>`_
+  `#659 <https://github.com/libgit2/pygit2/pull/659>`_
+  `#660 <https://github.com/libgit2/pygit2/pull/660>`_
+  `#661 <https://github.com/libgit2/pygit2/pull/661>`_
+  `#667 <https://github.com/libgit2/pygit2/pull/667>`_
+
+- Fix when libgit2 error messages have non-ascii chars
+  `#651 <https://github.com/libgit2/pygit2/pull/651>`_
+
+- Documentation improvements
+  `#643 <https://github.com/libgit2/pygit2/pull/643>`_
+  `#653 <https://github.com/libgit2/pygit2/pull/653>`_
+  `#663 <https://github.com/libgit2/pygit2/pull/663>`_
+
+
 0.24.1 (2016-06-21)
 -------------------------
 
@@ -800,30 +821,31 @@ Other: `#331 <https://github.com/libgit2/pygit2/pull/331>`_
 Authors
 ==============
 
-108 developers have contributed at least 1 commit to pygit2::
+112 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
-  W. Trevor King            Dave Borowitz             Daniel Rodríguez Troitiño
-  Richo Healey              Christian Boos            Julien Miotte
-  Richard Möhn              Xu Tao                    Jose Plana
-  Matthew Duggan            Matthew Gamble            Martin Lenders
-  Petr Hosek                Victor Garcia             Xavier Delannoy
-  Yonggang Luo              Patrick Steinhardt        Valentin Haenel
-  Michael Jones             Bernardo Heynemann        Brodie Rao
-  John Szakmeister          Vlad Temian               Nicolas Dandrimont
-  David Versmisse           Rémi Duraffort            Santiago Perez De Rosso
-  Sebastian Thiel           Thom Wiggers              Alok Singhal
-  Fraser Tweedale           Han-Wen Nienhuys          Leonardo Rhodes
-  Petr Viktorin             Ron Cohen                 Thomas Kluyver
-  Alex Chamberlain          Alexander Bayandin        Amit Bakshi
-  Andrey Devyatkin          Arno van Lumig            Ben Davis
-  Dustin Raimondi           Eric Schrijver            Greg Fitzgerald
-  Hervé Cauwelier           Huang Huang               Ian P. McCullough
-  Igor Gnatenko             Jack O'Connor             Jared Flatow
-  Jiunn Haur Lim            Jun Omae                  Kaarel Kitsemets
-  Kevin KIN-FOO             Masud Rahman              Michael Sondergaard
-  Ondřej Nový               Sarath Lakshman           Vicent Marti
-  Zoran Zaric               Adam Spiers               Andrew Chin
+  W. Trevor King            Dave Borowitz             Matthias Bartelmeß
+  Daniel Rodríguez Troitiño Richo Healey              Christian Boos
+  Julien Miotte             Richard Möhn              Xu Tao
+  Jose Plana                Matthew Duggan            Matthew Gamble
+  Martin Lenders            Petr Hosek                Victor Garcia
+  Xavier Delannoy           Yonggang Luo              Patrick Steinhardt
+  Valentin Haenel           Michael Jones             Bernardo Heynemann
+  Brodie Rao                John Szakmeister          Vlad Temian
+  Nicolas Dandrimont        David Versmisse           Rémi Duraffort
+  Santiago Perez De Rosso   Sebastian Thiel           Thom Wiggers
+  Alok Singhal              Fraser Tweedale           Han-Wen Nienhuys
+  Leonardo Rhodes           Petr Viktorin             Ron Cohen
+  Thomas Kluyver            anatoly techtonik         Alex Chamberlain
+  Alexander Bayandin        Amit Bakshi               Andrey Devyatkin
+  Arno van Lumig            Ben Davis                 Dustin Raimondi
+  Eric Schrijver            Greg Fitzgerald           Hervé Cauwelier
+  Huang Huang               Ian P. McCullough         Igor Gnatenko
+  Jack O'Connor             Jared Flatow              Jiunn Haur Lim
+  Jun Omae                  Kaarel Kitsemets          Kevin KIN-FOO
+  Masud Rahman              Michael Sondergaard       Ondřej Nový
+  Sarath Lakshman           Vicent Marti              Zoran Zaric
+  mrh1997                   Adam Spiers               Andrew Chin
   András Veres-Szentkirályi Ash Berlin                Benjamin Kircher
   Benjamin Pollack          Bryan O'Sullivan          Cam Cope
   Chason Chaffin            Chris Rebert              Colin Watson
@@ -835,9 +857,10 @@ Authors
   Justin Clift              Kyriakos Oikonomakos      Lukas Fleischer
   Mathieu Bridon            Nicolás Sanguinetti       Noah Fontes
   Óscar San José            Peter Dave Hello          Philippe Ombredanne
-  Ridge Kennedy             Ross Nicoll               Rui Abreu Ferreira
-  Sheeo                     Soasme                    Vladimir Rutsky
-  Yu Jianjian               chengyuhang               earl
+  Ridge Kennedy             Robert Hölzl              Ross Nicoll
+  Rui Abreu Ferreira        Sheeo                     Soasme
+  Vladimir Rutsky           Yu Jianjian               chengyuhang
+  earl
 
 
 License
