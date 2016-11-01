@@ -3,16 +3,25 @@ image: Visual Studio 2015
 configuration: Release
 environment:
   matrix:
-  - ARCH: 32
-    GENERATOR: 'Visual Studio 11'
+  - GENERATOR: 'Visual Studio 10'
+    PYTHON: 'C:\Python27\python.exe'
+  - GENERATOR: 'Visual Studio 10 Win64'
+    PYTHON: 'C:\Python27-x64\python.exe'
+  - GENERATOR: 'Visual Studio 10'
+    PYTHON: 'C:\Python33\python.exe'
+  - GENERATOR: 'Visual Studio 10 Win64'
+    PYTHON: 'C:\Python33-x64\python.exe'
+  - GENERATOR: 'Visual Studio 10'
+    PYTHON: 'C:\Python34\python.exe'
+  - GENERATOR: 'Visual Studio 10 Win64'
+    PYTHON: 'C:\Python34-x64\python.exe'
+  - GENERATOR: 'Visual Studio 14'
     PYTHON: 'C:\Python35\python.exe'
-    PIP: 'C:\Python35\Scripts\pip.exe'
-  - ARCH: 64
-    GENERATOR: 'Visual Studio 11 Win64'
+  - GENERATOR: 'Visual Studio 14 Win64'
     PYTHON: 'C:\Python35-x64\python.exe'
-    PIP: 'C:\Python35-x64\Scripts\pip.exe'
+
 init:
-- cmd: '%PIP% install nose wheel'
+- cmd: '%PYTHON% -m pip install -U nose wheel'
 build_script:
 - cmd: |
     set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\build\libgit2
@@ -24,8 +33,9 @@ build_script:
     cmake --build . --config Release --target install
     cd ..
     
+    IF "%GENERATOR%"=="Visual Studio 10 Win64" ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" )
+    
     "%PYTHON%" setup.py bdist_wheel 
-    "%PIP%" install .
 test_script:
 - ps: |
     cp build\Release\git2.dll .
