@@ -207,11 +207,30 @@ struct git_remote_callbacks {
 
 typedef struct git_remote_callbacks git_remote_callbacks;
 
+typedef enum {
+	GIT_PROXY_NONE,
+	GIT_PROXY_AUTO,
+	GIT_PROXY_SPECIFIED,
+} git_proxy_t;
+
+typedef struct {
+	unsigned int version;
+	git_proxy_t type;
+	const char *url;
+	git_cred_acquire_cb credentials;
+        git_transport_certificate_check_cb certificate_check;
+	void *payload;
+} git_proxy_options;
+
+#define GIT_PROXY_OPTIONS_VERSION ...
+int git_proxy_init_options(git_proxy_options *opts, unsigned int version);
+
 typedef struct {
 	unsigned int version;
 	unsigned int pb_parallelism;
 	git_remote_callbacks callbacks;
-    git_strarray custom_headers;
+	git_proxy_options proxy_opts;
+	git_strarray custom_headers;
 } git_push_options;
 
 #define GIT_PUSH_OPTIONS_VERSION ...
@@ -236,7 +255,8 @@ typedef struct {
 	git_fetch_prune_t prune;
 	int update_fetchhead;
 	git_remote_autotag_option_t download_tags;
-    git_strarray custom_headers;
+	git_proxy_options proxy_opts;
+	git_strarray custom_headers;
 } git_fetch_options;
 
 #define GIT_FETCH_OPTIONS_VERSION ...
@@ -738,7 +758,8 @@ typedef struct {
 	unsigned int rename_threshold;
 	unsigned int target_limit;
 	git_diff_similarity_metric *metric;
-    unsigned int recursion_limit;
+	unsigned int recursion_limit;
+	const char *default_driver;
 	git_merge_file_favor_t file_favor;
 	unsigned int file_flags;
 } git_merge_options;
