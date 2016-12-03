@@ -156,6 +156,138 @@ option(PyObject *self, PyObject *args)
             Py_RETURN_NONE;
             break;
         }
+
+        case GIT_OPT_GET_MWINDOW_MAPPED_LIMIT:
+        {
+            size_t limit;
+
+            error = git_libgit2_opts(GIT_OPT_GET_MWINDOW_MAPPED_LIMIT, &limit);
+            if (error < 0) {
+                Error_set(error);
+                return NULL;
+            }
+
+            return PyLong_FromSize_t(limit);
+
+            break;
+        }
+
+        case GIT_OPT_SET_MWINDOW_MAPPED_LIMIT:
+        {
+            size_t limit;
+            PyObject *py_limit;
+
+            py_limit = PyTuple_GetItem(args, 1);
+            if (!py_limit)
+                return NULL;
+
+            if (!PyLong_Check(py_limit))
+                goto on_non_integer;
+
+            limit = PyLong_AsSize_t(py_limit);
+            error = git_libgit2_opts(GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, limit);
+            if (error  < 0) {
+                Error_set(error);
+                return NULL;
+            }
+
+            Py_RETURN_NONE;
+            break;
+        }
+
+        case GIT_OPT_SET_CACHE_OBJECT_LIMIT:
+        {
+            size_t limit;
+            int object_type;
+            PyObject *py_object_type, *py_limit;
+
+            py_object_type = PyTuple_GetItem(args, 1);
+            if (!py_object_type)
+                return NULL;
+
+            py_limit = PyTuple_GetItem(args, 2);
+            if (!py_limit)
+                return NULL;
+
+            if (!PyLong_Check(py_limit))
+                goto on_non_integer;
+
+            object_type = PyLong_AsLong(py_object_type);
+            limit = PyLong_AsSize_t(py_limit);
+            error = git_libgit2_opts(GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, limit);
+
+            if (error < 0) {
+                Error_set(error);
+                return NULL;
+            }
+
+            Py_RETURN_NONE;
+            break;
+        }
+
+        case GIT_OPT_SET_CACHE_MAX_SIZE:
+        {
+          size_t max_size;
+          PyObject *py_max_size;
+
+          py_max_size = PyTuple_GetItem(args, 1);
+          if (!py_max_size)
+              return NULL;
+
+          if (!PyLong_Check(py_max_size))
+              goto on_non_integer;
+
+          max_size = PyLong_AsSize_t(py_max_size);
+          error = git_libgit2_opts(GIT_OPT_SET_CACHE_MAX_SIZE, max_size);
+          if (error  < 0) {
+              Error_set(error);
+              return NULL;
+          }
+
+          Py_RETURN_NONE;
+          break;
+        }
+
+        case GIT_OPT_ENABLE_CACHING:
+        {
+            int flag;
+            PyObject *py_flag;
+
+            py_flag = PyTuple_GetItem(args, 1);
+
+            if (!PyLong_Check(py_flag))
+                goto on_non_integer;
+
+            flag = PyLong_AsSize_t(py_flag);
+            error = git_libgit2_opts(GIT_OPT_ENABLE_CACHING, flag);
+            if (error  < 0) {
+                Error_set(error);
+                return NULL;
+            }
+
+            Py_RETURN_NONE;
+            break;
+        }
+
+        case GIT_OPT_GET_CACHED_MEMORY:
+        {
+            size_t current;
+            size_t allowed;
+            PyObject* tup = PyTuple_New(2);
+
+            error = git_libgit2_opts(GIT_OPT_GET_CACHED_MEMORY, &current, &allowed);
+            if (error < 0) {
+                Error_set(error);
+                return NULL;
+            }
+            PyTuple_SetItem(tup, 0, PyLong_FromLong(current));
+            PyTuple_SetItem(tup, 1, PyLong_FromLong(allowed));
+
+            return tup;
+
+            break;
+        }
+
     }
 
     PyErr_SetString(PyExc_ValueError, "unknown/unsupported option value");

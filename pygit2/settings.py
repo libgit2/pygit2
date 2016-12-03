@@ -28,6 +28,11 @@
 from _pygit2 import option
 from _pygit2 import GIT_OPT_GET_SEARCH_PATH, GIT_OPT_SET_SEARCH_PATH
 from _pygit2 import GIT_OPT_GET_MWINDOW_SIZE, GIT_OPT_SET_MWINDOW_SIZE
+from _pygit2 import GIT_OPT_GET_MWINDOW_MAPPED_LIMIT, GIT_OPT_SET_MWINDOW_MAPPED_LIMIT
+from _pygit2 import GIT_OPT_SET_CACHE_OBJECT_LIMIT
+from _pygit2 import GIT_OPT_GET_CACHED_MEMORY
+from _pygit2 import GIT_OPT_ENABLE_CACHING
+from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
 
 
 class SearchPathList(object):
@@ -64,3 +69,36 @@ class Settings(object):
     @mwindow_size.setter
     def mwindow_size(self, value):
         option(GIT_OPT_SET_MWINDOW_SIZE, value)
+
+    @property
+    def mwindow_mapped_limit(self):
+        """Mwindow mapped limit"""
+        return option(GIT_OPT_GET_MWINDOW_MAPPED_LIMIT)
+
+    @mwindow_mapped_limit.setter
+    def mwindow_mapped_limit(self, value):
+        """Mwindow mapped limit"""
+        return option(GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, value)
+
+    @property
+    def cached_memory(self):
+        """Maximum mmap window size"""
+        return option(GIT_OPT_GET_CACHED_MEMORY)
+
+    def enable_caching(self, value=True):
+        return option(GIT_OPT_ENABLE_CACHING, value)
+
+    def cache_max_size(self, value):
+        return option(GIT_OPT_SET_CACHE_MAX_SIZE, value)
+
+    def cache_object_limit(self, object_type, value):
+        """Set the maximum data size for the given type of object to be
+           considered eligible for caching in memory.
+
+        Setting to value to zero means that that type of object will not
+        be cached. Defaults to 0 for GIT_OBJ_BLOB (i.e. won't cache
+        blobs) and 4k for GIT_OBJ_COMMIT, GIT_OBJ_TREE, and GIT_OBJ_TAG.
+        """
+        return option(GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
+
+
