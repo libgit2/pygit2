@@ -76,10 +76,10 @@ class OptionsTest(utils.NoRepoTestCase):
 
     def test_cached_memory(self):
         value = option(GIT_OPT_GET_CACHED_MEMORY)
-        self.assertEqual(value, (0, 256 * 1024**2))
+        self.assertEqual(value[1], 256 * 1024**2)
 
     def test_cached_memory_proxy(self):
-        self.assertEqual(pygit2.settings.cached_memory, (0, 256 * 1024**2))
+        self.assertEqual(pygit2.settings.cached_memory[1], 256 * 1024**2)
 
     def test_enable_cache(self):
         option(GIT_OPT_ENABLE_CACHING, False)
@@ -91,9 +91,9 @@ class OptionsTest(utils.NoRepoTestCase):
 
     def test_cache_max_size_proxy(self):
         pygit2.settings.cache_max_size(128 * 1024**2)
-        self.assertEqual(pygit2.settings.cached_memory, (0, 128 * 1024**2))
+        self.assertEqual(pygit2.settings.cached_memory[1], 128 * 1024**2)
         pygit2.settings.cache_max_size(256 * 1024**2)
-        self.assertEqual(pygit2.settings.cached_memory, (0, 256 * 1024**2))
+        self.assertEqual(pygit2.settings.cached_memory[1], 256 * 1024**2)
 
     def test_search_path(self):
         paths = [(GIT_CONFIG_LEVEL_GLOBAL, '/tmp/global'),
