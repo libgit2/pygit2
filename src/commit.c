@@ -35,6 +35,7 @@
 #include "oid.h"
 
 extern PyTypeObject TreeType;
+extern PyObject *GitError;
 
 
 PyDoc_STRVAR(Commit_message_encoding__doc__, "Message encoding.");
@@ -131,8 +132,11 @@ Commit_tree__get__(Commit *commit)
     int err;
 
     err = git_commit_tree(&tree, commit->commit);
-    if (err == GIT_ENOTFOUND)
-        Py_RETURN_NONE;
+    if (err == GIT_ENOTFOUND) {
+        char tree_id[GIT_OID_HEXSZ + 1] = { 0 };
+        git_oid_fmt(tree_id, git_commit_tree_id(commit->commit));
+        return PyErr_Format(GitError, "Unable to read tree %s", tree_id);
+    }
 
     if (err < 0)
         return Error_set(err);
