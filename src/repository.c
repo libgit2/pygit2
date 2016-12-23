@@ -862,38 +862,17 @@ Repository_create_blob_fromdisk(Repository *self, PyObject *args)
 }
 
 
+#define BUFSIZE 4096
+
 PyDoc_STRVAR(Repository_create_blob_fromiobase__doc__,
     "create_blob_fromiobase(io.IOBase) -> Oid\n"
     "\n"
     "Create a new blob from an IOBase object.");
 
-
-int read_chunk(char *content, size_t max_length, void *payload)
-{
-    PyObject   *py_file;
-    PyObject   *py_bytes;
-    char       *bytes;
-    Py_ssize_t  size;
-
-    py_file  = (PyObject *)payload;
-    py_bytes = PyObject_CallMethod(py_file, "read", "i", max_length);
-    if (!py_bytes)
-        return -1;
-
-    size = 0;
-    if (py_bytes != Py_None) {
-        bytes = PyBytes_AsString(py_bytes);
-        size  = PyBytes_Size(py_bytes);
-        memcpy(content, bytes, size);
-    }
-
-    Py_DECREF(py_bytes);
-    return size;
-}
-
 PyObject *
 Repository_create_blob_fromiobase(Repository *self, PyObject *py_file)
 {
+    git_writestream *stream;
     git_oid   oid;
     PyObject *py_is_readable;
     int       is_readable;
@@ -915,8 +894,47 @@ Repository_create_blob_fromiobase(Repository *self, PyObject *py_file)
         return NULL;
     }
 
-    err = git_blob_create_fromchunks(&oid, self->repo, NULL, &read_chunk,
-                                     py_file);
+    err = git_blob_create_fromstream(&stream, self->repo, NULL);
+    if (err < 0)
+	    return Error_set(err);
+
+    for (;;) {
+        PyObject *py_bytes;
+        char *bytes;
+        Py_ssize_t size;
+
+        py_bytes = PyObject_CallMethod(py_file, "read", "i", 4096);
+        if (!py_bytes)
+            return NULL;
+
+        if (py_bytes == Py_None) {
+            Py_DECREF(py_bytes);
+            goto cleanup;
+        }
+
+        if (PyBytes_AsStringAndSize(py_bytes, &bytes, &size)) {
+            Py_DECREF(py_bytes);
+            return NULL;
+	}
+
+	if (size == 0) {
+            Py_DECREF(py_bytes);
+            break;
+	}
+
+        err = stream->write(stream, bytes, size);
+        Py_DECREF(py_bytes);
+        if (err < 0)
+            goto cleanup;
+    }
+
+cleanup:
+    if (err < 0) {
+        stream->free(stream);
+        return Error_set(err);
+    }
+
+    err = git_blob_create_fromstream_commit(&oid, stream);
     if (err < 0)
         return Error_set(err);
 
