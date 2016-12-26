@@ -28,6 +28,20 @@ How to install
 Changelog
 ==============
 
+0.25.0 (2016-12-26)
+-------------------------
+
+- Upgrade to libgit2 0.25
+  `#670 <https://github.com/libgit2/pygit2/pull/670>`_
+
+- Now Commit.tree raises an error if tree is not found
+  `#682 <https://github.com/libgit2/pygit2/pull/682>`_
+
+- New settings.mwindow_mapped_limit, cached_memory, enable_caching,
+  cache_max_size and cache_object_limit
+  `#677 <https://github.com/libgit2/pygit2/pull/677>`_
+
+
 0.24.2 (2016-11-01)
 -------------------------
 
@@ -834,30 +848,30 @@ Authors
   Brodie Rao                John Szakmeister          Vlad Temian
   Nicolas Dandrimont        David Versmisse           Rémi Duraffort
   Santiago Perez De Rosso   Sebastian Thiel           Thom Wiggers
-  Alok Singhal              Fraser Tweedale           Han-Wen Nienhuys
-  Leonardo Rhodes           Petr Viktorin             Ron Cohen
-  Thomas Kluyver            anatoly techtonik         Alex Chamberlain
-  Alexander Bayandin        Amit Bakshi               Andrey Devyatkin
-  Arno van Lumig            Ben Davis                 Dustin Raimondi
-  Eric Schrijver            Greg Fitzgerald           Hervé Cauwelier
-  Huang Huang               Ian P. McCullough         Igor Gnatenko
-  Jack O'Connor             Jared Flatow              Jiunn Haur Lim
-  Jun Omae                  Kaarel Kitsemets          Kevin KIN-FOO
-  Masud Rahman              Michael Sondergaard       Ondřej Nový
-  Sarath Lakshman           Vicent Marti              Zoran Zaric
-  mrh1997                   Adam Spiers               Andrew Chin
-  András Veres-Szentkirályi Ash Berlin                Benjamin Kircher
-  Benjamin Pollack          Bryan O'Sullivan          Cam Cope
-  Chason Chaffin            Chris Rebert              Colin Watson
-  Daniel Bruce              David Fischer             David Sanders
-  David Six                 Devaev Maxim              Eric Davis
-  Erik Meusel               Erik van Zijst            Ferengee
-  Guille -bisho-            Gustavo Di Pietro         Holger Frey
-  Hugh Cole-Baker           Jasper Lievisse Adriaanse Josh Bleecher Snyder
-  Justin Clift              Kyriakos Oikonomakos      Lukas Fleischer
-  Mathieu Bridon            Nicolás Sanguinetti       Noah Fontes
-  Óscar San José            Peter Dave Hello          Philippe Ombredanne
-  Ridge Kennedy             Robert Hölzl              Ross Nicoll
+  Alok Singhal              Anatoly Techtonik         Fraser Tweedale
+  Han-Wen Nienhuys          Leonardo Rhodes           Petr Viktorin
+  Robert Hölzl              Ron Cohen                 Thomas Kluyver
+  Alex Chamberlain          Alexander Bayandin        Amit Bakshi
+  Andrey Devyatkin          Arno van Lumig            Ben Davis
+  Dustin Raimondi           Eric Schrijver            Greg Fitzgerald
+  Guillermo Pérez           Hervé Cauwelier           Huang Huang
+  Ian P. McCullough         Igor Gnatenko             Jack O'Connor
+  Jared Flatow              Jiunn Haur Lim            Jun Omae
+  Kaarel Kitsemets          Kevin KIN-FOO             Masud Rahman
+  Michael Sondergaard       Ondřej Nový               Sarath Lakshman
+  Szucs Krisztian           Vicent Marti              Zoran Zaric
+  Adam Spiers               Andrew Chin               András Veres-Szentkirályi
+  Ash Berlin                Benjamin Kircher          Benjamin Pollack
+  Bryan O'Sullivan          Cam Cope                  Chason Chaffin
+  Chris Rebert              Colin Watson              Daniel Bruce
+  David Fischer             David Sanders             David Six
+  Devaev Maxim              Eric Davis                Erik Meusel
+  Erik van Zijst            Ferengee                  Gustavo Di Pietro
+  Holger Frey               Hugh Cole-Baker           Jasper Lievisse Adriaanse
+  Josh Bleecher Snyder      Justin Clift              Kyriakos Oikonomakos
+  Lukas Fleischer           Mathieu Bridon            Nicolás Sanguinetti
+  Noah Fontes               Óscar San José            Peter Dave Hello
+  Philippe Ombredanne       Ridge Kennedy             Ross Nicoll
   Rui Abreu Ferreira        Sheeo                     Soasme
   Vladimir Rutsky           Yu Jianjian               chengyuhang
   earl
