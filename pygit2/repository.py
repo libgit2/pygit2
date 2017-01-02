@@ -279,11 +279,6 @@ class Repository(_Repository):
         oid = reference.resolve().target
         treeish = self[oid]
         self.checkout_tree(treeish, **kwargs)
-        head = self.lookup_reference('HEAD')
-        if head.type == C.GIT_REF_SYMBOLIC:
-            from_ = self.head.shorthand
-        else:
-            from_ = head.target.hex
 
         self.set_head(refname)
 
