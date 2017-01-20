@@ -40,7 +40,7 @@ else:
 import six
 
 # Import from pygit2
-from _pygit2 import Repository as _Repository
+from _pygit2 import Repository as _Repository, init_file_backend
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
 from _pygit2 import GIT_FILEMODE_LINK
@@ -56,22 +56,11 @@ from .utils import to_bytes, is_string
 from .submodule import Submodule
 
 
-class Repository(_Repository):
+class BaseRepository(_Repository):
 
-    def __init__(self, path, *args, **kwargs):
-        if not isinstance(path, six.string_types):
-            path = path.decode('utf-8')
-        super(Repository, self).__init__(path, *args, **kwargs)
+    def __init__(self, backend, *args, **kwargs):
+        super(BaseRepository, self).__init__(backend, *args, **kwargs)
         self._common_init()
-
-    @classmethod
-    def _from_c(cls, ptr, owned):
-        cptr = ffi.new('git_repository **')
-        cptr[0] = ptr
-        repo = cls.__new__(cls)
-        super(cls, repo)._from_c(bytes(ffi.buffer(cptr)[:]), owned)
-        repo._common_init()
-        return repo
 
     def _common_init(self):
         self.remotes = RemoteCollection(self)
@@ -318,19 +307,19 @@ class Repository(_Repository):
         Keyword arguments:
 
         a
-            None, a str (that refers to an Object, see revparse_single()) or a 
+            None, a str (that refers to an Object, see revparse_single()) or a
             Reference object.
             If None, b must be None, too. In this case the working directory is
             compared with the index. Otherwise the referred object is compared to
             'b'.
-        
+
         b
             None, a str (that refers to an Object, see revparse_single()) or a
             Reference object.
             If None, the working directory is compared to 'a'. (except
             'cached' is True, in which case the index is compared to 'a').
             Otherwise the referred object is compared to 'a'
-    
+
         cached
             if 'b' is None, by default the working directory is compared to 'a'.
             If 'cached' is set to True, the index/staging area is used for comparing.
@@ -915,3 +904,21 @@ class Repository(_Repository):
 
         err = C.git_repository_set_ident(self._repo, to_bytes(name), to_bytes(email))
         check_error(err)
+
+
+class Repository(BaseRepository):
+    def __init__(self, path, *args, **kwargs):
+        if not isinstance(path, six.string_types):
+            path = path.decode('utf-8')
+
+        path_backend = init_file_backend(path)
+        super(Repository, self).__init__(backend=path_backend, *args, **kwargs)
+
+    @classmethod
+    def _from_c(cls, ptr, owned):
+        cptr = ffi.new('git_repository **')
+        cptr[0] = ptr
+        repo = cls.__new__(cls)
+        super(cls, repo)._from_c(bytes(ffi.buffer(cptr)[:]), owned)
+        repo._common_init()
+        return repo

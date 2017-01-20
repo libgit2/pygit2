@@ -88,7 +88,7 @@ wrap_repository(git_repository *c_repo)
 int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 {
-    char *path;
+    PyObject *backend;
     int err;
 
     if (kwds && PyDict_Size(kwds) > 0) {
@@ -97,15 +97,16 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (!PyArg_ParseTuple(args, "s", &path))
-        return -1;
-
-    err = git_repository_open(&self->repo, path);
-    if (err < 0) {
-        Error_set_str(err, path);
-        return -1;
+    if (!PyArg_ParseTuple(args, "O", &backend)) {
+    	return -1;
     }
 
+    self->repo = PyCapsule_GetPointer(backend, "backend");
+	if (self->repo == NULL) {
+		PyErr_SetString(PyExc_TypeError,
+                        "Repository unable to unpack backend.");
+        return -1;
+	}
     self->owned = 1;
     self->config = NULL;
     self->index = NULL;
@@ -1747,7 +1748,7 @@ PyGetSetDef Repository_getseters[] = {
 
 
 PyDoc_STRVAR(Repository__doc__,
-  "Repository(path) -> Repository\n"
+  "Repository(backend) -> Repository\n"
   "\n"
   "Git repository.");
 
@@ -1793,3 +1794,4 @@ PyTypeObject RepositoryType = {
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
+

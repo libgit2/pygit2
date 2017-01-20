@@ -144,7 +144,43 @@ hash(PyObject *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(init_file_backend__doc__,
+  "init_file_backend(path) -> object\n"
+  "\n"
+  "open repo backend given path.");
+PyObject *
+init_file_backend(PyObject *self, PyObject *args)
+{
+    const char* path;
+    int err = GIT_OK;
+    git_repository *repository = NULL;
+    if (!PyArg_ParseTuple(args, "s", &path)) {
+        return NULL;
+    };
+
+    err = git_repository_open(&repository, path);
+
+    if (err < 0) {
+        Error_set_str(err, path);
+        err = -1;
+        goto cleanup;
+    }
+
+    return PyCapsule_New(repository, "backend", NULL);
+
+cleanup:
+  if (repository)
+    git_repository_free(repository);
+
+  PyErr_Format(PyExc_Exception,
+          "Git error %d during construction of git repo", err);
+  return NULL;
+}
+
+
 PyMethodDef module_methods[] = {
+    {"init_file_backend", init_file_backend, METH_VARARGS,
+    init_file_backend__doc__},
     {"discover_repository", discover_repository, METH_VARARGS,
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
