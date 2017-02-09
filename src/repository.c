@@ -98,15 +98,15 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
     }
 
     if (!PyArg_ParseTuple(args, "O", &backend)) {
-    	return -1;
+        return -1;
     }
 
     self->repo = PyCapsule_GetPointer(backend, "backend");
-	if (self->repo == NULL) {
-		PyErr_SetString(PyExc_TypeError,
+    if (self->repo == NULL) {
+        PyErr_SetString(PyExc_TypeError,
                         "Repository unable to unpack backend.");
         return -1;
-	}
+    }
     self->owned = 1;
     self->config = NULL;
     self->index = NULL;
@@ -897,7 +897,7 @@ Repository_create_blob_fromiobase(Repository *self, PyObject *py_file)
 
     err = git_blob_create_fromstream(&stream, self->repo, NULL);
     if (err < 0)
-	    return Error_set(err);
+        return Error_set(err);
 
     for (;;) {
         PyObject *py_bytes;
@@ -916,12 +916,12 @@ Repository_create_blob_fromiobase(Repository *self, PyObject *py_file)
         if (PyBytes_AsStringAndSize(py_bytes, &bytes, &size)) {
             Py_DECREF(py_bytes);
             return NULL;
-	}
+        }
 
-	if (size == 0) {
+        if (size == 0) {
             Py_DECREF(py_bytes);
             break;
-	}
+        }
 
         err = stream->write(stream, bytes, size);
         Py_DECREF(py_bytes);
@@ -1794,4 +1794,3 @@ PyTypeObject RepositoryType = {
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
-
