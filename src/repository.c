@@ -1851,11 +1851,31 @@ Repository_add_worktree(Repository *self, PyObject *args)
     return wrap_worktree(self, wt);
 }
 
-PyDoc_STRVAR(Repository_list_worktrees__doc__,
-  "list_worktrees() -> [str, ...]\n"
-  "\n"
-  "Return a list with all the worktrees of this repository.");
+PyDoc_STRVAR(Repository_lookup_worktree__doc__,
+    "lookup_worktree(name) -> Worktree\n"
+    "\n"
+    "Lookup a worktree from its name.");
+PyObject *
+Repository_lookup_worktree(Repository *self, PyObject *args)
+{
+    char *c_name;
+    git_worktree *wt;
+    int err;
 
+    if (!PyArg_ParseTuple(args, "s", &c_name))
+        return NULL;
+
+    err = git_worktree_lookup(&wt, self->repo, c_name);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_worktree(self, wt);
+}
+
+PyDoc_STRVAR(Repository_list_worktrees__doc__,
+    "list_worktrees() -> [str, ...]\n"
+    "\n"
+    "Return a list with all the worktrees of this repository.");
 PyObject *
 Repository_list_worktrees(Repository *self, PyObject *args)
 {
@@ -1926,6 +1946,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, reset, METH_VARARGS),
     METHOD(Repository, expand_id, METH_O),
     METHOD(Repository, add_worktree, METH_VARARGS),
+    METHOD(Repository, lookup_worktree, METH_VARARGS),
     METHOD(Repository, list_worktrees, METH_VARARGS),
     METHOD(Repository, _from_c, METH_VARARGS),
     METHOD(Repository, _disown, METH_NOARGS),
