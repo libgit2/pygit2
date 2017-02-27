@@ -33,19 +33,9 @@
 #include "types.h"
 #include "worktree.h"
 
-PyDoc_STRVAR(Worktree_prune__doc__,
-    "Prune a worktree object.");
-
-PyObject *
-Worktree_prune(Worktree *self, PyObject* args)
-{
-    Py_RETURN_NONE;
-}
-
 
 PyDoc_STRVAR(Worktree_name__doc__,
-  "Gets name worktree\n");
-
+    "Gets name worktree\n");
 PyObject *
 Worktree_name__get__(Worktree *self)
 {
@@ -53,13 +43,40 @@ Worktree_name__get__(Worktree *self)
 }
 
 PyDoc_STRVAR(Worktree_path__doc__,
-  "Gets path worktree\n");
-
+    "Gets path worktree\n");
 PyObject *
 Worktree_path__get__(Worktree *self)
 {
     return to_unicode(self->worktree->gitlink_path, NULL, NULL);
-    return NULL;
+}
+
+PyDoc_STRVAR(Worktree_is_prunable__doc__,
+    "Is the worktree prunable with the given set of flags?\n");
+PyObject *
+Worktree_is_prunable__get__(Worktree *self, PyObject *args)
+{
+    return (git_worktree_is_prunable(self->worktree, 0) > 0) ? Py_True : Py_False;
+}
+
+PyDoc_STRVAR(Worktree_prune__doc__,
+    "prune(force=False)\n"
+    "\n"
+    "Prune a worktree object.");
+PyObject *
+Worktree_prune(Worktree *self, PyObject *args)
+{
+    int err, force = 0;
+
+    if (!PyArg_ParseTuple(args, "|i", &force))
+        return NULL;
+
+    err = git_worktree_prune(self->worktree, force & (GIT_WORKTREE_PRUNE_VALID | GIT_WORKTREE_PRUNE_LOCKED));
+    if (err < 0)
+        return Error_set(err);
+
+    // TODO should I have to deallocate myself ?
+ 
+    Py_RETURN_NONE;
 }
 
 static void
@@ -79,6 +96,7 @@ PyMethodDef Worktree_methods[] = {
 PyGetSetDef Worktree_getseters[] = {
     GETTER(Worktree, path),
     GETTER(Worktree, name),
+    GETTER(Worktree, is_prunable),
     {NULL}
 };
 
