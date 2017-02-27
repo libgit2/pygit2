@@ -1694,6 +1694,68 @@ Repository_expand_id(Repository *self, PyObject *py_hex)
     return git_oid_to_python(&oid);
 }
 
+PyDoc_STRVAR(Repository_add_worktree__doc__,
+    "add_worktree(name, path)\n"
+    "\n"
+    "Create a new worktree for this repository.");
+PyObject *
+Repository_add_worktree(Repository *self, PyObject *args)
+{
+    char *c_name;
+    char *c_path;
+    git_worktree *wt;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "ss", &c_name, &c_path))
+        return NULL;
+
+    err = git_worktree_add(&wt, self->repo, c_name, c_path);
+    if (err < 0)
+        return Error_set(err);
+
+    git_worktree_free(wt);
+
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Repository_list_worktrees__doc__,
+  "list_worktrees() -> [str, ...]\n"
+  "\n"
+  "Return a list with all the worktrees of this repository.");
+
+PyObject *
+Repository_list_worktrees(Repository *self, PyObject *args)
+{
+    git_strarray c_result;
+    PyObject *py_result, *py_string;
+    unsigned index;
+    int err;
+
+    /* Get the C result */
+    err = git_worktree_list(&c_result, self->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    /* Create a new PyTuple */
+    py_result = PyList_New(c_result.count);
+    if (py_result == NULL)
+        goto out;
+
+    /* Fill it */
+    for (index=0; index < c_result.count; index++) {
+        py_string = to_path(c_result.strings[index]);
+        if (py_string == NULL) {
+            Py_CLEAR(py_result);
+            goto out;
+        }
+        PyList_SET_ITEM(py_result, index, py_string);
+    }
+
+out:
+    git_strarray_free(&c_result);
+    return py_result;
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
@@ -1728,6 +1790,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, reset, METH_VARARGS),
     METHOD(Repository, expand_id, METH_O),
+    METHOD(Repository, add_worktree, METH_VARARGS),
+    METHOD(Repository, list_worktrees, METH_VARARGS),
     METHOD(Repository, _from_c, METH_VARARGS),
     METHOD(Repository, _disown, METH_NOARGS),
     {NULL}
