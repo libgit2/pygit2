@@ -75,6 +75,13 @@ SIMPLE_TYPE(Tree, git_tree, tree)
 SIMPLE_TYPE(Blob, git_blob, blob)
 SIMPLE_TYPE(Tag, git_tag, tag)
 
+/* git_worktree */
+typedef struct {
+    PyObject_HEAD
+    Repository *repo;
+    git_worktree *worktree;
+} Worktree;
+
 /* git_note */
 typedef struct {
     PyObject_HEAD
