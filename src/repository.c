@@ -38,6 +38,7 @@
 #include "diff.h"
 #include "branch.h"
 #include "signature.h"
+#include "worktree.h"
 #include <git2/odb_backend.h>
 #include <git2/sys/repository.h>
 
@@ -1812,9 +1813,7 @@ Repository_add_worktree(Repository *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    git_worktree_free(wt);
-
-    Py_RETURN_NONE;
+    return wrap_worktree(self, wt);
 }
 
 PyDoc_STRVAR(Repository_list_worktrees__doc__,
