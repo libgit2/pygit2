@@ -50,6 +50,14 @@ Worktree_path__get__(Worktree *self)
     return to_unicode(self->worktree->gitlink_path, NULL, NULL);
 }
 
+PyDoc_STRVAR(Worktree_git_path__doc__,
+    "Gets dir within .git path\n");
+PyObject *
+Worktree_git_path__get__(Worktree *self)
+{
+    return to_unicode(self->worktree->gitdir_path, NULL, NULL);
+}
+
 PyDoc_STRVAR(Worktree_is_prunable__doc__,
     "Is the worktree prunable with the given set of flags?\n");
 PyObject *
@@ -95,6 +103,7 @@ PyMethodDef Worktree_methods[] = {
 
 PyGetSetDef Worktree_getseters[] = {
     GETTER(Worktree, path),
+    GETTER(Worktree, git_path),
     GETTER(Worktree, name),
     GETTER(Worktree, is_prunable),
     {NULL}
