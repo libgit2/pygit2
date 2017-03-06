@@ -1288,6 +1288,74 @@ Repository_listall_submodules(Repository *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Repository_init_submodules__doc__,
+    "init_submodule(submodules=None, overwrite=False)\n"
+    "\n"
+    "Initialize all submodules in repository.\n"
+    "submodules: List of submodules to initialize. Default argument initializes all submodules.\n"
+    "overwrite: Flag indicating if initialization should overwrite submodule entries.\n");
+
+static int foreach_sub_init_cb(git_submodule *submodule, const char *name, void *payload)
+{
+    return git_submodule_init(submodule, *(int*)payload);
+}
+
+PyObject *
+Repository_init_submodules(Repository* self, PyObject *args, PyObject *kwds)
+{
+    PyObject *list = Py_None;
+    PyObject *oflag = Py_False;
+    char *kwlist[] = {"submodules", "overwrite", NULL};
+    int err, fflag;
+    PyObject *iter, *subpath, *next;
+    const char *c_subpath;
+    git_submodule *submodule;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OO", kwlist, &list, &oflag))
+        return NULL;
+
+    fflag = PyObject_IsTrue(oflag);
+
+    if (fflag != 0 && fflag != 1)
+        fflag = 0;
+
+    //Init all submodules listed in repository
+    if (list == Py_None) {
+        err = git_submodule_foreach(self->repo, foreach_sub_init_cb, &fflag);
+        if (err != 0)
+            return Error_set(err);
+        Py_RETURN_NONE;
+    }
+
+    iter = PyObject_GetIter(list);
+    if (!iter)
+        return NULL;
+
+    while (1) {
+        next = PyIter_Next(iter);
+        if (!next)
+            break;
+
+        c_subpath = py_str_borrow_c_str(&subpath, next, NULL);
+
+        git_submodule_lookup(&submodule, self->repo, c_subpath);
+        Py_DECREF(subpath);
+        if (!submodule) {
+            PyErr_SetString(PyExc_KeyError,
+                "Submodule does not exist");
+            return NULL;
+        }
+
+        err = git_submodule_init(submodule, fflag);
+        if (err != 0) {
+            return Error_set(err);
+        }
+    }
+
+    Py_RETURN_NONE;
+}
+
+
 PyDoc_STRVAR(Repository_lookup_reference__doc__,
   "lookup_reference(name) -> Reference\n"
   "\n"
@@ -1714,6 +1782,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, listall_reference_objects, METH_NOARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
+    METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
