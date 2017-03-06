@@ -30,6 +30,8 @@
 # Import from the future
 from __future__ import absolute_import
 
+import os
+
 import pygit2
 import unittest
 
@@ -37,8 +39,8 @@ from . import utils
 
 SUBM_NAME = 'submodule'
 SUBM_PATH = 'submodule'
-SUBM_URL = 'test.com/submodule.git'
-SUBM_HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
+SUBM_URL = 'https://github.com/libgit2/pygit2'
+SUBM_HEAD_SHA = '819cbff552e46ac4b8d10925cc422a30aa04e78e'
 
 class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
@@ -53,6 +55,8 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
     def test_submodule_open(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
+        self.repo.init_submodules()
+        self.repo.update_submodules()
         r = s.open()
         self.assertIsNotNone(r)
         self.assertEqual(str(r.head.target), SUBM_HEAD_SHA)
@@ -68,6 +72,26 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
     def test_url(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
         self.assertEqual(SUBM_URL, s.url)
+
+    def test_init_and_update(self):
+        subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
+        self.assertFalse(os.path.exists(subrepo_file_path))
+        self.repo.init_submodules()
+        self.repo.update_submodules()
+        self.assertTrue(os.path.exists(subrepo_file_path))
+
+    def test_specified_update(self):
+        subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
+        self.assertFalse(os.path.exists(subrepo_file_path))
+        self.repo.init_submodules(submodules=['submodule'])
+        self.repo.update_submodules(submodules=['submodule'])
+        self.assertTrue(os.path.exists(subrepo_file_path))
+
+    def test_oneshot_update(self):
+        subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
+        self.assertFalse(os.path.exists(subrepo_file_path))
+        self.repo.update_submodules(init=True)
+        self.assertTrue(os.path.exists(subrepo_file_path))
 
 if __name__ == '__main__':
     unittest.main()
