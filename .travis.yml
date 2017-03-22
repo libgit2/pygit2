@@ -13,7 +13,7 @@ env: LIBGIT2=~/libgit2/_install/ LD_LIBRARY_PATH=~/libgit2/_install/lib
 
 before_install:
   - sudo apt-get install cmake
-  - pip install cffi
+  - pip install cffi==1.9.1
   - "./.travis.sh"
 
 script:
