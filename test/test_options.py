@@ -44,27 +44,37 @@ from . import utils
 
 class OptionsTest(utils.NoRepoTestCase):
 
+    def __option(self, getter, setter, value):
+        old_value = option(getter)
+        option(setter, value)
+        self.assertEqual(value, option(getter))
+        # Reset to avoid side effects in later tests
+        option(setter, old_value)
+
+    def __proxy(self, name, value):
+        old_value = getattr(pygit2.settings, name)
+        setattr(pygit2.settings, name, value)
+        self.assertEqual(value, getattr(pygit2.settings, name))
+        # Reset to avoid side effects in later tests
+        setattr(pygit2.settings, name, old_value)
+
     def test_mwindow_size(self):
-        new_size = 200 * 1024
-        option(GIT_OPT_SET_MWINDOW_SIZE, new_size)
-        self.assertEqual(new_size, option(GIT_OPT_GET_MWINDOW_SIZE))
+        self.__option(
+            GIT_OPT_GET_MWINDOW_SIZE,
+            GIT_OPT_SET_MWINDOW_SIZE,
+            200 * 1024)
 
     def test_mwindow_size_proxy(self):
-        new_size = 300 * 1024
-        pygit2.settings.mwindow_size = new_size
+        self.__proxy('mwindow_size', 300 * 1024)
 
-        self.assertEqual(new_size, pygit2.settings.mwindow_size)
+    def test_mwindow_mapped_limit_200(self):
+        self.__option(
+            GIT_OPT_GET_MWINDOW_MAPPED_LIMIT,
+            GIT_OPT_SET_MWINDOW_MAPPED_LIMIT,
+            200 * 1024)
 
-    def test_mwindow_mapped_limit(self):
-        new_limit = 200 * 1024
-        option(GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, new_limit)
-        self.assertEqual(new_limit, option(GIT_OPT_GET_MWINDOW_MAPPED_LIMIT))
-
-    def test_mwindow_mapped_limit(self):
-        new_limit = 300 * 1024
-        pygit2.settings.mwindow_mapped_limit = new_limit
-
-        self.assertEqual(new_limit, pygit2.settings.mwindow_mapped_limit)
+    def test_mwindow_mapped_limit_300(self):
+        self.__proxy('mwindow_mapped_limit', 300 * 1024)
 
     def test_cache_object_limit(self):
         new_limit = 2 * 1024
