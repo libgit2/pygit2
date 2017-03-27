@@ -44,7 +44,7 @@ from _pygit2 import Repository as _Repository, init_file_backend
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
 from _pygit2 import GIT_FILEMODE_LINK
-from _pygit2 import Reference, Tree, Commit, Blob
+from _pygit2 import Reference, Tree, Commit, Blob, Signature
 
 from .config import Config
 from .errors import check_error
@@ -735,6 +735,47 @@ class BaseRepository(_Repository):
                 C.git_buf_free(buf)
         finally:
             C.git_describe_result_free(result[0])
+    #
+    # Stash
+    #
+    def stash(self, stasher, message=None, keep_index=False,
+             include_untracked=False, include_ignored=False):
+        """Save changes to the working directory to the stash.
+
+        :param Signature stasher: The identity of the person doing the stashing.
+        :param str message: An optional description of stashed state.
+        :param bool keep_index: Leave changes already added to the index
+            in the working directory.
+        :param bool include_untracked: Also stash untracked files.
+        :param bool include_ignored: Also stash ignored files.
+
+        :returns: The Oid of the stash merge commit.
+        :rtype: Oid
+
+        Example::
+
+            >>> repo = pygit2.Repsitory('.')
+            >>> repo.stash(repo.default_signature(), 'WIP: stashing')
+        """
+
+        if message is not None:
+            stash_msg = ffi.new('char[]', to_bytes(message)) if message else ffi.NULL
+        else:
+            stash_msg = ffi.NULL
+
+        flags = 0
+        flags |= keep_index * C.GIT_STASH_KEEP_INDEX
+        flags |= include_untracked * C.GIT_STASH_INCLUDE_UNTRACKED
+        flags |= include_ignored * C.GIT_STASH_INCLUDE_IGNORED
+
+        stasher_cptr = ffi.new('git_signature **')
+        ffi.buffer(stasher_cptr)[:] = stasher._pointer[:]
+
+        coid = ffi.new('git_oid *')
+        err = C.git_stash_save(coid, self._repo, stasher_cptr[0], stash_msg, flags)
+        check_error(err)
+
+        return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
     #
     # Utility for writing a tree into an archive
