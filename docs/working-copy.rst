@@ -71,3 +71,11 @@ Lower level API:
 .. automethod:: pygit2.Repository.checkout_head
 .. automethod:: pygit2.Repository.checkout_tree
 .. automethod:: pygit2.Repository.checkout_index
+
+Stash
+====================
+
+.. automethod:: pygit2.Repository.stash
+.. automethod:: pygit2.Repository.stash_apply
+.. automethod:: pygit2.Repository.stash_drop
+.. automethod:: pygit2.Repository.stash_pop
