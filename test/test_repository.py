@@ -422,6 +422,19 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.assertTrue("hola mundo\n" in diff.patch)
         self.assertTrue("bonjour le monde\n" in diff.patch)
 
+    def test_stash(self):
+        # some changes to working dir
+        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
+            f.write('new content')
+
+        sig = pygit2.Signature('Stasher', 'stasher@example.com')
+        self.repo.stash(sig, include_untracked=True)
+        self.assertFalse('hello.txt' in self.repo.status())
+        self.repo.stash_apply()
+        self.assertTrue('hello.txt' in self.repo.status())
+        self.repo.stash_drop()
+        self.assertRaises(KeyError, self.repo.stash_pop)
+
 class RepositorySignatureTest(utils.RepoTestCase):
 
     def test_default_signature(self):
