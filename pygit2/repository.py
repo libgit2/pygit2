@@ -805,6 +805,14 @@ class BaseRepository(_Repository):
 
         check_error(C.git_stash_apply(self._repo, index, stash_opts))
 
+    def stash_drop(self, index=0):
+        """Remove a stashed state from the stash list.
+
+        :param int index: The position within the stash list of the stash to remove.
+            0 is the most recent stash.
+        """
+        check_error(C.git_stash_drop(self._repo, index))
+
     #
     # Utility for writing a tree into an archive
     #
