@@ -96,10 +96,10 @@ Signature_dealloc(Signature *self)
 
 PyDoc_STRVAR(Signature__pointer__doc__, "Get the signature's pointer. For internal use only.");
 PyObject *
-Signature__pointer__get__(Repository *self)
+Signature__pointer__get__(Signature *self)
 {
     /* Bytes means a raw buffer */
-    return PyBytes_FromStringAndSize((char *) &self->repo, sizeof(git_repository *));
+    return PyBytes_FromStringAndSize((char *) &self->signature, sizeof(git_signature *));
 }
 
 PyDoc_STRVAR(Signature__encoding__doc__, "Encoding.");
