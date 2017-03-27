@@ -777,6 +777,34 @@ class BaseRepository(_Repository):
 
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
+    def stash_apply(self, index=0, reinstate_index=False, **kwargs):
+        """Apply a stashed state in the stash list to the working directory.
+
+        :param int index: The position within the stash list of the stash to apply.
+            0 is the most recent stash.
+        :param bool reinstate_index: Try to reinstate stashed changes to the index.
+
+        The checkout options may be customized using the same arguments taken by
+        Repository.checkout().
+
+        Example::
+
+            >>> repo = pygit2.Repsitory('.')
+            >>> repo.stash(repo.default_signature(), 'WIP: stashing')
+            >>> repo.stash_apply(strategy=GIT_CHECKOUT_ALLOW_CONFLICTS)
+        """
+
+        stash_opts = ffi.new('git_stash_apply_options *')
+        check_error(C.git_stash_apply_init_options(stash_opts, 1))
+
+        flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
+        stash_opts.flags = flags
+
+        copts, refs = Repository._checkout_args_to_options(**kwargs)
+        stash_opts.checkout_options = copts[0]
+
+        check_error(C.git_stash_apply(self._repo, index, stash_opts))
+
     #
     # Utility for writing a tree into an archive
     #
