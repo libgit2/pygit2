@@ -777,7 +777,20 @@ class BaseRepository(_Repository):
 
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
-    def stash_apply(self, index=0, reinstate_index=False, **kwargs):
+    @staticmethod
+    def _stash_args_to_options(reinstate_index=False, **kwargs):
+        stash_opts = ffi.new('git_stash_apply_options *')
+        check_error(C.git_stash_apply_init_options(stash_opts, 1))
+
+        flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
+        stash_opts.flags = flags
+
+        copts, refs = Repository._checkout_args_to_options(**kwargs)
+        stash_opts.checkout_options = copts[0]
+
+        return stash_opts
+
+    def stash_apply(self, index=0, **kwargs):
         """Apply a stashed state in the stash list to the working directory.
 
         :param int index: The position within the stash list of the stash to apply.
@@ -793,16 +806,7 @@ class BaseRepository(_Repository):
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
             >>> repo.stash_apply(strategy=GIT_CHECKOUT_ALLOW_CONFLICTS)
         """
-
-        stash_opts = ffi.new('git_stash_apply_options *')
-        check_error(C.git_stash_apply_init_options(stash_opts, 1))
-
-        flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
-        stash_opts.flags = flags
-
-        copts, refs = Repository._checkout_args_to_options(**kwargs)
-        stash_opts.checkout_options = copts[0]
-
+        stash_opts = Repository._stash_args_to_options(**kwargs)
         check_error(C.git_stash_apply(self._repo, index, stash_opts))
 
     def stash_drop(self, index=0):
@@ -812,6 +816,15 @@ class BaseRepository(_Repository):
             0 is the most recent stash.
         """
         check_error(C.git_stash_drop(self._repo, index))
+
+
+    def stash_pop(self, index=0, **kwargs):
+        """Apply a stashed state and remove it from the stash list.
+
+        For arguments, see Repository.stash_apply().
+        """
+        stash_opts = Repository._stash_args_to_options(**kwargs)
+        check_error(C.git_stash_pop(self._repo, index, stash_opts))
 
     #
     # Utility for writing a tree into an archive
