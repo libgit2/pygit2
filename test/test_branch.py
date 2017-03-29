@@ -88,6 +88,14 @@ class BranchesTestCase(utils.RepoTestCase):
         branch = self.repo.lookup_branch('i18n')
         self.assertFalse(branch.is_head())
 
+    def test_branch_is_checked_out_returns_true_if_branch_is_checked_out(self):
+        branch = self.repo.lookup_branch('master')
+        self.assertTrue(branch.is_checked_out())
+
+    def test_branch_is_checked_out_returns_false_if_branch_is_not_checked_out(self):
+        branch = self.repo.lookup_branch('i18n')
+        self.assertFalse(branch.is_checked_out())
+
     def test_branch_rename_succeeds(self):
         original_branch = self.repo.lookup_branch('i18n')
         new_branch = original_branch.rename('new-branch')
