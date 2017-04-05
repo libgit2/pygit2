@@ -159,7 +159,6 @@ init_file_backend(PyObject *self, PyObject *args)
     }
 
     err = git_repository_open(&repository, path);
-
     if (err < 0) {
         Error_set_str(err, path);
         goto cleanup;
@@ -173,11 +172,7 @@ cleanup:
     }
 
     if (err == GIT_ENOTFOUND) {
-        PyErr_Format(PyExc_Exception,
-                "Repository not found at %s", path);
-    } else {
-        PyErr_Format(PyExc_Exception,
-                "Git error %d while opening repo at %s", err, path);
+        PyErr_Format(GitError, "Repository not found at %s", path);
     }
 
     return NULL;
