@@ -105,6 +105,9 @@ def init_repository(path, bare=False,
     See libgit2's documentation on git_repository_init_ext for further details.
     """
     # Pre-process input parameters
+    if path is None:
+        raise TypeError('Expected string type for path, found None.')
+
     if bare:
         flags |= GIT_REPOSITORY_INIT_BARE
 
