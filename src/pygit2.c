@@ -168,19 +168,19 @@ init_file_backend(PyObject *self, PyObject *args)
     return PyCapsule_New(repository, "backend", NULL);
 
 cleanup:
-  if (repository) {
-    git_repository_free(repository);
-  }
+    if (repository) {
+        git_repository_free(repository);
+    }
 
-  if (err == GIT_ENOTFOUND) {
-    PyErr_Format(PyExc_Exception,
-            "Repository not found at %s", path);
-  } else {
-    PyErr_Format(PyExc_Exception,
-            "Git error %d while opening repo at %s", err, path);
-  }
-  
-  return NULL;
+    if (err == GIT_ENOTFOUND) {
+        PyErr_Format(PyExc_Exception,
+                "Repository not found at %s", path);
+    } else {
+        PyErr_Format(PyExc_Exception,
+                "Git error %d while opening repo at %s", err, path);
+    }
+
+    return NULL;
 }
 
 
