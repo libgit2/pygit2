@@ -151,29 +151,35 @@ PyDoc_STRVAR(init_file_backend__doc__,
 PyObject *
 init_file_backend(PyObject *self, PyObject *args)
 {
-    const char* path;
+    const char* path = NULL;
     int err = GIT_OK;
     git_repository *repository = NULL;
     if (!PyArg_ParseTuple(args, "s", &path)) {
         return NULL;
-    };
+    }
 
     err = git_repository_open(&repository, path);
 
     if (err < 0) {
         Error_set_str(err, path);
-        err = -1;
         goto cleanup;
     }
 
     return PyCapsule_New(repository, "backend", NULL);
 
 cleanup:
-  if (repository)
+  if (repository) {
     git_repository_free(repository);
+  }
 
-  PyErr_Format(PyExc_Exception,
-          "Git error %d during construction of git repo", err);
+  if (err == GIT_ENOTFOUND) {
+    PyErr_Format(PyExc_Exception,
+            "Repository not found at %s", path);
+  } else {
+    PyErr_Format(PyExc_Exception,
+            "Git error %d while opening repo at %s", err, path);
+  }
+  
   return NULL;
 }
 
