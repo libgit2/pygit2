@@ -83,9 +83,7 @@ py_str_borrow_c_str(PyObject **tvalue, PyObject *value, const char *encoding)
     }
 
     /* Type error */
-    PyErr_Format(PyExc_TypeError, "unexpected %.200s",
-                 Py_TYPE(value)->tp_name);
-    return NULL;
+    return Error_type_error("unexpected %.200s", value);
 }
 
 /**

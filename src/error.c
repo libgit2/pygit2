@@ -126,3 +126,10 @@ Error_set_oid(int err, const git_oid *oid, size_t len)
     hex[len] = '\0';
     return Error_set_str(err, hex);
 }
+
+PyObject *
+Error_type_error(const char *format, PyObject *value)
+{
+    PyErr_Format(PyExc_TypeError, format, Py_TYPE(value)->tp_name);
+    return NULL;
+}
