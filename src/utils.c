@@ -83,7 +83,8 @@ py_str_borrow_c_str(PyObject **tvalue, PyObject *value, const char *encoding)
     }
 
     /* Type error */
-    return Error_type_error("unexpected %.200s", value);
+    Error_type_error("unexpected %.200s", value);
+    return NULL;
 }
 
 /**
