@@ -45,7 +45,7 @@
 #endif
 
 #ifndef PyLong_AsSize_t
-  #define PyLong_AsSize_t (size_t)PyLong_AsUnsignedLong
+  #define PyLong_AsSize_t (size_t)PyLong_AsSsize_t
 #endif
 
 #if PY_MAJOR_VERSION == 2

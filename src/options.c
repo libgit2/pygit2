@@ -171,11 +171,15 @@ option(PyObject *self, PyObject *args)
             if (!py_limit)
                 return NULL;
 
-            if (!PyInt_Check(py_limit))
+            if (PyInt_Check(py_limit)) {
+                limit = PyInt_AsSize_t(py_limit);
+            } else if (PyLong_Check(py_limit)) {
+                limit = PyLong_AsSize_t(py_limit);
+            } else {
                 return Error_type_error(
                     "limit should be an integer, got %.200s", py_limit);
+            }
 
-            limit = PyInt_AsSize_t(py_limit);
             error = git_libgit2_opts(GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, limit);
             if (error < 0)
                 return Error_set(error);
