@@ -40,13 +40,17 @@
 #endif
 
 /* Python 2 support */
+#ifndef Py_hash_t
+  #define Py_hash_t long
+#endif
+
+#ifndef PyLong_AsSize_t
+  #define PyLong_AsSize_t (size_t)PyLong_AsUnsignedLong
+#endif
+
 #if PY_MAJOR_VERSION == 2
-  #define PyLong_FromSize_t PyInt_FromSize_t
-  #define PyLong_AsSize_t (size_t)PyInt_AsSsize_t
-  #define PyLong_AsLong PyInt_AsLong
-  #undef PyLong_Check
-  #define PyLong_Check PyInt_Check
-  #define PyLong_FromLong PyInt_FromLong
+  #define PyInt_AsSize_t (size_t)PyInt_AsLong
+  #define PyInt_FromLongLong PyInt_FromLong
   #define PyBytes_AS_STRING PyString_AS_STRING
   #define PyBytes_AsString PyString_AsString
   #define PyBytes_AsStringAndSize PyString_AsStringAndSize
@@ -57,17 +61,16 @@
   #define to_path(x) to_bytes(x)
   #define to_encoding(x) to_bytes(x)
 #else
+  #define PyInt_Check PyLong_Check
+  #define PyInt_FromSize_t PyLong_FromSize_t
+  #define PyInt_FromLong PyLong_FromLong
+  #define PyInt_FromLongLong PyLong_FromLongLong
+  #define PyInt_AsLong PyLong_AsLong
+  #define PyInt_AsSize_t PyLong_AsSize_t
+
   #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
   #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
   #define PyString_FromFormat(s, ...) PyUnicode_FromFormat(s, __VA_ARGS__)
-#endif
-
-#ifdef PYPY_VERSION
-  #define PyLong_AsSize_t (size_t)PyLong_AsUnsignedLong
-#endif
-
-#ifndef Py_hash_t
-  #define Py_hash_t long
 #endif
 
 
@@ -118,7 +121,7 @@ const char *py_str_borrow_c_str(PyObject **tvaue, PyObject *value, const char *e
 PyObject * get_pylist_from_git_strarray(git_strarray *strarray);
 int get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist);
 
-int py_object_to_object_type(PyObject *py_type);
+int py_object_to_otype(PyObject *py_type);
 
 #define py_path_to_c_str(py_path) \
         py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)

@@ -98,13 +98,13 @@ PyDoc_STRVAR(Walker_sort__doc__,
 PyObject *
 Walker_sort(Walker *self, PyObject *py_sort_mode)
 {
-    int sort_mode;
+    long sort_mode;
 
-    sort_mode = (int)PyLong_AsLong(py_sort_mode);
+    sort_mode = PyInt_AsLong(py_sort_mode);
     if (sort_mode == -1 && PyErr_Occurred())
         return NULL;
 
-    git_revwalk_sorting(self->walk, sort_mode);
+    git_revwalk_sorting(self->walk, (unsigned int)sort_mode);
 
     Py_RETURN_NONE;
 }

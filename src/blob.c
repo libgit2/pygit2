@@ -133,7 +133,7 @@ PyDoc_STRVAR(Blob_size__doc__, "Size.");
 PyObject *
 Blob_size__get__(Blob *self)
 {
-    return PyLong_FromLongLong(git_blob_rawsize(self->blob));
+    return PyInt_FromLongLong(git_blob_rawsize(self->blob));
 }
 
 

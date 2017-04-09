@@ -54,7 +54,7 @@ PyDoc_STRVAR(TreeEntry_filemode__doc__, "Filemode.");
 PyObject *
 TreeEntry_filemode__get__(TreeEntry *self)
 {
-    return PyLong_FromLong(git_tree_entry_filemode(self->entry));
+    return PyInt_FromLong(git_tree_entry_filemode(self->entry));
 }
 
 
@@ -290,7 +290,7 @@ Tree_fix_index(Tree *self, PyObject *py_index)
     size_t len;
     long slen;
 
-    index = PyLong_AsLong(py_index);
+    index = PyInt_AsLong(py_index);
     if (PyErr_Occurred())
         return -1;
 
@@ -359,7 +359,7 @@ Tree_getitem(Tree *self, PyObject *value)
     int err;
 
     /* Case 1: integer */
-    if (PyLong_Check(value))
+    if (PyInt_Check(value))
         return Tree_getitem_by_index(self, value);
 
     /* Case 2: byte or text string */

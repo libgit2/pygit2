@@ -325,7 +325,7 @@ Reference_type__get__(Reference *self)
 
     CHECK_REFERENCE(self);
     c_type = git_reference_type(self->reference);
-    return PyLong_FromLong(c_type);
+    return PyInt_FromLong(c_type);
 }
 
 
@@ -379,7 +379,8 @@ PyDoc_STRVAR(Reference_peel__doc__,
 PyObject *
 Reference_peel(Reference *self, PyObject *args)
 {
-    int err, type;
+    int err;
+    git_otype otype;
     git_object *obj;
     PyObject *py_type = Py_None;
 
@@ -388,11 +389,11 @@ Reference_peel(Reference *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|O", &py_type))
         return NULL;
 
-    type = py_object_to_object_type(py_type);
-    if (type == -1)
+    otype = py_object_to_otype(py_type);
+    if (otype == GIT_OBJ_BAD)
         return NULL;
 
-    err = git_reference_peel(&obj, self->reference, type);
+    err = git_reference_peel(&obj, self->reference, otype);
     if (err < 0)
         return Error_set(err);
 

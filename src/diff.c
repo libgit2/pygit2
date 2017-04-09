@@ -587,7 +587,7 @@ PyDoc_STRVAR(DiffStats_insertions__doc__, "Total number of insertions");
 PyObject *
 DiffStats_insertions__get__(DiffStats *self)
 {
-    return PyLong_FromSize_t(git_diff_stats_insertions(self->stats));
+    return PyInt_FromSize_t(git_diff_stats_insertions(self->stats));
 }
 
 PyDoc_STRVAR(DiffStats_deletions__doc__, "Total number of deletions");
@@ -595,7 +595,7 @@ PyDoc_STRVAR(DiffStats_deletions__doc__, "Total number of deletions");
 PyObject *
 DiffStats_deletions__get__(DiffStats *self)
 {
-    return PyLong_FromSize_t(git_diff_stats_deletions(self->stats));
+    return PyInt_FromSize_t(git_diff_stats_deletions(self->stats));
 }
 
 PyDoc_STRVAR(DiffStats_files_changed__doc__, "Total number of files changed");
@@ -603,7 +603,7 @@ PyDoc_STRVAR(DiffStats_files_changed__doc__, "Total number of files changed");
 PyObject *
 DiffStats_files_changed__get__(DiffStats *self)
 {
-    return PyLong_FromSize_t(git_diff_stats_files_changed(self->stats));
+    return PyInt_FromSize_t(git_diff_stats_files_changed(self->stats));
 }
 
 PyDoc_STRVAR(DiffStats_format__doc__,
@@ -805,10 +805,10 @@ Diff_getitem(Diff *self, PyObject *value)
 {
     size_t i;
 
-    if (!PyLong_Check(value))
-        return NULL;
+    if (!PyInt_Check(value))
+        return NULL; /* FIXME Raise error */
 
-    i = PyLong_AsUnsignedLong(value);
+    i = PyInt_AsSize_t(value);
     return diff_get_patch_byindex(self->diff, i);
 }
 
