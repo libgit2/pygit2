@@ -32,6 +32,7 @@ from __future__ import absolute_import
 from string import hexdigits
 import sys, tarfile
 from time import time
+
 if sys.version_info[0] < 3:
     from cStringIO import StringIO
 else:
@@ -44,6 +45,7 @@ from _pygit2 import Repository as _Repository, init_file_backend
 from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
 from _pygit2 import GIT_FILEMODE_LINK
+from _pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE
 from _pygit2 import Reference, Tree, Commit, Blob, Signature
 
 from .config import Config
@@ -57,7 +59,6 @@ from .submodule import Submodule
 
 
 class BaseRepository(_Repository):
-
     def __init__(self, backend, *args, **kwargs):
         super(BaseRepository, self).__init__(backend, *args, **kwargs)
         self._common_init()
@@ -484,6 +485,7 @@ class BaseRepository(_Repository):
     @staticmethod
     def _merge_options(favor):
         """Return a 'git_merge_opts *'"""
+
         def favor_to_enum(favor):
             if favor == 'normal':
                 return C.GIT_MERGE_FILE_FAVOR_NORMAL
@@ -530,13 +532,13 @@ class BaseRepository(_Repository):
             theirs._to_c() if theirs is not None else (ffi.NULL, ffi.NULL))
 
         err = C.git_merge_file_from_index(
-                cmergeresult, self._repo,
-                cancestor, cours, ctheirs,
-                ffi.NULL);
+            cmergeresult, self._repo,
+            cancestor, cours, ctheirs,
+            ffi.NULL);
         check_error(err)
 
         ret = ffi.string(cmergeresult.ptr,
-                cmergeresult.len).decode('utf-8')
+                         cmergeresult.len).decode('utf-8')
         C.git_merge_file_result_free(cmergeresult)
 
         return ret
@@ -735,11 +737,12 @@ class BaseRepository(_Repository):
                 C.git_buf_free(buf)
         finally:
             C.git_describe_result_free(result[0])
+
     #
     # Stash
     #
     def stash(self, stasher, message=None, keep_index=False,
-             include_untracked=False, include_ignored=False):
+              include_untracked=False, include_ignored=False):
         """Save changes to the working directory to the stash.
 
         :param Signature stasher: The identity of the person doing the stashing.
@@ -817,7 +820,6 @@ class BaseRepository(_Repository):
         """
         check_error(C.git_stash_drop(self._repo, index))
 
-
     def stash_pop(self, index=0, **kwargs):
         """Apply a stashed state and remove it from the stash list.
 
@@ -886,11 +888,11 @@ class BaseRepository(_Repository):
             info = tarfile.TarInfo(prefix + entry.path)
             info.size = len(content)
             info.mtime = timestamp
-            info.uname = info.gname = 'root' # just because git does this
+            info.uname = info.gname = 'root'  # just because git does this
             if entry.mode == GIT_FILEMODE_LINK:
                 info.type = tarfile.SYMTYPE
                 info.linkname = content.decode("utf-8")
-                info.mode = 0o777 # symlinks get placeholder
+                info.mode = 0o777  # symlinks get placeholder
                 info.size = 0
                 archive.addfile(info)
             else:
@@ -996,6 +998,54 @@ class BaseRepository(_Repository):
         check_error(err)
 
 
+class Branches(object):
+    def __init__(self, repository, flag=GIT_BRANCH_LOCAL | GIT_BRANCH_REMOTE):
+        self._repository = repository
+        self._flag = flag
+
+        if flag == GIT_BRANCH_LOCAL | GIT_BRANCH_REMOTE:
+            self.local = Branches(repository, flag=GIT_BRANCH_LOCAL)
+            self.remote = Branches(repository, flag=GIT_BRANCH_REMOTE)
+
+    def __getitem__(self, name):
+        branch = None
+        if self._flag & GIT_BRANCH_LOCAL:
+            branch = self._repository.lookup_branch(name, GIT_BRANCH_LOCAL)
+
+        if branch is None and self._flag & GIT_BRANCH_REMOTE:
+            branch = self._repository.lookup_branch(name, GIT_BRANCH_REMOTE)
+
+        if branch is None:
+            raise KeyError('Branch not found: {}'.format(name))
+
+        return branch
+
+    def get(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            return None
+
+    def __iter__(self):
+        for branch_name in self._repository.listall_branches(self._flag):
+            yield branch_name
+
+    def create(self, name, commit, force=False):
+        return self._repository.create_branch(name, commit, force)
+
+    def delete(self, name):
+        self[name].delete()
+
+    def __contains__(self, name):
+        try:
+            # If the lookup succeeds, the name is present.
+            _ = self[name]
+            return True
+
+        except KeyError:
+            return False
+
+
 class Repository(BaseRepository):
     def __init__(self, path, *args, **kwargs):
         if not isinstance(path, six.string_types):
@@ -1003,6 +1053,8 @@ class Repository(BaseRepository):
 
         path_backend = init_file_backend(path)
         super(Repository, self).__init__(backend=path_backend, *args, **kwargs)
+
+        self.branches = Branches(self)
 
     @classmethod
     def _from_c(cls, ptr, owned):

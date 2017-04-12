@@ -39,6 +39,135 @@ I18N_LAST_COMMIT = '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 ORIGIN_MASTER_COMMIT = '784855caf26449a1914d2cf62d12b9374d76ae78'
 
 
+class BranchesObjectTestCase(utils.RepoTestCase):
+    def test_lookup_branch_local(self):
+        branch = self.repo.branches['master']
+        self.assertEqual(branch.target.hex, LAST_COMMIT)
+
+        branch = self.repo.branches.local['i18n']
+        self.assertEqual(branch.target.hex, I18N_LAST_COMMIT)
+
+        self.assertTrue(self.repo.branches.get('not-exists') is None)
+
+        self.assertRaises(KeyError, lambda: self.repo.branches['not-exists'])
+
+    def test_listall_branches(self):
+        branches = sorted(self.repo.branches)
+        self.assertEqual(branches, ['i18n', 'master'])
+
+    def test_create_branch(self):
+        commit = self.repo[LAST_COMMIT]
+        reference = self.repo.branches.create('version1', commit)
+        self.assertTrue('version1' in self.repo.branches)
+        reference = self.repo.branches['version1']
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
+
+        # try to create existing reference
+        self.assertRaises(ValueError,
+                          lambda: self.repo.branches.create('version1', commit))
+
+        # try to create existing reference with force
+        reference = self.repo.branches.create('version1', commit, True)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
+
+    def test_delete(self):
+        self.repo.branches.delete('i18n')
+
+        self.assertTrue(self.repo.branches.get('i18n') is None)
+
+    def test_cant_delete_master(self):
+        self.assertRaises(pygit2.GitError, lambda: self.repo.branches.delete('master'))
+
+    def test_branch_is_head_returns_true_if_branch_is_head(self):
+        branch = self.repo.branches.get('master')
+        self.assertTrue(branch.is_head())
+
+    def test_branch_is_head_returns_false_if_branch_is_not_head(self):
+        branch = self.repo.branches.get('i18n')
+        self.assertFalse(branch.is_head())
+
+    def test_branch_rename_succeeds(self):
+        new_branch = self.repo.branches['i18n'].rename('new-branch')
+        self.assertEqual(new_branch.target.hex, I18N_LAST_COMMIT)
+
+        new_branch_2 = self.repo.branches.get('new-branch')
+        self.assertEqual(new_branch_2.target.hex, I18N_LAST_COMMIT)
+
+    def test_branch_rename_fails_if_destination_already_exists(self):
+        original_branch = self.repo.branches.get('i18n')
+        self.assertRaises(ValueError, lambda: original_branch.rename('master'))
+
+    def test_branch_rename_not_fails_if_force_is_true(self):
+        original_branch = self.repo.branches.get('master')
+        new_branch = original_branch.rename('i18n', True)
+        self.assertEqual(new_branch.target.hex, LAST_COMMIT)
+
+    def test_branch_rename_fails_with_invalid_names(self):
+        original_branch = self.repo.branches.get('i18n')
+        self.assertRaises(ValueError,
+                          lambda: original_branch.rename('abc@{123'))
+
+    def test_branch_name(self):
+        branch = self.repo.branches.get('master')
+        self.assertEqual(branch.branch_name, 'master')
+        self.assertEqual(branch.name, 'refs/heads/master')
+
+        branch = self.repo.branches.get('i18n')
+        self.assertEqual(branch.branch_name, 'i18n')
+        self.assertEqual(branch.name, 'refs/heads/i18n')
+
+
+class BranchesObjectEmptyRepoTestCase(utils.EmptyRepoTestCase):
+    def setUp(self):
+        super(utils.EmptyRepoTestCase, self).setUp()
+
+        remote = self.repo.remotes[0]
+        remote.fetch()
+
+    def test_lookup_branch_remote(self):
+        branch = self.repo.branches.remote.get('origin/master')
+        self.assertEqual(branch.target.hex, ORIGIN_MASTER_COMMIT)
+
+        self.assertTrue(
+            self.repo.branches.remote.get('origin/not-exists') is None)
+
+    def test_listall_branches(self):
+        branches = sorted(self.repo.branches.remote)
+        self.assertEqual(branches, ['origin/master'])
+
+    def test_branch_remote_name(self):
+        self.repo.remotes[0].fetch()
+        branch = self.repo.branches.remote['origin/master']
+        self.assertEqual(branch.remote_name, 'origin')
+
+    def test_branch_upstream(self):
+        self.repo.remotes[0].fetch()
+        remote_master = self.repo.branches.remote['origin/master']
+        master = self.repo.branches.create('master',
+                                           self.repo[remote_master.target.hex])
+
+        self.assertTrue(master.upstream is None)
+        master.upstream = remote_master
+        self.assertEqual(master.upstream.branch_name, 'origin/master')
+
+        def set_bad_upstream():
+            master.upstream = 2.5
+
+        self.assertRaises(TypeError, set_bad_upstream)
+
+        master.upstream = None
+        self.assertTrue(master.upstream is None)
+
+    def test_branch_upstream_name(self):
+        self.repo.remotes[0].fetch()
+        remote_master = self.repo.branches.remote['origin/master']
+        master = self.repo.branches.create('master',
+                                           self.repo[remote_master.target.hex])
+
+        master.upstream = remote_master
+        self.assertEqual(master.upstream_name, 'refs/remotes/origin/master')
+
+
 class BranchesTestCase(utils.RepoTestCase):
     def test_lookup_branch_local(self):
         branch = self.repo.lookup_branch('master')
@@ -159,6 +288,7 @@ class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
 
         def set_bad_upstream():
             master.upstream = 2.5
+
         self.assertRaises(TypeError, set_bad_upstream)
 
         master.upstream = None
