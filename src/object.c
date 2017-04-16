@@ -158,6 +158,12 @@ Object_peel(Object *self, PyObject *py_type)
     return wrap_object(peeled, self->repo);
 }
 
+int
+Object___nonzero__(PyObject *self)
+{
+    return 1;
+}
+
 PyGetSetDef Object_getseters[] = {
     GETTER(Object, oid),
     GETTER(Object, id),
@@ -173,6 +179,36 @@ PyMethodDef Object_methods[] = {
     {NULL}
 };
 
+#if PY_MAJOR_VERSION == 2 || defined(PYPY_VERSION)
+static PyNumberMethods Object_as_number = {
+    0, /* nb_add */
+    0, /* nb_subtract */
+    0, /* nb_multiply */
+    0, /* nb_divide */
+    0, /* nb_remainder */
+    0, /* nb_divmod */
+    0, /* nb_power */
+    0, /* nb_negative */
+    0, /* nb_positive */
+    0, /* nb_absolute */
+    Object___nonzero__, /* nb_nonzero */
+    /* There are a lot more, we we don't need any of them */
+};
+#else
+static PyNumberMethods Object_as_number = {
+    0, /* nb_add */
+    0, /* nb_subtract */
+    0, /* nb_divide */
+    0, /* nb_remainder */
+    0, /* nb_divmod */
+    0, /* nb_power */
+    0, /* nb_negative */
+    0, /* nb_positive */
+    0, /* nb_absolute */
+    Object___nonzero__, /* nb_nonzero */
+    /* There are a lot more, we we don't need any of them */
+};
+#endif
 
 PyDoc_STRVAR(Object__doc__, "Base class for Git objects.");
 
@@ -187,7 +223,7 @@ PyTypeObject ObjectType = {
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
     0,                                         /* tp_repr           */
-    0,                                         /* tp_as_number      */
+    &Object_as_number,                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
