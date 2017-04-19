@@ -303,6 +303,7 @@ moduleinit(PyObject* m)
     ADD_TYPE(m, Branch)
     ADD_CONSTANT_INT(m, GIT_BRANCH_LOCAL)
     ADD_CONSTANT_INT(m, GIT_BRANCH_REMOTE)
+    ADD_CONSTANT_INT(m, GIT_BRANCH_ALL)
 
     /*
      * Index & Working copy
