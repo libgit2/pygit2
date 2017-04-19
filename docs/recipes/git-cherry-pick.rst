@@ -49,7 +49,7 @@ example `three-argument rebases`_.
     repo = pygit2.Repository('/path/to/repo')
 
     cherry = repo.revparse_single('9e044d03c')
-    basket = repo.lookup_branch('basket')
+    basket = repo.branches.get('basket')
 
     base      = repo.merge_base(cherry.oid, basket.target)
     base_tree = cherry.parents[0].tree

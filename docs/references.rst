@@ -69,28 +69,35 @@ Branches
 Branches inherit from References, and additionally provide specialized
 accessors for some unique features.
 
-.. automethod:: pygit2.Repository.listall_branches
-.. automethod:: pygit2.Repository.lookup_branch
-.. automethod:: pygit2.Repository.create_branch
+.. automethod:: pygit2.Repository.Branches.create
+.. automethod:: pygit2.Repository.Branches.delete
+.. automethod:: pygit2.Repository.Branches.get
+.. automethod:: pygit2.Repository.Branches.__getitem__
+.. automethod:: pygit2.Repository.Branches.__iter__
+.. automethod:: pygit2.Repository.Branches.__contains__
 
 Example::
 
-    >>> local_branches = repo.listall_branches()
-    >>> # equivalent to
-    >>> local_branches = repo.listall_branches(pygit2.GIT_BRANCH_LOCAL)
+    >>> # Listing all branches
+    >>> branches_list = list(repo.branches)
+    >>> # Local only
+    >>> local_branches = list(repo.branches.local)
+    >>> # Remote only
+    >>> remote_branches = list(repo.branches.remote)
 
-    >>> remote_branches = repo.listall_branches(pygit2.GIT_BRANCH_REMOTE)
+    >>> # Get a branch
+    >>> branch = repo.branches['master']
+    >>> other_branch = repo.branches['does-not-exist']  # Will raise a KeyError
+    >>> other_branch = repo.branches.get('does-not-exist')  # Returns None
 
-    >>> all_branches = repo.listall_branches(pygit2.GIT_BRANCH_REMOTE |
-                                             pygit2.GIT_BRANCH_LOCAL)
+    >>> remote_branch = repo.branches.remote['upstream/feature']
 
-    >>> master_branch = repo.lookup_branch('master')
-    >>> # equivalent to
-    >>> master_branch = repo.lookup_branch('master',
-                                           pygit2.GIT_BRANCH_LOCAL)
+    >>> # Create a local branch
+    >>> new_branch = repo.branches.local.create('new-branch')
 
-    >>> remote_branch = repo.lookup_branch('upstream/feature',
-                                           pygit2.GIT_BRANCH_REMOTE)
+    >>> And delete it
+    >>> repo.branches.delete('new-branch')
+
 
 The Branch type
 ====================
