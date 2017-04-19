@@ -69,12 +69,12 @@ Branches
 Branches inherit from References, and additionally provide specialized
 accessors for some unique features.
 
-.. automethod:: pygit2.Repository.Branches.create
-.. automethod:: pygit2.Repository.Branches.delete
-.. automethod:: pygit2.Repository.Branches.get
-.. automethod:: pygit2.Repository.Branches.__getitem__
-.. automethod:: pygit2.Repository.Branches.__iter__
-.. automethod:: pygit2.Repository.Branches.__contains__
+.. automethod:: pygit2.repository.Branches.create
+.. automethod:: pygit2.repository.Branches.delete
+.. automethod:: pygit2.repository.Branches.get
+.. automethod:: pygit2.repository.Branches.__getitem__
+.. automethod:: pygit2.repository.Branches.__iter__
+.. automethod:: pygit2.repository.Branches.__contains__
 
 Example::
 
