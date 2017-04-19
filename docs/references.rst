@@ -4,15 +4,20 @@ References
 
 .. contents::
 
-.. automethod:: pygit2.Repository.listall_reference_objects
-.. automethod:: pygit2.Repository.listall_references
-.. automethod:: pygit2.Repository.lookup_reference
+.. autoattribute:: pygit2.Repository.references
 
 Example::
 
-    >>> all_refs = repo.listall_references()
+    >>> all_refs = list(repo.references)
+
     >>> master_ref = repo.lookup_reference("refs/heads/master")
     >>> commit = master_ref.get_object() # or repo[master_ref.target]
+
+    # Create a reference
+    >>> ref = repo.references.create('refs/tags/version1', LAST_COMMIT)
+
+    # Delete a reference
+    >>> repo.references.delete('refs/tags/version1')
 
 
 The Reference type
@@ -116,7 +121,9 @@ The reference log
 
 Example::
 
-    >>> head = repo.lookup_reference('refs/heads/master')
+    >>> head = repo.references.get('refs/heads/master')  # Returns None if not found
+    >>> # Almost equivalent to
+    >>> head = repo.references['refs/heads/master']  # Raises KeyError if not found
     >>> for entry in head.log():
     ...     print(entry.message)
 

@@ -35,13 +35,203 @@ from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
 from pygit2 import Commit, Tree
 from . import utils
 
-
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 
+class ReferencesObjectTest(utils.RepoTestCase):
+    def test_list_all_reference_objects(self):
+        repo = self.repo
+
+        refs = [(ref.name, ref.target.hex)
+                for ref in repo.references.objects]
+        self.assertEqual(sorted(refs),
+                         [('refs/heads/i18n',
+                           '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+                          ('refs/heads/master',
+                           '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')])
+
+    def test_list_all_references(self):
+        repo = self.repo
+
+        # Without argument
+        self.assertEqual(sorted(repo.references),
+                         ['refs/heads/i18n', 'refs/heads/master'])
+
+        # We add a symbolic reference
+        repo.create_reference('refs/tags/version1', 'refs/heads/master')
+        self.assertEqual(sorted(repo.references),
+                         ['refs/heads/i18n', 'refs/heads/master',
+                          'refs/tags/version1'])
+
+    def test_head(self):
+        head = self.repo.head
+        self.assertEqual(LAST_COMMIT, self.repo[head.target].hex)
+
+    def test_lookup_reference(self):
+        repo = self.repo
+
+        refname = 'refs/foo'
+        # Raise KeyError ?
+        self.assertRaises(KeyError, lambda: self.repo.references[refname])
+
+        # Return None ?
+        self.assertIsNone(self.repo.references.get(refname))
+
+        # Test a lookup
+        reference = repo.references.get('refs/heads/master')
+        self.assertEqual(reference.name, 'refs/heads/master')
+
+    def test_reference_get_sha(self):
+        reference = self.repo.references['refs/heads/master']
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
+
+    def test_reference_set_sha(self):
+        NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
+        reference = self.repo.references.get('refs/heads/master')
+        reference.set_target(NEW_COMMIT)
+        self.assertEqual(reference.target.hex, NEW_COMMIT)
+
+    def test_reference_set_sha_prefix(self):
+        NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
+        reference = self.repo.references.get('refs/heads/master')
+        reference.set_target(NEW_COMMIT[0:6])
+        self.assertEqual(reference.target.hex, NEW_COMMIT)
+
+    def test_reference_get_type(self):
+        reference = self.repo.references.get('refs/heads/master')
+        self.assertEqual(reference.type, GIT_REF_OID)
+
+    def test_get_target(self):
+        reference = self.repo.references.get('HEAD')
+        self.assertEqual(reference.target, 'refs/heads/master')
+
+    def test_set_target(self):
+        reference = self.repo.references.get('HEAD')
+        self.assertEqual(reference.target, 'refs/heads/master')
+        reference.set_target('refs/heads/i18n')
+        self.assertEqual(reference.target, 'refs/heads/i18n')
+
+    def test_get_shorthand(self):
+        reference = self.repo.references.get('refs/heads/master')
+        self.assertEqual(reference.shorthand, 'master')
+        reference = self.repo.references.create('refs/remotes/origin/master', LAST_COMMIT)
+        self.assertEqual(reference.shorthand, 'origin/master')
+
+    def test_set_target_with_message(self):
+        reference = self.repo.references.get('HEAD')
+        self.assertEqual(reference.target, 'refs/heads/master')
+        sig = Signature('foo', 'bar')
+        self.repo.set_ident('foo', 'bar')
+        msg = 'Hello log'
+        reference.set_target('refs/heads/i18n', message=msg)
+        self.assertEqual(reference.target, 'refs/heads/i18n')
+        self.assertEqual(list(reference.log())[0].message, msg)
+        self.assertEqualSignature(list(reference.log())[0].committer, sig)
+
+    def test_delete(self):
+        repo = self.repo
+
+        # We add a tag as a new reference that points to "origin/master"
+        reference = repo.references.create('refs/tags/version1', LAST_COMMIT)
+        self.assertTrue('refs/tags/version1' in repo.references)
+
+        # And we delete it
+        reference.delete()
+        self.assertFalse('refs/tags/version1' in repo.references)
+
+        # Access the deleted reference
+        self.assertRaises(GitError, getattr, reference, 'name')
+        self.assertRaises(GitError, getattr, reference, 'type')
+        self.assertRaises(GitError, getattr, reference, 'target')
+        self.assertRaises(GitError, reference.delete)
+        self.assertRaises(GitError, reference.resolve)
+        self.assertRaises(GitError, reference.rename, "refs/tags/version2")
+
+    def test_rename(self):
+        # We add a tag as a new reference that points to "origin/master"
+        reference = self.repo.references.create('refs/tags/version1',
+                                                LAST_COMMIT)
+        self.assertEqual(reference.name, 'refs/tags/version1')
+        reference.rename('refs/tags/version2')
+        self.assertEqual(reference.name, 'refs/tags/version2')
+
+    #   def test_reload(self):
+    #       name = 'refs/tags/version1'
+
+    #       repo = self.repo
+    #       ref = repo.create_reference(name, "refs/heads/master", symbolic=True)
+    #       ref2 = repo.lookup_reference(name)
+    #       ref.delete()
+    #       self.assertEqual(ref2.name, name)
+    #       self.assertRaises(KeyError, ref2.reload)
+    #       self.assertRaises(GitError, getattr, ref2, 'name')
+
+
+    def test_reference_resolve(self):
+        reference = self.repo.references.get('HEAD')
+        self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
+        reference = reference.resolve()
+        self.assertEqual(reference.type, GIT_REF_OID)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
+
+    def test_reference_resolve_identity(self):
+        head = self.repo.references.get('HEAD')
+        ref = head.resolve()
+        self.assertTrue(ref.resolve() is ref)
+
+    def test_create_reference(self):
+        # We add a tag as a new reference that points to "origin/master"
+        reference = self.repo.references.create('refs/tags/version1',
+                                                LAST_COMMIT)
+        refs = self.repo.references
+        self.assertTrue('refs/tags/version1' in refs)
+        reference = self.repo.references.get('refs/tags/version1')
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
+
+        # try to create existing reference
+        self.assertRaises(ValueError, self.repo.references.create,
+                          'refs/tags/version1', LAST_COMMIT)
+
+        # try to create existing reference with force
+        reference = self.repo.references.create('refs/tags/version1',
+                                                LAST_COMMIT, force=True)
+        self.assertEqual(reference.target.hex, LAST_COMMIT)
+
+    def test_create_symbolic_reference(self):
+        repo = self.repo
+        # We add a tag as a new symbolic reference that always points to
+        # "refs/heads/master"
+        reference = repo.references.create('refs/tags/beta',
+                                           'refs/heads/master')
+        self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
+        self.assertEqual(reference.target, 'refs/heads/master')
+
+        # try to create existing symbolic reference
+        self.assertRaises(ValueError, repo.references.create,
+                          'refs/tags/beta', 'refs/heads/master')
+
+        # try to create existing symbolic reference with force
+        reference = repo.references.create('refs/tags/beta',
+                                           'refs/heads/master', force=True)
+        self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
+        self.assertEqual(reference.target, 'refs/heads/master')
+
+    #   def test_packall_references(self):
+    #       self.repo.packall_references()
+
+
+    def test_get_object(self):
+        repo = self.repo
+        ref = repo.references.get('refs/heads/master')
+        self.assertEqual(repo[ref.target].id, ref.get_object().id)
+
+    def test_peel(self):
+        ref = self.repo.references.get('refs/heads/master')
+        commit = ref.peel(Commit)
+        self.assertEqual(commit.tree.id, ref.peel(Tree).id)
+
 
 class ReferencesTest(utils.RepoTestCase):
-
     def test_list_all_reference_objects(self):
         repo = self.repo
 
@@ -80,11 +270,9 @@ class ReferencesTest(utils.RepoTestCase):
         reference = repo.lookup_reference('refs/heads/master')
         self.assertEqual(reference.name, 'refs/heads/master')
 
-
     def test_reference_get_sha(self):
         reference = self.repo.lookup_reference('refs/heads/master')
         self.assertEqual(reference.target.hex, LAST_COMMIT)
-
 
     def test_reference_set_sha(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
@@ -98,16 +286,13 @@ class ReferencesTest(utils.RepoTestCase):
         reference.set_target(NEW_COMMIT[0:6])
         self.assertEqual(reference.target.hex, NEW_COMMIT)
 
-
     def test_reference_get_type(self):
         reference = self.repo.lookup_reference('refs/heads/master')
         self.assertEqual(reference.type, GIT_REF_OID)
 
-
     def test_get_target(self):
         reference = self.repo.lookup_reference('HEAD')
         self.assertEqual(reference.target, 'refs/heads/master')
-
 
     def test_set_target(self):
         reference = self.repo.lookup_reference('HEAD')
@@ -151,7 +336,6 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertRaises(GitError, reference.resolve)
         self.assertRaises(GitError, reference.rename, "refs/tags/version2")
 
-
     def test_rename(self):
         # We add a tag as a new reference that points to "origin/master"
         reference = self.repo.create_reference('refs/tags/version1',
@@ -160,17 +344,16 @@ class ReferencesTest(utils.RepoTestCase):
         reference.rename('refs/tags/version2')
         self.assertEqual(reference.name, 'refs/tags/version2')
 
+    #   def test_reload(self):
+    #       name = 'refs/tags/version1'
 
-#   def test_reload(self):
-#       name = 'refs/tags/version1'
-
-#       repo = self.repo
-#       ref = repo.create_reference(name, "refs/heads/master", symbolic=True)
-#       ref2 = repo.lookup_reference(name)
-#       ref.delete()
-#       self.assertEqual(ref2.name, name)
-#       self.assertRaises(KeyError, ref2.reload)
-#       self.assertRaises(GitError, getattr, ref2, 'name')
+    #       repo = self.repo
+    #       ref = repo.create_reference(name, "refs/heads/master", symbolic=True)
+    #       ref2 = repo.lookup_reference(name)
+    #       ref.delete()
+    #       self.assertEqual(ref2.name, name)
+    #       self.assertRaises(KeyError, ref2.reload)
+    #       self.assertRaises(GitError, getattr, ref2, 'name')
 
 
     def test_reference_resolve(self):
@@ -180,12 +363,10 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.type, GIT_REF_OID)
         self.assertEqual(reference.target.hex, LAST_COMMIT)
 
-
     def test_reference_resolve_identity(self):
         head = self.repo.lookup_reference('HEAD')
         ref = head.resolve()
         self.assertTrue(ref.resolve() is ref)
-
 
     def test_create_reference(self):
         # We add a tag as a new reference that points to "origin/master"
@@ -205,7 +386,6 @@ class ReferencesTest(utils.RepoTestCase):
                                                LAST_COMMIT, force=True)
         self.assertEqual(reference.target.hex, LAST_COMMIT)
 
-
     def test_create_symbolic_reference(self):
         repo = self.repo
         # We add a tag as a new symbolic reference that always points to
@@ -214,7 +394,6 @@ class ReferencesTest(utils.RepoTestCase):
                                           'refs/heads/master')
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
         self.assertEqual(reference.target, 'refs/heads/master')
-
 
         # try to create existing symbolic reference
         self.assertRaises(ValueError, repo.create_reference,
@@ -226,9 +405,8 @@ class ReferencesTest(utils.RepoTestCase):
         self.assertEqual(reference.type, GIT_REF_SYMBOLIC)
         self.assertEqual(reference.target, 'refs/heads/master')
 
-
-#   def test_packall_references(self):
-#       self.repo.packall_references()
+    #   def test_packall_references(self):
+    #       self.repo.packall_references()
 
 
     def test_get_object(self):

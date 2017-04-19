@@ -1037,13 +1037,38 @@ class Branches(object):
         self[name].delete()
 
     def __contains__(self, name):
-        try:
-            # If the lookup succeeds, the name is present.
-            _ = self[name]
-            return True
+        return self.get(name) is not None
 
+
+class References(object):
+    def __init__(self, repository):
+        self._repository = repository
+
+    def __getitem__(self, name):
+        return self._repository.lookup_reference(name)
+
+    def get(self, key):
+        try:
+            return self[key]
         except KeyError:
-            return False
+            return None
+
+    def __iter__(self):
+        for ref_name in self._repository.listall_references():
+            yield ref_name
+
+    def create(self, name, target, force=False):
+        return self._repository.create_reference(name, target, force)
+
+    def delete(self, name):
+        self[name].delete()
+
+    def __contains__(self, name):
+        return self.get(name) is not None
+
+    @property
+    def objects(self):
+        return self._repository.listall_reference_objects()
 
 
 class Repository(BaseRepository):
@@ -1055,6 +1080,7 @@ class Repository(BaseRepository):
         super(Repository, self).__init__(backend=path_backend, *args, **kwargs)
 
         self.branches = Branches(self)
+        self.references = References(self)
 
     @classmethod
     def _from_c(cls, ptr, owned):
