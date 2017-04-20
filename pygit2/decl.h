@@ -410,7 +410,16 @@ int git_diff_tree_to_index(git_diff **diff, git_repository *repo, git_tree *old_
  * git_checkout
  */
 
-typedef enum { ... } git_checkout_notify_t;
+typedef enum {
+	GIT_CHECKOUT_NOTIFY_NONE      = 0,
+	GIT_CHECKOUT_NOTIFY_CONFLICT  = 1,
+	GIT_CHECKOUT_NOTIFY_DIRTY     = 2,
+	GIT_CHECKOUT_NOTIFY_UPDATED   = 4,
+	GIT_CHECKOUT_NOTIFY_UNTRACKED = 8,
+	GIT_CHECKOUT_NOTIFY_IGNORED   = 16,
+
+	GIT_CHECKOUT_NOTIFY_ALL       = 0x0FFFF
+} git_checkout_notify_t;
 
 typedef int (*git_checkout_notify_cb)(
 	git_checkout_notify_t why,
@@ -743,7 +752,12 @@ void git_blame_free(git_blame *blame);
  * Merging
  */
 
-typedef enum { ... } git_merge_flag_t;
+typedef enum {
+	GIT_MERGE_FIND_RENAMES = 1,
+	GIT_MERGE_FAIL_ON_CONFLICT = 2,
+	GIT_MERGE_SKIP_REUC = 4,
+	GIT_MERGE_NO_RECURSIVE = 8,
+} git_merge_flag_t;
 
 typedef enum {
 	GIT_MERGE_FILE_FAVOR_NORMAL = 0,
