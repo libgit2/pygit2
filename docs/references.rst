@@ -4,7 +4,11 @@ References
 
 .. contents::
 
-.. autoattribute:: pygit2.Repository.references
+.. autoclass:: pygit2.repository.References
+   :members:
+   :undoc-members:
+   :special-members: __getitem__, __iter__, __contains__
+
 
 Example::
 
@@ -74,12 +78,10 @@ Branches
 Branches inherit from References, and additionally provide specialized
 accessors for some unique features.
 
-.. automethod:: pygit2.repository.Branches.create
-.. automethod:: pygit2.repository.Branches.delete
-.. automethod:: pygit2.repository.Branches.get
-.. automethod:: pygit2.repository.Branches.__getitem__
-.. automethod:: pygit2.repository.Branches.__iter__
-.. automethod:: pygit2.repository.Branches.__contains__
+.. autoclass:: pygit2.repository.Branches
+   :members:
+   :undoc-members:
+   :special-members: __getitem__, __iter__, __contains__
 
 Example::
 
