@@ -1,10 +1,12 @@
 **********************************************************************
-The submodule
+Submodules
 **********************************************************************
 
 A submodule is a foreign repository that is embedded within a
 dedicated subdirectory of the repositories tree.
 
+.. automethod:: pygit2.Repository.init_submodules
+.. automethod:: pygit2.Repository.update_submodules
 .. automethod:: pygit2.Repository.lookup_submodule
 .. automethod:: pygit2.Repository.listall_submodules
 

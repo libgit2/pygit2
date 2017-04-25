@@ -13,11 +13,12 @@ implements the core of Git.  Pygit2 works with Python 2.7, 3.2, 3.3, 3.4, 3.5,
 It is likely to work with Python 2.6 and 3.1, but these versions are not
 officially supported.
 
-Pygit2 links:
+Links:
 
-- http://github.com/libgit2/pygit2 -- Source code and issue tracker
+- https://github.com/libgit2/pygit2 -- Source code and issue tracker
 - http://www.pygit2.org/ -- Documentation
-- http://pypi.python.org/pypi/pygit2 -- Download
+- https://pypi.python.org/pypi/pygit2 -- Download
+- https://github.com/libgit2/pygit2/blob/master/CHANGELOG.rst -- Changelog
 
 Start:
 
@@ -49,6 +50,7 @@ Usage guide:
    blame
    settings
    features
+   backends
 
 
 Indices and tables
