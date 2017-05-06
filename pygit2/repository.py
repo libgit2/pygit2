@@ -692,7 +692,11 @@ class BaseRepository(_Repository):
         if describe_strategy is not None:
             options.describe_strategy = describe_strategy
         if pattern:
-            options.pattern = ffi.new('char[]', to_bytes(pattern))
+            # The returned pointer object has ownership on the allocated
+            # memory. Make sure it is kept alive until git_describe_commit() or
+            # git_describe_workdir() are called below.
+            pattern_char = ffi.new('char[]', to_bytes(pattern))
+            options.pattern = pattern_char
         if only_follow_first_parent is not None:
             options.only_follow_first_parent = only_follow_first_parent
         if show_commit_oid_as_fallback is not None:
