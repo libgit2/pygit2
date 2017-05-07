@@ -89,7 +89,6 @@ int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 {
     PyObject *backend;
-    int err;
 
     if (kwds && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError,
