@@ -93,7 +93,7 @@ py_str_borrow_c_str(PyObject **tvalue, PyObject *value, const char *encoding)
 PyObject *
 get_pylist_from_git_strarray(git_strarray *strarray)
 {
-    int index;
+    size_t index;
     PyObject *new_list;
 
     new_list = PyList_New(strarray->count);
