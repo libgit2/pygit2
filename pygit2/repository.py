@@ -1001,6 +1001,39 @@ class BaseRepository(_Repository):
         err = C.git_repository_set_ident(self._repo, to_bytes(name), to_bytes(email))
         check_error(err)
 
+    def revert_commit(self, revert_commit, our_commit, mainline=0):
+        """Reverts the given Commit against the given "our" Commit,
+           producing an Index that reflects the result of the revert.
+
+        Arguments
+
+        revert_commit
+            The Commit to revert
+        our_commit
+            The Commit to revert against (eg, HEAD)
+        mainline
+            The parent of the revert Commit, if it is a merge (i.e. 1, 2)
+
+        Returns an Index with the result of the revert.
+        """
+        cindex = ffi.new('git_index **')
+        revert_commit_ptr = ffi.new('git_commit **')
+        our_commit_ptr = ffi.new('git_commit **')
+
+        ffi.buffer(revert_commit_ptr)[:] = revert_commit._pointer[:]
+        ffi.buffer(our_commit_ptr)[:] = our_commit._pointer[:]
+
+        opts = ffi.new('git_merge_options *')
+        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
+        check_error(err)
+
+        err = C.git_revert_commit(
+            cindex, self._repo, revert_commit_ptr[0], our_commit_ptr[0], mainline, opts
+        )
+        check_error(err)
+
+        return Index.from_c(self, cindex)
+
 
 class Branches(object):
     def __init__(self, repository, flag=GIT_BRANCH_ALL):

@@ -922,3 +922,5 @@ typedef enum {
 
 int git_attr_get(const char **value_out, git_repository *repo, uint32_t flags, const char *path, const char *name);
 git_attr_t git_attr_value(const char *attr);
+
+int git_revert_commit(git_index **out, git_repository *repo, git_commit *revert_commit, git_commit *our_commit, unsigned int mainline, const git_merge_options *merge_options);

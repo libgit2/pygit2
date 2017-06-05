@@ -68,7 +68,7 @@ Authors
   Peter Dave Hello          Philippe Ombredanne       Ridge Kennedy
   Ross Nicoll               Rui Abreu Ferreira        Sheeo
   Soasme                    Vladimir Rutsky           Yu Jianjian
-  chengyuhang               earl
+  chengyuhang               earl                      Mark Adams
 
 License
 ==============

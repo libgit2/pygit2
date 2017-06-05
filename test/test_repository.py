@@ -43,7 +43,7 @@ import six
 
 if six.PY2:
     from urllib import pathname2url
-    
+
 if six.PY3:
     from urllib.request import pathname2url
 
@@ -435,6 +435,28 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.stash_drop()
         self.assertRaises(KeyError, self.repo.stash_pop)
 
+    def test_revert(self):
+        master = self.repo.head.peel()
+        commit_to_revert = self.repo['4ec4389a8068641da2d6578db0419484972284c8']
+        parent = commit_to_revert.parents[0]
+        commit_diff_stats = (
+            parent.tree.diff_to_tree(commit_to_revert.tree).stats
+        )
+
+        revert_index = self.repo.revert_commit(commit_to_revert, master)
+        revert_diff_stats = revert_index.diff_to_tree(master.tree).stats
+
+        self.assertEquals(
+            revert_diff_stats.insertions, commit_diff_stats.deletions
+        )
+        self.assertEquals(
+            revert_diff_stats.deletions, commit_diff_stats.insertions
+        )
+        self.assertEquals(
+            revert_diff_stats.files_changed, commit_diff_stats.files_changed
+        )
+
+
 class RepositorySignatureTest(utils.RepoTestCase):
 
     def test_default_signature(self):
@@ -533,7 +555,7 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
         src_repo_relpath = "./test/data/testrepo.git/"
         repo_path = os.path.join(self._temp_dir, "clone-into")
         url = pathname2url(os.path.realpath(src_repo_relpath))
-        
+
         if url.startswith('///'):
             url = 'file:' + url
         else:
