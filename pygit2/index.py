@@ -157,6 +157,9 @@ class Index(object):
         It returns the id of the resulting tree.
         """
         coid = ffi.new('git_oid *')
+
+        repo = repo or self._repo
+
         if repo:
             err = C.git_index_write_tree_to(coid, self._index, repo._repo)
         else:
