@@ -32,27 +32,28 @@ But also used by pygit2 at run time.
 
 # Import from the Standard Library
 import os
-from os import getenv
 
 #
 # The version number of pygit2
 #
 __version__ = '0.25.1'
 
+#
+# The checksum of libgit2
+#
+__sha__ = 'fe934dce35d83c298b9037aacef1cd430a6ed7a3be38b873203144a07bc360ff'
 
 #
 # Utility functions to get the paths required for bulding extensions
 #
 def _get_libgit2_path():
     # LIBGIT2 environment variable takes precedence
-    libgit2_path = getenv("LIBGIT2")
+    libgit2_path = os.getenv("LIBGIT2")
     if libgit2_path is not None:
         return libgit2_path
 
     # Default
-    if os.name == 'nt':
-        return '%s\libgit2' % getenv("ProgramFiles")
-    return '/usr/local'
+    return os.path.abspath(os.path.join('build', 'libgit2'))
 
 
 def get_libgit2_paths():
@@ -60,5 +61,5 @@ def get_libgit2_paths():
     return (
         os.path.join(libgit2_path, 'bin'),
         os.path.join(libgit2_path, 'include'),
-        getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib')),
+        os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib')),
     )

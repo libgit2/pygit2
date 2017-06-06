@@ -34,13 +34,21 @@ from __future__ import print_function
 # Import from the Standard Library
 import codecs
 from distutils.command.build import build
+from distutils.command.build_ext import build_ext
 from distutils.command.sdist import sdist
+from distutils import sysconfig
+from distutils import dir_util
 from distutils import log
+from distutils import spawn
 import os
 from os import getenv, listdir, pathsep
 from os.path import abspath, isfile
 from setuptools import setup, Extension, Command
+import hashlib
+import platform
 import shlex
+import urllib
+import zipfile
 from subprocess import Popen, PIPE
 import sys
 import unittest
@@ -55,7 +63,7 @@ else:
 
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
-from _build import __version__, get_libgit2_paths
+from _build import __version__, get_libgit2_paths, __sha__
 if cffi_major_version == 0:
     from _run import ffi, preamble, C_KEYWORDS
     ffi.verify(preamble, **C_KEYWORDS)
@@ -63,6 +71,13 @@ del sys.path[0]
 
 
 libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
+
+platform_name = platform.system()
+shared_ext = '.so'
+if 'Windows' in platform_name:
+    shared_ext = '.dll'
+elif 'Darwin' in platform_name:
+    shared_ext = '.dylib'
 
 pygit2_exts = [os.path.join('src', name) for name in sorted(listdir('src'))
                if name.endswith('.c')]
@@ -134,6 +149,106 @@ cmdclass = {
 }
 
 
+#################
+# CMake function
+#################
+def run_cmd(cmd="cmake", cmd_args=[]):
+    """
+    Runs CMake to determine configuration for this build
+    """
+    if spawn.find_executable(cmd) is None:
+        log.error("%s is required to build libgit2" % cmd)
+        log.error("Please install %s and re-run setup" % cmd)
+        sys.exit(-1)
+
+    # construct argument string
+    try:
+        spawn.spawn([cmd] + cmd_args)
+    except spawn.DistutilsExecError:
+        log.error("Error while running %s" % cmd)
+        log.error("run 'setup.py build --help' for build options"
+                  "You may also try editing the settings in "
+                  "CMakeLists.txt file and re-running setup")
+        sys.exit(-1)
+
+
+class build_ext_subclass(build_ext):
+    def build_extensions(self):
+        # download and build libgit2
+        fn = 'v%s.zip' % __version__
+        url = 'https://github.com/libgit2/libgit2/archive/%s' % fn
+        cwd = os.getcwd()
+        install_path = os.path.abspath(os.path.join('build', 'libgit2'))
+        prefix = os.path.abspath(sysconfig.PREFIX)
+        libpath = os.path.join(prefix, 'lib')
+
+        # only build libgit2 once
+        if not (os.path.isdir(os.path.join(install_path, 'lib')) and
+                os.path.isdir(os.path.join(install_path, 'include'))):
+
+            dir_util.mkpath(self.build_temp)
+            os.chdir(self.build_temp)
+
+            # download and save zip file, only if checksum doesn't match
+            sha = None
+            try:
+                sha = hashlib.sha256(open(fn, 'rb').read()).hexdigest()
+            except IOError:
+                pass
+            if sha != __sha__:
+                log.warn("Downloading libgit2...")
+                urllib.urlretrieve(url, fn)
+
+            with zipfile.ZipFile(fn, "r") as zf:
+                log.warn("Extracting libgit2...")
+                zf.extractall()
+
+            if shared_ext == ".dll":
+                # weird bug with visual studio compiler for python (later
+                # versions do not have this problem; pre-2013 compilers on
+                # windows do not include stdint.h ... but libgit2 includes the
+                # file ...but win32-compat.h doesn't inlucde it correctly?
+                win32path = os.path.join('libgit2-' + __version__, 'src',
+                                         'win32', 'win32-compat.h')
+                newpath = '"../../include/git2/stdint.h"'
+                lines = []
+                with open(win32path) as f:
+                    for line in f:
+                        lines.append(line.replace('#include <stdint.h>',
+                                                  '#include ' + newpath))
+                with open(win32path, 'w') as f:
+                    for line in lines:
+                        f.write(line)
+
+            dir_util.mkpath('build')
+            os.chdir('build')
+
+            cmake_args = [
+                '-DCMAKE_INSTALL_PREFIX:PATH=%s' % install_path,
+                '-DCMAKE_INSTALL_RPATH:PATH=%s' % libpath,
+                '-DCMAKE_INSTALL_NAME_DIR:PATH=%s' % libpath,
+                '-DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE',
+                '-DBUILD_CLAR:BOOL=OFF',
+                '../libgit2-%s' % __version__,
+            ]
+
+            run_cmd('cmake', cmake_args)
+            opts = ''
+            if shared_ext != ".dll":
+                opts = " -- -j8"
+            opts = '--build . --target install' + opts
+            run_cmd('cmake', opts.split())
+
+            os.chdir(cwd)
+            # post-install: move to same location as _pygit2.so
+            dir_util.mkpath(libpath)
+            self.copy_tree(libgit2_lib, os.path.abspath(libpath))
+
+        if shared_ext != ".dll":
+            # make sure we search our header path first
+            self.compiler.compiler_so.insert(1, '-I' + libgit2_include)
+        build_ext.build_extensions(self)
+
 # On Windows, we install the git2.dll too.
 class BuildWithDLLs(build):
     def _get_dlls(self):
@@ -167,6 +282,10 @@ class BuildWithDLLs(build):
 # On Windows we package up the dlls with the plugin.
 if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
+
+# always bundle libgit2 shared libraries with pygit2
+if os.path.abspath(os.path.join('build', 'libgit2', 'bin')) == libgit2_bin:
+    cmdclass['build_ext'] = build_ext_subclass
 
 extra_args = {
     'ext_modules': [
