@@ -97,7 +97,7 @@ class ConfigTest(utils.RepoTestCase):
 
         self.assertRaises(TypeError, lambda: config[()])
         self.assertRaises(TypeError, lambda: config[-4])
-        self.assertRaisesWithArg(ValueError, "Invalid config item name 'abc'",
+        self.assertRaisesWithArg(ValueError, "invalid config item name 'abc'",
                                  lambda: config['abc'])
         self.assertRaisesWithArg(KeyError, 'abc.def',
                                  lambda: config['abc.def'])
