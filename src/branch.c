@@ -81,6 +81,28 @@ Branch_is_head(Branch *self)
         return Error_set(err);
 }
 
+PyDoc_STRVAR(Branch_is_checked_out__doc__,
+  "is_checked_out()\n"
+  "\n"
+  "True if branch is checked out by any repo connected to the current one, "
+  " False otherwise.");
+
+PyObject *
+Branch_is_checked_out(Branch *self)
+{
+    int err;
+
+    CHECK_REFERENCE(self);
+
+    err = git_branch_is_checked_out(self->reference);
+    if (err == 1)
+        Py_RETURN_TRUE;
+    else if (err == 0)
+        Py_RETURN_FALSE;
+    else
+        return Error_set(err);
+}
+
 
 PyDoc_STRVAR(Branch_rename__doc__,
   "rename(name, force=False)\n"
@@ -234,6 +256,7 @@ Branch_upstream_name__get__(Branch *self)
 PyMethodDef Branch_methods[] = {
     METHOD(Branch, delete, METH_NOARGS),
     METHOD(Branch, is_head, METH_NOARGS),
+    METHOD(Branch, is_checked_out, METH_NOARGS),
     METHOD(Branch, rename, METH_VARARGS),
     {NULL}
 };

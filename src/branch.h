@@ -34,6 +34,7 @@
 
 PyObject* Branch_delete(Branch *self, PyObject *args);
 PyObject* Branch_is_head(Branch *self);
+PyObject* Branch_is_checked_out(Branch *self);
 PyObject* Branch_move(Branch *self, PyObject *args);
 
 PyObject* wrap_branch(git_reference *c_reference, Repository *repo);
