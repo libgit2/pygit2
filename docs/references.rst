@@ -113,10 +113,10 @@ The Branch type
 .. autoattribute:: pygit2.Branch.remote_name
 .. autoattribute:: pygit2.Branch.upstream
 .. autoattribute:: pygit2.Branch.upstream_name
-
 .. automethod:: pygit2.Branch.rename
 .. automethod:: pygit2.Branch.delete
 .. automethod:: pygit2.Branch.is_head
+.. automethod:: pygit2.Branch.is_checked_out
 
 The reference log
 ====================

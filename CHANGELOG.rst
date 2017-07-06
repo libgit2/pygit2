@@ -1,3 +1,26 @@
+0.26.0 (2017-07-06)
+-------------------------
+
+- Update to libgit2 v0.26
+  `#713 <https://github.com/libgit2/pygit2/pull/713>`_
+
+- Drop support for Python 3.2, add support for cffi 1.10
+  `#706 <https://github.com/libgit2/pygit2/pull/706>`_
+  `#694 <https://github.com/libgit2/pygit2/issues/694>`_
+
+- New ``Repository.revert_commit(...)``
+  `#711 <https://github.com/libgit2/pygit2/pull/711>`_
+  `#710 <https://github.com/libgit2/pygit2/issues/710>`_
+
+- New ``Branch.is_checked_out()``
+  `#696 <https://github.com/libgit2/pygit2/pull/696>`_
+
+- Various fixes
+  `#706 <https://github.com/libgit2/pygit2/pull/706>`_
+  `#707 <https://github.com/libgit2/pygit2/pull/707>`_
+  `#708 <https://github.com/libgit2/pygit2/pull/708>`_
+
+
 0.25.1 (2017-04-25)
 -------------------------
 

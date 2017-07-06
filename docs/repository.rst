@@ -67,10 +67,11 @@ Below there are some general attributes and methods:
 .. autoattribute:: pygit2.Repository.default_signature
 .. automethod:: pygit2.Repository.read
 .. automethod:: pygit2.Repository.write
-.. automethod:: pygit2.Repository.reset
-.. automethod:: pygit2.Repository.state_cleanup
-.. automethod:: pygit2.Repository.write_archive
 .. automethod:: pygit2.Repository.ahead_behind
+.. automethod:: pygit2.Repository.create_reference
 .. automethod:: pygit2.Repository.describe
 .. automethod:: pygit2.Repository.path_is_ignored
-.. automethod:: pygit2.Repository.create_reference
+.. automethod:: pygit2.Repository.reset
+.. automethod:: pygit2.Repository.revert_commit
+.. automethod:: pygit2.Repository.state_cleanup
+.. automethod:: pygit2.Repository.write_archive
