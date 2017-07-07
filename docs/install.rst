@@ -193,25 +193,27 @@ everytime. Verify yourself if curious:
 Installing on Windows
 ===================================
 
-pygit2 expects to find the libgit2 installed files in the directory specified
-in the ``LIBGIT2`` environment variable.
+`pygit2` for Windows is packaged into wheels and can be easily
+installed with `pip`:
 
-In addition, make sure that libgit2 is build in "__cdecl" mode.
-The following recipe shows you how to do it, assuming you're working
-from a bash shell:
+    pip install pygit2
+
+For development it is also possible to build `pygit2` with `libgit2`
+from sources. `libgit2` location is specified by the ``LIBGIT2``
+environment variable. `libgit2` should be built in "__cdecl" mode.
+The following recipe shows you how to do it from a bash shell:
 
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ wget https://github.com/libgit2/libgit2/archive/v0.26.0.tar.gz
-   $ tar xzf v0.26.0.tar.gz
-   $ cd libgit2-0.26.0/
+   $ git clone --depth=1 -b maint/v0.26 https://github.com/libgit2/libgit2.git
+   $ cd libgit2
    $ cmake . -DSTDCALL=OFF -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 9 2008"
    $ cmake --build . --config release --target install
    $ ctest -v
 
-At this point, you're ready to execute the generic pygit2 installation
-steps described above.
+At this point, you're ready to execute the generic `pygit2`
+installation steps described at the start of this page.
 
 
 Installing on OS X
