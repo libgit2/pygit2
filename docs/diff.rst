@@ -111,5 +111,5 @@ The DiffLine type
 .. autoattribute :: pygit2.DiffLine.origin
 .. autoattribute :: pygit2.DiffLine.content
 .. autoattribute :: pygit2.DiffLine.old_lineno
-.. autoattribute :: pygit2.DiffLine.old_lineno
+.. autoattribute :: pygit2.DiffLine.new_lineno
 .. autoattribute :: pygit2.DiffLine.num_lines
