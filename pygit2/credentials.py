@@ -27,8 +27,31 @@
 
 from .ffi import C
 
+GIT_CREDTYPE_USERNAME = C.GIT_CREDTYPE_USERNAME
 GIT_CREDTYPE_USERPASS_PLAINTEXT = C.GIT_CREDTYPE_USERPASS_PLAINTEXT
 GIT_CREDTYPE_SSH_KEY = C.GIT_CREDTYPE_SSH_KEY
+
+
+class Username(object):
+    """Username credentials
+
+    This is an object suitable for passing to a remote's credentials
+    callback and for returning from said callback.
+    """
+
+    def __init__(self, username):
+        self._username = username
+
+    @property
+    def credential_type(self):
+        return GIT_CREDTYPE_USERNAME
+
+    @property
+    def credential_tuple(self):
+        return (self._username,)
+
+    def __call__(self, _url, _username, _allowed):
+        return self
 
 
 class UserPass(object):

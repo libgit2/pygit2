@@ -469,6 +469,11 @@ def get_credentials(fn, url, username, allowed):
             err = C.git_cred_ssh_key_new(ccred, to_bytes(name),
                                          to_bytes(pubkey), to_bytes(privkey),
                                          to_bytes(passphrase))
+
+    elif cred_type == C.GIT_CREDTYPE_USERNAME:
+        name, = credential_tuple
+        err = C.git_cred_username_new(ccred, to_bytes(name))
+
     else:
         raise TypeError("unsupported credential type")
 

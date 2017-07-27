@@ -31,8 +31,7 @@
 import unittest
 import pygit2
 from pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT
-from pygit2 import UserPass, Keypair, KeypairFromAgent
-from pygit2 import UserPass, Keypair
+from pygit2 import Username, UserPass, Keypair, KeypairFromAgent
 from . import utils
 
 REMOTE_NAME = 'origin'
@@ -45,6 +44,12 @@ REMOTE_REPO_BYTES = 2758
 ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
 class CredentialCreateTest(utils.NoRepoTestCase):
+    def test_username(self):
+        username = "git"
+
+        cred = Username(username)
+        self.assertEqual((username,), cred.credential_tuple)
+
     def test_userpass(self):
         username = "git"
         password = "sekkrit"
