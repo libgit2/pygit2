@@ -74,16 +74,18 @@ PyObject *
 Worktree_prune(Worktree *self, PyObject *args)
 {
     int err, force = 0;
+    git_worktree_prune_options prune_opts;
 
     if (!PyArg_ParseTuple(args, "|i", &force))
         return NULL;
 
-    err = git_worktree_prune(self->worktree, force & (GIT_WORKTREE_PRUNE_VALID | GIT_WORKTREE_PRUNE_LOCKED));
+    git_worktree_prune_init_options(&prune_opts, GIT_WORKTREE_PRUNE_OPTIONS_VERSION);
+    prune_opts.flags = force & (GIT_WORKTREE_PRUNE_VALID | GIT_WORKTREE_PRUNE_LOCKED);
+
+    err = git_worktree_prune(self->worktree, &prune_opts);
     if (err < 0)
         return Error_set(err);
 
-    // TODO should I have to deallocate myself ?
- 
     Py_RETURN_NONE;
 }
 
