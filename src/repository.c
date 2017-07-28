@@ -1805,11 +1805,12 @@ Repository_add_worktree(Repository *self, PyObject *args)
     char *c_path;
     git_worktree *wt;
     int err;
+    git_worktree_add_options add_opts = GIT_WORKTREE_ADD_OPTIONS_INIT;
 
     if (!PyArg_ParseTuple(args, "ss", &c_name, &c_path))
         return NULL;
 
-    err = git_worktree_add(&wt, self->repo, c_name, c_path);
+    err = git_worktree_add(&wt, self->repo, c_name, c_path, &add_opts);
     if (err < 0)
         return Error_set(err);
 
