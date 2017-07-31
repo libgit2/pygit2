@@ -311,13 +311,13 @@ class Index(object):
         that represents the conflicts in the index.
 
         This object presents a mapping interface with the paths as keys. You
-        can use the ``del`` operator to remove a conflict form the Index.
+        can use the ``del`` operator to remove a conflict from the Index.
 
         Each conflict is made up of three elements. Access or iteration
         of the conflicts returns a three-tuple of
         :py:class:`~pygit2.IndexEntry`. The first is the common
-        ancestor, the second is the "ours" side of the conflict and the
-        thirs is the "theirs" side.
+        ancestor, the second is the "ours" side of the conflict, and the
+        third is the "theirs" side.
 
         These elements may be None depending on which sides exist for
         the particular conflict.
