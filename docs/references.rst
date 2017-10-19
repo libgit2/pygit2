@@ -15,7 +15,7 @@ Example::
     >>> all_refs = list(repo.references)
 
     >>> master_ref = repo.lookup_reference("refs/heads/master")
-    >>> commit = master_ref.get_object() # or repo[master_ref.target]
+    >>> commit = master_ref.peel() # or repo[master_ref.target]
 
     # Create a reference
     >>> ref = repo.references.create('refs/tags/version1', LAST_COMMIT)
