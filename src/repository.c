@@ -38,6 +38,7 @@
 #include "branch.h"
 #include "signature.h"
 #include <git2/odb_backend.h>
+#include <git2/sys/repository.h>
 
 extern PyObject *GitError;
 
