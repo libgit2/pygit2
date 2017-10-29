@@ -1810,6 +1810,20 @@ Repository_reset(Repository *self, PyObject* args)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Repository_free__doc__,
+  "free()\n"
+  "\n"
+  "Releases handles to the Git database without deallocating the repository.\n");
+
+PyObject *
+Repository_free(Repository *self)
+{
+    if (self->owned)
+        git_repository__cleanup(self->repo);
+
+    Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(Repository_expand_id__doc__,
     "expand_id(hex) -> Oid\n"
     "\n"
@@ -1863,6 +1877,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, reset, METH_VARARGS),
+    METHOD(Repository, free, METH_NOARGS),
     METHOD(Repository, expand_id, METH_O),
     METHOD(Repository, _from_c, METH_VARARGS),
     METHOD(Repository, _disown, METH_NOARGS),

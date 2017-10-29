@@ -69,6 +69,7 @@ Authors
   Ridge Kennedy             Ross Nicoll               Rui Abreu Ferreira
   Sheeo                     Soasme                    Vladimir Rutsky
   Yu Jianjian               chengyuhang               earl
+  Bob Carroll
 
 
 License
