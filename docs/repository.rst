@@ -54,7 +54,7 @@ The Repository class
      >>> repo = Repository('pygit2/.git')
 
 The API of the Repository class is quite large. Since this documentation is
-orgaized by features, the related bits are explained in the related chapters,
+organized by features, the related bits are explained in the related chapters,
 for instance the :py:meth:`pygit2.Repository.checkout` method are explained in
 the Checkout section.
 
