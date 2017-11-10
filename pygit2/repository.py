@@ -660,7 +660,16 @@ class BaseRepository(_Repository):
             consider. Increasing above 10 will take slightly longer but may
             produce a more accurate result. A value of 0 will cause only exact
             matches to be output.
-        :param int describe_strategy: A GIT_DESCRIBE_* constant.
+        :param int describe_strategy: A `GIT_DESCRIBE_*` constant. Can be one
+            of:
+
+            * `GIT_DESCRIBE_DEFAULT` - Only match annotated tags. (This is
+              equivalent to setting this parameter to `None`.)
+            * `GIT_DESCRIBE_TAGS` - Match everything under refs/tags/
+              (includes lightweight tags).
+            * `GIT_DESCRIBE_ALL` - Match everything under refs/ (includes
+              branches).
+
         :param str pattern: Only consider tags matching the given `glob(7)`
             pattern, excluding the "refs/tags/" prefix.
         :param bool only_follow_first_parent: Follow only the first parent
