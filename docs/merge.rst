@@ -31,7 +31,8 @@ can create a commit with these two parents.
 
    >>> user = repo.default_signature
    >>> tree = repo.index.write_tree()
-   >>> new_commit = repo.create_commit('HEAD', user, user, tree,
+   >>> message = "Merging branches"
+   >>> new_commit = repo.create_commit('HEAD', user, user, message, tree,
                                        [repo.head.target, other_branch_tip])
 
 
