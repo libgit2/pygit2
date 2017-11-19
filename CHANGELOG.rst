@@ -1,3 +1,21 @@
+0.26.1 (2017-11-19)
+-------------------------
+
+- New ``Repository.free()``
+  `#730 <https://github.com/libgit2/pygit2/pull/730>`_
+
+- Improve credentials handling for ssh cloning
+  `#718 <https://github.com/libgit2/pygit2/pull/718>`_
+
+- Documentation improvements
+  `#714 <https://github.com/libgit2/pygit2/pull/714>`_
+  `#715 <https://github.com/libgit2/pygit2/pull/715>`_
+  `#728 <https://github.com/libgit2/pygit2/pull/728>`_
+  `#733 <https://github.com/libgit2/pygit2/pull/733>`_
+  `#734 <https://github.com/libgit2/pygit2/pull/734>`_
+  `#735 <https://github.com/libgit2/pygit2/pull/735>`_
+
+
 0.26.0 (2017-07-06)
 -------------------------
 

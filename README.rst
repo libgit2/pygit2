@@ -28,7 +28,7 @@ How to install
 Authors
 ==============
 
-117 developers have contributed at least 1 commit to pygit2::
+123 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
   W. Trevor King            Dave Borowitz             Matthias Bartelmeß
@@ -40,36 +40,37 @@ Authors
   Patrick Steinhardt        Tamir Bahar               Valentin Haenel
   Michael Jones             Bernardo Heynemann        Brodie Rao
   John Szakmeister          Vlad Temian               Lukas Fleischer
-  Nicolas Dandrimont        David Versmisse           Rémi Duraffort
-  Santiago Perez De Rosso   Sebastian Thiel           Thom Wiggers
-  Alok Singhal              Anatoly Techtonik         Fraser Tweedale
-  Han-Wen Nienhuys          Jason Ziglar              Leonardo Rhodes
-  Petr Viktorin             Robert Hölzl              Ron Cohen
-  Thomas Kluyver            Alex Chamberlain          Alexander Bayandin
-  Amit Bakshi               Andrey Devyatkin          Arno van Lumig
-  Ben Davis                 Dustin Raimondi           Eric Schrijver
-  Greg Fitzgerald           Guillermo Pérez           Hervé Cauwelier
-  Huang Huang               Ian P. McCullough         Igor Gnatenko
-  Jack O'Connor             Jared Flatow              Jiunn Haur Lim
-  Jun Omae                  Kaarel Kitsemets          Kevin KIN-FOO
-  Mark Adams                Masud Rahman              Michael Sondergaard
-  Ondřej Nový               Sarath Lakshman           Szucs Krisztian
-  Vicent Marti              Zoran Zaric               Adam Spiers
-  Andrew Chin               András Veres-Szentkirályi Ash Berlin
-  Benjamin Kircher          Benjamin Pollack          Bryan O'Sullivan
+  Nicolas Dandrimont        Anatoly Techtonik         David Versmisse
+  Rémi Duraffort            Santiago Perez De Rosso   Sebastian Thiel
+  Thom Wiggers              Alok Singhal              Bob Carroll
+  Fraser Tweedale           Han-Wen Nienhuys          Jason Ziglar
+  Leonardo Rhodes           Petr Viktorin             Robert Hölzl
+  Ron Cohen                 Thomas Kluyver            Alex Chamberlain
+  Alexander Bayandin        Amit Bakshi               Andrey Devyatkin
+  Arno van Lumig            Ben Davis                 Dustin Raimondi
+  Eric Schrijver            Greg Fitzgerald           Guillermo Pérez
+  Hervé Cauwelier           Huang Huang               Ian P. McCullough
+  Igor Gnatenko             Jack O'Connor             Jared Flatow
+  Jiunn Haur Lim            Jun Omae                  Kaarel Kitsemets
+  Kevin KIN-FOO             Mark Adams                Masud Rahman
+  Michael Sondergaard       Ondřej Nový               Sarath Lakshman
+  Szucs Krisztian           Vicent Marti              Zoran Zaric
+  Adam Spiers               Andrew Chin               András Veres-Szentkirályi
+  Ash Berlin                Benjamin Kircher          Benjamin Pollack
+  Bogdan Stoicescu          Bogdan Vasilescu          Bryan O'Sullivan
   Cam Cope                  Chason Chaffin            Chris Rebert
-  Colin Watson              Daniel Bruce              David Fischer
-  David Sanders             David Six                 Devaev Maxim
-  Eric Davis                Erik Meusel               Erik van Zijst
-  Ferengee                  Gustavo Di Pietrou        Holger Frey
-  Hugh Cole-Baker           Jasper Lievisse Adriaanse Josh Bleecher Snyder
-  Justin Clift              Kyriakos Oikonomakos      Mathieu Bridon
-  Matthaus Woolard          Nicolás Sanguinetti       Noah Fontes
-  Óscar San José            Peter Dave Hello          Philippe Ombredanne
+  Colin Watson              Cyril Jouve               Daniel Bruce
+  David Fischer             David Sanders             David Six
+  Devaev Maxim              Eric Davis                Erik Meusel
+  Erik van Zijst            Ferengee                  Gustavo Di Pietro
+  Holger Frey               Hugh Cole-Baker           Jasper Lievisse Adriaanse
+  Josh Bleecher Snyder      Justin Clift              Ken Dreyer
+  Kyriakos Oikonomakos      Mathieu Bridon            Matthaus Woolard
+  Nicolás Sanguinetti       Noah Fontes               Óscar San José
+  Paul Wagland              Peter Dave Hello          Philippe Ombredanne
   Ridge Kennedy             Ross Nicoll               Rui Abreu Ferreira
   Sheeo                     Soasme                    Vladimir Rutsky
   Yu Jianjian               chengyuhang               earl
-  Bob Carroll
 
 
 License
