@@ -573,6 +573,7 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
         self.assertTrue('refs/remotes/custom_remote/master' in repo.listall_references())
         self.assertIsNotNone(repo.remotes["custom_remote"])
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_clone_with_credentials(self):
         repo = clone_repository(
             "https://bitbucket.org/libgit2/testgitrepository.git",

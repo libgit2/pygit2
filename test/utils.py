@@ -27,17 +27,32 @@
 
 """Test utilities for libgit2."""
 
-import sys
+import gc
+import hashlib
 import os
 import shutil
+import socket
 import stat
+import sys
 import tarfile
 import tempfile
 import unittest
-import hashlib
-import gc
 
 import pygit2
+
+
+_no_network = None
+def no_network():
+    global _no_network
+    if _no_network is None:
+        try:
+            socket.gethostbyname('github.com')
+        except socket.gaierror:
+            _no_network = True
+        else:
+            _no_network = False
+
+    return _no_network
 
 
 def force_rm_handle(remove_path, path, excinfo):

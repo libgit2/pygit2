@@ -86,6 +86,7 @@ class CredentialCallback(utils.RepoTestCase):
 
         self.assertRaises(Exception, lambda: remote.fetch(callbacks=MyCallbacks()))
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_bad_cred_type(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
             @staticmethod
@@ -99,6 +100,7 @@ class CredentialCallback(utils.RepoTestCase):
 
 class CallableCredentialTest(utils.RepoTestCase):
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_user_pass(self):
         credentials = UserPass("libgit2", "libgit2")
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)

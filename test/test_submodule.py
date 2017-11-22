@@ -31,8 +31,6 @@
 from __future__ import absolute_import
 
 import os
-
-import pygit2
 import unittest
 
 from . import utils
@@ -53,6 +51,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         self.assertEqual(len(submodules), 1)
         self.assertEqual(submodules[0], SUBM_PATH)
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_submodule_open(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
         self.repo.init_submodules()
@@ -73,6 +72,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         s = self.repo.lookup_submodule(SUBM_PATH)
         self.assertEqual(SUBM_URL, s.url)
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_init_and_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
         self.assertFalse(os.path.exists(subrepo_file_path))
@@ -80,6 +80,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         self.repo.update_submodules()
         self.assertTrue(os.path.exists(subrepo_file_path))
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_specified_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
         self.assertFalse(os.path.exists(subrepo_file_path))
@@ -87,6 +88,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         self.repo.update_submodules(submodules=['submodule'])
         self.assertTrue(os.path.exists(subrepo_file_path))
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_oneshot_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
         self.assertFalse(os.path.exists(subrepo_file_path))
