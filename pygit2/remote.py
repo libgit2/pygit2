@@ -93,78 +93,98 @@ class RemoteCallbacks(object):
             self.certificate = certificate
 
     def sideband_progress(self, string):
-        """Progress output callback
-
-        Override this function with your own progress reporting function
-
-        :param str string: Progress output from the remote
         """
-
-    def credentials(self, url, username_from_url, allowed_types):
-        """Credentials callback
-
-        If the remote server requires authentication, this function will
-        be called and its return value used for authentication. Override
-        it if you want to be able to perform authentication.
+        Progress output callback.  Override this function with your own
+        progress reporting function
 
         Parameters:
 
-        - url (str) -- The url of the remote.
+        string : str
+            Progress output from the remote.
+        """
 
-        - username_from_url (str or None) -- Username extracted from the url,
-          if any.
+    def credentials(self, url, username_from_url, allowed_types):
+        """
+        Credentials callback.  If the remote server requires authentication,
+        this function will be called and its return value used for
+        authentication. Override it if you want to be able to perform
+        authentication.
 
-        - allowed_types (int) -- Credential types supported by the remote.
+        Returns: credential
 
-        Return value: credential
+        Parameters:
+
+        url : str
+            The url of the remote.
+
+        username_from_url : str or None
+            Username extracted from the url, if any.
+
+        allowed_types : int
+            Credential types supported by the remote.
         """
         raise Passthrough
 
     def certificate_check(self, certificate, valid, host):
-        """Certificate callback
+        """
+        Certificate callback. Override with your own function to determine
+        whether the accept the server's certificate.
 
-        Override with your own function to determine whether the accept
-        the server's certificate.
+        Returns: True to connect, False to abort.
 
-        :param None certificate: The certificate. It is currently always None
-         while we figure out how to represent it cross-platform
+        Parameters:
 
-        :param bool valid: Whether the TLS/SSH library thinks the certificate
-         is valid
+        certificate : None
+            The certificate. It is currently always None while we figure out
+            how to represent it cross-platform.
 
-        :param str host: The hostname we want to connect to
+        valid : bool
+            Whether the TLS/SSH library thinks the certificate is valid.
 
-        Return value: True to connect, False to abort
+        host : str
+            The hostname we want to connect to.
         """
 
         raise Passthrough
 
     def transfer_progress(self, stats):
-        """Transfer progress callback
+        """
+        Transfer progress callback. Override with your own function to report
+        transfer progress.
 
-        Override with your own function to report transfer progress.
+        Parameters:
 
-        :param TransferProgress stats: The progress up to now
+        stats : TransferProgress
+            The progress up to now.
         """
 
     def update_tips(self, refname, old, new):
-        """Update tips callabck
+        """
+        Update tips callabck. Override with your own function to report
+        reference updates.
 
-        Override with your own function to report reference updates
+        Parameters:
 
-        :param str refname: the name of the reference that's being updated
-        :param Oid old: the reference's old value
-        :param Oid new: the reference's new value
+        refname : str
+            The name of the reference that's being updated.
+
+        old : Oid
+            The reference's old value.
+
+        new : Oid
+            The reference's new value.
         """
 
     def push_update_reference(self, refname, message):
-        """Push update reference callback
+        """
+        Push update reference callback. Override with your own function to
+        report the remote's acceptace or rejection of reference updates.
 
-        Override with your own function to report the remote's
-        acceptace or rejection of reference updates.
+        refname : str
+            The name of the reference (on the remote).
 
-        :param str refname: the name of the reference (on the remote)
-        :param str messsage: rejection message from the remote. If None, the update was accepted.
+        messsage : str
+            Rejection message from the remote. If None, the update was accepted.
         """
 
     def _fill_fetch_options(self, fetch_opts):
@@ -410,16 +430,20 @@ class Remote(object):
         return strarray_to_strings(specs)
 
     def push(self, specs, callbacks=None):
-        """Push the given refspec to the remote. Raises ``GitError`` on
-        protocol error or unpack failure.
+        """
+        Push the given refspec to the remote. Raises ``GitError`` on protocol
+        error or unpack failure.
 
-        When the remote has a githook installed, that denies the reference
-        this function will return successfully. Thus it is stronly recommended
-        to install a callback, that implements
+        When the remote has a githook installed, that denies the reference this
+        function will return successfully. Thus it is stronly recommended to
+        install a callback, that implements
         :py:meth:`RemoteCallbacks.push_update_reference` and check the passed
         parameters for successfull operations.
 
-        :param [str] specs: push refspecs to use
+        Parameters:
+
+        specs : [str]
+            Push refspecs to use.
         """
         push_opts = ffi.new('git_push_options *')
         err = C.git_push_init_options(push_opts, C.GIT_PUSH_OPTIONS_VERSION)

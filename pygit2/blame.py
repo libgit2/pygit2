@@ -29,9 +29,7 @@
 from __future__ import absolute_import, unicode_literals
 
 # Import from pygit2
-from .errors import check_error
 from .ffi import ffi, C
-from .utils import to_bytes, is_string, to_str
 from .utils import GenericIterator
 from _pygit2 import Signature, Oid
 
@@ -125,10 +123,11 @@ class Blame(object):
         return BlameHunk._from_c(self, chunk)
 
     def for_line(self, line_no):
-        """Returns the <BlameHunk> object for a given line given its number
-        in the current Blame.
+        """
+        Returns the <BlameHunk> object for a given line given its number in the
+        current Blame.
 
-        Arguments:
+        Parameters:
 
         line_no
             Line number, starts at 1.

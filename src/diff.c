@@ -607,14 +607,16 @@ DiffStats_files_changed__get__(DiffStats *self)
 }
 
 PyDoc_STRVAR(DiffStats_format__doc__,
-    "format(format, width)-> str\n"
+    "format(format, width)\n"
     "\n"
-    "Format the stats as a string\n"
+    "Format the stats as a string.\n"
     "\n"
-    "Arguments:\n"
+    "Returns: str.\n"
+    "\n"
+    "Parameters:\n"
     "\n"
     "format\n"
-    "    The format to use. A pygit2.GIT_DIFF_STATS_* constant\n"
+    "    The format to use. A pygit2.GIT_DIFF_STATS_* constant.\n"
     "\n"
     "width\n"
     "    The width of the output. The output will be scaled to fit.");

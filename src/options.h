@@ -34,16 +34,24 @@
 #include "types.h"
 
 PyDoc_STRVAR(option__doc__,
-  "Get or set a libgit2 option\n"
-  "Arguments:\n"
-  "  (GIT_OPT_GET_SEARCH_PATH, level)\n"
-  "  Get the config search path for the given level\n"
-  "  (GIT_OPT_SET_SEARCH_PATH, level, path)\n"
-  "  Set the config search path for the given level\n"
-  "  (GIT_OPT_GET_MWINDOW_SIZE)\n"
-  "  Get the maximum mmap window size\n"
-  "  (GIT_OPT_SET_MWINDOW_SIZE, size)\n"
-  "  Set the maximum mmap window size\n");
+  "option(option, ...)\n"
+  "\n"
+  "Get or set a libgit2 option.\n"
+  "\n"
+  "Parameters:\n"
+  "\n"
+  "GIT_OPT_GET_SEARCH_PATH, level\n"
+  "    Get the config search path for the given level.\n"
+  "\n"
+  "GIT_OPT_SET_SEARCH_PATH, level, path\n"
+  "    Set the config search path for the given level.\n"
+  "\n"
+  "GIT_OPT_GET_MWINDOW_SIZE\n"
+  "    Get the maximum mmap window size.\n"
+  "\n"
+  "GIT_OPT_SET_MWINDOW_SIZE, size\n"
+  "    Set the maximum mmap window size.\n"
+  );
 
 
 PyObject *option(PyObject *self, PyObject *args);

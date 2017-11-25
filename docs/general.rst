@@ -8,7 +8,7 @@ General
 
 Top level constants and exceptions from the library.
 
-Constants
+Version
 =========
 
 The following constants provide information about the version of the libgit2
@@ -46,8 +46,13 @@ library that has been built against. The version number has a
       >>> print LIBGIT2_VERSION
       '0.26.1'
 
-Errors
-======
+Options
+=========
+
+.. autofunction:: pygit2.option
+
+Exceptions
+==========
 
 .. autoexception:: pygit2.GitError
    :members:

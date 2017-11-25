@@ -179,39 +179,39 @@ def _remote_create_cb(remote_out, repo, name, url, data):
 def clone_repository(
         url, path, bare=False, repository=None, remote=None,
         checkout_branch=None, callbacks=None):
-    """Clones a new Git repository from *url* in the given *path*.
+    """
+    Clones a new Git repository from *url* in the given *path*.
 
-    Returns a Repository class pointing to the newly cloned repository.
+    Returns: a Repository class pointing to the newly cloned repository.
 
-    :param str url: URL of the repository to clone
+    Parameters:
 
-    :param str path: Local path to clone into
+    url : str
+        URL of the repository to clone.
+    path : str
+        Local path to clone into.
+    bare : bool
+        Whether the local repository should be bare.
+    remote : callable
+        Callback for the remote to use.
 
-    :param bool bare: Whether the local repository should be bare
+        The remote callback has `(Repository, name, url) -> Remote` as a
+        signature. The Remote it returns will be used instead of the default
+        one.
+    repository : callable
+        Callback for the repository to use.
 
-    :param callable remote: Callback for the remote to use.
+        The repository callback has `(path, bare) -> Repository` as a
+        signature. The Repository it returns will be used instead of creating a
+        new one.
+    checkout_branch : str
+        Branch to checkout after the clone. The default is to use the remote's
+        default branch.
+    callbacks : RemoteCallbacks
+        Object which implements the callbacks as methods.
 
-    :param callable repository: Callback for the repository to use.
-
-    :param str checkout_branch: Branch to checkout after the
-     clone. The default is to use the remote's default branch.
-
-    :param RemoteCallbacks callbacks: object which implements the
-     callbacks as methods.
-
-    :rtype: Repository
-
-    The repository callback has `(path, bare) -> Repository` as a
-    signature. The Repository it returns will be used instead of
-    creating a new one.
-
-    The remote callback has `(Repository, name, url) -> Remote` as a
-    signature. The Remote it returns will be used instead of the default
-    one.
-
-    The callbacks should be an object which inherits from
-    `pyclass:RemoteCallbacks`.
-
+        The callbacks should be an object which inherits from
+        `pyclass:RemoteCallbacks`.
     """
 
     opts = ffi.new('git_clone_options *')

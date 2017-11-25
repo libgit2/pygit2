@@ -234,12 +234,13 @@ PyDoc_STRVAR(Reference_set_target__doc__,
     "\n"
     "Update the reference using the given signature and message.\n"
     "These will be used to fill the reflog entry which will be created\n"
-    "as a result of this update\n"
+    "as a result of this update.\n"
     "\n"
-    "Arguments:\n"
+    "Parameters:\n"
     "\n"
     "target\n"
     "    The new target for this reference\n"
+    "\n"
     "message\n"
     "    Message to use for the reflog.\n");
 

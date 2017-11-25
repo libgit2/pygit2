@@ -78,17 +78,26 @@ class UserPass(object):
 
 
 class Keypair(object):
-    """SSH key pair credentials
+    """
+    SSH key pair credentials.
 
     This is an object suitable for passing to a remote's credentials
     callback and for returning from said callback.
 
-    :param str username: the username being used to authenticate with the
-        remote server
-    :param str pubkey: the path to the user's public key file
-    :param str privkey: the path to the user's private key file
-    :param str passphrase: the password used to decrypt the private key file,
-        or empty string if no passphrase is required.
+    Parameters:
+
+    username : str
+        The username being used to authenticate with the remote server.
+
+    pubkey : str
+        The path to the user's public key file.
+
+    privkey : str
+        The path to the user's private key file.
+
+    passphrase : str
+        The password used to decrypt the private key file, or empty string if
+        no passphrase is required.
     """
 
     def __init__(self, username, pubkey, privkey, passphrase):

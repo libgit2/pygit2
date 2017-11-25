@@ -46,7 +46,7 @@ from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
 from _pygit2 import GIT_FILEMODE_LINK
 from _pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
-from _pygit2 import Reference, Tree, Commit, Blob, Signature
+from _pygit2 import Reference, Tree, Commit, Blob
 
 from .config import Config
 from .errors import check_error
@@ -226,29 +226,32 @@ class BaseRepository(_Repository):
 
     def checkout(self, refname=None, **kwargs):
         """
-        Checkout the given reference using the given strategy, and update
-        the HEAD.
+        Checkout the given reference using the given strategy, and update the
+        HEAD.
         The reference may be a reference name or a Reference object.
         The default strategy is GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING.
 
-        To checkout from the HEAD, just pass 'HEAD'::
-
-          >>> checkout('HEAD')
-
-        This is identical to calling checkout_head().
-
         If no reference is given, checkout from the index.
 
-        Arguments:
+        Parameters:
 
-        :param str|Reference refname: The reference to checkout. After checkout,
-          the current branch will be switched to this one.
+        refname : str or Reference
+            The reference to checkout. After checkout, the current branch will
+            be switched to this one.
 
-        :param int strategy: A ``GIT_CHECKOUT_`` value. The default is
-          ``GIT_CHECKOUT_SAFE``.
+        strategy : int
+            A ``GIT_CHECKOUT_`` value. The default is ``GIT_CHECKOUT_SAFE``.
 
-        :param str directory: Alternative checkout path to workdir.
+        directory : str
+            Alternative checkout path to workdir.
 
+        Examples:
+
+        * To checkout from the HEAD, just pass 'HEAD'::
+
+            >>> checkout('HEAD')
+
+          This is identical to calling checkout_head().
         """
 
         # Case 1: Checkout index
@@ -276,12 +279,13 @@ class BaseRepository(_Repository):
     # Setting HEAD
     #
     def set_head(self, target):
-        """Set HEAD to point to the given target
+        """
+        Set HEAD to point to the given target.
 
-        Arguments:
+        Parameters:
 
         target
-            The new target for HEAD. Can be a string or Oid (to detach)
+            The new target for HEAD. Can be a string or Oid (to detach).
         """
 
         if isinstance(target, Oid):
@@ -418,29 +422,36 @@ class BaseRepository(_Repository):
     def blame(self, path, flags=None, min_match_characters=None,
               newest_commit=None, oldest_commit=None, min_line=None,
               max_line=None):
-        """Return a Blame object for a single file.
+        """
+        Return a Blame object for a single file.
 
-        Arguments:
+        Parameters:
 
         path
             Path to the file to blame.
+
         flags
             A GIT_BLAME_* constant.
+
         min_match_characters
             The number of alphanum chars that must be detected as moving/copying
             within a file for it to associate those lines with the parent commit.
+
         newest_commit
             The id of the newest commit to consider.
+
         oldest_commit
-          The id of the oldest commit to consider.
+            The id of the oldest commit to consider.
+
         min_line
             The first line in the file to blame.
+
         max_line
             The last line in the file to blame.
 
         Examples::
 
-            repo.blame('foo.c', flags=GIT_BLAME_TRACK_COPIES_SAME_FILE)");
+            repo.blame('foo.c', flags=GIT_BLAME_TRACK_COPIES_SAME_FILE)
         """
 
         options = ffi.new('git_blame_options *')
@@ -544,14 +555,19 @@ class BaseRepository(_Repository):
         return ret
 
     def merge_commits(self, ours, theirs, favor='normal'):
-        """Merge two arbitrary commits
+        """
+        Merge two arbitrary commits.
 
-        Arguments:
+        Returns: an index with the result of the merge.
+
+        Parameters:
 
         ours
             The commit to take as "ours" or base.
+
         theirs
             The commit which will be merged into "ours"
+
         favor
             How to deal with file-level conflicts. Can be one of
 
@@ -560,13 +576,10 @@ class BaseRepository(_Repository):
             * theirs. The "theirs" side of the conflict region is used.
             * union. Unique lines from each side will be used.
 
-            for all but NORMAL, the index will not record a conflict.
+            For all but NORMAL, the index will not record a conflict.
 
         Both "ours" and "theirs" can be any object which peels to a commit or the id
         (string or Oid) of an object which peels to a commit.
-
-        Returns an index with the result of the merge
-
         """
 
         ours_ptr = ffi.new('git_commit **')
@@ -592,27 +605,31 @@ class BaseRepository(_Repository):
         return Index.from_c(self, cindex)
 
     def merge_trees(self, ancestor, ours, theirs, favor='normal'):
-        """Merge two trees
+        """
+        Merge two trees.
 
-        Arguments:
+        Returns: an Index that reflects the result of the merge.
+
+        Parameters:
 
         ancestor
-            The tree which is the common ancestor between 'ours' and 'theirs'
+            The tree which is the common ancestor between 'ours' and 'theirs'.
+
         ours
             The commit to take as "ours" or base.
+
         theirs
-            The commit which will be merged into "ours"
+            The commit which will be merged into "ours".
+
         favor
-            How to deal with file-level conflicts. Can be one of
+            How to deal with file-level conflicts. Can be one of:
 
             * normal (default). Conflicts will be preserved.
             * ours. The "ours" side of the conflict region is used.
             * theirs. The "theirs" side of the conflict region is used.
             * union. Unique lines from each side will be used.
 
-            for all but NORMAL, the index will not record a conflict.
-
-        Returns an Index that reflects the result of the merge.
+            For all but NORMAL, the index will not record a conflict.
         """
 
         ancestor_ptr = ffi.new('git_tree **')
@@ -650,18 +667,24 @@ class BaseRepository(_Repository):
                  only_follow_first_parent=None,
                  show_commit_oid_as_fallback=None, abbreviated_size=None,
                  always_use_long_format=None, dirty_suffix=None):
-        """Describe a commit-ish or the current working tree.
+        """
+        Describe a commit-ish or the current working tree.
 
-        :param committish: Commit-ish object or object name to describe, or
-            `None` to describe the current working tree.
-        :type committish: `str`, :class:`~.Reference`, or :class:`~.Commit`
+        Returns: The description (str).
 
-        :param int max_candidates_tags: The number of candidate tags to
-            consider. Increasing above 10 will take slightly longer but may
-            produce a more accurate result. A value of 0 will cause only exact
-            matches to be output.
-        :param int describe_strategy: A `GIT_DESCRIBE_*` constant. Can be one
-            of:
+        Parameters:
+
+        committish : `str`, :class:`~.Reference`, or :class:`~.Commit`
+            Commit-ish object or object name to describe, or `None` to describe
+            the current working tree.
+
+        max_candidates_tags : int
+            The number of candidate tags to consider. Increasing above 10 will
+            take slightly longer but may produce a more accurate result. A
+            value of 0 will cause only exact matches to be output.
+
+        describe_strategy : int
+            Can be one of:
 
             * `GIT_DESCRIBE_DEFAULT` - Only match annotated tags. (This is
               equivalent to setting this parameter to `None`.)
@@ -670,23 +693,28 @@ class BaseRepository(_Repository):
             * `GIT_DESCRIBE_ALL` - Match everything under refs/ (includes
               branches).
 
-        :param str pattern: Only consider tags matching the given `glob(7)`
-            pattern, excluding the "refs/tags/" prefix.
-        :param bool only_follow_first_parent: Follow only the first parent
-            commit upon seeing a merge commit.
-        :param bool show_commit_oid_as_fallback: Show uniquely abbreviated
-            commit object as fallback.
-        :param int abbreviated_size: The minimum number of hexadecimal digits
-            to show for abbreviated object names. A value of 0 will suppress
-            long format, only showing the closest tag.
-        :param bool always_use_long_format: Always output the long format (the
-            nearest tag, the number of commits, and the abbrevated commit name)
-            even when the committish matches a tag.
-        :param str dirty_suffix: A string to append if the working tree is
-            dirty.
+        pattern : str
+            Only consider tags matching the given `glob(7)` pattern, excluding
+            the "refs/tags/" prefix.
 
-        :returns: The description.
-        :rtype: `str`
+        only_follow_first_parent : bool
+            Follow only the first parent commit upon seeing a merge commit.
+
+        show_commit_oid_as_fallback : bool
+            Show uniquely abbreviated commit object as fallback.
+
+        abbreviated_size : int
+            The minimum number of hexadecimal digits to show for abbreviated
+            object names. A value of 0 will suppress long format, only showing
+            the closest tag.
+
+        always_use_long_format : bool
+            Always output the long format (the nearest tag, the number of
+            commits, and the abbrevated commit name) even when the committish
+            matches a tag.
+
+        dirty_suffix : str
+            A string to append if the working tree is dirty.
 
         Example::
 
@@ -756,17 +784,27 @@ class BaseRepository(_Repository):
     #
     def stash(self, stasher, message=None, keep_index=False,
               include_untracked=False, include_ignored=False):
-        """Save changes to the working directory to the stash.
+        """
+        Save changes to the working directory to the stash.
 
-        :param Signature stasher: The identity of the person doing the stashing.
-        :param str message: An optional description of stashed state.
-        :param bool keep_index: Leave changes already added to the index
-            in the working directory.
-        :param bool include_untracked: Also stash untracked files.
-        :param bool include_ignored: Also stash ignored files.
+        Returns: The Oid of the stash merge commit (Oid).
 
-        :returns: The Oid of the stash merge commit.
-        :rtype: Oid
+        Parameters:
+
+        stasher : Signature
+            The identity of the person doing the stashing.
+
+        message : str
+            An optional description of stashed state.
+
+        keep_index : bool
+            Leave changes already added to the index in the working directory.
+
+        include_untracked : bool
+            Also stash untracked files.
+
+        include_ignored : bool
+            Also stash ignored files.
 
         Example::
 
@@ -774,8 +812,8 @@ class BaseRepository(_Repository):
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
         """
 
-        if message is not None:
-            stash_msg = ffi.new('char[]', to_bytes(message)) if message else ffi.NULL
+        if message:
+            stash_msg = ffi.new('char[]', to_bytes(message))
         else:
             stash_msg = ffi.NULL
 
@@ -807,11 +845,17 @@ class BaseRepository(_Repository):
         return stash_opts
 
     def stash_apply(self, index=0, **kwargs):
-        """Apply a stashed state in the stash list to the working directory.
+        """
+        Apply a stashed state in the stash list to the working directory.
 
-        :param int index: The position within the stash list of the stash to apply.
-            0 is the most recent stash.
-        :param bool reinstate_index: Try to reinstate stashed changes to the index.
+        Parameters:
+
+        index : int
+            The position within the stash list of the stash to apply. 0 is the
+            most recent stash.
+
+        reinstate_index : bool
+            Try to reinstate stashed changes to the index.
 
         The checkout options may be customized using the same arguments taken by
         Repository.checkout().
@@ -826,10 +870,14 @@ class BaseRepository(_Repository):
         check_error(C.git_stash_apply(self._repo, index, stash_opts))
 
     def stash_drop(self, index=0):
-        """Remove a stashed state from the stash list.
+        """
+        Remove a stashed state from the stash list.
 
-        :param int index: The position within the stash list of the stash to remove.
-            0 is the most recent stash.
+        Parameters:
+
+        index : int
+            The position within the stash list of the stash to remove. 0 is
+            the most recent stash.
         """
         check_error(C.git_stash_drop(self._repo, index))
 
@@ -845,7 +893,8 @@ class BaseRepository(_Repository):
     # Utility for writing a tree into an archive
     #
     def write_archive(self, treeish, archive, timestamp=None, prefix=''):
-        """Write treeish into an archive
+        """
+        Write treeish into an archive.
 
         If no timestamp is provided and 'treeish' is a commit, its committer
         timestamp will be used. Otherwise the current time will be used.
@@ -853,14 +902,17 @@ class BaseRepository(_Repository):
         All path names in the archive are added to 'prefix', which defaults to
         an empty string.
 
-        Arguments:
+        Parameters:
 
         treeish
             The treeish to write.
+
         archive
-            An archive from the 'tarfile' module
+            An archive from the 'tarfile' module.
+
         timestamp
             Timestamp to use for the files in the archive.
+
         prefix
             Extra prefix to add to the path names in the archive.
 
@@ -915,22 +967,23 @@ class BaseRepository(_Repository):
     # Ahead-behind, which mostly lives on its own namespace
     #
     def ahead_behind(self, local, upstream):
-        """Calculate how many different commits are in the non-common parts
-        of the history between the two given ids.
+        """
+        Calculate how many different commits are in the non-common parts of the
+        history between the two given ids.
 
-        Ahead is how many commits are in the ancestry of the 'local'
-        commit which are not in the 'upstream' commit. Behind is the
-        opposite.
+        Ahead is how many commits are in the ancestry of the 'local' commit
+        which are not in the 'upstream' commit. Behind is the opposite.
 
-        Arguments
+        Returns: a tuple of two integers with the number of commits ahead and
+        behind respectively.
+
+        Parameters:
 
         local
-            The commit which is considered the local or current state
-        upstream
-            The commit which is considered the upstream
+            The commit which is considered the local or current state.
 
-        Returns a tuple of two integers with the number of commits ahead and
-        behind respectively.
+        upstream
+            The commit which is considered the upstream.
         """
 
         if not isinstance(local, Oid):
@@ -952,21 +1005,24 @@ class BaseRepository(_Repository):
     # Git attributes
     #
     def get_attr(self, path, name, flags=0):
-        """Retrieve an attribute for a file by path
+        """
+        Retrieve an attribute for a file by path.
 
-        Arguments
+        Returns: a boolean, None if the value is unspecified, or string with
+        the value of the attribute.
+
+        Parameters:
 
         path
             The path of the file to look up attributes for, relative to the
-            workdir root
+            workdir root.
+
         name
-            The name of the attribute to look up
+            The name of the attribute to look up.
+
         flags
             A combination of GIT_ATTR_CHECK_ flags which determine the
-            lookup order
-
-        Returns either a boolean, None (if the value is unspecified) or string
-        with the value of the attribute.
+            lookup order.
         """
 
         cvalue = ffi.new('char **')
@@ -1011,19 +1067,22 @@ class BaseRepository(_Repository):
         check_error(err)
 
     def revert_commit(self, revert_commit, our_commit, mainline=0):
-        """Reverts the given Commit against the given "our" Commit,
-           producing an Index that reflects the result of the revert.
+        """
+        Reverts the given Commit against the given "our" Commit, producing an
+        Index that reflects the result of the revert.
 
-        Arguments
+        Returns: an Index with the result of the revert.
+
+        Parameters:
 
         revert_commit
-            The Commit to revert
-        our_commit
-            The Commit to revert against (eg, HEAD)
-        mainline
-            The parent of the revert Commit, if it is a merge (i.e. 1, 2)
+            The Commit to revert.
 
-        Returns an Index with the result of the revert.
+        our_commit
+            The Commit to revert against (eg, HEAD).
+
+        mainline
+            The parent of the revert Commit, if it is a merge (i.e. 1, 2).
         """
         cindex = ffi.new('git_index **')
         revert_commit_ptr = ffi.new('git_commit **')

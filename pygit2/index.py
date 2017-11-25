@@ -99,14 +99,14 @@ class Index(object):
         return GenericIterator(self)
 
     def read(self, force=True):
-        """Update the contents the Index
+        """
+        Update the contents of the Index by reading from a file.
 
-        Update the contents by reading from a file
+        Parameters:
 
-        Arguments:
-
-        force: if True (the default) allways reload. If False, only if
-        the file has changed
+        force
+            If True (the default) allways reload. If False, only if the file
+            has changed.
         """
 
         err = C.git_index_read(self._index, force)
@@ -208,18 +208,22 @@ class Index(object):
         check_error(err, True)
 
     def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
-        """Diff the index against the working directory. Return a <Diff> object
+        """
+        Diff the index against the working directory. Return a <Diff> object
         with the differences between the index and the working copy.
 
-        Arguments:
+        Parameters:
 
-        flags: a GIT_DIFF_* constant.
+        flags
+            A GIT_DIFF_* constant.
 
-        context_lines: the number of unchanged lines that define the
-        boundary of a hunk (and to display before and after)
+        context_lines
+            The number of unchanged lines that define the boundary of a hunk
+            (and to display before and after).
 
-        interhunk_lines: the maximum number of unchanged lines between hunk
-        boundaries before the hunks will be merged into a one
+        interhunk_lines
+            The maximum number of unchanged lines between hunk boundaries
+            before the hunks will be merged into a one.
         """
         repo = self._repo
         if repo is None:
@@ -241,20 +245,25 @@ class Index(object):
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
 
     def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
-        """Diff the index against a tree.  Return a <Diff> object with the
+        """
+        Diff the index against a tree.  Return a <Diff> object with the
         differences between the index and the given tree.
 
-        Arguments:
+        Parameters:
 
-        tree: the tree to diff.
+        tree
+            The tree to diff.
 
-        flags: a GIT_DIFF_* constant.
+        flags
+            A GIT_DIFF_* constant.
 
-        context_lines: the number of unchanged lines that define the boundary
-        of a hunk (and to display before and after)
+        context_lines
+            The number of unchanged lines that define the boundary of a hunk
+            (and to display before and after).
 
-        interhunk_lines: the maximum number of unchanged lines between hunk
-        boundaries before the hunks will be merged into a one.
+        interhunk_lines
+            The maximum number of unchanged lines between hunk boundaries
+            before the hunks will be merged into a one.
         """
         repo = self._repo
         if repo is None:

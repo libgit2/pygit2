@@ -2,6 +2,9 @@
 The development version
 **********************************************************************
 
+Unit tests
+==========
+
 .. image:: https://travis-ci.org/libgit2/pygit2.svg?branch=master
    :target: http://travis-ci.org/libgit2/pygit2
 
@@ -15,3 +18,26 @@ The development version
     $ python setup.py install
     $ python setup.py test
 
+Coding style: documentation strings
+===================================
+
+Example::
+
+  def f(a, b):
+      """
+      The general description goes here.
+
+      Returns: bla bla.
+
+      Parameters:
+
+      a : <type>
+          Bla bla.
+
+      b : <type>
+          Bla bla.
+
+      Examples::
+
+          >>> f(...)
+      """

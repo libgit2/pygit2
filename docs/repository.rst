@@ -55,7 +55,7 @@ The Repository class
 
 The API of the Repository class is quite large. Since this documentation is
 organized by features, the related bits are explained in the related chapters,
-for instance the :py:meth:`pygit2.Repository.checkout` method are explained in
+for instance the :py:meth:`pygit2.Repository.checkout` method is explained in
 the Checkout section.
 
 Below there are some general attributes and methods:

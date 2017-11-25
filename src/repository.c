@@ -1070,11 +1070,13 @@ Repository_create_tag(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_branch__doc__,
-  "create_branch(name, commit, force=False) -> Branch\n"
+  "create_branch(name, commit, force=False)\n"
   "\n"
   "Create a new branch \"name\" which points to a commit.\n"
   "\n"
-  "Arguments:\n"
+  "Returns: Branch\n"
+  "\n"
+  "Parameters:\n"
   "\n"
   "force\n"
   "    If True branches will be overridden, otherwise (the default) an\n"
@@ -1454,11 +1456,13 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 }
 
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
-  "create_reference_direct(name, target, force) -> Reference\n"
+  "create_reference_direct(name, target, force)\n"
   "\n"
   "Create a new reference \"name\" which points to an object.\n"
   "\n"
-  "Arguments:\n"
+  "Returns: Reference\n"
+  "\n"
+  "Parameters:\n"
   "\n"
   "force\n"
   "    If True references will be overridden, otherwise (the default) an\n"
@@ -1493,11 +1497,13 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
 }
 
 PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
-  "create_reference_symbolic(name, source, force) -> Reference\n"
+  "create_reference_symbolic(name, source, force)\n"
   "\n"
   "Create a new reference \"name\" which points to another reference.\n"
   "\n"
-  "Arguments:\n"
+  "Returns: Reference\n"
+  "\n"
+  "Parameters:\n"
   "\n"
   "force\n"
   "    If True references will be overridden, otherwise (the default) an\n"
@@ -1777,11 +1783,20 @@ Repository_lookup_note(Repository *self, PyObject* args)
 PyDoc_STRVAR(Repository_reset__doc__,
     "reset(oid, reset_type)\n"
     "\n"
-    "Resets current head to the provided oid.\n"
-    "reset_type:\n"
-    "GIT_RESET_SOFT: resets head to point to oid, but does not modify working copy, and leaves the changes in the index.\n"
-    "GIT_RESET_MIXED: resets head to point to oid, but does not modify working copy. It empties the index too.\n"
-    "GIT_RESET_HARD: resets head to point to oid, and resets too the working copy and the content of the index.\n");
+    "Resets the current head.\n"
+    "\n"
+    "Parameters:\n"
+    "\n"
+    "oid\n"
+    "    The oid of the commit to reset to.\n"
+    "\n"
+    "reset_type\n"
+    "    * GIT_RESET_SOFT: resets head to point to oid, but does not modify\n"
+    "      working copy, and leaves the changes in the index.\n"
+    "    * GIT_RESET_MIXED: resets head to point to oid, but does not modify\n"
+    "      working copy. It empties the index too.\n"
+    "    * GIT_RESET_HARD: resets head to point to oid, and resets too the\n"
+    "      working copy and the content of the index.\n");
 
 PyObject *
 Repository_reset(Repository *self, PyObject* args)
