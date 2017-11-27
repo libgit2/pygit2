@@ -446,13 +446,13 @@ class RepositoryTest_II(utils.RepoTestCase):
         revert_index = self.repo.revert_commit(commit_to_revert, master)
         revert_diff_stats = revert_index.diff_to_tree(master.tree).stats
 
-        self.assertEquals(
+        self.assertEqual(
             revert_diff_stats.insertions, commit_diff_stats.deletions
         )
-        self.assertEquals(
+        self.assertEqual(
             revert_diff_stats.deletions, commit_diff_stats.insertions
         )
-        self.assertEquals(
+        self.assertEqual(
             revert_diff_stats.files_changed, commit_diff_stats.files_changed
         )
 
