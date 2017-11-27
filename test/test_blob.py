@@ -68,16 +68,6 @@ index a520c24..0000000
 -bonjour le monde
 """
 
-BLOB_PATCH_ADDED = """diff --git a/file b/file
-new file mode 100644
-index 0000000..a520c24
---- /dev/null
-+++ b/file
-@@ -0,0 +1,3 @@
-+hello world
-+hola mundo
-+bonjour le monde
-"""
 
 class BlobTest(utils.RepoTestCase):
 
@@ -179,12 +169,6 @@ class BlobTest(utils.RepoTestCase):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer(None)
         self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
-
-    def test_diff_blob_to_buffer_add(self):
-        # We can emulate an add by reversing a delete
-        blob = self.repo[BLOB_SHA]
-        patch = blob.diff_to_buffer(None, pygit2.GIT_DIFF_REVERSE)
-        self.assertEqual(patch.patch, BLOB_PATCH_ADDED)
 
 if __name__ == '__main__':
     unittest.main()
