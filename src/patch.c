@@ -103,6 +103,31 @@ Patch_line_stats__get__(Patch *self)
     return Py_BuildValue("III", context, additions, deletions);
 }
 
+PyDoc_STRVAR(Patch_patch__doc__,
+    "Patch diff string. Can be None in some cases, such as empty commits.");
+
+PyObject *
+Patch_patch__get__(Patch *self)
+{
+  if (!self->patch)
+      Py_RETURN_NONE;
+
+  git_buf buf = {NULL};
+  int err = GIT_ERROR;
+  PyObject *py_patch = NULL;
+
+  err = git_patch_to_buf(&buf, self->patch);
+  if (err < 0)
+    goto cleanup;
+
+  py_patch = to_unicode(buf.ptr, NULL, NULL);
+  git_buf_free(&buf);
+
+cleanup:
+    git_buf_free(&buf);
+    return (err < 0) ? Error_set(err) : py_patch;
+}
+
 PyMemberDef Patch_members[] = {
     MEMBER(Patch, hunks, T_OBJECT, "hunks"),
     {NULL}
@@ -110,6 +135,7 @@ PyMemberDef Patch_members[] = {
 
 PyGetSetDef Patch_getseters[] = {
     GETTER(Patch, delta),
+    GETTER(Patch, patch),
     GETTER(Patch, line_stats),
     {NULL}
 };

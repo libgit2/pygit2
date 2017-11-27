@@ -45,6 +45,17 @@ bonjour le monde
 BLOB_NEW_CONTENT = b'foo bar\n'
 BLOB_FILE_CONTENT = b'bye world\n'
 
+BLOB_PATCH = """diff --git a/file b/file
+index a520c24..95d09f2 100644
+--- a/file
++++ b/file
+@@ -1,3 +1 @@
+-hello world
+-hola mundo
+-bonjour le monde
++hello world
+\ No newline at end of file
+"""
 
 class BlobTest(utils.RepoTestCase):
 
@@ -136,6 +147,11 @@ class BlobTest(utils.RepoTestCase):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer("hello world")
         self.assertEqual(len(patch.hunks), 1)
+
+    def test_diff_blob_to_buffer_patch_patch(self):
+        blob = self.repo[BLOB_SHA]
+        patch = blob.diff_to_buffer("hello world")
+        self.assertEqual(patch.patch, BLOB_PATCH)
 
 if __name__ == '__main__':
     unittest.main()
