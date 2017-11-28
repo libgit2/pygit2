@@ -56,60 +56,35 @@ The Patch type
 
 Attributes:
 
-.. autoattribute:: pygit2.Patch.delta
-.. autoattribute:: pygit2.Patch.hunks
-.. autoattribute:: pygit2.Patch.line_stats
-
+.. autoclass:: pygit2.Patch
+   :members:
 
 The DiffDelta type
 ====================
 
-Attributes:
-
-.. autoattribute:: pygit2.DiffDelta.old_file
-.. autoattribute:: pygit2.DiffDelta.new_file
-.. autoattribute:: pygit2.DiffDelta.status
-.. autoattribute:: pygit2.DiffDelta.similarity
-
-Getters:
-
-.. autoattribute:: pygit2.DiffDelta.is_binary
-
+.. autoclass:: pygit2.DiffDelta
+   :members:
 
 The DiffFile type
 ====================
 
-Attributes:
-
-.. autoattribute:: pygit2.DiffFile.path
-.. autoattribute:: pygit2.DiffFile.id
-.. autoattribute:: pygit2.DiffFile.size
-.. autoattribute:: pygit2.DiffFile.flags
-.. autoattribute:: pygit2.DiffFile.mode
-
+.. autoclass:: pygit2.DiffFile
+   :members:
 
 The DiffHunk type
 ====================
 
-.. autoattribute:: pygit2.DiffHunk.old_start
-.. autoattribute:: pygit2.DiffHunk.old_lines
-.. autoattribute:: pygit2.DiffHunk.new_start
-.. autoattribute:: pygit2.DiffHunk.new_lines
-.. autoattribute:: pygit2.DiffHunk.lines
+.. autoclass:: pygit2.DiffHunk
+   :members:
 
 The DiffStats type
 ====================
 
-.. autoattribute :: pygit2.DiffStats.insertions
-.. autoattribute :: pygit2.DiffStats.deletions
-.. autoattribute :: pygit2.DiffStats.files_changed
-.. automethod :: pygit2.DiffStats.format
+.. autoclass:: pygit2.DiffStats
+   :members:
 
 The DiffLine type
 ====================
 
-.. autoattribute :: pygit2.DiffLine.origin
-.. autoattribute :: pygit2.DiffLine.content
-.. autoattribute :: pygit2.DiffLine.old_lineno
-.. autoattribute :: pygit2.DiffLine.new_lineno
-.. autoattribute :: pygit2.DiffLine.num_lines
+.. autoclass:: pygit2.DiffLine
+   :members:
