@@ -130,3 +130,21 @@ class PatchTest(utils.RepoTestCase):
         )
 
         self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
+
+    def test_patch_create_from_bad_old_type_arg(self):
+        with self.assertRaises(TypeError):
+            pygit2.Patch.create_from(
+                self.repo,
+                BLOB_OLD_PATH,
+                BLOB_NEW_CONTENT,
+                BLOB_NEW_PATH,
+            )
+
+    def test_patch_create_from_bad_new_type_arg(self):
+        with self.assertRaises(TypeError):
+            pygit2.Patch.create_from(
+                None,
+                BLOB_OLD_PATH,
+                self.repo,
+                BLOB_NEW_PATH,
+            )
