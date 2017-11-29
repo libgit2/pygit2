@@ -476,7 +476,7 @@ class NewRepositoryTest(utils.NoRepoTestCase):
         oid = repo.write(GIT_OBJ_BLOB, "Test")
         self.assertEqual(type(oid), Oid)
 
-        assert os.path.exists(os.path.join(self._temp_dir, '.git'))
+        self.assertTrue(os.path.exists(os.path.join(self._temp_dir, '.git')))
 
 
 class InitRepositoryTest(utils.NoRepoTestCase):

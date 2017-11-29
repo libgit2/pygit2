@@ -242,15 +242,15 @@ class PruneTestCase(utils.RepoTestCase):
 
     def test_fetch_remote_default(self):
         self.clone_repo.remotes[0].fetch()
-        assert 'origin/i18n' in self.clone_repo.branches
+        self.assertIn('origin/i18n', self.clone_repo.branches)
 
     def test_fetch_remote_prune(self):
         self.clone_repo.remotes[0].fetch(prune=pygit2.GIT_FETCH_PRUNE)
-        assert 'origin/i18n' not in self.clone_repo.branches
+        self.assertNotIn('origin/i18n', self.clone_repo.branches)
 
     def test_fetch_no_prune(self):
         self.clone_repo.remotes[0].fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
-        assert 'origin/i18n' in self.clone_repo.branches
+        self.assertIn('origin/i18n', self.clone_repo.branches)
 
 
 class PushTestCase(unittest.TestCase):
