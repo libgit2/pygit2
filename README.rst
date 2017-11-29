@@ -28,7 +28,7 @@ How to install
 Authors
 ==============
 
-124 developers have contributed at least 1 commit to pygit2::
+125 developers have contributed at least 1 commit to pygit2::
 
   J. David Ibáñez           Carlos Martín Nieto       Nico von Geyso
   W. Trevor King            Dave Borowitz             Matthias Bartelmeß
@@ -71,7 +71,7 @@ Authors
   Ridge Kennedy             Ross Nicoll               Rui Abreu Ferreira
   Sheeo                     Soasme                    Vladimir Rutsky
   Yu Jianjian               chengyuhang               earl
-  Grégoire Rocher
+  Grégoire Rocher           Brandon Milton
 
 
 License
