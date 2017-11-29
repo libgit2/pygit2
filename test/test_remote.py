@@ -31,6 +31,7 @@
 import unittest
 import pygit2
 import sys
+import os.path
 from pygit2 import Oid
 from . import utils
 import gc
@@ -229,6 +230,28 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         callbacks = MyCallbacks(self, tips)
         remote.fetch(callbacks=callbacks)
         self.assertTrue(callbacks.i > 0)
+
+
+class PruneTestCase(utils.RepoTestCase):
+    def setUp(self):
+        super(PruneTestCase, self).setUp()
+        cloned_repo_path = os.path.join(self.repo_ctxtmgr.temp_dir, 'test_remote_prune')
+        pygit2.clone_repository(self.repo_path, cloned_repo_path)
+        self.clone_repo = pygit2.Repository(cloned_repo_path)
+        self.repo.branches.delete('i18n')
+
+    def test_fetch_remote_default(self):
+        self.clone_repo.remotes[0].fetch()
+        assert 'origin/i18n' in self.clone_repo.branches
+
+    def test_fetch_remote_prune(self):
+        self.clone_repo.remotes[0].fetch(prune=pygit2.GIT_FETCH_PRUNE)
+        assert 'origin/i18n' not in self.clone_repo.branches
+
+    def test_fetch_no_prune(self):
+        self.clone_repo.remotes[0].fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
+        assert 'origin/i18n' in self.clone_repo.branches
+
 
 class PushTestCase(unittest.TestCase):
     def setUp(self):

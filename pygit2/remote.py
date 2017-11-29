@@ -374,9 +374,18 @@ class Remote(object):
         err = C.git_remote_save(self._remote)
         check_error(err)
 
-    def fetch(self, refspecs=None, message=None, callbacks=None):
+    def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
+
+        Parameters:
+
+        prune : enum
+            Either <GIT_FETCH_PRUNE_UNSPECIFIED>, <GIT_FETCH_PRUNE>, or
+            <GIT_FETCH_NO_PRUNE>. The first uses the configuration from the
+            repo, the second will remove any remote branch in the local
+            repository that does not exist in the remote and the last will
+            always keep the remote branches
         """
 
         fetch_opts = ffi.new('git_fetch_options *')
@@ -386,6 +395,7 @@ class Remote(object):
             callbacks = RemoteCallbacks()
 
         callbacks._fill_fetch_options(fetch_opts)
+        fetch_opts.prune = prune
 
         try:
             with StrArray(refspecs) as arr:
