@@ -119,6 +119,9 @@ Patch_create_from(PyObject *self, PyObject *args)
   git_patch *patch;
   char *old_as_path = NULL, *new_as_path = NULL;
   PyObject *oldobj = NULL, *newobj = NULL;
+  Blob *oldblob = NULL, *newblob = NULL;
+  const char *oldbuf = NULL, *newbuf = NULL;
+  Py_ssize_t oldbuflen, newbuflen;
   int err;
 
   if (!PyArg_ParseTuple(args, "OzOz|I", &oldobj, &old_as_path, &newobj,
@@ -128,15 +131,12 @@ Patch_create_from(PyObject *self, PyObject *args)
   if (oldobj != Py_None && PyObject_TypeCheck(oldobj, &BlobType))
   {
     /* The old object exists and is a blob */
-    Blob *oldblob = NULL;
     if (!PyArg_Parse(oldobj, "O!", &BlobType, &oldblob))
       return NULL;
 
     if (newobj != Py_None && PyObject_TypeCheck(newobj, &BlobType))
     {
       /* The new object exists and is a blob */
-      Blob *newblob = NULL;
-
       if (!PyArg_Parse(newobj, "O!", &BlobType, &newblob))
         return NULL;
 
@@ -145,8 +145,6 @@ Patch_create_from(PyObject *self, PyObject *args)
     }
     else {
       /* The new object does not exist or is a buffer */
-      const char* newbuf = NULL;
-      Py_ssize_t newbuflen;
       if (!PyArg_Parse(newobj, "z#", &newbuf, &newbuflen))
         return NULL;
 
@@ -158,8 +156,6 @@ Patch_create_from(PyObject *self, PyObject *args)
   else
   {
     /* The old object does exist and is a buffer */
-    const char *oldbuf = NULL, *newbuf = NULL;
-    Py_ssize_t oldbuflen, newbuflen;
     if (!PyArg_Parse(oldobj, "z#", &oldbuf, &oldbuflen))
       return NULL;
 
@@ -184,14 +180,15 @@ PyDoc_STRVAR(Patch_patch__doc__,
 PyObject *
 Patch_patch__get__(Patch *self)
 {
-  if (!self->patch)
-      Py_RETURN_NONE;
-
   git_buf buf = {NULL};
   int err = GIT_ERROR;
   PyObject *py_patch = NULL;
 
   err = git_patch_to_buf(&buf, self->patch);
+
+  if (!self->patch)
+      Py_RETURN_NONE;
+
   if (err < 0)
     goto cleanup;
 
