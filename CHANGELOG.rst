@@ -1,3 +1,26 @@
+0.26.2 (2017-12-01)
+-------------------------
+
+- New property ``Patch.patch``
+  `#739 <https://github.com/libgit2/pygit2/issues/739>`_
+  `#741 <https://github.com/libgit2/pygit2/pull/741>`_
+
+- New static method ``Patch.create_from``
+  `#742 <https://github.com/libgit2/pygit2/issues/742>`_
+  `#744 <https://github.com/libgit2/pygit2/pull/744>`_
+
+- New parameter ``prune`` in ``Remote.fetch``
+  `#743 <https://github.com/libgit2/pygit2/pull/743>`_
+
+- Tests: skip tests that require network when there is not
+  `#737 <https://github.com/libgit2/pygit2/issues/737>`_
+
+- Tests: other improvements
+  `#740 <https://github.com/libgit2/pygit2/pull/740>`_
+
+- Documentation improvements
+
+
 0.26.1 (2017-11-19)
 -------------------------
 

@@ -55,7 +55,7 @@ it is possible to check whether a Python value is an Object or not::
 
   >>> from pygit2 import Object
   >>> commit = repository.revparse_single('HEAD')
-  >>> print isinstance(commit, Object)
+  >>> print(isinstance(commit, Object))
   True
 
 All Objects are immutable, they cannot be modified once they are created::
@@ -97,7 +97,7 @@ This is their API:
    Example, print the contents of the ``.gitignore`` file::
 
      >>> blob = repo["d8022420bf6db02e906175f64f66676df539f2fd"]
-     >>> print blob.data
+     >>> print(blob.data)
      MANIFEST
      build
      dist
@@ -106,7 +106,7 @@ This is their API:
 
    Example::
 
-     >>> print blob.size
+     >>> print(blob.size)
      130
 
 .. autoattribute:: pygit2.Blob.is_binary

@@ -14,7 +14,7 @@ Index read::
 Iterate over all entries of the index::
 
     >>> for entry in index:
-    ...     print entry.path, entry.hex
+    ...     print(entry.path, entry.hex)
 
 Index write::
 
@@ -58,7 +58,7 @@ Inspect the status of the repository::
     >>> status = repo.status()
     >>> for filepath, flags in status.items():
     ...     if flags != GIT_STATUS_CURRENT:
-    ...         print "Filepath %s isn't clean" % filepath
+    ...         print("Filepath %s isn't clean" % filepath)
 
 
 Checkout
