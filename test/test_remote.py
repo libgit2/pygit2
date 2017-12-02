@@ -240,6 +240,10 @@ class PruneTestCase(utils.RepoTestCase):
         self.clone_repo = pygit2.Repository(cloned_repo_path)
         self.repo.branches.delete('i18n')
 
+    def tearDown(self):
+        self.clone_repo = None
+        super(PruneTestCase, self).tearDown()
+        
     def test_fetch_remote_default(self):
         self.clone_repo.remotes[0].fetch()
         self.assertIn('origin/i18n', self.clone_repo.branches)
