@@ -108,7 +108,7 @@ PyDoc_STRVAR(Patch_create_from__doc__,
     "Create a patch from blobs, buffers, or a blob and a buffer");
 
 static PyObject *
-Patch_create_from(PyObject *self, PyObject *args)
+Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
 {
   /* A generic wrapper around
    * git_patch_from_blob_and_buffer
@@ -124,8 +124,11 @@ Patch_create_from(PyObject *self, PyObject *args)
   Py_ssize_t oldbuflen, newbuflen;
   int err;
 
-  if (!PyArg_ParseTuple(args, "OzOz|I", &oldobj, &old_as_path, &newobj,
-                        &new_as_path, &opts.flags))
+  char *keywords[] = {"old", "new", "flag", "old_as_path", "new_as_path", NULL};
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|Izz", keywords,
+                                   &oldobj, &newobj, &opts.flags,
+                                   &old_as_path, &new_as_path))
     return NULL;
 
   if (oldobj != Py_None && PyObject_TypeCheck(oldobj, &BlobType))
@@ -201,7 +204,8 @@ cleanup:
 }
 
 PyMethodDef Patch_methods[] = {
-    {"create_from", (PyCFunction) Patch_create_from, METH_VARARGS | METH_STATIC, Patch_create_from__doc__},
+    {"create_from", (PyCFunction) Patch_create_from,
+      METH_KEYWORDS | METH_VARARGS | METH_STATIC, Patch_create_from__doc__},
     {NULL}
 };
 
