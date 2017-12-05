@@ -155,3 +155,38 @@ class PatchTest(utils.RepoTestCase):
                 None,
                 self.repo,
             )
+
+    def test_context_lines(self):
+        old_blob = self.repo[BLOB_OLD_SHA]
+        new_blob = self.repo[BLOB_NEW_SHA]
+
+        patch = pygit2.Patch.create_from(
+            old_blob,
+            new_blob,
+            old_as_path=BLOB_OLD_PATH,
+            new_as_path=BLOB_NEW_PATH,
+        )
+
+        context_count = (
+            len([line for line in patch.patch.splitlines() if line.startswith(" ")])
+        )
+
+        self.assertNotEquals(context_count, 0)
+
+    def test_no_context_lines(self):
+        old_blob = self.repo[BLOB_OLD_SHA]
+        new_blob = self.repo[BLOB_NEW_SHA]
+
+        patch = pygit2.Patch.create_from(
+            old_blob,
+            new_blob,
+            old_as_path=BLOB_OLD_PATH,
+            new_as_path=BLOB_NEW_PATH,
+            context_lines=0,
+        )
+
+        context_count = (
+            len([line for line in patch.patch.splitlines() if line.startswith(" ")])
+        )
+
+        self.assertEquals(context_count, 0)

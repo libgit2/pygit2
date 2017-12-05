@@ -124,11 +124,14 @@ Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
   Py_ssize_t oldbuflen, newbuflen;
   int err;
 
-  char *keywords[] = {"old", "new", "flag", "old_as_path", "new_as_path", NULL};
+  char *keywords[] = {"old", "new", "old_as_path", "new_as_path",
+                      "flag", "context_lines", "interhunk_lines",
+                      NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|Izz", keywords,
-                                   &oldobj, &newobj, &opts.flags,
-                                   &old_as_path, &new_as_path))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|zzIHH", keywords,
+                                   &oldobj, &newobj, &old_as_path, &new_as_path,
+                                   &opts.flags, &opts.context_lines,
+                                   &opts.interhunk_lines))
     return NULL;
 
   if (oldobj != Py_None && PyObject_TypeCheck(oldobj, &BlobType))
