@@ -171,7 +171,7 @@ class PatchTest(utils.RepoTestCase):
             len([line for line in patch.patch.splitlines() if line.startswith(" ")])
         )
 
-        self.assertNotEquals(context_count, 0)
+        self.assertNotEqual(context_count, 0)
 
     def test_no_context_lines(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -189,4 +189,4 @@ class PatchTest(utils.RepoTestCase):
             len([line for line in patch.patch.splitlines() if line.startswith(" ")])
         )
 
-        self.assertEquals(context_count, 0)
+        self.assertEqual(context_count, 0)
