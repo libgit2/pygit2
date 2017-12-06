@@ -325,6 +325,24 @@ class DiffTest(utils.BareRepoTestCase):
                                  width=80)
         self.assertEqual(STATS_EXPECTED, formatted)
 
+    def test_deltas(self):
+        commit_a = self.repo[COMMIT_SHA1_1]
+        commit_b = self.repo[COMMIT_SHA1_2]
+        diff = commit_a.tree.diff_to_tree(commit_b.tree)
+        deltas = list(diff.deltas)
+        patches = list(diff)
+        self.assertEqual(len(deltas), len(patches))
+        for i, delta in enumerate(deltas):
+            patch_delta = patches[i].delta
+            self.assertEqual(delta.status, patch_delta.status)
+            self.assertEqual(delta.similarity, patch_delta.similarity)
+            self.assertEqual(delta.nfiles, patch_delta.nfiles)
+            self.assertEqual(delta.old_file.id, patch_delta.old_file.id)
+            self.assertEqual(delta.new_file.id, patch_delta.new_file.id)
+
+            # As explained in the libgit2 documentation, flags are not set
+            #self.assertEqual(delta.flags, patch_delta.flags)
+
 
 class BinaryDiffTest(utils.BinaryFileRepoTestCase):
     def test_binary_diff(self):

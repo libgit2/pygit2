@@ -105,6 +105,13 @@ typedef struct {
     Diff *diff;
     size_t i;
     size_t n;
+} DeltasIter;
+
+typedef struct {
+    PyObject_HEAD
+    Diff *diff;
+    size_t i;
+    size_t n;
 } DiffIter;
 
 typedef struct {
