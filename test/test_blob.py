@@ -57,6 +57,17 @@ index a520c24..95d09f2 100644
 \ No newline at end of file
 """
 
+BLOB_PATCH_2 = """diff --git a/file b/file
+index a520c24..d675fa4 100644
+--- a/file
++++ b/file
+@@ -1,3 +1 @@
+-hello world
+-hola mundo
+-bonjour le monde
++foo bar
+"""
+
 BLOB_PATCH_DELETED = """diff --git a/file b/file
 deleted file mode 100644
 index a520c24..0000000
@@ -169,6 +180,13 @@ class BlobTest(utils.RepoTestCase):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer(None)
         self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
+
+    def test_diff_blob_create(self):
+        old = self.repo[self.repo.create_blob(BLOB_CONTENT)]
+        new = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
+
+        patch = old.diff(new)
+        self.assertEqual(patch.patch, BLOB_PATCH_2)
 
 if __name__ == '__main__':
     unittest.main()

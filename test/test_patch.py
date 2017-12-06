@@ -155,3 +155,77 @@ class PatchTest(utils.RepoTestCase):
                 None,
                 self.repo,
             )
+
+    def test_patch_create_blob_blobs(self):
+        old_blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
+        new_blob = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
+        patch = pygit2.Patch.create_from(
+            old_blob,
+            new_blob,
+            old_as_path=BLOB_OLD_PATH,
+            new_as_path=BLOB_NEW_PATH,
+        )
+
+        self.assertEqual(patch.patch, BLOB_PATCH)
+
+    def test_patch_create_blob_buffer(self):
+        blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
+        patch = pygit2.Patch.create_from(
+            blob,
+            BLOB_NEW_CONTENT,
+            old_as_path=BLOB_OLD_PATH,
+            new_as_path=BLOB_NEW_PATH,
+        )
+
+        self.assertEqual(patch.patch, BLOB_PATCH)
+
+    def test_patch_create_blob_delete(self):
+        blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
+        patch = pygit2.Patch.create_from(
+            blob,
+            None,
+            old_as_path=BLOB_OLD_PATH,
+            new_as_path=BLOB_NEW_PATH,
+        )
+
+        self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
+
+    def test_patch_create_blob_add(self):
+        blob = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
+        patch = pygit2.Patch.create_from(
+            None,
+            blob,
+            old_as_path=BLOB_OLD_PATH,
+            new_as_path=BLOB_NEW_PATH,
+        )
+
+        self.assertEqual(patch.patch, BLOB_PATCH_ADDED)
+
+    def test_patch_multi_content(self):
+        patch_text = []
+        patches = []
+        for content in [BLOB_OLD_CONTENT, BLOB_NEW_CONTENT]*10:
+            patch = pygit2.Patch.create_from(
+                content,
+                None,
+            )
+
+            patch_text.append(patch.patch)
+            patches.append(patch)
+
+        self.assertEqual(patch_text, [patch.patch for patch in patches])
+
+    def test_patch_multi_blob(self):
+        patch_text = []
+        patches = []
+        for sha in [BLOB_OLD_SHA, BLOB_NEW_SHA]*10:
+            blob = self.repo[sha]
+            patch = pygit2.Patch.create_from(
+                blob,
+                None
+            )
+
+            patch_text.append(patch.patch)
+            patches.append(patch)
+
+        self.assertEqual(patch_text, [patch.patch for patch in patches])
