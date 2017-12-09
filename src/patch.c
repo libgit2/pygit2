@@ -46,8 +46,7 @@ wrap_patch(git_patch *patch)
     PyObject *py_hunk;
     size_t i, hunk_amounts;
 
-    if (!patch)
-        Py_RETURN_NONE;
+    assert(patch);
 
     py_patch = PyObject_New(Patch, &PatchType);
     if (py_patch) {
@@ -78,9 +77,7 @@ PyDoc_STRVAR(Patch_delta__doc__, "Get the delta associated with a patch.");
 PyObject *
 Patch_delta__get__(Patch *self)
 {
-    if (!self->patch)
-        Py_RETURN_NONE;
-
+    assert(self->patch);
     return wrap_diff_delta(git_patch_get_delta(self->patch));
 }
 
@@ -93,11 +90,8 @@ Patch_line_stats__get__(Patch *self)
     size_t context, additions, deletions;
     int err;
 
-    if (!self->patch)
-        Py_RETURN_NONE;
-
-    err = git_patch_line_stats(&context, &additions, &deletions,
-                               self->patch);
+    assert(self->patch);
+    err = git_patch_line_stats(&context, &additions, &deletions, self->patch);
     if (err < 0)
         return Error_set(err);
 
@@ -124,11 +118,14 @@ Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
   Py_ssize_t oldbuflen, newbuflen;
   int err;
 
-  char *keywords[] = {"old", "new", "flag", "old_as_path", "new_as_path", NULL};
+  char *keywords[] = {"old", "new", "old_as_path", "new_as_path",
+                      "flag", "context_lines", "interhunk_lines",
+                      NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|Izz", keywords,
-                                   &oldobj, &newobj, &opts.flags,
-                                   &old_as_path, &new_as_path))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|zzIHH", keywords,
+                                   &oldobj, &newobj, &old_as_path, &new_as_path,
+                                   &opts.flags, &opts.context_lines,
+                                   &opts.interhunk_lines))
     return NULL;
 
   if (oldobj != Py_None && PyObject_TypeCheck(oldobj, &BlobType))
@@ -168,12 +165,11 @@ Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
     err = git_patch_from_buffers(&patch, oldbuf, oldbuflen, old_as_path,
                                  newbuf, newbuflen, new_as_path, &opts);
   }
-  
+
   if (err < 0)
     return Error_set(err);
 
   return wrap_patch(patch);
-    
 }
 
 
@@ -183,24 +179,18 @@ PyDoc_STRVAR(Patch_patch__doc__,
 PyObject *
 Patch_patch__get__(Patch *self)
 {
-  git_buf buf = {NULL};
-  int err = GIT_ERROR;
-  PyObject *py_patch = NULL;
+    git_buf buf = {NULL};
+    int err;
+    PyObject *py_patch;
 
-  err = git_patch_to_buf(&buf, self->patch);
+    assert(self->patch);
+    err = git_patch_to_buf(&buf, self->patch);
+    if (err < 0)
+        return Error_set(err);
 
-  if (!self->patch)
-      Py_RETURN_NONE;
-
-  if (err < 0)
-    goto cleanup;
-
-  py_patch = to_unicode(buf.ptr, NULL, NULL);
-  git_buf_free(&buf);
-
-cleanup:
+    py_patch = to_unicode(buf.ptr, NULL, NULL);
     git_buf_free(&buf);
-    return (err < 0) ? Error_set(err) : py_patch;
+    return py_patch;
 }
 
 PyMethodDef Patch_methods[] = {

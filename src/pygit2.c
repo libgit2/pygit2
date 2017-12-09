@@ -43,6 +43,7 @@ extern PyTypeObject OidType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
 extern PyTypeObject DiffType;
+extern PyTypeObject DeltasIterType;
 extern PyTypeObject DiffIterType;
 extern PyTypeObject DiffDeltaType;
 extern PyTypeObject DiffFileType;
@@ -335,6 +336,7 @@ moduleinit(PyObject* m)
      * Diff
      */
     INIT_TYPE(DiffType, NULL, NULL)
+    INIT_TYPE(DeltasIterType, NULL, NULL)
     INIT_TYPE(DiffIterType, NULL, NULL)
     INIT_TYPE(DiffDeltaType, NULL, NULL)
     INIT_TYPE(DiffFileType, NULL, NULL)

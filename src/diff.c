@@ -475,11 +475,90 @@ PyTypeObject DiffIterType = {
     (iternextfunc) DiffIter_iternext,          /* tp_iternext       */
 };
 
+PyObject *
+diff_get_delta_byindex(git_diff *diff, size_t idx)
+{
+    const git_diff_delta *delta = git_diff_get_delta(diff, idx);
+    if (delta == NULL) {
+        PyErr_SetObject(PyExc_IndexError, PyInt_FromSize_t(idx));
+        return NULL;
+    }
+
+    return (PyObject*) wrap_diff_delta(delta);
+}
+
+PyObject *
+DeltasIter_iternext(DeltasIter *self)
+{
+    if (self->i < self->n)
+        return diff_get_delta_byindex(self->diff->diff, self->i++);
+
+    PyErr_SetNone(PyExc_StopIteration);
+    return NULL;
+}
+
+void
+DeltasIter_dealloc(DeltasIter *self)
+{
+    Py_CLEAR(self->diff);
+    PyObject_Del(self);
+}
+
+PyDoc_STRVAR(DeltasIter__doc__, "Deltas iterator object.");
+
+PyTypeObject DeltasIterType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.DeltasIter",                      /* tp_name           */
+    sizeof(DeltasIter),                        /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)DeltasIter_dealloc,            /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    DeltasIter__doc__,                         /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    PyObject_SelfIter,                         /* tp_iter           */
+    (iternextfunc) DeltasIter_iternext,        /* tp_iternext       */
+};
+
+
 Py_ssize_t
 Diff_len(Diff *self)
 {
     assert(self->diff);
     return (Py_ssize_t)git_diff_num_deltas(self->diff);
+}
+
+PyDoc_STRVAR(Diff_deltas__doc__, "Iterate over the diff deltas.");
+
+PyObject *
+Diff_deltas__get__(Diff *self)
+{
+    DeltasIter *iter;
+
+    iter = PyObject_New(DeltasIter, &DeltasIterType);
+    if (iter != NULL) {
+        Py_INCREF(self);
+        iter->diff = self;
+        iter->i = 0;
+        iter->n = git_diff_num_deltas(self->diff);
+    }
+    return (PyObject*)iter;
 }
 
 PyDoc_STRVAR(Diff_patch__doc__,
@@ -814,7 +893,7 @@ Diff_getitem(Diff *self, PyObject *value)
     return diff_get_patch_byindex(self->diff, i);
 }
 
-PyDoc_STRVAR(Diff_stats__doc__, "Accumulate diff statistics for all patches");
+PyDoc_STRVAR(Diff_stats__doc__, "Accumulate diff statistics for all patches.");
 
 PyObject *
 Diff_stats__get__(Diff *self)
@@ -831,6 +910,7 @@ Diff_dealloc(Diff *self)
 }
 
 PyGetSetDef Diff_getseters[] = {
+    GETTER(Diff, deltas),
     GETTER(Diff, patch),
     GETTER(Diff, stats),
     {NULL}
