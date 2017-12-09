@@ -188,5 +188,17 @@ class BlobTest(utils.RepoTestCase):
         patch = old.diff(new)
         self.assertEqual(patch.patch, BLOB_PATCH_2)
 
+    def test_blob_from_repo(self):
+        blob = self.repo[BLOB_SHA]
+        patch_one = blob.diff_to_buffer(None)
+
+        blob = self.repo[BLOB_SHA]
+        patch_two = blob.diff_to_buffer(None)
+
+        self.assertEqual(
+            patch_one.patch,
+            patch_two.patch,
+        )
+
 if __name__ == '__main__':
     unittest.main()
