@@ -201,31 +201,36 @@ class PatchTest(utils.RepoTestCase):
 
         self.assertEqual(patch.patch, BLOB_PATCH_ADDED)
 
-    def test_patch_multi_content(self):
-        patch_text = []
-        patches = []
-        for content in [BLOB_OLD_CONTENT, BLOB_NEW_CONTENT]*10:
-            patch = pygit2.Patch.create_from(
-                content,
-                None,
-            )
+    def test_patch_delete_blob(self):
+        blob = self.repo[BLOB_OLD_SHA]
+        patch = pygit2.Patch.create_from(
+            blob,
+            None,
+            old_as_path=BLOB_OLD_PATH,
+            new_as_path=BLOB_NEW_PATH,
+        )
 
-            patch_text.append(patch.patch)
-            patches.append(patch)
-
-        self.assertEqual(patch_text, [patch.patch for patch in patches])
+        # Make sure that even after deleting the blob the patch still has the
+        # necessary references to generate its patch
+        del blob
+        self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
 
     def test_patch_multi_blob(self):
-        patch_text = []
-        patches = []
-        for sha in [BLOB_OLD_SHA, BLOB_NEW_SHA]*10:
-            blob = self.repo[sha]
-            patch = pygit2.Patch.create_from(
-                blob,
-                None
-            )
+        blob = self.repo[BLOB_OLD_SHA]
+        patch = pygit2.Patch.create_from(
+            blob,
+            None
+        )
+        patch_text = patch.patch
 
-            patch_text.append(patch.patch)
-            patches.append(patch)
+        blob = self.repo[BLOB_OLD_SHA]
+        patch2 = pygit2.Patch.create_from(
+            blob,
+            None
+        )
+        patch_text2 = patch.patch
 
-        self.assertEqual(patch_text, [patch.patch for patch in patches])
+        self.assertEqual(patch_text, patch_text2)
+        self.assertEqual(patch_text, patch.patch)
+        self.assertEqual(patch_text2, patch2.patch)
+        self.assertEqual(patch.patch, patch2.patch)
