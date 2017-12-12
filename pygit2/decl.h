@@ -306,9 +306,6 @@ int git_refspec_dst_matches(const git_refspec *refspec, const char *refname);
 int git_refspec_transform(git_buf *buf, const git_refspec *spec, const char *name);
 int git_refspec_rtransform(git_buf *buf, const git_refspec *spec, const char *name);
 
-int git_cred_username_new(
-	git_cred **out,
-	const char *username);
 int git_cred_userpass_plaintext_new(
 	git_cred **out,
 	const char *username,
@@ -644,6 +641,23 @@ int git_graph_ahead_behind(size_t *ahead, size_t *behind, git_repository *repo, 
 /*
  * git_submodule
  */
+
+typedef struct git_submodule_update_options {
+	unsigned int version;
+	git_checkout_options checkout_opts;
+	git_fetch_options fetch_opts;
+	int allow_fetch;
+} git_submodule_update_options;
+
+#define GIT_SUBMODULE_UPDATE_OPTIONS_VERSION ...
+
+int git_submodule_update_init_options(
+    git_submodule_update_options *opts,
+    unsigned int version);
+int git_submodule_update(
+    git_submodule *submodule,
+    int init,
+    git_submodule_update_options *options);
 
 int git_submodule_lookup(git_submodule **out, git_repository *repo, char *path);
 void git_submodule_free(git_submodule *subm);
