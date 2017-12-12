@@ -422,7 +422,7 @@ diff_get_patch_byindex(git_diff *diff, size_t idx)
     if (err < 0)
         return Error_set(err);
 
-    return (PyObject*) wrap_patch(patch);
+    return (PyObject*) wrap_patch(patch, NULL, NULL);
 }
 
 PyObject *

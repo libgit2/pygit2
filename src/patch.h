@@ -32,6 +32,6 @@
 #include <Python.h>
 #include <git2.h>
 
-PyObject* wrap_patch(git_patch *patch);
+PyObject* wrap_patch(git_patch *patch, Blob *oldblob, Blob *newblob);
 
 #endif

@@ -40,7 +40,7 @@ PyTypeObject PatchType;
 
 
 PyObject *
-wrap_patch(git_patch *patch)
+wrap_patch(git_patch *patch, Blob *oldblob, Blob *newblob)
 {
     Patch *py_patch;
     PyObject *py_hunk;
@@ -59,6 +59,12 @@ wrap_patch(git_patch *patch)
             if (py_hunk)
                 PyList_SetItem((PyObject*) py_patch->hunks, i, py_hunk);
         }
+
+        Py_XINCREF(oldblob);
+        py_patch->oldblob = oldblob;
+
+        Py_XINCREF(newblob);
+        py_patch->newblob = newblob;
     }
 
     return (PyObject*) py_patch;
@@ -67,6 +73,8 @@ wrap_patch(git_patch *patch)
 static void
 Patch_dealloc(Patch *self)
 {
+    Py_CLEAR(self->oldblob);
+    Py_CLEAR(self->newblob);
     Py_CLEAR(self->hunks);
     git_patch_free(self->patch);
     PyObject_Del(self);
@@ -169,7 +177,7 @@ Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
   if (err < 0)
     return Error_set(err);
 
-  return wrap_patch(patch);
+  return wrap_patch(patch, oldblob, newblob);
 }
 
 

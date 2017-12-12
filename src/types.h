@@ -95,6 +95,8 @@ typedef struct {
     PyObject_HEAD
     git_patch *patch;
     PyObject* hunks;
+    Blob* oldblob;
+    Blob* newblob;
 } Patch;
 
 /* git_diff */

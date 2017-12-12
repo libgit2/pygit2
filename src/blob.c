@@ -81,7 +81,7 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
     if (err < 0)
         return Error_set(err);
 
-    return wrap_patch(patch);
+    return wrap_patch(patch, self, py_blob);
 }
 
 
@@ -130,7 +130,7 @@ Blob_diff_to_buffer(Blob *self, PyObject *args, PyObject *kwds)
     if (err < 0)
         return Error_set(err);
 
-    return wrap_patch(patch);
+    return wrap_patch(patch, self, NULL);
 }
 
 static PyMethodDef Blob_methods[] = {
