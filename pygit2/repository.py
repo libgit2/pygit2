@@ -80,7 +80,7 @@ class BaseRepository(_Repository):
         check_error(err)
         return Submodule._from_c(self, csub[0])
 
-    def update_submodule2(self, submodule=None, init=False, callbacks=None):
+    def update_submodule(self, submodule=None, init=False, callbacks=None):
         opts = ffi.new('git_submodule_update_options *')
         if init:
             i = 1
