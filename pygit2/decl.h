@@ -306,6 +306,9 @@ int git_refspec_dst_matches(const git_refspec *refspec, const char *refname);
 int git_refspec_transform(git_buf *buf, const git_refspec *spec, const char *name);
 int git_refspec_rtransform(git_buf *buf, const git_refspec *spec, const char *name);
 
+int git_cred_username_new(
+	git_cred **out,
+	const char *username);
 int git_cred_userpass_plaintext_new(
 	git_cred **out,
 	const char *username,
