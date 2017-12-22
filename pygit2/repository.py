@@ -83,15 +83,15 @@ class BaseRepository(_Repository):
     def update_submodule(self, submodule=None, init=False, callbacks=None):
         opts = ffi.new('git_submodule_update_options *')
         if init:
-            i = 1
+            c_init = 1
         else:
-            i = 0
+            c_init = 0
         C.git_submodule_update_init_options(
             opts,
             C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
         if callbacks is not None:
             callbacks._fill_fetch_options(opts.fetch_opts)
-        err = C.git_submodule_update(submodule._subm, i, opts)
+        err = C.git_submodule_update(submodule._subm, c_init, opts)
 
         check_error(err)
 
