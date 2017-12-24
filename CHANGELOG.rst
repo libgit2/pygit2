@@ -1,3 +1,29 @@
+0.26.3 (2017-12-24)
+-------------------------
+
+- New ``Diff.deltas``
+  `#736 <https://github.com/libgit2/pygit2/issues/736>`_
+
+- Improvements to ``Patch.create_from``
+  `#753 <https://github.com/libgit2/pygit2/pull/753>`_
+  `#756 <https://github.com/libgit2/pygit2/pull/756>`_
+  `#759 <https://github.com/libgit2/pygit2/pull/759>`_
+
+- Fix build and tests in Windows, broken in the previous release
+  `#749 <https://github.com/libgit2/pygit2/pull/749>`_
+  `#751 <https://github.com/libgit2/pygit2/pull/751>`_
+
+- Review ``Patch.patch``
+  `#757 <https://github.com/libgit2/pygit2/issues/757>`_
+
+- Workaround bug `#4442 <https://github.com/libgit2/libgit2/issues/4442>`_
+  in libgit2, and improve unit tests
+  `#748 <https://github.com/libgit2/pygit2/issues/748>`_
+  `#754 <https://github.com/libgit2/pygit2/issues/754>`_
+  `#758 <https://github.com/libgit2/pygit2/pull/758>`_
+  `#761 <https://github.com/libgit2/pygit2/pull/761>`_
+
+
 0.26.2 (2017-12-01)
 -------------------------
 

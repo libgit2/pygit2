@@ -38,7 +38,6 @@ Examples
 The Diff type
 ====================
 
-.. autoattribute:: pygit2.Diff.patch
 .. method:: Diff.__iter__()
 
    Returns an iterator over the deltas/patches in this diff.
@@ -47,8 +46,11 @@ The Diff type
 
    Returns the number of deltas/patches in this diff.
 
-.. automethod:: pygit2.Diff.merge
+.. autoattribute:: pygit2.Diff.deltas
 .. automethod:: pygit2.Diff.find_similar
+.. automethod:: pygit2.Diff.merge
+.. autoattribute:: pygit2.Diff.patch
+.. autoattribute:: pygit2.Diff.stats
 
 
 The Patch type

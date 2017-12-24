@@ -751,7 +751,7 @@ PyDoc_STRVAR(DiffStats__doc__, "DiffStats object.");
 PyTypeObject DiffStatsType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.DiffStats",                       /* tp_name           */
-    sizeof(DiffStats),                          /* tp_basicsize      */
+    sizeof(DiffStats),                         /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
     (destructor)DiffStats_dealloc,             /* tp_dealloc        */
     0,                                         /* tp_print          */
@@ -776,7 +776,7 @@ PyTypeObject DiffStatsType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    DiffStats_methods,                                         /* tp_methods        */
+    DiffStats_methods,                         /* tp_methods        */
     0,                                         /* tp_members        */
     DiffStats_getseters,                       /* tp_getset         */
     0,                                         /* tp_base           */
@@ -929,6 +929,7 @@ static PyMethodDef Diff_methods[] = {
     {NULL}
 };
 
+/* TODO Implement Diff.patches, deprecate Diff_iter and Diff_getitem */
 
 PyDoc_STRVAR(Diff__doc__, "Diff objects.");
 
