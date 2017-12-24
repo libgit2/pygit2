@@ -80,6 +80,23 @@ class BaseRepository(_Repository):
         check_error(err)
         return Submodule._from_c(self, csub[0])
 
+    def update_submodule(self, submodule=None, init=False, callbacks=None):
+        opts = ffi.new('git_submodule_update_options *')
+        if init:
+            c_init = 1
+        else:
+            c_init = 0
+        C.git_submodule_update_init_options(
+            opts,
+            C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+        if callbacks is not None:
+            callbacks._fill_fetch_options(opts.fetch_opts)
+        err = C.git_submodule_update(submodule._subm, c_init, opts)
+
+        check_error(err)
+
+        return
+
     #
     # Mapping interface
     #
