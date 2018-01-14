@@ -39,7 +39,10 @@ import sys
 from cffi import FFI
 
 # Import from pygit2
-from _build import get_libgit2_paths
+if sys.version_info < (3, 0):
+    from _build import get_libgit2_paths
+else:
+    from ._build import get_libgit2_paths
 
 
 # C_HEADER_SRC
