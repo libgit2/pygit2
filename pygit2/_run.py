@@ -39,7 +39,10 @@ import sys
 from cffi import FFI
 
 # Import from pygit2
-from _build import get_libgit2_paths
+try:
+    from _build import get_libgit2_paths
+except ImportError:
+    from ._build import get_libgit2_paths
 
 
 # C_HEADER_SRC
