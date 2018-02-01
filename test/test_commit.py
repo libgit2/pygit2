@@ -160,5 +160,43 @@ class CommitTest(utils.BareRepoTestCase):
         self.assertRaises(error_type, setattr, commit, 'parents', None)
 
 
+class GpgSignatureTestCase(utils.GpgSignedRepoTestCase):
+    signed_hash = 'a00b212d5455ad8c4c1779f778c7d2a81bb5da23'
+    unsigned_hash = 'a84938d1d885e80dae24b86b06621cec47ff6edd'
+
+    def test_get_gpg_signature_when_signed(self):
+        expected_signature = (
+            '-----BEGIN PGP SIGNATURE-----\n\n'
+            'iQFGBAABCgAwFiEEQZu9JtePgJbDk7VC0+mlK74z13oFAlpzXykSHG1hcmtAbWFy\n'
+            'a2FkYW1zLm1lAAoJENPppSu+M9d6FRoIAJXeQRRT1V47nnHITiel6426loYkeij7\n'
+            '66doGNIyll95H92SwH4LAjPyEEByIG1VsA6NztzUoNgnEvAXI0iAz3LyI7N16M4b\n'
+            'dPDkC72pp8tu280H5Qt5b2V5hmlKKSgtOS5iNhdU/FbWVS8MlHsqzQTZfoTdi6ch\n'
+            'KWUsjzudVd3F/H/AU+1Jsxt8Iz/oK4T/puUQLnJZKjKlljGP994FA3JIpnZpZmbG\n'
+            'FybYJEDXnng7uhx3Fz/Mo3KBJoQfAExTtaToY0n0hSjOe6GN9rEsRSMK3mWdysf2\n'
+            'wOdtYMMcT16hG5tAwnD/myZ4rIIpyZJ/9mjymdUsj6UKf7D+vJuqfsI=\n=IyYy\n'
+            '-----END PGP SIGNATURE-----'
+        ).encode('ascii')
+
+        expected_payload = (
+            'tree c36c20831e43e5984c672a714661870b67ab1d95\nauthor Mark Adams '
+            '<madams@atlassian.com> 1517510299 -0600\ncommitter Mark Adams <ma'
+            'dams@atlassian.com> 1517510441 -0600\n\nMaking a GPG signed commi'
+            't\n'
+        ).encode('ascii')
+
+        commit = self.repo.get(self.signed_hash)
+        signature, payload = commit.gpg_signature
+
+        assert signature == expected_signature
+        assert payload == expected_payload
+
+    def test_get_gpg_signature_when_unsigned(self):
+        commit = self.repo.get(self.unsigned_hash)
+        signature, payload = commit.gpg_signature
+
+        assert signature is None
+        assert payload is None
+
+
 if __name__ == '__main__':
     unittest.main()
