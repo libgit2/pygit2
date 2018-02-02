@@ -168,6 +168,11 @@ class RepoTestCaseForMerging(AutoRepoTestCase):
     repo_spec = 'tar', 'testrepoformerging'
 
 
+class Utf8BranchRepoTestCase(AutoRepoTestCase):
+
+    repo_spec = 'tar', 'utf8branchrepo'
+
+
 class DirtyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'dirtyrepo'

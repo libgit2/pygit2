@@ -257,6 +257,12 @@ class PruneTestCase(utils.RepoTestCase):
         self.assertIn('origin/i18n', self.clone_repo.branches)
 
 
+class Utf8BranchTest(utils.Utf8BranchRepoTestCase):
+    def test_fetch(self):
+        remote = self.repo.remotes.create('origin', self.repo.workdir)
+        remote.fetch()
+
+
 class PushTestCase(unittest.TestCase):
     def setUp(self):
         self.origin_ctxtmgr = utils.TemporaryRepository(('git', 'testrepo.git'))
@@ -270,7 +276,7 @@ class PushTestCase(unittest.TestCase):
         self.clone = None
         self.remote = None
         gc.collect()
-        
+
         self.origin_ctxtmgr.__exit__(None, None, None)
         self.clone_ctxtmgr.__exit__(None, None, None)
 

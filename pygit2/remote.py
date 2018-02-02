@@ -40,7 +40,7 @@ def maybe_string(ptr):
     if not ptr:
         return None
 
-    return ffi.string(ptr).decode()
+    return ffi.string(ptr).decode('utf8')
 
 
 class TransferProgress(object):
