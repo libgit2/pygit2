@@ -65,6 +65,38 @@ Commit_message__get__(Commit *commit)
     return to_unicode(message, encoding, "strict");
 }
 
+PyDoc_STRVAR(Commit_gpg_signature__doc__, "A tuple with the GPG signature and the signed payload.");
+
+PyObject *
+Commit_gpg_signature__get__(Commit *commit)
+{
+    git_buf gpg_signature = { NULL }, signed_data = { NULL };
+    PyObject *py_gpg_signature, *py_signed_data;
+
+    git_oid *oid = git_commit_id(commit->commit);
+    int err = git_commit_extract_signature(
+        &gpg_signature, &signed_data, commit->repo->repo, oid, NULL
+    );
+
+    if (err != GIT_OK){
+        git_buf_free(&gpg_signature);
+        git_buf_free(&signed_data);
+
+        if (err == GIT_ENOTFOUND){
+            return Py_BuildValue("OO", Py_None, Py_None);
+        }
+
+        return Error_set(err);
+    }
+
+    py_gpg_signature = PyBytes_FromString(gpg_signature.ptr);
+    py_signed_data = PyBytes_FromString(signed_data.ptr);
+    git_buf_free(&gpg_signature);
+    git_buf_free(&signed_data);
+
+    return Py_BuildValue("NN", py_gpg_signature, py_signed_data);
+}
+
 
 PyDoc_STRVAR(Commit_raw_message__doc__, "Message (bytes).");
 
@@ -233,6 +265,7 @@ PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, commit_time_offset),
     GETTER(Commit, committer),
     GETTER(Commit, author),
+    GETTER(Commit, gpg_signature),
     GETTER(Commit, tree),
     GETTER(Commit, tree_id),
     GETTER(Commit, parents),

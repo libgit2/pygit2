@@ -191,3 +191,8 @@ class SubmoduleRepoTestCase(AutoRepoTestCase):
 class BinaryFileRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'binaryfilerepo'
+
+
+class GpgSignedRepoTestCase(AutoRepoTestCase):
+
+    repo_spec = 'tar', 'gpgsigned'
