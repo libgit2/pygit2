@@ -97,7 +97,7 @@ class BlameHunk(object):
         if not path:
             return None
 
-        return ffi.string(path).decode()
+        return ffi.string(path).decode('utf-8')
 
 
 class Blame(object):

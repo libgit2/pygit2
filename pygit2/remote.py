@@ -238,7 +238,7 @@ class RemoteCallbacks(object):
             return 0
 
         try:
-            s = ffi.string(string, length).decode()
+            s = ffi.string(string, length).decode('utf-8')
             progress(s)
         except Exception as e:
             self._stored_exception = e

@@ -45,7 +45,7 @@ else:
 def strarray_to_strings(arr):
     l = [None] * arr.count
     for i in range(arr.count):
-        l[i] = ffi.string(arr.strings[i]).decode()
+        l[i] = ffi.string(arr.strings[i]).decode('utf-8')
 
     return l
 

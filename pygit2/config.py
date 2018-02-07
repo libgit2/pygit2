@@ -263,7 +263,7 @@ class Config(object):
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
         err = fn(buf)
         check_error(err, True)
-        cpath = ffi.string(buf.ptr).decode()
+        cpath = ffi.string(buf.ptr).decode('utf-8')
         C.git_buf_free(buf)
 
         return Config(cpath)

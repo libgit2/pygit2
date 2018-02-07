@@ -43,12 +43,12 @@ class Refspec(object):
     @property
     def src(self):
         """Source or lhs of the refspec"""
-        return ffi.string(C.git_refspec_src(self._refspec)).decode()
+        return ffi.string(C.git_refspec_src(self._refspec)).decode('utf-8')
 
     @property
     def dst(self):
         """Destinaton or rhs of the refspec"""
-        return ffi.string(C.git_refspec_dst(self._refspec)).decode()
+        return ffi.string(C.git_refspec_dst(self._refspec)).decode('utf-8')
 
     @property
     def force(self):
@@ -58,7 +58,7 @@ class Refspec(object):
     @property
     def string(self):
         """String which was used to create this refspec"""
-        return ffi.string(C.git_refspec_string(self._refspec)).decode()
+        return ffi.string(C.git_refspec_string(self._refspec)).decode('utf-8')
 
     @property
     def direction(self):
@@ -82,7 +82,7 @@ class Refspec(object):
         check_error(err)
 
         try:
-            return ffi.string(buf.ptr).decode()
+            return ffi.string(buf.ptr).decode('utf-8')
         finally:
             C.git_buf_free(buf)
 
