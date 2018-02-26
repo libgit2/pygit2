@@ -445,7 +445,7 @@ class Remote(object):
         error or unpack failure.
 
         When the remote has a githook installed, that denies the reference this
-        function will return successfully. Thus it is stronly recommended to
+        function will return successfully. Thus it is strongly recommended to
         install a callback, that implements
         :py:meth:`RemoteCallbacks.push_update_reference` and check the passed
         parameters for successfull operations.
