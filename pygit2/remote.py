@@ -128,7 +128,7 @@ class RemoteCallbacks(object):
     def certificate_check(self, certificate, valid, host):
         """
         Certificate callback. Override with your own function to determine
-        whether the accept the server's certificate.
+        whether to accept the server's certificate.
 
         Returns: True to connect, False to abort.
 
@@ -178,7 +178,7 @@ class RemoteCallbacks(object):
     def push_update_reference(self, refname, message):
         """
         Push update reference callback. Override with your own function to
-        report the remote's acceptace or rejection of reference updates.
+        report the remote's acceptance or rejection of reference updates.
 
         refname : str
             The name of the reference (on the remote).
