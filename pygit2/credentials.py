@@ -30,6 +30,7 @@ from .ffi import C
 GIT_CREDTYPE_USERNAME = C.GIT_CREDTYPE_USERNAME
 GIT_CREDTYPE_USERPASS_PLAINTEXT = C.GIT_CREDTYPE_USERPASS_PLAINTEXT
 GIT_CREDTYPE_SSH_KEY = C.GIT_CREDTYPE_SSH_KEY
+GIT_CREDTYPE_SSH_MEMORY = C.GIT_CREDTYPE_SSH_MEMORY
 
 
 class Username(object):
@@ -121,3 +122,9 @@ class Keypair(object):
 class KeypairFromAgent(Keypair):
     def __init__(self, username):
         super(KeypairFromAgent, self).__init__(username, None, None, None)
+
+
+class KeypairFromMemory(Keypair):
+    @property
+    def credential_type(self):
+        return GIT_CREDTYPE_SSH_MEMORY

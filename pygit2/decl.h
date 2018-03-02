@@ -125,7 +125,8 @@ typedef enum {
 	GIT_CREDTYPE_DEFAULT,
     GIT_CREDTYPE_SSH_INTERACTIVE,
     GIT_CREDTYPE_USERNAME,
-	...
+    GIT_CREDTYPE_SSH_MEMORY,
+    ...
 } git_credtype_t;
 
 typedef enum git_cert_t {
@@ -322,6 +323,12 @@ int git_cred_ssh_key_new(
 int git_cred_ssh_key_from_agent(
     git_cred **out,
     const char *username);
+int git_cred_ssh_key_memory_new(
+    git_cred **out,
+    const char *username,
+    const char *publickey,
+    const char *privatekey,
+    const char *passphrase);
 
 /*
  * git_diff
