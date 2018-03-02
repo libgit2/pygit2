@@ -511,7 +511,7 @@ def get_credentials(fn, url, username, allowed):
     elif cred_type == C.GIT_CREDTYPE_SSH_MEMORY:
         name, pubkey, privkey, passphrase = credential_tuple
         if pubkey is None and privkey is None:
-            raise TypeError("SSH keys from memroy are empty")
+            raise TypeError("SSH keys from memory are empty")
         err = C.git_cred_ssh_key_memory_new(ccred, to_bytes(name),
                                             to_bytes(pubkey), to_bytes(privkey),
                                             to_bytes(passphrase))
