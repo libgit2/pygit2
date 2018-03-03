@@ -73,9 +73,9 @@ Commit_gpg_signature__get__(Commit *commit)
     git_buf gpg_signature = { NULL }, signed_data = { NULL };
     PyObject *py_gpg_signature, *py_signed_data;
 
-    git_oid *oid = git_commit_id(commit->commit);
+    const git_oid *oid = git_commit_id(commit->commit);
     int err = git_commit_extract_signature(
-        &gpg_signature, &signed_data, commit->repo->repo, oid, NULL
+        &gpg_signature, &signed_data, commit->repo->repo, (git_oid*) oid, NULL
     );
 
     if (err != GIT_OK){
