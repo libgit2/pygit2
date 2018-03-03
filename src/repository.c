@@ -35,6 +35,7 @@
 #include "oid.h"
 #include "note.h"
 #include "repository.h"
+#include "diff.h"
 #include "branch.h"
 #include "signature.h"
 #include <git2/odb_backend.h>
@@ -1464,6 +1465,31 @@ Repository_create_reference_symbolic(Repository *self,  PyObject *args,
     return wrap_reference(c_reference, self);
 }
 
+PyDoc_STRVAR(Repository_parse_diff__doc__,
+  "parse_diff(git_diff: str) -> Diff\n"
+  "\n"
+  "Parses a git unified diff into a diff object applied to the repository");
+
+PyObject *
+Repository_parse_diff(PyObject *self, PyObject *args)
+{
+  /* A wrapper around
+   * git_diff_from_buffer
+  */
+  git_diff *diff;
+  const char *content = NULL;
+  Py_ssize_t content_len;
+  int err;
+
+  if (!PyArg_ParseTuple(args, "s#", &content, &content_len))
+    return NULL;
+
+  err = git_diff_from_buffer(&diff, content, content_len);
+  if (err < 0)
+    return Error_set(err);
+
+  return wrap_diff(diff, (Repository *) self);
+}
 
 PyDoc_STRVAR(Repository_status__doc__,
   "status() -> {str: int}\n"
@@ -1813,6 +1839,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, revparse_single, METH_O),
+    METHOD(Repository, parse_diff, METH_VARARGS),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, notes, METH_VARARGS),
