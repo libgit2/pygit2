@@ -35,6 +35,7 @@ from __future__ import unicode_literals
 import binascii
 import unittest
 import tempfile
+import textwrap
 import os
 from os.path import join, realpath
 import sys
@@ -195,6 +196,45 @@ class RepositoryTest(utils.BareRepoTestCase):
         hashed_sha1 = pygit2.hash(data)
         written_sha1 = self.repo.create_blob(data)
         self.assertEqual(hashed_sha1, written_sha1)
+
+    def test_parse_diff_null(self):
+        with self.assertRaises(Exception):
+            self.repo.parse_diff(None)
+
+    def test_parse_diff_bad(self):
+        diff = textwrap.dedent(
+        """
+        diff --git a/file1 b/file1
+        old mode 0644
+        new mode 0644
+        @@ -1,1 +1,1 @@
+        -Hi!
+        """)
+        with self.assertRaises(Exception):
+            self.repo.parse_diff(diff)
+
+    def test_parse_diff(self):
+        diff = textwrap.dedent(
+        """
+        diff --git a/file1 b/file1
+        old mode 0644
+        new mode 0644
+        @@ -1,1 +1,1 @@
+        -Hello, world!
+        +Hola, Mundo!
+        """
+        )
+        git_diff = self.repo.parse_diff(diff)
+        stats = git_diff.stats
+        deltas = list(git_diff.deltas)
+
+        self.assertEqual(1, stats.deletions)
+        self.assertEqual(1, stats.insertions)
+        self.assertEqual(1, stats.files_changed)
+
+        self.assertEqual(1, len(deltas))
+        self.assertEqual("file1", deltas[0].old_file.path)
+        self.assertEqual("file1", deltas[0].new_file.path)
 
     def test_hashfile(self):
         data = "bazbarfoo"
