@@ -54,7 +54,7 @@ wrap_diff(git_diff *diff, Repository *repo)
 
     py_diff = PyObject_New(Diff, &DiffType);
     if (py_diff) {
-        Py_INCREF(repo);
+        Py_XINCREF(repo);
         py_diff->repo = repo;
         py_diff->diff = diff;
     }
@@ -901,6 +901,32 @@ Diff_stats__get__(Diff *self)
     return wrap_diff_stats(self->diff);
 }
 
+PyDoc_STRVAR(Diff_parse_diff__doc__,
+    "parse_diff(git_diff: str) -> Diff\n"
+    "\n"
+    "Parses a git unified diff into a diff object without a repository");
+
+static PyObject *
+Diff_parse_diff(PyObject *self, PyObject *args)
+{
+  /* A wrapper around
+   * git_diff_from_buffer
+  */
+  git_diff *diff;
+  const char *content = NULL;
+  Py_ssize_t content_len;
+  int err;
+
+  if (!PyArg_ParseTuple(args, "s#", &content, &content_len))
+    return NULL;
+
+  err = git_diff_from_buffer(&diff, content, content_len);
+  if (err < 0)
+    return Error_set(err);
+
+  return wrap_diff(diff, NULL);
+}
+
 static void
 Diff_dealloc(Diff *self)
 {
@@ -926,6 +952,8 @@ static PyMethodDef Diff_methods[] = {
     METHOD(Diff, merge, METH_VARARGS),
     METHOD(Diff, find_similar, METH_VARARGS | METH_KEYWORDS),
     METHOD(Diff, from_c, METH_STATIC | METH_VARARGS),
+    {"parse_diff", (PyCFunction) Diff_parse_diff,
+      METH_VARARGS | METH_STATIC, Diff_parse_diff__doc__},
     {NULL}
 };
 

@@ -343,6 +343,16 @@ class DiffTest(utils.BareRepoTestCase):
             # As explained in the libgit2 documentation, flags are not set
             #self.assertEqual(delta.flags, patch_delta.flags)
 
+    def test_diff_parse(self):
+        diff = pygit2.Diff.parse_diff(PATCH)
+
+        stats = diff.stats
+        self.assertEqual(2, stats.deletions)
+        self.assertEqual(1, stats.insertions)
+        self.assertEqual(2, stats.files_changed)
+
+        deltas = list(diff.deltas)
+        self.assertEqual(2, len(deltas))
 
 class BinaryDiffTest(utils.BinaryFileRepoTestCase):
     def test_binary_diff(self):
