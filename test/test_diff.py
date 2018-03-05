@@ -29,6 +29,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+import textwrap
 import unittest
 import pygit2
 from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
@@ -353,6 +354,23 @@ class DiffTest(utils.BareRepoTestCase):
 
         deltas = list(diff.deltas)
         self.assertEqual(2, len(deltas))
+
+    def test_parse_diff_null(self):
+        with self.assertRaises(Exception):
+            self.repo.parse_diff(None)
+
+    def test_parse_diff_bad(self):
+        diff = textwrap.dedent(
+        """
+        diff --git a/file1 b/file1
+        old mode 0644
+        new mode 0644
+        @@ -1,1 +1,1 @@
+        -Hi!
+        """)
+        with self.assertRaises(Exception):
+            self.repo.parse_diff(diff)
+
 
 class BinaryDiffTest(utils.BinaryFileRepoTestCase):
     def test_binary_diff(self):

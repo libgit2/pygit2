@@ -831,9 +831,6 @@ Diff_merge(Diff *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O!", &DiffType, &py_diff))
         return NULL;
 
-    if (py_diff->repo->repo != self->repo->repo)
-        return Error_set(GIT_ERROR);
-
     err = git_diff_merge(self->diff, py_diff->diff);
     if (err < 0)
         return Error_set(err);
