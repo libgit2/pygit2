@@ -63,7 +63,10 @@ class ConfigIterator(object):
 
     def __next__(self):
         entry = self._next_entry()
-        return ffi.string(entry.name).decode('utf-8')
+        return (
+            ffi.string(entry.name).decode('utf-8'),
+            ffi.string(entry.value).decode('utf-8'),
+        )
 
 
 class ConfigMultivarIterator(ConfigIterator):
