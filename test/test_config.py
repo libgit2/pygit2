@@ -173,8 +173,8 @@ class ConfigTest(utils.RepoTestCase):
         config = self.repo.config
         lst = {}
 
-        for name in config:
-            lst[name] = config[name]
+        for key, value in config:
+            lst[key] = value
 
         self.assertTrue('core.bare' in lst)
         self.assertTrue(lst['core.bare'])
