@@ -17,10 +17,10 @@ The Config type
 .. method:: Config.__iter__()
 
    The :class:`Config` class has an iterator which can be used to loop
-   through all the entries in the configuration. Each element is a tuple
-   containing the name and the value of each configuration variable. Be
-   aware that this may return multiple versions of each entry if they are
-   set multiple times in the configuration files.
+   through all the entries in the configuration. Each element is a
+   ``ConfigEntry`` object containing the name, level, and value of each
+   configuration variable. Be aware that this may return multiple versions of
+   each entry if they are set multiple times in the configuration files.
 
 .. currentmodule:: pygit2
 
@@ -32,3 +32,14 @@ string. In order to apply the git-config parsing rules, you can use
 
 .. automethod:: pygit2.Config.get_bool
 .. automethod:: pygit2.Config.get_int
+
+
+The ConfigEntry type
+====================
+
+.. automethod:: pygit2.ConfigEntry.decode_as_string
+.. automethod:: pygit2.ConfigEntry._from_c
+.. automethod:: pygit2.ConfigEntry.name
+.. automethod:: pygit2.ConfigEntry.level
+.. automethod:: pygit2.ConfigEntry.value
+.. automethod:: pygit2.ConfigEntry.value_string

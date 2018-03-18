@@ -56,20 +56,20 @@ class ConfigIterator(object):
         err = C.git_config_next(centry, self._iter)
         check_error(err)
 
-        return centry[0]
+        return ConfigEntry._from_c(centry[0], True)
 
     def next(self):
         return self.__next__()
 
     def __next__(self):
         entry = self._next_entry()
-        return ffi.string(entry.name).decode('utf-8')
+        return entry
 
 
 class ConfigMultivarIterator(ConfigIterator):
     def __next__(self):
         entry = self._next_entry()
-        return ffi.string(entry.value).decode('utf-8')
+        return entry.value
 
 
 class Config(object):
@@ -128,7 +128,7 @@ class Config(object):
     def __getitem__(self, key):
         entry = self._get_entry(key)
 
-        return ffi.string(entry.value).decode('utf-8')
+        return entry.value
 
     def __setitem__(self, key, value):
         assert_string(key, "key")
@@ -195,7 +195,7 @@ class Config(object):
 
         entry = self._get_entry(key)
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, entry.value)
+        err = C.git_config_parse_bool(res, entry.raw_value)
         check_error(err)
 
         return res[0] != 0
@@ -210,7 +210,7 @@ class Config(object):
 
         entry = self._get_entry(key)
         res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, entry.value)
+        err = C.git_config_parse_int64(res, entry.raw_value)
         check_error(err)
 
         return res[0]
@@ -291,14 +291,46 @@ class ConfigEntry(object):
     """
 
     @classmethod
-    def _from_c(cls, ptr):
+    def _from_c(cls, ptr, from_iterator=False):
+        """Builds the entry from a ``git_config_entry`` pointer. ``from_iterator``
+        should be ``True`` when the entry was created during ``git_config_iterator``
+        actions
+        """
         entry = cls.__new__(cls)
         entry._entry = ptr
+        entry.from_iterator = from_iterator
         return entry
 
     def __del__(self):
-        C.git_config_entry_free(self._entry)
+        if not self.from_iterator:
+            C.git_config_entry_free(self._entry)
 
     @property
     def value(self):
+        """The entry's value as a string
+        """
+        return self.decode_as_string(self._entry.value)
+
+    @property
+    def level(self):
+        """The entry's ``git_config_level_t`` value
+        """
+        return self._entry.level
+
+    @property
+    def name(self):
+        """The entry's name
+        """
+        return self.decode_as_string(self._entry.name)
+
+    @property
+    def raw_value(self):
+        """The raw ``cData`` entry value
+        """
         return self._entry.value
+
+    @staticmethod
+    def decode_as_string(value):
+        """Returns ``value`` as a decoded ``utf-8`` string.
+        """
+        return ffi.string(value).decode('utf-8')
