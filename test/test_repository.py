@@ -34,6 +34,7 @@ from __future__ import unicode_literals
 # Import from the Standard Library
 import binascii
 import unittest
+import shutil
 import tempfile
 import os
 from os.path import join, realpath
@@ -631,6 +632,58 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
 #       # enable this test
 #       # not sure how to test this either... couldn't find pushspec
 #       # self.assertEqual(repo.remotes[0].fetchspec, "refs/heads/test")
+
+class WorktreeTestCase(utils.RepoTestCase):
+
+    def test_worktree(self):
+        worktree_name = 'foo'
+        worktree_dir = tempfile.mkdtemp()
+        # Delete temp path so that it's not present when we attempt to add the
+        # worktree later
+        os.rmdir(worktree_dir)
+
+        def _check_worktree(worktree):
+            path = os.path.join(worktree_dir, '.git')
+            git_path = os.path.join(self.repo.path, 'worktrees', worktree_name)
+
+            # Confirm the name attribute matches the specified name
+            self.assertEqual(worktree.name, worktree_name)
+            # Confirm the path attribute points to the correct path
+            self.assertEqual(worktree.path.rstrip(os.sep), path)
+            # The "gitdir" in a worktree should be a file with a reference to
+            # the actual gitdir. Let's make sure that the path exists and is a
+            # file.
+            self.assertTrue(os.path.isfile(path))
+            # Confirm the git_path attribute points to the correct path
+            self.assertEqual(worktree.git_path.rstrip(os.sep), git_path)
+            # Confirm the worktree directory in the main checkout's gitdir
+            # actually exists
+            self.assertTrue(os.path.isdir(git_path))
+
+        # We should have zero worktrees
+        self.assertEqual(self.repo.list_worktrees(), [])
+        # Add a worktree
+        worktree = self.repo.add_worktree(worktree_name, worktree_dir)
+        # Check that the worktree was added properly
+        _check_worktree(worktree)
+        # We should have one worktree now
+        self.assertEqual(self.repo.list_worktrees(), [worktree_name])
+        # Test that lookup_worktree() returns a properly-instantiated
+        # pygit2._Worktree object
+        _check_worktree(self.repo.lookup_worktree(worktree_name))
+        # Remove the worktree dir
+        shutil.rmtree(worktree_dir)
+        # Prune the worktree. For some reason, libgit2 treats a worktree as
+        # valid unless both the worktree directory and data dir under
+        # $gitdir/worktrees are gone. This doesn't make much sense since the
+        # normal usage involves removing the worktree directory and then
+        # pruning. So, for now we have to force the prune. This may be
+        # something to take up with libgit2.
+        worktree.prune(True)
+        self.assertEqual(self.repo.list_worktrees(), [])
+        # Confirm that the repo's data dir has been removed
+        self.assertFalse(os.path.isdir(worktree.git_path))
+
 
 if __name__ == '__main__':
     unittest.main()
