@@ -643,19 +643,21 @@ class WorktreeTestCase(utils.RepoTestCase):
         os.rmdir(worktree_dir)
 
         def _check_worktree(worktree):
-            path = os.path.join(worktree_dir, '.git')
-            git_path = os.path.join(self.repo.path, 'worktrees', worktree_name)
+            path = os.path.realpath(
+                os.path.join(worktree_dir, '.git'))
+            git_path = os.path.realpath(
+                os.path.join(self.repo.path, 'worktrees', worktree_name))
 
             # Confirm the name attribute matches the specified name
             self.assertEqual(worktree.name, worktree_name)
             # Confirm the path attribute points to the correct path
-            self.assertEqual(worktree.path.rstrip(os.sep), path)
+            self.assertEqual(os.path.realpath(worktree.path), path)
             # The "gitdir" in a worktree should be a file with a reference to
             # the actual gitdir. Let's make sure that the path exists and is a
             # file.
             self.assertTrue(os.path.isfile(path))
             # Confirm the git_path attribute points to the correct path
-            self.assertEqual(worktree.git_path.rstrip(os.sep), git_path)
+            self.assertEqual(os.path.realpath(worktree.git_path), git_path)
             # Confirm the worktree directory in the main checkout's gitdir
             # actually exists
             self.assertTrue(os.path.isdir(git_path))
@@ -675,7 +677,7 @@ class WorktreeTestCase(utils.RepoTestCase):
         shutil.rmtree(worktree_dir)
         # Prune the worktree. For some reason, libgit2 treats a worktree as
         # valid unless both the worktree directory and data dir under
-        # $gitdir/worktrees are gone. This doesn't make much sense since the
+        # $GIT_DIR/worktrees are gone. This doesn't make much sense since the
         # normal usage involves removing the worktree directory and then
         # pruning. So, for now we have to force the prune. This may be
         # something to take up with libgit2.
