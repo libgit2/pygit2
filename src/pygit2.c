@@ -67,6 +67,7 @@ extern PyTypeObject RemoteType;
 extern PyTypeObject RefspecType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
+extern PyTypeObject WorktreeType;
 
 
 PyDoc_STRVAR(discover_repository__doc__,
@@ -296,6 +297,12 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_REF_OID)
     ADD_CONSTANT_INT(m, GIT_REF_SYMBOLIC)
     ADD_CONSTANT_INT(m, GIT_REF_LISTALL)
+
+    /*
+     * Worktree
+     */
+    INIT_TYPE(WorktreeType, NULL, NULL)
+    ADD_TYPE(m, Worktree)
 
     /*
      * Branches
