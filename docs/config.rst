@@ -37,9 +37,6 @@ string. In order to apply the git-config parsing rules, you can use
 The ConfigEntry type
 ====================
 
-.. automethod:: pygit2.ConfigEntry.decode_as_string
-.. automethod:: pygit2.ConfigEntry._from_c
-.. automethod:: pygit2.ConfigEntry.name
-.. automethod:: pygit2.ConfigEntry.level
-.. automethod:: pygit2.ConfigEntry.value
-.. automethod:: pygit2.ConfigEntry.value_string
+.. autoattribute:: pygit2.config.ConfigEntry.name
+.. autoattribute:: pygit2.config.ConfigEntry.value
+.. autoattribute:: pygit2.config.ConfigEntry.level
