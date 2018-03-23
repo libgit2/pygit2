@@ -114,7 +114,7 @@ class CallableCredentialTest(utils.RepoTestCase):
         credentials = UserPass("libgit2", "libgit2")
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
-        url = "https://bitbucket.org/libgit2/testgitrepository.git"
+        url = 'https://github.com/libgit2/TestGitRepository'
         remote = self.repo.create_remote("bb", url)
         remote.fetch(callbacks=callbacks)
 

@@ -44,8 +44,7 @@ import six
 
 if six.PY2:
     from urllib import pathname2url
-
-if six.PY3:
+else:
     from urllib.request import pathname2url
 
 # Import from pygit2
@@ -576,9 +575,10 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_clone_with_credentials(self):
-        repo = clone_repository(
-            "https://bitbucket.org/libgit2/testgitrepository.git",
-            self._temp_dir, callbacks=pygit2.RemoteCallbacks(credentials=pygit2.UserPass("libgit2", "libgit2")))
+        url = 'https://github.com/libgit2/TestGitRepository'
+        credentials = pygit2.UserPass("libgit2", "libgit2")
+        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
+        repo = clone_repository(url, self._temp_dir, callbacks=callbacks)
 
         self.assertFalse(repo.is_empty)
 
