@@ -236,6 +236,7 @@ committer and others.
 .. autoattribute:: pygit2.Commit.parent_ids
 .. autoattribute:: pygit2.Commit.commit_time
 .. autoattribute:: pygit2.Commit.commit_time_offset
+.. autoattribute:: pygit2.Commit.gpg_signature
 
 
 Signatures

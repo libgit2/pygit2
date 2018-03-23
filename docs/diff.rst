@@ -49,6 +49,7 @@ The Diff type
 .. autoattribute:: pygit2.Diff.deltas
 .. automethod:: pygit2.Diff.find_similar
 .. automethod:: pygit2.Diff.merge
+.. automethod:: pygit2.Diff.parse_diff
 .. autoattribute:: pygit2.Diff.patch
 .. autoattribute:: pygit2.Diff.stats
 

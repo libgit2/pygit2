@@ -48,13 +48,16 @@ Refspecs objects are not constructed directly, but returned by
 Credentials
 ================
 
-There are two types of credentials: username/password and SSH key
-pairs. Both :py:class:`pygit2.UserPass` and :py:class:`pygit2.Keypair`
-are callable objects, with the appropriate signature for the
-credentials callback. They will ignore all the arguments and return
-themselves. This is useful for scripts where the credentials are known
-ahead of time. More complete interfaces would want to look up in their
-keychain or ask the user for the data to use in the credentials.
+There are several types of credentials. All of them are callable objects, with
+the appropriate signature for the credentials callback.
 
+They will ignore all the arguments and return themselves. This is useful for
+scripts where the credentials are known ahead of time. More complete interfaces
+would want to look up in their keychain or ask the user for the data to use in
+the credentials.
+
+.. autoclass:: pygit2.Username
 .. autoclass:: pygit2.UserPass
 .. autoclass:: pygit2.Keypair
+.. autoclass:: pygit2.KeypairFromAgent
+.. autoclass:: pygit2.KeypairFromMemory

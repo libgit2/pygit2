@@ -1,3 +1,55 @@
+0.26.4 (2018-03-23)
+-------------------------
+
+Backward incompatible changes:
+
+- Now iterating over a configuration returns ``ConfigEntry`` objects
+  `#778 <https://github.com/libgit2/pygit2/pull/778>`_
+
+  ::
+
+    # Before
+    for name in config:
+        value = config[name]
+
+    # Now
+    for entry in config:
+        name = entry.name
+        value = entry.value
+
+Other changes:
+
+- Added support for worktrees
+  `#779 <https://github.com/libgit2/pygit2/pull/779>`_
+
+- New ``Commit.gpg_signature``
+  `#766 <https://github.com/libgit2/pygit2/pull/766>`_
+
+- New static ``Diff.parse_diff(...)``
+  `#774 <https://github.com/libgit2/pygit2/pull/774>`_
+
+- New optional argument ``callbacks`` in ``Repository.update_submodules(...)``
+  `#763 <https://github.com/libgit2/pygit2/pull/763>`_
+
+- New ``KeypairFromMemory`` credentials
+  `#771 <https://github.com/libgit2/pygit2/pull/771>`_
+
+- Add missing status constants
+  `#781 <https://github.com/libgit2/pygit2/issues/781>`_
+
+- Fix segfault
+  `#775 <https://github.com/libgit2/pygit2/issues/775>`_
+
+- Fix some unicode decode errors with Python 2
+  `#767 <https://github.com/libgit2/pygit2/pull/767>`_
+  `#768 <https://github.com/libgit2/pygit2/pull/768>`_
+
+- Documentation improvements
+  `#721 <https://github.com/libgit2/pygit2/pull/721>`_
+  `#769 <https://github.com/libgit2/pygit2/pull/769>`_
+  `#770 <https://github.com/libgit2/pygit2/pull/770>`_
+
+
 0.26.3 (2017-12-24)
 -------------------------
 

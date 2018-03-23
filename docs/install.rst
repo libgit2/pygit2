@@ -41,13 +41,14 @@ The version number of pygit2 is composed of three numbers separated by dots
 |lq| *major.minor* |rq| match the first two numbers of the libgit2 version,
 while the last number |lq| *.micro* |rq| auto-increments independently.
 
-As illustration see this table of compatible releases:
+It is recommended to use the latest version in each series. Example of
+compatible releases:
 
-+-----------+--------------------------------+----------------+------------------------+
-|**libgit2**| 0.26.0                         | 0.25.0, 0.25.1 | 0.24.0, 0.24.1, 0.24.2 |
-+-----------+--------------------------------+----------------+------------------------+
-|**pygit2** | 0.26.0, 0.26.1, 0.26.2, 0.26.3 | 0.25.0, 0.25.1 | 0.24.0, 0.24.1, 0.24.2 |
-+-----------+--------------------------------+----------------+------------------------+
++-----------+--------+--------+--------+--------+
+|**libgit2**| 0.26.3 | 0.25.1 | 0.24.6 | 0.23.4 |
++-----------+--------+--------+--------+--------+
+|**pygit2** | 0.26.4 | 0.25.1 | 0.24.2 | 0.23.3 |
++-----------+--------+--------+--------+--------+
 
 .. warning::
 
