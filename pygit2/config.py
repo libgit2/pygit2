@@ -219,7 +219,7 @@ class Config(object):
         """Add a config file instance to an existing config."""
 
         err = C.git_config_add_file_ondisk(self._config, to_bytes(path), level,
-                                           force)
+                                           ffi.NULL, force)
         check_error(err)
 
     def snapshot(self):
