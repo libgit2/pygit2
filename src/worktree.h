@@ -33,14 +33,14 @@
 #include <git2.h>
 #include <git2/worktree.h>
 
-typedef struct git_worktree {
+struct git_worktree {
 	char *name;
 	char *gitlink_path;
 	char *gitdir_path;
 	char *commondir_path;
 	char *parent_path;
 	int locked:1;
-} git_worktree;
+};
 
 PyObject* wrap_worktree(Repository* repo, git_worktree* wt);
 
