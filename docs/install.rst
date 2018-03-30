@@ -45,9 +45,9 @@ It is recommended to use the latest version in each series. Example of
 compatible releases:
 
 +-----------+--------+--------+--------+--------+
-|**libgit2**| 0.26.3 | 0.25.1 | 0.24.6 | 0.23.4 |
+|**libgit2**| 0.27.0 | 0.26.3 | 0.25.1 | 0.24.6 |
 +-----------+--------+--------+--------+--------+
-|**pygit2** | 0.26.4 | 0.25.1 | 0.24.2 | 0.23.3 |
+|**pygit2** | 0.27.0 | 0.26.4 | 0.25.1 | 0.24.2 |
 +-----------+--------+--------+--------+--------+
 
 .. warning::
@@ -65,9 +65,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.26.0.tar.gz
-   $ tar xzf v0.26.0.tar.gz
-   $ cd libgit2-0.26.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz
+   $ tar xzf v0.27.0.tar.gz
+   $ cd libgit2-0.27.0/
    $ cmake .
    $ make
    $ sudo make install
@@ -149,9 +149,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.26.0.tar.gz
-   $ tar xzf v0.26.0.tar.gz
-   $ cd libgit2-0.26.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz
+   $ tar xzf v0.27.0.tar.gz
+   $ cd libgit2-0.27.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -187,7 +187,7 @@ everytime. Verify yourself if curious:
 
 .. code-block:: sh
 
-   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.26.0-py2.7-linux-x86_64.egg/_pygit2.so | grep PATH
+   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.27.0-py2.7-linux-x86_64.egg/_pygit2.so | grep PATH
     0x000000000000001d (RUNPATH)            Library runpath: [/tmp/venv/lib]
 
 

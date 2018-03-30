@@ -572,6 +572,7 @@ int git_config_delete_entry(git_config *cfg, const char *name);
 int git_config_add_file_ondisk(git_config *cfg,
 	const char *path,
 	git_config_level_t level,
+	const git_repository *repo,
 	int force);
 
 int git_config_iterator_new(git_config_iterator **out, const git_config *cfg);
