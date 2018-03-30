@@ -29,7 +29,7 @@ init:
 build_script:
 - cmd: |
     set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\build\libgit2
-    git clone --depth=1 -b maint/v0.26 https://github.com/libgit2/libgit2.git libgit2
+    git clone --depth=1 -b maint/v0.27 https://github.com/libgit2/libgit2.git libgit2
     mkdir build
     
     cd build
