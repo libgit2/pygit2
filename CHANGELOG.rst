@@ -1,3 +1,13 @@
+0.27.0 (2018-03-30)
+-------------------------
+
+- Update to libgit2 v0.27
+  `#783 <https://github.com/libgit2/pygit2/pull/783>`_
+
+- Fix for GCC 4
+  `#786 <https://github.com/libgit2/pygit2/pull/786>`_
+
+
 0.26.4 (2018-03-23)
 -------------------------
 
