@@ -28,6 +28,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import six
+
 import pygit2
 from . import utils
 
@@ -82,6 +84,76 @@ index a520c24..0000000
 -hola mundo
 -bonjour le monde
 """
+
+
+class PatchEncodingTest(utils.AutoRepoTestCase):
+    repo_spec = 'tar', 'encoding'
+    expected_diff = b"""diff --git a/iso-8859-1.txt b/iso-8859-1.txt
+index e84e339..201e0c9 100644
+--- a/iso-8859-1.txt
++++ b/iso-8859-1.txt
+@@ -1 +1,2 @@
+ Kristian H\xf8gsberg
++foo
+"""
+
+    def test_patch_from_non_utf8(self):
+        # blobs encoded in ISO-8859-1
+        old_content = b'Kristian H\xf8gsberg\n'
+        new_content = old_content + b'foo\n'
+        patch = pygit2.Patch.create_from(
+            old_content,
+            new_content,
+            old_as_path='iso-8859-1.txt',
+            new_as_path='iso-8859-1.txt',
+        )
+
+        self.assertIsInstance(str(patch), str)
+
+        # `patch.patch` corrupted the ISO-8859-1 content as it forced UTF-8
+        # decoding, so assert that we cannot get the original content back:
+        self.assertNotEqual(patch.patch.encode('utf8'), self.expected_diff)
+
+        # since the patch contain non-UTF-8 sequences, .decode() should fail:
+        self.assertRaises(UnicodeDecodeError, patch.decode)
+
+        self.assertEqual(patch.decode(errors='replace'),
+                         self.expected_diff.decode('utf-8', errors='replace'))
+
+        if six.PY2:
+            self.assertEqual(str(patch), self.expected_diff)
+            self.assertIsInstance(patch.__bytes__(), str)
+            self.assertEqual(patch.__bytes__(), self.expected_diff)
+
+        else:
+            self.assertEqual(bytes(patch), self.expected_diff)
+            self.assertEqual(str(patch),
+                             str(self.expected_diff, 'utf8', errors='replace'))
+            self.assertRaises(UnicodeDecodeError, patch.decode)
+
+    def test_patch_create_from_blobs(self):
+        patch = pygit2.Patch.create_from(
+            self.repo['e84e339ac7fcc823106efa65a6972d7a20016c85'],
+            self.repo['201e0c908e3d9f526659df3e556c3d06384ef0df'],
+            old_as_path='iso-8859-1.txt',
+            new_as_path='iso-8859-1.txt',
+        )
+        # `patch.patch` corrupted the ISO-8859-1 content as it forced UTF-8
+        # decoding, so assert that we cannot get the original content back:
+        self.assertNotEqual(patch.patch.encode('utf8'), self.expected_diff)
+
+        if six.PY2:
+            self.assertIsInstance(str(patch), str)
+            self.assertEqual(str(patch), self.expected_diff)
+
+            self.assertIsInstance(patch.__bytes__(), str)
+            self.assertEqual(patch.__bytes__(), self.expected_diff)
+
+        else:
+            self.assertIsInstance(str(patch), str)
+            self.assertEqual(bytes(patch), self.expected_diff)
+            self.assertEqual(str(patch),
+                             str(self.expected_diff, 'utf8', errors='replace'))
 
 
 class PatchTest(utils.RepoTestCase):

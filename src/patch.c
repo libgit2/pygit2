@@ -180,30 +180,109 @@ Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
   return wrap_patch(patch, oldblob, newblob);
 }
 
+PyObject *
+decode(Patch *patch, char *encoding, char *errors)
+{
+    git_buf buf = {NULL};
+    int err;
+    PyObject *ret;
+
+    assert(patch->patch);
+    err = git_patch_to_buf(&buf, patch->patch);
+    if (err < 0)
+        return Error_set(err);
+
+    ret = PyUnicode_Decode(buf.ptr, buf.size, encoding, errors);
+    git_buf_free(&buf);
+    return ret;
+}
 
 PyDoc_STRVAR(Patch_patch__doc__,
-    "Patch diff string. Can be None in some cases, such as empty commits.");
+    "Patch diff string (deprecated -- use Patch.decode() instead).\n"
+    "Can be None in some cases, such as empty commits. "
+    "Note that this decodes the content to unicode assuming UTF-8 encoding. "
+    "For non-UTF-8 content that can lead be a lossy, non-reversible process. "
+    "To access the raw, un-decoded patch, use `str(patch)` (Python 2), or "
+    "`bytes(patch)` (Python 3).");
 
 PyObject *
 Patch_patch__get__(Patch *self)
 {
+    PyErr_WarnEx(PyExc_DeprecationWarning, "`Patch.patch` assumes UTF-8 encoding and can have unexpected results on "
+                                           "other encodings. If decoded text is needed, use `Patch.decode()` "
+                                           "instead. Otherwise use `bytes(Patch)`.", 1);
+    return decode(self, "utf-8", "replace");
+}
+
+PyObject *
+Patch__str__(PyObject *self)
+{
     git_buf buf = {NULL};
     int err;
-    PyObject *py_patch;
+    PyObject *ret;
 
     assert(self->patch);
-    err = git_patch_to_buf(&buf, self->patch);
+    err = git_patch_to_buf(&buf, ((Patch*)self)->patch);
     if (err < 0)
         return Error_set(err);
 
-    py_patch = to_unicode(buf.ptr, NULL, NULL);
+#if PY_MAJOR_VERSION == 2
+    ret = Py_BuildValue("s#", buf.ptr, buf.size);
+#else
+    ret = to_unicode(buf.ptr, NULL, NULL);
+#endif
     git_buf_free(&buf);
-    return py_patch;
+    return ret;
+}
+
+PyDoc_STRVAR(Patch__bytes____doc__, "The raw bytes of the patch's contents.");
+
+PyObject *
+Patch__bytes__(PyObject *self)
+{
+#if PY_MAJOR_VERSION == 2
+    return Patch__str__(self);
+#else
+    git_buf buf = {NULL};
+    int err;
+    PyObject *bytes;
+
+    assert(self->patch);
+    err = git_patch_to_buf(&buf, ((Patch*)self)->patch);
+    if (err < 0)
+        return Error_set(err);
+
+    bytes = PyBytes_FromStringAndSize(buf.ptr, buf.size);
+    git_buf_free(&buf);
+    return bytes;
+#endif
+}
+
+PyDoc_STRVAR(Patch_decode__doc__, "decode(encoding=\"utf-8\", errors=\"strict\")\n"
+                                  "\n"
+                                  "Decodes the patch's bytes using the codec registered for encoding.\n"
+                                  "Encoding defaults to 'utf-8'. `errors` may be given to set a different error\n"
+                                  "handling scheme. Default is 'strict' meaning that decoding errors raise\n"
+                                  "a `UnicodeError`. Other possible values are 'ignore' and 'replace'\n"
+                                  "as well as any other name registered with `codecs.register_error`.");
+
+PyObject *
+Patch_decode(PyObject *self, PyObject *args, PyObject *kwds)
+{
+    char *keywords[] = {"encoding", "errors", NULL};
+    char *encoding = NULL, *errors = NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|zz", keywords, &encoding, &errors))
+        return NULL;
+
+    return decode((Patch *)self, encoding == NULL ? "utf-8" : encoding, errors);
 }
 
 PyMethodDef Patch_methods[] = {
     {"create_from", (PyCFunction) Patch_create_from,
       METH_KEYWORDS | METH_VARARGS | METH_STATIC, Patch_create_from__doc__},
+    {"__bytes__", (PyCFunction) Patch__bytes__, METH_NOARGS, Patch__bytes____doc__},
+    {"decode", (PyCFunction) Patch_decode, METH_KEYWORDS | METH_VARARGS, Patch_decode__doc__},
     {NULL}
 };
 
@@ -237,7 +316,7 @@ PyTypeObject PatchType = {
     0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
     0,                                         /* tp_call           */
-    0,                                         /* tp_str            */
+    Patch__str__,                              /* tp_str            */
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
