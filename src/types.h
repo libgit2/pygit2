@@ -101,7 +101,6 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     git_patch *patch;
-    PyObject* hunks;
     Blob* oldblob;
     Blob* newblob;
 } Patch;
@@ -144,22 +143,16 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    PyObject* lines;
-    int old_start;
-    int old_lines;
-    int new_start;
-    int new_lines;
-    PyObject *header;
+    Patch *patch;
+    const git_diff_hunk *hunk;
+    size_t idx;
+    size_t n_lines;
 } DiffHunk;
 
 typedef struct {
     PyObject_HEAD
-    char origin;
-    int old_lineno;
-    int new_lineno;
-    int num_lines;
-    git_off_t content_offset;
-    PyObject *content;
+    DiffHunk *hunk;
+    const git_diff_line *line;
 } DiffLine;
 
 SIMPLE_TYPE(DiffStats, git_diff_stats, stats);

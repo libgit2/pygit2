@@ -104,7 +104,7 @@ wrap_diff_delta(const git_diff_delta *delta)
 }
 
 PyObject *
-wrap_diff_hunk(git_patch *patch, size_t idx)
+wrap_diff_hunk(Patch *patch, size_t idx)
 {
     DiffHunk *py_hunk;
     const git_diff_hunk *hunk;
@@ -112,33 +112,17 @@ wrap_diff_hunk(git_patch *patch, size_t idx)
     size_t j, lines_in_hunk;
     int err;
 
-    err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch, idx);
+    err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch->patch, idx);
     if (err < 0)
         return Error_set(err);
 
     py_hunk = PyObject_New(DiffHunk, &DiffHunkType);
     if (py_hunk) {
-        py_hunk->old_start = hunk->old_start;
-        py_hunk->old_lines = hunk->old_lines;
-        py_hunk->new_start = hunk->new_start;
-        py_hunk->new_lines = hunk->new_lines;
-        py_hunk->header = to_unicode_n((const char *) &hunk->header,
-                hunk->header_len, NULL, NULL);
-
-        py_hunk->lines = PyList_New(lines_in_hunk);
-        for (j = 0; j < lines_in_hunk; ++j) {
-            PyObject *py_line = NULL;
-
-            err = git_patch_get_line_in_hunk(&line, patch, idx, j);
-            if (err < 0)
-                return Error_set(err);
-
-            py_line = wrap_diff_line(line);
-            if (py_line == NULL)
-                return NULL;
-
-            PyList_SetItem(py_hunk->lines, j, py_line);
-        }
+        Py_INCREF(patch);
+        py_hunk->patch = patch;
+        py_hunk->hunk = hunk;
+        py_hunk->idx = idx;
+        py_hunk->n_lines = lines_in_hunk;
     }
 
     return (PyObject *) py_hunk;
@@ -167,19 +151,15 @@ wrap_diff_stats(git_diff *diff)
 }
 
 PyObject *
-wrap_diff_line(const git_diff_line *line)
+wrap_diff_line(const git_diff_line *line, DiffHunk *hunk)
 {
     DiffLine *py_line;
 
     py_line = PyObject_New(DiffLine, &DiffLineType);
     if (py_line) {
-        py_line->origin = line->origin;
-        py_line->old_lineno = line->old_lineno;
-        py_line->new_lineno = line->new_lineno;
-        py_line->num_lines = line->num_lines;
-        py_line->content = to_unicode_n(line->content, line->content_len,
-                NULL, NULL);
-        py_line->content_offset = line->content_offset;
+        Py_INCREF(hunk);
+        py_line->hunk = hunk;
+        py_line->line = line;
     }
 
     return (PyObject *) py_line;
@@ -300,7 +280,7 @@ PyMemberDef DiffDelta_members[] = {
     {NULL}
 };
 
-PyGetSetDef DiffDelta_getseters[] = {
+PyGetSetDef DiffDelta_getsetters[] = {
     GETTER(DiffDelta, is_binary),
     {NULL}
 };
@@ -337,7 +317,7 @@ PyTypeObject DiffDeltaType = {
     0,                                         /* tp_iternext       */
     DiffDelta_methods,                         /* tp_methods        */
     DiffDelta_members,                         /* tp_members        */
-    DiffDelta_getseters,                       /* tp_getset         */
+    DiffDelta_getsetters,                      /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
@@ -351,21 +331,59 @@ PyTypeObject DiffDeltaType = {
 static void
 DiffLine_dealloc(DiffLine *self)
 {
-    Py_CLEAR(self->content);
+    Py_CLEAR(self->hunk);
     PyObject_Del(self);
 }
 
-PyMemberDef DiffLine_members[] = {
-    MEMBER(DiffLine, origin, T_CHAR, "Type of the diff line"),
-    MEMBER(DiffLine, old_lineno, T_INT,
-           "Line number in old file or -1 for added line"),
-    MEMBER(DiffLine, new_lineno, T_INT,
-           "Line number in new file or -1 for deleted line"),
-    MEMBER(DiffLine, num_lines, T_INT,
-           "Number of newline characters in content"),
-    MEMBER(DiffLine, content_offset, T_INT,
-           "Offset in the original file to the content"),
-    MEMBER(DiffLine, content, T_OBJECT, "Content of the diff line"),
+PyDoc_STRVAR(DiffLine_origin__doc__, "Type of the diff line");
+PyObject *
+DiffLine_origin__get__(DiffLine *self)
+{
+    return PyUnicode_FromStringAndSize(&(self->line->origin), 1);
+}
+
+PyDoc_STRVAR(DiffLine_old_lineno__doc__, "Line number in old file or -1 for added line");
+PyObject *
+DiffLine_old_lineno__get__(DiffLine *self)
+{
+    return PyInt_FromLong(self->line->old_lineno);
+}
+
+PyDoc_STRVAR(DiffLine_new_lineno__doc__, "Line number in new file or -1 for deleted line");
+PyObject *
+DiffLine_new_lineno__get__(DiffLine *self)
+{
+    return PyInt_FromLong(self->line->new_lineno);
+}
+
+PyDoc_STRVAR(DiffLine_num_lines__doc__, "Number of newline characters in content");
+PyObject *
+DiffLine_num_lines__get__(DiffLine *self)
+{
+    return PyInt_FromLong(self->line->num_lines);
+}
+
+PyDoc_STRVAR(DiffLine_content_offset__doc__, "Offset in the original file to the content");
+PyObject *
+DiffLine_content_offset__get__(DiffLine *self)
+{
+    return PyInt_FromLongLong(self->line->content_offset);
+}
+
+PyDoc_STRVAR(DiffLine_content__doc__, "Content of the diff line");
+PyObject *
+DiffLine_content__get__(DiffLine *self)
+{
+    return to_unicode_n(self->line->content, self->line->content_len, NULL, NULL);
+}
+
+PyGetSetDef DiffLine_getsetters[] = {
+    GETTER(DiffLine, origin),
+    GETTER(DiffLine, old_lineno),
+    GETTER(DiffLine, new_lineno),
+    GETTER(DiffLine, num_lines),
+    GETTER(DiffLine, content_offset),
+    GETTER(DiffLine, content),
     {NULL}
 };
 
@@ -400,8 +418,8 @@ PyTypeObject DiffLineType = {
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
-    DiffLine_members,                          /* tp_members        */
-    0,                                         /* tp_getset         */
+    0,                                         /* tp_members        */
+    DiffLine_getsetters,                       /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
@@ -602,21 +620,90 @@ cleanup:
 static void
 DiffHunk_dealloc(DiffHunk *self)
 {
-    Py_CLEAR(self->header);
-    Py_CLEAR(self->lines);
+    Py_CLEAR(self->patch);
     PyObject_Del(self);
 }
 
-PyMemberDef DiffHunk_members[] = {
-    MEMBER(DiffHunk, old_start, T_INT, "Old start."),
-    MEMBER(DiffHunk, old_lines, T_INT, "Old lines."),
-    MEMBER(DiffHunk, new_start, T_INT, "New start."),
-    MEMBER(DiffHunk, new_lines, T_INT, "New lines."),
-    MEMBER(DiffHunk, header, T_OBJECT, "Header."),
-    MEMBER(DiffHunk, lines, T_OBJECT, "Lines."),
+PyDoc_STRVAR(DiffHunk_old_start__doc__, "Old start.");
+
+PyObject *
+DiffHunk_old_start__get__(DiffHunk *self)
+{
+  return PyInt_FromLong(self->hunk->old_start);
+}
+
+PyDoc_STRVAR(DiffHunk_old_lines__doc__, "Old lines.");
+
+PyObject *
+DiffHunk_old_lines__get__(DiffHunk *self)
+{
+  return PyInt_FromLong(self->hunk->old_lines);
+}
+
+PyDoc_STRVAR(DiffHunk_new_start__doc__, "New start.");
+
+PyObject *
+DiffHunk_new_start__get__(DiffHunk *self)
+{
+  return PyInt_FromLong(self->hunk->new_start);
+}
+
+PyDoc_STRVAR(DiffHunk_new_lines__doc__, "New lines.");
+
+PyObject *
+DiffHunk_new_lines__get__(DiffHunk *self)
+{
+  return PyInt_FromLong(self->hunk->new_lines);
+}
+
+PyDoc_STRVAR(DiffHunk_header__doc__, "Header.");
+
+PyObject *
+DiffHunk_header__get__(DiffHunk *self)
+{
+    return to_unicode_n((const char *) &self->hunk->header,
+                        self->hunk->header_len, NULL, NULL);
+}
+
+PyDoc_STRVAR(DiffHunk_lines__doc__, "Lines.");
+
+PyObject *
+DiffHunk_lines__get__(DiffHunk *self)
+{
+    PyObject *py_lines;
+    PyObject *py_line;
+    const git_diff_line *line;
+    size_t i;
+    int err;
+
+    // TODO Replace by an iterator
+    py_lines = PyList_New(self->n_lines);
+    for (i = 0; i < self->n_lines; ++i) {
+        PyObject *py_line = NULL;
+
+        err = git_patch_get_line_in_hunk(&line, self->patch->patch, self->idx, i);
+        if (err < 0)
+            return Error_set(err);
+
+        py_line = wrap_diff_line(line, self);
+        if (py_line == NULL)
+            return NULL;
+
+        PyList_SetItem(py_lines, i, py_line);
+   }
+   return py_lines;
+}
+
+
+PyGetSetDef DiffHunk_getsetters[] = {
+    GETTER(DiffHunk, old_start),
+    GETTER(DiffHunk, old_lines),
+    GETTER(DiffHunk, new_start),
+    GETTER(DiffHunk, new_lines),
+    GETTER(DiffHunk, header),
+    GETTER(DiffHunk, lines),
     {NULL}
 };
-
 
 PyDoc_STRVAR(DiffHunk__doc__, "DiffHunk object.");
 
@@ -649,8 +736,8 @@ PyTypeObject DiffHunkType = {
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
-    DiffHunk_members,                          /* tp_members        */
-    0,                                         /* tp_getset         */
+    0,                                         /* tp_members        */
+    DiffHunk_getsetters,                       /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
@@ -739,7 +826,7 @@ PyMethodDef DiffStats_methods[] = {
     {NULL}
 };
 
-PyGetSetDef DiffStats_getseters[] = {
+PyGetSetDef DiffStats_getsetters[] = {
     GETTER(DiffStats, insertions),
     GETTER(DiffStats, deletions),
     GETTER(DiffStats, files_changed),
@@ -778,7 +865,7 @@ PyTypeObject DiffStatsType = {
     0,                                         /* tp_iternext       */
     DiffStats_methods,                         /* tp_methods        */
     0,                                         /* tp_members        */
-    DiffStats_getseters,                       /* tp_getset         */
+    DiffStats_getsetters,                      /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
@@ -932,7 +1019,7 @@ Diff_dealloc(Diff *self)
     PyObject_Del(self);
 }
 
-PyGetSetDef Diff_getseters[] = {
+PyGetSetDef Diff_getsetters[] = {
     GETTER(Diff, deltas),
     GETTER(Diff, patch),
     GETTER(Diff, stats),
@@ -988,7 +1075,7 @@ PyTypeObject DiffType = {
     0,                                         /* tp_iternext       */
     Diff_methods,                              /* tp_methods        */
     0,                                         /* tp_members        */
-    Diff_getseters,                            /* tp_getset         */
+    Diff_getsetters,                           /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */

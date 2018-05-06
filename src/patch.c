@@ -43,22 +43,12 @@ PyObject *
 wrap_patch(git_patch *patch, Blob *oldblob, Blob *newblob)
 {
     Patch *py_patch;
-    PyObject *py_hunk;
-    size_t i, hunk_amounts;
 
     assert(patch);
 
     py_patch = PyObject_New(Patch, &PatchType);
     if (py_patch) {
         py_patch->patch = patch;
-
-        hunk_amounts = git_patch_num_hunks(patch);
-        py_patch->hunks = PyList_New(hunk_amounts);
-        for (i = 0; i < hunk_amounts; ++i) {
-            py_hunk = wrap_diff_hunk(patch, i);
-            if (py_hunk)
-                PyList_SetItem((PyObject*) py_patch->hunks, i, py_hunk);
-        }
 
         Py_XINCREF(oldblob);
         py_patch->oldblob = oldblob;
@@ -75,7 +65,6 @@ Patch_dealloc(Patch *self)
 {
     Py_CLEAR(self->oldblob);
     Py_CLEAR(self->newblob);
-    Py_CLEAR(self->hunks);
     git_patch_free(self->patch);
     PyObject_Del(self);
 }
@@ -201,21 +190,40 @@ Patch_patch__get__(Patch *self)
     return py_patch;
 }
 
+PyDoc_STRVAR(Patch_hunks__doc__, "hunks");
+
+PyObject *
+Patch_hunks__get__(Patch *self)
+{
+    size_t i, hunk_amounts;
+    PyObject *py_hunks;
+    PyObject *py_hunk;
+
+    hunk_amounts = git_patch_num_hunks(self->patch);
+    py_hunks = PyList_New(hunk_amounts);
+    for (i = 0; i < hunk_amounts; i++) {
+        py_hunk = wrap_diff_hunk(self, i);
+        if (py_hunk == NULL)
+            return NULL;
+
+        PyList_SET_ITEM((PyObject*) py_hunks, i, py_hunk);
+    }
+
+    return py_hunks;
+}
+
+
 PyMethodDef Patch_methods[] = {
     {"create_from", (PyCFunction) Patch_create_from,
       METH_KEYWORDS | METH_VARARGS | METH_STATIC, Patch_create_from__doc__},
     {NULL}
 };
 
-PyMemberDef Patch_members[] = {
-    MEMBER(Patch, hunks, T_OBJECT, "hunks"),
-    {NULL}
-};
-
-PyGetSetDef Patch_getseters[] = {
+PyGetSetDef Patch_getsetters[] = {
     GETTER(Patch, delta),
     GETTER(Patch, patch),
     GETTER(Patch, line_stats),
+    GETTER(Patch, hunks),
     {NULL}
 };
 
@@ -250,8 +258,8 @@ PyTypeObject PatchType = {
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     Patch_methods,                             /* tp_methods        */
-    Patch_members,                             /* tp_members        */
-    Patch_getseters,                           /* tp_getset         */
+    0,                                         /* tp_members        */
+    Patch_getsetters,                          /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
