@@ -97,12 +97,16 @@ to_unicode_n(const char *value, size_t len, const char *encoding,
              const char *errors)
 {
     if (encoding == NULL) {
-        /* If the encoding is not explicit, it may not be UTF-8, so it
-         * is not safe to decode it strictly.  This is rare in the
-         * wild, but does occur in old commits to git itself
-         * (e.g. c31820c2). */
-        encoding = "utf-8";
-        errors = "replace";
+        encoding = "utf-8"; // Default to UTF-8
+
+        /* If the encoding is not explicit, it may not be UTF-8, so it is not
+         * safe to decode it strictly.  This is rare in the wild, but does
+         * occur in old commits to git itself (e.g. c31820c2).
+         * https://github.com/libgit2/pygit2/issues/77
+         */
+        if (errors == NULL) {
+            errors = "replace";
+        }
     }
 
     return PyUnicode_Decode(value, len, encoding, errors);
