@@ -377,6 +377,13 @@ DiffLine_content__get__(DiffLine *self)
     return to_unicode_n(self->line->content, self->line->content_len, NULL, NULL);
 }
 
+PyDoc_STRVAR(DiffLine_raw_content__doc__, "Content of the diff line (byte string)");
+PyObject *
+DiffLine_raw_content__get__(DiffLine *self)
+{
+    return PyBytes_FromStringAndSize(self->line->content, self->line->content_len);
+}
+
 PyGetSetDef DiffLine_getsetters[] = {
     GETTER(DiffLine, origin),
     GETTER(DiffLine, old_lineno),
@@ -384,6 +391,7 @@ PyGetSetDef DiffLine_getsetters[] = {
     GETTER(DiffLine, num_lines),
     GETTER(DiffLine, content_offset),
     GETTER(DiffLine, content),
+    GETTER(DiffLine, raw_content),
     {NULL}
 };
 

@@ -185,8 +185,7 @@ class DiffTest(utils.BareRepoTestCase):
         commit_b = self.repo[COMMIT_SHA1_2]
 
         def _test(diff):
-            # self.assertIsNotNone is 2.7 only
-            self.assertTrue(diff is not None)
+            self.assertIsNotNone(diff)
             # self.assertIn is 2.7 only
             self.assertEqual(2, sum(map(lambda x: len(x.hunks), diff)))
 
@@ -247,21 +246,15 @@ class DiffTest(utils.BareRepoTestCase):
         commit_c = self.repo[COMMIT_SHA1_3]
 
         diff_b = commit_a.tree.diff_to_tree(commit_b.tree)
-        # self.assertIsNotNone is 2.7 only
-        self.assertTrue(diff_b is not None)
+        self.assertIsNotNone(diff_b)
 
         diff_c = commit_b.tree.diff_to_tree(commit_c.tree)
-        # self.assertIsNotNone is 2.7 only
-        self.assertTrue(diff_c is not None)
-
-        # assertIn / assertNotIn are 2.7 only
-        self.assertFalse('b' in [patch.delta.new_file.path for patch in diff_b])
-        self.assertTrue('b' in [patch.delta.new_file.path for patch in diff_c])
+        self.assertIsNotNone(diff_c)
+        self.assertNotIn('b', [patch.delta.new_file.path for patch in diff_b])
+        self.assertIn('b', [patch.delta.new_file.path for patch in diff_c])
 
         diff_b.merge(diff_c)
-
-        # assertIn is 2.7 only
-        self.assertTrue('b' in [patch.delta.new_file.path for patch in diff_b])
+        self.assertIn('b', [patch.delta.new_file.path for patch in diff_b])
 
         patch = diff_b[0]
         hunk = patch.hunks[0]
@@ -297,6 +290,8 @@ class DiffTest(utils.BareRepoTestCase):
         hunk = patch.hunks[0]
         lines = ('{0} {1}'.format(x.origin, x.content) for x in hunk.lines)
         self.assertEqual(HUNK_EXPECTED, ''.join(lines))
+        for line in hunk.lines:
+            self.assertEqual(line.content, line.raw_content.decode())
 
     def test_find_similar(self):
         commit_a = self.repo[COMMIT_SHA1_6]
