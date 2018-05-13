@@ -2,6 +2,10 @@ version: 1.0.{build}
 image: Visual Studio 2015
 configuration: Release
 environment:
+  global:
+    TWINE_USERNAME: jdavid
+    TWINE_PASSWORD:
+      secure: m6oBGys2nmQTRn7vDv8/FA==
   matrix:
   - GENERATOR: 'Visual Studio 10'
     PYTHON: 'C:\Python27\python.exe'
@@ -26,6 +30,7 @@ environment:
 
 init:
 - cmd: '%PYTHON% -m pip install -U nose wheel'
+
 build_script:
 - cmd: |
     set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\build\libgit2
@@ -40,6 +45,7 @@ build_script:
     IF "%GENERATOR%"=="Visual Studio 10 Win64" ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" )
     
     "%PYTHON%" setup.py bdist_wheel 
+
 test_script:
 - ps: |
     cp build\Release\git2.dll .
@@ -51,3 +57,8 @@ test_script:
 
 artifacts:
 - path: dist\*.whl
+
+deploy_script:
+- ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload dist/* }
+
+deploy: on
