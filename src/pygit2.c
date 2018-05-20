@@ -73,7 +73,7 @@ extern PyTypeObject WorktreeType;
 PyDoc_STRVAR(discover_repository__doc__,
   "discover_repository(path[, across_fs[, ceiling_dirs]]) -> str\n"
   "\n"
-  "Look for a git repository and return its path.");
+  "Look for a git repository and return its path. If not found returns None.");
 
 PyObject *
 discover_repository(PyObject *self, PyObject *args)
@@ -90,6 +90,8 @@ discover_repository(PyObject *self, PyObject *args)
 
     memset(&repo_path, 0, sizeof(git_buf));
     err = git_repository_discover(&repo_path, path, across_fs, ceiling_dirs);
+    if (err == GIT_ENOTFOUND)
+        Py_RETURN_NONE;
     if (err < 0)
         return Error_set_str(err, path);
 

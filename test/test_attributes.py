@@ -25,23 +25,14 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
+# The future
 from __future__ import absolute_import
 from __future__ import unicode_literals, print_function
 
-# Import from the Standard Library
-import binascii
-import unittest
-import tempfile
-import os
-from os.path import join, realpath
-import sys
+# Standard Library
+from os.path import join
 
-# Import from pygit2
-from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
-from pygit2 import init_repository, clone_repository, discover_repository
-from pygit2 import Oid, Reference, hashfile
-import pygit2
+# pygit2
 from . import utils
 
 try:

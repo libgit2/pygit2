@@ -1,3 +1,21 @@
+0.27.1 (unreleased)
+-------------------------
+
+Breaking changes:
+
+- Now ``discover_repository`` returns ``None`` if repository not found, instead
+  of raising ``KeyError``
+  `#531 <https://github.com/libgit2/pygit2/issues/531>`_
+
+Other changes:
+
+- New ``DiffLine.raw_content``
+  `#610 <https://github.com/libgit2/pygit2/issues/610>`_
+
+- Automatize wheels upload to pypi
+  `#563 <https://github.com/libgit2/pygit2/issues/563>`_
+
+
 0.27.0 (2018-03-30)
 -------------------------
 

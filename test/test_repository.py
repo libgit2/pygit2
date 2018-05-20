@@ -511,6 +511,9 @@ class DiscoverRepositoryTest(utils.NoRepoTestCase):
         os.makedirs(subdir)
         self.assertEqual(repo.path, discover_repository(subdir))
 
+    def test_discover_repo_not_found(self):
+        self.assertIsNone(discover_repository(tempfile.tempdir))
+
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
 
