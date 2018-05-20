@@ -77,6 +77,7 @@ typedef struct {
 typedef struct git_time {
 	git_time_t time;
 	int offset;
+	char sign;
 } git_time;
 
 typedef struct git_signature {
