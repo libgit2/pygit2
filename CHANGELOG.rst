@@ -1,4 +1,4 @@
-0.27.1 (unreleased)
+0.27.1 (2018-06-02)
 -------------------------
 
 Breaking changes:
@@ -11,6 +11,9 @@ Other changes:
 
 - New ``DiffLine.raw_content``
   `#610 <https://github.com/libgit2/pygit2/issues/610>`_
+
+- Fix tests failing in some cases
+  `#795 <https://github.com/libgit2/pygit2/issues/795>`_
 
 - Automatize wheels upload to pypi
   `#563 <https://github.com/libgit2/pygit2/issues/563>`_
