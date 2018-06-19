@@ -2,7 +2,8 @@
 
 cd ~
 
-git clone --depth=1 -b maint/v0.27 https://github.com/libgit2/libgit2.git
+# XXX: Test against master to use mailmap APIs.
+git clone --depth=1 -b master https://github.com/libgit2/libgit2.git
 cd libgit2/
 
 mkdir build && cd build

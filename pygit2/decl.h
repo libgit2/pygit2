@@ -549,6 +549,7 @@ typedef enum {
 typedef struct git_config_entry {
 	const char *name;
 	const char *value;
+	unsigned int include_depth;
 	git_config_level_t level;
 	void (*free)(struct git_config_entry *entry);
 	void *payload;
