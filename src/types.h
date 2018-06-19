@@ -212,4 +212,10 @@ typedef struct {
     char *encoding;
 } Signature;
 
+/* git_mailmap */
+typedef struct {
+    PyObject_HEAD
+    git_mailmap *mailmap;
+} Mailmap;
+
 #endif
