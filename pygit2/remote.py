@@ -183,7 +183,7 @@ class RemoteCallbacks(object):
         refname : str
             The name of the reference (on the remote).
 
-        messsage : str
+        message : str
             Rejection message from the remote. If None, the update was accepted.
         """
 
