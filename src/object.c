@@ -90,6 +90,26 @@ Object_hex__get__(Object *self)
 }
 
 
+PyDoc_STRVAR(Object_short_id__doc__,
+    "An unambiguous short (abbreviated) hex Oid string for the object.");
+
+PyObject *
+Object_short_id__get__(Object *self)
+{
+    git_buf short_id = { NULL, 0, 0 };
+    PyObject *py_short_id;
+
+    int err = git_object_short_id(&short_id, self->obj);
+
+    if (err != GIT_OK)
+        return Error_set(err);
+
+    py_short_id = to_unicode_n(short_id.ptr, short_id.size, NULL, "strict");
+    git_buf_free(&short_id);
+    return py_short_id;
+}
+
+
 PyDoc_STRVAR(Object_type__doc__,
     "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or GIT_OBJ_TAG\n"
     "constants.");
@@ -162,6 +182,7 @@ PyGetSetDef Object_getseters[] = {
     GETTER(Object, oid),
     GETTER(Object, id),
     GETTER(Object, hex),
+    GETTER(Object, short_id),
     GETTER(Object, type),
     GETTER(Object, _pointer),
     {NULL}

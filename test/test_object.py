@@ -78,5 +78,24 @@ class ObjectTest(utils.RepoTestCase):
 
         self.assertRaises(ValueError, commit.peel, Tag)
 
+    def test_short_id(self):
+        seen = dict() # from short_id to full hex id
+        def test_obj(obj, msg):
+            short_id = obj.short_id
+            msg = msg+" short_id="+short_id
+            already = seen.get(short_id)
+            if already:
+                self.assertEqual(already, obj.id.hex, msg=msg+" not unique: "+already)
+            else:
+                seen[short_id] = obj.id.hex
+                lookup = self.repo[short_id]
+                self.assertEqual(obj.id, lookup.id, msg=msg+" lookup different: "+lookup.id.hex)
+        for commit in self.repo.walk(self.repo.head.target):
+            test_obj(commit, "commit#"+commit.id.hex)
+            tree = commit.tree
+            test_obj(tree, "tree#"+tree.id.hex)
+            for entry in tree:
+                test_obj(self.repo[entry.hex], "entry="+entry.name+"#"+entry.hex)
+
 if __name__ == '__main__':
     unittest.main()
