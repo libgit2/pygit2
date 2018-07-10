@@ -40,4 +40,8 @@ References
 
 - git-log_.
 
+- `libgit2 discussion about walker behavior
+  <https://github.com/libgit2/libgit2/issues/3041>`_. Note that the libgit2's
+  walker functions differently than ``git-log`` in some ways.
+
 .. _git-log: https://www.kernel.org/pub/software/scm/git/docs/git-log.html
