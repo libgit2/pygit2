@@ -108,8 +108,7 @@ wrap_diff_hunk(Patch *patch, size_t idx)
 {
     DiffHunk *py_hunk;
     const git_diff_hunk *hunk;
-    const git_diff_line *line;
-    size_t j, lines_in_hunk;
+    size_t lines_in_hunk;
     int err;
 
     err = git_patch_get_hunk(&hunk, &lines_in_hunk, patch->patch, idx);
@@ -687,8 +686,6 @@ DiffHunk_lines__get__(DiffHunk *self)
     // TODO Replace by an iterator
     py_lines = PyList_New(self->n_lines);
     for (i = 0; i < self->n_lines; ++i) {
-        PyObject *py_line = NULL;
-
         err = git_patch_get_line_in_hunk(&line, self->patch->patch, self->idx, i);
         if (err < 0)
             return Error_set(err);
