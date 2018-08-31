@@ -306,6 +306,15 @@ Reference_name__get__(Reference *self)
     return to_path(git_reference_name(self->reference));
 }
 
+PyDoc_STRVAR(Reference_raw_name__doc__, "The full name of the reference (Bytes).");
+
+PyObject *
+Reference_raw_name__get__(Reference *self)
+{
+    CHECK_REFERENCE(self);
+    return PyBytes_FromString(git_reference_name(self->reference));
+}
+
 PyDoc_STRVAR(Reference_shorthand__doc__,
     "The shorthand \"human-readable\" name of the reference.");
 
@@ -314,6 +323,16 @@ Reference_shorthand__get__(Reference *self)
 {
     CHECK_REFERENCE(self);
     return to_path(git_reference_shorthand(self->reference));
+}
+
+PyDoc_STRVAR(Reference_raw_shorthand__doc__,
+    "The shorthand \"human-readable\" name of the reference (Bytes).");
+
+PyObject *
+Reference_raw_shorthand__get__(Reference *self)
+{
+    CHECK_REFERENCE(self);
+    return PyBytes_FromString(git_reference_shorthand(self->reference));
 }
 
 PyDoc_STRVAR(Reference_type__doc__,
@@ -501,7 +520,9 @@ PyMethodDef Reference_methods[] = {
 
 PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, name),
+    GETTER(Reference, raw_name),
     GETTER(Reference, shorthand),
+    GETTER(Reference, raw_shorthand),
     GETTER(Reference, target),
     GETTER(Reference, type),
     {NULL}
