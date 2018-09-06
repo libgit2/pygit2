@@ -836,6 +836,7 @@ typedef struct {
 	const char *their_label;
 	git_merge_file_favor_t favor;
 	git_merge_file_flag_t flags;
+	unsigned short marker_size;
 } git_merge_file_options;
 
 #define GIT_MERGE_OPTIONS_VERSION ...
