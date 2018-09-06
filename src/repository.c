@@ -564,6 +564,35 @@ Repository_workdir__set__(Repository *self, PyObject *py_workdir)
     return 0;
 }
 
+PyDoc_STRVAR(Repository_descendant_of__doc__,
+  "descendant_of(oid, oid) -> bool\n"
+  "\n"
+  "Determine if the second commit is a descendant of the first commit.\n"
+  "Note that a commit is not considered a descendant of itself.");
+
+PyObject *
+Repository_descendant_of(Repository *self, PyObject *args)
+{
+    PyObject *value1;
+    PyObject *value2;
+    git_oid oid1;
+    git_oid oid2;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "OO", &value1, &value2))
+        return NULL;
+
+    err = py_oid_to_git_oid_expand(self->repo, value1, &oid1);
+    if (err < 0)
+        return NULL;
+
+    err = py_oid_to_git_oid_expand(self->repo, value2, &oid2);
+    if (err < 0)
+        return NULL;
+
+    return PyBool_FromLong(git_graph_descendant_of(self->repo, &oid1, &oid2));
+}
+
 PyDoc_STRVAR(Repository_merge_base__doc__,
   "merge_base(oid, oid) -> Oid\n"
   "\n"
@@ -1884,6 +1913,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_tag, METH_VARARGS),
     METHOD(Repository, TreeBuilder, METH_VARARGS),
     METHOD(Repository, walk, METH_VARARGS),
+    METHOD(Repository, descendant_of, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
     METHOD(Repository, merge_analysis, METH_O),
     METHOD(Repository, merge, METH_O),

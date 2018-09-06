@@ -348,6 +348,20 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         self.assertEqual(None, self.repo.merge_base(indep, commit))
 
+    def test_descendent_of(self):
+        self.assertFalse(self.repo.descendant_of(
+            '5ebeeebb320790caf276b9fc8b24546d63316533',
+            '4ec4389a8068641da2d6578db0419484972284c8'))
+        self.assertFalse(self.repo.descendant_of(
+            '5ebeeebb320790caf276b9fc8b24546d63316533',
+            '5ebeeebb320790caf276b9fc8b24546d63316533'))
+        self.assertTrue(self.repo.descendant_of(
+            '5ebeeebb320790caf276b9fc8b24546d63316533',
+            'acecd5ea2924a4b900e7e149496e1f4b57976e51'))
+        self.assertFalse(self.repo.descendant_of(
+            'acecd5ea2924a4b900e7e149496e1f4b57976e51',
+            '5ebeeebb320790caf276b9fc8b24546d63316533'))
+
     def test_ahead_behind(self):
         ahead, behind = self.repo.ahead_behind('5ebeeebb320790caf276b9fc8b24546d63316533',
                                                '4ec4389a8068641da2d6578db0419484972284c8')
