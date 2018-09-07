@@ -68,6 +68,7 @@ Below there are some general attributes and methods:
 .. automethod:: pygit2.Repository.read
 .. automethod:: pygit2.Repository.write
 .. automethod:: pygit2.Repository.ahead_behind
+.. automethod:: pygit2.Repository.descendant_of
 .. automethod:: pygit2.Repository.create_reference
 .. automethod:: pygit2.Repository.describe
 .. automethod:: pygit2.Repository.path_is_ignored
