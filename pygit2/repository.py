@@ -1130,13 +1130,14 @@ class BaseRepository(_Repository):
 
 
 class Branches(object):
-    def __init__(self, repository, flag=GIT_BRANCH_ALL):
+    def __init__(self, repository, flag=GIT_BRANCH_ALL, commit=None):
         self._repository = repository
         self._flag = flag
+        self._commit = commit
 
         if flag == GIT_BRANCH_ALL:
-            self.local = Branches(repository, flag=GIT_BRANCH_LOCAL)
-            self.remote = Branches(repository, flag=GIT_BRANCH_REMOTE)
+            self.local = Branches(repository, flag=GIT_BRANCH_LOCAL, commit=commit)
+            self.remote = Branches(repository, flag=GIT_BRANCH_REMOTE, commit=commit)
 
     def __getitem__(self, name):
         branch = None
@@ -1146,7 +1147,7 @@ class Branches(object):
         if branch is None and self._flag & GIT_BRANCH_REMOTE:
             branch = self._repository.lookup_branch(name, GIT_BRANCH_REMOTE)
 
-        if branch is None:
+        if branch is None or not self._valid(branch):
             raise KeyError('Branch not found: {}'.format(name))
 
         return branch
@@ -1159,13 +1160,22 @@ class Branches(object):
 
     def __iter__(self):
         for branch_name in self._repository.listall_branches(self._flag):
-            yield branch_name
+            if self._valid(self[branch_name]):
+                yield branch_name
 
     def create(self, name, commit, force=False):
         return self._repository.create_branch(name, commit, force)
 
     def delete(self, name):
         self[name].delete()
+
+    def _valid(self, branch):
+        return (self._commit is None or branch.target == self._commit or
+                self._repository.descendant_of(branch.target, self._commit))
+
+    def with_commit(self, commit):
+        assert self._commit is None
+        return Branches(self._repository, self._flag, commit)
 
     def __contains__(self, name):
         return self.get(name) is not None
