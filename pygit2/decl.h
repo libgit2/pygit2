@@ -678,6 +678,7 @@ const char *git_submodule_name(git_submodule *subm);
 const char *git_submodule_path(git_submodule *subm);
 const char *git_submodule_url(git_submodule *subm);
 const char *git_submodule_branch(git_submodule *subm);
+const git_oid *git_submodule_head_id(git_submodule *subm);
 
 /*
  * git_index
