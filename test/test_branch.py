@@ -37,6 +37,8 @@ from . import utils
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 I18N_LAST_COMMIT = '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 ORIGIN_MASTER_COMMIT = '784855caf26449a1914d2cf62d12b9374d76ae78'
+EXCLUSIVE_MASTER_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
+SHARED_COMMIT = '4ec4389a8068641da2d6578db0419484972284c8'
 
 
 class BranchesObjectTestCase(utils.RepoTestCase):
@@ -115,6 +117,24 @@ class BranchesObjectTestCase(utils.RepoTestCase):
         branch = self.repo.branches.get('i18n')
         self.assertEqual(branch.branch_name, 'i18n')
         self.assertEqual(branch.name, 'refs/heads/i18n')
+
+    def test_with_commit(self):
+        branches = self.repo.branches.with_commit(EXCLUSIVE_MASTER_COMMIT)
+        self.assertEqual(sorted(branches), ['master'])
+        self.assertTrue(branches.get('i18n') is None)
+        self.assertEqual(branches['master'].branch_name, 'master')
+
+        branches = self.repo.branches.with_commit(SHARED_COMMIT)
+        self.assertEqual(sorted(branches), ['i18n', 'master'])
+
+        branches = self.repo.branches.with_commit(LAST_COMMIT)
+        self.assertEqual(sorted(branches), ['master'])
+
+        branches = self.repo.branches.with_commit(self.repo[LAST_COMMIT])
+        self.assertEqual(sorted(branches), ['master'])
+
+        branches = self.repo.branches.remote.with_commit(LAST_COMMIT)
+        self.assertEqual(sorted(branches), [])
 
 
 class BranchesObjectEmptyRepoTestCase(utils.EmptyRepoTestCase):

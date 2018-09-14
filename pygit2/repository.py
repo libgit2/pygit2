@@ -1133,6 +1133,11 @@ class Branches(object):
     def __init__(self, repository, flag=GIT_BRANCH_ALL, commit=None):
         self._repository = repository
         self._flag = flag
+        if commit is not None:
+            if isinstance(commit, Commit):
+                commit = commit.id
+            elif not isinstance(commit, Oid):
+                commit = self._repository.expand_id(commit)
         self._commit = commit
 
         if flag == GIT_BRANCH_ALL:
@@ -1160,7 +1165,7 @@ class Branches(object):
 
     def __iter__(self):
         for branch_name in self._repository.listall_branches(self._flag):
-            if self._commit is None or self._valid(self[branch_name]):
+            if self._commit is None or self.get(branch_name) is not None:
                 yield branch_name
 
     def create(self, name, commit, force=False):
