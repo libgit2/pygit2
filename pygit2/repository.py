@@ -64,6 +64,8 @@ class BaseRepository(_Repository):
         self._common_init()
 
     def _common_init(self):
+        self.branches = Branches(self)
+        self.references = References(self)
         self.remotes = RemoteCollection(self)
 
         # Get the pointer as the contents of a buffer and store it for
@@ -1224,9 +1226,6 @@ class Repository(BaseRepository):
 
         path_backend = init_file_backend(path)
         super(Repository, self).__init__(backend=path_backend, *args, **kwargs)
-
-        self.branches = Branches(self)
-        self.references = References(self)
 
     @classmethod
     def _from_c(cls, ptr, owned):
