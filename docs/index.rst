@@ -14,10 +14,11 @@ officially supported.
 
 Links:
 
-- https://github.com/libgit2/pygit2 -- Source code and issue tracker
 - http://www.pygit2.org/ -- Documentation
+- https://github.com/libgit2/pygit2 -- Source code and issue tracker
 - https://pypi.python.org/pypi/pygit2 -- Download
 - https://github.com/libgit2/pygit2/blob/master/CHANGELOG.rst -- Changelog
+- https://github.com/libgit2/pygit2/blob/master/AUTHORS.rst -- Authors
 
 Start:
 

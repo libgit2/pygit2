@@ -2,13 +2,12 @@
 References
 **********************************************************************
 
-.. contents::
+.. py:attribute:: Repository.references
 
 .. autoclass:: pygit2.repository.References
    :members:
    :undoc-members:
    :special-members: __getitem__, __iter__, __contains__
-
 
 Example::
 
@@ -74,6 +73,8 @@ Example. These two lines are equivalent::
 
 Branches
 ====================
+
+.. py:attribute:: Repository.branches
 
 Branches inherit from References, and additionally provide specialized
 accessors for some unique features.

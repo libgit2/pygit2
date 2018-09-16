@@ -1,3 +1,31 @@
+0.27.2 (2018-09-16)
+-------------------------
+
+- Add support for Python 3.7
+  `#809 <https://github.com/libgit2/pygit2/issues/809>`_
+
+- New ``Object.short_id``
+  `#799 <https://github.com/libgit2/pygit2/issues/799>`_
+  `#806 <https://github.com/libgit2/pygit2/pull/806>`_
+  `#807 <https://github.com/libgit2/pygit2/pull/807>`_
+
+- New ``Repository.descendant_of`` and ``Repository.branches.with_commit``
+  `#815 <https://github.com/libgit2/pygit2/issues/815>`_
+  `#816 <https://github.com/libgit2/pygit2/pull/816>`_
+
+- Fix repository initialization in ``clone_repository(...)``
+  `#818 <https://github.com/libgit2/pygit2/issues/818>`_
+
+- Fix several warnings and errors, commits
+  `cd896ddc <https://github.com/libgit2/pygit2/commit/cd896ddc>`_
+  and
+  `dfa536a3 <https://github.com/libgit2/pygit2/commit/dfa536a3>`_
+
+- Documentation fixes and improvements
+  `#805 <https://github.com/libgit2/pygit2/pull/805>`_
+  `#808 <https://github.com/libgit2/pygit2/pull/808>`_
+
+
 0.27.1 (2018-06-02)
 -------------------------
 
