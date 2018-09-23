@@ -19,3 +19,4 @@ The Submodule type
 .. autoattribute:: pygit2.Submodule.path
 .. autoattribute:: pygit2.Submodule.url
 .. autoattribute:: pygit2.Submodule.branch
+.. autoattribute:: pygit2.Submodule.head_id
