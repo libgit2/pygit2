@@ -29,6 +29,7 @@
 # Import from the future
 from __future__ import absolute_import, unicode_literals
 
+from _pygit2 import Oid
 from .errors import check_error
 from .ffi import ffi, C
 
@@ -77,3 +78,10 @@ class Submodule(object):
         """Branch that is to be tracked by the submodule."""
         branch = C.git_submodule_branch(self._subm)
         return ffi.string(branch).decode('utf-8')
+
+    @property
+    def head_id(self):
+        """Head of the submodule."""
+        head = C.git_submodule_head_id(self._subm)
+        return Oid(raw=bytes(ffi.buffer(head)[:]))
+
