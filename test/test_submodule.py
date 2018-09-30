@@ -95,5 +95,10 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         self.repo.update_submodules(init=True)
         self.assertTrue(os.path.exists(subrepo_file_path))
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
+    def test_head_id(self):
+        s = self.repo.lookup_submodule(SUBM_PATH)
+        self.assertEqual(str(s.head_id), SUBM_HEAD_SHA)
+
 if __name__ == '__main__':
     unittest.main()
