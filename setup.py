@@ -26,8 +26,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Setup file for pygit2."""
-
 # Import from the future
 from __future__ import print_function
 
@@ -39,11 +37,9 @@ from distutils import log
 import os
 from os import getenv, listdir, pathsep
 from os.path import abspath, isfile
-from setuptools import setup, Extension, Command
-import shlex
+from setuptools import setup, Extension
 from subprocess import Popen, PIPE
 import sys
-import unittest
 
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
@@ -55,37 +51,6 @@ libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
 
 pygit2_exts = [os.path.join('src', name) for name in sorted(listdir('src'))
                if name.endswith('.c')]
-
-
-class TestCommand(Command):
-    """Command for running unittests without install."""
-
-    user_options = [("args=", None, '''The command args string passed to
-                                    unittest framework, such as
-                                     --args="-v -f"''')]
-
-    def initialize_options(self):
-        self.args = ''
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        self.run_command('build')
-        bld = self.distribution.get_command_obj('build')
-        # Add build_lib in to sys.path so that unittest can found DLLs and libs
-        sys.path = [abspath(bld.build_lib)] + sys.path
-
-        test_argv0 = [sys.argv[0] + ' test --args=']
-        # For transfering args to unittest, we have to split args by ourself,
-        # so that command like:
-        #
-        #   python setup.py test --args="-v -f"
-        #
-        # can be executed, and the parameter '-v -f' can be transfering to
-        # unittest properly.
-        test_argv = test_argv0 + shlex.split(self.args)
-        unittest.main(None, defaultTest='test.test_suite', argv=test_argv)
 
 
 class sdist_files_from_git(sdist):
@@ -118,7 +83,6 @@ with codecs.open('README.rst', 'r', 'utf-8') as readme:
     long_description = readme.read()
 
 cmdclass = {
-    'test': TestCommand,
     'sdist': sdist_files_from_git,
 }
 
