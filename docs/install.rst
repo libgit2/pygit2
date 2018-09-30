@@ -13,7 +13,7 @@ Installation
 Requirements
 ============
 
-- Python 2.7, 3.3+ or PyPy 2.6+ (including the development headers)
+- Python 2.7, 3.4+ or PyPy 2.6+ (including the development headers)
 - Libgit2 v0.26.x
 - cffi 1.0+
 - six
