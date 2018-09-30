@@ -143,7 +143,7 @@ setup(name='pygit2',
       long_description=long_description,
       packages=['pygit2'],
       package_data={'pygit2': ['decl.h']},
-      install_requires=['cffi', 'six'],
+      install_requires=['cffi', 'six', 'pycparser<2.18'],
       zip_safe=False,
       cmdclass=cmdclass,
       **extra_args)
