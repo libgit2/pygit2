@@ -567,7 +567,7 @@ Repository_workdir__set__(Repository *self, PyObject *py_workdir)
 PyDoc_STRVAR(Repository_descendant_of__doc__,
   "descendant_of(oid, oid) -> bool\n"
   "\n"
-  "Determine if the second commit is a descendant of the first commit.\n"
+  "Determine if the first commit is a descendant of the second commit.\n"
   "Note that a commit is not considered a descendant of itself.");
 
 PyObject *
