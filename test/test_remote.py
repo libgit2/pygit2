@@ -315,6 +315,3 @@ class PushTestCase(unittest.TestCase):
 
         with pytest.raises(pygit2.GitError):
             self.remote.push(['refs/heads/master'])
-
-if __name__ == '__main__':
-    unittest.main()

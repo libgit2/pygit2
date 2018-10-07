@@ -32,7 +32,6 @@ from __future__ import unicode_literals
 
 from itertools import chain
 import textwrap
-import unittest
 
 import pytest
 
@@ -378,7 +377,3 @@ class BinaryDiffTest(utils.BinaryFileRepoTestCase):
         assert PATCH_BINARY == diff.patch
         diff = repo.diff('HEAD', 'HEAD^', flags=GIT_DIFF_SHOW_BINARY)
         assert PATCH_BINARY_SHOW == diff.patch
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -197,7 +197,3 @@ class GpgSignatureTestCase(utils.GpgSignedRepoTestCase):
 
         assert signature is None
         assert payload is None
-
-
-if __name__ == '__main__':
-    unittest.main()

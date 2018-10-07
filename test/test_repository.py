@@ -695,7 +695,3 @@ class WorktreeTestCase(utils.RepoTestCase):
         assert self.repo.list_worktrees() == []
         # Confirm that the repo's data dir has been removed
         assert not os.path.isdir(worktree.git_path)
-
-
-if __name__ == '__main__':
-    unittest.main()

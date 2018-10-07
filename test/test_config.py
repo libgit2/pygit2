@@ -28,7 +28,6 @@
 """Tests for Index files."""
 
 import os
-import unittest
 
 import pytest
 
@@ -188,6 +187,3 @@ class ConfigTest(utils.RepoTestCase):
 
         assert 5 == Config.parse_int("5")
         assert 1024 == Config.parse_int("1k")
-
-if __name__ == '__main__':
-    unittest.main()

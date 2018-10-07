@@ -30,8 +30,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
-
 import pytest
 
 from pygit2 import Signature
@@ -78,7 +76,3 @@ class NotesTest(utils.BareRepoTestCase):
 
     def test_iterate_non_existing_ref(self):
         with pytest.raises(KeyError): self.repo.notes("refs/notes/bad_ref")
-
-
-if __name__ == '__main__':
-    unittest.main()

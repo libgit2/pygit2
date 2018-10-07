@@ -30,8 +30,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
-
 import pytest
 
 import pygit2
@@ -105,7 +103,3 @@ class TagTest(utils.BareRepoTestCase):
         repo = self.repo
         tag = repo[TAG_SHA]
         assert repo[tag.target].id == tag.get_object().id
-
-
-if __name__ == '__main__':
-    unittest.main()

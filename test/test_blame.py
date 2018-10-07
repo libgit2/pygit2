@@ -30,8 +30,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
-
 import pytest
 
 from pygit2 import Signature, Oid
@@ -133,6 +131,3 @@ class BlameTest(utils.RepoTestCase):
                 assert HUNKS[i][1] == hunk.orig_start_line_number
                 self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
                 assert HUNKS[i][3] == hunk.boundary
-
-if __name__ == '__main__':
-    unittest.main()

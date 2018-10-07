@@ -31,7 +31,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
-import unittest
 
 import pytest
 
@@ -195,6 +194,3 @@ class BlobTest(utils.RepoTestCase):
         patch_two = blob.diff_to_buffer(None)
 
         assert patch_one.patch == patch_two.patch
-
-if __name__ == '__main__':
-    unittest.main()

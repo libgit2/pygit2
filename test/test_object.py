@@ -30,8 +30,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
-
 import pytest
 
 from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag
@@ -97,6 +95,3 @@ class ObjectTest(utils.RepoTestCase):
             test_obj(tree, "tree#"+tree.id.hex)
             for entry in tree:
                 test_obj(self.repo[entry.hex], "entry="+entry.name+"#"+entry.hex)
-
-if __name__ == '__main__':
-    unittest.main()

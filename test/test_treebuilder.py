@@ -29,7 +29,6 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import unittest
 
 from . import utils
 
@@ -73,7 +72,3 @@ class TreeBuilderTest(utils.BareRepoTestCase):
 
         assert len(bld) == len(tree)
         assert tree.id == result
-
-
-if __name__ == '__main__':
-    unittest.main()

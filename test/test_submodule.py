@@ -99,6 +99,3 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
     def test_head_id(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
         assert str(s.head_id) == SUBM_HEAD_SHA
-
-if __name__ == '__main__':
-    unittest.main()

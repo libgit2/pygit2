@@ -34,7 +34,6 @@ from __future__ import unicode_literals
 # Import from the Standard Library
 from binascii import unhexlify
 from sys import version_info
-import unittest
 
 import pytest
 
@@ -106,7 +105,3 @@ class OidTest(utils.BareRepoTestCase):
         s.add(Oid(hex="0000000000000000000000000000000000000000"))
         s.add(Oid(hex="0000000000000000000000000000000000000001"))
         assert len(s) == 3
-
-
-if __name__ == '__main__':
-    unittest.main()

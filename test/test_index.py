@@ -31,7 +31,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-import unittest
 
 import pytest
 
@@ -222,6 +221,3 @@ class StandaloneIndexTest(utils.RepoTestCase):
     def test_create_empty_read_tree(self):
         index = Index()
         index.read_tree(self.repo['fd937514cb799514d4b81bb24c5fcfeb6472b245'])
-
-if __name__ == '__main__':
-    unittest.main()

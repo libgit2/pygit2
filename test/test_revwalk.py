@@ -29,7 +29,6 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import unittest
 
 from pygit2 import GIT_SORT_NONE, GIT_SORT_TIME, GIT_SORT_REVERSE
 from . import utils
@@ -114,6 +113,3 @@ class WalkerTest(utils.RepoTestCase):
         list2 = list([x.id for x in walker])
 
         assert list1 == list2
-
-if __name__ == '__main__':
-    unittest.main()

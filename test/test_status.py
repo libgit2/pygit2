@@ -29,7 +29,6 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import unittest
 
 import pygit2
 from . import utils
@@ -45,7 +44,3 @@ class StatusTest(utils.DirtyRepoTestCase):
         for filepath, status in git_status.items():
             assert filepath in git_status
             assert status == git_status[filepath]
-
-
-if __name__ == '__main__':
-    unittest.main()

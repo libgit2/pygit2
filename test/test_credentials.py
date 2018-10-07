@@ -120,6 +120,3 @@ class CallableCredentialTest(utils.RepoTestCase):
         url = 'https://github.com/libgit2/TestGitRepository'
         remote = self.repo.create_remote("bb", url)
         remote.fetch(callbacks=callbacks)
-
-if __name__ == '__main__':
-    unittest.main()

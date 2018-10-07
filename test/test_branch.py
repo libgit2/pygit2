@@ -30,8 +30,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
-
 import pytest
 
 import pygit2
@@ -332,7 +330,3 @@ class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
 
         master.upstream = remote_master
         assert master.upstream_name == 'refs/remotes/origin/master'
-
-
-if __name__ == '__main__':
-    unittest.main()

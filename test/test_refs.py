@@ -30,8 +30,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
-
 import pytest
 
 from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
@@ -421,7 +419,3 @@ class ReferencesTest(utils.RepoTestCase):
         ref = self.repo.lookup_reference('refs/heads/master')
         commit = ref.peel(Commit)
         assert commit.tree.id == ref.peel(Tree).id
-
-
-if __name__ == '__main__':
-    unittest.main()

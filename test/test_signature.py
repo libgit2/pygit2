@@ -29,7 +29,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import time
-import unittest
 
 import pytest
 
@@ -79,7 +78,3 @@ class SignatureTest(NoRepoTestCase):
         self.assertEqual(signature.email.encode(encoding),
                          signature.raw_email)
         assert abs(signature.time - time.time()) < 5
-
-
-if __name__ == '__main__':
-    unittest.main()

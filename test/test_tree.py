@@ -31,7 +31,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import operator
-import unittest
 
 import pytest
 
@@ -158,6 +157,3 @@ class TreeTest(utils.BareRepoTestCase):
         assert 'c/d' in tree
         assert 'c/e' not in tree
         assert 'd' not in tree
-
-if __name__ == '__main__':
-    unittest.main()

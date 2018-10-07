@@ -29,7 +29,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import unittest
+
 import pygit2
 from pygit2 import (
     GIT_OBJ_BLOB,
@@ -124,6 +124,3 @@ class OptionsTest(utils.NoRepoTestCase):
         for level, path in paths:
             pygit2.settings.search_path[level] = path
             assert path == pygit2.settings.search_path[level]
-
-if __name__ == '__main__':
-    unittest.main()
