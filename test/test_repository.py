@@ -70,26 +70,26 @@ BLOB_OID = Oid(raw=BLOB_RAW)
 class RepositoryTest(utils.BareRepoTestCase):
 
     def test_is_empty(self):
-        self.assertFalse(self.repo.is_empty)
+        assert not self.repo.is_empty
 
     def test_is_bare(self):
-        self.assertTrue(self.repo.is_bare)
+        assert self.repo.is_bare
 
     def test_head(self):
         head = self.repo.head
-        self.assertEqual(HEAD_SHA, head.target.hex)
-        self.assertEqual(type(head), Reference)
-        self.assertFalse(self.repo.head_is_unborn)
-        self.assertFalse(self.repo.head_is_detached)
+        assert HEAD_SHA == head.target.hex
+        assert type(head) == Reference
+        assert not self.repo.head_is_unborn
+        assert not self.repo.head_is_detached
 
     def test_set_head(self):
         # Test setting a detatched HEAD.
         self.repo.set_head(Oid(hex=PARENT_SHA))
-        self.assertEqual(self.repo.head.target.hex, PARENT_SHA)
+        assert self.repo.head.target.hex == PARENT_SHA
         # And test setting a normal HEAD.
         self.repo.set_head("refs/heads/master")
-        self.assertEqual(self.repo.head.name, "refs/heads/master")
-        self.assertEqual(self.repo.head.target.hex, HEAD_SHA)
+        assert self.repo.head.name == "refs/heads/master"
+        assert self.repo.head.target.hex == HEAD_SHA
 
     def test_read(self):
         self.assertRaises(TypeError, self.repo.read, 123)
@@ -97,15 +97,15 @@ class RepositoryTest(utils.BareRepoTestCase):
 
         ab = self.repo.read(BLOB_OID)
         a = self.repo.read(BLOB_HEX)
-        self.assertEqual(ab, a)
-        self.assertEqual((GIT_OBJ_BLOB, b'a contents\n'), a)
+        assert ab == a
+        assert (GIT_OBJ_BLOB, b'a contents\n') == a
 
         a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        self.assertEqual((GIT_OBJ_BLOB, b'a contents 2\n'), a2)
+        assert (GIT_OBJ_BLOB, b'a contents 2\n') == a2
 
         a_hex_prefix = BLOB_HEX[:4]
         a3 = self.repo.read(a_hex_prefix)
-        self.assertEqual((GIT_OBJ_BLOB, b'a contents\n'), a3)
+        assert (GIT_OBJ_BLOB, b'a contents\n') == a3
 
     def test_write(self):
         data = b"hello world"
@@ -113,40 +113,40 @@ class RepositoryTest(utils.BareRepoTestCase):
         self.assertRaises(ValueError, self.repo.write, GIT_OBJ_ANY, data)
 
         oid = self.repo.write(GIT_OBJ_BLOB, data)
-        self.assertEqual(type(oid), Oid)
+        assert type(oid) == Oid
 
     def test_contains(self):
         self.assertRaises(TypeError, lambda: 123 in self.repo)
-        self.assertTrue(BLOB_OID in self.repo)
-        self.assertTrue(BLOB_HEX in self.repo)
-        self.assertTrue(BLOB_HEX[:10] in self.repo)
-        self.assertFalse('a' * 40 in self.repo)
-        self.assertFalse('a' * 20 in self.repo)
+        assert BLOB_OID in self.repo
+        assert BLOB_HEX in self.repo
+        assert BLOB_HEX[:10] in self.repo
+        assert ('a' * 40) not in self.repo
+        assert ('a' * 20) not in self.repo
 
     def test_iterable(self):
         l = [obj for obj in self.repo]
         oid = Oid(hex=BLOB_HEX)
-        self.assertTrue(oid in l)
+        assert oid in l
 
     def test_lookup_blob(self):
         self.assertRaises(TypeError, lambda: self.repo[123])
-        self.assertEqual(self.repo[BLOB_OID].hex, BLOB_HEX)
+        assert self.repo[BLOB_OID].hex == BLOB_HEX
         a = self.repo[BLOB_HEX]
-        self.assertEqual(b'a contents\n', a.read_raw())
-        self.assertEqual(BLOB_HEX, a.hex)
-        self.assertEqual(GIT_OBJ_BLOB, a.type)
+        assert b'a contents\n' == a.read_raw()
+        assert BLOB_HEX == a.hex
+        assert GIT_OBJ_BLOB == a.type
 
     def test_lookup_blob_prefix(self):
         a = self.repo[BLOB_HEX[:5]]
-        self.assertEqual(b'a contents\n', a.read_raw())
-        self.assertEqual(BLOB_HEX, a.hex)
-        self.assertEqual(GIT_OBJ_BLOB, a.type)
+        assert b'a contents\n' == a.read_raw()
+        assert BLOB_HEX == a.hex
+        assert GIT_OBJ_BLOB == a.type
 
     def test_lookup_commit(self):
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
         commit = self.repo[commit_sha]
-        self.assertEqual(commit_sha, commit.hex)
-        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
+        assert commit_sha == commit.hex
+        assert GIT_OBJ_COMMIT == commit.type
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)
@@ -156,18 +156,15 @@ class RepositoryTest(utils.BareRepoTestCase):
         commit_sha_prefix = commit_sha[:7]
         too_short_prefix = commit_sha[:3]
         commit = self.repo[commit_sha_prefix]
-        self.assertEqual(commit_sha, commit.hex)
-        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
-        self.assertEqual(
-            ('Second test data commit.\n\n'
-             'This commit has some additional text.\n'),
-            commit.message)
+        assert commit_sha == commit.hex
+        assert GIT_OBJ_COMMIT == commit.type
+        assert 'Second test data commit.\n\n' 'This commit has some additional text.\n' == commit.message
         self.assertRaises(ValueError, self.repo.__getitem__, too_short_prefix)
 
     def test_expand_id(self):
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
         expanded = self.repo.expand_id(commit_sha[:7])
-        self.assertEqual(commit_sha, expanded.hex)
+        assert commit_sha == expanded.hex
 
     @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
     def test_lookup_commit_refcount(self):
@@ -176,25 +173,25 @@ class RepositoryTest(utils.BareRepoTestCase):
         commit = self.repo[commit_sha]
         del commit
         end = sys.getrefcount(self.repo)
-        self.assertEqual(start, end)
+        assert start == end
 
     def test_get_path(self):
         directory = realpath(self.repo.path)
         expected = realpath(self.repo_path)
-        self.assertEqual(directory, expected)
+        assert directory == expected
 
     def test_get_workdir(self):
-        self.assertEqual(self.repo.workdir, None)
+        assert self.repo.workdir is None
 
     def test_revparse_single(self):
         parent = self.repo.revparse_single('HEAD^')
-        self.assertEqual(parent.hex, PARENT_SHA)
+        assert parent.hex == PARENT_SHA
 
     def test_hash(self):
         data = "foobarbaz"
         hashed_sha1 = pygit2.hash(data)
         written_sha1 = self.repo.create_blob(data)
-        self.assertEqual(hashed_sha1, written_sha1)
+        assert hashed_sha1 == written_sha1
 
     def test_hashfile(self):
         data = "bazbarfoo"
@@ -204,7 +201,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         hashed_sha1 = hashfile(tempfile_path)
         os.unlink(tempfile_path)
         written_sha1 = self.repo.create_blob(data)
-        self.assertEqual(hashed_sha1, written_sha1)
+        assert hashed_sha1 == written_sha1
 
     def test_conflicts_in_bare_repository(self):
         def create_conflict_file(repo, branch, content):
@@ -216,7 +213,7 @@ class RepositoryTest(utils.BareRepoTestCase):
             sig = pygit2.Signature('Author', 'author@example.com')
             commit = repo.create_commit(branch.name, sig, sig,
                     'Conflict', tree, [branch.target])
-            self.assertIsNotNone(commit)
+            assert commit is not None
             return commit
 
         b1 = self.repo.create_branch('b1', self.repo.head.peel())
@@ -225,11 +222,11 @@ class RepositoryTest(utils.BareRepoTestCase):
         c2 = create_conflict_file(self.repo, b2, 'Unicode - äüö')
 
         index = self.repo.merge_commits(c1, c2)
-        self.assertIsNotNone(index.conflicts)
+        assert index.conflicts is not None
 
         # ConflictCollection does not allow calling len(...) on it directly so
         # we have to calculate length by iterating over its entries
-        self.assertEqual(sum(1 for _ in index.conflicts), 1)
+        assert sum(1 for _ in index.conflicts) == 1
 
         (a, t, o) = index.conflicts['conflict']
         diff = self.repo.merge_file_from_index(a, t, o)
@@ -243,25 +240,25 @@ Unicode - äüö
 class RepositoryTest_II(utils.RepoTestCase):
 
     def test_is_empty(self):
-        self.assertFalse(self.repo.is_empty)
+        assert not self.repo.is_empty
 
     def test_is_bare(self):
-        self.assertFalse(self.repo.is_bare)
+        assert not self.repo.is_bare
 
     def test_get_path(self):
         directory = realpath(self.repo.path)
         expected = realpath(join(self.repo_path, '.git'))
-        self.assertEqual(directory, expected)
+        assert directory == expected
 
     def test_get_workdir(self):
         directory = realpath(self.repo.workdir)
         expected = realpath(self.repo_path)
-        self.assertEqual(directory, expected)
+        assert directory == expected
 
     def test_set_workdir(self):
         directory = tempfile.mkdtemp()
         self.repo.workdir = directory
-        self.assertEqual(realpath(self.repo.workdir), realpath(directory))
+        assert realpath(self.repo.workdir) == realpath(directory)
 
     def test_checkout_ref(self):
         ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
@@ -273,14 +270,14 @@ class RepositoryTest_II(utils.RepoTestCase):
         # checkout i18n with GIT_CHECKOUT_FORCE
         head = self.repo.head
         head = self.repo[head.target]
-        self.assertTrue('new' not in head.tree)
+        assert 'new' not in head.tree
         self.repo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
 
         head = self.repo.head
         head = self.repo[head.target]
-        self.assertEqual(head.hex, ref_i18n.target.hex)
-        self.assertTrue('new' in head.tree)
-        self.assertTrue('bye.txt' not in self.repo.status())
+        assert head.hex == ref_i18n.target.hex
+        assert 'new' in head.tree
+        assert 'bye.txt' not in self.repo.status()
 
     def test_checkout_branch(self):
         branch_i18n = self.repo.lookup_branch('i18n')
@@ -292,14 +289,14 @@ class RepositoryTest_II(utils.RepoTestCase):
         # checkout i18n with GIT_CHECKOUT_FORCE
         head = self.repo.head
         head = self.repo[head.target]
-        self.assertTrue('new' not in head.tree)
+        assert 'new' not in head.tree
         self.repo.checkout(branch_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
 
         head = self.repo.head
         head = self.repo[head.target]
-        self.assertEqual(head.hex, branch_i18n.target.hex)
-        self.assertTrue('new' in head.tree)
-        self.assertTrue('bye.txt' not in self.repo.status())
+        assert head.hex == branch_i18n.target.hex
+        assert 'new' in head.tree
+        assert 'bye.txt' not in self.repo.status()
 
     def test_checkout_index(self):
         # some changes to working dir
@@ -307,9 +304,9 @@ class RepositoryTest_II(utils.RepoTestCase):
             f.write('new content')
 
         # checkout index
-        self.assertTrue('hello.txt' in self.repo.status())
+        assert 'hello.txt' in self.repo.status()
         self.repo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
-        self.assertTrue('hello.txt' not in self.repo.status())
+        assert 'hello.txt' not in self.repo.status()
 
     def test_checkout_head(self):
         # some changes to the index
@@ -318,21 +315,21 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.index.add('bye.txt')
 
         # checkout from index should not change anything
-        self.assertTrue('bye.txt' in self.repo.status())
+        assert 'bye.txt' in self.repo.status()
         self.repo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
-        self.assertTrue('bye.txt' in self.repo.status())
+        assert 'bye.txt' in self.repo.status()
 
         # checkout from head will reset index as well
         self.repo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
-        self.assertTrue('bye.txt' not in self.repo.status())
+        assert 'bye.txt' not in self.repo.status()
 
     def test_checkout_alternative_dir(self):
         ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
         extra_dir = os.path.join(self.repo.workdir, 'extra-dir')
         os.mkdir(extra_dir)
-        self.assertTrue(len(os.listdir(extra_dir)) == 0)
+        assert len(os.listdir(extra_dir)) == 0
         self.repo.checkout(ref_i18n, directory=extra_dir)
-        self.assertFalse(len(os.listdir(extra_dir)) == 0)
+        assert not len(os.listdir(extra_dir)) == 0
 
     def test_merge_base(self):
         commit = self.repo.merge_base(
@@ -346,67 +343,67 @@ class RepositoryTest_II(utils.RepoTestCase):
         indep = self.repo.create_commit(None, sig, sig, "a new root commit",
                                         self.repo[commit].peel(pygit2.Tree).id, [])
 
-        self.assertEqual(None, self.repo.merge_base(indep, commit))
+        assert self.repo.merge_base(indep, commit) is None
 
     def test_descendent_of(self):
-        self.assertFalse(self.repo.descendant_of(
+        assert not self.repo.descendant_of(
             '5ebeeebb320790caf276b9fc8b24546d63316533',
-            '4ec4389a8068641da2d6578db0419484972284c8'))
-        self.assertFalse(self.repo.descendant_of(
+            '4ec4389a8068641da2d6578db0419484972284c8')
+        assert not self.repo.descendant_of(
             '5ebeeebb320790caf276b9fc8b24546d63316533',
-            '5ebeeebb320790caf276b9fc8b24546d63316533'))
-        self.assertTrue(self.repo.descendant_of(
+            '5ebeeebb320790caf276b9fc8b24546d63316533')
+        assert self.repo.descendant_of(
             '5ebeeebb320790caf276b9fc8b24546d63316533',
-            'acecd5ea2924a4b900e7e149496e1f4b57976e51'))
-        self.assertFalse(self.repo.descendant_of(
+            'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+        assert not self.repo.descendant_of(
             'acecd5ea2924a4b900e7e149496e1f4b57976e51',
-            '5ebeeebb320790caf276b9fc8b24546d63316533'))
+            '5ebeeebb320790caf276b9fc8b24546d63316533')
 
     def test_ahead_behind(self):
         ahead, behind = self.repo.ahead_behind('5ebeeebb320790caf276b9fc8b24546d63316533',
                                                '4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertEqual(1, ahead)
-        self.assertEqual(2, behind)
+        assert 1 == ahead
+        assert 2 == behind
 
         ahead, behind = self.repo.ahead_behind('4ec4389a8068641da2d6578db0419484972284c8',
                                                '5ebeeebb320790caf276b9fc8b24546d63316533')
-        self.assertEqual(2, ahead)
-        self.assertEqual(1, behind)
+        assert 2 == ahead
+        assert 1 == behind
 
     def test_reset_hard(self):
         ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
         with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
             lines = f.readlines()
-        self.assertTrue("hola mundo\n" in lines)
-        self.assertTrue("bonjour le monde\n" in lines)
+        assert "hola mundo\n" in lines
+        assert "bonjour le monde\n" in lines
 
         self.repo.reset(
             ref,
             pygit2.GIT_RESET_HARD)
-        self.assertEqual(self.repo.head.target.hex, ref)
+        assert self.repo.head.target.hex == ref
 
         with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
             lines = f.readlines()
         #Hard reset will reset the working copy too
-        self.assertFalse("hola mundo\n" in lines)
-        self.assertFalse("bonjour le monde\n" in lines)
+        assert "hola mundo\n" not in lines
+        assert "bonjour le monde\n" not in lines
 
     def test_reset_soft(self):
         ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
         with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
             lines = f.readlines()
-        self.assertTrue("hola mundo\n" in lines)
-        self.assertTrue("bonjour le monde\n" in lines)
+        assert "hola mundo\n" in lines
+        assert "bonjour le monde\n" in lines
 
         self.repo.reset(
             ref,
             pygit2.GIT_RESET_SOFT)
-        self.assertEqual(self.repo.head.target.hex, ref)
+        assert self.repo.head.target.hex == ref
         with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
             lines = f.readlines()
         #Soft reset will not reset the working copy
-        self.assertTrue("hola mundo\n" in lines)
-        self.assertTrue("bonjour le monde\n" in lines)
+        assert "hola mundo\n" in lines
+        assert "bonjour le monde\n" in lines
 
         #soft reset will keep changes in the index
         diff = self.repo.diff(cached=True)
@@ -416,25 +413,25 @@ class RepositoryTest_II(utils.RepoTestCase):
         ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
         with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
             lines = f.readlines()
-        self.assertTrue("hola mundo\n" in lines)
-        self.assertTrue("bonjour le monde\n" in lines)
+        assert "hola mundo\n" in lines
+        assert "bonjour le monde\n" in lines
 
         self.repo.reset(
             ref,
             pygit2.GIT_RESET_MIXED)
 
-        self.assertEqual(self.repo.head.target.hex, ref)
+        assert self.repo.head.target.hex == ref
 
         with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
             lines = f.readlines()
         #mixed reset will not reset the working copy
-        self.assertTrue("hola mundo\n" in lines)
-        self.assertTrue("bonjour le monde\n" in lines)
+        assert "hola mundo\n" in lines
+        assert "bonjour le monde\n" in lines
 
         #mixed reset will set the index to match working copy
         diff = self.repo.diff(cached=True)
-        self.assertTrue("hola mundo\n" in diff.patch)
-        self.assertTrue("bonjour le monde\n" in diff.patch)
+        assert "hola mundo\n" in diff.patch
+        assert "bonjour le monde\n" in diff.patch
 
     def test_stash(self):
         # some changes to working dir
@@ -443,9 +440,9 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         sig = pygit2.Signature('Stasher', 'stasher@example.com')
         self.repo.stash(sig, include_untracked=True)
-        self.assertFalse('hello.txt' in self.repo.status())
+        assert 'hello.txt' not in self.repo.status()
         self.repo.stash_apply()
-        self.assertTrue('hello.txt' in self.repo.status())
+        assert 'hello.txt' in self.repo.status()
         self.repo.stash_drop()
         self.assertRaises(KeyError, self.repo.stash_pop)
 
@@ -460,15 +457,9 @@ class RepositoryTest_II(utils.RepoTestCase):
         revert_index = self.repo.revert_commit(commit_to_revert, master)
         revert_diff_stats = revert_index.diff_to_tree(master.tree).stats
 
-        self.assertEqual(
-            revert_diff_stats.insertions, commit_diff_stats.deletions
-        )
-        self.assertEqual(
-            revert_diff_stats.deletions, commit_diff_stats.insertions
-        )
-        self.assertEqual(
-            revert_diff_stats.files_changed, commit_diff_stats.files_changed
-        )
+        assert revert_diff_stats.insertions == commit_diff_stats.deletions
+        assert revert_diff_stats.deletions == commit_diff_stats.insertions
+        assert revert_diff_stats.files_changed == commit_diff_stats.files_changed
 
 
 class RepositorySignatureTest(utils.RepoTestCase):
@@ -479,8 +470,8 @@ class RepositorySignatureTest(utils.RepoTestCase):
         config['user.email'] ='rjh@example.com'
 
         sig = self.repo.default_signature
-        self.assertEqual('Random J Hacker', sig.name)
-        self.assertEqual('rjh@example.com', sig.email)
+        assert 'Random J Hacker' == sig.name
+        assert 'rjh@example.com' == sig.email
 
 class NewRepositoryTest(utils.NoRepoTestCase):
 
@@ -488,9 +479,9 @@ class NewRepositoryTest(utils.NoRepoTestCase):
         repo = init_repository(self._temp_dir, False)
 
         oid = repo.write(GIT_OBJ_BLOB, "Test")
-        self.assertEqual(type(oid), Oid)
+        assert type(oid) == Oid
 
-        self.assertTrue(os.path.exists(os.path.join(self._temp_dir, '.git')))
+        assert os.path.exists(os.path.join(self._temp_dir, '.git'))
 
 
 class InitRepositoryTest(utils.NoRepoTestCase):
@@ -498,23 +489,23 @@ class InitRepositoryTest(utils.NoRepoTestCase):
 
     def test_no_arg(self):
         repo = init_repository(self._temp_dir)
-        self.assertFalse(repo.is_bare)
+        assert not repo.is_bare
 
     def test_pos_arg_false(self):
         repo = init_repository(self._temp_dir, False)
-        self.assertFalse(repo.is_bare)
+        assert not repo.is_bare
 
     def test_pos_arg_true(self):
         repo = init_repository(self._temp_dir, True)
-        self.assertTrue(repo.is_bare)
+        assert repo.is_bare
 
     def test_keyword_arg_false(self):
         repo = init_repository(self._temp_dir, bare=False)
-        self.assertFalse(repo.is_bare)
+        assert not repo.is_bare
 
     def test_keyword_arg_true(self):
         repo = init_repository(self._temp_dir, bare=True)
-        self.assertTrue(repo.is_bare)
+        assert repo.is_bare
 
 
 class DiscoverRepositoryTest(utils.NoRepoTestCase):
@@ -523,23 +514,23 @@ class DiscoverRepositoryTest(utils.NoRepoTestCase):
         repo = init_repository(self._temp_dir, False)
         subdir = os.path.join(self._temp_dir, "test1", "test2")
         os.makedirs(subdir)
-        self.assertEqual(repo.path, discover_repository(subdir))
+        assert repo.path == discover_repository(subdir)
 
     def test_discover_repo_not_found(self):
-        self.assertIsNone(discover_repository(tempfile.tempdir))
+        assert discover_repository(tempfile.tempdir) is None
 
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
 
     def test_is_empty(self):
-        self.assertTrue(self.repo.is_empty)
+        assert self.repo.is_empty
 
     def test_is_base(self):
-        self.assertFalse(self.repo.is_bare)
+        assert not self.repo.is_bare
 
     def test_head(self):
-        self.assertTrue(self.repo.head_is_unborn)
-        self.assertFalse(self.repo.head_is_detached)
+        assert self.repo.head_is_unborn
+        assert not self.repo.head_is_detached
 
 
 class StringTypesRepositoryTest(utils.NoRepoTestCase):
@@ -559,14 +550,14 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
     def test_clone_repository(self):
         repo_path = "./test/data/testrepo.git/"
         repo = clone_repository(repo_path, self._temp_dir)
-        self.assertFalse(repo.is_empty)
-        self.assertFalse(repo.is_bare)
+        assert not repo.is_empty
+        assert not repo.is_bare
 
     def test_clone_bare_repository(self):
         repo_path = "./test/data/testrepo.git/"
         repo = clone_repository(repo_path, self._temp_dir, bare=True)
-        self.assertFalse(repo.is_empty)
-        self.assertTrue(repo.is_bare)
+        assert not repo.is_empty
+        assert repo.is_bare
 
     def test_clone_repository_and_remote_callbacks(self):
         src_repo_relpath = "./test/data/testrepo.git/"
@@ -586,9 +577,9 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
             return repo.remotes.create("custom_remote", url)
 
         repo = clone_repository(url, repo_path, repository=create_repository, remote=create_remote)
-        self.assertFalse(repo.is_empty)
-        self.assertTrue('refs/remotes/custom_remote/master' in repo.listall_references())
-        self.assertIsNotNone(repo.remotes["custom_remote"])
+        assert not repo.is_empty
+        assert 'refs/remotes/custom_remote/master' in repo.listall_references()
+        assert repo.remotes["custom_remote"] is not None
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_clone_with_credentials(self):
@@ -597,7 +588,7 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
         repo = clone_repository(url, self._temp_dir, callbacks=callbacks)
 
-        self.assertFalse(repo.is_empty)
+        assert not repo.is_empty
 
     def test_clone_with_checkout_branch(self):
         # create a test case which isolates the remote
@@ -608,7 +599,7 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
         repo = clone_repository(test_repo.path,
                                 os.path.join(self._temp_dir, 'testrepo.git'),
                                 checkout_branch='test', bare=True)
-        self.assertEqual(repo.lookup_reference('HEAD').target, 'refs/heads/test')
+        assert repo.lookup_reference('HEAD').target == 'refs/heads/test'
 
     # FIXME The tests below are commented because they are broken:
     #
@@ -625,30 +616,30 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
 #       repo = clone_repository(
 #           repo_path, self._temp_dir, push_url="custom_push_url"
 #       )
-#       self.assertFalse(repo.is_empty)
+#       assert not repo.is_empty
 #       # FIXME: When pygit2 supports retrieving the pushurl parameter,
 #       # enable this test
-#       # self.assertEqual(repo.remotes[0].pushurl, "custom_push_url")
+#       # assert repo.remotes[0].pushurl == "custom_push_url"
 
 #   def test_clone_fetch_spec(self):
 #       repo_path = "./test/data/testrepo.git/"
 #       repo = clone_repository(repo_path, self._temp_dir,
 #                               fetch_spec="refs/heads/test")
-#       self.assertFalse(repo.is_empty)
+#       assert not repo.is_empty
 #       # FIXME: When pygit2 retrieve the fetchspec we passed to git clone.
 #       # fetchspec seems to be going through, but the Repository class is
 #       # not getting it.
-#       # self.assertEqual(repo.remotes[0].fetchspec, "refs/heads/test")
+#       # assert repo.remotes[0].fetchspec == "refs/heads/test"
 
 #   def test_clone_push_spec(self):
 #       repo_path = "./test/data/testrepo.git/"
 #       repo = clone_repository(repo_path, self._temp_dir,
 #                               push_spec="refs/heads/test")
-#       self.assertFalse(repo.is_empty)
+#       assert not repo.is_empty
 #       # FIXME: When pygit2 supports retrieving the pushspec parameter,
 #       # enable this test
 #       # not sure how to test this either... couldn't find pushspec
-#       # self.assertEqual(repo.remotes[0].fetchspec, "refs/heads/test")
+#       # assert repo.remotes[0].fetchspec == "refs/heads/test"
 
 class WorktreeTestCase(utils.RepoTestCase):
 
@@ -666,27 +657,27 @@ class WorktreeTestCase(utils.RepoTestCase):
                 os.path.join(self.repo.path, 'worktrees', worktree_name))
 
             # Confirm the name attribute matches the specified name
-            self.assertEqual(worktree.name, worktree_name)
+            assert worktree.name == worktree_name
             # Confirm the path attribute points to the correct path
-            self.assertEqual(os.path.realpath(worktree.path), path)
+            assert os.path.realpath(worktree.path) == path
             # The "gitdir" in a worktree should be a file with a reference to
             # the actual gitdir. Let's make sure that the path exists and is a
             # file.
-            self.assertTrue(os.path.isfile(path))
+            assert os.path.isfile(path)
             # Confirm the git_path attribute points to the correct path
-            self.assertEqual(os.path.realpath(worktree.git_path), git_path)
+            assert os.path.realpath(worktree.git_path) == git_path
             # Confirm the worktree directory in the main checkout's gitdir
             # actually exists
-            self.assertTrue(os.path.isdir(git_path))
+            assert os.path.isdir(git_path)
 
         # We should have zero worktrees
-        self.assertEqual(self.repo.list_worktrees(), [])
+        assert self.repo.list_worktrees() == []
         # Add a worktree
         worktree = self.repo.add_worktree(worktree_name, worktree_dir)
         # Check that the worktree was added properly
         _check_worktree(worktree)
         # We should have one worktree now
-        self.assertEqual(self.repo.list_worktrees(), [worktree_name])
+        assert self.repo.list_worktrees() == [worktree_name]
         # Test that lookup_worktree() returns a properly-instantiated
         # pygit2._Worktree object
         _check_worktree(self.repo.lookup_worktree(worktree_name))
@@ -699,9 +690,9 @@ class WorktreeTestCase(utils.RepoTestCase):
         # pruning. So, for now we have to force the prune. This may be
         # something to take up with libgit2.
         worktree.prune(True)
-        self.assertEqual(self.repo.list_worktrees(), [])
+        assert self.repo.list_worktrees() == []
         # Confirm that the repo's data dir has been removed
-        self.assertFalse(os.path.isdir(worktree.git_path))
+        assert not os.path.isdir(worktree.git_path)
 
 
 if __name__ == '__main__':

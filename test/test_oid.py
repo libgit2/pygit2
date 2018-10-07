@@ -49,20 +49,20 @@ class OidTest(utils.BareRepoTestCase):
 
     def test_raw(self):
         oid = Oid(raw=RAW)
-        self.assertEqual(oid.raw, RAW)
-        self.assertEqual(str(oid), HEX)
+        assert oid.raw == RAW
+        assert str(oid) == HEX
 
     def test_hex(self):
         oid = Oid(hex=HEX)
-        self.assertEqual(oid.raw, RAW)
-        self.assertEqual(str(oid), HEX)
+        assert oid.raw == RAW
+        assert str(oid) == HEX
 
     def test_hex_bytes(self):
         if version_info[0] == 2:
             hex = bytes(HEX)
             oid = Oid(hex=hex)
-            self.assertEqual(oid.raw, RAW)
-            self.assertEqual(str(oid), HEX)
+            assert oid.raw == RAW
+            assert str(oid) == HEX
         else:
             hex = bytes(HEX, "ascii")
             self.assertRaises(TypeError, Oid, hex=hex)
@@ -82,28 +82,28 @@ class OidTest(utils.BareRepoTestCase):
 
         # Equal
         oid2 = Oid(hex=HEX)
-        self.assertEqual(oid1, oid2)
+        assert oid1 == oid2
 
         # Not equal
         oid2 = Oid(hex="15b648aec6ed045b5ca6f57f8b7831a8b4757299")
-        self.assertNotEqual(oid1, oid2)
+        assert oid1 != oid2
 
         # Other
-        self.assertTrue(oid1 < oid2)
-        self.assertTrue(oid1 <= oid2)
-        self.assertFalse(oid1 == oid2)
-        self.assertFalse(oid1 > oid2)
-        self.assertFalse(oid1 >= oid2)
+        assert oid1 < oid2
+        assert oid1 <= oid2
+        assert not oid1 == oid2
+        assert not oid1 > oid2
+        assert not oid1 >= oid2
 
     def test_hash(self):
         s = set()
         s.add(Oid(raw=RAW))
         s.add(Oid(hex=HEX))
-        self.assertEqual(len(s), 1)
+        assert len(s) == 1
 
         s.add(Oid(hex="0000000000000000000000000000000000000000"))
         s.add(Oid(hex="0000000000000000000000000000000000000001"))
-        self.assertEqual(len(s), 3)
+        assert len(s) == 3
 
 
 if __name__ == '__main__':

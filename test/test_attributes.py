@@ -43,14 +43,14 @@ except ImportError:
 class RepositorySignatureTest(utils.RepoTestCase):
 
     def test_no_attr(self):
-        self.assertIsNone(self.repo.get_attr('file', 'foo'))
+        assert self.repo.get_attr('file', 'foo') is None
 
         with open(join(self.repo.workdir, '.gitattributes'), 'w+') as f:
             print('*.py  text\n', file=f)
             print('*.jpg -text\n', file=f)
             print('*.sh  eol=lf\n', file=f)
 
-        self.assertIsNone(self.repo.get_attr('file.py', 'foo'))
-        self.assertTrue(self.repo.get_attr('file.py', 'text'))
-        self.assertFalse(self.repo.get_attr('file.jpg', 'text'))
-        self.assertEqual("lf", self.repo.get_attr('file.sh', 'eol'))
+        assert self.repo.get_attr('file.py', 'foo') is None
+        assert self.repo.get_attr('file.py', 'text')
+        assert not self.repo.get_attr('file.jpg', 'text')
+        assert "lf" == self.repo.get_attr('file.sh', 'eol')

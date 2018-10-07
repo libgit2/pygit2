@@ -58,18 +58,18 @@ class BlameTest(utils.RepoTestCase):
         repo = self.repo
         blame = repo.blame(PATH)
 
-        self.assertEqual(len(blame), 3)
+        assert len(blame) == 3
 
         for i, hunk in enumerate(blame):
-            self.assertEqual(hunk.lines_in_hunk, 1)
-            self.assertEqual(HUNKS[i][0], hunk.final_commit_id)
-            self.assertEqual(HUNKS[i][1], hunk.final_start_line_number)
+            assert hunk.lines_in_hunk == 1
+            assert HUNKS[i][0] == hunk.final_commit_id
+            assert HUNKS[i][1] == hunk.final_start_line_number
             self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
-            self.assertEqual(HUNKS[i][0], hunk.orig_commit_id)
-            self.assertEqual(hunk.orig_path, PATH)
-            self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
+            assert HUNKS[i][0] == hunk.orig_commit_id
+            assert hunk.orig_path == PATH
+            assert HUNKS[i][1] == hunk.orig_start_line_number
             self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
-            self.assertEqual(HUNKS[i][3], hunk.boundary)
+            assert HUNKS[i][3] == hunk.boundary
 
     def test_blame_with_invalid_index(self):
         repo = self.repo
@@ -88,15 +88,15 @@ class BlameTest(utils.RepoTestCase):
         for i, line in zip(range(0, 2), range(1, 3)):
             hunk = blame.for_line(line)
 
-            self.assertEqual(hunk.lines_in_hunk, 1)
-            self.assertEqual(HUNKS[i][0], hunk.final_commit_id)
-            self.assertEqual(HUNKS[i][1], hunk.final_start_line_number)
+            assert hunk.lines_in_hunk == 1
+            assert HUNKS[i][0] == hunk.final_commit_id
+            assert HUNKS[i][1] == hunk.final_start_line_number
             self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
-            self.assertEqual(HUNKS[i][0], hunk.orig_commit_id)
-            self.assertEqual(hunk.orig_path, PATH)
-            self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
+            assert HUNKS[i][0] == hunk.orig_commit_id
+            assert hunk.orig_path == PATH
+            assert HUNKS[i][1] == hunk.orig_start_line_number
             self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
-            self.assertEqual(HUNKS[i][3], hunk.boundary)
+            assert HUNKS[i][3] == hunk.boundary
 
     def test_blame_with_invalid_line(self):
         repo = self.repo
@@ -122,18 +122,18 @@ class BlameTest(utils.RepoTestCase):
             commit = repo.revparse_single(rev)
             blame = repo.blame(PATH, newest_commit=commit.id)
 
-            self.assertEqual(len(blame), num_commits)
+            assert len(blame) == num_commits
 
             for i, hunk in enumerate(tuple(blame)[:num_commits]):
-                self.assertEqual(hunk.lines_in_hunk, 1)
-                self.assertEqual(HUNKS[i][0], hunk.final_commit_id)
-                self.assertEqual(HUNKS[i][1], hunk.final_start_line_number)
+                assert hunk.lines_in_hunk == 1
+                assert HUNKS[i][0] == hunk.final_commit_id
+                assert HUNKS[i][1] == hunk.final_start_line_number
                 self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
-                self.assertEqual(HUNKS[i][0], hunk.orig_commit_id)
-                self.assertEqual(hunk.orig_path, PATH)
-                self.assertEqual(HUNKS[i][1], hunk.orig_start_line_number)
+                assert HUNKS[i][0] == hunk.orig_commit_id
+                assert hunk.orig_path == PATH
+                assert HUNKS[i][1] == hunk.orig_start_line_number
                 self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
-                self.assertEqual(HUNKS[i][3], hunk.boundary)
+                assert HUNKS[i][3] == hunk.boundary
 
 if __name__ == '__main__':
     unittest.main()

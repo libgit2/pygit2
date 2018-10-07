@@ -94,7 +94,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH)
+        assert patch.patch == BLOB_PATCH
 
     def test_patch_create_from_blobs(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -107,7 +107,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH2)
+        assert patch.patch == BLOB_PATCH2
 
     def test_patch_create_from_blob_buffer(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -118,7 +118,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH)
+        assert patch.patch == BLOB_PATCH
 
     def test_patch_create_from_blob_buffer_add(self):
         patch = pygit2.Patch.create_from(
@@ -128,7 +128,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH_ADDED)
+        assert patch.patch == BLOB_PATCH_ADDED
 
     def test_patch_create_from_blob_buffer_delete(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -140,7 +140,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
+        assert patch.patch == BLOB_PATCH_DELETED
 
     def test_patch_create_from_bad_old_type_arg(self):
         with self.assertRaises(TypeError):
@@ -171,7 +171,7 @@ class PatchTest(utils.RepoTestCase):
             len([line for line in patch.patch.splitlines() if line.startswith(" ")])
         )
 
-        self.assertNotEqual(context_count, 0)
+        assert context_count != 0
 
     def test_no_context_lines(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -189,7 +189,7 @@ class PatchTest(utils.RepoTestCase):
             len([line for line in patch.patch.splitlines() if line.startswith(" ")])
         )
 
-        self.assertEqual(context_count, 0)
+        assert context_count == 0
 
 
     def test_patch_create_blob_blobs(self):
@@ -203,7 +203,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH)
+        assert patch.patch == BLOB_PATCH
 
     def test_patch_create_blob_buffer(self):
         blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
@@ -214,7 +214,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH)
+        assert patch.patch == BLOB_PATCH
 
     def test_patch_create_blob_delete(self):
         blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
@@ -225,7 +225,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
+        assert patch.patch == BLOB_PATCH_DELETED
 
     def test_patch_create_blob_add(self):
         blob = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
@@ -236,7 +236,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        self.assertEqual(patch.patch, BLOB_PATCH_ADDED)
+        assert patch.patch == BLOB_PATCH_ADDED
 
     def test_patch_delete_blob(self):
         blob = self.repo[BLOB_OLD_SHA]
@@ -250,7 +250,7 @@ class PatchTest(utils.RepoTestCase):
         # Make sure that even after deleting the blob the patch still has the
         # necessary references to generate its patch
         del blob
-        self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
+        assert patch.patch == BLOB_PATCH_DELETED
 
     def test_patch_multi_blob(self):
         blob = self.repo[BLOB_OLD_SHA]
@@ -267,7 +267,7 @@ class PatchTest(utils.RepoTestCase):
         )
         patch_text2 = patch.patch
 
-        self.assertEqual(patch_text, patch_text2)
-        self.assertEqual(patch_text, patch.patch)
-        self.assertEqual(patch_text2, patch2.patch)
-        self.assertEqual(patch.patch, patch2.patch)
+        assert patch_text == patch_text2
+        assert patch_text == patch.patch
+        assert patch_text2 == patch2.patch
+        assert patch.patch == patch2.patch

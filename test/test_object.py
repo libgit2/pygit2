@@ -29,10 +29,8 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from os.path import dirname, join
 import unittest
 
-import pygit2
 from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag
 from . import utils
 
@@ -54,16 +52,16 @@ class ObjectTest(utils.RepoTestCase):
         # and peel to the tree
         tree = commit.peel(GIT_OBJ_TREE)
 
-        self.assertEqual(type(tree), Tree)
-        self.assertEqual(str(tree.id), 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+        assert type(tree) == Tree
+        assert str(tree.id) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
     def test_peel_commit_type(self):
         commit_id = self.repo.lookup_reference('refs/heads/master').target
         commit = self.repo[commit_id]
         tree = commit.peel(Tree)
 
-        self.assertEqual(type(tree), Tree)
-        self.assertEqual(str(tree.id), 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+        assert type(tree) == Tree
+        assert str(tree.id) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
     def test_invalid(self):
@@ -85,11 +83,11 @@ class ObjectTest(utils.RepoTestCase):
             msg = msg+" short_id="+short_id
             already = seen.get(short_id)
             if already:
-                self.assertEqual(already, obj.id.hex, msg=msg+" not unique: "+already)
+                assert already == obj.id.hex
             else:
                 seen[short_id] = obj.id.hex
                 lookup = self.repo[short_id]
-                self.assertEqual(obj.id, lookup.id, msg=msg+" lookup different: "+lookup.id.hex)
+                assert obj.id == lookup.id
         for commit in self.repo.walk(self.repo.head.target):
             test_obj(commit, "commit#"+commit.id.hex)
             tree = commit.tree

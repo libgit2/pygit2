@@ -43,8 +43,8 @@ class StatusTest(utils.DirtyRepoTestCase):
         """
         git_status = self.repo.status()
         for filepath, status in git_status.items():
-            self.assertTrue(filepath in git_status)
-            self.assertEqual(status, git_status[filepath])
+            assert filepath in git_status
+            assert status == git_status[filepath]
 
 
 if __name__ == '__main__':

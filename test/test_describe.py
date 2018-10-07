@@ -48,36 +48,36 @@ class DescribeTest(utils.RepoTestCase):
 
     def test_describe(self):
         add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertEqual('thetag-2-g2be5719', self.repo.describe())
+        assert 'thetag-2-g2be5719' == self.repo.describe()
 
     def test_describe_without_ref(self):
         self.assertRaises(pygit2.GitError, self.repo.describe)
 
     def test_describe_default_oid(self):
-        self.assertEqual('2be5719', self.repo.describe(show_commit_oid_as_fallback=True))
+        assert '2be5719' == self.repo.describe(show_commit_oid_as_fallback=True)
 
     def test_describe_strategies(self):
-        self.assertEqual('heads/master', self.repo.describe(describe_strategy=GIT_DESCRIBE_ALL))
+        assert 'heads/master' == self.repo.describe(describe_strategy=GIT_DESCRIBE_ALL)
 
         self.repo.create_reference('refs/tags/thetag', '4ec4389a8068641da2d6578db0419484972284c8')
         self.assertRaises(KeyError, self.repo.describe)
-        self.assertEqual('thetag-2-g2be5719', self.repo.describe(describe_strategy=GIT_DESCRIBE_TAGS))
+        assert 'thetag-2-g2be5719' == self.repo.describe(describe_strategy=GIT_DESCRIBE_TAGS)
 
     def test_describe_pattern(self):
         add_tag(self.repo, 'private/tag1', '5ebeeebb320790caf276b9fc8b24546d63316533')
         add_tag(self.repo, 'public/tag2', '4ec4389a8068641da2d6578db0419484972284c8')
 
-        self.assertEqual('public/tag2-2-g2be5719', self.repo.describe(pattern='public/*'))
+        assert 'public/tag2-2-g2be5719' == self.repo.describe(pattern='public/*')
 
     def test_describe_committish(self):
         add_tag(self.repo, 'thetag', 'acecd5ea2924a4b900e7e149496e1f4b57976e51')
-        self.assertEqual('thetag-4-g2be5719', self.repo.describe(committish='HEAD'))
-        self.assertEqual('thetag-1-g5ebeeeb', self.repo.describe(committish='HEAD^'))
+        assert 'thetag-4-g2be5719' == self.repo.describe(committish='HEAD')
+        assert 'thetag-1-g5ebeeeb' == self.repo.describe(committish='HEAD^')
 
-        self.assertEqual('thetag-4-g2be5719', self.repo.describe(committish=self.repo.head))
+        assert 'thetag-4-g2be5719' == self.repo.describe(committish=self.repo.head)
 
-        self.assertEqual('thetag-1-g6aaa262', self.repo.describe(committish='6aaa262e655dd54252e5813c8e5acd7780ed097d'))
-        self.assertEqual('thetag-1-g6aaa262', self.repo.describe(committish='6aaa262'))
+        assert 'thetag-1-g6aaa262' == self.repo.describe(committish='6aaa262e655dd54252e5813c8e5acd7780ed097d')
+        assert 'thetag-1-g6aaa262' == self.repo.describe(committish='6aaa262')
 
     def test_describe_follows_first_branch_only(self):
         add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
@@ -85,12 +85,12 @@ class DescribeTest(utils.RepoTestCase):
 
     def test_describe_abbreviated_size(self):
         add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertEqual('thetag-2-g2be5719152d4f82c', self.repo.describe(abbreviated_size=16))
-        self.assertEqual('thetag', self.repo.describe(abbreviated_size=0))
+        assert 'thetag-2-g2be5719152d4f82c' == self.repo.describe(abbreviated_size=16)
+        assert 'thetag' == self.repo.describe(abbreviated_size=0)
 
     def test_describe_long_format(self):
         add_tag(self.repo, 'thetag', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')
-        self.assertEqual('thetag-0-g2be5719', self.repo.describe(always_use_long_format=True))
+        assert 'thetag-0-g2be5719' == self.repo.describe(always_use_long_format=True)
 
 
 class DescribeDirtyWorkdirTest(utils.DirtyRepoTestCase):
@@ -100,7 +100,7 @@ class DescribeDirtyWorkdirTest(utils.DirtyRepoTestCase):
         add_tag(self.repo, 'thetag', 'a763aa560953e7cfb87ccbc2f536d665aa4dff22')
 
     def test_describe(self):
-        self.assertEqual('thetag', self.repo.describe())
+        assert 'thetag' == self.repo.describe()
 
     def test_describe_with_dirty_suffix(self):
-        self.assertEqual('thetag-dirty', self.repo.describe(dirty_suffix='-dirty'))
+        assert 'thetag-dirty' == self.repo.describe(dirty_suffix='-dirty')

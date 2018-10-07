@@ -29,10 +29,11 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import operator
 import unittest
 
-from pygit2 import TreeEntry, GIT_FILEMODE_TREE
+from pygit2 import GIT_FILEMODE_TREE
 from . import utils
 
 
@@ -43,9 +44,9 @@ SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'
 class TreeTest(utils.BareRepoTestCase):
 
     def assertTreeEntryEqual(self, entry, sha, name, filemode):
-        self.assertEqual(entry.hex, sha)
-        self.assertEqual(entry.name, name)
-        self.assertEqual(entry._name, name.encode('utf-8'))
+        assert entry.hex == sha
+        assert entry.name == name
+        assert entry._name == name.encode('utf-8')
         self.assertEqual(entry.filemode, filemode,
                          '0%o != 0%o' % (entry.filemode, filemode))
 
@@ -56,15 +57,15 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertRaisesWithArg(IndexError, -4, lambda: tree[-4])
         self.assertRaisesWithArg(IndexError, 3, lambda: tree[3])
 
-        self.assertEqual(3, len(tree))
+        assert 3 == len(tree)
         sha = '7f129fd57e31e935c6d60a0c794efe4e6927664b'
-        self.assertTrue('a' in tree)
+        assert 'a' in tree
         self.assertTreeEntryEqual(tree[0], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree[-3], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree['a'], sha, 'a', 0o0100644)
 
         sha = '85f120ee4dac60d0719fd51731e4199aa5a37df6'
-        self.assertTrue('b' in tree)
+        assert 'b' in tree
         self.assertTreeEntryEqual(tree[1], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree[-2], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree['b'], sha, 'b', 0o0100644)
@@ -77,23 +78,23 @@ class TreeTest(utils.BareRepoTestCase):
         tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
         tree_b = self.repo['2ad1d3456c5c4a1c9e40aeeddb9cd20b409623c8']
 
-        self.assertNotEqual(tree_a['a'], tree_b['a'])
-        self.assertNotEqual(tree_a['a'], tree_b['b'])
-        self.assertEqual(tree_a['b'], tree_b['b'])
+        assert tree_a['a'] != tree_b['a']
+        assert tree_a['a'] != tree_b['b']
+        assert tree_a['b'] == tree_b['b']
 
     def test_sorting(self):
         tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
-        self.assertEqual(list(tree_a), sorted(reversed(list(tree_a))))
-        self.assertNotEqual(list(tree_a), reversed(list(tree_a)))
+        assert list(tree_a) == sorted(reversed(list(tree_a)))
+        assert list(tree_a) != reversed(list(tree_a))
 
     def test_read_subtree(self):
         tree = self.repo[TREE_SHA]
         subtree_entry = tree['c']
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
-        self.assertEqual(subtree_entry.type, 'tree')
+        assert subtree_entry.type == 'tree'
 
         subtree = self.repo[subtree_entry.id]
-        self.assertEqual(1, len(subtree))
+        assert 1 == len(subtree)
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
@@ -112,24 +113,24 @@ class TreeTest(utils.BareRepoTestCase):
         t.insert('z', subtree.id, GIT_FILEMODE_TREE)
         tree = repo[t.write()]
 
-        self.assertTrue('x' in tree)
-        self.assertTrue('y' in tree)
-        self.assertTrue('z' in tree)
+        assert 'x' in tree
+        assert 'y' in tree
+        assert 'z' in tree
 
         x = tree['x']
         y = tree['y']
         z = tree['z']
-        self.assertEqual(x.filemode, 0o0100644)
-        self.assertEqual(y.filemode, 0o0100755)
-        self.assertEqual(z.filemode, GIT_FILEMODE_TREE)
+        assert x.filemode == 0o0100644
+        assert y.filemode == 0o0100755
+        assert z.filemode == GIT_FILEMODE_TREE
 
-        self.assertEqual(repo[x.id].id, b0)
-        self.assertEqual(repo[y.id].id, b1)
-        self.assertEqual(repo[z.id].id, subtree.id)
+        assert repo[x.id].id == b0
+        assert repo[y.id].id == b1
+        assert repo[z.id].id == subtree.id
 
-        self.assertEqual(x.type, 'blob')
-        self.assertEqual(y.type, 'blob')
-        self.assertEqual(z.type, 'tree')
+        assert x.type == 'blob'
+        assert y.type == 'blob'
+        assert z.type == 'tree'
 
 
     def test_modify_tree(self):
@@ -146,15 +147,15 @@ class TreeTest(utils.BareRepoTestCase):
         """
         tree = self.repo[TREE_SHA]
         for tree_entry in tree:
-            self.assertEqual(tree_entry, tree[tree_entry.name])
+            assert tree_entry == tree[tree_entry.name]
 
     def test_deep_contains(self):
         tree = self.repo[TREE_SHA]
-        self.assertTrue('a' in tree)
-        self.assertTrue('c' in tree)
-        self.assertTrue('c/d' in tree)
-        self.assertFalse('c/e' in tree)
-        self.assertFalse('d' in tree)
+        assert 'a' in tree
+        assert 'c' in tree
+        assert 'c/d' in tree
+        assert 'c/e' not in tree
+        assert 'd' not in tree
 
 if __name__ == '__main__':
     unittest.main()

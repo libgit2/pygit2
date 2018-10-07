@@ -31,11 +31,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
 import os
 
-from pygit2 import GIT_MERGE_ANALYSIS_NONE, GIT_MERGE_ANALYSIS_NORMAL, GIT_MERGE_ANALYSIS_UP_TO_DATE
-from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_UNBORN
+from pygit2 import GIT_MERGE_ANALYSIS_UP_TO_DATE
+from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD
 import pygit2
 
 from . import utils
@@ -50,46 +49,46 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
         branch_id = self.repo.get(branch_head_hex).id
         analysis, preference = self.repo.merge_analysis(branch_id)
 
-        self.assertTrue(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
-        self.assertEqual({}, self.repo.status())
+        assert analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
+        assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+        assert {} == self.repo.status()
 
     def test_merge_analysis_fastforward(self):
         branch_head_hex = 'e97b4cfd5db0fb4ebabf4f203979ca4e5d1c7c87'
         branch_id = self.repo.get(branch_head_hex).id
         analysis, preference = self.repo.merge_analysis(branch_id)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
-        self.assertTrue(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
-        self.assertEqual({}, self.repo.status())
+        assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
+        assert analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+        assert {} == self.repo.status()
 
     def test_merge_no_fastforward_no_conflicts(self):
         branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
         branch_id = self.repo.get(branch_head_hex).id
         analysis, preference = self.repo.merge_analysis(branch_id)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
+        assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
+        assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
         # Asking twice to assure the reference counting is correct
-        self.assertEqual({}, self.repo.status())
-        self.assertEqual({}, self.repo.status())
+        assert {} == self.repo.status()
+        assert {} == self.repo.status()
 
     def test_merge_no_fastforward_conflicts(self):
         branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
         branch_id = self.repo.get(branch_head_hex).id
 
         analysis, preference = self.repo.merge_analysis(branch_id)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
+        assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
+        assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
 
         self.repo.merge(branch_id)
-        self.assertTrue(self.repo.index.conflicts is not None)
+        assert self.repo.index.conflicts is not None
         status = pygit2.GIT_STATUS_CONFLICTED
         # Asking twice to assure the reference counting is correct
-        self.assertEqual({'.gitignore': status}, self.repo.status())
-        self.assertEqual({'.gitignore': status}, self.repo.status())
+        assert {'.gitignore': status} == self.repo.status()
+        assert {'.gitignore': status} == self.repo.status()
         # Checking the index works as expected
         self.repo.index.add('.gitignore')
         self.repo.index.write()
-        self.assertEqual({'.gitignore': pygit2.GIT_STATUS_INDEX_MODIFIED}, self.repo.status())
+        assert {'.gitignore': pygit2.GIT_STATUS_INDEX_MODIFIED} == self.repo.status()
 
     def test_merge_invalid_hex(self):
         branch_head_hex = '12345678'
@@ -110,37 +109,37 @@ class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
         branch_id = self.repo.get(branch_head_hex).id
 
         analysis, preference = self.repo.merge_analysis(branch_id)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE)
-        self.assertFalse(analysis & GIT_MERGE_ANALYSIS_FASTFORWARD)
+        assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
+        assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
 
         self.repo.merge(branch_id)
-        self.assertTrue(self.repo.index.conflicts is not None)
+        assert self.repo.index.conflicts is not None
         self.assertRaises(KeyError, self.repo.index.conflicts.__getitem__, 'some-file')
         ancestor, ours, theirs = self.repo.index.conflicts['.gitignore']
-        self.assertEqual(None, ancestor)
-        self.assertNotEqual(None, ours)
-        self.assertNotEqual(None, theirs)
-        self.assertEqual('.gitignore', ours.path)
-        self.assertEqual('.gitignore', theirs.path)
-        self.assertEqual(1, len(list(self.repo.index.conflicts)))
+        assert ancestor is None
+        assert ours is not None
+        assert theirs is not None
+        assert '.gitignore' == ours.path
+        assert '.gitignore' == theirs.path
+        assert 1 == len(list(self.repo.index.conflicts))
         # Checking the index works as expected
         self.repo.index.add('.gitignore')
         self.repo.index.write()
-        self.assertTrue(self.repo.index.conflicts is None)
+        assert self.repo.index.conflicts is None
 
     def test_merge_remove_conflicts(self):
         other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
         self.repo.merge(other_branch_tip)
         idx = self.repo.index
         conflicts = idx.conflicts
-        self.assertTrue(conflicts is not None)
+        assert conflicts is not None
         try:
             conflicts['.gitignore']
         except KeyError:
             self.fail("conflicts['.gitignore'] raised KeyError unexpectedly")
         del idx.conflicts['.gitignore']
         self.assertRaises(KeyError, conflicts.__getitem__, '.gitignore')
-        self.assertTrue(idx.conflicts is None)
+        assert idx.conflicts is None
 
 class MergeCommitsTest(utils.RepoTestCaseForMerging):
 
@@ -149,20 +148,20 @@ class MergeCommitsTest(utils.RepoTestCaseForMerging):
         branch_id = self.repo.get(branch_head_hex).id
 
         merge_index = self.repo.merge_commits(self.repo.head.target, branch_head_hex)
-        self.assertTrue(merge_index.conflicts is None)
+        assert merge_index.conflicts is None
         merge_commits_tree = merge_index.write_tree(self.repo)
 
         self.repo.merge(branch_id)
         index = self.repo.index
-        self.assertTrue(index.conflicts is None)
+        assert index.conflicts is None
         merge_tree = index.write_tree()
 
-        self.assertEqual(merge_tree, merge_commits_tree)
+        assert merge_tree == merge_commits_tree
 
     def test_merge_commits_favor(self):
         branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
         merge_index = self.repo.merge_commits(self.repo.head.target, branch_head_hex, favor='ours')
-        self.assertTrue(merge_index.conflicts is None)
+        assert merge_index.conflicts is None
 
         self.assertRaises(ValueError, self.repo.merge_commits, self.repo.head.target, branch_head_hex, favor='foo')
 
@@ -174,20 +173,20 @@ class MergeTreesTest(utils.RepoTestCaseForMerging):
         ancestor_id = self.repo.merge_base(self.repo.head.target, branch_id)
 
         merge_index = self.repo.merge_trees(ancestor_id, self.repo.head.target, branch_head_hex)
-        self.assertTrue(merge_index.conflicts is None)
+        assert merge_index.conflicts is None
         merge_commits_tree = merge_index.write_tree(self.repo)
 
         self.repo.merge(branch_id)
         index = self.repo.index
-        self.assertTrue(index.conflicts is None)
+        assert index.conflicts is None
         merge_tree = index.write_tree()
 
-        self.assertEqual(merge_tree, merge_commits_tree)
+        assert merge_tree == merge_commits_tree
 
     def test_merge_commits_favor(self):
         branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
         ancestor_id = self.repo.merge_base(self.repo.head.target, branch_head_hex)
         merge_index = self.repo.merge_trees(ancestor_id, self.repo.head.target, branch_head_hex, favor='ours')
-        self.assertTrue(merge_index.conflicts is None)
+        assert merge_index.conflicts is None
 
         self.assertRaises(ValueError, self.repo.merge_trees, ancestor_id, self.repo.head.target, branch_head_hex, favor='foo')

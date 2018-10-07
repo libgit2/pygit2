@@ -29,7 +29,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from os.path import dirname, join
+
 import io
 import unittest
 
@@ -84,34 +84,32 @@ class BlobTest(utils.RepoTestCase):
 
     def test_read_blob(self):
         blob = self.repo[BLOB_SHA]
-        self.assertEqual(blob.hex, BLOB_SHA)
+        assert blob.hex == BLOB_SHA
         sha = blob.id.hex
-        self.assertEqual(sha, BLOB_SHA)
-        self.assertTrue(isinstance(blob, pygit2.Blob))
-        self.assertFalse(blob.is_binary)
-        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
-        self.assertEqual(BLOB_CONTENT, blob.data)
-        self.assertEqual(len(BLOB_CONTENT), blob.size)
-        self.assertEqual(BLOB_CONTENT, blob.read_raw())
+        assert sha == BLOB_SHA
+        assert isinstance(blob, pygit2.Blob)
+        assert not blob.is_binary
+        assert pygit2.GIT_OBJ_BLOB == blob.type
+        assert BLOB_CONTENT == blob.data
+        assert len(BLOB_CONTENT) == blob.size
+        assert BLOB_CONTENT == blob.read_raw()
 
     def test_create_blob(self):
         blob_oid = self.repo.create_blob(BLOB_NEW_CONTENT)
         blob = self.repo[blob_oid]
 
-        self.assertTrue(isinstance(blob, pygit2.Blob))
-        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+        assert isinstance(blob, pygit2.Blob)
+        assert pygit2.GIT_OBJ_BLOB == blob.type
 
-        self.assertEqual(blob_oid, blob.id)
-        self.assertEqual(
-            utils.gen_blob_sha1(BLOB_NEW_CONTENT),
-            blob_oid.hex)
+        assert blob_oid == blob.id
+        assert utils.gen_blob_sha1(BLOB_NEW_CONTENT) == blob_oid.hex
 
-        self.assertEqual(BLOB_NEW_CONTENT, blob.data)
-        self.assertEqual(len(BLOB_NEW_CONTENT), blob.size)
-        self.assertEqual(BLOB_NEW_CONTENT, blob.read_raw())
+        assert BLOB_NEW_CONTENT == blob.data
+        assert len(BLOB_NEW_CONTENT) == blob.size
+        assert BLOB_NEW_CONTENT == blob.read_raw()
         blob_buffer = memoryview(blob)
-        self.assertEqual(len(BLOB_NEW_CONTENT), len(blob_buffer))
-        self.assertEqual(BLOB_NEW_CONTENT, blob_buffer)
+        assert len(BLOB_NEW_CONTENT) == len(blob_buffer)
+        assert BLOB_NEW_CONTENT == blob_buffer
         def set_content():
             blob_buffer[:2] = b'hi'
 
@@ -122,17 +120,15 @@ class BlobTest(utils.RepoTestCase):
         blob_oid = self.repo.create_blob_fromworkdir("bye.txt")
         blob = self.repo[blob_oid]
 
-        self.assertTrue(isinstance(blob, pygit2.Blob))
-        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+        assert isinstance(blob, pygit2.Blob)
+        assert pygit2.GIT_OBJ_BLOB == blob.type
 
-        self.assertEqual(blob_oid, blob.id)
-        self.assertEqual(
-            utils.gen_blob_sha1(BLOB_FILE_CONTENT),
-            blob_oid.hex)
+        assert blob_oid == blob.id
+        assert utils.gen_blob_sha1(BLOB_FILE_CONTENT) == blob_oid.hex
 
-        self.assertEqual(BLOB_FILE_CONTENT, blob.data)
-        self.assertEqual(len(BLOB_FILE_CONTENT), blob.size)
-        self.assertEqual(BLOB_FILE_CONTENT, blob.read_raw())
+        assert BLOB_FILE_CONTENT == blob.data
+        assert len(BLOB_FILE_CONTENT) == blob.size
+        assert BLOB_FILE_CONTENT == blob.read_raw()
 
 
     def test_create_blob_outside_workdir(self):
@@ -144,8 +140,8 @@ class BlobTest(utils.RepoTestCase):
         blob_oid = self.repo.create_blob_fromdisk(__file__)
         blob = self.repo[blob_oid]
 
-        self.assertTrue(isinstance(blob, pygit2.Blob))
-        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+        assert isinstance(blob, pygit2.Blob)
+        assert pygit2.GIT_OBJ_BLOB == blob.type
 
     def test_create_blob_fromiobase(self):
         self.assertRaises(TypeError, self.repo.create_blob_fromiobase, 'bad type')
@@ -154,39 +150,39 @@ class BlobTest(utils.RepoTestCase):
         blob_oid = self.repo.create_blob_fromiobase(f)
         blob = self.repo[blob_oid]
 
-        self.assertTrue(isinstance(blob, pygit2.Blob))
-        self.assertEqual(pygit2.GIT_OBJ_BLOB, blob.type)
+        assert isinstance(blob, pygit2.Blob)
+        assert pygit2.GIT_OBJ_BLOB == blob.type
 
-        self.assertEqual(blob_oid, blob.id)
-        self.assertEqual(BLOB_SHA, blob_oid.hex)
+        assert blob_oid == blob.id
+        assert BLOB_SHA == blob_oid.hex
 
     def test_diff_blob(self):
         blob = self.repo[BLOB_SHA]
         old_blob = self.repo['3b18e512dba79e4c8300dd08aeb37f8e728b8dad']
         patch = blob.diff(old_blob, old_as_path="hello.txt")
-        self.assertEqual(len(patch.hunks), 1)
+        assert len(patch.hunks) == 1
 
     def test_diff_blob_to_buffer(self):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer("hello world")
-        self.assertEqual(len(patch.hunks), 1)
+        assert len(patch.hunks) == 1
 
     def test_diff_blob_to_buffer_patch_patch(self):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer("hello world")
-        self.assertEqual(patch.patch, BLOB_PATCH)
+        assert patch.patch == BLOB_PATCH
 
     def test_diff_blob_to_buffer_delete(self):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer(None)
-        self.assertEqual(patch.patch, BLOB_PATCH_DELETED)
+        assert patch.patch == BLOB_PATCH_DELETED
 
     def test_diff_blob_create(self):
         old = self.repo[self.repo.create_blob(BLOB_CONTENT)]
         new = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
 
         patch = old.diff(new)
-        self.assertEqual(patch.patch, BLOB_PATCH_2)
+        assert patch.patch == BLOB_PATCH_2
 
     def test_blob_from_repo(self):
         blob = self.repo[BLOB_SHA]
@@ -195,10 +191,7 @@ class BlobTest(utils.RepoTestCase):
         blob = self.repo[BLOB_SHA]
         patch_two = blob.diff_to_buffer(None)
 
-        self.assertEqual(
-            patch_one.patch,
-            patch_two.patch,
-        )
+        assert patch_one.patch == patch_two.patch
 
 if __name__ == '__main__':
     unittest.main()

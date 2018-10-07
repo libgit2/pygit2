@@ -48,14 +48,14 @@ class CredentialCreateTest(utils.NoRepoTestCase):
         username = "git"
 
         cred = Username(username)
-        self.assertEqual((username,), cred.credential_tuple)
+        assert (username,) == cred.credential_tuple
 
     def test_userpass(self):
         username = "git"
         password = "sekkrit"
 
         cred = UserPass(username, password)
-        self.assertEqual((username, password), cred.credential_tuple)
+        assert (username, password) == cred.credential_tuple
 
     def test_ssh_key(self):
         username = "git"
@@ -64,13 +64,13 @@ class CredentialCreateTest(utils.NoRepoTestCase):
         passphrase = "bad wolf"
 
         cred = Keypair(username, pubkey, privkey, passphrase)
-        self.assertEqual((username, pubkey, privkey, passphrase), cred.credential_tuple)
+        assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
     def test_ssh_agent(self):
         username = "git"
  
         cred = KeypairFromAgent(username)
-        self.assertEqual((username, None, None, None), cred.credential_tuple)
+        assert (username, None, None, None) == cred.credential_tuple
 
     def test_ssh_from_memory(self):
         username = "git"
@@ -79,7 +79,7 @@ class CredentialCreateTest(utils.NoRepoTestCase):
         passphrase = "secret passphrase"
 
         cred = KeypairFromMemory(username, pubkey, privkey, passphrase)
-        self.assertEqual((username, pubkey, privkey, passphrase), cred.credential_tuple)
+        assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
 
 class CredentialCallback(utils.RepoTestCase):
@@ -87,7 +87,7 @@ class CredentialCallback(utils.RepoTestCase):
         class MyCallbacks(pygit2.RemoteCallbacks):
             @staticmethod
             def credentials(url, username, allowed):
-                self.assertTrue(allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT)
+                assert allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT
                 raise Exception("I don't know the password")
 
         url = "https://github.com/github/github"
@@ -100,7 +100,7 @@ class CredentialCallback(utils.RepoTestCase):
         class MyCallbacks(pygit2.RemoteCallbacks):
             @staticmethod
             def credentials(url, username, allowed):
-                self.assertTrue(allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT)
+                assert allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT
                 return Keypair("git", "foo.pub", "foo", "sekkrit")
 
         url = "https://github.com/github/github"

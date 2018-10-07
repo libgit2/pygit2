@@ -50,16 +50,16 @@ class NotesTest(utils.BareRepoTestCase):
         author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
         note_id = self.repo.create_note(NOTE[1], author, committer,
                                         annotated_id)
-        self.assertEqual(NOTE[0], note_id.hex)
+        assert NOTE[0] == note_id.hex
 
         # check the note blob
-        self.assertEqual(NOTE[1].encode(), self.repo[note_id].data)
+        assert NOTE[1].encode() == self.repo[note_id].data
 
     def test_lookup_note(self):
         annotated_id = self.repo.head.target.hex
         note = self.repo.lookup_note(annotated_id)
-        self.assertEqual(NOTES[0][0], note.id.hex)
-        self.assertEqual(NOTES[0][1], note.message)
+        assert NOTES[0][0] == note.id.hex
+        assert NOTES[0][1] == note.message
 
     def test_remove_note(self):
         head = self.repo.head
@@ -71,7 +71,7 @@ class NotesTest(utils.BareRepoTestCase):
     def test_iterate_notes(self):
         for i, note in enumerate(self.repo.notes()):
             entry = (note.id.hex, note.message, note.annotated_id.hex)
-            self.assertEqual(NOTES[i], entry)
+            assert NOTES[i] == entry
 
     def test_iterate_non_existing_ref(self):
         self.assertRaises(KeyError, self.repo.notes, "refs/notes/bad_ref")

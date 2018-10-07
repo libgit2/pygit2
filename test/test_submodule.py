@@ -44,12 +44,12 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
     def test_lookup_submodule(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertIsNotNone(s)
+        assert s is not None
 
     def test_listall_submodules(self):
         submodules = self.repo.listall_submodules()
-        self.assertEqual(len(submodules), 1)
-        self.assertEqual(submodules[0], SUBM_PATH)
+        assert len(submodules) == 1
+        assert submodules[0] == SUBM_PATH
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_submodule_open(self):
@@ -57,48 +57,48 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         self.repo.init_submodules()
         self.repo.update_submodules()
         r = s.open()
-        self.assertIsNotNone(r)
-        self.assertEqual(str(r.head.target), SUBM_HEAD_SHA)
+        assert r is not None
+        assert str(r.head.target) == SUBM_HEAD_SHA
 
     def test_name(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertEqual(SUBM_NAME, s.name)
+        assert SUBM_NAME == s.name
 
     def test_path(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertEqual(SUBM_PATH, s.path)
+        assert SUBM_PATH == s.path
 
     def test_url(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertEqual(SUBM_URL, s.url)
+        assert SUBM_URL == s.url
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_init_and_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
-        self.assertFalse(os.path.exists(subrepo_file_path))
+        assert not os.path.exists(subrepo_file_path)
         self.repo.init_submodules()
         self.repo.update_submodules()
-        self.assertTrue(os.path.exists(subrepo_file_path))
+        assert os.path.exists(subrepo_file_path)
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_specified_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
-        self.assertFalse(os.path.exists(subrepo_file_path))
+        assert not os.path.exists(subrepo_file_path)
         self.repo.init_submodules(submodules=['submodule'])
         self.repo.update_submodules(submodules=['submodule'])
-        self.assertTrue(os.path.exists(subrepo_file_path))
+        assert os.path.exists(subrepo_file_path)
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_oneshot_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
-        self.assertFalse(os.path.exists(subrepo_file_path))
+        assert not os.path.exists(subrepo_file_path)
         self.repo.update_submodules(init=True)
-        self.assertTrue(os.path.exists(subrepo_file_path))
+        assert os.path.exists(subrepo_file_path)
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_head_id(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
-        self.assertEqual(str(s.head_id), SUBM_HEAD_SHA)
+        assert str(s.head_id) == SUBM_HEAD_SHA
 
 if __name__ == '__main__':
     unittest.main()

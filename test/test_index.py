@@ -31,7 +31,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import os
 import unittest
-import tempfile
 
 import pygit2
 from pygit2 import Repository, Index
@@ -42,37 +41,37 @@ class IndexBareTest(utils.BareRepoTestCase):
 
     def test_bare(self):
         index = self.repo.index
-        self.assertEqual(len(index), 0)
+        assert len(index) == 0
 
 
 class IndexTest(utils.RepoTestCase):
 
     def test_index(self):
-        self.assertNotEqual(None, self.repo.index)
+        assert self.repo.index is not None
 
     def test_read(self):
         index = self.repo.index
-        self.assertEqual(len(index), 2)
+        assert len(index) == 2
 
         self.assertRaises(TypeError, lambda: index[()])
         self.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
         self.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
 
         sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
-        self.assertTrue('hello.txt' in index)
-        self.assertEqual(index['hello.txt'].hex, sha)
-        self.assertEqual(index['hello.txt'].path, 'hello.txt')
-        self.assertEqual(index[1].hex, sha)
+        assert 'hello.txt' in index
+        assert index['hello.txt'].hex == sha
+        assert index['hello.txt'].path == 'hello.txt'
+        assert index[1].hex == sha
 
     def test_add(self):
         index = self.repo.index
 
         sha = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
-        self.assertFalse('bye.txt' in index)
+        assert 'bye.txt' not in index
         index.add('bye.txt')
-        self.assertTrue('bye.txt' in index)
-        self.assertEqual(len(index), 3)
-        self.assertEqual(index['bye.txt'].hex, sha)
+        assert 'bye.txt' in index
+        assert len(index) == 3
+        assert index['bye.txt'].hex == sha
 
     def test_add_all(self):
         self.test_clear()
@@ -84,37 +83,37 @@ class IndexTest(utils.RepoTestCase):
 
         index.add_all(['*.txt'])
 
-        self.assertTrue('bye.txt' in index)
-        self.assertTrue('hello.txt' in index)
+        assert 'bye.txt' in index
+        assert 'hello.txt' in index
 
-        self.assertEqual(index['bye.txt'].hex, sha_bye)
-        self.assertEqual(index['hello.txt'].hex, sha_hello)
+        assert index['bye.txt'].hex == sha_bye
+        assert index['hello.txt'].hex == sha_hello
 
         self.test_clear()
 
         index.add_all(['bye.t??', 'hello.*'])
 
-        self.assertTrue('bye.txt' in index)
-        self.assertTrue('hello.txt' in index)
+        assert 'bye.txt' in index
+        assert 'hello.txt' in index
 
-        self.assertEqual(index['bye.txt'].hex, sha_bye)
-        self.assertEqual(index['hello.txt'].hex, sha_hello)
+        assert index['bye.txt'].hex == sha_bye
+        assert index['hello.txt'].hex == sha_hello
 
         self.test_clear()
 
         index.add_all(['[byehlo]*.txt'])
 
-        self.assertTrue('bye.txt' in index)
-        self.assertTrue('hello.txt' in index)
+        assert 'bye.txt' in index
+        assert 'hello.txt' in index
 
-        self.assertEqual(index['bye.txt'].hex, sha_bye)
-        self.assertEqual(index['hello.txt'].hex, sha_hello)
+        assert index['bye.txt'].hex == sha_bye
+        assert index['hello.txt'].hex == sha_hello
 
     def test_clear(self):
         index = self.repo.index
-        self.assertEqual(len(index), 2)
+        assert len(index) == 2
         index.clear()
-        self.assertEqual(len(index), 0)
+        assert len(index) == 0
 
     def test_write(self):
         index = self.repo.index
@@ -122,38 +121,38 @@ class IndexTest(utils.RepoTestCase):
         index.write()
 
         index.clear()
-        self.assertFalse('bye.txt' in index)
+        assert 'bye.txt' not in index
         index.read()
-        self.assertTrue('bye.txt' in index)
+        assert 'bye.txt' in index
 
 
     def test_read_tree(self):
         tree_oid = '68aba62e560c0ebc3396e8ae9335232cd93a3f60'
         # Test reading first tree
         index = self.repo.index
-        self.assertEqual(len(index), 2)
+        assert len(index) == 2
         index.read_tree(tree_oid)
-        self.assertEqual(len(index), 1)
+        assert len(index) == 1
         # Test read-write returns the same oid
         oid = index.write_tree()
-        self.assertEqual(oid.hex, tree_oid)
+        assert oid.hex == tree_oid
         # Test the index is only modified in memory
         index.read()
-        self.assertEqual(len(index), 2)
+        assert len(index) == 2
 
 
     def test_write_tree(self):
         oid = self.repo.index.write_tree()
-        self.assertEqual(oid.hex, 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+        assert oid.hex == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
     def test_iter(self):
         index = self.repo.index
         n = len(index)
-        self.assertEqual(len(list(index)), n)
+        assert len(list(index)) == n
 
         # Compare SHAs, not IndexEntry object identity
         entries = [index[x].hex for x in range(n)]
-        self.assertEqual(list(x.hex for x in index), entries)
+        assert list(x.hex for x in index) == entries
 
     def test_mode(self):
         """
@@ -162,7 +161,7 @@ class IndexTest(utils.RepoTestCase):
         index = self.repo.index
 
         hello_mode = index['hello.txt'].mode
-        self.assertEqual(hello_mode, 33188)
+        assert hello_mode == 33188
 
     def test_bare_index(self):
         index = pygit2.Index(os.path.join(self.repo.path, 'index'))
@@ -173,28 +172,28 @@ class IndexTest(utils.RepoTestCase):
 
     def test_remove(self):
         index = self.repo.index
-        self.assertTrue('hello.txt' in index)
+        assert 'hello.txt' in index
         index.remove('hello.txt')
-        self.assertFalse('hello.txt' in index)
+        assert 'hello.txt' not in index
 
     def test_change_attributes(self):
         index = self.repo.index
         entry = index['hello.txt']
         ign_entry = index['.gitignore']
-        self.assertNotEqual(ign_entry.id, entry.id)
-        self.assertNotEqual(entry.mode, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE)
+        assert ign_entry.id != entry.id
+        assert entry.mode != pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
         entry.path = 'foo.txt'
         entry.id = ign_entry.id
         entry.mode = pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
-        self.assertEqual('foo.txt', entry.path)
-        self.assertEqual(ign_entry.id, entry.id)
-        self.assertEqual(pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, entry.mode)
+        assert 'foo.txt' == entry.path
+        assert ign_entry.id == entry.id
+        assert pygit2.GIT_FILEMODE_BLOB_EXECUTABLE == entry.mode
 
     def test_write_tree_to(self):
         with utils.TemporaryRepository(('tar', 'emptyrepo')) as path:
             nrepo = Repository(path)
             id = self.repo.index.write_tree(nrepo)
-            self.assertNotEqual(None, nrepo[id])
+            assert nrepo[id] is not None
 
 class IndexEntryTest(utils.RepoTestCase):
 
@@ -204,7 +203,7 @@ class IndexEntryTest(utils.RepoTestCase):
         entry = pygit2.IndexEntry('README.md', hello_entry.id, hello_entry.mode)
         index.add(entry)
         tree_id = index.write_tree()
-        self.assertEqual('60e769e57ae1d6a2ab75d8d253139e6260e1f912', str(tree_id))
+        assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == str(tree_id)
 
 class StandaloneIndexTest(utils.RepoTestCase):
 

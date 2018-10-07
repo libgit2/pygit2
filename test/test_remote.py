@@ -57,10 +57,10 @@ class RepositoryTest(utils.RepoTestCase):
 
         remote = self.repo.create_remote(name, url)
 
-        self.assertEqual(type(remote), pygit2.Remote)
-        self.assertEqual(name, remote.name)
-        self.assertEqual(url, remote.url)
-        self.assertEqual(None, remote.push_url)
+        assert type(remote) == pygit2.Remote
+        assert name == remote.name
+        assert url == remote.url
+        assert remote.push_url is None
 
         self.assertRaises(ValueError, self.repo.create_remote, *(name, url))
 
@@ -71,31 +71,31 @@ class RepositoryTest(utils.RepoTestCase):
 
         remote = self.repo.remotes.create(name, url, fetch)
 
-        self.assertEqual(type(remote), pygit2.Remote)
-        self.assertEqual(name, remote.name)
-        self.assertEqual(url, remote.url)
-        self.assertEqual([fetch], remote.fetch_refspecs)
-        self.assertEqual(None, remote.push_url)
+        assert type(remote) == pygit2.Remote
+        assert name == remote.name
+        assert url == remote.url
+        assert [fetch] == remote.fetch_refspecs
+        assert remote.push_url is None
 
     def test_remote_delete(self):
         name = 'upstream'
         url = 'git://github.com/libgit2/pygit2.git'
 
         self.repo.create_remote(name, url)
-        self.assertEqual(2, len(self.repo.remotes))
+        assert 2 == len(self.repo.remotes)
         remote = self.repo.remotes[1]
 
-        self.assertEqual(name, remote.name)
+        assert name == remote.name
         self.repo.remotes.delete(remote.name)
-        self.assertEqual(1, len(self.repo.remotes))
+        assert 1 == len(self.repo.remotes)
 
     def test_remote_rename(self):
         remote = self.repo.remotes[0]
 
-        self.assertEqual(REMOTE_NAME, remote.name)
+        assert REMOTE_NAME == remote.name
         problems = self.repo.remotes.rename(remote.name, "new")
-        self.assertEqual([], problems)
-        self.assertNotEqual('new', remote.name)
+        assert [] == problems
+        assert 'new' != remote.name
 
         self.assertRaises(ValueError, self.repo.remotes.rename, '', '')
         self.assertRaises(ValueError, self.repo.remotes.rename, None, None)
@@ -103,76 +103,76 @@ class RepositoryTest(utils.RepoTestCase):
 
     def test_remote_set_url(self):
         remote = self.repo.remotes["origin"]
-        self.assertEqual(REMOTE_URL, remote.url)
+        assert REMOTE_URL == remote.url
 
         new_url = 'git://github.com/cholin/pygit2.git'
         self.repo.remotes.set_url("origin", new_url)
         remote = self.repo.remotes["origin"]
-        self.assertEqual(new_url, remote.url)
+        assert new_url == remote.url
 
         self.assertRaises(ValueError, self.repo.remotes.set_url, "origin", "")
 
         self.repo.remotes.set_push_url("origin", new_url)
         remote = self.repo.remotes["origin"]
-        self.assertEqual(new_url, remote.push_url)
+        assert new_url == remote.push_url
         self.assertRaises(ValueError, self.repo.remotes.set_push_url, "origin", "")
 
     def test_refspec(self):
         remote = self.repo.remotes["origin"]
 
-        self.assertEqual(remote.refspec_count, 1)
+        assert remote.refspec_count == 1
         refspec = remote.get_refspec(0)
-        self.assertEqual(refspec.src, REMOTE_FETCHSPEC_SRC)
-        self.assertEqual(refspec.dst, REMOTE_FETCHSPEC_DST)
-        self.assertEqual(True, refspec.force)
-        self.assertEqual(ORIGIN_REFSPEC, refspec.string)
+        assert refspec.src == REMOTE_FETCHSPEC_SRC
+        assert refspec.dst == REMOTE_FETCHSPEC_DST
+        assert True == refspec.force
+        assert ORIGIN_REFSPEC == refspec.string
 
-        self.assertEqual(list, type(remote.fetch_refspecs))
-        self.assertEqual(1, len(remote.fetch_refspecs))
-        self.assertEqual(ORIGIN_REFSPEC, remote.fetch_refspecs[0])
+        assert list == type(remote.fetch_refspecs)
+        assert 1 == len(remote.fetch_refspecs)
+        assert ORIGIN_REFSPEC == remote.fetch_refspecs[0]
 
-        self.assertTrue(refspec.src_matches('refs/heads/master'))
-        self.assertTrue(refspec.dst_matches('refs/remotes/origin/master'))
-        self.assertEqual('refs/remotes/origin/master', refspec.transform('refs/heads/master'))
-        self.assertEqual('refs/heads/master', refspec.rtransform('refs/remotes/origin/master'))
+        assert refspec.src_matches('refs/heads/master')
+        assert refspec.dst_matches('refs/remotes/origin/master')
+        assert 'refs/remotes/origin/master' == refspec.transform('refs/heads/master')
+        assert 'refs/heads/master' == refspec.rtransform('refs/remotes/origin/master')
 
-        self.assertEqual(list, type(remote.push_refspecs))
-        self.assertEqual(0, len(remote.push_refspecs))
+        assert list == type(remote.push_refspecs)
+        assert 0 == len(remote.push_refspecs)
 
         push_specs = remote.push_refspecs
-        self.assertEqual(list, type(push_specs))
-        self.assertEqual(0, len(push_specs))
+        assert list == type(push_specs)
+        assert 0 == len(push_specs)
 
         self.repo.remotes.add_fetch("origin", '+refs/test/*:refs/test/remotes/*')
         remote = self.repo.remotes["origin"]
 
         fetch_specs = remote.fetch_refspecs
-        self.assertEqual(list, type(fetch_specs))
-        self.assertEqual(2, len(fetch_specs))
-        self.assertEqual(['+refs/heads/*:refs/remotes/origin/*', '+refs/test/*:refs/test/remotes/*'], fetch_specs)
+        assert list == type(fetch_specs)
+        assert 2 == len(fetch_specs)
+        assert ['+refs/heads/*:refs/remotes/origin/*', '+refs/test/*:refs/test/remotes/*'] == fetch_specs
 
         self.repo.remotes.add_push("origin", '+refs/test/*:refs/test/remotes/*')
 
         self.assertRaises(TypeError, self.repo.remotes.add_fetch, ['+refs/*:refs/*', 5])
 
         remote = self.repo.remotes["origin"]
-        self.assertEqual(['+refs/test/*:refs/test/remotes/*'], remote.push_refspecs)
+        assert ['+refs/test/*:refs/test/remotes/*'] == remote.push_refspecs
 
     def test_remote_list(self):
-        self.assertEqual(1, len(self.repo.remotes))
+        assert 1 == len(self.repo.remotes)
         remote = self.repo.remotes[0]
-        self.assertEqual(REMOTE_NAME, remote.name)
-        self.assertEqual(REMOTE_URL, remote.url)
+        assert REMOTE_NAME == remote.name
+        assert REMOTE_URL == remote.url
 
         name = 'upstream'
         url = 'git://github.com/libgit2/pygit2.git'
         remote = self.repo.create_remote(name, url)
-        self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
+        assert remote.name in [x.name for x in self.repo.remotes]
 
     def test_remote_collection(self):
         remote = self.repo.remotes['origin']
-        self.assertEqual(REMOTE_NAME, remote.name)
-        self.assertEqual(REMOTE_URL, remote.url)
+        assert REMOTE_NAME == remote.name
+        assert REMOTE_URL == remote.url
 
         with self.assertRaises(KeyError):
             self.repo.remotes['upstream']
@@ -180,7 +180,7 @@ class RepositoryTest(utils.RepoTestCase):
         name = 'upstream'
         url = 'git://github.com/libgit2/pygit2.git'
         remote = self.repo.remotes.create(name, url)
-        self.assertTrue(remote.name in [x.name for x in self.repo.remotes])
+        assert remote.name in [x.name for x in self.repo.remotes]
 
     @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
     def test_remote_refcount(self):
@@ -188,15 +188,15 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.remotes[0]
         del remote
         end = sys.getrefcount(self.repo)
-        self.assertEqual(start, end)
+        assert start == end
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
     def test_fetch(self):
         remote = self.repo.remotes[0]
         stats = remote.fetch()
-        self.assertEqual(stats.received_bytes, REMOTE_REPO_BYTES)
-        self.assertEqual(stats.indexed_objects, REMOTE_REPO_OBJECTS)
-        self.assertEqual(stats.received_objects, REMOTE_REPO_OBJECTS)
+        assert stats.received_bytes == REMOTE_REPO_BYTES
+        assert stats.indexed_objects == REMOTE_REPO_OBJECTS
+        assert stats.received_objects == REMOTE_REPO_OBJECTS
 
     def test_transfer_progress(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
@@ -206,9 +206,9 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         callbacks = MyCallbacks()
         remote = self.repo.remotes[0]
         stats = remote.fetch(callbacks=callbacks)
-        self.assertEqual(stats.received_bytes, callbacks.tp.received_bytes)
-        self.assertEqual(stats.indexed_objects, callbacks.tp.indexed_objects)
-        self.assertEqual(stats.received_objects, callbacks.tp.received_objects)
+        assert stats.received_bytes == callbacks.tp.received_bytes
+        assert stats.indexed_objects == callbacks.tp.indexed_objects
+        assert stats.received_objects == callbacks.tp.received_objects
 
     def test_update_tips(self):
         remote = self.repo.remotes[0]
@@ -229,7 +229,7 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
 
         callbacks = MyCallbacks(self, tips)
         remote.fetch(callbacks=callbacks)
-        self.assertTrue(callbacks.i > 0)
+        assert callbacks.i > 0
 
 
 class PruneTestCase(utils.RepoTestCase):
@@ -246,15 +246,15 @@ class PruneTestCase(utils.RepoTestCase):
         
     def test_fetch_remote_default(self):
         self.clone_repo.remotes[0].fetch()
-        self.assertIn('origin/i18n', self.clone_repo.branches)
+        assert 'origin/i18n' in self.clone_repo.branches
 
     def test_fetch_remote_prune(self):
         self.clone_repo.remotes[0].fetch(prune=pygit2.GIT_FETCH_PRUNE)
-        self.assertNotIn('origin/i18n', self.clone_repo.branches)
+        assert 'origin/i18n' not in self.clone_repo.branches
 
     def test_fetch_no_prune(self):
         self.clone_repo.remotes[0].fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
-        self.assertIn('origin/i18n', self.clone_repo.branches)
+        assert 'origin/i18n' in self.clone_repo.branches
 
 
 class Utf8BranchTest(utils.Utf8BranchRepoTestCase):
@@ -287,13 +287,13 @@ class PushTestCase(unittest.TestCase):
             tip.tree.id, [tip.id]
         )
         self.remote.push(['refs/heads/master'])
-        self.assertEqual(self.origin[self.origin.head.target].id, oid)
+        assert self.origin[self.origin.head.target].id == oid
 
     def test_push_when_up_to_date_succeeds(self):
         self.remote.push(['refs/heads/master'])
         origin_tip = self.origin[self.origin.head.target].id
         clone_tip = self.clone[self.clone.head.target].id
-        self.assertEqual(origin_tip, clone_tip)
+        assert origin_tip == clone_tip
 
     def test_push_non_fast_forward_commits_to_remote_fails(self):
         tip = self.origin[self.origin.head.target]

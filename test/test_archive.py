@@ -52,14 +52,14 @@ class ArchiveTest(utils.RepoTestCase):
         else:
             index.read_tree(self.repo[treeish].peel(Tree))
 
-        self.assertEqual(len(index), len(archive.getmembers()))
+        assert len(index) == len(archive.getmembers())
 
         if timestamp:
             fileinfo = archive.getmembers()[0]
-            self.assertEqual(timestamp, fileinfo.mtime)
+            assert timestamp == fileinfo.mtime
 
         archive.close()
-        self.assertTrue(os.path.isfile('foo.tar'))
+        assert os.path.isfile('foo.tar')
         os.remove('foo.tar')
 
     def test_write_tree(self):

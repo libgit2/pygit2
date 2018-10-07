@@ -117,7 +117,7 @@ class NoRepoTestCase(unittest.TestCase):
         try:
             setattr(instance, name, value)
         except:
-            self.assertEqual(exc_class, sys.exc_info()[0])
+            assert exc_class == sys.exc_info()[0]
 
     def assertAll(self, func, entries):
         return self.assertTrue(all(func(x) for x in entries))
@@ -129,16 +129,16 @@ class NoRepoTestCase(unittest.TestCase):
         try:
             func(*args, **kwargs)
         except exc_class as exc_value:
-            self.assertEqual((arg,), exc_value.args)
+            assert (arg,) == exc_value.args
         else:
             self.fail('%s(%r) not raised' % (exc_class.__name__, arg))
 
     def assertEqualSignature(self, a, b):
         # XXX Remove this once equality test is supported by Signature
-        self.assertEqual(a.name, b.name)
-        self.assertEqual(a.email, b.email)
-        self.assertEqual(a.time, b.time)
-        self.assertEqual(a.offset, b.offset)
+        assert a.name == b.name
+        assert a.email == b.email
+        assert a.time == b.time
+        assert a.offset == b.offset
 
 
 class AutoRepoTestCase(NoRepoTestCase):

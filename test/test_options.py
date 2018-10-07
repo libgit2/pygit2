@@ -49,14 +49,14 @@ class OptionsTest(utils.NoRepoTestCase):
     def __option(self, getter, setter, value):
         old_value = option(getter)
         option(setter, value)
-        self.assertEqual(value, option(getter))
+        assert value == option(getter)
         # Reset to avoid side effects in later tests
         option(setter, old_value)
 
     def __proxy(self, name, value):
         old_value = getattr(pygit2.settings, name)
         setattr(pygit2.settings, name, value)
-        self.assertEqual(value, getattr(pygit2.settings, name))
+        assert value == getattr(pygit2.settings, name)
         # Reset to avoid side effects in later tests
         setattr(pygit2.settings, name, old_value)
 
@@ -88,10 +88,10 @@ class OptionsTest(utils.NoRepoTestCase):
 
     def test_cached_memory(self):
         value = option(GIT_OPT_GET_CACHED_MEMORY)
-        self.assertEqual(value[1], 256 * 1024**2)
+        assert value[1] == 256 * 1024**2
 
     def test_cached_memory_proxy(self):
-        self.assertEqual(pygit2.settings.cached_memory[1], 256 * 1024**2)
+        assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
     def test_enable_cache(self):
         option(GIT_OPT_ENABLE_CACHING, False)
@@ -103,9 +103,9 @@ class OptionsTest(utils.NoRepoTestCase):
 
     def test_cache_max_size_proxy(self):
         pygit2.settings.cache_max_size(128 * 1024**2)
-        self.assertEqual(pygit2.settings.cached_memory[1], 128 * 1024**2)
+        assert pygit2.settings.cached_memory[1] == 128 * 1024**2
         pygit2.settings.cache_max_size(256 * 1024**2)
-        self.assertEqual(pygit2.settings.cached_memory[1], 256 * 1024**2)
+        assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
     def test_search_path(self):
         paths = [(GIT_CONFIG_LEVEL_GLOBAL, '/tmp/global'),
@@ -114,7 +114,7 @@ class OptionsTest(utils.NoRepoTestCase):
 
         for level, path in paths:
             option(GIT_OPT_SET_SEARCH_PATH, level, path)
-            self.assertEqual(path, option(GIT_OPT_GET_SEARCH_PATH, level))
+            assert path == option(GIT_OPT_GET_SEARCH_PATH, level)
 
     def test_search_path_proxy(self):
         paths = [(GIT_CONFIG_LEVEL_GLOBAL, '/tmp2/global'),
@@ -123,7 +123,7 @@ class OptionsTest(utils.NoRepoTestCase):
 
         for level, path in paths:
             pygit2.settings.search_path[level] = path
-            self.assertEqual(path, pygit2.settings.search_path[level])
+            assert path == pygit2.settings.search_path[level]
 
 if __name__ == '__main__':
     unittest.main()

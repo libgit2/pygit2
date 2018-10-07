@@ -46,18 +46,18 @@ class ConfigTest(utils.RepoTestCase):
             pass
 
     def test_config(self):
-        self.assertNotEqual(None, self.repo.config)
+        assert self.repo.config is not None
 
     def test_global_config(self):
         try:
-            self.assertNotEqual(None, Config.get_global_config())
+            assert Config.get_global_config() is not None
         except IOError:
             # There is no user config
             pass
 
     def test_system_config(self):
         try:
-            self.assertNotEqual(None, Config.get_system_config())
+            assert Config.get_system_config() is not None
         except IOError:
             # There is no system config
             pass
@@ -67,16 +67,16 @@ class ConfigTest(utils.RepoTestCase):
         open(CONFIG_FILENAME, 'w').close()
 
         config_write = Config(CONFIG_FILENAME)
-        self.assertNotEqual(config_write, None)
+        assert config_write is not None
 
         config_write['core.bare'] = False
         config_write['core.editor'] = 'ed'
 
         config_read = Config(CONFIG_FILENAME)
-        self.assertTrue('core.bare' in config_read)
-        self.assertFalse(config_read.get_bool('core.bare'))
-        self.assertTrue('core.editor' in config_read)
-        self.assertEqual(config_read['core.editor'], 'ed')
+        assert 'core.bare' in config_read
+        assert not config_read.get_bool('core.bare')
+        assert 'core.editor' in config_read
+        assert config_read['core.editor'] == 'ed'
 
     def test_add(self):
         config = Config()
@@ -87,10 +87,10 @@ class ConfigTest(utils.RepoTestCase):
         new_file.close()
 
         config.add_file(CONFIG_FILENAME, 0)
-        self.assertTrue('this.that' in config)
-        self.assertTrue(config.get_bool('this.that'))
-        self.assertTrue('something.other.here' in config)
-        self.assertFalse(config.get_bool('something.other.here'))
+        assert 'this.that' in config
+        assert config.get_bool('this.that')
+        assert 'something.other.here' in config
+        assert not config.get_bool('something.other.here')
 
     def test_read(self):
         config = self.repo.config
@@ -102,24 +102,24 @@ class ConfigTest(utils.RepoTestCase):
         self.assertRaisesWithArg(KeyError, 'abc.def',
                                  lambda: config['abc.def'])
 
-        self.assertTrue('core.bare' in config)
-        self.assertFalse(config.get_bool('core.bare'))
-        self.assertTrue('core.editor' in config)
-        self.assertEqual(config['core.editor'], 'ed')
-        self.assertTrue('core.repositoryformatversion' in config)
-        self.assertEqual(config.get_int('core.repositoryformatversion'), 0)
+        assert 'core.bare' in config
+        assert not config.get_bool('core.bare')
+        assert 'core.editor' in config
+        assert config['core.editor'] == 'ed'
+        assert 'core.repositoryformatversion' in config
+        assert config.get_int('core.repositoryformatversion') == 0
 
         new_file = open(CONFIG_FILENAME, "w")
         new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
         new_file.close()
 
         config.add_file(CONFIG_FILENAME, 0)
-        self.assertTrue('this.that' in config)
+        assert 'this.that' in config
 
-        self.assertEqual(2, len(list(config.get_multivar('this.that'))))
+        assert 2 == len(list(config.get_multivar('this.that')))
         l = list(config.get_multivar('this.that', 'bar'))
-        self.assertEqual(1, len(l))
-        self.assertEqual(l[0], 'foobar')
+        assert 1 == len(l)
+        assert l[0] == 'foobar'
 
     def test_write(self):
         config = self.repo.config
@@ -127,47 +127,47 @@ class ConfigTest(utils.RepoTestCase):
         self.assertRaises(TypeError, config.__setitem__,
                           (), 'This should not work')
 
-        self.assertFalse('core.dummy1' in config)
+        assert 'core.dummy1' not in config
         config['core.dummy1'] = 42
-        self.assertTrue('core.dummy1' in config)
-        self.assertEqual(config.get_int('core.dummy1'), 42)
+        assert 'core.dummy1' in config
+        assert config.get_int('core.dummy1') == 42
 
-        self.assertFalse('core.dummy2' in config)
+        assert 'core.dummy2' not in config
         config['core.dummy2'] = 'foobar'
-        self.assertTrue('core.dummy2' in config)
-        self.assertEqual(config['core.dummy2'], 'foobar')
+        assert 'core.dummy2' in config
+        assert config['core.dummy2'] == 'foobar'
 
-        self.assertFalse('core.dummy3' in config)
+        assert 'core.dummy3' not in config
         config['core.dummy3'] = True
-        self.assertTrue('core.dummy3' in config)
-        self.assertTrue(config['core.dummy3'])
+        assert 'core.dummy3' in config
+        assert config['core.dummy3']
 
         del config['core.dummy1']
-        self.assertFalse('core.dummy1' in config)
+        assert 'core.dummy1' not in config
         del config['core.dummy2']
-        self.assertFalse('core.dummy2' in config)
+        assert 'core.dummy2' not in config
         del config['core.dummy3']
-        self.assertFalse('core.dummy3' in config)
+        assert 'core.dummy3' not in config
 
         new_file = open(CONFIG_FILENAME, "w")
         new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
         new_file.close()
 
         config.add_file(CONFIG_FILENAME, 6)
-        self.assertTrue('this.that' in config)
+        assert 'this.that' in config
         l = config.get_multivar('this.that', 'foo.*')
-        self.assertEqual(2, len(list(l)))
+        assert 2 == len(list(l))
 
         config.set_multivar('this.that', '^.*beer', 'fool')
         l = list(config.get_multivar('this.that', 'fool'))
-        self.assertEqual(len(l), 1)
-        self.assertEqual(l[0], 'fool')
+        assert len(l) == 1
+        assert l[0] == 'fool'
 
         config.set_multivar('this.that', 'foo.*', 'foo-123456')
         l = config.get_multivar('this.that', 'foo.*')
-        self.assertEqual(2, len(list(l)))
+        assert 2 == len(list(l))
         for i in l:
-            self.assertEqual(i, 'foo-123456')
+            assert i == 'foo-123456'
 
     def test_iterator(self):
         config = self.repo.config
@@ -177,15 +177,15 @@ class ConfigTest(utils.RepoTestCase):
             self.assertGreater(entry.level, -1)
             lst[entry.name] = entry.value
 
-        self.assertTrue('core.bare' in lst)
-        self.assertTrue(lst['core.bare'])
+        assert 'core.bare' in lst
+        assert lst['core.bare']
 
     def test_parsing(self):
-        self.assertTrue(Config.parse_bool("on"))
-        self.assertTrue(Config.parse_bool("1"))
+        assert Config.parse_bool("on")
+        assert Config.parse_bool("1")
 
-        self.assertEqual(5, Config.parse_int("5"))
-        self.assertEqual(1024, Config.parse_int("1k"))
+        assert 5 == Config.parse_int("5")
+        assert 1024 == Config.parse_int("1k")
 
 if __name__ == '__main__':
     unittest.main()

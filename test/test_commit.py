@@ -29,6 +29,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import unittest
 import sys
 
@@ -39,7 +40,6 @@ from . import utils
 # we need to check and change the test accordingly
 try:
     import __pypy__
-    import __pypy__, sys
     pypy2 =  sys.version_info[0] < 3
 except ImportError:
     __pypy__ = None
@@ -57,22 +57,22 @@ class CommitTest(utils.BareRepoTestCase):
         tree = commit.tree
         del tree
         end = sys.getrefcount(commit)
-        self.assertEqual(start, end)
+        assert start == end
 
 
     def test_read_commit(self):
         commit = self.repo[COMMIT_SHA]
-        self.assertEqual(COMMIT_SHA, str(commit.id))
+        assert COMMIT_SHA == str(commit.id)
         parents = commit.parents
-        self.assertEqual(1, len(parents))
+        assert 1 == len(parents)
         self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
                          str(parents[0].id))
-        self.assertEqual(None, commit.message_encoding)
+        assert commit.message_encoding is None
         self.assertEqual(('Second test data commit.\n\n'
                           'This commit has some additional text.\n'),
                          commit.message)
         commit_time = 1288481576
-        self.assertEqual(commit_time, commit.commit_time)
+        assert commit_time == commit.commit_time
         self.assertEqualSignature(
             commit.committer,
             Signature('Dave Borowitz', 'dborowitz@google.com',
@@ -81,8 +81,7 @@ class CommitTest(utils.BareRepoTestCase):
             commit.author,
             Signature('Dave Borowitz', 'dborowitz@google.com', 1288477363,
                       -420))
-        self.assertEqual(
-            '967fce8df97cc71722d3c2a5930ef3e6f1d27b12', str(commit.tree.id))
+        assert '967fce8df97cc71722d3c2a5930ef3e6f1d27b12' == str(commit.tree.id)
 
     def test_new_commit(self):
         repo = self.repo
@@ -103,19 +102,19 @@ class CommitTest(utils.BareRepoTestCase):
                                  tree_prefix, parents)
         commit = repo[sha]
 
-        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
+        assert GIT_OBJ_COMMIT == commit.type
         self.assertEqual('98286caaab3f1fde5bf52c8369b2b0423bad743b',
                          commit.hex)
-        self.assertEqual(None, commit.message_encoding)
-        self.assertEqual(message, commit.message)
-        self.assertEqual(12346, commit.commit_time)
+        assert commit.message_encoding is None
+        assert message == commit.message
+        assert 12346 == commit.commit_time
         self.assertEqualSignature(committer, commit.committer)
         self.assertEqualSignature(author, commit.author)
-        self.assertEqual(tree, commit.tree.hex)
-        self.assertEqual(Oid(hex=tree), commit.tree_id)
-        self.assertEqual(1, len(commit.parents))
-        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
-        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
+        assert tree == commit.tree.hex
+        assert Oid(hex=tree) == commit.tree_id
+        assert 1 == len(commit.parents)
+        assert COMMIT_SHA == commit.parents[0].hex
+        assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
     def test_new_commit_encoding(self):
         repo = self.repo
@@ -133,17 +132,17 @@ class CommitTest(utils.BareRepoTestCase):
                                  tree_prefix, parents, encoding)
         commit = repo[sha]
 
-        self.assertEqual(GIT_OBJ_COMMIT, commit.type)
-        self.assertEqual('iso-8859-1', commit.message_encoding)
-        self.assertEqual(message.encode(encoding), commit.raw_message)
-        self.assertEqual(12346, commit.commit_time)
+        assert GIT_OBJ_COMMIT == commit.type
+        assert 'iso-8859-1' == commit.message_encoding
+        assert message.encode(encoding) == commit.raw_message
+        assert 12346 == commit.commit_time
         self.assertEqualSignature(committer, commit.committer)
         self.assertEqualSignature(author, commit.author)
-        self.assertEqual(tree, commit.tree.hex)
-        self.assertEqual(Oid(hex=tree), commit.tree_id)
-        self.assertEqual(1, len(commit.parents))
-        self.assertEqual(COMMIT_SHA, commit.parents[0].hex)
-        self.assertEqual(Oid(hex=COMMIT_SHA), commit.parent_ids[0])
+        assert tree == commit.tree.hex
+        assert Oid(hex=tree) == commit.tree_id
+        assert 1 == len(commit.parents)
+        assert COMMIT_SHA == commit.parents[0].hex
+        assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
     def test_modify_commit(self):
         message = 'New commit.\n\nMessage.\n'

@@ -52,12 +52,12 @@ class TagTest(utils.BareRepoTestCase):
         repo = self.repo
         tag = repo[TAG_SHA]
         target = repo[tag.target]
-        self.assertTrue(isinstance(tag, pygit2.Tag))
-        self.assertEqual(pygit2.GIT_OBJ_TAG, tag.type)
-        self.assertEqual(pygit2.GIT_OBJ_COMMIT, target.type)
-        self.assertEqual('root', tag.name)
-        self.assertEqual('Tagged root commit.\n', tag.message)
-        self.assertEqual('Initial test data commit.\n', target.message)
+        assert isinstance(tag, pygit2.Tag)
+        assert pygit2.GIT_OBJ_TAG == tag.type
+        assert pygit2.GIT_OBJ_COMMIT == target.type
+        assert 'root' == tag.name
+        assert 'Tagged root commit.\n' == tag.message
+        assert 'Initial test data commit.\n' == target.message
         self.assertEqualSignature(
             tag.tagger,
             pygit2.Signature('Dave Borowitz', 'dborowitz@google.com',
@@ -78,12 +78,12 @@ class TagTest(utils.BareRepoTestCase):
                                    tagger, message)
         tag = self.repo[sha]
 
-        self.assertEqual('3ee44658fd11660e828dfc96b9b5c5f38d5b49bb', tag.hex)
-        self.assertEqual(name, tag.name)
-        self.assertEqual(target, tag.target.hex)
+        assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.hex
+        assert name == tag.name
+        assert target == tag.target.hex
         self.assertEqualSignature(tagger, tag.tagger)
-        self.assertEqual(message, tag.message)
-        self.assertEqual(name, self.repo[tag.hex].name)
+        assert message == tag.message
+        assert name == self.repo[tag.hex].name
 
     def test_modify_tag(self):
         name = 'thetag'
@@ -101,7 +101,7 @@ class TagTest(utils.BareRepoTestCase):
     def test_get_object(self):
         repo = self.repo
         tag = repo[TAG_SHA]
-        self.assertEqual(repo[tag.target].id, tag.get_object().id)
+        assert repo[tag.target].id == tag.get_object().id
 
 
 if __name__ == '__main__':

@@ -61,51 +61,51 @@ class RevlogTestTest(utils.RepoTestCase):
     def test_log(self):
         ref = self.repo.lookup_reference('HEAD')
         for i, entry in enumerate(ref.log()):
-            self.assertEqual(entry.committer.name, REVLOGS[i][0])
-            self.assertEqual(entry.message, REVLOGS[i][1])
+            assert entry.committer.name == REVLOGS[i][0]
+            assert entry.message == REVLOGS[i][1]
 
 
 class WalkerTest(utils.RepoTestCase):
 
     def test_walk(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
-        self.assertEqual([x.hex for x in walker], log)
+        assert [x.hex for x in walker] == log
 
     def test_reverse(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME | GIT_SORT_REVERSE)
-        self.assertEqual([x.hex for x in walker], list(reversed(log)))
+        assert [x.hex for x in walker] == list(reversed(log))
 
     def test_hide(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
         walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertEqual(len(list(walker)), 2)
+        assert len(list(walker)) == 2
 
     def test_hide_prefix(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
         walker.hide('4ec4389a')
-        self.assertEqual(len(list(walker)), 2)
+        assert len(list(walker)) == 2
 
     def test_reset(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
         walker.reset()
-        self.assertEqual([x.hex for x in walker], [])
+        assert [x.hex for x in walker] == []
 
     def test_push(self):
         walker = self.repo.walk(log[-1], GIT_SORT_TIME)
-        self.assertEqual([x.hex for x in walker], log[-1:])
+        assert [x.hex for x in walker] == log[-1:]
         walker.reset()
         walker.push(log[0])
-        self.assertEqual([x.hex for x in walker], log)
+        assert [x.hex for x in walker] == log
 
     def test_sort(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
         walker.sort(GIT_SORT_TIME | GIT_SORT_REVERSE)
-        self.assertEqual([x.hex for x in walker], list(reversed(log)))
+        assert [x.hex for x in walker] == list(reversed(log))
 
     def test_simplify_first_parent(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
         walker.simplify_first_parent()
-        self.assertEqual(len(list(walker)), 3)
+        assert len(list(walker)) == 3
 
     def test_default_sorting(self):
         walker = self.repo.walk(log[0], GIT_SORT_NONE)
@@ -113,7 +113,7 @@ class WalkerTest(utils.RepoTestCase):
         walker = self.repo.walk(log[0])
         list2 = list([x.id for x in walker])
 
-        self.assertEqual(list1, list2)
+        assert list1 == list2
 
 if __name__ == '__main__':
     unittest.main()

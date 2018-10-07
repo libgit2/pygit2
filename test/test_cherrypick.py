@@ -64,8 +64,8 @@ class CherrypickTestWithConflicts(utils.RepoTestCaseForMerging):
         self.repo.cherrypick(other_branch_tip)
         idx = self.repo.index
         conflicts = idx.conflicts
-        self.assertTrue(conflicts is not None)
+        assert conflicts is not None
         conflicts['.gitignore']
         del idx.conflicts['.gitignore']
         self.assertRaises(KeyError, conflicts.__getitem__, '.gitignore')
-        self.assertTrue(idx.conflicts is None)
+        assert idx.conflicts is None
