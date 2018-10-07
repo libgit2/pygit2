@@ -29,7 +29,10 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import unittest
+
+import pytest
 
 import pygit2
 from . import utils
@@ -71,9 +74,9 @@ class TagTest(utils.BareRepoTestCase):
 
         target_prefix = target[:5]
         too_short_prefix = target[:3]
-        self.assertRaises(ValueError, self.repo.create_tag, name,
-                          too_short_prefix, pygit2.GIT_OBJ_BLOB, tagger,
-                          message)
+        with pytest.raises(ValueError):
+            self.repo.create_tag(name, too_short_prefix, pygit2.GIT_OBJ_BLOB, tagger, message)
+
         sha = self.repo.create_tag(name, target_prefix, pygit2.GIT_OBJ_BLOB,
                                    tagger, message)
         tag = self.repo[sha]
@@ -93,10 +96,10 @@ class TagTest(utils.BareRepoTestCase):
 
         tag = self.repo[TAG_SHA]
         error_type = AttributeError if not pypy2 else TypeError
-        self.assertRaises(error_type, setattr, tag, 'name', name)
-        self.assertRaises(error_type, setattr, tag, 'target', target)
-        self.assertRaises(error_type, setattr, tag, 'tagger', tagger)
-        self.assertRaises(error_type, setattr, tag, 'message', message)
+        with pytest.raises(error_type): setattr(tag, 'name', name)
+        with pytest.raises(error_type): setattr(tag, 'target', target)
+        with pytest.raises(error_type): setattr(tag, 'tagger', tagger)
+        with pytest.raises(error_type): setattr(tag, 'message', message)
 
     def test_get_object(self):
         repo = self.repo

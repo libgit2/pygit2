@@ -33,6 +33,8 @@ from __future__ import unicode_literals
 import operator
 import unittest
 
+import pytest
+
 from pygit2 import GIT_FILEMODE_TREE
 from . import utils
 
@@ -52,7 +54,7 @@ class TreeTest(utils.BareRepoTestCase):
 
     def test_read_tree(self):
         tree = self.repo[TREE_SHA]
-        self.assertRaises(TypeError, lambda: tree[()])
+        with pytest.raises(TypeError): tree[()]
         self.assertRaisesWithArg(KeyError, 'abcd', lambda: tree['abcd'])
         self.assertRaisesWithArg(IndexError, -4, lambda: tree[-4])
         self.assertRaisesWithArg(IndexError, 3, lambda: tree[3])
@@ -135,8 +137,8 @@ class TreeTest(utils.BareRepoTestCase):
 
     def test_modify_tree(self):
         tree = self.repo[TREE_SHA]
-        self.assertRaises(TypeError, operator.setitem, 'c', tree['a'])
-        self.assertRaises(TypeError, operator.delitem, 'c')
+        with pytest.raises(TypeError): operator.setitem('c', tree['a'])
+        with pytest.raises(TypeError): operator.delitem('c')
 
 
     def test_iterate_tree(self):

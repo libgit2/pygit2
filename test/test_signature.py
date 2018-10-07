@@ -27,8 +27,11 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import unittest
+
 import time
+import unittest
+
+import pytest
 
 from pygit2 import Signature
 from .utils import NoRepoTestCase
@@ -49,8 +52,8 @@ class SignatureTest(NoRepoTestCase):
                          signature.raw_email)
 
     def test_ascii(self):
-        self.assertRaises(UnicodeEncodeError,
-            Signature, 'Foo Ibáñez', 'foo@example.com', encoding='ascii')
+        with pytest.raises(UnicodeEncodeError):
+            Signature('Foo Ibáñez', 'foo@example.com', encoding='ascii')
 
     def test_latin1(self):
         encoding = 'iso-8859-1'

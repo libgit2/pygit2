@@ -29,8 +29,11 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import os
 import unittest
+
+import pytest
 
 import pygit2
 from pygit2 import Repository, Index
@@ -53,7 +56,7 @@ class IndexTest(utils.RepoTestCase):
         index = self.repo.index
         assert len(index) == 2
 
-        self.assertRaises(TypeError, lambda: index[()])
+        with pytest.raises(TypeError): index[()]
         self.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
         self.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
 
@@ -168,7 +171,7 @@ class IndexTest(utils.RepoTestCase):
         self.assertEqual([x.hex for x in index],
                          [x.hex for x in self.repo.index])
 
-        self.assertRaises(pygit2.GitError, lambda: index.add('bye.txt'))
+        with pytest.raises(pygit2.GitError): index.add('bye.txt')
 
     def test_remove(self):
         index = self.repo.index
@@ -213,7 +216,8 @@ class StandaloneIndexTest(utils.RepoTestCase):
     def test_create_empty_read_tree_as_string(self):
         index = Index()
         # no repo associated, so we don't know where to read from
-        self.assertRaises(TypeError, index, 'read_tree', 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+        with pytest.raises(TypeError):
+            index('read_tree', 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
     def test_create_empty_read_tree(self):
         index = Index()

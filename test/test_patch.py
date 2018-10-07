@@ -28,6 +28,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import pytest
+
 import pygit2
 from . import utils
 
@@ -143,18 +145,12 @@ class PatchTest(utils.RepoTestCase):
         assert patch.patch == BLOB_PATCH_DELETED
 
     def test_patch_create_from_bad_old_type_arg(self):
-        with self.assertRaises(TypeError):
-            pygit2.Patch.create_from(
-                self.repo,
-                BLOB_NEW_CONTENT,
-            )
+        with pytest.raises(TypeError):
+            pygit2.Patch.create_from(self.repo, BLOB_NEW_CONTENT)
 
     def test_patch_create_from_bad_new_type_arg(self):
-        with self.assertRaises(TypeError):
-            pygit2.Patch.create_from(
-                None,
-                self.repo,
-            )
+        with pytest.raises(TypeError):
+            pygit2.Patch.create_from(None, self.repo)
 
     def test_context_lines(self):
         old_blob = self.repo[BLOB_OLD_SHA]

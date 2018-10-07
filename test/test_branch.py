@@ -29,7 +29,10 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import unittest
+
+import pytest
 
 import pygit2
 from . import utils
@@ -51,7 +54,7 @@ class BranchesObjectTestCase(utils.RepoTestCase):
 
         assert self.repo.branches.get('not-exists') is None
 
-        self.assertRaises(KeyError, lambda: self.repo.branches['not-exists'])
+        with pytest.raises(KeyError): self.repo.branches['not-exists']
 
     def test_listall_branches(self):
         branches = sorted(self.repo.branches)
@@ -65,8 +68,8 @@ class BranchesObjectTestCase(utils.RepoTestCase):
         assert reference.target.hex == LAST_COMMIT
 
         # try to create existing reference
-        self.assertRaises(ValueError,
-                          lambda: self.repo.branches.create('version1', commit))
+        with pytest.raises(ValueError):
+            self.repo.branches.create('version1', commit)
 
         # try to create existing reference with force
         reference = self.repo.branches.create('version1', commit, True)
@@ -78,7 +81,8 @@ class BranchesObjectTestCase(utils.RepoTestCase):
         assert self.repo.branches.get('i18n') is None
 
     def test_cant_delete_master(self):
-        self.assertRaises(pygit2.GitError, lambda: self.repo.branches.delete('master'))
+        with pytest.raises(pygit2.GitError):
+            self.repo.branches.delete('master')
 
     def test_branch_is_head_returns_true_if_branch_is_head(self):
         branch = self.repo.branches.get('master')
@@ -97,7 +101,7 @@ class BranchesObjectTestCase(utils.RepoTestCase):
 
     def test_branch_rename_fails_if_destination_already_exists(self):
         original_branch = self.repo.branches.get('i18n')
-        self.assertRaises(ValueError, lambda: original_branch.rename('master'))
+        with pytest.raises(ValueError): original_branch.rename('master')
 
     def test_branch_rename_not_fails_if_force_is_true(self):
         original_branch = self.repo.branches.get('master')
@@ -106,8 +110,8 @@ class BranchesObjectTestCase(utils.RepoTestCase):
 
     def test_branch_rename_fails_with_invalid_names(self):
         original_branch = self.repo.branches.get('i18n')
-        self.assertRaises(ValueError,
-                          lambda: original_branch.rename('abc@{123'))
+        with pytest.raises(ValueError):
+            original_branch.rename('abc@{123')
 
     def test_branch_name(self):
         branch = self.repo.branches.get('master')
@@ -172,7 +176,7 @@ class BranchesObjectEmptyRepoTestCase(utils.EmptyRepoTestCase):
         def set_bad_upstream():
             master.upstream = 2.5
 
-        self.assertRaises(TypeError, set_bad_upstream)
+        with pytest.raises(TypeError): set_bad_upstream()
 
         master.upstream = None
         assert master.upstream is None
@@ -210,8 +214,8 @@ class BranchesTestCase(utils.RepoTestCase):
         assert reference.target.hex == LAST_COMMIT
 
         # try to create existing reference
-        self.assertRaises(ValueError,
-                          lambda: self.repo.create_branch('version1', commit))
+        with pytest.raises(ValueError):
+            self.repo.create_branch('version1', commit)
 
         # try to create existing reference with force
         reference = self.repo.create_branch('version1', commit, True)
@@ -226,7 +230,7 @@ class BranchesTestCase(utils.RepoTestCase):
     def test_cant_delete_master(self):
         branch = self.repo.lookup_branch('master')
 
-        self.assertRaises(pygit2.GitError, lambda: branch.delete())
+        with pytest.raises(pygit2.GitError): branch.delete()
 
     def test_branch_is_head_returns_true_if_branch_is_head(self):
         branch = self.repo.lookup_branch('master')
@@ -254,7 +258,7 @@ class BranchesTestCase(utils.RepoTestCase):
 
     def test_branch_rename_fails_if_destination_already_exists(self):
         original_branch = self.repo.lookup_branch('i18n')
-        self.assertRaises(ValueError, lambda: original_branch.rename('master'))
+        with pytest.raises(ValueError): original_branch.rename('master')
 
     def test_branch_rename_not_fails_if_force_is_true(self):
         original_branch = self.repo.lookup_branch('master')
@@ -263,8 +267,8 @@ class BranchesTestCase(utils.RepoTestCase):
 
     def test_branch_rename_fails_with_invalid_names(self):
         original_branch = self.repo.lookup_branch('i18n')
-        self.assertRaises(ValueError,
-                          lambda: original_branch.rename('abc@{123'))
+        with pytest.raises(ValueError):
+            original_branch.rename('abc@{123')
 
     def test_branch_name(self):
         branch = self.repo.lookup_branch('master')
@@ -314,7 +318,7 @@ class BranchesEmptyRepoTestCase(utils.EmptyRepoTestCase):
         def set_bad_upstream():
             master.upstream = 2.5
 
-        self.assertRaises(TypeError, set_bad_upstream)
+        with pytest.raises(TypeError): set_bad_upstream()
 
         master.upstream = None
         assert master.upstream is None

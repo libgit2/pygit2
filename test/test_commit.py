@@ -33,6 +33,8 @@ from __future__ import unicode_literals
 import unittest
 import sys
 
+import pytest
+
 from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
 from . import utils
 
@@ -95,8 +97,8 @@ class CommitTest(utils.BareRepoTestCase):
         too_short_prefix = tree[:3]
 
         parents = [COMMIT_SHA[:5]]
-        self.assertRaises(ValueError, repo.create_commit, None, author,
-                          committer, message, too_short_prefix, parents)
+        with pytest.raises(ValueError):
+            repo.create_commit(None, author, committer, message, too_short_prefix, parents)
 
         sha = repo.create_commit(None, author, committer, message,
                                  tree_prefix, parents)
@@ -152,11 +154,11 @@ class CommitTest(utils.BareRepoTestCase):
         commit = self.repo[COMMIT_SHA]
 
         error_type = AttributeError if not pypy2 else TypeError
-        self.assertRaises(error_type, setattr, commit, 'message', message)
-        self.assertRaises(error_type, setattr, commit, 'committer', committer)
-        self.assertRaises(error_type, setattr, commit, 'author', author)
-        self.assertRaises(error_type, setattr, commit, 'tree', None)
-        self.assertRaises(error_type, setattr, commit, 'parents', None)
+        with pytest.raises(error_type): setattr(commit, 'message', message)
+        with pytest.raises(error_type): setattr(commit, 'committer', committer)
+        with pytest.raises(error_type): setattr(commit, 'author', author)
+        with pytest.raises(error_type): setattr(commit, 'tree', None)
+        with pytest.raises(error_type): setattr(commit, 'parents', None)
 
 
 class GpgSignatureTestCase(utils.GpgSignedRepoTestCase):

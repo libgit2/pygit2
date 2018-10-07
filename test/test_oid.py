@@ -36,6 +36,8 @@ from binascii import unhexlify
 from sys import version_info
 import unittest
 
+import pytest
+
 # Import from pygit2
 from pygit2 import Oid
 from . import utils
@@ -65,17 +67,17 @@ class OidTest(utils.BareRepoTestCase):
             assert str(oid) == HEX
         else:
             hex = bytes(HEX, "ascii")
-            self.assertRaises(TypeError, Oid, hex=hex)
+            with pytest.raises(TypeError): Oid(hex=hex)
 
     def test_none(self):
-        self.assertRaises(ValueError, Oid)
+        with pytest.raises(ValueError): Oid()
 
     def test_both(self):
-        self.assertRaises(ValueError, Oid, raw=RAW, hex=HEX)
+        with pytest.raises(ValueError): Oid(raw=RAW, hex=HEX)
 
     def test_long(self):
-        self.assertRaises(ValueError, Oid, raw=RAW + b'a')
-        self.assertRaises(ValueError, Oid, hex=HEX + 'a')
+        with pytest.raises(ValueError): Oid(raw=RAW + b'a')
+        with pytest.raises(ValueError): Oid(hex=HEX + 'a')
 
     def test_cmp(self):
         oid1 = Oid(raw=RAW)

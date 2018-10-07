@@ -29,7 +29,10 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import unittest
+
+import pytest
 
 from pygit2 import Signature
 from . import utils
@@ -66,7 +69,7 @@ class NotesTest(utils.BareRepoTestCase):
         note = self.repo.lookup_note(head.target.hex)
         author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
         note.remove(author, committer)
-        self.assertRaises(KeyError, self.repo.lookup_note, head.target.hex)
+        with pytest.raises(KeyError): self.repo.lookup_note(head.target.hex)
 
     def test_iterate_notes(self):
         for i, note in enumerate(self.repo.notes()):
@@ -74,7 +77,7 @@ class NotesTest(utils.BareRepoTestCase):
             assert NOTES[i] == entry
 
     def test_iterate_non_existing_ref(self):
-        self.assertRaises(KeyError, self.repo.notes, "refs/notes/bad_ref")
+        with pytest.raises(KeyError): self.repo.notes("refs/notes/bad_ref")
 
 
 if __name__ == '__main__':

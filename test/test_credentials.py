@@ -29,6 +29,9 @@
 
 
 import unittest
+
+import pytest
+
 import pygit2
 from pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT
 from pygit2 import Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
@@ -93,7 +96,7 @@ class CredentialCallback(utils.RepoTestCase):
         url = "https://github.com/github/github"
         remote = self.repo.create_remote("github", url)
 
-        self.assertRaises(Exception, lambda: remote.fetch(callbacks=MyCallbacks()))
+        with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_bad_cred_type(self):
@@ -105,7 +108,7 @@ class CredentialCallback(utils.RepoTestCase):
 
         url = "https://github.com/github/github"
         remote = self.repo.create_remote("github", url)
-        self.assertRaises(TypeError, lambda: remote.fetch(callbacks=MyCallbacks()))
+        with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
 
 class CallableCredentialTest(utils.RepoTestCase):
 

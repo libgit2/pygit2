@@ -40,6 +40,7 @@ import os
 from os.path import join, realpath
 import sys
 
+import pytest
 import six
 
 if six.PY2:
@@ -92,7 +93,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         assert self.repo.head.target.hex == HEAD_SHA
 
     def test_read(self):
-        self.assertRaises(TypeError, self.repo.read, 123)
+        with pytest.raises(TypeError): self.repo.read(123)
         self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read, '1' * 40)
 
         ab = self.repo.read(BLOB_OID)
@@ -110,13 +111,13 @@ class RepositoryTest(utils.BareRepoTestCase):
     def test_write(self):
         data = b"hello world"
         # invalid object type
-        self.assertRaises(ValueError, self.repo.write, GIT_OBJ_ANY, data)
+        with pytest.raises(ValueError): self.repo.write(GIT_OBJ_ANY, data)
 
         oid = self.repo.write(GIT_OBJ_BLOB, data)
         assert type(oid) == Oid
 
     def test_contains(self):
-        self.assertRaises(TypeError, lambda: 123 in self.repo)
+        with pytest.raises(TypeError): 123 in self.repo
         assert BLOB_OID in self.repo
         assert BLOB_HEX in self.repo
         assert BLOB_HEX[:10] in self.repo
@@ -129,7 +130,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         assert oid in l
 
     def test_lookup_blob(self):
-        self.assertRaises(TypeError, lambda: self.repo[123])
+        with pytest.raises(TypeError): self.repo[123]
         assert self.repo[BLOB_OID].hex == BLOB_HEX
         a = self.repo[BLOB_HEX]
         assert b'a contents\n' == a.read_raw()
@@ -159,7 +160,8 @@ class RepositoryTest(utils.BareRepoTestCase):
         assert commit_sha == commit.hex
         assert GIT_OBJ_COMMIT == commit.type
         assert 'Second test data commit.\n\n' 'This commit has some additional text.\n' == commit.message
-        self.assertRaises(ValueError, self.repo.__getitem__, too_short_prefix)
+        with pytest.raises(ValueError):
+            self.repo.__getitem__(too_short_prefix)
 
     def test_expand_id(self):
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -265,7 +267,7 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         # checkout i18n with conflicts and default strategy should
         # not be possible
-        self.assertRaises(pygit2.GitError, self.repo.checkout, ref_i18n)
+        with pytest.raises(pygit2.GitError): self.repo.checkout(ref_i18n)
 
         # checkout i18n with GIT_CHECKOUT_FORCE
         head = self.repo.head
@@ -284,7 +286,7 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         # checkout i18n with conflicts and default strategy should
         # not be possible
-        self.assertRaises(pygit2.GitError, self.repo.checkout, branch_i18n)
+        with pytest.raises(pygit2.GitError): self.repo.checkout(branch_i18n)
 
         # checkout i18n with GIT_CHECKOUT_FORCE
         head = self.repo.head
@@ -407,7 +409,7 @@ class RepositoryTest_II(utils.RepoTestCase):
 
         #soft reset will keep changes in the index
         diff = self.repo.diff(cached=True)
-        self.assertRaises(KeyError, lambda: diff[0])
+        with pytest.raises(KeyError): diff[0]
 
     def test_reset_mixed(self):
         ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
@@ -444,7 +446,7 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.stash_apply()
         assert 'hello.txt' in self.repo.status()
         self.repo.stash_drop()
-        self.assertRaises(KeyError, self.repo.stash_pop)
+        with pytest.raises(KeyError): self.repo.stash_pop()
 
     def test_revert(self):
         master = self.repo.head.peel()

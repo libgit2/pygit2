@@ -33,6 +33,8 @@ from __future__ import unicode_literals
 import io
 import unittest
 
+import pytest
+
 import pygit2
 from . import utils
 
@@ -113,7 +115,7 @@ class BlobTest(utils.RepoTestCase):
         def set_content():
             blob_buffer[:2] = b'hi'
 
-        self.assertRaises(TypeError, set_content)
+        with pytest.raises(TypeError): set_content()
 
     def test_create_blob_fromworkdir(self):
 
@@ -132,8 +134,8 @@ class BlobTest(utils.RepoTestCase):
 
 
     def test_create_blob_outside_workdir(self):
-        path = __file__
-        self.assertRaises(KeyError, self.repo.create_blob_fromworkdir, path)
+        with pytest.raises(KeyError):
+            self.repo.create_blob_fromworkdir(__file__)
 
 
     def test_create_blob_fromdisk(self):
@@ -144,7 +146,8 @@ class BlobTest(utils.RepoTestCase):
         assert pygit2.GIT_OBJ_BLOB == blob.type
 
     def test_create_blob_fromiobase(self):
-        self.assertRaises(TypeError, self.repo.create_blob_fromiobase, 'bad type')
+        with pytest.raises(TypeError):
+            self.repo.create_blob_fromiobase('bad type')
 
         f = io.BytesIO(BLOB_CONTENT)
         blob_oid = self.repo.create_blob_fromiobase(f)

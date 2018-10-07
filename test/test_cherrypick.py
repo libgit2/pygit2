@@ -31,23 +31,21 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import unittest
 import os
 
-from pygit2 import GIT_MERGE_ANALYSIS_NONE, GIT_MERGE_ANALYSIS_NORMAL, GIT_MERGE_ANALYSIS_UP_TO_DATE
-from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_UNBORN
-import pygit2
+import pytest
 
+import pygit2
 from . import utils
 
 class CherrypickTestBasic(utils.RepoTestCaseForMerging):
 
     def test_cherrypick_none(self):
-        self.assertRaises(TypeError, self.repo.cherrypick, None)
+        with pytest.raises(TypeError): self.repo.cherrypick(None)
 
     def test_cherrypick_invalid_hex(self):
         branch_head_hex = '12345678'
-        self.assertRaises(KeyError, self.repo.cherrypick, branch_head_hex)
+        with pytest.raises(KeyError): self.repo.cherrypick(branch_head_hex)
 
     def test_cherrypick_already_something_in_index(self):
         branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
@@ -55,7 +53,7 @@ class CherrypickTestBasic(utils.RepoTestCaseForMerging):
         with open(os.path.join(self.repo.workdir, 'inindex.txt'), 'w') as f:
             f.write('new content')
         self.repo.index.add('inindex.txt')
-        self.assertRaises(pygit2.GitError, self.repo.cherrypick, branch_oid)
+        with pytest.raises(pygit2.GitError): self.repo.cherrypick(branch_oid)
 
 class CherrypickTestWithConflicts(utils.RepoTestCaseForMerging):
 
@@ -67,5 +65,5 @@ class CherrypickTestWithConflicts(utils.RepoTestCaseForMerging):
         assert conflicts is not None
         conflicts['.gitignore']
         del idx.conflicts['.gitignore']
-        self.assertRaises(KeyError, conflicts.__getitem__, '.gitignore')
+        with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
         assert idx.conflicts is None

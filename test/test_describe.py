@@ -29,9 +29,10 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import unittest
 
-from pygit2 import GIT_DESCRIBE_DEFAULT, GIT_DESCRIBE_TAGS, GIT_DESCRIBE_ALL
+import pytest
+
+from pygit2 import GIT_DESCRIBE_TAGS, GIT_DESCRIBE_ALL
 import pygit2
 from . import utils
 
@@ -51,7 +52,7 @@ class DescribeTest(utils.RepoTestCase):
         assert 'thetag-2-g2be5719' == self.repo.describe()
 
     def test_describe_without_ref(self):
-        self.assertRaises(pygit2.GitError, self.repo.describe)
+        with pytest.raises(pygit2.GitError): self.repo.describe()
 
     def test_describe_default_oid(self):
         assert '2be5719' == self.repo.describe(show_commit_oid_as_fallback=True)
@@ -60,7 +61,7 @@ class DescribeTest(utils.RepoTestCase):
         assert 'heads/master' == self.repo.describe(describe_strategy=GIT_DESCRIBE_ALL)
 
         self.repo.create_reference('refs/tags/thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertRaises(KeyError, self.repo.describe)
+        with pytest.raises(KeyError): self.repo.describe()
         assert 'thetag-2-g2be5719' == self.repo.describe(describe_strategy=GIT_DESCRIBE_TAGS)
 
     def test_describe_pattern(self):
@@ -81,7 +82,8 @@ class DescribeTest(utils.RepoTestCase):
 
     def test_describe_follows_first_branch_only(self):
         add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertRaises(KeyError, self.repo.describe, only_follow_first_parent=True)
+        with pytest.raises(KeyError):
+            self.repo.describe(only_follow_first_parent=True)
 
     def test_describe_abbreviated_size(self):
         add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')

@@ -33,6 +33,8 @@ from __future__ import unicode_literals
 
 import os
 
+import pytest
+
 from pygit2 import GIT_MERGE_ANALYSIS_UP_TO_DATE
 from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD
 import pygit2
@@ -42,7 +44,7 @@ from . import utils
 class MergeTestBasic(utils.RepoTestCaseForMerging):
 
     def test_merge_none(self):
-        self.assertRaises(TypeError, self.repo.merge, None)
+        with pytest.raises(TypeError): self.repo.merge(None)
 
     def test_merge_analysis_uptodate(self):
         branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
@@ -92,7 +94,7 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
 
     def test_merge_invalid_hex(self):
         branch_head_hex = '12345678'
-        self.assertRaises(KeyError, self.repo.merge, branch_head_hex)
+        with pytest.raises(KeyError): self.repo.merge(branch_head_hex)
 
     def test_merge_already_something_in_index(self):
         branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
@@ -100,7 +102,7 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
         with open(os.path.join(self.repo.workdir, 'inindex.txt'), 'w') as f:
             f.write('new content')
         self.repo.index.add('inindex.txt')
-        self.assertRaises(pygit2.GitError, self.repo.merge, branch_oid)
+        with pytest.raises(pygit2.GitError): self.repo.merge(branch_oid)
 
 class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
 
@@ -114,7 +116,9 @@ class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
 
         self.repo.merge(branch_id)
         assert self.repo.index.conflicts is not None
-        self.assertRaises(KeyError, self.repo.index.conflicts.__getitem__, 'some-file')
+        with pytest.raises(KeyError):
+            self.repo.index.conflicts.__getitem__('some-file')
+
         ancestor, ours, theirs = self.repo.index.conflicts['.gitignore']
         assert ancestor is None
         assert ours is not None
@@ -138,7 +142,7 @@ class MergeTestWithConflicts(utils.RepoTestCaseForMerging):
         except KeyError:
             self.fail("conflicts['.gitignore'] raised KeyError unexpectedly")
         del idx.conflicts['.gitignore']
-        self.assertRaises(KeyError, conflicts.__getitem__, '.gitignore')
+        with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
         assert idx.conflicts is None
 
 class MergeCommitsTest(utils.RepoTestCaseForMerging):
@@ -163,7 +167,8 @@ class MergeCommitsTest(utils.RepoTestCaseForMerging):
         merge_index = self.repo.merge_commits(self.repo.head.target, branch_head_hex, favor='ours')
         assert merge_index.conflicts is None
 
-        self.assertRaises(ValueError, self.repo.merge_commits, self.repo.head.target, branch_head_hex, favor='foo')
+        with pytest.raises(ValueError):
+            self.repo.merge_commits(self.repo.head.target, branch_head_hex, favor='foo')
 
 class MergeTreesTest(utils.RepoTestCaseForMerging):
 
@@ -189,4 +194,5 @@ class MergeTreesTest(utils.RepoTestCaseForMerging):
         merge_index = self.repo.merge_trees(ancestor_id, self.repo.head.target, branch_head_hex, favor='ours')
         assert merge_index.conflicts is None
 
-        self.assertRaises(ValueError, self.repo.merge_trees, ancestor_id, self.repo.head.target, branch_head_hex, favor='foo')
+        with pytest.raises(ValueError):
+            self.repo.merge_trees(ancestor_id, self.repo.head.target, branch_head_hex, favor='foo')

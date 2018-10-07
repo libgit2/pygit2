@@ -28,13 +28,16 @@
 """Tests for Remote objects."""
 
 
-import unittest
-import pygit2
-import sys
+import gc
 import os.path
+import sys
+import unittest
+
+import pytest
+
+import pygit2
 from pygit2 import Oid
 from . import utils
-import gc
 
 try:
     import __pypy__
@@ -62,7 +65,7 @@ class RepositoryTest(utils.RepoTestCase):
         assert url == remote.url
         assert remote.push_url is None
 
-        self.assertRaises(ValueError, self.repo.create_remote, *(name, url))
+        with pytest.raises(ValueError): self.repo.create_remote(*(name, url))
 
     def test_remote_create_with_refspec(self):
         name = 'upstream'
@@ -97,8 +100,8 @@ class RepositoryTest(utils.RepoTestCase):
         assert [] == problems
         assert 'new' != remote.name
 
-        self.assertRaises(ValueError, self.repo.remotes.rename, '', '')
-        self.assertRaises(ValueError, self.repo.remotes.rename, None, None)
+        with pytest.raises(ValueError): self.repo.remotes.rename('', '')
+        with pytest.raises(ValueError): self.repo.remotes.rename(None, None)
 
 
     def test_remote_set_url(self):
@@ -110,12 +113,14 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.remotes["origin"]
         assert new_url == remote.url
 
-        self.assertRaises(ValueError, self.repo.remotes.set_url, "origin", "")
+        with pytest.raises(ValueError):
+            self.repo.remotes.set_url("origin", "")
 
         self.repo.remotes.set_push_url("origin", new_url)
         remote = self.repo.remotes["origin"]
         assert new_url == remote.push_url
-        self.assertRaises(ValueError, self.repo.remotes.set_push_url, "origin", "")
+        with pytest.raises(ValueError):
+            self.repo.remotes.set_push_url("origin", "")
 
     def test_refspec(self):
         remote = self.repo.remotes["origin"]
@@ -153,7 +158,8 @@ class RepositoryTest(utils.RepoTestCase):
 
         self.repo.remotes.add_push("origin", '+refs/test/*:refs/test/remotes/*')
 
-        self.assertRaises(TypeError, self.repo.remotes.add_fetch, ['+refs/*:refs/*', 5])
+        with pytest.raises(TypeError):
+            self.repo.remotes.add_fetch(['+refs/*:refs/*', 5])
 
         remote = self.repo.remotes["origin"]
         assert ['+refs/test/*:refs/test/remotes/*'] == remote.push_refspecs
@@ -174,7 +180,7 @@ class RepositoryTest(utils.RepoTestCase):
         assert REMOTE_NAME == remote.name
         assert REMOTE_URL == remote.url
 
-        with self.assertRaises(KeyError):
+        with pytest.raises(KeyError):
             self.repo.remotes['upstream']
 
         name = 'upstream'
@@ -307,7 +313,8 @@ class PushTestCase(unittest.TestCase):
             tip.tree.id, [tip.id]
         )
 
-        self.assertRaises(pygit2.GitError, self.remote.push, ['refs/heads/master'])
+        with pytest.raises(pygit2.GitError):
+            self.remote.push(['refs/heads/master'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -29,14 +29,13 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import unittest
-import pygit2
+
+import pytest
+
 from pygit2 import Signature, Oid
-from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
-from pygit2 import GIT_DIFF_IGNORE_WHITESPACE, GIT_DIFF_IGNORE_WHITESPACE_EOL
 from . import utils
-from itertools import chain
-from datetime import datetime
 
 PATH = 'hello.txt'
 
@@ -79,7 +78,7 @@ class BlameTest(utils.RepoTestCase):
             blame[100000]
             blame[-1]
 
-        self.assertRaises(IndexError, test)
+        with pytest.raises(IndexError): test()
 
     def test_blame_for_line(self):
         repo = self.repo
@@ -107,7 +106,7 @@ class BlameTest(utils.RepoTestCase):
             blame.for_line(100000)
             blame.for_line(-1)
 
-        self.assertRaises(IndexError, test)
+        with pytest.raises(IndexError): test()
 
     def test_blame_newest(self):
         repo = self.repo

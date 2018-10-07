@@ -29,15 +29,19 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
+from itertools import chain
 import textwrap
 import unittest
+
+import pytest
+
 import pygit2
 from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
 from pygit2 import GIT_DIFF_IGNORE_WHITESPACE, GIT_DIFF_IGNORE_WHITESPACE_EOL
 from pygit2 import GIT_DIFF_SHOW_BINARY
 from pygit2 import GIT_DELTA_RENAMED
 from . import utils
-from itertools import chain
 
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -161,8 +165,8 @@ class DiffTest(utils.BareRepoTestCase):
     def test_diff_invalid(self):
         commit_a = self.repo[COMMIT_SHA1_1]
         commit_b = self.repo[COMMIT_SHA1_2]
-        self.assertRaises(TypeError, commit_a.tree.diff_to_tree, commit_b)
-        self.assertRaises(TypeError, commit_a.tree.diff_to_index, commit_b)
+        with pytest.raises(TypeError): commit_a.tree.diff_to_tree(commit_b)
+        with pytest.raises(TypeError): commit_a.tree.diff_to_index(commit_b)
 
     def test_diff_empty_index(self):
         repo = self.repo
@@ -351,7 +355,7 @@ class DiffTest(utils.BareRepoTestCase):
         assert 2 == len(deltas)
 
     def test_parse_diff_null(self):
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             self.repo.parse_diff(None)
 
     def test_parse_diff_bad(self):
@@ -363,7 +367,7 @@ class DiffTest(utils.BareRepoTestCase):
         @@ -1,1 +1,1 @@
         -Hi!
         """)
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             self.repo.parse_diff(diff)
 
 

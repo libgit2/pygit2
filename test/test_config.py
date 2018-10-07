@@ -30,6 +30,8 @@
 import os
 import unittest
 
+import pytest
+
 from pygit2 import Config
 from . import utils
 
@@ -95,8 +97,8 @@ class ConfigTest(utils.RepoTestCase):
     def test_read(self):
         config = self.repo.config
 
-        self.assertRaises(TypeError, lambda: config[()])
-        self.assertRaises(TypeError, lambda: config[-4])
+        with pytest.raises(TypeError): config[()]
+        with pytest.raises(TypeError): config[-4]
         self.assertRaisesWithArg(ValueError, "invalid config item name 'abc'",
                                  lambda: config['abc'])
         self.assertRaisesWithArg(KeyError, 'abc.def',
@@ -124,8 +126,8 @@ class ConfigTest(utils.RepoTestCase):
     def test_write(self):
         config = self.repo.config
 
-        self.assertRaises(TypeError, config.__setitem__,
-                          (), 'This should not work')
+        with pytest.raises(TypeError):
+            config.__setitem__((), 'This should not work')
 
         assert 'core.dummy1' not in config
         config['core.dummy1'] = 42

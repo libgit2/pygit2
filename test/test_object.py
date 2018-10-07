@@ -29,7 +29,10 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import unittest
+
+import pytest
 
 from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag
 from . import utils
@@ -68,13 +71,13 @@ class ObjectTest(utils.RepoTestCase):
         commit_id = self.repo.lookup_reference('refs/heads/master').target
         commit = self.repo[commit_id]
 
-        self.assertRaises(ValueError, commit.peel, GIT_OBJ_TAG)
+        with pytest.raises(ValueError): commit.peel(GIT_OBJ_TAG)
 
     def test_invalid_type(self):
         commit_id = self.repo.lookup_reference('refs/heads/master').target
         commit = self.repo[commit_id]
 
-        self.assertRaises(ValueError, commit.peel, Tag)
+        with pytest.raises(ValueError): commit.peel(Tag)
 
     def test_short_id(self):
         seen = dict() # from short_id to full hex id

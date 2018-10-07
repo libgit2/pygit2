@@ -29,7 +29,10 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import unittest
+
+import pytest
 
 from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
 from pygit2 import Commit, Tree
@@ -72,7 +75,7 @@ class ReferencesObjectTest(utils.RepoTestCase):
 
         refname = 'refs/foo'
         # Raise KeyError ?
-        self.assertRaises(KeyError, lambda: self.repo.references[refname])
+        with pytest.raises(KeyError): self.repo.references[refname]
 
         # Return None ?
         assert self.repo.references.get(refname) is None
@@ -140,12 +143,12 @@ class ReferencesObjectTest(utils.RepoTestCase):
         assert 'refs/tags/version1' not in repo.references
 
         # Access the deleted reference
-        self.assertRaises(GitError, getattr, reference, 'name')
-        self.assertRaises(GitError, getattr, reference, 'type')
-        self.assertRaises(GitError, getattr, reference, 'target')
-        self.assertRaises(GitError, reference.delete)
-        self.assertRaises(GitError, reference.resolve)
-        self.assertRaises(GitError, reference.rename, "refs/tags/version2")
+        with pytest.raises(GitError): getattr(reference, 'name')
+        with pytest.raises(GitError): getattr(reference, 'type')
+        with pytest.raises(GitError): getattr(reference, 'target')
+        with pytest.raises(GitError): reference.delete()
+        with pytest.raises(GitError): reference.resolve()
+        with pytest.raises(GitError): reference.rename("refs/tags/version2")
 
     def test_rename(self):
         # We add a tag as a new reference that points to "origin/master"
@@ -163,8 +166,8 @@ class ReferencesObjectTest(utils.RepoTestCase):
     #       ref2 = repo.lookup_reference(name)
     #       ref.delete()
     #       assert ref2.name == name
-    #       self.assertRaises(KeyError, ref2.reload)
-    #       self.assertRaises(GitError, getattr, ref2, 'name')
+    #       with pytest.raises(KeyError): ref2.reload()
+    #       with pytest.raises(GitError): getattr(ref2, 'name')
 
 
     def test_reference_resolve(self):
@@ -189,8 +192,8 @@ class ReferencesObjectTest(utils.RepoTestCase):
         assert reference.target.hex == LAST_COMMIT
 
         # try to create existing reference
-        self.assertRaises(ValueError, self.repo.references.create,
-                          'refs/tags/version1', LAST_COMMIT)
+        with pytest.raises(ValueError):
+            self.repo.references.create('refs/tags/version1', LAST_COMMIT)
 
         # try to create existing reference with force
         reference = self.repo.references.create('refs/tags/version1',
@@ -207,8 +210,8 @@ class ReferencesObjectTest(utils.RepoTestCase):
         assert reference.target == 'refs/heads/master'
 
         # try to create existing symbolic reference
-        self.assertRaises(ValueError, repo.references.create,
-                          'refs/tags/beta', 'refs/heads/master')
+        with pytest.raises(ValueError):
+            repo.references.create('refs/tags/beta', 'refs/heads/master')
 
         # try to create existing symbolic reference with force
         reference = repo.references.create('refs/tags/beta',
@@ -264,7 +267,7 @@ class ReferencesTest(utils.RepoTestCase):
         repo = self.repo
 
         # Raise KeyError ?
-        self.assertRaises(KeyError, repo.lookup_reference, 'refs/foo')
+        with pytest.raises(KeyError): repo.lookup_reference('refs/foo')
 
         # Test a lookup
         reference = repo.lookup_reference('refs/heads/master')
@@ -329,12 +332,12 @@ class ReferencesTest(utils.RepoTestCase):
         assert 'refs/tags/version1' not in repo.listall_references()
 
         # Access the deleted reference
-        self.assertRaises(GitError, getattr, reference, 'name')
-        self.assertRaises(GitError, getattr, reference, 'type')
-        self.assertRaises(GitError, getattr, reference, 'target')
-        self.assertRaises(GitError, reference.delete)
-        self.assertRaises(GitError, reference.resolve)
-        self.assertRaises(GitError, reference.rename, "refs/tags/version2")
+        with pytest.raises(GitError): getattr(reference, 'name')
+        with pytest.raises(GitError): getattr(reference, 'type')
+        with pytest.raises(GitError): getattr(reference, 'target')
+        with pytest.raises(GitError): reference.delete()
+        with pytest.raises(GitError): reference.resolve()
+        with pytest.raises(GitError): reference.rename("refs/tags/version2")
 
     def test_rename(self):
         # We add a tag as a new reference that points to "origin/master"
@@ -352,8 +355,8 @@ class ReferencesTest(utils.RepoTestCase):
     #       ref2 = repo.lookup_reference(name)
     #       ref.delete()
     #       assert ref2.name == name
-    #       self.assertRaises(KeyError, ref2.reload)
-    #       self.assertRaises(GitError, getattr, ref2, 'name')
+    #       with pytest.raises(KeyError): ref2.reload()
+    #       with pytest.raises(GitError): getattr(ref2, 'name')
 
 
     def test_reference_resolve(self):
@@ -378,8 +381,8 @@ class ReferencesTest(utils.RepoTestCase):
         assert reference.target.hex == LAST_COMMIT
 
         # try to create existing reference
-        self.assertRaises(ValueError, self.repo.create_reference,
-                          'refs/tags/version1', LAST_COMMIT)
+        with pytest.raises(ValueError):
+            self.repo.create_reference('refs/tags/version1', LAST_COMMIT)
 
         # try to create existing reference with force
         reference = self.repo.create_reference('refs/tags/version1',
@@ -396,8 +399,8 @@ class ReferencesTest(utils.RepoTestCase):
         assert reference.target == 'refs/heads/master'
 
         # try to create existing symbolic reference
-        self.assertRaises(ValueError, repo.create_reference,
-                          'refs/tags/beta', 'refs/heads/master')
+        with pytest.raises(ValueError):
+            repo.create_reference('refs/tags/beta', 'refs/heads/master')
 
         # try to create existing symbolic reference with force
         reference = repo.create_reference('refs/tags/beta',
