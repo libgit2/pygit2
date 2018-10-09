@@ -262,6 +262,21 @@ class PruneTestCase(utils.RepoTestCase):
         self.clone_repo.remotes[0].fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
         assert 'origin/i18n' in self.clone_repo.branches
 
+    def test_remote_prune(self):
+        pruned = []
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def update_tips(self, name, old, new):
+                pruned.append(name)
+
+        callbacks = MyCallbacks()
+        remote = self.clone_repo.remotes['origin']
+        # We do a fetch in order to establish the connection to the remote.
+        # Prune operation requires an active connection.
+        remote.fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
+        self.assertIn('origin/i18n', self.clone_repo.branches)
+        remote.prune(callbacks)
+        self.assertEqual(pruned, ['refs/remotes/origin/i18n'])
+        self.assertNotIn('origin/i18n', self.clone_repo.branches)
 
 class Utf8BranchTest(utils.Utf8BranchRepoTestCase):
     def test_fetch(self):

@@ -283,6 +283,7 @@ int git_remote_set_url(git_repository *repo, const char *remote, const char* url
 const char * git_remote_pushurl(const git_remote *remote);
 int git_remote_set_pushurl(git_repository *repo, const char *remote, const char* url);
 int git_remote_fetch(git_remote *remote, const git_strarray *refspecs, const git_fetch_options *opts, const char *reflog_message);
+int git_remote_prune(git_remote *remote, git_remote_callbacks *opts);
 int git_remote_push(git_remote *remote, const git_strarray *refspecs, const git_push_options *opts);
 const git_transfer_progress * git_remote_stats(git_remote *remote);
 int git_remote_add_push(git_repository *repo, const char *remote, const char *refspec);

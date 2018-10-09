@@ -210,6 +210,12 @@ class RemoteCallbacks(object):
         self._self_handle = ffi.new_handle(self)
         push_opts.callbacks.payload = self._self_handle
 
+    def _fill_prune_callbacks(self, prune_callbacks):
+        prune_callbacks.update_tips = self._update_tips_cb
+        # We need to make sure that this handle stays alive
+        self._self_handle = ffi.new_handle(self)
+        prune_callbacks.payload = self._self_handle
+
     # These functions exist to be called by the git_remote as
     # callbacks. They proxy the call to whatever the user set
 
@@ -407,6 +413,17 @@ class Remote(object):
             callbacks._self_handle = None
 
         return TransferProgress(C.git_remote_stats(self._remote))
+
+    def prune(self, callbacks=None):
+        """Perform a prune against this remote."""
+
+        remote_callbacks = ffi.new('git_remote_callbacks *')
+        C.git_remote_init_callbacks(remote_callbacks, C.GIT_REMOTE_CALLBACKS_VERSION)
+        if callbacks is None:
+            callbacks = RemoteCallbacks()
+        callbacks._fill_prune_callbacks(remote_callbacks)
+        err = C.git_remote_prune(self._remote, remote_callbacks)
+        check_error(err)
 
     @property
     def refspec_count(self):
