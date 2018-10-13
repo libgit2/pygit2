@@ -9,27 +9,37 @@ environment:
   matrix:
   - GENERATOR: 'Visual Studio 10'
     PYTHON: 'C:\Python27\python.exe'
+    TOXENV: py27
   - GENERATOR: 'Visual Studio 10 Win64'
     PYTHON: 'C:\Python27-x64\python.exe'
+    TOXENV: py27
   - GENERATOR: 'Visual Studio 10'
     PYTHON: 'C:\Python34\python.exe'
+    TOXENV: py34
   - GENERATOR: 'Visual Studio 10 Win64'
     PYTHON: 'C:\Python34-x64\python.exe'
+    TOXENV: py34
   - GENERATOR: 'Visual Studio 14'
     PYTHON: 'C:\Python35\python.exe'
+    TOXENV: py35
   - GENERATOR: 'Visual Studio 14 Win64'
     PYTHON: 'C:\Python35-x64\python.exe'
+    TOXENV: py35
   - GENERATOR: 'Visual Studio 14'
     PYTHON: 'C:\Python36\python.exe'
+    TOXENV: py36
   - GENERATOR: 'Visual Studio 14 Win64'
     PYTHON: 'C:\Python36-x64\python.exe'
+    TOXENV: py36
   - GENERATOR: 'Visual Studio 14'
     PYTHON: 'C:\Python37\python.exe'
+    TOXENV: py37
   - GENERATOR: 'Visual Studio 14 Win64'
     PYTHON: 'C:\Python37-x64\python.exe'
+    TOXENV: py37
 
 init:
-- cmd: '%PYTHON% -m pip install -U nose wheel pytest'
+- cmd: '%PYTHON% -m pip install -U wheel tox'
 
 build_script:
 - cmd: |
@@ -49,7 +59,7 @@ build_script:
 test_script:
 - ps: |
     cp build\Release\git2.dll .
-    &$env:PYTHON -m pytest --junitxml=testresults.xml
+    &$env:PYTHON -m tox -e $env:TOXENV
     if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
     # upload results to AppVeyor
     $wc = New-Object 'System.Net.WebClient'
