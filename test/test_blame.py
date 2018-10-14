@@ -61,11 +61,11 @@ class BlameTest(utils.RepoTestCase):
             assert hunk.lines_in_hunk == 1
             assert HUNKS[i][0] == hunk.final_commit_id
             assert HUNKS[i][1] == hunk.final_start_line_number
-            self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
+            assert HUNKS[i][2] == hunk.final_committer
             assert HUNKS[i][0] == hunk.orig_commit_id
             assert hunk.orig_path == PATH
             assert HUNKS[i][1] == hunk.orig_start_line_number
-            self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
+            assert HUNKS[i][2] == hunk.orig_committer
             assert HUNKS[i][3] == hunk.boundary
 
     def test_blame_with_invalid_index(self):
@@ -88,11 +88,11 @@ class BlameTest(utils.RepoTestCase):
             assert hunk.lines_in_hunk == 1
             assert HUNKS[i][0] == hunk.final_commit_id
             assert HUNKS[i][1] == hunk.final_start_line_number
-            self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
+            assert HUNKS[i][2] == hunk.final_committer
             assert HUNKS[i][0] == hunk.orig_commit_id
             assert hunk.orig_path == PATH
             assert HUNKS[i][1] == hunk.orig_start_line_number
-            self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
+            assert HUNKS[i][2] == hunk.orig_committer
             assert HUNKS[i][3] == hunk.boundary
 
     def test_blame_with_invalid_line(self):
@@ -125,9 +125,9 @@ class BlameTest(utils.RepoTestCase):
                 assert hunk.lines_in_hunk == 1
                 assert HUNKS[i][0] == hunk.final_commit_id
                 assert HUNKS[i][1] == hunk.final_start_line_number
-                self.assertEqualSignature(HUNKS[i][2], hunk.final_committer)
+                assert HUNKS[i][2] == hunk.final_committer
                 assert HUNKS[i][0] == hunk.orig_commit_id
                 assert hunk.orig_path == PATH
                 assert HUNKS[i][1] == hunk.orig_start_line_number
-                self.assertEqualSignature(HUNKS[i][2], hunk.orig_committer)
+                assert HUNKS[i][2] == hunk.orig_committer
                 assert HUNKS[i][3] == hunk.boundary

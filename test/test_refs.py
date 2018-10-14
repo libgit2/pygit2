@@ -126,8 +126,9 @@ class ReferencesObjectTest(utils.RepoTestCase):
         msg = 'Hello log'
         reference.set_target('refs/heads/i18n', message=msg)
         assert reference.target == 'refs/heads/i18n'
-        assert list(reference.log())[0].message == msg
-        self.assertEqualSignature(list(reference.log())[0].committer, sig)
+        first = list(reference.log())[0]
+        assert first.message == msg
+        assert first.committer == sig
 
     def test_delete(self):
         repo = self.repo
@@ -315,8 +316,9 @@ class ReferencesTest(utils.RepoTestCase):
         msg = 'Hello log'
         reference.set_target('refs/heads/i18n', message=msg)
         assert reference.target == 'refs/heads/i18n'
-        assert list(reference.log())[0].message == msg
-        self.assertEqualSignature(list(reference.log())[0].committer, sig)
+        first = list(reference.log())[0]
+        assert first.message == msg
+        assert first.committer == sig
 
     def test_delete(self):
         repo = self.repo

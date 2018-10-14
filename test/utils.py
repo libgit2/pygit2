@@ -38,6 +38,8 @@ import tarfile
 import tempfile
 import unittest
 
+import pytest
+
 import pygit2
 
 
@@ -126,19 +128,9 @@ class NoRepoTestCase(unittest.TestCase):
         return self.assertTrue(any(func(x) for x in entries))
 
     def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
-        try:
+        with pytest.raises(exc_class) as excinfo:
             func(*args, **kwargs)
-        except exc_class as exc_value:
-            assert (arg,) == exc_value.args
-        else:
-            self.fail('%s(%r) not raised' % (exc_class.__name__, arg))
-
-    def assertEqualSignature(self, a, b):
-        # XXX Remove this once equality test is supported by Signature
-        assert a.name == b.name
-        assert a.email == b.email
-        assert a.time == b.time
-        assert a.offset == b.offset
+        assert excinfo.value.args == (arg,)
 
 
 class AutoRepoTestCase(NoRepoTestCase):

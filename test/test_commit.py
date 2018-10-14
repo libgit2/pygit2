@@ -75,14 +75,8 @@ class CommitTest(utils.BareRepoTestCase):
                          commit.message)
         commit_time = 1288481576
         assert commit_time == commit.commit_time
-        self.assertEqualSignature(
-            commit.committer,
-            Signature('Dave Borowitz', 'dborowitz@google.com',
-                      commit_time, -420))
-        self.assertEqualSignature(
-            commit.author,
-            Signature('Dave Borowitz', 'dborowitz@google.com', 1288477363,
-                      -420))
+        assert commit.committer == Signature('Dave Borowitz', 'dborowitz@google.com', commit_time, -420)
+        assert commit.author == Signature('Dave Borowitz', 'dborowitz@google.com', 1288477363, -420)
         assert '967fce8df97cc71722d3c2a5930ef3e6f1d27b12' == str(commit.tree.id)
 
     def test_new_commit(self):
@@ -110,8 +104,8 @@ class CommitTest(utils.BareRepoTestCase):
         assert commit.message_encoding is None
         assert message == commit.message
         assert 12346 == commit.commit_time
-        self.assertEqualSignature(committer, commit.committer)
-        self.assertEqualSignature(author, commit.author)
+        assert committer == commit.committer
+        assert author == commit.author
         assert tree == commit.tree.hex
         assert Oid(hex=tree) == commit.tree_id
         assert 1 == len(commit.parents)
@@ -138,8 +132,8 @@ class CommitTest(utils.BareRepoTestCase):
         assert 'iso-8859-1' == commit.message_encoding
         assert message.encode(encoding) == commit.raw_message
         assert 12346 == commit.commit_time
-        self.assertEqualSignature(committer, commit.committer)
-        self.assertEqualSignature(author, commit.author)
+        assert committer == commit.committer
+        assert author == commit.author
         assert tree == commit.tree.hex
         assert Oid(hex=tree) == commit.tree_id
         assert 1 == len(commit.parents)

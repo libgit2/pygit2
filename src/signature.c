@@ -33,6 +33,8 @@
 #include "oid.h"
 #include "signature.h"
 
+extern PyTypeObject SignatureType;
+
 int
 Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 {
@@ -182,6 +184,48 @@ PyGetSetDef Signature_getseters[] = {
     {NULL}
 };
 
+PyObject *
+Signature_richcompare(PyObject *a, PyObject *b, int op)
+{
+    int eq;
+    Signature *sa, *sb;
+
+    /* We only support comparing to another signature */
+    if (!PyObject_TypeCheck(b, &SignatureType)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    sa = (Signature *)a;
+    sb = (Signature *)b;
+
+    eq = (
+        strcmp(sa->signature->name, sb->signature->name) == 0 &&
+        strcmp(sa->signature->email, sb->signature->email) == 0 &&
+        sa->signature->when.time == sb->signature->when.time &&
+        sa->signature->when.offset == sb->signature->when.offset &&
+        sa->signature->when.sign == sb->signature->when.sign);
+
+    switch (op) {
+        case Py_EQ:
+            if (eq) {
+                Py_RETURN_TRUE;
+            } else {
+                Py_RETURN_FALSE;
+            }
+        case Py_NE:
+            if (eq) {
+                Py_RETURN_FALSE;
+            } else {
+                Py_RETURN_TRUE;
+            }
+        default:
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+    }
+
+}
+
 
 PyDoc_STRVAR(Signature__doc__, "Signature.");
 
@@ -209,7 +253,7 @@ PyTypeObject SignatureType = {
     Signature__doc__,                          /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
-    0,                                         /* tp_richcompare    */
+    (richcmpfunc)Signature_richcompare,        /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */

@@ -48,8 +48,7 @@ class TreeTest(utils.BareRepoTestCase):
         assert entry.hex == sha
         assert entry.name == name
         assert entry._name == name.encode('utf-8')
-        self.assertEqual(entry.filemode, filemode,
-                         '0%o != 0%o' % (entry.filemode, filemode))
+        assert entry.filemode == filemode
 
     def test_read_tree(self):
         tree = self.repo[TREE_SHA]

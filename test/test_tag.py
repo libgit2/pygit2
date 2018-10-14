@@ -59,10 +59,7 @@ class TagTest(utils.BareRepoTestCase):
         assert 'root' == tag.name
         assert 'Tagged root commit.\n' == tag.message
         assert 'Initial test data commit.\n' == target.message
-        self.assertEqualSignature(
-            tag.tagger,
-            pygit2.Signature('Dave Borowitz', 'dborowitz@google.com',
-                             1288724692, -420))
+        assert tag.tagger == pygit2.Signature('Dave Borowitz', 'dborowitz@google.com', 1288724692, -420)
 
     def test_new_tag(self):
         name = 'thetag'
@@ -82,7 +79,7 @@ class TagTest(utils.BareRepoTestCase):
         assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.hex
         assert name == tag.name
         assert target == tag.target.hex
-        self.assertEqualSignature(tagger, tag.tagger)
+        assert tagger == tag.tagger
         assert message == tag.message
         assert name == self.repo[tag.hex].name
 
