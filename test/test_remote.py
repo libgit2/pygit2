@@ -273,10 +273,10 @@ class PruneTestCase(utils.RepoTestCase):
         # We do a fetch in order to establish the connection to the remote.
         # Prune operation requires an active connection.
         remote.fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
-        self.assertIn('origin/i18n', self.clone_repo.branches)
+        assert 'origin/i18n' in self.clone_repo.branches
         remote.prune(callbacks)
-        self.assertEqual(pruned, ['refs/remotes/origin/i18n'])
-        self.assertNotIn('origin/i18n', self.clone_repo.branches)
+        assert pruned == ['refs/remotes/origin/i18n']
+        assert 'origin/i18n' not in self.clone_repo.branches
 
 class Utf8BranchTest(utils.Utf8BranchRepoTestCase):
     def test_fetch(self):
@@ -318,12 +318,12 @@ class PushTestCase(unittest.TestCase):
 
     def test_push_non_fast_forward_commits_to_remote_fails(self):
         tip = self.origin[self.origin.head.target]
-        oid = self.origin.create_commit(
+        self.origin.create_commit(
             'refs/heads/master', tip.author, tip.author, 'some commit',
             tip.tree.id, [tip.id]
         )
         tip = self.clone[self.clone.head.target]
-        oid = self.clone.create_commit(
+        self.clone.create_commit(
             'refs/heads/master', tip.author, tip.author, 'other commit',
             tip.tree.id, [tip.id]
         )

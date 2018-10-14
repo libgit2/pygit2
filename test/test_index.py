@@ -167,8 +167,7 @@ class IndexTest(utils.RepoTestCase):
 
     def test_bare_index(self):
         index = pygit2.Index(os.path.join(self.repo.path, 'index'))
-        self.assertEqual([x.hex for x in index],
-                         [x.hex for x in self.repo.index])
+        assert [x.hex for x in index] == [x.hex for x in self.repo.index]
 
         with pytest.raises(pygit2.GitError): index.add('bye.txt')
 
@@ -210,7 +209,7 @@ class IndexEntryTest(utils.RepoTestCase):
 class StandaloneIndexTest(utils.RepoTestCase):
 
     def test_create_empty(self):
-        index = Index()
+        Index()
 
     def test_create_empty_read_tree_as_string(self):
         index = Index()

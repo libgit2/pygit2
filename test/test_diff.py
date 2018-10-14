@@ -217,13 +217,13 @@ class DiffTest(utils.BareRepoTestCase):
             return map(lambda x: x.origin, lines)
 
         entries = [p.delta.new_file.path for p in diff]
-        self.assertAll(lambda x: commit_a.tree[x], entries)
-        self.assertAll(lambda x: '-' == x, get_context_for_lines(diff))
+        assert all(commit_a.tree[x] for x in entries)
+        assert all('-' == x for x in get_context_for_lines(diff))
 
         diff_swaped = commit_a.tree.diff_to_tree(swap=True)
         entries = [p.delta.new_file.path for p in diff_swaped]
-        self.assertAll(lambda x: commit_a.tree[x], entries)
-        self.assertAll(lambda x: '+' == x, get_context_for_lines(diff_swaped))
+        assert all(commit_a.tree[x] for x in entries)
+        assert all('+' == x for x in get_context_for_lines(diff_swaped))
 
     def test_diff_revparse(self):
         diff = self.repo.diff('HEAD', 'HEAD~6')
@@ -281,10 +281,9 @@ class DiffTest(utils.BareRepoTestCase):
         commit_a = self.repo[COMMIT_SHA1_1]
         commit_b = self.repo[COMMIT_SHA1_2]
         patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
-        self.assertEqual(patch.delta.old_file.id.hex,
-                         '7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        self.assertEqual(patch.delta.new_file.id.hex,
-                         'af431f20fc541ed6d5afede3e2dc7160f6f01f16')
+        delta = patch.delta
+        assert delta.old_file.id.hex == '7f129fd57e31e935c6d60a0c794efe4e6927664b'
+        assert delta.new_file.id.hex == 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 
     def test_hunk_content(self):
         commit_a = self.repo[COMMIT_SHA1_1]
@@ -304,11 +303,11 @@ class DiffTest(utils.BareRepoTestCase):
         #~ --find-copies-harder during rename transformion...
         diff = commit_a.tree.diff_to_tree(commit_b.tree,
                                           GIT_DIFF_INCLUDE_UNMODIFIED)
-        self.assertAll(lambda x: x.delta.status != GIT_DELTA_RENAMED, diff)
-        self.assertAll(lambda x: x.delta.status_char() != 'R', diff)
+        assert all(x.delta.status != GIT_DELTA_RENAMED for x in diff)
+        assert all(x.delta.status_char() != 'R' for x in diff)
         diff.find_similar()
-        self.assertAny(lambda x: x.delta.status == GIT_DELTA_RENAMED, diff)
-        self.assertAny(lambda x: x.delta.status_char() == 'R', diff)
+        assert any(x.delta.status == GIT_DELTA_RENAMED for x in diff)
+        assert any(x.delta.status_char() == 'R' for x in diff)
 
     def test_diff_stats(self):
         commit_a = self.repo[COMMIT_SHA1_1]

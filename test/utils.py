@@ -33,7 +33,6 @@ import os
 import shutil
 import socket
 import stat
-import sys
 import tarfile
 import tempfile
 import unittest
@@ -114,18 +113,6 @@ class NoRepoTestCase(unittest.TestCase):
         del self.repo
         gc.collect()
         rmtree(self._temp_dir)
-
-    def assertRaisesAssign(self, exc_class, instance, name, value):
-        try:
-            setattr(instance, name, value)
-        except:
-            assert exc_class == sys.exc_info()[0]
-
-    def assertAll(self, func, entries):
-        return self.assertTrue(all(func(x) for x in entries))
-
-    def assertAny(self, func, entries):
-        return self.assertTrue(any(func(x) for x in entries))
 
     def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
         with pytest.raises(exc_class) as excinfo:

@@ -45,24 +45,22 @@ class ReferencesObjectTest(utils.RepoTestCase):
 
         refs = [(ref.name, ref.target.hex)
                 for ref in repo.references.objects]
-        self.assertEqual(sorted(refs),
-                         [('refs/heads/i18n',
-                           '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
-                          ('refs/heads/master',
-                           '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')])
+        assert sorted(refs) == [
+            ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+            ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
 
     def test_list_all_references(self):
         repo = self.repo
 
         # Without argument
-        self.assertEqual(sorted(repo.references),
-                         ['refs/heads/i18n', 'refs/heads/master'])
+        assert sorted(repo.references) == ['refs/heads/i18n',
+                                           'refs/heads/master']
 
         # We add a symbolic reference
         repo.create_reference('refs/tags/version1', 'refs/heads/master')
-        self.assertEqual(sorted(repo.references),
-                         ['refs/heads/i18n', 'refs/heads/master',
-                          'refs/tags/version1'])
+        assert sorted(repo.references) == ['refs/heads/i18n',
+                                           'refs/heads/master',
+                                           'refs/tags/version1']
 
     def test_head(self):
         head = self.repo.head
@@ -236,27 +234,24 @@ class ReferencesObjectTest(utils.RepoTestCase):
 class ReferencesTest(utils.RepoTestCase):
     def test_list_all_reference_objects(self):
         repo = self.repo
-
         refs = [(ref.name, ref.target.hex)
                 for ref in repo.listall_reference_objects()]
-        self.assertEqual(sorted(refs),
-                         [('refs/heads/i18n',
-                           '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
-                          ('refs/heads/master',
-                           '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')])
+
+        assert sorted(refs) == [
+            ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+            ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
 
     def test_list_all_references(self):
         repo = self.repo
 
         # Without argument
-        self.assertEqual(sorted(repo.listall_references()),
-                         ['refs/heads/i18n', 'refs/heads/master'])
+        assert sorted(repo.listall_references()) == ['refs/heads/i18n', 'refs/heads/master']
 
         # We add a symbolic reference
         repo.create_reference('refs/tags/version1', 'refs/heads/master')
-        self.assertEqual(sorted(repo.listall_references()),
-                         ['refs/heads/i18n', 'refs/heads/master',
-                          'refs/tags/version1'])
+        assert sorted(repo.listall_references()) == ['refs/heads/i18n',
+                                                     'refs/heads/master',
+                                                     'refs/tags/version1']
 
     def test_head(self):
         head = self.repo.head

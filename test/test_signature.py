@@ -45,10 +45,8 @@ class SignatureTest(NoRepoTestCase):
         assert encoding == 'utf-8'
         assert signature.name == signature.raw_name.decode(encoding)
         assert signature.name.encode(encoding) == signature.raw_name
-        self.assertEqual(signature.email,
-                         signature.raw_email.decode(encoding))
-        self.assertEqual(signature.email.encode(encoding),
-                         signature.raw_email)
+        assert signature.email == signature.raw_email.decode(encoding)
+        assert signature.email.encode(encoding) == signature.raw_email
 
     def test_ascii(self):
         with pytest.raises(UnicodeEncodeError):
@@ -61,10 +59,8 @@ class SignatureTest(NoRepoTestCase):
         assert encoding == signature._encoding
         assert signature.name == signature.raw_name.decode(encoding)
         assert signature.name.encode(encoding) == signature.raw_name
-        self.assertEqual(signature.email,
-                         signature.raw_email.decode(encoding))
-        self.assertEqual(signature.email.encode(encoding),
-                         signature.raw_email)
+        assert signature.email == signature.raw_email.decode(encoding)
+        assert signature.email.encode(encoding) == signature.raw_email
 
     def test_now(self):
         encoding = 'utf-8'
@@ -73,8 +69,6 @@ class SignatureTest(NoRepoTestCase):
         assert encoding == signature._encoding
         assert signature.name == signature.raw_name.decode(encoding)
         assert signature.name.encode(encoding) == signature.raw_name
-        self.assertEqual(signature.email,
-                         signature.raw_email.decode(encoding))
-        self.assertEqual(signature.email.encode(encoding),
-                         signature.raw_email)
+        assert signature.email == signature.raw_email.decode(encoding)
+        assert signature.email.encode(encoding) == signature.raw_email
         assert abs(signature.time - time.time()) < 5

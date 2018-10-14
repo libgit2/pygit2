@@ -148,9 +148,8 @@ class RepositoryTest(utils.BareRepoTestCase):
         commit = self.repo[commit_sha]
         assert commit_sha == commit.hex
         assert GIT_OBJ_COMMIT == commit.type
-        self.assertEqual(('Second test data commit.\n\n'
-                          'This commit has some additional text.\n'),
-                         commit.message)
+        assert commit.message == ('Second test data commit.\n\n'
+                                  'This commit has some additional text.\n')
 
     def test_lookup_commit_prefix(self):
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -232,12 +231,12 @@ class RepositoryTest(utils.BareRepoTestCase):
 
         (a, t, o) = index.conflicts['conflict']
         diff = self.repo.merge_file_from_index(a, t, o)
-        self.assertEqual(diff, '''<<<<<<< conflict
+        assert diff == '''<<<<<<< conflict
 ASCII - abc
 =======
 Unicode - äüö
 >>>>>>> conflict
-''')
+'''
 
 class RepositoryTest_II(utils.RepoTestCase):
 
@@ -337,8 +336,7 @@ class RepositoryTest_II(utils.RepoTestCase):
         commit = self.repo.merge_base(
             '5ebeeebb320790caf276b9fc8b24546d63316533',
             '4ec4389a8068641da2d6578db0419484972284c8')
-        self.assertEqual(commit.hex,
-                         'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+        assert commit.hex == 'acecd5ea2924a4b900e7e149496e1f4b57976e51'
 
         # Create a commit without any merge base to any other
         sig = pygit2.Signature("me", "me@example.com")
@@ -362,13 +360,15 @@ class RepositoryTest_II(utils.RepoTestCase):
             '5ebeeebb320790caf276b9fc8b24546d63316533')
 
     def test_ahead_behind(self):
-        ahead, behind = self.repo.ahead_behind('5ebeeebb320790caf276b9fc8b24546d63316533',
-                                               '4ec4389a8068641da2d6578db0419484972284c8')
+        ahead, behind = self.repo.ahead_behind(
+            '5ebeeebb320790caf276b9fc8b24546d63316533',
+            '4ec4389a8068641da2d6578db0419484972284c8')
         assert 1 == ahead
         assert 2 == behind
 
-        ahead, behind = self.repo.ahead_behind('4ec4389a8068641da2d6578db0419484972284c8',
-                                               '5ebeeebb320790caf276b9fc8b24546d63316533')
+        ahead, behind = self.repo.ahead_behind(
+            '4ec4389a8068641da2d6578db0419484972284c8',
+            '5ebeeebb320790caf276b9fc8b24546d63316533')
         assert 2 == ahead
         assert 1 == behind
 

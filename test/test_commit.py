@@ -67,12 +67,10 @@ class CommitTest(utils.BareRepoTestCase):
         assert COMMIT_SHA == str(commit.id)
         parents = commit.parents
         assert 1 == len(parents)
-        self.assertEqual('c2792cfa289ae6321ecf2cd5806c2194b0fd070c',
-                         str(parents[0].id))
+        assert 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c' == str(parents[0].id)
         assert commit.message_encoding is None
-        self.assertEqual(('Second test data commit.\n\n'
-                          'This commit has some additional text.\n'),
-                         commit.message)
+        assert commit.message == ('Second test data commit.\n\n'
+                                  'This commit has some additional text.\n')
         commit_time = 1288481576
         assert commit_time == commit.commit_time
         assert commit.committer == Signature('Dave Borowitz', 'dborowitz@google.com', commit_time, -420)
@@ -99,8 +97,7 @@ class CommitTest(utils.BareRepoTestCase):
         commit = repo[sha]
 
         assert GIT_OBJ_COMMIT == commit.type
-        self.assertEqual('98286caaab3f1fde5bf52c8369b2b0423bad743b',
-                         commit.hex)
+        assert '98286caaab3f1fde5bf52c8369b2b0423bad743b' == commit.hex
         assert commit.message_encoding is None
         assert message == commit.message
         assert 12346 == commit.commit_time
