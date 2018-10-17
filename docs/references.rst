@@ -23,6 +23,24 @@ Example::
     >>> repo.references.delete('refs/tags/version1')
 
 
+Functions
+===================================
+
+.. autofunction:: pygit2.reference_is_valid_name
+
+Check if the passed string is a valid reference name.
+
+   Example::
+
+     >>> from pygit2 import reference_is_valid_name
+     >>> reference_is_valid_name("refs/heads/master")
+     True
+     >>> reference_is_valid_name("HEAD")
+     True
+     >>> reference_is_valid_name("refs/heads/..")
+     False
+
+
 The Reference type
 ====================
 

@@ -183,6 +183,26 @@ cleanup:
 }
 
 
+PyDoc_STRVAR(reference_is_valid_name__doc__,
+    "reference_is_valid_name(refname) -> bool\n"
+    "\n"
+    "Check if the passed string is a valid reference name.");
+PyObject *
+reference_is_valid_name(PyObject *self, PyObject *args)
+{
+    char* refname;
+    int result;
+
+    if (!PyArg_ParseTuple(args, "es", "utf-8", &refname)) {
+        return NULL;
+    }
+
+    result = git_reference_is_valid_name(refname);
+    PyMem_Free(refname);
+    return PyBool_FromLong(result);
+}
+
+
 PyMethodDef module_methods[] = {
     {"init_file_backend", init_file_backend, METH_VARARGS,
     init_file_backend__doc__},
@@ -190,6 +210,7 @@ PyMethodDef module_methods[] = {
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
     {"hash", hash, METH_VARARGS, hash__doc__},
+    {"reference_is_valid_name", reference_is_valid_name, METH_VARARGS, reference_is_valid_name__doc__},
     {"option", option, METH_VARARGS, option__doc__},
     {NULL}
 };
