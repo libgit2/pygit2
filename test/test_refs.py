@@ -420,15 +420,14 @@ class ReferencesTest(utils.RepoTestCase):
 
 class ReferenceIsValidNameTest(utils.NoRepoTestCase):
 
-    def test_valid_reference_names_bytes(self):
-        assert reference_is_valid_name(b'HEAD')
-        assert reference_is_valid_name(b'refs/heads/master')
-        assert reference_is_valid_name(b'refs/heads/perfectly/valid')
-        assert reference_is_valid_name(b'refs/tags/v1')
-        assert reference_is_valid_name(b'refs/special/ref')
+    def test_valid_reference_names_ascii(self):
+        assert reference_is_valid_name('HEAD')
+        assert reference_is_valid_name('refs/heads/master')
+        assert reference_is_valid_name('refs/heads/perfectly/valid')
+        assert reference_is_valid_name('refs/tags/v1')
+        assert reference_is_valid_name('refs/special/ref')
 
     def test_valid_reference_names_unicode(self):
-        assert reference_is_valid_name('HEAD')
         assert reference_is_valid_name('refs/heads/ünicöde')
         assert reference_is_valid_name('refs/tags/😀')
 
