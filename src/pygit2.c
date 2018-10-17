@@ -188,17 +188,18 @@ PyDoc_STRVAR(reference_is_valid_name__doc__,
     "\n"
     "Check if the passed string is a valid reference name.");
 PyObject *
-reference_is_valid_name(PyObject *self, PyObject *args)
+reference_is_valid_name(PyObject *self, PyObject *py_refname)
 {
     char* refname;
     int result;
 
-    if (!PyArg_ParseTuple(args, "es", "utf-8", &refname)) {
+    refname = py_str_to_c_str(py_refname, NULL);
+    if (refname == NULL) {
         return NULL;
     }
 
     result = git_reference_is_valid_name(refname);
-    PyMem_Free(refname);
+    free(refname);
     return PyBool_FromLong(result);
 }
 
@@ -210,7 +211,7 @@ PyMethodDef module_methods[] = {
      discover_repository__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
     {"hash", hash, METH_VARARGS, hash__doc__},
-    {"reference_is_valid_name", reference_is_valid_name, METH_VARARGS, reference_is_valid_name__doc__},
+    {"reference_is_valid_name", reference_is_valid_name, METH_O, reference_is_valid_name__doc__},
     {"option", option, METH_VARARGS, option__doc__},
     {NULL}
 };
