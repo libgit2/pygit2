@@ -32,8 +32,9 @@ from __future__ import unicode_literals
 
 import pytest
 
-from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
+from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
 from pygit2 import Commit, Tree, reference_is_valid_name
+from pygit2 import AlreadyExistsError, GitError, InvalidSpecError
 from . import utils
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -376,8 +377,9 @@ class ReferencesTest(utils.RepoTestCase):
         assert reference.target.hex == LAST_COMMIT
 
         # try to create existing reference
-        with pytest.raises(ValueError):
+        with pytest.raises(AlreadyExistsError) as error:
             self.repo.create_reference('refs/tags/version1', LAST_COMMIT)
+        assert isinstance(error.value, ValueError)
 
         # try to create existing reference with force
         reference = self.repo.create_reference('refs/tags/version1',
@@ -394,14 +396,23 @@ class ReferencesTest(utils.RepoTestCase):
         assert reference.target == 'refs/heads/master'
 
         # try to create existing symbolic reference
-        with pytest.raises(ValueError):
+        with pytest.raises(AlreadyExistsError) as error:
             repo.create_reference('refs/tags/beta', 'refs/heads/master')
+        assert isinstance(error.value, ValueError)
 
         # try to create existing symbolic reference with force
         reference = repo.create_reference('refs/tags/beta',
                                           'refs/heads/master', force=True)
         assert reference.type == GIT_REF_SYMBOLIC
         assert reference.target == 'refs/heads/master'
+
+    def test_create_invalid_reference(self):
+        repo = self.repo
+
+        # try to create a reference with an invalid name
+        with pytest.raises(InvalidSpecError) as error:
+            repo.create_reference('refs/tags/in..valid', 'refs/heads/master')
+        assert isinstance(error.value, ValueError)
 
     #   def test_packall_references(self):
     #       self.repo.packall_references()

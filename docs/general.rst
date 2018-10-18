@@ -59,3 +59,16 @@ Exceptions
    :show-inheritance:
    :undoc-members:
 
+.. autoexception:: pygit2.AlreadyExistsError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception when trying to create an object (reference, etc) that already exists.
+
+.. autoexception:: pygit2.InvalidSpecError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception when an input specification such as a reference name is invalid.

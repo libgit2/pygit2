@@ -28,6 +28,8 @@
 #include "error.h"
 
 PyObject *GitError;
+PyObject *AlreadyExistsError;
+PyObject *InvalidSpecError;
 
 PyObject *
 Error_type(int type)
@@ -41,7 +43,7 @@ Error_type(int type)
 
         /* A reference with this name already exists */
         case GIT_EEXISTS:
-            return PyExc_ValueError;
+            return AlreadyExistsError;
 
         /* The given short oid is ambiguous */
         case GIT_EAMBIGUOUS:
@@ -53,7 +55,7 @@ Error_type(int type)
 
         /* Invalid input spec */
         case GIT_EINVALIDSPEC:
-            return PyExc_ValueError;
+            return InvalidSpecError;
 
         /* Skip and passthrough the given ODB backend */
         case GIT_PASSTHROUGH:

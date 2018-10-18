@@ -37,6 +37,8 @@
 #include "options.h"
 
 extern PyObject *GitError;
+extern PyObject *AlreadyExistsError;
+extern PyObject *InvalidSpecError;
 
 extern PyTypeObject RepositoryType;
 extern PyTypeObject OidType;
@@ -244,6 +246,14 @@ moduleinit(PyObject* m)
     GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
     Py_INCREF(GitError);
     PyModule_AddObject(m, "GitError", GitError);
+
+    AlreadyExistsError = PyErr_NewException("_pygit2.AlreadyExistsError", PyExc_ValueError, NULL);
+    Py_INCREF(AlreadyExistsError);
+    PyModule_AddObject(m, "AlreadyExistsError", AlreadyExistsError);
+
+    InvalidSpecError = PyErr_NewException("_pygit2.InvalidSpecError", PyExc_ValueError, NULL);
+    Py_INCREF(InvalidSpecError);
+    PyModule_AddObject(m, "InvalidSpecError", InvalidSpecError);
 
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
