@@ -380,6 +380,9 @@ class ReferencesTest(utils.RepoTestCase):
         with pytest.raises(AlreadyExistsError) as error:
             self.repo.create_reference('refs/tags/version1', LAST_COMMIT)
         assert isinstance(error.value, ValueError)
+        
+        # Clear error
+        del error
 
         # try to create existing reference with force
         reference = self.repo.create_reference('refs/tags/version1',
