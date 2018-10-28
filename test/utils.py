@@ -118,6 +118,8 @@ class NoRepoTestCase(unittest.TestCase):
         with pytest.raises(exc_class) as excinfo:
             func(*args, **kwargs)
         assert excinfo.value.args == (arg,)
+        # Explicitly clear the Exception Info 
+        del excinfo
 
 
 class AutoRepoTestCase(NoRepoTestCase):
