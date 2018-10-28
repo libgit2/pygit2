@@ -57,19 +57,25 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertRaisesWithArg(IndexError, -4, lambda: tree[-4])
         self.assertRaisesWithArg(IndexError, 3, lambda: tree[3])
 
+    def test_read_tree_a(self):
+        tree = self.repo[TREE_SHA]
         assert 3 == len(tree)
         sha = '7f129fd57e31e935c6d60a0c794efe4e6927664b'
         assert 'a' in tree
         self.assertTreeEntryEqual(tree[0], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree[-3], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree['a'], sha, 'a', 0o0100644)
-
+        
+    def test_read_tree_b(self):
+        tree = self.repo[TREE_SHA]
         sha = '85f120ee4dac60d0719fd51731e4199aa5a37df6'
         assert 'b' in tree
         self.assertTreeEntryEqual(tree[1], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree[-2], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree['b'], sha, 'b', 0o0100644)
-
+        
+    def test_read_tree_c(self):
+        tree = self.repo[TREE_SHA]
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(tree['c/d'], sha, 'd', 0o0100644)
         self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree['ab/cd'])
