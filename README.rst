@@ -15,7 +15,7 @@ Links:
 
 - Documentation - http://www.pygit2.org/
 
-  Install - http://www.pygit2.org/install.html
+- Install - http://www.pygit2.org/install.html
 
 - Download - https://pypi.python.org/pypi/pygit2
 
