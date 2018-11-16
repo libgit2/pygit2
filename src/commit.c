@@ -62,7 +62,7 @@ Commit_message__get__(Commit *commit)
 
     message = git_commit_message(commit->commit);
     encoding = git_commit_message_encoding(commit->commit);
-    return to_unicode(message, encoding, "strict");
+    return to_unicode(message, encoding, NULL);
 }
 
 PyDoc_STRVAR(Commit_gpg_signature__doc__, "A tuple with the GPG signature and the signed payload.");

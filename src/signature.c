@@ -142,7 +142,7 @@ PyDoc_STRVAR(Signature_name__doc__, "Name.");
 PyObject *
 Signature_name__get__(Signature *self)
 {
-    return to_unicode(self->signature->name, self->encoding, "strict");
+    return to_unicode(self->signature->name, self->encoding, NULL);
 }
 
 
@@ -151,7 +151,7 @@ PyDoc_STRVAR(Signature_email__doc__, "Email address.");
 PyObject *
 Signature_email__get__(Signature *self)
 {
-    return to_unicode(self->signature->email, self->encoding, "strict");
+    return to_unicode(self->signature->email, self->encoding, NULL);
 }
 
 
