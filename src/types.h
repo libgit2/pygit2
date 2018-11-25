@@ -126,6 +126,7 @@ typedef struct {
     PyObject_HEAD
     PyObject *id;
     char *path;
+    PyObject *raw_path;
     git_off_t size;
     uint32_t flags;
     uint16_t mode;
