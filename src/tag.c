@@ -119,24 +119,16 @@ Tag_message__get__(Tag *self)
 }
 
 
-PyDoc_STRVAR(Tag__message__doc__, "Tag message (bytes).");
+PyDoc_STRVAR(Tag_raw_message__doc__, "Tag message (bytes).");
 
 PyObject *
-Tag__message__get__(Tag *self)
+Tag_raw_message__get__(Tag *self)
 {
     const char *message;
     message = git_tag_message(self->tag);
     if (!message)
         Py_RETURN_NONE;
     return PyBytes_FromString(message);
-}
-
-PyDoc_STRVAR(Tag_raw_message__doc__, "Tag message (bytes).");
-
-PyObject *
-Tag_raw_message__get__(Tag *self)
-{
-    return Tag__message__get__(self);
 }
 
 PyMethodDef Tag_methods[] = {
@@ -150,7 +142,6 @@ PyGetSetDef Tag_getseters[] = {
     GETTER(Tag, raw_name),
     GETTER(Tag, tagger),
     GETTER(Tag, message),
-    GETTER(Tag, _message),
     GETTER(Tag, raw_message),
     {NULL}
 };
