@@ -80,6 +80,19 @@ Tag_name__get__(Tag *self)
 }
 
 
+PyDoc_STRVAR(Tag_raw_name__doc__, "Tag name (bytes).");
+
+PyObject *
+Tag_raw_name__get__(Tag *self)
+{
+    const char *name;
+    name = git_tag_name(self->tag);
+    if (!name)
+        Py_RETURN_NONE;
+    return PyBytes_FromString(name);
+}
+
+
 PyDoc_STRVAR(Tag_tagger__doc__, "Tagger.");
 
 PyObject *
@@ -118,6 +131,14 @@ Tag__message__get__(Tag *self)
     return PyBytes_FromString(message);
 }
 
+PyDoc_STRVAR(Tag_raw_message__doc__, "Tag message (bytes).");
+
+PyObject *
+Tag_raw_message__get__(Tag *self)
+{
+    return Tag__message__get__(self);
+}
+
 PyMethodDef Tag_methods[] = {
     METHOD(Tag, get_object, METH_NOARGS),
     {NULL}
@@ -126,9 +147,11 @@ PyMethodDef Tag_methods[] = {
 PyGetSetDef Tag_getseters[] = {
     GETTER(Tag, target),
     GETTER(Tag, name),
+    GETTER(Tag, raw_name),
     GETTER(Tag, tagger),
     GETTER(Tag, message),
     GETTER(Tag, _message),
+    GETTER(Tag, raw_message),
     {NULL}
 };
 
