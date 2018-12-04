@@ -476,6 +476,26 @@ class RepositoryTest_II(utils.RepoTestCase):
         assert revert_diff_stats.deletions == commit_diff_stats.insertions
         assert revert_diff_stats.files_changed == commit_diff_stats.files_changed
 
+    def test_diff_patch(self):
+        new_content = 'bye world\nadiós\nau revoir monde\n'
+
+        # create the patch
+        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
+            f.write(new_content)
+
+        patch = self.repo.diff().patch
+
+        # rollback all changes
+        self.repo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
+
+        # apply the patch and compare
+        self.repo.apply(pygit2.Diff.parse_diff(patch))
+
+        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'r') as f:
+            content = f.read()
+
+        self.assertEqual(content, new_content)
+
 
 class RepositorySignatureTest(utils.RepoTestCase):
 
