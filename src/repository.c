@@ -590,7 +590,12 @@ Repository_descendant_of(Repository *self, PyObject *args)
     if (err < 0)
         return NULL;
 
-    return PyBool_FromLong(git_graph_descendant_of(self->repo, &oid1, &oid2));
+    // err < 0 => error, see source code of `git_graph_descendant_of`
+    err = git_graph_descendant_of(self->repo, &oid1, &oid2);
+    if (err < 0)
+        return Error_set(err);
+
+    return PyBool_FromLong(err);
 }
 
 PyDoc_STRVAR(Repository_merge_base__doc__,

@@ -359,6 +359,11 @@ class RepositoryTest_II(utils.RepoTestCase):
             'acecd5ea2924a4b900e7e149496e1f4b57976e51',
             '5ebeeebb320790caf276b9fc8b24546d63316533')
 
+        with pytest.raises(pygit2.GitError):
+            self.repo.descendant_of(
+                '2' * 40,  # a valid but inexistent SHA
+                '5ebeeebb320790caf276b9fc8b24546d63316533')
+
     def test_ahead_behind(self):
         ahead, behind = self.repo.ahead_behind(
             '5ebeeebb320790caf276b9fc8b24546d63316533',
