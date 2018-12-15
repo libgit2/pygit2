@@ -249,6 +249,8 @@ objects::
     >>> commit.author
     <pygit2.Signature object at 0x7f75e9b1f5f8>
 
+Signatures can be compared for (in)equality.
+
 .. autoattribute:: pygit2.Signature.name
 .. autoattribute:: pygit2.Signature.raw_name
 .. autoattribute:: pygit2.Signature.email
@@ -283,9 +285,11 @@ Tags
 A tag is a static label for a commit. See references for more information.
 
 .. autoattribute:: pygit2.Tag.name
+.. autoattribute:: pygit2.Tag.raw_name
 .. autoattribute:: pygit2.Tag.target
 .. autoattribute:: pygit2.Tag.tagger
 .. autoattribute:: pygit2.Tag.message
+.. autoattribute:: pygit2.Tag.raw_message
 
 .. automethod:: pygit2.Tag.get_object
 

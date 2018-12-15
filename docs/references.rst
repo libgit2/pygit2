@@ -47,7 +47,9 @@ The Reference type
 .. autoclass:: pygit2.Reference
 
 .. autoattribute:: pygit2.Reference.name
+.. autoattribute:: pygit2.Reference.raw_name
 .. autoattribute:: pygit2.Reference.shorthand
+.. autoattribute:: pygit2.Reference.raw_shorthand
 .. autoattribute:: pygit2.Reference.target
 .. autoattribute:: pygit2.Reference.type
 

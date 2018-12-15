@@ -3,9 +3,9 @@ Authors::
   J. David Ibáñez
   Carlos Martín Nieto
   Nico von Geyso
+  Matthias Bartelmeß
   W. Trevor King
   Dave Borowitz
-  Matthias Bartelmeß
   Brandon Milton
   Daniel Rodríguez Troitiño
   Richo Healey
@@ -37,11 +37,14 @@ Authors::
   Anatoly Techtonik
   David Versmisse
   Mikhail Yushkovskiy
+  Robin Stocker
   Rémi Duraffort
   Santiago Perez De Rosso
   Sebastian Thiel
   Thom Wiggers
+  Alexander Linne
   Alok Singhal
+  Assaf Nativ
   Bob Carroll
   Erik Johnson
   Fraser Tweedale
@@ -98,8 +101,10 @@ Authors::
   CJ Harries
   Cam Cope
   Chason Chaffin
+  Chris Jerdonek
   Chris Rebert
   Colin Watson
+  Cristian Hotea
   Cyril Jouve
   Daniel Bruce
   David Fischer
@@ -115,6 +120,7 @@ Authors::
   Holger Frey
   Hugh Cole-Baker
   Jasper Lievisse Adriaanse
+  Jorge C. Leitao
   Josh Bleecher Snyder
   Justin Clift
   Kyriakos Oikonomakos

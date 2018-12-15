@@ -1,3 +1,46 @@
+0.27.3 (2018-12-15)
+-------------------------
+
+- Move to pytest, drop support for Python 3.3 and cffi 0.x
+  `#824 <https://github.com/libgit2/pygit2/issues/824>`_
+  `#826 <https://github.com/libgit2/pygit2/pull/826>`_
+  `#833 <https://github.com/libgit2/pygit2/pull/833>`_
+  `#834 <https://github.com/libgit2/pygit2/pull/834>`_
+
+- New support comparing signatures for (in)equality
+
+- New ``Submodule.head_id``
+  `#817 <https://github.com/libgit2/pygit2/pull/817>`_
+
+- New ``Remote.prune(...)``
+  `#825 <https://github.com/libgit2/pygit2/pull/825>`_
+
+- New ``pygit2.reference_is_valid_name(...)``
+  `#827 <https://github.com/libgit2/pygit2/pull/827>`_
+
+- New ``AlreadyExistsError`` and ``InvalidSpecError``
+  `#828 <https://github.com/libgit2/pygit2/issues/828>`_
+  `#829 <https://github.com/libgit2/pygit2/pull/829>`_
+
+- New ``Reference.raw_name``, ``Reference.raw_shorthand``, ``Tag.raw_name``,
+  ``Tag.raw_message`` and ``DiffFile.raw_path``
+  `#840 <https://github.com/libgit2/pygit2/pull/840>`_
+
+- Fix decode error in commit messages and signatures
+  `#839 <https://github.com/libgit2/pygit2/issues/839>`_
+
+- Fix, raise error in ``Repository.descendant_of(...)`` if commit doesn't exist
+  `#822 <https://github.com/libgit2/pygit2/issues/822>`_
+  `#842 <https://github.com/libgit2/pygit2/pull/842>`_
+
+- Documentation fixes
+  `#821 <https://github.com/libgit2/pygit2/pull/821>`_
+
+Breaking changes:
+
+- Remove undocumented ``Tag._message``, replaced by ``Tag.raw_message``
+
+
 0.27.2 (2018-09-16)
 -------------------------
 
