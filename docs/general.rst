@@ -39,6 +39,14 @@ library that has been built against. The version number has a
       >>> print(pygit2.LIBGIT2_VER_REVISION)
       0
 
+.. py:data:: LIBGIT2_VER
+
+   Tuple value of the revision version numbers. For example, for the version
+   ``0.26.0``::
+
+      >>> print(pygit2.LIBGIT2_VER_REVISION)
+      (0, 26, 0)
+
 .. py:data:: LIBGIT2_VERSION
 
    The libgit2 version number as a string::
