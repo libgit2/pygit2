@@ -51,7 +51,7 @@ def _get_libgit2_path():
 
     # Default
     if os.name == 'nt':
-        return '%s\libgit2' % getenv("ProgramFiles")
+        return r'%s\libgit2' % getenv("ProgramFiles")
     return '/usr/local'
 
 
