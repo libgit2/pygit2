@@ -179,6 +179,15 @@ Object_peel(Object *self, PyObject *py_type)
     return wrap_object(peeled, self->repo);
 }
 
+Py_hash_t
+Object_hash(PyObject *object)
+{
+    PyObject *py_oid = PyObject_GetAttrString(object, "oid");
+    Py_hash_t ret = PyObject_Hash(py_oid);
+    Py_DECREF(py_oid);
+    return ret;
+}
+
 PyObject *
 Object_richcompare(PyObject *o1, PyObject *o2, int op)
 {
@@ -253,7 +262,7 @@ PyTypeObject ObjectType = {
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
-    0,                                         /* tp_hash           */
+    (hashfunc)Object_hash,                     /* tp_hash           */
     0,                                         /* tp_call           */
     0,                                         /* tp_str            */
     0,                                         /* tp_getattro       */
