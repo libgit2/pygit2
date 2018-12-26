@@ -39,6 +39,7 @@ extern PyTypeObject CommitType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 
+PyTypeObject ObjectType;
 
 void
 Object_dealloc(Object* self)
@@ -178,6 +179,47 @@ Object_peel(Object *self, PyObject *py_type)
     return wrap_object(peeled, self->repo);
 }
 
+PyObject *
+Object_richcompare(PyObject *o1, PyObject *o2, int op)
+{
+    PyObject *res;
+    PyObject *oid1;
+    PyObject *oid2;
+
+    if (!PyObject_TypeCheck(o2, &ObjectType)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    switch (op) {
+        case Py_NE:
+            oid1 = PyObject_GetAttrString(o1, "oid");
+            oid2 = PyObject_GetAttrString(o2, "oid");
+            res = PyObject_RichCompare(oid1, oid2, Py_NE);
+            Py_DECREF(oid1);
+            Py_DECREF(oid2);
+            break;
+        case Py_EQ:
+            oid1 = PyObject_GetAttrString(o1, "oid");
+            oid2 = PyObject_GetAttrString(o2, "oid");
+            res = PyObject_RichCompare(oid1, oid2, Py_EQ);
+            Py_DECREF(oid1);
+            Py_DECREF(oid2);
+            break;
+        case Py_LT:
+        case Py_LE:
+        case Py_GT:
+        case Py_GE:
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+        default:
+            PyErr_Format(PyExc_RuntimeError, "Unexpected '%d' op", op);
+            return NULL;
+    }
+
+    return res;
+}
+
 PyGetSetDef Object_getseters[] = {
     GETTER(Object, oid),
     GETTER(Object, id),
@@ -221,7 +263,7 @@ PyTypeObject ObjectType = {
     Object__doc__,                             /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
-    0,                                         /* tp_richcompare    */
+    Object_richcompare,                        /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
