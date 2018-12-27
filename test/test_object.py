@@ -46,6 +46,46 @@ BLOB_FILE_CONTENT = b'bye world\n'
 
 class ObjectTest(utils.RepoTestCase):
 
+    def test_equality(self):
+        # get a commit object twice and see if it equals itself
+        commit_id = self.repo.lookup_reference('refs/heads/master').target
+        commit_a = self.repo[commit_id]
+        commit_b = self.repo[commit_id]
+
+        assert commit_a is not commit_b
+        assert commit_a == commit_b
+        assert not(commit_a != commit_b)
+
+    def test_hashing(self):
+        # get a commit object twice and compare hashes
+        commit_id = self.repo.lookup_reference('refs/heads/master').target
+        commit_a = self.repo[commit_id]
+        commit_b = self.repo[commit_id]
+
+        assert hash(commit_a)
+
+        assert commit_a is not commit_b
+        assert commit_a == commit_b
+        # if the commits are equal then their hash *must* be equal
+        # but different objects can have the same commit
+        assert hash(commit_a) == hash(commit_b)
+
+        # sanity check that python container types work as expected
+        s = set()
+        s.add(commit_a)
+        s.add(commit_b)
+        assert len(s) == 1
+        assert commit_a in s
+        assert commit_b in s
+
+        d = {}
+        d[commit_a] = True
+        assert commit_b in d
+        assert d[commit_b]
+
+        l = [commit_a]
+        assert commit_b in l
+
     def test_peel_commit(self):
         # start by looking up the commit
         commit_id = self.repo.lookup_reference('refs/heads/master').target
