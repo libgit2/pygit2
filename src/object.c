@@ -181,9 +181,10 @@ Object_peel(Object *self, PyObject *py_type)
 }
 
 Py_hash_t
-Object_hash(PyObject *object)
+Object_hash(Object *object)
 {
-    PyObject *py_oid = PyObject_GetAttrString(object, "oid");
+    const git_oid *oid = git_object_id(object->obj);
+    PyObject *py_oid = git_oid_to_py_str(oid);
     Py_hash_t ret = PyObject_Hash(py_oid);
     Py_DECREF(py_oid);
     return ret;
