@@ -27,6 +27,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <git2.h>
 #include "error.h"
 #include "types.h"
 #include "utils.h"
@@ -192,8 +193,8 @@ PyObject *
 Object_richcompare(PyObject *o1, PyObject *o2, int op)
 {
     PyObject *res;
-    PyObject *oid1;
-    PyObject *oid2;
+    Object *obj1;
+    Object *obj2;
 
     if (!PyObject_TypeCheck(o2, &ObjectType)) {
         Py_INCREF(Py_NotImplemented);
@@ -202,18 +203,22 @@ Object_richcompare(PyObject *o1, PyObject *o2, int op)
 
     switch (op) {
         case Py_NE:
-            oid1 = PyObject_GetAttrString(o1, "oid");
-            oid2 = PyObject_GetAttrString(o2, "oid");
-            res = PyObject_RichCompare(oid1, oid2, Py_NE);
-            Py_DECREF(oid1);
-            Py_DECREF(oid2);
+            obj1 = (Object *) o1;
+            obj2 = (Object *) o2;
+            if (git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj))) {
+                res = Py_False;
+            } else {
+                res = Py_True;
+            }
             break;
         case Py_EQ:
-            oid1 = PyObject_GetAttrString(o1, "oid");
-            oid2 = PyObject_GetAttrString(o2, "oid");
-            res = PyObject_RichCompare(oid1, oid2, Py_EQ);
-            Py_DECREF(oid1);
-            Py_DECREF(oid2);
+            obj1 = (Object *) o1;
+            obj2 = (Object *) o2;
+            if (git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj))) {
+                res = Py_True;
+            } else {
+                res = Py_False;
+            }
             break;
         case Py_LT:
         case Py_LE:
@@ -226,6 +231,7 @@ Object_richcompare(PyObject *o1, PyObject *o2, int op)
             return NULL;
     }
 
+    Py_INCREF(res);
     return res;
 }
 
