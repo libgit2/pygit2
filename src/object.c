@@ -27,6 +27,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <git2.h>
 #include "error.h"
 #include "types.h"
 #include "utils.h"
@@ -39,6 +40,7 @@ extern PyTypeObject CommitType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 
+PyTypeObject ObjectType;
 
 void
 Object_dealloc(Object* self)
@@ -178,6 +180,62 @@ Object_peel(Object *self, PyObject *py_type)
     return wrap_object(peeled, self->repo);
 }
 
+Py_hash_t
+Object_hash(Object *object)
+{
+    const git_oid *oid = git_object_id(object->obj);
+    PyObject *py_oid = git_oid_to_py_str(oid);
+    Py_hash_t ret = PyObject_Hash(py_oid);
+    Py_DECREF(py_oid);
+    return ret;
+}
+
+PyObject *
+Object_richcompare(PyObject *o1, PyObject *o2, int op)
+{
+    PyObject *res;
+    Object *obj1;
+    Object *obj2;
+
+    if (!PyObject_TypeCheck(o2, &ObjectType)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    switch (op) {
+        case Py_NE:
+            obj1 = (Object *) o1;
+            obj2 = (Object *) o2;
+            if (git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj))) {
+                res = Py_False;
+            } else {
+                res = Py_True;
+            }
+            break;
+        case Py_EQ:
+            obj1 = (Object *) o1;
+            obj2 = (Object *) o2;
+            if (git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj))) {
+                res = Py_True;
+            } else {
+                res = Py_False;
+            }
+            break;
+        case Py_LT:
+        case Py_LE:
+        case Py_GT:
+        case Py_GE:
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+        default:
+            PyErr_Format(PyExc_RuntimeError, "Unexpected '%d' op", op);
+            return NULL;
+    }
+
+    Py_INCREF(res);
+    return res;
+}
+
 PyGetSetDef Object_getseters[] = {
     GETTER(Object, oid),
     GETTER(Object, id),
@@ -211,7 +269,7 @@ PyTypeObject ObjectType = {
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
-    0,                                         /* tp_hash           */
+    (hashfunc)Object_hash,                     /* tp_hash           */
     0,                                         /* tp_call           */
     0,                                         /* tp_str            */
     0,                                         /* tp_getattro       */
@@ -221,7 +279,7 @@ PyTypeObject ObjectType = {
     Object__doc__,                             /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
-    0,                                         /* tp_richcompare    */
+    Object_richcompare,                        /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
