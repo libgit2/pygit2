@@ -836,7 +836,7 @@ class BaseRepository(_Repository):
 
         Example::
 
-            >>> repo = pygit2.Repsitory('.')
+            >>> repo = pygit2.Repository('.')
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
         """
 
@@ -890,7 +890,7 @@ class BaseRepository(_Repository):
 
         Example::
 
-            >>> repo = pygit2.Repsitory('.')
+            >>> repo = pygit2.Repository('.')
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
             >>> repo.stash_apply(strategy=GIT_CHECKOUT_ALLOW_CONFLICTS)
         """
@@ -948,7 +948,7 @@ class BaseRepository(_Repository):
 
             >>> import tarfile, pygit2
             >>>> with tarfile.open('foo.tar', 'w') as archive:
-            >>>>     repo = pygit2.Repsitory('.')
+            >>>>     repo = pygit2.Repository('.')
             >>>>     repo.write_archive(repo.head.target, archive)
         """
 
