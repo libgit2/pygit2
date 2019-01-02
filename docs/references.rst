@@ -76,8 +76,6 @@ The Reference type
    have to get the Reference object for ``HEAD`` and call ``log_append`` on
    that.
 
-.. automethod:: pygit2.Reference.get_object
-
 
 The HEAD
 ====================

@@ -221,13 +221,11 @@ class ReferencesObjectTest(utils.RepoTestCase):
     #       self.repo.packall_references()
 
 
-    def test_get_object(self):
+    def test_peel(self):
         repo = self.repo
         ref = repo.references.get('refs/heads/master')
-        assert repo[ref.target].id == ref.get_object().id
+        assert repo[ref.target].id == ref.peel().id
 
-    def test_peel(self):
-        ref = self.repo.references.get('refs/heads/master')
         commit = ref.peel(Commit)
         assert commit.tree.id == ref.peel(Tree).id
 
@@ -421,13 +419,11 @@ class ReferencesTest(utils.RepoTestCase):
     #       self.repo.packall_references()
 
 
-    def test_get_object(self):
+    def test_peel(self):
         repo = self.repo
         ref = repo.lookup_reference('refs/heads/master')
-        assert repo[ref.target].id == ref.get_object().id
+        assert repo[ref.target].id == ref.peel().id
 
-    def test_peel(self):
-        ref = self.repo.lookup_reference('refs/heads/master')
         commit = ref.peel(Commit)
         assert commit.tree.id == ref.peel(Tree).id
 

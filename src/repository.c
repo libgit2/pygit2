@@ -1123,7 +1123,7 @@ PyDoc_STRVAR(Repository_create_branch__doc__,
   "\n"
   "Examples::\n"
   "\n"
-  "    repo.create_branch('foo', repo.head.get_object(), force=False)");
+  "    repo.create_branch('foo', repo.head.peel(), force=False)");
 
 PyObject *
 Repository_create_branch(Repository *self, PyObject *args)
