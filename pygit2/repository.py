@@ -54,7 +54,7 @@ from .ffi import ffi, C
 from .index import Index
 from .remote import RemoteCollection
 from .blame import Blame
-from .utils import to_bytes, is_string
+from .utils import to_bytes, is_string, StrArray
 from .submodule import Submodule
 
 
@@ -204,7 +204,7 @@ class BaseRepository(_Repository):
     # Checkout
     #
     @staticmethod
-    def _checkout_args_to_options(strategy=None, directory=None):
+    def _checkout_args_to_options(strategy=None, directory=None, paths=None):
         # Create the options struct to pass
         copts = ffi.new('git_checkout_options *')
         check_error(C.git_checkout_init_options(copts, 1))
@@ -222,6 +222,11 @@ class BaseRepository(_Repository):
             target_dir = ffi.new('char[]', to_bytes(directory))
             refs.append(target_dir)
             copts.target_directory = target_dir
+
+        if paths:
+            strarray = StrArray(paths)
+            refs.append(strarray)
+            copts.paths = strarray.array[0]
 
         return copts, refs
 
@@ -273,6 +278,10 @@ class BaseRepository(_Repository):
         directory : str
             Alternative checkout path to workdir.
 
+        paths : list[str]
+            A list of files to checkout from the given reference.
+            If paths is provided, HEAD will not be set to the reference.
+
         Examples:
 
         * To checkout from the HEAD, just pass 'HEAD'::
@@ -301,7 +310,8 @@ class BaseRepository(_Repository):
         treeish = self[oid]
         self.checkout_tree(treeish, **kwargs)
 
-        self.set_head(refname)
+        if 'paths' not in kwargs:
+            self.set_head(refname)
 
     #
     # Setting HEAD

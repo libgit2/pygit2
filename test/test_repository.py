@@ -332,6 +332,14 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.checkout(ref_i18n, directory=extra_dir)
         assert not len(os.listdir(extra_dir)) == 0
 
+    def test_checkout_paths(self):
+        ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
+        ref_master = self.repo.lookup_reference('refs/heads/master')
+        self.repo.checkout(ref_master)
+        self.repo.checkout(ref_i18n, paths=['new'])
+        status = self.repo.status()
+        assert status['new'] == pygit2.GIT_STATUS_INDEX_NEW
+
     def test_merge_base(self):
         commit = self.repo.merge_base(
             '5ebeeebb320790caf276b9fc8b24546d63316533',
