@@ -43,7 +43,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pygit2'
-copyright = u'2010-2018 The pygit2 contributors'
+copyright = u'2010-2019 The pygit2 contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
