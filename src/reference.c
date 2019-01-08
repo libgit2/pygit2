@@ -42,6 +42,7 @@ extern PyObject *GitError;
 extern PyTypeObject RefLogEntryType;
 extern PyTypeObject SignatureType;
 
+PyTypeObject ReferenceType;
 
 void RefLogIter_dealloc(RefLogIter *self)
 {
@@ -407,6 +408,70 @@ Reference_peel(Reference *self, PyObject *args)
     return wrap_object(obj, self->repo);
 }
 
+PyObject *
+Reference_richcompare(PyObject *o1, PyObject *o2, int op)
+{
+    PyObject *res;
+    Reference *obj1;
+    Reference *obj2;
+    const char *name1;
+    const char *name2;
+
+    if (!PyObject_TypeCheck(o2, &ReferenceType)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    switch (op) {
+        case Py_NE:
+            obj1 = (Reference *) o1;
+            obj2 = (Reference *) o2;
+
+            CHECK_REFERENCE(obj1);
+            CHECK_REFERENCE(obj2);
+
+            name1 = git_reference_name(obj1->reference);
+            name2 = git_reference_name(obj2->reference);
+
+            if (strcmp(name1, name2) != 0) {
+                res = Py_True;
+                break;
+            }
+
+            res = Py_False;
+            break;
+        case Py_EQ:
+            obj1 = (Reference *) o1;
+            obj2 = (Reference *) o2;
+
+            CHECK_REFERENCE(obj1);
+            CHECK_REFERENCE(obj2);
+
+            name1 = git_reference_name(obj1->reference);
+            name2 = git_reference_name(obj2->reference);
+
+            if (strcmp(name1, name2) != 0) {
+                res = Py_False;
+                break;
+            }
+
+            res = Py_True;
+            break;
+        case Py_LT:
+        case Py_LE:
+        case Py_GT:
+        case Py_GE:
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+        default:
+            PyErr_Format(PyExc_RuntimeError, "Unexpected '%d' op", op);
+            return NULL;
+    }
+
+    Py_INCREF(res);
+    return res;
+}
+
 PyDoc_STRVAR(RefLogEntry_committer__doc__, "Committer.");
 
 PyObject *
@@ -541,7 +606,7 @@ PyTypeObject ReferenceType = {
     Reference__doc__,                          /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
-    0,                                         /* tp_richcompare    */
+    Reference_richcompare,                     /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
