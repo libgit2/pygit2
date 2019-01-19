@@ -44,7 +44,7 @@ library that has been built against. The version number has a
    Tuple value of the revision version numbers. For example, for the version
    ``0.26.0``::
 
-      >>> print(pygit2.LIBGIT2_VER_REVISION)
+      >>> print(pygit2.LIBGIT2_VER)
       (0, 26, 0)
 
 .. py:data:: LIBGIT2_VERSION

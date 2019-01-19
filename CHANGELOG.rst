@@ -1,3 +1,44 @@
+0.27.4 (2019-01-19)
+-------------------------
+
+- New `pygit2.LIBGIT2_VER` tuple
+  `#845 <https://github.com/libgit2/pygit2/issues/845>`_
+  `#848 <https://github.com/libgit2/pygit2/pull/848>`_
+
+- New objects now support (in)equality comparison and hash
+  `#852 <https://github.com/libgit2/pygit2/issues/852>`_
+  `#853 <https://github.com/libgit2/pygit2/pull/853>`_
+
+- New references now support (in)equality comparison
+  `#860 <https://github.com/libgit2/pygit2/issues/860>`_
+  `#862 <https://github.com/libgit2/pygit2/pull/862>`_
+
+- New `paths` optional argument in `Repository.checkout()`
+  `#858 <https://github.com/libgit2/pygit2/issues/858>`_
+  `#859 <https://github.com/libgit2/pygit2/pull/859>`_
+
+- Fix speed and windows package regression
+  `#849 <https://github.com/libgit2/pygit2/issues/849>`_
+  `#857 <https://github.com/libgit2/pygit2/issues/857>`_
+  `#851 <https://github.com/libgit2/pygit2/pull/851>`_
+
+- Fix deprecation warning
+  `#850 <https://github.com/libgit2/pygit2/pull/850>`_
+
+- Documentation fixes
+  `#855 <https://github.com/libgit2/pygit2/pull/855>`_
+
+- Add Python classifiers to setup.py
+  `#861 <https://github.com/libgit2/pygit2/pull/861>`_
+
+- Speeding up tests in Travis
+  `#854 <https://github.com/libgit2/pygit2/pull/854>`_
+
+Breaking changes:
+
+- Remove deprecated `Reference.get_object()`, use `Reference.peel()` instead
+
+
 0.27.3 (2018-12-15)
 -------------------------
 

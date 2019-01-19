@@ -53,6 +53,8 @@ The Reference type
 .. autoattribute:: pygit2.Reference.target
 .. autoattribute:: pygit2.Reference.type
 
+.. automethod:: pygit2.Reference.__eq__(Reference)
+.. automethod:: pygit2.Reference.__ne__(Reference)
 .. automethod:: pygit2.Reference.set_target
 .. automethod:: pygit2.Reference.delete
 .. automethod:: pygit2.Reference.rename

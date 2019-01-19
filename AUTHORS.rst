@@ -23,6 +23,7 @@ Authors::
   Xavier Delannoy
   Yonggang Luo
   Patrick Steinhardt
+  Sriram Raghu
   Tamir Bahar
   Valentin Haenel
   Michael Jones
@@ -107,6 +108,7 @@ Authors::
   Cristian Hotea
   Cyril Jouve
   Daniel Bruce
+  Daniele Esposti
   David Fischer
   David Sanders
   David Six
@@ -125,8 +127,11 @@ Authors::
   Justin Clift
   Kyriakos Oikonomakos
   Mathieu Bridon
+  Mathieu Pillard
   Matthaus Woolard
   Nicolás Sanguinetti
+  Nikita Kartashov
+  Nikolai Zujev
   Noah Fontes
   Óscar San José
   Patrick Lühne
@@ -135,10 +140,12 @@ Authors::
   Philippe Ombredanne
   Remy Suen
   Ridge Kennedy
+  Rodrigo Bistolfi
   Ross Nicoll
   Rui Abreu Ferreira
   Sheeo
   Soasme
+  Steven Winfield
   Vladimir Rutsky
   Yu Jianjian
   chengyuhang
