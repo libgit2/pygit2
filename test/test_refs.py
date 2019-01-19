@@ -229,6 +229,18 @@ class ReferencesObjectTest(utils.RepoTestCase):
         commit = ref.peel(Commit)
         assert commit.tree.id == ref.peel(Tree).id
 
+    def test_equality(self):
+        repo = self.repo
+        ref1 = repo.references.get('refs/heads/master')
+        ref2 = repo.references.get('refs/heads/master')
+        ref3 = repo.references.get('refs/heads/i18n')
+
+        assert ref1 is not ref2
+        assert ref1 == ref2
+        assert not ref1 != ref2
+
+        assert ref1 != ref3
+        assert not ref1 == ref3
 
 class ReferencesTest(utils.RepoTestCase):
     def test_list_all_reference_objects(self):
