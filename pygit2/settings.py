@@ -33,6 +33,7 @@ from _pygit2 import GIT_OPT_SET_CACHE_OBJECT_LIMIT
 from _pygit2 import GIT_OPT_GET_CACHED_MEMORY
 from _pygit2 import GIT_OPT_ENABLE_CACHING
 from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
+from _pygit2 import GIT_OPT_IGNORE_PACK_KEEP_FILE_CHECK
 
 
 class SearchPathList(object):
@@ -101,4 +102,5 @@ class Settings(object):
         """
         return option(GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
 
-
+    def ignore_pack_file_check(self, value=True):
+        return option(GIT_OPT_IGNORE_PACK_KEEP_FILE_CHECK, value)

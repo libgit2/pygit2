@@ -272,6 +272,25 @@ option(PyObject *self, PyObject *args)
             return tup;
         }
 
+        case GIT_OPT_IGNORE_PACK_KEEP_FILE_CHECK:
+        {
+            int flag;
+            PyObject *py_flag;
+
+            py_flag = PyTuple_GetItem(args, 1);
+
+            if (!PyInt_Check(py_flag))
+                return Error_type_error(
+                    "flag should be an integer, got %.200s", py_flag);
+
+            flag = PyInt_AsSize_t(py_flag);
+            error = git_libgit2_opts(GIT_OPT_IGNORE_PACK_KEEP_FILE_CHECK, flag);
+            if (error < 0)
+                return Error_set(error);
+
+            Py_RETURN_NONE;
+        }
+
     }
 
     PyErr_SetString(PyExc_ValueError, "unknown/unsupported option value");
