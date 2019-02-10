@@ -10,7 +10,7 @@ yum -y install git libssh2-devel libffi-devel openssl-devel pkgconfig
 
 yum -y install cmake28
 
-git clone --depth=1 -b maint/v0.24 https://github.com/libgit2/libgit2.git
+git clone --depth=1 -b maint/v0.27 https://github.com/libgit2/libgit2.git
 cd libgit2/
 
 
