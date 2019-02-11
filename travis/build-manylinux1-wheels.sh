@@ -65,7 +65,7 @@ popd
 
 >&2 echo Building wheels:
 for PIP_BIN in /opt/python/*/bin/pip; do
-    >&2 echo Using "${whl}"...
+    >&2 echo Using "${PIP_BIN}"...
     ${PIP_BIN} wheel "${SRC_DIR}" -w "${ORIG_WHEEL_DIR}"
 done
 
