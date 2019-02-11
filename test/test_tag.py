@@ -90,11 +90,10 @@ class TagTest(utils.BareRepoTestCase):
         tagger = ('John Doe', 'jdoe@example.com', 12347)
 
         tag = self.repo[TAG_SHA]
-        error_type = AttributeError if not pypy2 else TypeError
-        with pytest.raises(error_type): setattr(tag, 'name', name)
-        with pytest.raises(error_type): setattr(tag, 'target', target)
-        with pytest.raises(error_type): setattr(tag, 'tagger', tagger)
-        with pytest.raises(error_type): setattr(tag, 'message', message)
+        with pytest.raises(AttributeError): setattr(tag, 'name', name)
+        with pytest.raises(AttributeError): setattr(tag, 'target', target)
+        with pytest.raises(AttributeError): setattr(tag, 'tagger', tagger)
+        with pytest.raises(AttributeError): setattr(tag, 'message', message)
 
     def test_get_object(self):
         repo = self.repo

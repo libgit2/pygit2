@@ -144,12 +144,11 @@ class CommitTest(utils.BareRepoTestCase):
 
         commit = self.repo[COMMIT_SHA]
 
-        error_type = AttributeError if not pypy2 else TypeError
-        with pytest.raises(error_type): setattr(commit, 'message', message)
-        with pytest.raises(error_type): setattr(commit, 'committer', committer)
-        with pytest.raises(error_type): setattr(commit, 'author', author)
-        with pytest.raises(error_type): setattr(commit, 'tree', None)
-        with pytest.raises(error_type): setattr(commit, 'parents', None)
+        with pytest.raises(AttributeError): setattr(commit, 'message', message)
+        with pytest.raises(AttributeError): setattr(commit, 'committer', committer)
+        with pytest.raises(AttributeError): setattr(commit, 'author', author)
+        with pytest.raises(AttributeError): setattr(commit, 'tree', None)
+        with pytest.raises(AttributeError): setattr(commit, 'parents', None)
 
 
 class GpgSignatureTestCase(utils.GpgSignedRepoTestCase):
