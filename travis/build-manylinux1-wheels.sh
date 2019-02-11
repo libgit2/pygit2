@@ -66,15 +66,17 @@ popd
 >&2 echo Building wheels:
 for PIP_BIN in /opt/python/*/bin/pip; do
     >&2 echo Using "${PIP_BIN}"...
-    ${PIP_BIN} wheel "${SRC_DIR}" -w "${ORIG_WHEEL_DIR}"
+    ${PIP_BIN} wheel "${SRC_DIR}" -w "${ORIG_WHEEL_DIR}" &
 done
+wait
 
 >&2 echo Reparing wheels:
 # Bundle external shared libraries into the wheels
 for whl in ${ORIG_WHEEL_DIR}/${DIST_NAME}*.whl; do
     >&2 echo Reparing "${whl}"...
-    auditwheel repair "${whl}" -w ${WHEELHOUSE_DIR}
+    auditwheel repair "${whl}" -w ${WHEELHOUSE_DIR} &
 done
+wait
 
 # Download deps
 >&2 echo Downloading dependencies:
@@ -89,8 +91,9 @@ done
 >&2 echo Testing wheels installation:
 for PIP_BIN in /opt/python/*/bin/pip; do
     >&2 echo Using ${PIP_BIN}...
-    ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR}
+    ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} &
 done
+wait
 
 chown -R 1000:1000 ${WHEELHOUSE_DIR}
 >&2 echo Final OS-specific wheels for ${DIST_NAME}:
