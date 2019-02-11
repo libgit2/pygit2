@@ -14,8 +14,8 @@ python:
 
 env:
   global:
-    LIBGIT2: /libgit2/_install/
-    LD_LIBRARY_PATH: ~/libgit2/_install/lib
+    LIBGIT2: ~/libgit2/_install/
+    LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
     LIBGIT2_VERSION: "0.27"
 
 
