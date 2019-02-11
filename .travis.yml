@@ -21,6 +21,7 @@ env:
 
 .mixins:
 - &docker-job
+  stage: Publish to PyPI (runs only for tagged commits)
   dist: xenial
   python: "3.7"
   services:
@@ -37,7 +38,11 @@ env:
 jobs:
   include:
   - <<: *docker-job
+    name: >-
+      manylinux1: 64-bit
   - <<: *docker-job
+    name: >-
+      manylinux1: 32-bit
     env:
       # DOCKER_IMAGE: quay.io/pypa/manylinux1_i686
       DOCKER_IMAGE: pyca/cryptography-manylinux1:i686
