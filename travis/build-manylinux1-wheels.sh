@@ -1,40 +1,97 @@
 #!/usr/bin/env bash
+if [ -n "$DEBUG" ]
+then
+  set -x
+fi
 
-set -e -x
-CURDIR=`pwd`
+DIST_NAME="$1"
+LIBGIT2_VERSION="$2"
 
+set -euo pipefail
+
+if [ -z "$DIST_NAME" ]
+then
+    >&2 echo "Please pass package name as a first argument of this script ($0)"
+    exit 1
+fi
+
+if [ -z "$LIBGIT2_VERSION" ]
+then
+    >&2 echo "Please pass libgit2 version as a second argument of this script ($0)"
+    exit 1
+fi
+
+PYTHONS=`ls /opt/python/`
+
+SRC_DIR=/io
+BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux1-build.XXXXXXXXXX"`
+LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
+LIBGIT2_BUILD_DIR="${LIBGIT2_CLONE_DIR}/build"
+export LIBGIT2="${LIBGIT2_CLONE_DIR}/_install"
+
+ORIG_WHEEL_DIR="${BUILD_DIR}/original-wheelhouse"
+WHEEL_DEP_DIR="${BUILD_DIR}/deps-wheelhouse"
+WHEELHOUSE_DIR="${SRC_DIR}/wheelhouse"
+
+export PYCA_OPENSSL_PATH=/opt/pyca/cryptography/openssl
+export OPENSSL_PATH=/opt/openssl
+
+export CFLAGS="-I${PYCA_OPENSSL_PATH}/include -I${OPENSSL_PATH}/include"
+export LDFLAGS="-L${PYCA_OPENSSL_PATH}/lib -L${OPENSSL_PATH}/lib -L/usr/local/lib/"
+export LD_LIBRARY_PATH="${LIBGIT2}/lib:$LD_LIBRARY_PATH"
+
+
+>&2 echo Installing system deps...
 # Install a system package required by our library
-yum -y install git libssh2-devel libffi-devel openssl-devel pkgconfig
-
 # libgit2 needs cmake 2.8, which can be found in EPEL
+yum -y install \
+    git libssh2-devel libffi-devel \
+    openssl-devel pkgconfig \
+    cmake28
 
-yum -y install cmake28
+>&2 echo downloading source of libgit2 v${LIBGIT2_VERSION}:
+git clone \
+    --depth=1 \
+    -b "maint/v${LIBGIT2_VERSION}" \
+    https://github.com/libgit2/libgit2.git \
+    "${LIBGIT2_CLONE_DIR}"
 
-git clone --depth=1 -b maint/v0.27 https://github.com/libgit2/libgit2.git
-cd libgit2/
+>&2 echo Building libgit2...
+mkdir -p "${LIBGIT2_BUILD_DIR}"
+pushd "${LIBGIT2_BUILD_DIR}"
+cmake28 "${LIBGIT2_CLONE_DIR}" -DCMAKE_INSTALL_PREFIX="${LIBGIT2}" -DBUILD_CLAR=OFF
+cmake28 --build "${LIBGIT2_BUILD_DIR}" --target install
+popd
 
-
-mkdir build && cd build
-cmake28 .. -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_CLAR=OFF
-cmake28 --build . --target install
-export LIBGIT2=$CURDIR/libgit2/_install/
-export LD_LIBRARY_PATH=$CURDIR/libgit2/_install/lib
-
-mkdir -p wheelhouse
-
-# Compile wheels
-for PYBIN in /opt/python/*/bin; do
-    ${PYBIN}/pip wheel /io/ -w wheelhouse/
+>&2 echo Building wheels:
+for PIP_BIN in /opt/python/*/bin/pip; do
+    >&2 echo Using "${whl}"...
+    ${PIP_BIN} wheel "${SRC_DIR}" -w "${ORIG_WHEEL_DIR}"
 done
 
+>&2 echo Reparing wheels:
 # Bundle external shared libraries into the wheels
-for whl in wheelhouse/pygit*.whl; do
-    auditwheel repair $whl -w /io/wheelhouse/
+for whl in ${ORIG_WHEEL_DIR}/${DIST_NAME}*.whl; do
+    >&2 echo Reparing "${whl}"...
+    auditwheel repair "${whl}" -w ${WHEELHOUSE_DIR}
+done
+
+# Download deps
+>&2 echo Downloading dependencies:
+for PY in $PYTHONS; do
+    PIP_BIN="/opt/python/${PY}/bin/pip"
+    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_*.whl`
+    >&2 echo Downloading ${WHEEL_FILE} deps using ${PIP_BIN}...
+    ${PIP_BIN} download -d "${WHEEL_DEP_DIR}" "${WHEEL_FILE}"
 done
 
 # Install packages
-for PYBIN in /opt/python/*/bin/; do
-    ${PYBIN}/pip install pygit2 --no-index -f /io/wheelhouse
+>&2 echo Testing wheels installation:
+for PIP_BIN in /opt/python/*/bin/pip; do
+    >&2 echo Using ${PIP_BIN}...
+    ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR}
 done
 
-chmod 0777 wheelhouse/*.whl
+chown -R 1000:1000 ${WHEELHOUSE_DIR}
+>&2 echo Final OS-specific wheels for ${DIST_NAME}:
+ls -l ${WHEELHOUSE_DIR}/*.whl

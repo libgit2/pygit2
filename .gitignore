@@ -3,6 +3,7 @@
 /build/
 /dist/
 /docs/_build/
+/wheelhouse/
 /MANIFEST
 __pycache__/
 *.egg-info
