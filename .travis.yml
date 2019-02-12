@@ -31,7 +31,6 @@ jobs:
     script: &docker-script
     - travis/build-all-manylinux1-wheels.sh "pygit2" "${LIBGIT2_VERSION}"
     before_deploy:
-    - mv wheelhouse dist
     - ls dist
     - pip install twine
     - twine check dist/*

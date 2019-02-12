@@ -31,7 +31,7 @@ export LIBGIT2="${LIBGIT2_CLONE_DIR}/_install"
 
 ORIG_WHEEL_DIR="${BUILD_DIR}/original-wheelhouse"
 WHEEL_DEP_DIR="${BUILD_DIR}/deps-wheelhouse"
-WHEELHOUSE_DIR="${SRC_DIR}/wheelhouse"
+WHEELHOUSE_DIR="${SRC_DIR}/dist"
 
 mkdir -p "$WHEELHOUSE_DIR"
 
