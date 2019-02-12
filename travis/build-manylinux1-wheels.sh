@@ -101,4 +101,4 @@ wait
 
 chown -R 1000:1000 ${WHEELHOUSE_DIR}
 >&2 echo Final OS-specific wheels for ${DIST_NAME}:
-ls -l ${WHEELHOUSE_DIR}/*.whl
+ls -l ${WHEELHOUSE_DIR}
