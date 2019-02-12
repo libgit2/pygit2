@@ -33,6 +33,8 @@ ORIG_WHEEL_DIR="${BUILD_DIR}/original-wheelhouse"
 WHEEL_DEP_DIR="${BUILD_DIR}/deps-wheelhouse"
 WHEELHOUSE_DIR="${SRC_DIR}/wheelhouse"
 
+mkdir -p "$WHEELHOUSE_DIR"
+
 export PYCA_OPENSSL_PATH=/opt/pyca/cryptography/openssl
 export OPENSSL_PATH=/opt/openssl
 
