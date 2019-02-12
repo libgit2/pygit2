@@ -99,6 +99,6 @@ for PIP_BIN in /opt/python/*/bin/pip; do
 done
 wait
 
-chown -R 1000:1000 ${WHEELHOUSE_DIR}
+chown -R --reference=/io/.travis.yml ${WHEELHOUSE_DIR}
 >&2 echo Final OS-specific wheels for ${DIST_NAME}:
 ls -l ${WHEELHOUSE_DIR}
