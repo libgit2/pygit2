@@ -42,6 +42,8 @@ export CFLAGS="-I${PYCA_OPENSSL_PATH}/include -I${OPENSSL_PATH}/include"
 export LDFLAGS="-L${PYCA_OPENSSL_PATH}/lib -L${OPENSSL_PATH}/lib -L/usr/local/lib/"
 export LD_LIBRARY_PATH="${LIBGIT2}/lib:$LD_LIBRARY_PATH"
 
+ARCH=`uname -m`
+
 
 >&2 echo Installing system deps...
 # Install a system package required by our library
@@ -73,16 +75,18 @@ done
 
 >&2 echo Reparing wheels:
 # Bundle external shared libraries into the wheels
-for whl in ${ORIG_WHEEL_DIR}/${DIST_NAME}*.whl; do
-    >&2 echo Reparing "${whl}"...
-    auditwheel repair "${whl}" -w ${WHEELHOUSE_DIR}
+for PY in $PYTHONS; do
+    for whl in ${ORIG_WHEEL_DIR}/${DIST_NAME}-*-${PY}-linux_${ARCH}.whl; do
+        >&2 echo Reparing "${whl}"...
+        auditwheel repair "${whl}" -w ${WHEELHOUSE_DIR}
+    done
 done
 
 # Download deps
 >&2 echo Downloading dependencies:
 for PY in $PYTHONS; do
     PIP_BIN="/opt/python/${PY}/bin/pip"
-    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_*.whl`
+    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_${ARCH}.whl`
     >&2 echo Downloading ${WHEEL_FILE} deps using ${PIP_BIN}...
     ${PIP_BIN} download -d "${WHEEL_DEP_DIR}" "${WHEEL_FILE}"
 done
