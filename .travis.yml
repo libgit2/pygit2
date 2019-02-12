@@ -30,6 +30,7 @@ jobs:
     install: skip
     script: &docker-script
     - travis/build-all-manylinux1-wheels.sh "pygit2" "${LIBGIT2_VERSION}"
+    - ls -alh dist
     before_deploy:
     - ls dist
     - pip install twine
