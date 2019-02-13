@@ -24,6 +24,7 @@ fi
 PYTHONS=`ls /opt/python/`
 
 SRC_DIR=/io
+TESTS_DIR="${SRC_DIR}/test"
 BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux1-build.XXXXXXXXXX"`
 LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
 LIBGIT2_BUILD_DIR="${LIBGIT2_CLONE_DIR}/build"
@@ -126,6 +127,19 @@ for PIP_BIN in /opt/python/*/bin/pip; do
     ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} &
 done
 wait
+
+>&2 echo Running test suite against wheels:
+for PY_BIN in /opt/python/*/bin/python; do
+    $PY_BIN -m pip install pytest
+    $PY_BIN -m pytest "${TESTS_DIR}" &
+done
+wait
+
+>&2 echo
+>&2 echo ==================
+>&2 echo SELF-TEST COMPLETE
+>&2 echo ==================
+>&2 echo
 
 chown -R --reference=/io/.travis.yml ${WHEELHOUSE_DIR}
 >&2 echo Final OS-specific wheels for ${DIST_NAME}:
