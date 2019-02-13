@@ -63,7 +63,11 @@ git clone \
 >&2 echo Building libgit2...
 mkdir -p "${LIBGIT2_BUILD_DIR}"
 pushd "${LIBGIT2_BUILD_DIR}"
-cmake28 "${LIBGIT2_CLONE_DIR}" -DCMAKE_INSTALL_PREFIX="${LIBGIT2}" -DBUILD_CLAR=OFF
+# Ref https://libgit2.org/docs/guides/build-and-link/
+cmake28 "${LIBGIT2_CLONE_DIR}" \
+    -DCMAKE_INSTALL_PREFIX="${LIBGIT2}" \
+    -DBUILD_CLAR=OFF \
+    -DTHREADSAFE=ON
 cmake28 --build "${LIBGIT2_BUILD_DIR}" --target install
 popd
 
