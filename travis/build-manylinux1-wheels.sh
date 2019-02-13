@@ -66,6 +66,7 @@ pushd "${LIBGIT2_BUILD_DIR}"
 # Ref https://libgit2.org/docs/guides/build-and-link/
 cmake28 "${LIBGIT2_CLONE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${LIBGIT2}" \
+    -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_CLAR=OFF \
     -DTHREADSAFE=ON
 cmake28 --build "${LIBGIT2_BUILD_DIR}" --target install
