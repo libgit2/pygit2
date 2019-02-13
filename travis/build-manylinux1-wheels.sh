@@ -41,6 +41,7 @@ export OPENSSL_PATH=/opt/openssl
 export CFLAGS="-I${PYCA_OPENSSL_PATH}/include -I${OPENSSL_PATH}/include"
 export LDFLAGS="-L${PYCA_OPENSSL_PATH}/lib -L${OPENSSL_PATH}/lib -L/usr/local/lib/"
 export LD_LIBRARY_PATH="${LIBGIT2}/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="${PYCA_OPENSSL_PATH}/lib/pkgconfig/:${OPENSSL_PATH}/lib/pkgconfig/:$PKG_CONFIG_PATH"
 
 ARCH=`uname -m`
 
