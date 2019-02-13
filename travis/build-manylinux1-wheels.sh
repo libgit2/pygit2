@@ -29,6 +29,10 @@ LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
 LIBGIT2_BUILD_DIR="${LIBGIT2_CLONE_DIR}/build"
 export LIBGIT2="${LIBGIT2_CLONE_DIR}/_install"
 
+LIBSSH2_VERSION=1.8.0
+LIBSSH2_CLONE_DIR="${BUILD_DIR}/libssh2"
+LIBSSH2_BUILD_DIR="${LIBSSH2_CLONE_DIR}/build"
+
 ORIG_WHEEL_DIR="${BUILD_DIR}/original-wheelhouse"
 WHEEL_DEP_DIR="${BUILD_DIR}/deps-wheelhouse"
 WHEELHOUSE_DIR="${SRC_DIR}/dist"
@@ -41,7 +45,7 @@ export OPENSSL_PATH=/opt/openssl
 export CFLAGS="-I${PYCA_OPENSSL_PATH}/include -I${OPENSSL_PATH}/include -I/usr/include"
 export LDFLAGS="-L${PYCA_OPENSSL_PATH}/lib -L${OPENSSL_PATH}/lib -L/usr/local/lib -L/usr/lib64"
 export LD_LIBRARY_PATH="${LIBGIT2}/lib:$LD_LIBRARY_PATH"
-export PKG_CONFIG_PATH="${PYCA_OPENSSL_PATH}/lib/pkgconfig/:${OPENSSL_PATH}/lib/pkgconfig/:$PKG_CONFIG_PATH"
+export PKG_CONFIG_PATH="/usr/local/lib64/pkgconfig:${PYCA_OPENSSL_PATH}/lib/pkgconfig:${OPENSSL_PATH}/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 ARCH=`uname -m`
 
@@ -50,9 +54,27 @@ ARCH=`uname -m`
 # Install a system package required by our library
 # libgit2 needs cmake 2.8, which can be found in EPEL
 yum -y install \
-    git libssh2-devel libffi-devel \
+    git libffi-devel \
     openssl-devel pkgconfig \
     cmake28
+
+>&2 echo downloading source of libssh2 v${LIBSSH2_VERSION}:
+git clone \
+    --depth=1 \
+    -b "libssh2-${LIBSSH2_VERSION}" \
+    https://github.com/libssh2/libssh2 \
+    "${LIBSSH2_CLONE_DIR}"
+
+mkdir -p "${LIBSSH2_BUILD_DIR}"
+pushd "${LIBSSH2_BUILD_DIR}"
+cmake28 "${LIBSSH2_CLONE_DIR}" \
+    -DBUILD_SHARED_LIBS=ON \
+    -DBUILD_EXAMPLES=OFF \
+    -DBUILD_TESTING=OFF \
+    -DCRYPTO_BACKEND=OpenSSL \
+    -DENABLE_ZLIB_COMPRESSION=ON
+cmake28 --build "${LIBSSH2_BUILD_DIR}" --target install
+popd
 
 >&2 echo downloading source of libgit2 v${LIBGIT2_VERSION}:
 git clone \
