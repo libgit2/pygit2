@@ -27,6 +27,7 @@ PYTHONS=`ls /opt/python/`
 export PYTHONDONTWRITEBYTECODE=1
 
 SRC_DIR=/io
+GIT_GLOBAL_ARGS="--git-dir=${SRC_DIR}/.git --work-tree=${SRC_DIR}"
 TESTS_DIR="${SRC_DIR}/test"
 BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux1-build.XXXXXXXXXX"`
 LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
@@ -47,6 +48,10 @@ find "${SRC_DIR}" \
     -type d \
     '(' -name __pycache__ -o -name *.pyc -o -name *.pyo ')' \
     -print0 | xargs -0 rm -rfv
+
+# clear python cache
+>&2 echo Cleaninig up files untracked by Git...
+git ${GIT_GLOBAL_ARGS} clean -fxd --exclude dist/
 
 mkdir -p "$WHEELHOUSE_DIR"
 
@@ -137,6 +142,10 @@ for PIP_BIN in /opt/python/*/bin/pip; do
     ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} &
 done
 wait
+
+# clear python cache
+>&2 echo Cleaninig up non-artifact files untracked by Git...
+git ${GIT_GLOBAL_ARGS} clean -fxd --exclude dist/
 
 >&2 echo Running test suite against wheels:
 for PY_BIN in /opt/python/*/bin/python; do
