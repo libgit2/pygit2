@@ -160,6 +160,21 @@ wait
 >&2 echo ==================
 >&2 echo
 
+# Running analysis
+>&2 echo
+>&2 echo ==============
+>&2 echo WHEEL ANALYSIS
+>&2 echo ==============
+>&2 echo
+for PY in $PYTHONS; do
+    WHEEL_BIN="/opt/python/${PY}/bin/wheel"
+    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_${ARCH}.whl`
+    >&2 echo Analysing ${WHEEL_FILE}...
+    auditwheel show "${WHEEL_FILE}"
+    ${WHEEL_BIN} unpack -d "${BUILD_DIR}/${PY}-${DIST_NAME}" "${WHEEL_FILE}"
+    ! ldd ${BUILD_DIR}/${PY}-${DIST_NAME}/${DIST_NAME}-*/${DIST_NAME}/.libs/lib* | grep '=> not found'
+done
+
 chown -R --reference="${SRC_DIR}/.travis.yml" "${SRC_DIR}"
 >&2 echo Final OS-specific wheels for ${DIST_NAME}:
 ls -l ${WHEELHOUSE_DIR}
