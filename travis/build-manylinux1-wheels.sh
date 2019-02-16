@@ -23,6 +23,9 @@ fi
 
 PYTHONS=`ls /opt/python/`
 
+# Avoid creation of __pycache__/*.py[c|o]
+export PYTHONDONTWRITEBYTECODE=1
+
 SRC_DIR=/io
 TESTS_DIR="${SRC_DIR}/test"
 BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux1-build.XXXXXXXXXX"`
@@ -37,6 +40,13 @@ LIBSSH2_BUILD_DIR="${LIBSSH2_CLONE_DIR}/build"
 ORIG_WHEEL_DIR="${BUILD_DIR}/original-wheelhouse"
 WHEEL_DEP_DIR="${BUILD_DIR}/deps-wheelhouse"
 WHEELHOUSE_DIR="${SRC_DIR}/dist"
+
+# clear python cache
+>&2 echo Cleaninig up python bytecode cache files...
+find "${SRC_DIR}" \
+    -type d \
+    '(' -name __pycache__ -o -name *.pyc -o -name *.pyo ')' \
+    -print0 | xargs -0 rm -rfv
 
 mkdir -p "$WHEELHOUSE_DIR"
 
