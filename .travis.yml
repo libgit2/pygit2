@@ -47,9 +47,8 @@ jobs:
       skip-existing: true
       user: jdavid
       password:
-        # Encrypted with `travis encrypt -r aio-libs/aiohttp --api-endpoint 'https://api.travis-ci.com/'`:
-        secure: >-
-          TODO: REPLACE THIS WITH AN ENCRYPTED PASSWORD
+        # Encrypted with `travis encrypt <password> -r libgit2/pygit2`
+        secure: "j/4klKkq6sJuPEYwA1n5PD1Z02SbfTwt9Jj1omnOUOzVv3njJ73IHHELvIxtn18yj8uIKs8XpCUbpMKFGdWzc/WNj8xQPHVaRIlCrKVbZiUH/zfbuWOWlKlSEbNZ5+vVsnNbTN1FEwxDV9+CQKsibUG2Y1OzBqLx1gBSRpjq+ro="
       # Although Travis CI instructs `setup.py` to build source distribution,
       # which is default value for distribution option (`distribution: sdist`),
       # it will also upload all wheels we've previously built in manylinux1
@@ -77,4 +76,4 @@ script:
 stages:
 - test
 - name: *deploy_stage
-  if: 1=1 OR tag IS present OR type IN (cron, api)
+  if: tag IS present OR type IN (cron, api)
