@@ -160,6 +160,6 @@ wait
 >&2 echo ==================
 >&2 echo
 
-chown -R --reference=/io/.travis.yml ${SRC_DIR}
+chown -R --reference="${SRC_DIR}/.travis.yml" "${SRC_DIR}"
 >&2 echo Final OS-specific wheels for ${DIST_NAME}:
 ls -l ${WHEELHOUSE_DIR}
