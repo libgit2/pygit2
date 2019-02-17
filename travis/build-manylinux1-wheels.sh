@@ -45,8 +45,12 @@ WHEELHOUSE_DIR="${SRC_DIR}/dist"
 # clear python cache
 >&2 echo Cleaninig up python bytecode cache files...
 find "${SRC_DIR}" \
+    -type f \
+    -name *.pyc -o -name *.pyo \
+    -print0 | xargs -0 rm -fv
+find "${SRC_DIR}" \
     -type d \
-    '(' -name __pycache__ -o -name *.pyc -o -name *.pyo ')' \
+    -name __pycache__ \
     -print0 | xargs -0 rm -rfv
 
 # clear python cache
