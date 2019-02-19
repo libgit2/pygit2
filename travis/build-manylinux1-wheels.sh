@@ -42,20 +42,34 @@ ORIG_WHEEL_DIR="${BUILD_DIR}/original-wheelhouse"
 WHEEL_DEP_DIR="${BUILD_DIR}/deps-wheelhouse"
 WHEELHOUSE_DIR="${SRC_DIR}/dist"
 
-# clear python cache
->&2 echo Cleaninig up python bytecode cache files...
-find "${SRC_DIR}" \
-    -type f \
-    -name *.pyc -o -name *.pyo \
-    -print0 | xargs -0 rm -fv
-find "${SRC_DIR}" \
-    -type d \
-    -name __pycache__ \
-    -print0 | xargs -0 rm -rfv
+function cleanup_garbage() {
+    # clear python cache
+    >&2 echo
+    >&2 echo
+    >&2 echo ===========================================
+    >&2 echo Cleaninig up python bytecode cache files...
+    >&2 echo ===========================================
+    >&2 echo
+    find "${SRC_DIR}" \
+        -type f \
+        -name *.pyc -o -name *.pyo \
+        -print0 | xargs -0 rm -fv
+    find "${SRC_DIR}" \
+        -type d \
+        -name __pycache__ \
+        -print0 | xargs -0 rm -rfv
 
-# clear python cache
->&2 echo Cleaninig up files untracked by Git...
-git ${GIT_GLOBAL_ARGS} clean -fxd --exclude dist/
+    # clear python cache
+    >&2 echo
+    >&2 echo
+    >&2 echo ======================================
+    >&2 echo Cleaninig up files untracked by Git...
+    >&2 echo ======================================
+    >&2 echo
+    git ${GIT_GLOBAL_ARGS} clean -fxd --exclude dist/
+}
+
+cleanup_garbage
 
 mkdir -p "$WHEELHOUSE_DIR"
 
