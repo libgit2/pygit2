@@ -30,9 +30,10 @@ SRC_DIR=/io
 GIT_GLOBAL_ARGS="--git-dir=${SRC_DIR}/.git --work-tree=${SRC_DIR}"
 TESTS_DIR="${SRC_DIR}/test"
 BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux1-build.XXXXXXXXXX"`
+STATIC_DEPS_PREFIX="${BUILD_DIR}/static-deps"
 LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
 LIBGIT2_BUILD_DIR="${LIBGIT2_CLONE_DIR}/build"
-export LIBGIT2="${LIBGIT2_CLONE_DIR}/_install"
+export LIBGIT2="${STATIC_DEPS_PREFIX}"
 
 LIBSSH2_VERSION=1.8.0
 LIBSSH2_CLONE_DIR="${BUILD_DIR}/libssh2"
@@ -77,8 +78,8 @@ export PYCA_OPENSSL_PATH=/opt/pyca/cryptography/openssl
 export OPENSSL_PATH=/opt/openssl
 
 export CFLAGS="-fPIC"
-export LD_LIBRARY_PATH="${BUILD_DIR}/static-deps/lib64:${BUILD_DIR}/static-deps/lib:$LD_LIBRARY_PATH"
-export PKG_CONFIG_PATH="${BUILD_DIR}/static-deps/lib64/pkgconfig:${BUILD_DIR}/static-deps/lib/pkgconfig:${OPENSSL_PATH}/lib/pkgconfig:${PYCA_OPENSSL_PATH}/lib/pkgconfig"
+export LD_LIBRARY_PATH="${STATIC_DEPS_PREFIX}/lib64:${STATIC_DEPS_PREFIX}/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="${STATIC_DEPS_PREFIX}/lib64/pkgconfig:${STATIC_DEPS_PREFIX}/lib/pkgconfig:${OPENSSL_PATH}/lib/pkgconfig:${PYCA_OPENSSL_PATH}/lib/pkgconfig"
 
 ARCH=`uname -m`
 
@@ -119,7 +120,8 @@ git clone \
 mkdir -p "${LIBSSH2_BUILD_DIR}"
 pushd "${LIBSSH2_BUILD_DIR}"
 cmake28 "${LIBSSH2_CLONE_DIR}" \
-    -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_INSTALL_PREFIX="${STATIC_DEPS_PREFIX}" \
+    -DBUILD_SHARED_LIBS=OFF \
     -DBUILD_EXAMPLES=OFF \
     -DBUILD_TESTING=OFF \
     -DCRYPTO_BACKEND=OpenSSL \
@@ -147,12 +149,18 @@ git clone \
 >&2 echo
 mkdir -p "${LIBGIT2_BUILD_DIR}"
 pushd "${LIBGIT2_BUILD_DIR}"
+# moving libcurl away from path because cmake choses *.so
+# over *.a for some weird reason even though pkg-config
+# does this choice correctly
+mkdir -p /usr/local/lib/bak
+mv /usr/local/lib/libcurl.so* /usr/local/lib/bak/
 # Ref https://libgit2.org/docs/guides/build-and-link/
 cmake28 "${LIBGIT2_CLONE_DIR}" \
-    -DCMAKE_INSTALL_PREFIX="${LIBGIT2}" \
+    -DCMAKE_INSTALL_PREFIX="${STATIC_DEPS_PREFIX}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_CLAR=OFF \
     -DTHREADSAFE=ON
+mv /usr/local/lib/bak/libcurl.so* /usr/local/lib/
 cmake28 --build "${LIBGIT2_BUILD_DIR}" --target install
 popd
 
