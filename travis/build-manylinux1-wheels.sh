@@ -35,6 +35,9 @@ LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
 LIBGIT2_BUILD_DIR="${LIBGIT2_CLONE_DIR}/build"
 export LIBGIT2="${STATIC_DEPS_PREFIX}"
 
+ZLIB_VERSION=1.2.11
+ZLIB_DOWNLOAD_DIR="${BUILD_DIR}/zlib-${ZLIB_VERSION}"
+
 LIBSSH2_VERSION=1.8.0
 LIBSSH2_CLONE_DIR="${BUILD_DIR}/libssh2"
 LIBSSH2_BUILD_DIR="${LIBSSH2_CLONE_DIR}/build"
@@ -104,6 +107,23 @@ yum -y install \
 >&2 echo =======================
 >&2 echo
 /opt/python/cp36-cp36m/bin/python -m pip install -U auditwheel
+
+>&2 echo
+>&2 echo
+>&2 echo ============================================
+>&2 echo downloading source of zlib v${ZLIB_VERSION}:
+>&2 echo ============================================
+>&2 echo
+curl http://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz | \
+    tar xzvC "${BUILD_DIR}" -f -
+
+pushd "${ZLIB_DOWNLOAD_DIR}"
+./configure \
+    --static \
+    --prefix="${STATIC_DEPS_PREFIX}" && \
+    make -j9 libz.a && \
+    make install
+popd
 
 >&2 echo
 >&2 echo
