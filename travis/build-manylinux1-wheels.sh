@@ -98,6 +98,14 @@ yum -y install \
 
 >&2 echo
 >&2 echo
+>&2 echo =======================
+>&2 echo Upgrading auditwheel...
+>&2 echo =======================
+>&2 echo
+/opt/python/cp36-cp36m/bin/python -m pip install -U auditwheel
+
+>&2 echo
+>&2 echo
 >&2 echo ==================================================
 >&2 echo downloading source of libssh2 v${LIBSSH2_VERSION}:
 >&2 echo ==================================================
