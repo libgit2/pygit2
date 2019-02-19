@@ -235,7 +235,8 @@ import pygit2
 print("libgit2 version: %s" % pygit2.LIBGIT2_VERSION)
 print("pygit2 supports threads: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
 print("pygit2 supports HTTPS: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
-print("pygit2 supports SSH: %s" % str(bool(pygit2.GIT_FEATURE_THREADS))); print()
+print("pygit2 supports SSH: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
+print("")
     '
 done
 
