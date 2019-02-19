@@ -83,7 +83,12 @@ export PKG_CONFIG_PATH="${BUILD_DIR}/static-deps/lib64/pkgconfig:${BUILD_DIR}/st
 ARCH=`uname -m`
 
 
+>&2 echo
+>&2 echo
+>&2 echo ========================
 >&2 echo Installing system deps...
+>&2 echo ========================
+>&2 echo
 # Install a system package required by our library
 # libgit2 needs cmake 2.8, which can be found in EPEL
 yum -y install \
@@ -91,7 +96,12 @@ yum -y install \
     openssl-devel pkgconfig \
     cmake28
 
+>&2 echo
+>&2 echo
+>&2 echo ==================================================
 >&2 echo downloading source of libssh2 v${LIBSSH2_VERSION}:
+>&2 echo ==================================================
+>&2 echo
 git clone \
     --depth=1 \
     -b "libssh2-${LIBSSH2_VERSION}" \
@@ -109,14 +119,24 @@ cmake28 "${LIBSSH2_CLONE_DIR}" \
 cmake28 --build "${LIBSSH2_BUILD_DIR}" --target install
 popd
 
+>&2 echo
+>&2 echo
+>&2 echo ==================================================
 >&2 echo downloading source of libgit2 v${LIBGIT2_VERSION}:
+>&2 echo ==================================================
+>&2 echo
 git clone \
     --depth=1 \
     -b "maint/v${LIBGIT2_VERSION}" \
     https://github.com/libgit2/libgit2.git \
     "${LIBGIT2_CLONE_DIR}"
 
+>&2 echo
+>&2 echo
+>&2 echo ===================
 >&2 echo Building libgit2...
+>&2 echo ===================
+>&2 echo
 mkdir -p "${LIBGIT2_BUILD_DIR}"
 pushd "${LIBGIT2_BUILD_DIR}"
 # Ref https://libgit2.org/docs/guides/build-and-link/
@@ -128,13 +148,23 @@ cmake28 "${LIBGIT2_CLONE_DIR}" \
 cmake28 --build "${LIBGIT2_BUILD_DIR}" --target install
 popd
 
+>&2 echo
+>&2 echo
+>&2 echo ================
 >&2 echo Building wheels:
+>&2 echo ================
+>&2 echo
 for PIP_BIN in /opt/python/*/bin/pip; do
     >&2 echo Using "${PIP_BIN}"...
     ${PIP_BIN} wheel "${SRC_DIR}" -w "${ORIG_WHEEL_DIR}"
 done
 
+>&2 echo
+>&2 echo
+>&2 echo ================
 >&2 echo Reparing wheels:
+>&2 echo ================
+>&2 echo
 # Bundle external shared libraries into the wheels
 for PY in $PYTHONS; do
     for whl in ${ORIG_WHEEL_DIR}/${DIST_NAME}-*-${PY}-linux_${ARCH}.whl; do
@@ -144,7 +174,12 @@ for PY in $PYTHONS; do
 done
 
 # Download deps
+>&2 echo
+>&2 echo
+>&2 echo =========================
 >&2 echo Downloading dependencies:
+>&2 echo =========================
+>&2 echo
 for PY in $PYTHONS; do
     PIP_BIN="/opt/python/${PY}/bin/pip"
     WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_${ARCH}.whl`
@@ -153,7 +188,12 @@ for PY in $PYTHONS; do
 done
 
 # Install packages
+>&2 echo
+>&2 echo
+>&2 echo ============================
 >&2 echo Testing wheels installation:
+>&2 echo ============================
+>&2 echo
 for PIP_BIN in /opt/python/*/bin/pip; do
     >&2 echo Using ${PIP_BIN}...
     ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} &
