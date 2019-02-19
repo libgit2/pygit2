@@ -27,6 +27,7 @@ jobs:
     python: "3.7"
     services:
     - docker
+    before_install: []
     install: skip
     script: &docker-script
     - travis/build-all-manylinux1-wheels.sh "pygit2" "${LIBGIT2_VERSION}"
