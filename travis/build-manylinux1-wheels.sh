@@ -208,11 +208,29 @@ done
 for PIP_BIN in /opt/python/*/bin/pip; do
     cleanup_garbage
     >&2 echo Using ${PIP_BIN}...
-    ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} &
+    ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} #&
 done
 wait
 
 # Running analysis
+>&2 echo
+>&2 echo
+>&2 echo =============
+>&2 echo SMOKE TESTING
+>&2 echo =============
+>&2 echo
+for PY_BIN in /opt/python/*/bin/python; do
+    cleanup_garbage
+    $PY_BIN -B -V
+    $PY_BIN -B -c '
+import pygit2
+print("libgit2 version: %s" % pygit2.LIBGIT2_VERSION)
+print("pygit2 supports threads: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
+print("pygit2 supports HTTPS: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
+print("pygit2 supports SSH: %s" % str(bool(pygit2.GIT_FEATURE_THREADS))); print()
+    '
+done
+
 cleanup_garbage
 >&2 echo
 >&2 echo ==============
