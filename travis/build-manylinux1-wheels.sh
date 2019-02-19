@@ -134,7 +134,7 @@ popd
 git clone \
     --depth=1 \
     -b "libssh2-${LIBSSH2_VERSION}" \
-    https://github.com/libssh2/libssh2 \
+    https://github.com/libssh2/libssh2.git \
     "${LIBSSH2_CLONE_DIR}"
 
 mkdir -p "${LIBSSH2_BUILD_DIR}"
