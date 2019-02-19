@@ -212,23 +212,6 @@ for PIP_BIN in /opt/python/*/bin/pip; do
 done
 wait
 
-# clear python cache
->&2 echo Cleaninig up non-artifact files untracked by Git...
-git ${GIT_GLOBAL_ARGS} clean -fxd --exclude dist/
-
->&2 echo Running test suite against wheels:
-for PY_BIN in /opt/python/*/bin/python; do
-    $PY_BIN -m pip install pytest
-    $PY_BIN -m pytest "${TESTS_DIR}" &
-done
-wait
-
->&2 echo
->&2 echo ==================
->&2 echo SELF-TEST COMPLETE
->&2 echo ==================
->&2 echo
-
 # Running analysis
 cleanup_garbage
 >&2 echo
@@ -244,6 +227,26 @@ for PY in $PYTHONS; do
     ${WHEEL_BIN} unpack -d "${BUILD_DIR}/${PY}-${DIST_NAME}" "${WHEEL_FILE}"
     ! ldd ${BUILD_DIR}/${PY}-${DIST_NAME}/${DIST_NAME}-*/${DIST_NAME}/.libs/lib* | grep '=> not found'
 done
+
+>&2 echo
+>&2 echo
+>&2 echo ==================================
+>&2 echo Running test suite against wheels:
+>&2 echo ==================================
+>&2 echo
+for PY_BIN in /opt/python/*/bin/python; do
+    cleanup_garbage
+    $PY_BIN -B -m pip install pytest
+    $PY_BIN -B -m pytest "${TESTS_DIR}" &
+done
+wait
+
+>&2 echo
+>&2 echo
+>&2 echo ==================
+>&2 echo SELF-TEST COMPLETE
+>&2 echo ==================
+>&2 echo
 
 cleanup_garbage
 
