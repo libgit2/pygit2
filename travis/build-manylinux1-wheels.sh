@@ -155,6 +155,7 @@ popd
 >&2 echo ================
 >&2 echo
 for PIP_BIN in /opt/python/*/bin/pip; do
+    cleanup_garbage
     >&2 echo Using "${PIP_BIN}"...
     ${PIP_BIN} wheel "${SRC_DIR}" -w "${ORIG_WHEEL_DIR}"
 done
@@ -168,6 +169,7 @@ done
 # Bundle external shared libraries into the wheels
 for PY in $PYTHONS; do
     for whl in ${ORIG_WHEEL_DIR}/${DIST_NAME}-*-${PY}-linux_${ARCH}.whl; do
+        cleanup_garbage
         >&2 echo Reparing "${whl}"...
         auditwheel repair "${whl}" -w ${WHEELHOUSE_DIR}
     done
@@ -183,6 +185,7 @@ done
 for PY in $PYTHONS; do
     PIP_BIN="/opt/python/${PY}/bin/pip"
     WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_${ARCH}.whl`
+    cleanup_garbage
     >&2 echo Downloading ${WHEEL_FILE} deps using ${PIP_BIN}...
     ${PIP_BIN} download -d "${WHEEL_DEP_DIR}" "${WHEEL_FILE}"
 done
@@ -195,6 +198,7 @@ done
 >&2 echo ============================
 >&2 echo
 for PIP_BIN in /opt/python/*/bin/pip; do
+    cleanup_garbage
     >&2 echo Using ${PIP_BIN}...
     ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} &
 done
@@ -218,6 +222,7 @@ wait
 >&2 echo
 
 # Running analysis
+cleanup_garbage
 >&2 echo
 >&2 echo ==============
 >&2 echo WHEEL ANALYSIS
@@ -231,6 +236,8 @@ for PY in $PYTHONS; do
     ${WHEEL_BIN} unpack -d "${BUILD_DIR}/${PY}-${DIST_NAME}" "${WHEEL_FILE}"
     ! ldd ${BUILD_DIR}/${PY}-${DIST_NAME}/${DIST_NAME}-*/${DIST_NAME}/.libs/lib* | grep '=> not found'
 done
+
+cleanup_garbage
 
 chown -R --reference="${SRC_DIR}/.travis.yml" "${SRC_DIR}"
 >&2 echo Final OS-specific wheels for ${DIST_NAME}:
