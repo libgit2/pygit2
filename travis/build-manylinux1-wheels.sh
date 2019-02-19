@@ -76,10 +76,9 @@ mkdir -p "$WHEELHOUSE_DIR"
 export PYCA_OPENSSL_PATH=/opt/pyca/cryptography/openssl
 export OPENSSL_PATH=/opt/openssl
 
-export CFLAGS="-I${PYCA_OPENSSL_PATH}/include -I${OPENSSL_PATH}/include -I/usr/include"
-export LDFLAGS="-L${PYCA_OPENSSL_PATH}/lib -L${OPENSSL_PATH}/lib -L/usr/local/lib -L/usr/lib64"
-export LD_LIBRARY_PATH="${LIBGIT2}/lib:$LD_LIBRARY_PATH"
-export PKG_CONFIG_PATH="/usr/local/lib64/pkgconfig:${PYCA_OPENSSL_PATH}/lib/pkgconfig:${OPENSSL_PATH}/lib/pkgconfig:$PKG_CONFIG_PATH"
+export CFLAGS="-fPIC"
+export LD_LIBRARY_PATH="${BUILD_DIR}/static-deps/lib64:${BUILD_DIR}/static-deps/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="${BUILD_DIR}/static-deps/lib64/pkgconfig:${BUILD_DIR}/static-deps/lib/pkgconfig:${OPENSSL_PATH}/lib/pkgconfig:${PYCA_OPENSSL_PATH}/lib/pkgconfig"
 
 ARCH=`uname -m`
 
