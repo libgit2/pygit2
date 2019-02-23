@@ -32,8 +32,8 @@
 #include <Python.h>
 #include <git2.h>
 
-#if !(LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR == 27)
-#error You need a compatible libgit2 version (v0.27.x)
+#if !(LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR == 28)
+#error You need a compatible libgit2 version (v0.28.x)
 #endif
 
 /*
