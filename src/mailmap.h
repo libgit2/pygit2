@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 The pygit2 contributors
+ * Copyright 2010-2017 The pygit2 contributors
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2,
@@ -25,25 +25,14 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDE_pygit2_worktree_h
-#define INCLUDE_pygit2_worktree_h
+#ifndef INCLUDE_pygit2_mailmap_h
+#define INCLUDE_pygit2_mailmap_h
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
-#include <git2/worktree.h>
+#include "types.h"
 
-/* git_worktree is an internal unstable datastructure (#803) */
-struct git_worktree {
-	char *name;
-	char *worktree_path;
-	char *gitlink_path;
-	char *gitdir_path;
-	char *commondir_path;
-	char *parent_path;
-	int locked:1;
-};
-
-PyObject* wrap_worktree(Repository* repo, git_worktree* wt);
+PyObject* wrap_mailmap(git_mailmap *c_object);
 
 #endif
