@@ -33,7 +33,7 @@ from _pygit2 import GIT_OPT_SET_CACHE_OBJECT_LIMIT
 from _pygit2 import GIT_OPT_GET_CACHED_MEMORY
 from _pygit2 import GIT_OPT_ENABLE_CACHING
 from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
-
+from _pygit2 import GIT_OPT_SET_SSL_CERT_LOCATIONS
 
 class SearchPathList(object):
 
@@ -101,4 +101,30 @@ class Settings(object):
         """
         return option(GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
 
+    def __set_ssl_cert_file(self, value):
+        """Set the ssl cert file. The value cannot be read.
+        """
+        return option(GIT_OPT_SET_SSL_CERT_LOCATIONS, value, None)
+
+    ssl_cert_file = property(fset=__set_ssl_cert_file)
+
+    def __set_ssl_cert_dir(self, value):
+        """Set the ssl cert folder. The value cannot be read.
+        """
+        return option(GIT_OPT_SET_SSL_CERT_LOCATIONS, None, value)
+
+    ssl_cert_dir = property(fset=__set_ssl_cert_dir)
+
+    def __set_ssl_cert_locations(self, locations):
+        """
+        Passes both file_path and dir_path to libgit2.
+
+        locations must be a list/tuple type with the the file path
+        at index 0 and the directory path at index 1
+
+        The values set cannot be read.
+        """
+        return option(GIT_OPT_SET_SSL_CERT_LOCATIONS, locations[0], locations[1])
+
+    _ssl_cert_locations = property(fset=__set_ssl_cert_locations)
 
