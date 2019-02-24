@@ -42,9 +42,6 @@ LIBSSH2_VERSION=1.8.0
 LIBSSH2_CLONE_DIR="${BUILD_DIR}/libssh2"
 LIBSSH2_BUILD_DIR="${LIBSSH2_CLONE_DIR}/build"
 
-CURL_VERSION=7.64.0
-CURL_CLONE_DIR="${BUILD_DIR}/curl"
-
 ORIG_WHEEL_DIR="${BUILD_DIR}/original-wheelhouse"
 WHEEL_DEP_DIR="${BUILD_DIR}/deps-wheelhouse"
 WHEELHOUSE_DIR="${SRC_DIR}/dist"
@@ -154,29 +151,6 @@ popd
 
 >&2 echo
 >&2 echo
->&2 echo ============================================
->&2 echo downloading source of curl v${CURL_VERSION}:
->&2 echo ============================================
->&2 echo
-git clone \
-    --depth=1 \
-    -b "curl-$(echo "${CURL_VERSION}" | sed 's/\./_/g')" \
-    https://github.com/curl/curl.git \
-    "${CURL_CLONE_DIR}"
-
-pushd "${CURL_CLONE_DIR}"
-./buildconf && \
-    ./configure \
-        --prefix="${STATIC_DEPS_PREFIX}" \
-        --with-ssl \
-        --with-libssh2 \
-        --disable-shared && \
-    make -j9 && \
-    make install
-popd
-
->&2 echo
->&2 echo
 >&2 echo ==================================================
 >&2 echo downloading source of libgit2 v${LIBGIT2_VERSION}:
 >&2 echo ==================================================
@@ -195,18 +169,12 @@ git clone \
 >&2 echo
 mkdir -p "${LIBGIT2_BUILD_DIR}"
 pushd "${LIBGIT2_BUILD_DIR}"
-# moving libcurl away from path because cmake choses *.so
-# over *.a for some weird reason even though pkg-config
-# does this choice correctly
-mkdir -p /usr/local/lib/bak
-mv /usr/local/lib/libcurl.so* /usr/local/lib/bak/
 # Ref https://libgit2.org/docs/guides/build-and-link/
 cmake28 "${LIBGIT2_CLONE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${STATIC_DEPS_PREFIX}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_CLAR=OFF \
     -DTHREADSAFE=ON
-mv /usr/local/lib/bak/libcurl.so* /usr/local/lib/
 cmake28 --build "${LIBGIT2_BUILD_DIR}" --target install
 popd
 
