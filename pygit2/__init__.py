@@ -28,6 +28,9 @@
 # Import from the future
 from __future__ import absolute_import
 
+# Import from core python modules
+from ssl import get_default_verify_paths as default_ssl_verify_paths
+
 # Low level API
 from _pygit2 import *
 
@@ -267,3 +270,9 @@ def clone_repository(
     return Repository._from_c(crepo[0], owned=True)
 
 settings = Settings()
+
+try:
+    # try to set default ssl cert locations
+    settings._ssl_cert_locations = default_ssl_verify_paths()
+except:
+    pass
