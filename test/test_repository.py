@@ -480,8 +480,8 @@ class RepositoryTest_II(utils.RepoTestCase):
         new_content = 'bye world\nadiós\nau revoir monde\n'
 
         # create the patch
-        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
-            f.write(new_content)
+        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'wb') as f:
+            f.write(new_content.encode('utf-8'))
 
         patch = self.repo.diff().patch
 
@@ -489,10 +489,11 @@ class RepositoryTest_II(utils.RepoTestCase):
         self.repo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
 
         # apply the patch and compare
-        self.repo.apply(pygit2.Diff.parse_diff(patch))
+        diff = pygit2.Diff.parse_diff(patch)
+        self.repo.apply(diff)
 
-        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'r') as f:
-            content = f.read()
+        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'rb') as f:
+            content = f.read().decode('utf-8')
 
         self.assertEqual(content, new_content)
 

@@ -998,24 +998,24 @@ PyDoc_STRVAR(Diff_parse_diff__doc__,
     "Parses a git unified diff into a diff object without a repository");
 
 static PyObject *
-Diff_parse_diff(PyObject *self, PyObject *args)
+Diff_parse_diff(PyObject *self, PyObject *py_str)
 {
-  /* A wrapper around
-   * git_diff_from_buffer
-  */
-  git_diff *diff;
-  const char *content = NULL;
-  Py_ssize_t content_len;
-  int err;
+    /* A wrapper around git_diff_from_buffer */
+    git_diff *diff;
+    const char *content = NULL;
+    int err;
+    PyObject *tvalue;
 
-  if (!PyArg_ParseTuple(args, "s#", &content, &content_len))
-    return NULL;
+    content = py_str_borrow_c_str(&tvalue, py_str, NULL);
+    if (content == NULL)
+        return NULL;
 
-  err = git_diff_from_buffer(&diff, content, content_len);
-  if (err < 0)
-    return Error_set(err);
+    err = git_diff_from_buffer(&diff, content, strlen(content));
+    Py_DECREF(tvalue);
+    if (err < 0)
+        return Error_set(err);
 
-  return wrap_diff(diff, NULL);
+    return wrap_diff(diff, NULL);
 }
 
 static void
@@ -1044,7 +1044,7 @@ static PyMethodDef Diff_methods[] = {
     METHOD(Diff, find_similar, METH_VARARGS | METH_KEYWORDS),
     METHOD(Diff, from_c, METH_STATIC | METH_VARARGS),
     {"parse_diff", (PyCFunction) Diff_parse_diff,
-      METH_VARARGS | METH_STATIC, Diff_parse_diff__doc__},
+      METH_O | METH_STATIC, Diff_parse_diff__doc__},
     {NULL}
 };
 

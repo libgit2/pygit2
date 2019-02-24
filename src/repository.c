@@ -1924,10 +1924,7 @@ Repository_apply(Repository *self, PyObject *py_diff)
     git_apply_location_t location = GIT_APPLY_LOCATION_WORKDIR;
     git_apply_options options = GIT_APPLY_OPTIONS_INIT;
 
-    err = git_apply(self->repo,
-                    ((Diff*)py_diff)->diff,
-                    location,
-	                &options);
+    err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
 
     if (err < 0)
         return Error_set(err);
