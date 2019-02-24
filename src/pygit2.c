@@ -242,6 +242,7 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_OPT_GET_CACHED_MEMORY);
     ADD_CONSTANT_INT(m, GIT_OPT_ENABLE_CACHING);
     ADD_CONSTANT_INT(m, GIT_OPT_SET_CACHE_MAX_SIZE);
+    ADD_CONSTANT_INT(m, GIT_OPT_SET_SSL_CERT_LOCATIONS);
 
     /* Errors */
     GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);

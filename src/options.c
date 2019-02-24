@@ -272,6 +272,36 @@ option(PyObject *self, PyObject *args)
             return tup;
         }
 
+        case GIT_OPT_SET_SSL_CERT_LOCATIONS:
+        {
+            PyObject *py_file, *py_dir;
+            const char *file_path, *dir_path;
+            int err;
+
+            py_file = PyTuple_GetItem(args, 1);
+            py_dir = PyTuple_GetItem(args, 2);
+
+            /* py_file and py_dir are only valid if they are strings */
+            if (PyUnicode_Check(py_file) || PyBytes_Check(py_file)) {
+                file_path = py_str_to_c_str(py_file, Py_FileSystemDefaultEncoding);
+            } else {
+                file_path = NULL;
+            }
+
+            if (PyUnicode_Check(py_dir) || PyBytes_Check(py_dir)) {
+                dir_path = py_str_to_c_str(py_dir, Py_FileSystemDefaultEncoding);
+            } else {
+                dir_path = NULL;
+            }
+
+            err = git_libgit2_opts(GIT_OPT_SET_SSL_CERT_LOCATIONS, file_path, dir_path);
+
+            if (err < 0)
+                return Error_set(err);
+
+            Py_RETURN_NONE;
+        }
+
     }
 
     PyErr_SetString(PyExc_ValueError, "unknown/unsupported option value");
