@@ -106,7 +106,7 @@ yum -y install \
 >&2 echo Upgrading auditwheel...
 >&2 echo =======================
 >&2 echo
-/opt/python/cp36-cp36m/bin/python -m pip install -U auditwheel
+/opt/python/cp36-cp36m/bin/python -m pip install --no-compile -U auditwheel
 
 >&2 echo
 >&2 echo
@@ -230,7 +230,7 @@ done
 for PIP_BIN in /opt/python/*/bin/pip; do
     cleanup_garbage
     >&2 echo Using ${PIP_BIN}...
-    ${PIP_BIN} install "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} #&
+    ${PIP_BIN} install --no-compile "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} #&
 done
 wait
 
@@ -277,7 +277,7 @@ done
 >&2 echo
 for PY_BIN in /opt/python/*/bin/python; do
     cleanup_garbage
-    $PY_BIN -B -m pip install pytest
+    $PY_BIN -B -m pip install --no-compile pytest
     $PY_BIN -B -m pytest "${TESTS_DIR}" &
 done
 wait
