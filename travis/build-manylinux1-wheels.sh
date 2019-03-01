@@ -28,8 +28,9 @@ export PYTHONDONTWRITEBYTECODE=1
 
 SRC_DIR=/io
 GIT_GLOBAL_ARGS="--git-dir=${SRC_DIR}/.git --work-tree=${SRC_DIR}"
-TESTS_DIR="${SRC_DIR}/test"
+TESTS_SRC_DIR="${SRC_DIR}/test"
 BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux1-build.XXXXXXXXXX"`
+TESTS_DIR="${BUILD_DIR}/test"
 STATIC_DEPS_PREFIX="${BUILD_DIR}/static-deps"
 LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
 LIBGIT2_BUILD_DIR="${LIBGIT2_CLONE_DIR}/build"
@@ -275,12 +276,16 @@ done
 >&2 echo Running test suite against wheels:
 >&2 echo ==================================
 >&2 echo
+cp -v ${SRC_DIR}/pytest.ini ${BUILD_DIR}/
+cp -vr ${TESTS_SRC_DIR} ${TESTS_DIR}
+pushd "${BUILD_DIR}"
 for PY_BIN in /opt/python/*/bin/python; do
     cleanup_garbage
     $PY_BIN -B -m pip install --no-compile pytest
     $PY_BIN -B -m pytest "${TESTS_DIR}" &
 done
 wait
+popd
 
 >&2 echo
 >&2 echo
