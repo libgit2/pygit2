@@ -69,7 +69,7 @@ before_install:
   - ./.travis.sh "${LIBGIT2_VERSION}"
 
 install:
-  - pip install .
+  - pip install cffi
 
 script:
   - pytest
