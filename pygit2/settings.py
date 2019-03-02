@@ -24,6 +24,7 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
+"""Settings mapping."""
 
 from _pygit2 import option
 from _pygit2 import GIT_OPT_GET_SEARCH_PATH, GIT_OPT_SET_SEARCH_PATH
@@ -45,7 +46,7 @@ class SearchPathList(object):
 
 
 class Settings(object):
-    """Library-wide settings"""
+    """Library-wide settings interface."""
 
     __slots__ = []
 
