@@ -342,7 +342,7 @@ PyDoc_STRVAR(Reference_type__doc__,
 PyObject *
 Reference_type__get__(Reference *self)
 {
-    git_ref_t c_type;
+    git_reference_t c_type;
 
     CHECK_REFERENCE(self);
     c_type = git_reference_type(self->reference);

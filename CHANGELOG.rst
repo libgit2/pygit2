@@ -1,3 +1,32 @@
+0.28.0 (UNRELEASED)
+-------------------------
+
+- Upgrade to libgit2 0.28
+
+- Add fat wheels for Linux
+  `#793 <https://github.com/libgit2/pygit2/issues/793>`_
+  `#869 <https://github.com/libgit2/pygit2/pull/869>`_
+  `#874 <https://github.com/libgit2/pygit2/pull/874>`_
+  `#875 <https://github.com/libgit2/pygit2/pull/875>`_
+  `#883 <https://github.com/libgit2/pygit2/pull/883>`_
+
+- New `pygit2.Mailmap`, see documentation
+  `#804 <https://github.com/libgit2/pygit2/pull/804>`_
+
+- New `Repository.apply(...)` wraps `git_apply(..)`
+  `#841 <https://github.com/libgit2/pygit2/issues/841>`_
+  `#843 <https://github.com/libgit2/pygit2/pull/843>`_
+
+- Tests improvements
+  `#873 <https://github.com/libgit2/pygit2/pull/873>`_
+
+Breaking changes:
+
+- Now `worktree.path` returns the path to the worktree directory, not to the
+  `.git` file within. To get the path to the `.git` file just append `.git`
+  `#803 <https://github.com/libgit2/pygit2/issues/803>`_
+
+
 0.27.4 (2019-01-19)
 -------------------------
 

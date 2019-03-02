@@ -35,19 +35,21 @@ Usage guide:
    repository
    oid
    objects
-   references
-   revparse
-   log
-   working-copy
-   diff
-   merge
-   config
-   remotes
-   submodule
-   blame
-   settings
-   features
+
    backends
+   blame
+   config
+   diff
+   features
+   log
+   mailmap
+   merge
+   references
+   remotes
+   revparse
+   settings
+   submodule
+   working-copy
 
 
 Indices and tables

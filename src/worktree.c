@@ -39,7 +39,7 @@ PyDoc_STRVAR(Worktree_name__doc__,
 PyObject *
 Worktree_name__get__(Worktree *self)
 {
-    return to_unicode(self->worktree->name, NULL, NULL);
+    return to_unicode(git_worktree_name(self->worktree), NULL, NULL);
 }
 
 PyDoc_STRVAR(Worktree_path__doc__,
@@ -47,7 +47,7 @@ PyDoc_STRVAR(Worktree_path__doc__,
 PyObject *
 Worktree_path__get__(Worktree *self)
 {
-    return to_unicode(self->worktree->gitlink_path, NULL, NULL);
+    return to_unicode(git_worktree_path(self->worktree), NULL, NULL);
 }
 
 PyDoc_STRVAR(Worktree_git_path__doc__,

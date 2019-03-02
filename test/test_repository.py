@@ -687,21 +687,20 @@ class WorktreeTestCase(utils.RepoTestCase):
         os.rmdir(worktree_dir)
 
         def _check_worktree(worktree):
-            path = os.path.realpath(
-                os.path.join(worktree_dir, '.git'))
-            git_path = os.path.realpath(
-                os.path.join(self.repo.path, 'worktrees', worktree_name))
-
             # Confirm the name attribute matches the specified name
             assert worktree.name == worktree_name
             # Confirm the path attribute points to the correct path
-            assert os.path.realpath(worktree.path) == path
+            assert os.path.realpath(worktree.path) == worktree_dir
             # The "gitdir" in a worktree should be a file with a reference to
             # the actual gitdir. Let's make sure that the path exists and is a
             # file.
-            assert os.path.isfile(path)
+            assert os.path.isfile(os.path.join(worktree_dir, '.git'))
+
             # Confirm the git_path attribute points to the correct path
+            git_path = os.path.realpath(
+                os.path.join(self.repo.path, 'worktrees', worktree_name))
             assert os.path.realpath(worktree.git_path) == git_path
+
             # Confirm the worktree directory in the main checkout's gitdir
             # actually exists
             assert os.path.isdir(git_path)
