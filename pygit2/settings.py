@@ -36,7 +36,11 @@ from _pygit2 import GIT_OPT_ENABLE_CACHING
 from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
 
 
-class SearchPathList(object):
+
+__metaclass__ = type  # make all classes new-style by default
+
+
+class SearchPathList:
 
     def __getitem__(self, key):
         return option(GIT_OPT_GET_SEARCH_PATH, key)
@@ -45,7 +49,7 @@ class SearchPathList(object):
         option(GIT_OPT_SET_SEARCH_PATH, key, value)
 
 
-class Settings(object):
+class Settings:
     """Library-wide settings interface."""
 
     __slots__ = []
