@@ -23,7 +23,10 @@
 Breaking changes:
 
 - Now `worktree.path` returns the path to the worktree directory, not to the
-  `.git` file within. To get the path to the `.git` file just append `.git`
+  `.git` file within
+  `#803 <https://github.com/libgit2/pygit2/issues/803>`_
+
+- Remove undocumented `worktree.git_path`
   `#803 <https://github.com/libgit2/pygit2/issues/803>`_
 
 

@@ -33,17 +33,6 @@
 #include <git2.h>
 #include <git2/worktree.h>
 
-/* git_worktree is an internal unstable datastructure (#803) */
-struct git_worktree {
-	char *name;
-	char *worktree_path;
-	char *gitlink_path;
-	char *gitdir_path;
-	char *commondir_path;
-	char *parent_path;
-	int locked:1;
-};
-
 PyObject* wrap_worktree(Repository* repo, git_worktree* wt);
 
 #endif

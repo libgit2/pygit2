@@ -50,6 +50,7 @@ Usage guide:
    settings
    submodule
    working-copy
+   worktree
 
 
 Indices and tables

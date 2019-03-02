@@ -696,15 +696,6 @@ class WorktreeTestCase(utils.RepoTestCase):
             # file.
             assert os.path.isfile(os.path.join(worktree_dir, '.git'))
 
-            # Confirm the git_path attribute points to the correct path
-            git_path = os.path.realpath(
-                os.path.join(self.repo.path, 'worktrees', worktree_name))
-            assert os.path.realpath(worktree.git_path) == git_path
-
-            # Confirm the worktree directory in the main checkout's gitdir
-            # actually exists
-            assert os.path.isdir(git_path)
-
         # We should have zero worktrees
         assert self.repo.list_worktrees() == []
         # Add a worktree
@@ -726,5 +717,3 @@ class WorktreeTestCase(utils.RepoTestCase):
         # something to take up with libgit2.
         worktree.prune(True)
         assert self.repo.list_worktrees() == []
-        # Confirm that the repo's data dir has been removed
-        assert not os.path.isdir(worktree.git_path)
