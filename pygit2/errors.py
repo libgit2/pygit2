@@ -38,7 +38,7 @@ def check_error(err, io=False):
         return
 
     # Error message
-    giterr = C.giterr_last()
+    giterr = C.git_error_last()
     if giterr != ffi.NULL:
         message = ffi.string(giterr.message).decode('utf8')
     else:

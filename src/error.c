@@ -67,7 +67,7 @@ Error_type(int type)
     }
 
     /* Critical */
-    error = giterr_last();
+    error = git_error_last();
     if (error != NULL) {
         switch (error->klass) {
             case GITERR_NOMEMORY:
@@ -93,7 +93,7 @@ Error_set(int err)
 PyObject *
 Error_set_exc(PyObject* exception)
 {
-    const git_error* error = giterr_last();
+    const git_error* error = git_error_last();
     char* message = (error == NULL) ?
             "(No error information given)" : error->message;
     PyErr_SetString(exception, message);
@@ -112,7 +112,7 @@ Error_set_str(int err, const char *str)
         return NULL;
     }
 
-    error = giterr_last();
+    error = git_error_last();
     if (error == NULL) /* Expected error - no error msg set */
         return PyErr_Format(Error_type(err), "%s", str);
 

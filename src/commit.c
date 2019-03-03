@@ -79,8 +79,8 @@ Commit_gpg_signature__get__(Commit *commit)
     );
 
     if (err != GIT_OK){
-        git_buf_free(&gpg_signature);
-        git_buf_free(&signed_data);
+        git_buf_dispose(&gpg_signature);
+        git_buf_dispose(&signed_data);
 
         if (err == GIT_ENOTFOUND){
             return Py_BuildValue("OO", Py_None, Py_None);
@@ -91,8 +91,8 @@ Commit_gpg_signature__get__(Commit *commit)
 
     py_gpg_signature = PyBytes_FromString(gpg_signature.ptr);
     py_signed_data = PyBytes_FromString(signed_data.ptr);
-    git_buf_free(&gpg_signature);
-    git_buf_free(&signed_data);
+    git_buf_dispose(&gpg_signature);
+    git_buf_dispose(&signed_data);
 
     return Py_BuildValue("NN", py_gpg_signature, py_signed_data);
 }

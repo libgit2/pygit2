@@ -22,7 +22,7 @@ typedef struct {
 	char   *ptr;
 	size_t asize, size;
 } git_buf;
-void git_buf_free(git_buf *buffer);
+void git_buf_dispose(git_buf *buffer);
 
 typedef struct git_strarray {
 	char **strings;
@@ -92,7 +92,7 @@ typedef struct git_signature {
 
 int git_libgit2_features(void);
 
-const git_error * giterr_last(void);
+const git_error * git_error_last(void);
 
 void git_strarray_free(git_strarray *array);
 void git_repository_free(git_repository *repo);

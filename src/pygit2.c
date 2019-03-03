@@ -99,7 +99,7 @@ discover_repository(PyObject *self, PyObject *args)
         return Error_set_str(err, path);
 
     py_repo_path = to_path(repo_path.ptr);
-    git_buf_free(&repo_path);
+    git_buf_dispose(&repo_path);
 
     return py_repo_path;
 };

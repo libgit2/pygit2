@@ -618,10 +618,10 @@ Diff_patch__get__(Diff *self)
     }
 
     py_patch = to_unicode(buf.ptr, NULL, NULL);
-    git_buf_free(&buf);
+    git_buf_dispose(&buf);
 
 cleanup:
-    git_buf_free(&buf);
+    git_buf_dispose(&buf);
     return (err < 0) ? Error_set(err) : py_patch;
 }
 
@@ -816,7 +816,7 @@ DiffStats_format(DiffStats *self, PyObject *args, PyObject *kwds)
         return Error_set(err);
 
     str = to_unicode(buf.ptr, NULL, NULL);
-    git_buf_free(&buf);
+    git_buf_dispose(&buf);
 
     return str;
 }

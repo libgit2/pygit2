@@ -169,7 +169,7 @@ Branch_remote_name__get__(Branch *self)
         return Error_set(err);
 
     py_name = to_unicode(name.ptr, NULL, NULL);
-    git_buf_free(&name);
+    git_buf_dispose(&name);
 
     return py_name;
 }
@@ -247,7 +247,7 @@ Branch_upstream_name__get__(Branch *self)
         return Error_set(err);
 
     py_name = to_unicode(name.ptr, NULL, NULL);
-    git_buf_free(&name);
+    git_buf_dispose(&name);
 
     return py_name;
 }

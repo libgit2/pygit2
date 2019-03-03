@@ -107,7 +107,7 @@ Object_short_id__get__(Object *self)
         return Error_set(err);
 
     py_short_id = to_unicode_n(short_id.ptr, short_id.size, NULL, "strict");
-    git_buf_free(&short_id);
+    git_buf_dispose(&short_id);
     return py_short_id;
 }
 

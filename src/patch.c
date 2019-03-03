@@ -186,7 +186,7 @@ Patch_patch__get__(Patch *self)
         return Error_set(err);
 
     py_patch = to_unicode(buf.ptr, NULL, NULL);
-    git_buf_free(&buf);
+    git_buf_dispose(&buf);
     return py_patch;
 }
 

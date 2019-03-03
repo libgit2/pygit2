@@ -264,7 +264,7 @@ class Config(object):
         err = fn(buf)
         check_error(err, True)
         cpath = ffi.string(buf.ptr).decode('utf-8')
-        C.git_buf_free(buf)
+        C.git_buf_dispose(buf)
 
         return Config(cpath)
 
