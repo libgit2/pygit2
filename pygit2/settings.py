@@ -26,6 +26,8 @@
 # Boston, MA 02110-1301, USA.
 """Settings mapping."""
 
+from ssl import get_default_verify_paths
+
 from _pygit2 import option
 from _pygit2 import GIT_OPT_GET_SEARCH_PATH, GIT_OPT_SET_SEARCH_PATH
 from _pygit2 import GIT_OPT_GET_MWINDOW_SIZE, GIT_OPT_SET_MWINDOW_SIZE
@@ -34,7 +36,7 @@ from _pygit2 import GIT_OPT_SET_CACHE_OBJECT_LIMIT
 from _pygit2 import GIT_OPT_GET_CACHED_MEMORY
 from _pygit2 import GIT_OPT_ENABLE_CACHING
 from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
-
+from _pygit2 import GIT_OPT_SET_SSL_CERT_LOCATIONS
 
 
 __metaclass__ = type  # make all classes new-style by default
@@ -52,9 +54,16 @@ class SearchPathList:
 class Settings:
     """Library-wide settings interface."""
 
-    __slots__ = []
+    __slots__ = '_default_tls_verify_paths', '_ssl_cert_dir', '_ssl_cert_file'
 
     _search_path = SearchPathList()
+
+    def __init__(self):
+        self._default_tls_verify_paths = get_default_verify_paths()
+        self.set_ssl_cert_locations(
+            self._default_tls_verify_paths.cafile,
+            self._default_tls_verify_paths.capath,
+        )
 
     @property
     def search_path(self):
@@ -106,4 +115,39 @@ class Settings:
         """
         return option(GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
 
+    @property
+    def ssl_cert_file(self):
+        """TLS certificate file path."""
+        return self._ssl_cert_file
 
+    @ssl_cert_file.setter
+    def ssl_cert_file(self, value):
+        """Set the TLS cert file path."""
+        self.set_ssl_cert_locations(value, self._ssl_cert_dir)
+
+    @ssl_cert_file.deleter
+    def ssl_cert_file(self):
+        """Reset the TLS cert file path."""
+        self.ssl_cert_file = self._default_tls_verify_paths.cafile
+
+    @property
+    def ssl_cert_dir(self):
+        """TLS certificates lookup directory path."""
+        return self._ssl_cert_dir
+
+    @ssl_cert_dir.setter
+    def ssl_cert_dir(self, value):
+        """Set the TLS certificate lookup folder."""
+        self.set_ssl_cert_locations(self._ssl_cert_file, value)
+
+    @ssl_cert_dir.deleter
+    def ssl_cert_dir(self):
+        """Reset the TLS certificate lookup folder."""
+        self.ssl_cert_dir = self._default_tls_verify_paths.capath
+
+    def set_ssl_cert_locations(self, ssl_cert_file, ssl_cert_dir):
+        """Set both file path and lookup dir for TLS certs in libgit2.
+        """
+        option(GIT_OPT_SET_SSL_CERT_LOCATIONS, ssl_cert_file, ssl_cert_dir)
+        self._ssl_cert_file = ssl_cert_file
+        self._ssl_cert_dir = ssl_cert_dir
