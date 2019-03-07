@@ -813,7 +813,7 @@ class BaseRepository(_Repository):
             try:
                 return ffi.string(buf.ptr).decode('utf-8')
             finally:
-                C.git_buf_free(buf)
+                C.git_buf_dispose(buf)
         finally:
             C.git_describe_result_free(result[0])
 

@@ -84,7 +84,7 @@ class Refspec(object):
         try:
             return ffi.string(buf.ptr).decode('utf-8')
         finally:
-            C.git_buf_free(buf)
+            C.git_buf_dispose(buf)
 
     def transform(self, ref):
         """Transform a reference name according to this refspec from the lhs to
