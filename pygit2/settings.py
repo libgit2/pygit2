@@ -38,6 +38,8 @@ from _pygit2 import GIT_OPT_ENABLE_CACHING
 from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
 from _pygit2 import GIT_OPT_SET_SSL_CERT_LOCATIONS
 
+from .errors import GitError
+
 
 __metaclass__ = type  # make all classes new-style by default
 
@@ -59,11 +61,24 @@ class Settings:
     _search_path = SearchPathList()
 
     def __init__(self):
+        """Initialize global pygit2 and libgit2 settings."""
+        self._initialize_tls_certificate_locations()
+
+    def _initialize_tls_certificate_locations(self):
+        """Set up initial TLS file and directory lookup locations."""
         self._default_tls_verify_paths = get_default_verify_paths()
-        self.set_ssl_cert_locations(
-            self._default_tls_verify_paths.cafile,
-            self._default_tls_verify_paths.capath,
-        )
+        try:
+            self.set_ssl_cert_locations(
+                self._default_tls_verify_paths.cafile,
+                self._default_tls_verify_paths.capath,
+            )
+        except GitError as git_err:
+            valid_msg = "TLS backend doesn't support certificate locations"
+            if str(git_err) != valid_msg:
+                raise
+            self._default_tls_verify_paths = None
+            self._ssl_cert_file = None
+            self._ssl_cert_dir = None
 
     @property
     def search_path(self):
