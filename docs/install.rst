@@ -161,6 +161,7 @@ Install pygit2:
 .. code-block:: sh
 
    $ export LDFLAGS="-Wl,-rpath='$LIBGIT2/lib',--enable-new-dtags $LDFLAGS"
+   # on OSX: export LDFLAGS="-Wl,-rpath,'$LIBGIT2/lib' $LDFLAGS"
    $ pip install pygit2
    $ python -c 'import pygit2'
 
@@ -197,7 +198,9 @@ Installing on Windows
 `pygit2` for Windows is packaged into wheels and can be easily
 installed with `pip`:
 
-    pip install pygit2
+.. code-block:: console
+
+   pip install pygit2
 
 For development it is also possible to build `pygit2` with `libgit2`
 from sources. `libgit2` location is specified by the ``LIBGIT2``
@@ -238,3 +241,5 @@ XCode and Hombrew are already installed.
    $ brew update
    $ brew install libgit2
    $ pip3 install pygit2
+
+To build from a non-Homebrew libgit2 follow the guide in `libgit2 within a virtual environment`_.
