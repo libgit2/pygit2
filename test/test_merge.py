@@ -49,8 +49,13 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
     def test_merge_analysis_uptodate(self):
         branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
         branch_id = self.repo.get(branch_head_hex).id
-        analysis, preference = self.repo.merge_analysis(branch_id)
 
+        analysis, preference = self.repo.merge_analysis(branch_id)
+        assert analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
+        assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+        assert {} == self.repo.status()
+
+        analysis, preference = self.repo.merge_analysis_for_ref('HEAD', branch_id)
         assert analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
         assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
         assert {} == self.repo.status()
@@ -58,7 +63,13 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
     def test_merge_analysis_fastforward(self):
         branch_head_hex = 'e97b4cfd5db0fb4ebabf4f203979ca4e5d1c7c87'
         branch_id = self.repo.get(branch_head_hex).id
+
         analysis, preference = self.repo.merge_analysis(branch_id)
+        assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
+        assert analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+        assert {} == self.repo.status()
+
+        analysis, preference = self.repo.merge_analysis_for_ref('HEAD', branch_id)
         assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
         assert analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
         assert {} == self.repo.status()
