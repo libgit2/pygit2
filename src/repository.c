@@ -1895,21 +1895,27 @@ Repository_expand_id(Repository *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(Repository_add_worktree__doc__,
-    "add_worktree(name, path)\n"
+    "add_worktree(name, path, [ref])\n"
     "\n"
-    "Create a new worktree for this repository.");
+    "Create a new worktree for this repository. If ref is specified, no new \
+    branch will be created and the provided ref will be checked out instead.");
 PyObject *
 Repository_add_worktree(Repository *self, PyObject *args)
 {
     char *c_name;
     char *c_path;
+    Reference *py_reference = NULL;
     git_worktree *wt;
-    int err;
     git_worktree_add_options add_opts = GIT_WORKTREE_ADD_OPTIONS_INIT;
+    
+    int err;
 
-    if (!PyArg_ParseTuple(args, "ss", &c_name, &c_path))
+    if (!PyArg_ParseTuple(args, "ss|O!", &c_name, &c_path, &ReferenceType, &py_reference))
         return NULL;
 
+    if(py_reference != NULL)
+        add_opts.ref = py_reference->reference;
+    
     err = git_worktree_add(&wt, self->repo, c_name, c_path, &add_opts);
     if (err < 0)
         return Error_set(err);
