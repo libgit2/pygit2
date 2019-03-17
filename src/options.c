@@ -72,52 +72,6 @@ option(PyObject *self, PyObject *args)
     option = PyInt_AsLong(py_option);
 
     switch (option) {
-        case GIT_OPT_GET_SEARCH_PATH:
-        {
-            PyObject *py_level;
-
-            py_level = PyTuple_GetItem(args, 1);
-            if (!py_level)
-                return NULL;
-
-            if (!PyInt_Check(py_level))
-                return Error_type_error(
-                    "level should be an integer, got %.200s", py_level);
-
-            return get_search_path(PyInt_AsLong(py_level));
-        }
-
-        case GIT_OPT_SET_SEARCH_PATH:
-        {
-            PyObject *py_level, *py_path, *tpath;
-            const char *path;
-            int err;
-
-            py_level = PyTuple_GetItem(args, 1);
-            if (!py_level)
-                return NULL;
-
-            py_path = PyTuple_GetItem(args, 2);
-            if (!py_path)
-                return NULL;
-
-            if (!PyInt_Check(py_level))
-                return Error_type_error(
-                    "level should be an integer, got %.200s", py_level);
-
-            path = py_str_borrow_c_str(&tpath, py_path, NULL);
-            if (!path)
-                return NULL;
-
-            err = git_libgit2_opts(
-                GIT_OPT_SET_SEARCH_PATH, PyInt_AsLong(py_level), path);
-            Py_DECREF(tpath);
-
-            if (err < 0)
-                return Error_set(err);
-
-            Py_RETURN_NONE;
-        }
 
         case GIT_OPT_GET_MWINDOW_SIZE:
         {
@@ -187,6 +141,53 @@ option(PyObject *self, PyObject *args)
             Py_RETURN_NONE;
         }
 
+        case GIT_OPT_GET_SEARCH_PATH:
+        {
+            PyObject *py_level;
+
+            py_level = PyTuple_GetItem(args, 1);
+            if (!py_level)
+                return NULL;
+
+            if (!PyInt_Check(py_level))
+                return Error_type_error(
+                    "level should be an integer, got %.200s", py_level);
+
+            return get_search_path(PyInt_AsLong(py_level));
+        }
+
+        case GIT_OPT_SET_SEARCH_PATH:
+        {
+            PyObject *py_level, *py_path, *tpath;
+            const char *path;
+            int err;
+
+            py_level = PyTuple_GetItem(args, 1);
+            if (!py_level)
+                return NULL;
+
+            py_path = PyTuple_GetItem(args, 2);
+            if (!py_path)
+                return NULL;
+
+            if (!PyInt_Check(py_level))
+                return Error_type_error(
+                    "level should be an integer, got %.200s", py_level);
+
+            path = py_str_borrow_c_str(&tpath, py_path, NULL);
+            if (!path)
+                return NULL;
+
+            err = git_libgit2_opts(
+                GIT_OPT_SET_SEARCH_PATH, PyInt_AsLong(py_level), path);
+            Py_DECREF(tpath);
+
+            if (err < 0)
+                return Error_set(err);
+
+            Py_RETURN_NONE;
+        }
+
         case GIT_OPT_SET_CACHE_OBJECT_LIMIT:
         {
             size_t limit;
@@ -237,25 +238,6 @@ option(PyObject *self, PyObject *args)
             Py_RETURN_NONE;
         }
 
-        case GIT_OPT_ENABLE_CACHING:
-        {
-            int flag;
-            PyObject *py_flag;
-
-            py_flag = PyTuple_GetItem(args, 1);
-
-            if (!PyInt_Check(py_flag))
-                return Error_type_error(
-                    "flag should be an integer, got %.200s", py_flag);
-
-            flag = PyInt_AsSize_t(py_flag);
-            error = git_libgit2_opts(GIT_OPT_ENABLE_CACHING, flag);
-            if (error < 0)
-                return Error_set(error);
-
-            Py_RETURN_NONE;
-        }
-
         case GIT_OPT_GET_CACHED_MEMORY:
         {
             size_t current;
@@ -300,6 +282,49 @@ option(PyObject *self, PyObject *args)
                 return Error_set(err);
 
             Py_RETURN_NONE;
+        }
+
+        // int enabled
+        case GIT_OPT_ENABLE_CACHING:
+        case GIT_OPT_ENABLE_STRICT_OBJECT_CREATION:
+        case GIT_OPT_ENABLE_STRICT_SYMBOLIC_REF_CREATION:
+        case GIT_OPT_ENABLE_OFS_DELTA:
+        case GIT_OPT_ENABLE_FSYNC_GITDIR:
+        case GIT_OPT_ENABLE_STRICT_HASH_VERIFICATION:
+        case GIT_OPT_ENABLE_UNSAVED_INDEX_SAFETY:
+        {
+            PyObject *py_enabled;
+            int enabled;
+
+            py_enabled = PyTuple_GetItem(args, 1);
+            if (!py_enabled)
+                return NULL;
+
+            if (!PyInt_Check(py_enabled))
+                return Error_type_error("expected integer, got %.200s", py_enabled);
+
+            enabled = PyInt_AsSize_t(py_enabled);
+            error = git_libgit2_opts(option, enabled);
+            if (error < 0)
+                return Error_set(error);
+
+            Py_RETURN_NONE;
+        }
+
+        // Not implemented
+        case GIT_OPT_GET_TEMPLATE_PATH:
+        case GIT_OPT_SET_TEMPLATE_PATH:
+        case GIT_OPT_SET_USER_AGENT:
+        case GIT_OPT_SET_SSL_CIPHERS:
+        case GIT_OPT_GET_USER_AGENT:
+        case GIT_OPT_GET_WINDOWS_SHAREMODE:
+        case GIT_OPT_SET_WINDOWS_SHAREMODE:
+        case GIT_OPT_SET_ALLOCATOR:
+        case GIT_OPT_GET_PACK_MAX_OBJECTS:
+        case GIT_OPT_SET_PACK_MAX_OBJECTS:
+        {
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
         }
 
     }

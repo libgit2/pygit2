@@ -191,6 +191,7 @@ class IndexTest(utils.RepoTestCase):
         assert pygit2.GIT_FILEMODE_BLOB_EXECUTABLE == entry.mode
 
     def test_write_tree_to(self):
+        pygit2.option(pygit2.GIT_OPT_ENABLE_STRICT_OBJECT_CREATION, False)
         with utils.TemporaryRepository(('tar', 'emptyrepo')) as path:
             nrepo = Repository(path)
             id = self.repo.index.write_tree(nrepo)
