@@ -704,6 +704,8 @@ class WorktreeTestCase(utils.RepoTestCase):
         _check_worktree(worktree)
         # We should have one worktree now
         assert self.repo.list_worktrees() == [worktree_name]
+        # We should also have a branch of the same name
+        assert worktree_name in self.repo.listall_branches()
         # Test that lookup_worktree() returns a properly-instantiated
         # pygit2._Worktree object
         _check_worktree(self.repo.lookup_worktree(worktree_name))
@@ -717,3 +719,36 @@ class WorktreeTestCase(utils.RepoTestCase):
         # something to take up with libgit2.
         worktree.prune(True)
         assert self.repo.list_worktrees() == []
+
+    def test_worktree_custom_ref(self):
+        worktree_name = 'foo'
+        worktree_dir = tempfile.mkdtemp()
+        branch_name = 'version1'
+
+        # New branch based on head
+        tip = self.repo.revparse_single('HEAD')
+        worktree_ref = self.repo.branches.create(branch_name, tip)
+        # Delete temp path so that it's not present when we attempt to add the
+        # worktree later
+        os.rmdir(worktree_dir)
+
+        # Add a worktree for the given ref
+        worktree = self.repo.add_worktree(worktree_name, worktree_dir, worktree_ref)
+        # We should have one worktree now
+        assert self.repo.list_worktrees() == [worktree_name]
+        # We should not have a branch of the same name
+        assert worktree_name not in self.repo.listall_branches()
+
+        # The given ref is checked out in the "worktree repository"
+        assert worktree_ref.is_checked_out()
+
+        # Remove the worktree dir and prune the worktree
+        shutil.rmtree(worktree_dir)
+        worktree.prune(True)
+        assert self.repo.list_worktrees() == []
+
+        # The ref is no longer checked out
+        assert worktree_ref.is_checked_out() == False
+
+        # The branch still exists
+        assert branch_name in self.repo.branches
