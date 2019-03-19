@@ -1,39 +1,55 @@
-0.28.0 (UNRELEASED)
+0.28.0 (2019-03-19)
 -------------------------
 
 - Upgrade to libgit2 0.28
+  `#878 <https://github.com/libgit2/pygit2/issues/878>`_
 
-- Add fat wheels for Linux
+- Add binary wheels for Linux
   `#793 <https://github.com/libgit2/pygit2/issues/793>`_
   `#869 <https://github.com/libgit2/pygit2/pull/869>`_
   `#874 <https://github.com/libgit2/pygit2/pull/874>`_
   `#875 <https://github.com/libgit2/pygit2/pull/875>`_
   `#883 <https://github.com/libgit2/pygit2/pull/883>`_
 
-- New `pygit2.Mailmap`, see documentation
+- New ``pygit2.Mailmap``, see documentation
   `#804 <https://github.com/libgit2/pygit2/pull/804>`_
 
-- New `Repository.apply(...)` wraps `git_apply(..)`
+- New ``Repository.apply(...)`` wraps ``git_apply(..)``
   `#841 <https://github.com/libgit2/pygit2/issues/841>`_
   `#843 <https://github.com/libgit2/pygit2/pull/843>`_
 
-- Tests improvements
+- Now ``Repository.merge_analysis(...)`` accepts an optional reference parameter
+  `#888 <https://github.com/libgit2/pygit2/pull/888>`_
+  `#891 <https://github.com/libgit2/pygit2/pull/891>`_
+
+- Now ``Repository.add_worktree(...)`` accepts an optional reference parameter
+  `#814 <https://github.com/libgit2/pygit2/issues/814>`_
+  `#889 <https://github.com/libgit2/pygit2/pull/889>`_
+
+- Now it's possible to set SSL certificate locations
+  `#876 <https://github.com/libgit2/pygit2/issues/876>`_
+  `#879 <https://github.com/libgit2/pygit2/pull/879>`_
+  `#884 <https://github.com/libgit2/pygit2/pull/884>`_
+  `#886 <https://github.com/libgit2/pygit2/pull/886>`_
+
+- Test and documentation improvements
   `#873 <https://github.com/libgit2/pygit2/pull/873>`_
+  `#887 <https://github.com/libgit2/pygit2/pull/887>`_
 
 Breaking changes:
 
-- Now `worktree.path` returns the path to the worktree directory, not to the
+- Now ``worktree.path`` returns the path to the worktree directory, not to the
   `.git` file within
   `#803 <https://github.com/libgit2/pygit2/issues/803>`_
 
-- Remove undocumented `worktree.git_path`
+- Remove undocumented ``worktree.git_path``
   `#803 <https://github.com/libgit2/pygit2/issues/803>`_
 
 
 0.27.4 (2019-01-19)
 -------------------------
 
-- New `pygit2.LIBGIT2_VER` tuple
+- New ``pygit2.LIBGIT2_VER`` tuple
   `#845 <https://github.com/libgit2/pygit2/issues/845>`_
   `#848 <https://github.com/libgit2/pygit2/pull/848>`_
 
@@ -45,7 +61,7 @@ Breaking changes:
   `#860 <https://github.com/libgit2/pygit2/issues/860>`_
   `#862 <https://github.com/libgit2/pygit2/pull/862>`_
 
-- New `paths` optional argument in `Repository.checkout()`
+- New ``paths`` optional argument in ``Repository.checkout()``
   `#858 <https://github.com/libgit2/pygit2/issues/858>`_
   `#859 <https://github.com/libgit2/pygit2/pull/859>`_
 

@@ -3,6 +3,7 @@ Authors::
   J. David Ibáñez
   Carlos Martín Nieto
   Nico von Geyso
+  Sviatoslav Sydorenko
   Matthias Bartelmeß
   W. Trevor King
   Dave Borowitz
@@ -19,11 +20,11 @@ Authors::
   Matthew Gamble
   Martin Lenders
   Petr Hosek
+  Sriram Raghu
   Victor Garcia
   Xavier Delannoy
   Yonggang Luo
   Patrick Steinhardt
-  Sriram Raghu
   Tamir Bahar
   Valentin Haenel
   Michael Jones
@@ -43,7 +44,6 @@ Authors::
   Santiago Perez De Rosso
   Sebastian Thiel
   Thom Wiggers
-  Alexander Linne
   Alok Singhal
   Assaf Nativ
   Bob Carroll
@@ -54,11 +54,14 @@ Authors::
   Jason Ziglar
   Leonardo Rhodes
   Mark Adams
+  Nika Layzell
   Peter-Yi Zhang
   Petr Viktorin
+  Robert Coup
   Robert Hölzl
   Ron Cohen
   Thomas Kluyver
+  Alexander Linne
   Alex Chamberlain
   Alexander Bayandin
   Amit Bakshi
@@ -73,10 +76,12 @@ Authors::
   Huang Huang
   Ian P. McCullough
   Igor Gnatenko
+  Insomnia
   Jack O'Connor
   Jared Flatow
   Jeremy Heiner
   Jiunn Haur Lim
+  Jorge C. Leitao
   Jun Omae
   Kaarel Kitsemets
   Ken Dreyer
@@ -96,6 +101,7 @@ Authors::
   Ash Berlin
   Benjamin Kircher
   Benjamin Pollack
+  Benjamin Wohlwend
   Bogdan Stoicescu
   Bogdan Vasilescu
   Bryan O'Sullivan
@@ -122,7 +128,6 @@ Authors::
   Holger Frey
   Hugh Cole-Baker
   Jasper Lievisse Adriaanse
-  Jorge C. Leitao
   Josh Bleecher Snyder
   Justin Clift
   Kyriakos Oikonomakos
