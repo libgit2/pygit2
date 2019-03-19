@@ -637,47 +637,10 @@ Repository_merge_base(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_merge_analysis__doc__,
-  "merge_analysis(id) -> (Integer, Integer)\n"
-  "\n"
-  "Analyzes the given branch and determines the opportunities for merging\n"
-  "them into the HEAD of the repository\n"
-  "\n"
-  "The first returned value is a mixture of the GIT_MERGE_ANALYSIS_NONE, _NORMAL,\n"
-  "_UP_TO_DATE, _FASTFORWARD and _UNBORN flags.\n"
-  "The second value is the user's preference from 'merge.ff'");
-
-PyObject *
-Repository_merge_analysis(Repository *self, PyObject *py_id)
-{
-    int err;
-    size_t len;
-    git_oid id;
-    git_annotated_commit *commit;
-    git_merge_analysis_t analysis;
-    git_merge_preference_t preference;
-
-    len = py_oid_to_git_oid(py_id, &id);
-    if (len == 0)
-        return NULL;
-
-    err = git_annotated_commit_lookup(&commit, self->repo, &id);
-    if (err < 0)
-        return Error_set(err);
-
-    err = git_merge_analysis(&analysis, &preference, self->repo, (const git_annotated_commit **) &commit, 1);
-    git_annotated_commit_free(commit);
-
-    if (err < 0)
-        return Error_set(err);
-
-    return Py_BuildValue("(ii)", analysis, preference);
-}
-
-PyDoc_STRVAR(Repository_merge_analysis_for_ref__doc__,
-  "merge_analysis_for_ref(our_ref, their_head) -> (Integer, Integer)\n"
+  "merge_analysis(their_head, our_ref='HEAD') -> (Integer, Integer)\n"
   "\n"
   "Analyzes the given branch and determines the opportunities for\n"
-  "merging it into a reference.\n"
+  "merging it into a reference (defaults to HEAD).\n"
   "\n"
   "Parameters:\n"
   "\n"
@@ -692,9 +655,9 @@ PyDoc_STRVAR(Repository_merge_analysis_for_ref__doc__,
   "The second value is the user's preference from 'merge.ff'");
 
 PyObject *
-Repository_merge_analysis_for_ref(Repository *self, PyObject *args)
+Repository_merge_analysis(Repository *self, PyObject *args)
 {
-    char *our_ref_name = NULL;
+    char *our_ref_name = "HEAD";
     PyObject *py_their_head;
     PyObject *py_result = NULL;
     git_oid head_id;
@@ -704,9 +667,9 @@ Repository_merge_analysis_for_ref(Repository *self, PyObject *args)
     git_merge_preference_t preference;
     int err = 0;
 
-    if (!PyArg_ParseTuple(args, "zO",
-                          &our_ref_name,
-                          &py_their_head))
+    if (!PyArg_ParseTuple(args, "O|z",
+                          &py_their_head,
+                          &our_ref_name))
         return NULL;
 
     err = git_reference_lookup(&our_ref, self->repo, our_ref_name);
@@ -2009,8 +1972,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, descendant_of, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
-    METHOD(Repository, merge_analysis, METH_O),
-    METHOD(Repository, merge_analysis_for_ref, METH_VARARGS),
+    METHOD(Repository, merge_analysis, METH_VARARGS),
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),
     METHOD(Repository, apply, METH_O),
