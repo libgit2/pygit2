@@ -55,7 +55,7 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
         assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
         assert {} == self.repo.status()
 
-        analysis, preference = self.repo.merge_analysis_for_ref('HEAD', branch_id)
+        analysis, preference = self.repo.merge_analysis(branch_id, 'refs/heads/ff-branch')
         assert analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
         assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
         assert {} == self.repo.status()
@@ -69,7 +69,7 @@ class MergeTestBasic(utils.RepoTestCaseForMerging):
         assert analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
         assert {} == self.repo.status()
 
-        analysis, preference = self.repo.merge_analysis_for_ref('HEAD', branch_id)
+        analysis, preference = self.repo.merge_analysis(branch_id, 'refs/heads/master')
         assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
         assert analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
         assert {} == self.repo.status()
