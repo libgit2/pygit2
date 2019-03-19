@@ -10,31 +10,67 @@ Installation
    :local:
 
 
+Quick install
+=============
+
+Install pygit2:
+
+.. code-block:: sh
+
+   $ pip install pygit2
+
+The line above will install binary wheels if available in your platform.
+
+To install the source package:
+
+.. code-block:: sh
+
+   $ pip install pygit2 --no-binary
+
+It's preferable to install the source package, if it works for you. But the
+binary package will often be easier to install.
+
+
 Requirements
 ============
 
-- Python 2.7, 3.4+ or PyPy 2.6+ (including the development headers)
-- Libgit2 v0.26.x
+Supported versions of Python:
+
+- Python 2.7 and 3.4+
+- PyPy 2.7 and 3.5
+
+Python requirements (these are specified in ``setup.py``):
+
 - cffi 1.0+
 - six
-- tox (optional)
+
+.. warning::
+
+   cffi requires pycparser, but versions 2.18 and 2.19 of pycparser do not
+   work, see https://github.com/libgit2/pygit2/issues/846 for details.
+
+Libgit2 **v0.28.x** (see the version numbering section below for details).
+Binary wheels already include libgit2, so you only need to worry about this if
+you install the source package
 
 Optional libgit2 dependecies to support ssh and https:
 
 - https: WinHTTP (Windows), SecureTransport (OS X) or OpenSSL.
 - ssh: libssh2, pkg-config
 
-It should work with older versions of cffi and PyPy, but using cffi 1.0+
-(and PyPy 2.6+) is strongly encouraged.
+To run the tests:
+
+- pytest
+- tox (optional)
+
+Version numbers
+===============
 
 .. warning::
 
    One common mistake users do is to choose incompatible versions of libgit2
-   and pygit2. See below for a reference table of compatible versions.  Double
-   check the versions do match before filing a bug report.
-
-Version numbers
----------------
+   and pygit2. Double check the versions do match before filing a bug report.
+   Though you don't need to worry about this if you install a binary wheel.
 
 The version number of pygit2 is composed of three numbers separated by dots
 |lq| *major.minor.micro* |rq|, where the first two numbers
@@ -44,11 +80,11 @@ while the last number |lq| *.micro* |rq| auto-increments independently.
 It is recommended to use the latest version in each series. Example of
 compatible releases:
 
-+-----------+--------+--------+--------+--------+
-|**libgit2**| 0.27.0 | 0.26.3 | 0.25.1 | 0.24.6 |
-+-----------+--------+--------+--------+--------+
-|**pygit2** | 0.27.0 | 0.26.4 | 0.25.1 | 0.24.2 |
-+-----------+--------+--------+--------+--------+
++-----------+--------+--------+--------+--------+--------+
+|**libgit2**| 0.28.1 | 0.27.8 | 0.26.8 | 0.25.1 | 0.24.6 |
++-----------+--------+--------+--------+--------+--------+
+|**pygit2** | 0.28.0 | 0.27.4 | 0.26.4 | 0.25.1 | 0.24.2 |
++-----------+--------+--------+--------+--------+--------+
 
 .. warning::
 
@@ -57,17 +93,20 @@ compatible releases:
    a new release.
 
 
-Quick install
-=============
+Advanced
+===========================
+
+Install libgit2 from source
+---------------------------
 
 To install the latest version of libgit2 system wide, in the ``/usr/local``
 directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz
-   $ tar xzf v0.27.0.tar.gz
-   $ cd libgit2-0.27.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.28.1.tar.gz
+   $ tar xzf v0.28.1.tar.gz
+   $ cd libgit2-0.28.1/
    $ cmake .
    $ make
    $ sudo make install
@@ -87,7 +126,7 @@ Now install pygit2, and then verify it is correctly installed:
 
 
 Troubleshooting
----------------
+---------------------------
 
 The verification step may fail if the dynamic linker does not find the libgit2
 library:
@@ -111,11 +150,11 @@ fix this call ``ldconfig``:
    $ python -c 'import pygit2'
 
 If it still does not work, please open an issue at
-https://github.com/libgit2/pygit2/issues, I would like to know about it.
+https://github.com/libgit2/pygit2/issues
 
 
 Build options
-=============
+---------------------------
 
 ``LIBGIT2`` -- If you install libgit2 in an unusual place, you will need to set
 the ``LIBGIT2`` environment variable before installing pygit2.  This variable
@@ -124,11 +163,11 @@ when explaining how to install libgit2 within a virtual environment.
 
 ``LIBGIT2_LIB`` -- This is a more rarely used build option, it allows to
 override the library directory where libgit2 is installed, useful if different
-from from ``$LIBGIT2/lib``.
+from ``$LIBGIT2/lib``.
 
 
 libgit2 within a virtual environment
-====================================
+------------------------------------
 
 This is how to install both libgit2 and pygit2 within a virtual environment.
 
@@ -149,9 +188,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz
-   $ tar xzf v0.27.0.tar.gz
-   $ cd libgit2-0.27.0/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.28.1.tar.gz
+   $ tar xzf v0.28.1.tar.gz
+   $ cd libgit2-0.28.1/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -222,6 +261,9 @@ installation steps described at the start of this page.
 
 Installing on OS X
 ===================================
+
+There are not binary wheels available for OS X, so you will need to install the
+source package.
 
 .. note::
 
