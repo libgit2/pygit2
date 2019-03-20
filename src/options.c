@@ -311,6 +311,24 @@ option(PyObject *self, PyObject *args)
             Py_RETURN_NONE;
         }
 
+        case GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS:
+        {
+            PyObject *py_flag;
+            py_flag = PyTuple_GetItem(args, 1);
+
+            if (!PyBool_Check(py_flag))
+                return Error_type_error("flag should be boolean, got %.200s",
+                                        py_flag);
+
+            error = git_libgit2_opts(GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS,
+                                     (Py_True == py_flag));
+
+            if (error < 0)
+                return Error_set(error);
+
+            Py_RETURN_NONE;
+        }
+
         // Not implemented
         case GIT_OPT_GET_TEMPLATE_PATH:
         case GIT_OPT_SET_TEMPLATE_PATH:
@@ -326,7 +344,6 @@ option(PyObject *self, PyObject *args)
             Py_INCREF(Py_NotImplemented);
             return Py_NotImplemented;
         }
-
     }
 
     PyErr_SetString(PyExc_ValueError, "unknown/unsupported option value");

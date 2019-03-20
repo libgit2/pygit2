@@ -37,6 +37,7 @@ from _pygit2 import GIT_OPT_GET_CACHED_MEMORY
 from _pygit2 import GIT_OPT_ENABLE_CACHING
 from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
 from _pygit2 import GIT_OPT_SET_SSL_CERT_LOCATIONS
+from _pygit2 import GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS
 
 from .errors import GitError
 
@@ -166,3 +167,14 @@ class Settings:
         option(GIT_OPT_SET_SSL_CERT_LOCATIONS, ssl_cert_file, ssl_cert_dir)
         self._ssl_cert_file = ssl_cert_file
         self._ssl_cert_dir = ssl_cert_dir
+
+    def disable_pack_keep_file_check(self, value=True):
+        """Disable check to existence of '.keep'
+
+        Situations were retaining pack files is not required, we can
+        avoid the check for files that convey the intent to retain pack
+        files during GC. This is aimed to improve performance accessing
+        repositories over network filesystems
+        """
+        return option(GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS, value)
+
