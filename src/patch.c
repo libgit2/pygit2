@@ -169,25 +169,63 @@ Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
   return wrap_patch(patch, oldblob, newblob);
 }
 
-
-PyDoc_STRVAR(Patch_patch__doc__,
-    "Patch diff string. Can be None in some cases, such as empty commits.");
+PyDoc_STRVAR(Patch_data__doc__, "The raw bytes of the patch's contents.");
 
 PyObject *
-Patch_patch__get__(Patch *self)
+Patch_data__get__(Patch *self)
 {
     git_buf buf = {NULL};
     int err;
-    PyObject *py_patch;
+    PyObject *bytes;
 
     assert(self->patch);
     err = git_patch_to_buf(&buf, self->patch);
     if (err < 0)
         return Error_set(err);
 
-    py_patch = to_unicode(buf.ptr, NULL, NULL);
+    bytes = PyBytes_FromStringAndSize(buf.ptr, buf.size);
     git_buf_dispose(&buf);
-    return py_patch;
+    return bytes;
+}
+
+PyDoc_STRVAR(Patch_text__doc__,
+    "Patch diff string. Can be None in some cases, such as empty commits.\n"
+    "Note that this decodes the content to Unicode assuming UTF-8 encoding. "
+    "For non-UTF-8 content that can lead be a lossy, non-reversible process. "
+    "To access the raw, un-decoded patch, use `patch.data`.");
+
+PyObject *
+Patch_text__get__(Patch *self)
+{
+    git_buf buf = {NULL};
+    int err;
+    PyObject *text;
+
+    assert(self->patch);
+    err = git_patch_to_buf(&buf, self->patch);
+    if (err < 0)
+        return Error_set(err);
+
+    text = to_unicode(buf.ptr, NULL, NULL);
+    git_buf_dispose(&buf);
+    return text;
+}
+
+PyDoc_STRVAR(Patch_patch__doc__,
+    "Patch diff string (deprecated -- use Patch.text instead).\n"
+    "Can be None in some cases, such as empty commits. "
+    "Note that this decodes the content to Unicode assuming UTF-8 encoding. "
+    "For non-UTF-8 content that can lead be a lossy, non-reversible process. "
+    "To access the raw, un-decoded patch, use `patch.data`.");
+
+PyObject *
+Patch_patch__get__(Patch *self)
+{
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+        "`Patch.patch` assumes UTF-8 encoding and can have unexpected results "
+        "on other encodings. If decoded text is needed, use `Patch.text` "
+        "instead. Otherwise use `Patch.data`.", 1);
+    return Patch_text__get__(self);
 }
 
 PyDoc_STRVAR(Patch_hunks__doc__, "hunks");
@@ -221,8 +259,10 @@ PyMethodDef Patch_methods[] = {
 
 PyGetSetDef Patch_getsetters[] = {
     GETTER(Patch, delta),
-    GETTER(Patch, patch),
     GETTER(Patch, line_stats),
+    GETTER(Patch, data),
+    GETTER(Patch, text),
+    GETTER(Patch, patch),
     GETTER(Patch, hunks),
     {NULL}
 };

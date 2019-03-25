@@ -172,19 +172,19 @@ class BlobTest(utils.RepoTestCase):
     def test_diff_blob_to_buffer_patch_patch(self):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer("hello world")
-        assert patch.patch == BLOB_PATCH
+        assert patch.text == BLOB_PATCH
 
     def test_diff_blob_to_buffer_delete(self):
         blob = self.repo[BLOB_SHA]
         patch = blob.diff_to_buffer(None)
-        assert patch.patch == BLOB_PATCH_DELETED
+        assert patch.text == BLOB_PATCH_DELETED
 
     def test_diff_blob_create(self):
         old = self.repo[self.repo.create_blob(BLOB_CONTENT)]
         new = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
 
         patch = old.diff(new)
-        assert patch.patch == BLOB_PATCH_2
+        assert patch.text == BLOB_PATCH_2
 
     def test_blob_from_repo(self):
         blob = self.repo[BLOB_SHA]
@@ -193,4 +193,4 @@ class BlobTest(utils.RepoTestCase):
         blob = self.repo[BLOB_SHA]
         patch_two = blob.diff_to_buffer(None)
 
-        assert patch_one.patch == patch_two.patch
+        assert patch_one.text == patch_two.text

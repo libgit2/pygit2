@@ -96,7 +96,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH
+        assert patch.text == BLOB_PATCH
 
     def test_patch_create_from_blobs(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -109,7 +109,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH2
+        assert patch.text == BLOB_PATCH2
 
     def test_patch_create_from_blob_buffer(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -120,7 +120,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH
+        assert patch.text == BLOB_PATCH
 
     def test_patch_create_from_blob_buffer_add(self):
         patch = pygit2.Patch.create_from(
@@ -130,7 +130,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH_ADDED
+        assert patch.text == BLOB_PATCH_ADDED
 
     def test_patch_create_from_blob_buffer_delete(self):
         old_blob = self.repo[BLOB_OLD_SHA]
@@ -142,7 +142,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH_DELETED
+        assert patch.text == BLOB_PATCH_DELETED
 
     def test_patch_create_from_bad_old_type_arg(self):
         with pytest.raises(TypeError):
@@ -163,8 +163,8 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        context_count = (
-            len([line for line in patch.patch.splitlines() if line.startswith(" ")])
+        context_count = len(
+            [line for line in patch.text.splitlines() if line.startswith(" ")]
         )
 
         assert context_count != 0
@@ -181,12 +181,11 @@ class PatchTest(utils.RepoTestCase):
             context_lines=0,
         )
 
-        context_count = (
-            len([line for line in patch.patch.splitlines() if line.startswith(" ")])
+        context_count = len(
+            [line for line in patch.text.splitlines() if line.startswith(" ")]
         )
 
         assert context_count == 0
-
 
     def test_patch_create_blob_blobs(self):
         old_blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
@@ -199,7 +198,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH
+        assert patch.text == BLOB_PATCH
 
     def test_patch_create_blob_buffer(self):
         blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
@@ -210,7 +209,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH
+        assert patch.text == BLOB_PATCH
 
     def test_patch_create_blob_delete(self):
         blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
@@ -221,7 +220,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH_DELETED
+        assert patch.text == BLOB_PATCH_DELETED
 
     def test_patch_create_blob_add(self):
         blob = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
@@ -232,7 +231,7 @@ class PatchTest(utils.RepoTestCase):
             new_as_path=BLOB_NEW_PATH,
         )
 
-        assert patch.patch == BLOB_PATCH_ADDED
+        assert patch.text == BLOB_PATCH_ADDED
 
     def test_patch_delete_blob(self):
         blob = self.repo[BLOB_OLD_SHA]
@@ -246,7 +245,7 @@ class PatchTest(utils.RepoTestCase):
         # Make sure that even after deleting the blob the patch still has the
         # necessary references to generate its patch
         del blob
-        assert patch.patch == BLOB_PATCH_DELETED
+        assert patch.text == BLOB_PATCH_DELETED
 
     def test_patch_multi_blob(self):
         blob = self.repo[BLOB_OLD_SHA]
@@ -254,16 +253,65 @@ class PatchTest(utils.RepoTestCase):
             blob,
             None
         )
-        patch_text = patch.patch
+        patch_text = patch.text
 
         blob = self.repo[BLOB_OLD_SHA]
         patch2 = pygit2.Patch.create_from(
             blob,
             None
         )
-        patch_text2 = patch.patch
+        patch_text2 = patch.text
 
         assert patch_text == patch_text2
-        assert patch_text == patch.patch
-        assert patch_text2 == patch2.patch
-        assert patch.patch == patch2.patch
+        assert patch_text == patch.text
+        assert patch_text2 == patch2.text
+        assert patch.text == patch2.text
+
+
+class PatchEncodingTest(utils.AutoRepoTestCase):
+    repo_spec = 'tar', 'encoding'
+    expected_diff = b"""diff --git a/iso-8859-1.txt b/iso-8859-1.txt
+index e84e339..201e0c9 100644
+--- a/iso-8859-1.txt
++++ b/iso-8859-1.txt
+@@ -1 +1,2 @@
+ Kristian H\xf8gsberg
++foo
+"""
+
+    def test_patch_from_non_utf8(self):
+        # blobs encoded in ISO-8859-1
+        old_content = b'Kristian H\xf8gsberg\n'
+        new_content = old_content + b'foo\n'
+        patch = pygit2.Patch.create_from(
+            old_content,
+            new_content,
+            old_as_path='iso-8859-1.txt',
+            new_as_path='iso-8859-1.txt',
+        )
+
+        self.assertEqual(patch.data, self.expected_diff)
+
+        self.assertEqual(
+            patch.text, self.expected_diff.decode('utf-8', errors='replace'))
+
+        # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
+        # decoding, so assert that we cannot get the original content back:
+        self.assertNotEqual(patch.text.encode('utf-8'), self.expected_diff)
+
+    def test_patch_create_from_blobs(self):
+        patch = pygit2.Patch.create_from(
+            self.repo['e84e339ac7fcc823106efa65a6972d7a20016c85'],
+            self.repo['201e0c908e3d9f526659df3e556c3d06384ef0df'],
+            old_as_path='iso-8859-1.txt',
+            new_as_path='iso-8859-1.txt',
+        )
+
+        self.assertEqual(patch.data, self.expected_diff)
+
+        self.assertEqual(
+            patch.text, self.expected_diff.decode('utf-8', errors='replace'))
+
+        # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
+        # decoding, so assert that we cannot get the original content back:
+        self.assertNotEqual(patch.text.encode('utf-8'), self.expected_diff)
