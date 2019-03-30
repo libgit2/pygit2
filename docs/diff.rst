@@ -38,20 +38,16 @@ Examples
 The Diff type
 ====================
 
-.. method:: Diff.__iter__()
+.. autoclass:: pygit2.Diff
+   :members: deltas, find_similar, merge, parse_diff, patch, stats
 
-   Returns an iterator over the deltas/patches in this diff.
+   .. method:: Diff.__iter__()
 
-.. method:: Diff.__len__()
+      Returns an iterator over the deltas/patches in this diff.
 
-   Returns the number of deltas/patches in this diff.
+   .. method:: Diff.__len__()
 
-.. autoattribute:: pygit2.Diff.deltas
-.. automethod:: pygit2.Diff.find_similar
-.. automethod:: pygit2.Diff.merge
-.. automethod:: pygit2.Diff.parse_diff
-.. autoattribute:: pygit2.Diff.patch
-.. autoattribute:: pygit2.Diff.stats
+      Returns the number of deltas/patches in this diff.
 
 
 The Patch type
@@ -60,7 +56,7 @@ The Patch type
 Attributes:
 
 .. autoclass:: pygit2.Patch
-   :members:
+   :members: create_from, data, delta, hunks, line_stats, text
 
 The DiffDelta type
 ====================

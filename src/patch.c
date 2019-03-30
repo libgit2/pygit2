@@ -222,9 +222,8 @@ PyObject *
 Patch_patch__get__(Patch *self)
 {
     PyErr_WarnEx(PyExc_DeprecationWarning,
-        "`Patch.patch` assumes UTF-8 encoding and can have unexpected results "
-        "on other encodings. If decoded text is needed, use `Patch.text` "
-        "instead. Otherwise use `Patch.data`.", 1);
+                 "Patch.patch is deprecated, use Patch.text instead",
+                 1);
     return Patch_text__get__(self);
 }
 

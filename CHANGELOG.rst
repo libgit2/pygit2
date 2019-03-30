@@ -1,3 +1,20 @@
+0.28.1 (UNRELEASED)
+-------------------------
+
+- New ``Patch.data`` returns the raw contents of the patch as a byte string
+  `#790 <https://github.com/libgit2/pygit2/pull/790>`_
+  `#893 <https://github.com/libgit2/pygit2/pull/893>`_
+
+- New ``Patch.text`` returns the contents of the patch as a text string,
+  deprecates `Patch.patch`
+  `#790 <https://github.com/libgit2/pygit2/pull/790>`_
+  `#893 <https://github.com/libgit2/pygit2/pull/893>`_
+
+Deprecations:
+
+- ``Patch.patch`` is deprecated, use ``Patch.text`` instead
+
+
 0.28.0 (2019-03-19)
 -------------------------
 
