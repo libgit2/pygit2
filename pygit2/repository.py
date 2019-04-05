@@ -999,6 +999,7 @@ class BaseRepository(_Repository):
                 info.size = 0
                 archive.addfile(info)
             else:
+                info.mode = tree[entry.path].filemode
                 archive.addfile(info, StringIO(content))
 
     #
