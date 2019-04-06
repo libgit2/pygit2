@@ -53,9 +53,45 @@ if getattr(sys, 'frozen', False):
 else:
     dir_path = dirname(abspath(__file__))
 
-decl_path = os.path.join(dir_path, 'decl.h')
-with codecs.open(decl_path, 'r', 'utf-8') as header:
-    C_HEADER_SRC = header.read()
+# Order matters
+h_files = [
+    'types.h',
+    'attr.h',
+    'oid.h',
+    'blame.h',
+    'buffer.h',
+    'strarray.h',
+    'diff.h',
+    'checkout.h',
+    'pack.h',
+    'transport.h',
+    'proxy.h',
+    'remote.h',
+    'clone.h',
+    'common.h',
+    'config.h',
+    'describe.h',
+    'errors.h',
+    'graph.h',
+    'index.h',
+    'merge.h',
+    'net.h',
+    'refspec.h',
+    'repository.h',
+    'revert.h',
+    'stash.h',
+    'submodule.h',
+]
+h_source = []
+for h_file in h_files:
+    h_file = os.path.join(dir_path, 'decl', h_file)
+    with codecs.open(h_file, 'r', 'utf-8') as f:
+        h_source.append(f.read())
+
+C_HEADER_SRC = '\n'.join(h_source)
+
+# Preamble
+preamble = "#include <git2.h>"
 
 # C_KEYWORDS
 libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
@@ -63,15 +99,9 @@ C_KEYWORDS = dict(libraries=['git2'],
                   library_dirs=[libgit2_lib],
                   include_dirs=[libgit2_include])
 
-# preamble
-preamble = "#include <git2.h>"
-
 # ffi
 ffi = FFI()
-set_source = getattr(ffi, 'set_source', None)
-if set_source is not None:
-    set_source("pygit2._libgit2", preamble, **C_KEYWORDS)
-
+ffi.set_source("pygit2._libgit2", preamble, **C_KEYWORDS)
 ffi.cdef(C_HEADER_SRC)
 
 
