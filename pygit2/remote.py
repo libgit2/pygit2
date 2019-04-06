@@ -291,7 +291,7 @@ class RemoteCallbacks(object):
 
         return 0
 
-    @ffi.callback('int (*credentials)(git_cred **cred, const char *url,'
+    @ffi.callback('int (*cb)(git_cred **cred, const char *url,'
                   'const char *username_from_url, unsigned int allowed_types,'
                   'void *data)')
     def _credentials_cb(cred_out, url, username, allowed, data):
@@ -312,8 +312,7 @@ class RemoteCallbacks(object):
 
         return 0
 
-    @ffi.callback('int (*git_transport_certificate_check_cb)'
-                  '(git_cert *cert, int valid, const char *host, void *payload)')
+    @ffi.callback('int (*cb)(git_cert *cert, int valid, const char *host, void *payload)')
     def _certificate_cb(cert_i, valid, host, data):
         self = ffi.from_handle(data)
 
