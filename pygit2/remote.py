@@ -252,8 +252,9 @@ class RemoteCallbacks(object):
 
         return 0
 
-    @ffi.callback('int (*update_tips)(const char *refname, const git_oid *a,'
-                  'const git_oid *b, void *data)')
+    @ffi.callback(
+        'int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data)'
+    )
     def _update_tips_cb(refname, a, b, data):
         self = ffi.from_handle(data)
 
@@ -273,7 +274,7 @@ class RemoteCallbacks(object):
 
         return 0
 
-    @ffi.callback("int (*push_update_reference)(const char *ref, const char *msg, void *data)")
+    @ffi.callback('git_push_update_reference_cb')
     def _push_update_reference_cb(ref, msg, data):
         self = ffi.from_handle(data)
 
@@ -291,9 +292,7 @@ class RemoteCallbacks(object):
 
         return 0
 
-    @ffi.callback('int (*cb)(git_cred **cred, const char *url,'
-                  'const char *username_from_url, unsigned int allowed_types,'
-                  'void *data)')
+    @ffi.callback('git_cred_acquire_cb')
     def _credentials_cb(cred_out, url, username, allowed, data):
         self = ffi.from_handle(data)
 
@@ -312,7 +311,7 @@ class RemoteCallbacks(object):
 
         return 0
 
-    @ffi.callback('int (*cb)(git_cert *cert, int valid, const char *host, void *payload)')
+    @ffi.callback('git_transport_certificate_check_cb')
     def _certificate_cb(cert_i, valid, host, data):
         self = ffi.from_handle(data)
 

@@ -153,7 +153,7 @@ def init_repository(path, bare=False,
     # Ok
     return Repository(to_str(path))
 
-@ffi.callback('int (*cb)(git_repository **out, const char *path, int bare, void *payload)')
+@ffi.callback('git_repository_create_cb')
 def _repository_create_cb(repo_out, path, bare, data):
     d = ffi.from_handle(data)
     try:
@@ -167,8 +167,7 @@ def _repository_create_cb(repo_out, path, bare, data):
 
     return 0
 
-@ffi.callback('int (*cb)(git_remote **out, git_repository *repo,'
-              'const char *name, const char *url, void *payload)')
+@ffi.callback('git_remote_create_cb')
 def _remote_create_cb(remote_out, repo, name, url, data):
     d = ffi.from_handle(data)
     try:
