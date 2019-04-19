@@ -118,6 +118,7 @@ Authors::
   David Fischer
   David Sanders
   David Six
+  Dennis Schwertel
   Devaev Maxim
   Eric Davis
   Erik Meusel
@@ -128,6 +129,7 @@ Authors::
   Holger Frey
   Hugh Cole-Baker
   Jasper Lievisse Adriaanse
+  Jonathan Robson
   Josh Bleecher Snyder
   Justin Clift
   Kyriakos Oikonomakos

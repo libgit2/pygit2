@@ -1,5 +1,12 @@
-0.28.1 (UNRELEASED)
+0.28.1 (2019-04-19)
 -------------------------
+
+- Now works with pycparser 2.18 and above
+  `#846 <https://github.com/libgit2/pygit2/issues/846>`_
+
+- Now ``Repository.write_archive(..)`` keeps the file mode
+  `#616 <https://github.com/libgit2/pygit2/issues/616>`_
+  `#898 <https://github.com/libgit2/pygit2/pull/898>`_
 
 - New ``Patch.data`` returns the raw contents of the patch as a byte string
   `#790 <https://github.com/libgit2/pygit2/pull/790>`_
