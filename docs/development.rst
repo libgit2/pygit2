@@ -15,6 +15,7 @@ Unit tests
 
     $ git clone git://github.com/libgit2/pygit2.git
     $ cd pygit2
+    $ python setup.py build_ext --inplace
     $ pytest test
 
 Coding style: documentation strings

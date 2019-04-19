@@ -29,8 +29,4 @@
 from __future__ import absolute_import
 
 # Import from pygit2
-try:
-    from ._libgit2 import ffi, lib as C
-except ImportError:
-    from ._run import ffi, preamble, C_KEYWORDS
-    C = ffi.verify(preamble, **C_KEYWORDS)
+from ._libgit2 import ffi, lib as C

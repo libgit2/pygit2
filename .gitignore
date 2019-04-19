@@ -1,4 +1,5 @@
 /.cache/
+/.eggs/
 /.tox/
 /build/
 /dist/

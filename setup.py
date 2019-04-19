@@ -131,15 +131,11 @@ class BuildWithDLLs(build):
 if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
-extra_args = {
-    'cffi_modules': ['pygit2/_run.py:ffi'],
-    'ext_modules': [
-        Extension('_pygit2', pygit2_exts, libraries=['git2'],
-                  include_dirs=[libgit2_include],
-                  library_dirs=[libgit2_lib]),
-        # FFI is added in the build step
-    ],
-}
+ext_modules = [
+    Extension('_pygit2', pygit2_exts, libraries=['git2'],
+              include_dirs=[libgit2_include],
+              library_dirs=[libgit2_lib]),
+]
 
 setup(name='pygit2',
       description='Python bindings for libgit2.',
@@ -157,4 +153,6 @@ setup(name='pygit2',
       install_requires=['cffi', 'six'],
       zip_safe=False,
       cmdclass=cmdclass,
-      **extra_args)
+      cffi_modules=['pygit2/_run.py:ffi'],
+      ext_modules=ext_modules,
+)
