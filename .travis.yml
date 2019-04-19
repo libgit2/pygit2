@@ -69,7 +69,9 @@ before_install:
   - ./.travis.sh "${LIBGIT2_VERSION}"
 
 install:
-  - pip install .
+  - python setup.py egg_info
+  - pip install -r pygit2.egg-info/requires.txt
+  - python setup.py build_ext --inplace
 
 script:
   - pytest
