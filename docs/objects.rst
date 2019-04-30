@@ -157,6 +157,16 @@ interfaces.
    Return the TreeEntry object for the given *name*. Raise ``KeyError`` if
    there is not a tree entry with that name.
 
+.. method:: Tree.__truediv__(name)
+
+   Return the TreeEntry object for the given *name*. Raise ``KeyError`` if
+   there is not a tree entry with that name. This allows navigating the tree
+   similarly to Pathlib using the slash operator via:
+
+Example::
+
+    >>> entry = tree / 'path' / 'deeper' / 'some.file'
+
 .. method:: Tree.__contains__(name)
 
    Return True if there is a tree entry with the given name, False otherwise.
@@ -181,6 +191,8 @@ Tree entries
 .. autoattribute:: pygit2.TreeEntry.hex
 .. autoattribute:: pygit2.TreeEntry.filemode
 .. autoattribute:: pygit2.TreeEntry.type
+.. autoattribute:: pygit2.TreeEntry.blob
+.. autoattribute:: pygit2.TreeEntry.tree
 
 .. method:: TreeEntry.__cmp__(TreeEntry)
 
@@ -202,11 +214,11 @@ Example::
     85a67270a49ef16cdd3d328f06a3e4b459f09b27 blob setup.py
     3d8985bbec338eb4d47c5b01b863ee89d044bd53 tree test
 
-    >>> entry = tree['pygit2.c']         # Get an entry by name
+    >>> entry = tree / 'pygit2.c'         # Get an entry by name
     >>> entry
     <pygit2.TreeEntry object at 0xcc10f0>
 
-    >>> blob = repo[entry.id]           # Get the object the entry points to
+    >>> blob = entry.blob                 # Get the object the entry points to
     >>> blob
     <pygit2.Blob object at 0xcc12d0>
 
