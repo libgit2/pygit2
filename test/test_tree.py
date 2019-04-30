@@ -83,7 +83,10 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree['ab/cd'])
         self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree / 'ab/cd')
         self.assertRaisesWithArg(KeyError, 'ab', lambda: tree / 'c' / 'ab')
-        self.assertRaisesWithArg(TypeError, 'Only supported for trees', lambda: tree / 'a' / 'cd')
+        self.assertRaisesWithArg(TypeError, 'Only for trees', lambda: tree / 'a' / 'cd')
+
+        self.assertRaisesWithArg(TypeError, 'Only for trees', lambda: (tree / 'c' / 'd').tree)
+        self.assertRaisesWithArg(TypeError, 'Only for blobs', lambda: (tree / 'c').blob)
 
     def test_equality(self):
         tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
@@ -113,6 +116,8 @@ class TreeTest(utils.BareRepoTestCase):
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
+        subtree_entry = (tree / 'c')
+        assert subtree_entry.tree == self.repo[subtree_entry.id]
 
     def test_new_tree(self):
         repo = self.repo
@@ -153,6 +158,10 @@ class TreeTest(utils.BareRepoTestCase):
         assert x.type == 'blob'
         assert y.type == 'blob'
         assert z.type == 'tree'
+
+        assert x.blob == repo[x.id]
+        assert y.blob == repo[y.id]
+        assert z.tree == repo[z.id]
 
 
     def test_modify_tree(self):

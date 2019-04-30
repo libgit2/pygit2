@@ -31,6 +31,7 @@
 #include "error.h"
 #include "utils.h"
 #include "repository.h"
+#include "object.h"
 #include "oid.h"
 #include "tree.h"
 #include "diff.h"
@@ -177,17 +178,6 @@ TreeEntry_hex__get__(TreeEntry *self)
     return git_oid_to_py_str(git_tree_entry_id(self->entry));
 }
 
-PyObject *
-TreeEntry_repr(TreeEntry *self)
-{
-    char str[GIT_OID_HEXSZ + 1] = { 0 };
-    const char *typename;
-
-    typename = git_object_type2string(git_tree_entry_type(self->entry));
-    git_oid_fmt(str, git_tree_entry_id(self->entry));
-    return PyString_FromFormat("pygit2.TreeEntry('%s', %s, %s)", git_tree_entry_name(self->entry), typename, str);
-}
-
 git_tree *
 treeentry_to_subtree(TreeEntry* self)
 {
@@ -195,7 +185,7 @@ treeentry_to_subtree(TreeEntry* self)
     git_tree *subtree = NULL;
 
     if (git_tree_entry_type(self->entry) != GIT_OBJ_TREE) {
-        PyErr_SetString(PyExc_TypeError, "Only supported for trees");
+        PyErr_SetString(PyExc_TypeError, "Only for trees");
         return NULL;
     }
 
@@ -212,6 +202,62 @@ treeentry_to_subtree(TreeEntry* self)
     }
 
     return subtree;
+}
+
+PyObject *
+treeentry_to_object(TreeEntry* self)
+{
+    Repository *py_repo;
+    git_object *obj= NULL;
+
+    if (self->repo == NULL) {
+        PyErr_SetString(PyExc_ValueError, "No repository associated with this TreeEntry");
+        return NULL;
+    }
+    py_repo = self->repo;
+
+    int err = git_tree_entry_to_object(&obj, py_repo->repo, self->entry);
+    if (err < 0) {
+        Error_set(err);
+        return NULL;
+    }
+
+    return wrap_object(obj, py_repo);
+}
+PyDoc_STRVAR(TreeEntry_tree__doc__, "Subtree");
+
+PyObject *
+TreeEntry_tree__get__(TreeEntry *self)
+{
+    git_tree* subtree = treeentry_to_subtree(self);
+    if (subtree == NULL)
+        return NULL;
+
+    return wrap_object((git_object*)subtree, self->repo);
+}
+
+PyDoc_STRVAR(TreeEntry_blob__doc__, "Blob");
+
+PyObject *
+TreeEntry_blob__get__(TreeEntry *self)
+{
+    if (git_tree_entry_type(self->entry) != GIT_OBJ_BLOB) {
+        PyErr_SetString(PyExc_TypeError, "Only for blobs");
+        return NULL;
+    }
+
+    return treeentry_to_object(self);
+}
+
+PyObject *
+TreeEntry_repr(TreeEntry *self)
+{
+    char str[GIT_OID_HEXSZ + 1] = { 0 };
+    const char *typename;
+
+    typename = git_object_type2string(git_tree_entry_type(self->entry));
+    git_oid_fmt(str, git_tree_entry_id(self->entry));
+    return PyString_FromFormat("pygit2.TreeEntry('%s', %s, %s)", git_tree_entry_name(self->entry), typename, str);
 }
 
 int
@@ -295,6 +341,8 @@ PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, id),
     GETTER(TreeEntry, hex),
     GETTER(TreeEntry, type),
+    GETTER(TreeEntry, blob),
+    GETTER(TreeEntry, tree),
     {NULL}
 };
 
