@@ -42,7 +42,7 @@ extern PyTypeObject TreeIterType;
 extern PyTypeObject IndexType;
 
 #if PY_MAJOR_VERSION >= 3
-#define Py_TPFLAGS_CHECKTYPES 0
+#define Py_TPFLAGS_CHECKTYPES 0  // removed in Py3, needed in Py2
 #endif
 
 
@@ -455,8 +455,12 @@ wrap_tree_entry(const git_tree_entry *entry, Repository *repo)
     if (py_entry)
     {
         py_entry->entry = entry;
-        py_entry->repo = repo;
-    }
+        if (repo)
+        {
+            py_entry->repo = repo;
+            Py_INCREF(repo);
+        }
+   }
 
     return py_entry;
 }
