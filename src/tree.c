@@ -224,7 +224,7 @@ treeentry_to_object(TreeEntry* self)
 
     return wrap_object(obj, py_repo);
 }
-PyDoc_STRVAR(TreeEntry_tree__doc__, "Subtree");
+PyDoc_STRVAR(TreeEntry_tree__doc__, "Subtree. (for type=tree entries)");
 
 PyObject *
 TreeEntry_tree__get__(TreeEntry *self)
@@ -236,7 +236,7 @@ TreeEntry_tree__get__(TreeEntry *self)
     return wrap_object((git_object*)subtree, self->repo);
 }
 
-PyDoc_STRVAR(TreeEntry_blob__doc__, "Blob");
+PyDoc_STRVAR(TreeEntry_blob__doc__, "Blob. (for type=blob entries)");
 
 PyObject *
 TreeEntry_blob__get__(TreeEntry *self)
