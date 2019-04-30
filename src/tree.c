@@ -41,6 +41,11 @@ extern PyTypeObject DiffType;
 extern PyTypeObject TreeIterType;
 extern PyTypeObject IndexType;
 
+#if PY_MAJOR_VERSION >= 3
+#define Py_TPFLAGS_CHECKTYPES 0
+#endif
+
+
 void
 TreeEntry_dealloc(TreeEntry *self)
 {
@@ -310,26 +315,38 @@ PyMappingMethods TreeEntry_as_mapping = {
     0,                          /* mp_ass_subscript */
 };
 
+// Py2/3 compatible structure
+// see https://py3c.readthedocs.io/en/latest/ext-types.html#pynumbermethods
 PyNumberMethods TreeEntry_as_number = {
     0,                          /* nb_add */
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
+#if PY_MAJOR_VERSION < 3
+    (binaryfunc)TreeEntry_truediv,  /* Py2: nb_divide */
+#endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
     0,                          /* nb_power */
     0,                          /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
-    0,                          /* nb_bool */
+    0,                          /* nb_bool (Py2: nb_nonzero) */
     0,                          /* nb_invert */
     0,                          /* nb_lshift */
     0,                          /* nb_rshift */
     0,                          /* nb_and */
     0,                          /* nb_xor */
     0,                          /* nb_or */
+#if PY_MAJOR_VERSION < 3
+    0,                          /* Py2: nb_coerce */
+#endif
     0,                          /* nb_int */
-    0,                          /* nb_reserved */
+    0,                          /* nb_reserved (Py2: nb_long) */
     0,                          /* nb_float */
+#if PY_MAJOR_VERSION < 3
+    0,                          /* Py2: nb_oct */
+    0,                          /* Py2: nb_hex */
+#endif
     0,                          /* nb_inplace_add */
     0,                          /* nb_inplace_subtract */
     0,                          /* nb_inplace_multiply */
@@ -344,6 +361,11 @@ PyNumberMethods TreeEntry_as_number = {
     TreeEntry_truediv,          /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
+    0,                          /* nb_index */
+#if PY_MAJOR_VERSION >= 3
+    0,                          /* nb_matrix_multiply */
+    0,                          /* nb_inplace_matrix_multiply */
+#endif
 };
 
 
@@ -369,7 +391,7 @@ PyTypeObject TreeEntryType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_CHECKTYPES,  /* tp_flags */
     TreeEntry__doc__,                          /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
@@ -750,26 +772,38 @@ PyMethodDef Tree_methods[] = {
     {NULL}
 };
 
+// Py2/3 compatible structure
+// see https://py3c.readthedocs.io/en/latest/ext-types.html#pynumbermethods
 PyNumberMethods Tree_as_number = {
     0,                          /* nb_add */
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
+#if PY_MAJOR_VERSION < 3
+    (binaryfunc)Tree_truediv,   /* Py2: nb_divide */
+#endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
     0,                          /* nb_power */
     0,                          /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
-    0,                          /* nb_bool */
+    0,                          /* nb_bool (Py2: nb_nonzero) */
     0,                          /* nb_invert */
     0,                          /* nb_lshift */
     0,                          /* nb_rshift */
     0,                          /* nb_and */
     0,                          /* nb_xor */
     0,                          /* nb_or */
+#if PY_MAJOR_VERSION < 3
+    0,                          /* Py2: nb_coerce */
+#endif
     0,                          /* nb_int */
-    0,                          /* nb_reserved */
+    0,                          /* nb_reserved (Py2: nb_long) */
     0,                          /* nb_float */
+#if PY_MAJOR_VERSION < 3
+    0,                          /* Py2: nb_oct */
+    0,                          /* Py2: nb_hex */
+#endif
     0,                          /* nb_inplace_add */
     0,                          /* nb_inplace_subtract */
     0,                          /* nb_inplace_multiply */
@@ -784,6 +818,11 @@ PyNumberMethods Tree_as_number = {
     Tree_truediv,               /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
+    0,                          /* nb_index */
+#if PY_MAJOR_VERSION >= 3
+    0,                          /* nb_matrix_multiply */
+    0,                          /* nb_inplace_matrix_multiply */
+#endif
 };
 
 PyDoc_STRVAR(Tree__doc__, "Tree objects.");
@@ -808,7 +847,7 @@ PyTypeObject TreeType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_CHECKTYPES,  /* tp_flags */
     Tree__doc__,                               /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
