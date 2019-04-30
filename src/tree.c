@@ -51,6 +51,9 @@ void
 TreeEntry_dealloc(TreeEntry *self)
 {
     git_tree_entry_free((git_tree_entry*)self->entry);
+    if (self->repo) {
+        Py_CLEAR(self->repo);
+    }
     PyObject_Del(self);
 }
 
