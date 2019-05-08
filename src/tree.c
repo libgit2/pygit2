@@ -51,9 +51,7 @@ void
 TreeEntry_dealloc(TreeEntry *self)
 {
     git_tree_entry_free((git_tree_entry*)self->entry);
-    if (self->repo) {
-        Py_CLEAR(self->repo);
-    }
+    Py_CLEAR(self->repo);
     PyObject_Del(self);
 }
 
@@ -506,11 +504,8 @@ wrap_tree_entry(const git_tree_entry *entry, Repository *repo)
     if (py_entry)
     {
         py_entry->entry = entry;
-        if (repo)
-        {
-            py_entry->repo = repo;
-            Py_INCREF(repo);
-        }
+        py_entry->repo = repo;  // can be NULL
+        Py_XINCREF(repo);
    }
 
     return py_entry;
