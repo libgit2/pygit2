@@ -29,30 +29,32 @@ environment:
     PYTHON: 'C:\Python37-x64\python.exe'
 
 init:
-- cmd: '%PYTHON% -m pip install -U wheel pytest'
+- cmd: |
+    "%PYTHON%" -m pip install -U pip
+    "%PYTHON%" -m pip install -U wheel pytest
 
 build_script:
 - cmd: |
     set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\build\libgit2
     git clone --depth=1 -b maint/v0.28 https://github.com/libgit2/libgit2.git libgit2
     mkdir build
-    
+
     cd build
     cmake -DSTDCALL=OFF -DBUILD_CLAR=OFF -DCMAKE_INSTALL_PREFIX="%LIBGIT2%" ../libgit2 -G "%GENERATOR%"
     cmake --build . --config Release --target install
     cd ..
-    
+
     IF "%GENERATOR%"=="Visual Studio 10 Win64" ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" )
-    
-    "%PYTHON%" setup.py bdist_wheel 
+
+    "%PYTHON%" setup.py bdist_wheel
 
 test_script:
 - ps: |
     $env:LIBGIT2 = ($Env:APPVEYOR_BUILD_FOLDER + "\build\libgit2")
     &$env:PYTHON -m pytest --junitxml=testresults.xml
-    
+
     if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-    
+
     # upload results to AppVeyor
     $wc = New-Object 'System.Net.WebClient'
     $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path ".\testresults.xml"))
