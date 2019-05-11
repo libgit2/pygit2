@@ -28,6 +28,9 @@ environment:
   - GENERATOR: 'Visual Studio 14 Win64'
     PYTHON: 'C:\Python37-x64\python.exe'
 
+matrix:
+  fast_finish: true
+
 init:
 - cmd: |
     "%PYTHON%" -m pip install -U pip
