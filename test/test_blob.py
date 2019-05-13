@@ -46,7 +46,7 @@ bonjour le monde
 BLOB_NEW_CONTENT = b'foo bar\n'
 BLOB_FILE_CONTENT = b'bye world\n'
 
-BLOB_PATCH = """diff --git a/file b/file
+BLOB_PATCH = r"""diff --git a/file b/file
 index a520c24..95d09f2 100644
 --- a/file
 +++ b/file

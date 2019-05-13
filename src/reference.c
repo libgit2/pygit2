@@ -54,6 +54,7 @@ PyObject *
 RefLogIter_iternext(RefLogIter *self)
 {
     const git_reflog_entry *entry;
+    const char * entry_message;
     RefLogEntry *py_entry;
     int err;
 
@@ -63,7 +64,8 @@ RefLogIter_iternext(RefLogIter *self)
 
         py_entry->oid_old = git_oid_to_python(git_reflog_entry_id_old(entry));
         py_entry->oid_new = git_oid_to_python(git_reflog_entry_id_new(entry));
-        py_entry->message = strdup(git_reflog_entry_message(entry));
+        entry_message = git_reflog_entry_message(entry);
+        py_entry->message = (entry_message != NULL) ? strdup(entry_message) : NULL;
         err = git_signature_dup(&py_entry->signature,
                                 git_reflog_entry_committer(entry));
         if (err < 0)

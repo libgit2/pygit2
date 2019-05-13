@@ -169,8 +169,7 @@ static void
 DiffFile_dealloc(DiffFile *self)
 {
     Py_CLEAR(self->id);
-    if (self->path)
-        free(self->path);
+    free(self->path);
     PyObject_Del(self);
 }
 
