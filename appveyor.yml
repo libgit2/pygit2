@@ -37,24 +37,28 @@ init:
     "%PYTHON%" -m pip install -U wheel pytest
 
 build_script:
+# Clone, build and install libgit2
 - cmd: |
-    set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\build\libgit2
+    set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\venv
     git clone --depth=1 -b maint/v0.28 https://github.com/libgit2/libgit2.git libgit2
-    mkdir build
-
-    cd build
-    cmake -DSTDCALL=OFF -DBUILD_CLAR=OFF -DCMAKE_INSTALL_PREFIX="%LIBGIT2%" ../libgit2 -G "%GENERATOR%"
-    cmake --build . --config Release --target install
+    cd libgit2
+    cmake . -DBUILD_CLAR=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="%LIBGIT2%" -G "%GENERATOR%"
+    cmake --build . --target install
     cd ..
-
     IF "%GENERATOR%"=="Visual Studio 10 Win64" ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" )
 
+# Build and install pygit2
+# Rename pygit2 folder, so when testing it picks the installed one
+- cmd: |
     "%PYTHON%" setup.py bdist_wheel
+    cd dist
+    "%PYTHON%" -m pip install --find-links=. pygit2
+    cd ..
+    mv pygit2 pygit2.bak
 
 test_script:
 - ps: |
-    $env:LIBGIT2 = ($Env:APPVEYOR_BUILD_FOLDER + "\build\libgit2")
-    &$env:PYTHON -m pytest --junitxml=testresults.xml
+    &$env:PYTHON -m pytest test --junitxml=testresults.xml
 
     if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
