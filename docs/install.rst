@@ -44,11 +44,6 @@ Python requirements (these are specified in ``setup.py``):
 - cffi 1.0+
 - six
 
-.. warning::
-
-   cffi requires pycparser, but versions 2.18 and 2.19 of pycparser do not
-   work, see https://github.com/libgit2/pygit2/issues/846 for details.
-
 Libgit2 **v0.28.x** (see the version numbering section below for details).
 Binary wheels already include libgit2, so you only need to worry about this if
 you install the source package
