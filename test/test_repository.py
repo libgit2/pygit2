@@ -477,7 +477,8 @@ class RepositoryTest_II(utils.RepoTestCase):
         assert revert_diff_stats.files_changed == commit_diff_stats.files_changed
 
     def test_diff_patch(self):
-        new_content = 'bye world\nadiós\nau revoir monde\n'
+        new_content = ['bye world', 'adiós', 'au revoir monde']
+        new_content = ''.join(x + os.linesep for x in new_content)
 
         # create the patch
         with open(os.path.join(self.repo.workdir, 'hello.txt'), 'wb') as f:
