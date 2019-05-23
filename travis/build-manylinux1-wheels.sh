@@ -115,7 +115,7 @@ yum -y install \
 >&2 echo downloading source of zlib v${ZLIB_VERSION}:
 >&2 echo ============================================
 >&2 echo
-curl http://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz | \
+curl https://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz | \
     tar xzvC "${BUILD_DIR}" -f -
 
 pushd "${ZLIB_DOWNLOAD_DIR}"
