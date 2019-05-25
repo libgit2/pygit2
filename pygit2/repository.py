@@ -46,6 +46,7 @@ from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
 from _pygit2 import GIT_FILEMODE_LINK
 from _pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
+from _pygit2 import GIT_REF_SYMBOLIC
 from _pygit2 import Reference, Tree, Commit, Blob
 
 from .config import Config
@@ -1188,8 +1189,14 @@ class Branches(object):
         self[name].delete()
 
     def _valid(self, branch):
-        return (self._commit is None or branch.target == self._commit or
-                self._repository.descendant_of(branch.target, self._commit))
+        if branch.type == GIT_REF_SYMBOLIC:
+            branch = branch.resolve()
+
+        return (
+            self._commit is None
+            or branch.target == self._commit
+            or self._repository.descendant_of(branch.target, self._commit)
+        )
 
     def with_commit(self, commit):
         assert self._commit is None
