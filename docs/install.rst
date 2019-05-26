@@ -76,9 +76,9 @@ It is recommended to use the latest version in each series. Example of
 compatible releases:
 
 +-----------+--------+--------+--------+--------+--------+
-|**libgit2**| 0.28.1 | 0.27.8 | 0.26.8 | 0.25.1 | 0.24.6 |
+|**libgit2**| 0.28.2 | 0.27.8 | 0.26.8 | 0.25.1 | 0.24.6 |
 +-----------+--------+--------+--------+--------+--------+
-|**pygit2** | 0.28.1 | 0.27.4 | 0.26.4 | 0.25.1 | 0.24.2 |
+|**pygit2** | 0.28.2 | 0.27.4 | 0.26.4 | 0.25.1 | 0.24.2 |
 +-----------+--------+--------+--------+--------+--------+
 
 .. warning::
@@ -99,9 +99,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.28.1.tar.gz
-   $ tar xzf v0.28.1.tar.gz
-   $ cd libgit2-0.28.1/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.28.2.tar.gz
+   $ tar xzf v0.28.2.tar.gz
+   $ cd libgit2-0.28.2/
    $ cmake .
    $ make
    $ sudo make install
@@ -183,9 +183,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.28.1.tar.gz
-   $ tar xzf v0.28.1.tar.gz
-   $ cd libgit2-0.28.1/
+   $ wget https://github.com/libgit2/libgit2/archive/v0.28.2.tar.gz
+   $ tar xzf v0.28.2.tar.gz
+   $ cd libgit2-0.28.2/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install

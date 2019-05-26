@@ -107,6 +107,7 @@ Authors::
   Bryan O'Sullivan
   CJ Harries
   Cam Cope
+  Chad Birch
   Chason Chaffin
   Chris Jerdonek
   Chris Rebert
@@ -115,6 +116,7 @@ Authors::
   Cyril Jouve
   Daniel Bruce
   Daniele Esposti
+  David Black
   David Fischer
   David Sanders
   David Six

@@ -37,7 +37,7 @@ from os import getenv
 #
 # The version number of pygit2
 #
-__version__ = '0.28.1'
+__version__ = '0.28.2'
 
 
 #

@@ -1,3 +1,19 @@
+0.28.2 (2019-05-26)
+-------------------------
+
+- Fix crash in reflog iteration
+  `#901 <https://github.com/libgit2/pygit2/issues/901>`_
+
+- Support symbolic references in ``branches.with_commit(..)``
+  `#910 <https://github.com/libgit2/pygit2/issues/910>`_
+
+- Documentation updates
+  `#909 <https://github.com/libgit2/pygit2/pull/909>`_
+
+- Test updates
+  `#911 <https://github.com/libgit2/pygit2/pull/911>`_
+
+
 0.28.1 (2019-04-19)
 -------------------------
 
