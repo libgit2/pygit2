@@ -225,29 +225,20 @@ treeentry_to_object(TreeEntry* self)
 
     return wrap_object(obj, py_repo);
 }
-PyDoc_STRVAR(TreeEntry_tree__doc__, "Subtree. (for type=tree entries)");
+PyDoc_STRVAR(TreeEntry_obj__doc__, "Object (subtree/blob)");
 
 PyObject *
-TreeEntry_tree__get__(TreeEntry *self)
+TreeEntry_obj__get__(TreeEntry *self)
 {
-    git_tree* subtree = treeentry_to_subtree(self);
-    if (subtree == NULL)
-        return NULL;
+    if (git_tree_entry_type(self->entry) == GIT_OBJ_TREE) {
+        git_tree* subtree = treeentry_to_subtree(self);
+        if (subtree == NULL)
+            return NULL;
 
-    return wrap_object((git_object*)subtree, self->repo);
-}
-
-PyDoc_STRVAR(TreeEntry_blob__doc__, "Blob. (for type=blob entries)");
-
-PyObject *
-TreeEntry_blob__get__(TreeEntry *self)
-{
-    if (git_tree_entry_type(self->entry) != GIT_OBJ_BLOB) {
-        PyErr_SetString(PyExc_TypeError, "Only for blobs");
-        return NULL;
+        return wrap_object((git_object*)subtree, self->repo);
+    } else {
+        return treeentry_to_object(self);
     }
-
-    return treeentry_to_object(self);
 }
 
 PyObject *
@@ -318,21 +309,6 @@ TreeEntry_getitem(TreeEntry *self, PyObject *value)
     return r;
 }
 
-TreeEntry *
-TreeEntry_truediv(TreeEntry *self, PyObject *value)
-{
-    TreeEntry *r;
-    git_tree *subtree;
-
-    subtree = treeentry_to_subtree(self);
-    if (subtree == NULL)
-        return NULL;
-
-    r = tree_getitem_by_path(subtree, self->repo, value);
-    git_tree_free(subtree);
-    return r;
-}
-
 
 PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, filemode),
@@ -342,8 +318,7 @@ PyGetSetDef TreeEntry_getseters[] = {
     GETTER(TreeEntry, id),
     GETTER(TreeEntry, hex),
     GETTER(TreeEntry, type),
-    GETTER(TreeEntry, blob),
-    GETTER(TreeEntry, tree),
+    GETTER(TreeEntry, obj),
     {NULL}
 };
 
@@ -371,7 +346,7 @@ PyNumberMethods TreeEntry_as_number = {
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
 #if PY_MAJOR_VERSION < 3
-    (binaryfunc)TreeEntry_truediv,  /* Py2: nb_divide */
+    (binaryfunc)TreeEntry_getitem,  /* Py2: nb_divide */
 #endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
@@ -407,7 +382,7 @@ PyNumberMethods TreeEntry_as_number = {
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
     0,                          /* nb_floor_divide */
-    TreeEntry_truediv,          /* nb_true_divide */
+    TreeEntry_getitem,          /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
     0,                          /* nb_index */
@@ -618,13 +593,6 @@ Tree_getitem(Tree *self, PyObject *value)
     return tree_getitem_by_path(self->tree, self->repo, value);
 }
 
-TreeEntry *
-Tree_truediv(Tree *self, PyObject *value)
-{
-    /* Case 2: byte or text string */
-    return tree_getitem_by_path(self->tree, self->repo, value);
-}
-
 
 PyDoc_STRVAR(Tree_diff_to_workdir__doc__,
   "diff_to_workdir([flags, context_lines, interhunk_lines]) -> Diff\n"
@@ -829,7 +797,7 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
 #if PY_MAJOR_VERSION < 3
-    (binaryfunc)Tree_truediv,   /* Py2: nb_divide */
+    (binaryfunc)Tree_getitem,   /* Py2: nb_divide */
 #endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
@@ -865,7 +833,7 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
     0,                          /* nb_floor_divide */
-    Tree_truediv,               /* nb_true_divide */
+    Tree_getitem,               /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
     0,                          /* nb_index */

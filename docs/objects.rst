@@ -191,8 +191,7 @@ Tree entries
 .. autoattribute:: pygit2.TreeEntry.hex
 .. autoattribute:: pygit2.TreeEntry.filemode
 .. autoattribute:: pygit2.TreeEntry.type
-.. autoattribute:: pygit2.TreeEntry.blob
-.. autoattribute:: pygit2.TreeEntry.tree
+.. autoattribute:: pygit2.TreeEntry.obj
 
 .. method:: TreeEntry.__cmp__(TreeEntry)
 
@@ -218,8 +217,8 @@ Example::
     >>> entry
     <pygit2.TreeEntry object at 0xcc10f0>
 
-    >>> blob = entry.blob                 # Get the object the entry points to
-    >>> blob
+    >>> obj = entry.obj                   # Get the blob the entry points to
+    >>> obj
     <pygit2.Blob object at 0xcc12d0>
 
 Creating trees
