@@ -38,8 +38,7 @@ PyObject* TreeEntry_get_filemode(TreeEntry *self);
 PyObject* TreeEntry_get_name(TreeEntry *self);
 PyObject* TreeEntry_get_oid(TreeEntry *self);
 PyObject* TreeEntry_get_hex(TreeEntry *self);
-PyObject* TreeEntry_get_blob(TreeEntry *self);
-PyObject* TreeEntry_get_tree(TreeEntry *self);
+PyObject* TreeEntry_get_obj(TreeEntry *self);
 
 TreeEntry* tree_getitem_by_index(const git_tree *tree, Repository *repo, PyObject *py_index);
 TreeEntry* tree_getitem_by_path(const git_tree *tree, Repository *repo, PyObject *py_path);
