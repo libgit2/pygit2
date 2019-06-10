@@ -43,7 +43,7 @@ extern PyTypeObject TreeIterType;
 extern PyTypeObject IndexType;
 
 #if PY_MAJOR_VERSION >= 3
-#define Py_TPFLAGS_CHECKTYPES 0  // removed in Py3, needed in Py2
+#define Py_TPFLAGS_CHECKTYPES 0  /* removed in Py3, needed in Py2 */
 #endif
 
 
@@ -184,6 +184,7 @@ treeentry_to_subtree(TreeEntry* self)
 {
     Repository *py_repo;
     git_tree *subtree = NULL;
+    int err;
 
     if (git_tree_entry_type(self->entry) != GIT_OBJ_TREE) {
         PyErr_SetString(PyExc_TypeError, "Only for trees");
@@ -196,7 +197,7 @@ treeentry_to_subtree(TreeEntry* self)
     }
 
     py_repo = self->repo;
-    int err = git_tree_lookup(&subtree, py_repo->repo, git_tree_entry_id(self->entry));
+    err = git_tree_lookup(&subtree, py_repo->repo, git_tree_entry_id(self->entry));
     if (err < 0) {
         Error_set(err);
         return NULL;
@@ -210,6 +211,7 @@ treeentry_to_object(TreeEntry* self)
 {
     Repository *py_repo;
     git_object *obj= NULL;
+    int err;
 
     if (self->repo == NULL) {
         PyErr_SetString(PyExc_ValueError, "No repository associated with this TreeEntry");
@@ -217,7 +219,7 @@ treeentry_to_object(TreeEntry* self)
     }
     py_repo = self->repo;
 
-    int err = git_tree_entry_to_object(&obj, py_repo->repo, self->entry);
+    err = git_tree_entry_to_object(&obj, py_repo->repo, self->entry);
     if (err < 0) {
         Error_set(err);
         return NULL;
@@ -230,8 +232,9 @@ PyDoc_STRVAR(TreeEntry_obj__doc__, "Object (subtree/blob)");
 PyObject *
 TreeEntry_obj__get__(TreeEntry *self)
 {
+    git_tree* subtree;
     if (git_tree_entry_type(self->entry) == GIT_OBJ_TREE) {
-        git_tree* subtree = treeentry_to_subtree(self);
+        subtree = treeentry_to_subtree(self);
         if (subtree == NULL)
             return NULL;
 
@@ -339,8 +342,9 @@ PyMappingMethods TreeEntry_as_mapping = {
     0,                          /* mp_ass_subscript */
 };
 
-// Py2/3 compatible structure
-// see https://py3c.readthedocs.io/en/latest/ext-types.html#pynumbermethods
+/* Py2/3 compatible structure
+ * see https://py3c.readthedocs.io/en/latest/ext-types.html#pynumbermethods
+ */
 PyNumberMethods TreeEntry_as_number = {
     0,                          /* nb_add */
     0,                          /* nb_subtract */
@@ -479,7 +483,7 @@ wrap_tree_entry(const git_tree_entry *entry, Repository *repo)
     if (py_entry)
     {
         py_entry->entry = entry;
-        py_entry->repo = repo;  // can be NULL
+        py_entry->repo = repo;  /* can be NULL */
         Py_XINCREF(repo);
    }
 
@@ -790,8 +794,9 @@ PyMethodDef Tree_methods[] = {
     {NULL}
 };
 
-// Py2/3 compatible structure
-// see https://py3c.readthedocs.io/en/latest/ext-types.html#pynumbermethods
+/* Py2/3 compatible structure
+ * see https://py3c.readthedocs.io/en/latest/ext-types.html#pynumbermethods
+ */
 PyNumberMethods Tree_as_number = {
     0,                          /* nb_add */
     0,                          /* nb_subtract */
