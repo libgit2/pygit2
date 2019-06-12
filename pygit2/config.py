@@ -96,7 +96,10 @@ class Config(object):
         return config
 
     def __del__(self):
-        C.git_config_free(self._config)
+        try:
+            C.git_config_free(self._config)
+        except AttributeError:
+            pass
 
     def _get(self, key):
         assert_string(key, "key")
