@@ -30,8 +30,7 @@ from .ffi import ffi, C
 from _pygit2 import GitError
 
 
-value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS,
-                    C.GIT_EAMBIGUOUS])
+value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
 
 def check_error(err, io=False):
     if err >= 0:
