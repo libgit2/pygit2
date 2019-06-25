@@ -48,6 +48,11 @@ int git_index_add_all(
 	unsigned int flags,
 	git_index_matched_path_cb callback,
 	void *payload);
+int git_index_remove_all(
+	git_index *index,
+	const git_strarray *pathspec,
+	git_index_matched_path_cb callback,
+	void *payload);
 int git_index_has_conflicts(const git_index *index);
 void git_index_conflict_iterator_free(
 	git_index_conflict_iterator *iterator);
