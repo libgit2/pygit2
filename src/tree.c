@@ -386,14 +386,13 @@ PyNumberMethods TreeEntry_as_number = {
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
     0,                          /* nb_floor_divide */
-    TreeEntry_getitem,          /* nb_true_divide */
+    (binaryfunc)TreeEntry_getitem, /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
     0,                          /* nb_index */
-#if PY_MAJOR_VERSION >= 3
-    0,                          /* nb_matrix_multiply */
-    0,                          /* nb_inplace_matrix_multiply */
-#endif
+// Python 3.5+
+//  0,                          /* nb_matrix_multiply */
+//  0,                          /* nb_inplace_matrix_multiply */
 };
 
 
@@ -491,7 +490,7 @@ wrap_tree_entry(const git_tree_entry *entry, Repository *repo)
 }
 
 int
-Tree_fix_index(git_tree *tree, PyObject *py_index)
+Tree_fix_index(const git_tree *tree, PyObject *py_index)
 {
     long index;
     size_t len;
@@ -838,14 +837,13 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
     0,                          /* nb_floor_divide */
-    Tree_getitem,               /* nb_true_divide */
+    (binaryfunc)Tree_getitem,   /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
     0,                          /* nb_index */
-#if PY_MAJOR_VERSION >= 3
-    0,                          /* nb_matrix_multiply */
-    0,                          /* nb_inplace_matrix_multiply */
-#endif
+// Python 3.5+
+//  0,                          /* nb_matrix_multiply */
+//  0,                          /* nb_inplace_matrix_multiply */
 };
 
 PyDoc_STRVAR(Tree__doc__, "Tree objects.");
