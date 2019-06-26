@@ -105,7 +105,7 @@ class Index(object):
         Parameters:
 
         force
-            If True (the default) allways reload. If False, only if the file
+            If True (the default) always reload. If False, only if the file
             has changed.
         """
 
