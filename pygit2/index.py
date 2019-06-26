@@ -174,6 +174,13 @@ class Index(object):
         err = C.git_index_remove(self._index, to_bytes(path), level)
         check_error(err, True)
 
+    def remove_all(self, pathspecs):
+        """Remove all index entries matching pathspecs.
+        """
+        with StrArray(pathspecs) as arr:
+            err = C.git_index_remove_all(self._index, arr, ffi.NULL, ffi.NULL)
+            check_error(err, True)
+
     def add_all(self, pathspecs=[]):
         """Add or update index entries matching files in the working directory.
 

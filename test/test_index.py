@@ -177,6 +177,15 @@ class IndexTest(utils.RepoTestCase):
         index.remove('hello.txt')
         assert 'hello.txt' not in index
 
+    def test_remove_all(self):
+        index = self.repo.index
+        print([i.path for i in index])
+        assert 'hello.txt' in index
+        index.remove_all(['*.txt'])
+        assert 'hello.txt' not in index
+
+        index.remove_all(['not-existing'])  # this doesn't error
+
     def test_change_attributes(self):
         index = self.repo.index
         entry = index['hello.txt']
