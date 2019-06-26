@@ -53,9 +53,12 @@ class TreeTest(utils.BareRepoTestCase):
     def test_read_tree(self):
         tree = self.repo[TREE_SHA]
         with pytest.raises(TypeError): tree[()]
+        with pytest.raises(IndexError):
+            tree / 123
         self.assertRaisesWithArg(KeyError, 'abcd', lambda: tree['abcd'])
         self.assertRaisesWithArg(IndexError, -4, lambda: tree[-4])
         self.assertRaisesWithArg(IndexError, 3, lambda: tree[3])
+        self.assertRaisesWithArg(KeyError, 'abcd', lambda: tree / 'abcd')
 
         assert 3 == len(tree)
         sha = '7f129fd57e31e935c6d60a0c794efe4e6927664b'
@@ -63,16 +66,27 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(tree[0], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree[-3], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree['a'], sha, 'a', 0o0100644)
+        self.assertTreeEntryEqual(tree / 'a', sha, 'a', 0o0100644)
+        self.assertTreeEntryEqual(tree / 0, sha, 'a', 0o0100644)
 
         sha = '85f120ee4dac60d0719fd51731e4199aa5a37df6'
         assert 'b' in tree
         self.assertTreeEntryEqual(tree[1], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree[-2], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree['b'], sha, 'b', 0o0100644)
+        self.assertTreeEntryEqual(tree / 'b', sha, 'b', 0o0100644)
+        self.assertTreeEntryEqual(tree / 1, sha, 'b', 0o0100644)
 
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(tree['c/d'], sha, 'd', 0o0100644)
+        self.assertTreeEntryEqual(tree / 'c/d', sha, 'd', 0o0100644)
+        self.assertTreeEntryEqual(tree / 'c' / 'd', sha, 'd', 0o0100644)
+        self.assertTreeEntryEqual(tree['c']['d'], sha, 'd', 0o0100644)
+        self.assertTreeEntryEqual((tree / 'c')['d'], sha, 'd', 0o0100644)
         self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree['ab/cd'])
+        self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree / 'ab/cd')
+        self.assertRaisesWithArg(KeyError, 'ab', lambda: tree / 'c' / 'ab')
+        self.assertRaisesWithArg(TypeError, 'Only for trees', lambda: tree / 'a' / 'cd')
 
     def test_equality(self):
         tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
@@ -93,11 +107,17 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
         assert subtree_entry.type == 'tree'
 
+        subtree_entry = tree / 'c'
+        self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
+        assert subtree_entry.type == 'tree'
+
         subtree = self.repo[subtree_entry.id]
         assert 1 == len(subtree)
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
+        subtree_entry = (tree / 'c')
+        assert subtree_entry.obj == self.repo[subtree_entry.id]
 
     def test_new_tree(self):
         repo = self.repo
@@ -124,6 +144,13 @@ class TreeTest(utils.BareRepoTestCase):
         assert y.filemode == 0o0100755
         assert z.filemode == GIT_FILEMODE_TREE
 
+        x = tree / 'x'
+        y = tree / 'y'
+        z = tree / 'z'
+        assert x.filemode == 0o0100644
+        assert y.filemode == 0o0100755
+        assert z.filemode == GIT_FILEMODE_TREE
+
         assert repo[x.id].id == b0
         assert repo[y.id].id == b1
         assert repo[z.id].id == subtree.id
@@ -131,6 +158,10 @@ class TreeTest(utils.BareRepoTestCase):
         assert x.type == 'blob'
         assert y.type == 'blob'
         assert z.type == 'tree'
+
+        assert x.obj == repo[x.id]
+        assert y.obj == repo[y.id]
+        assert z.obj == repo[z.id]
 
 
     def test_modify_tree(self):
@@ -156,3 +187,6 @@ class TreeTest(utils.BareRepoTestCase):
         assert 'c/d' in tree
         assert 'c/e' not in tree
         assert 'd' not in tree
+
+        assert 'd' in tree['c']
+        assert 'e' not in tree['c']

@@ -33,14 +33,17 @@
 #include <git2.h>
 #include "types.h"
 
-TreeEntry * wrap_tree_entry(const git_tree_entry *entry);
+TreeEntry * wrap_tree_entry(const git_tree_entry *entry, Repository *repo);
 PyObject* TreeEntry_get_filemode(TreeEntry *self);
 PyObject* TreeEntry_get_name(TreeEntry *self);
 PyObject* TreeEntry_get_oid(TreeEntry *self);
 PyObject* TreeEntry_get_hex(TreeEntry *self);
+PyObject* TreeEntry_get_obj(TreeEntry *self);
 
-TreeEntry* Tree_getitem_by_index(Tree *self, PyObject *py_index);
-TreeEntry* Tree_getitem(Tree *self, PyObject *value);
+TreeEntry* tree_getitem_by_index(const git_tree *tree, Repository *repo, PyObject *py_index);
+TreeEntry* tree_getitem_by_path(const git_tree *tree, Repository *repo, PyObject *py_path);
 PyObject* Tree_diff_tree(Tree *self, PyObject *args);
+
+
 
 #endif

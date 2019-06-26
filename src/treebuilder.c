@@ -124,7 +124,7 @@ TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
         PyErr_SetNone(PyExc_MemoryError);
         return NULL;
     }
-    return (PyObject*)wrap_tree_entry(entry);
+    return (PyObject*)wrap_tree_entry(entry, NULL);
 }
 
 

@@ -163,6 +163,7 @@ SIMPLE_TYPE(TreeBuilder, git_treebuilder, bld)
 
 typedef struct {
     PyObject_HEAD
+    Repository *repo;\
     const git_tree_entry *entry;
 } TreeEntry;
 
