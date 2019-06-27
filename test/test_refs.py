@@ -278,6 +278,73 @@ class ReferencesTest(utils.RepoTestCase):
         reference = repo.lookup_reference('refs/heads/master')
         assert reference.name == 'refs/heads/master'
 
+    def test_lookup_reference_dwim(self):
+        repo = self.repo
+
+        # remote ref
+        reference = self.repo.create_reference('refs/remotes/origin/master', LAST_COMMIT)
+        assert reference.shorthand == 'origin/master'
+        # tag
+        repo.create_reference('refs/tags/version1', LAST_COMMIT)
+
+        # Test dwim lookups
+
+        # Raise KeyError ?
+        with pytest.raises(KeyError): repo.lookup_reference_dwim('foo')
+        with pytest.raises(KeyError): repo.lookup_reference_dwim('refs/foo')
+
+        reference = repo.lookup_reference_dwim('refs/heads/master')
+        assert reference.name == 'refs/heads/master'
+
+        reference = repo.lookup_reference_dwim('master')
+        assert reference.name == 'refs/heads/master'
+
+        reference = repo.lookup_reference_dwim('origin/master')
+        assert reference.name == 'refs/remotes/origin/master'
+
+        reference = repo.lookup_reference_dwim('version1')
+        assert reference.name == 'refs/tags/version1'
+
+    def test_resolve_refish(self):
+        repo = self.repo
+
+        # remote ref
+        reference = self.repo.create_reference('refs/remotes/origin/master', LAST_COMMIT)
+        assert reference.shorthand == 'origin/master'
+        # tag
+        repo.create_reference('refs/tags/version1', LAST_COMMIT)
+
+        # Test dwim lookups
+
+        # Raise KeyError ?
+        with pytest.raises(KeyError): repo.resolve_refish('foo')
+        with pytest.raises(KeyError): repo.resolve_refish('refs/foo')
+
+        commit, ref = repo.resolve_refish('refs/heads/i18n')
+        assert ref.name == 'refs/heads/i18n'
+        assert commit.hex == '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
+
+        commit, ref = repo.resolve_refish('master')
+        assert ref.name == 'refs/heads/master'
+        assert commit.hex == LAST_COMMIT
+
+        commit, ref = repo.resolve_refish('origin/master')
+        assert ref.name == 'refs/remotes/origin/master'
+        assert commit.hex == LAST_COMMIT
+
+        commit, ref = repo.resolve_refish('version1')
+        assert ref.name == 'refs/tags/version1'
+        assert commit.hex == LAST_COMMIT
+
+        commit, ref = repo.resolve_refish(LAST_COMMIT)
+        assert ref is None
+        assert commit.hex == LAST_COMMIT
+
+        commit, ref = repo.resolve_refish('HEAD~1')
+        assert ref is None
+        assert commit.hex == '5ebeeebb320790caf276b9fc8b24546d63316533'
+
+
     def test_reference_get_sha(self):
         reference = self.repo.lookup_reference('refs/heads/master')
         assert reference.target.hex == LAST_COMMIT
@@ -390,7 +457,7 @@ class ReferencesTest(utils.RepoTestCase):
         with pytest.raises(AlreadyExistsError) as error:
             self.repo.create_reference('refs/tags/version1', LAST_COMMIT)
         assert isinstance(error.value, ValueError)
-        
+
         # Clear error
         del error
 

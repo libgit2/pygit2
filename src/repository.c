@@ -1455,6 +1455,36 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     return wrap_reference(c_reference, self);
 }
 
+PyDoc_STRVAR(Repository_lookup_reference_dwim__doc__,
+  "lookup_reference_dwim(name) -> Reference\n"
+  "\n"
+  "Lookup a reference by doing-what-i-mean'ing its short name.");
+
+PyObject *
+Repository_lookup_reference_dwim(Repository *self, PyObject *py_name)
+{
+    git_reference *c_reference;
+    char *c_name;
+    int err;
+
+    /* 1- Get the C name */
+    c_name = py_path_to_c_str(py_name);
+    if (c_name == NULL)
+        return NULL;
+
+    /* 2- Lookup */
+    err = git_reference_dwim(&c_reference, self->repo, c_name);
+    if (err < 0) {
+        PyObject *err_obj = Error_set_str(err, c_name);
+        free(c_name);
+        return err_obj;
+    }
+    free(c_name);
+
+    /* 3- Make an instance of Reference and return it */
+    return wrap_reference(c_reference, self);
+}
+
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
   "create_reference_direct(name, target, force)\n"
   "\n"
@@ -1991,6 +2021,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_submodules, METH_NOARGS),
     METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, lookup_reference, METH_O),
+    METHOD(Repository, lookup_reference_dwim, METH_O),
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),

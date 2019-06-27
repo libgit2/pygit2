@@ -48,6 +48,7 @@ from _pygit2 import GIT_FILEMODE_LINK
 from _pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
 from _pygit2 import GIT_REF_SYMBOLIC
 from _pygit2 import Reference, Tree, Commit, Blob
+from _pygit2 import InvalidSpecError
 
 from .config import Config
 from .errors import check_error
@@ -200,6 +201,30 @@ class BaseRepository(_Repository):
             return self.create_reference_direct(name, target, force)
 
         return self.create_reference_symbolic(name, target, force)
+
+    def resolve_refish(self, refish):
+        """Convert a reference-like short name "ref-ish" to a valid
+        (commit, reference) pair.
+
+        If ref-ish points to a commit, the reference element of the result
+        will be None.
+
+        Examples::
+
+            repo.resolve_refish('mybranch')
+            repo.resolve_refish('sometag')
+            repo.resolve_refish('origin/master')
+            repo.resolve_refish('bbb78a9')
+        """
+        try:
+            reference = self.lookup_reference_dwim(refish)
+        except (KeyError, InvalidSpecError):
+            reference = None
+            commit = self.revparse_single(refish)
+        else:
+            commit = reference.peel(Commit)
+
+        return (commit, reference)
 
     #
     # Checkout
