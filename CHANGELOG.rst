@@ -1,3 +1,24 @@
+0.28.3 (UNRELEASED)
+-------------------------
+
+- Support for "/" operator to traverse trees
+  `#903 <https://github.com/libgit2/pygit2/pull/903>`_
+
+- New `Index.remove_all()`
+  `#920 <https://github.com/libgit2/pygit2/pull/920>`_
+
+- New `Repository.lookup_reference_dwim(..)` and `Repository.resolve_refish(..)`
+  `#922 <https://github.com/libgit2/pygit2/pull/922>`_
+
+- Fix spurious exception in config
+  `#916 <https://github.com/libgit2/pygit2/issues/916>`_
+  `#917 <https://github.com/libgit2/pygit2/pull/917>`_
+
+- Minor fixes
+  `#919 <https://github.com/libgit2/pygit2/pull/919>`_
+  `#921 <https://github.com/libgit2/pygit2/pull/921>`_
+
+
 0.28.2 (2019-05-26)
 -------------------------
 

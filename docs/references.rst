@@ -2,7 +2,14 @@
 References
 **********************************************************************
 
-.. py:attribute:: Repository.references
+.. autoclass:: pygit2.Repository
+   :members: lookup_reference, lookup_reference_dwim, resolve_refish
+   :noindex:
+
+   .. attribute:: Repository.references
+
+      Returns an instance of the References class (see below).
+
 
 .. autoclass:: pygit2.repository.References
    :members:
@@ -13,7 +20,7 @@ Example::
 
     >>> all_refs = list(repo.references)
 
-    >>> master_ref = repo.lookup_reference("refs/heads/master")
+    >>> master_ref = repo.references["refs/heads/master"]
     >>> commit = master_ref.peel() # or repo[master_ref.target]
 
     # Create a reference
@@ -64,7 +71,7 @@ The Reference type
 
    Example::
 
-      >>> branch = repository.lookup_reference("refs/heads/master")
+      >>> branch = repository.references["refs/heads/master"]
       >>> branch.target = another_commit.id
       >>> committer = Signature('Cecil Committer', 'cecil@committers.tld')
       >>> branch.log_append(another_commit.id, committer,
@@ -84,7 +91,7 @@ The HEAD
 
 Example. These two lines are equivalent::
 
-    >>> head = repo.lookup_reference('HEAD').resolve()
+    >>> head = repo.references['HEAD'].resolve()
     >>> head = repo.head
 
 .. autoattribute:: pygit2.Repository.head
