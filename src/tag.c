@@ -63,7 +63,7 @@ Tag_get_object(Tag *self)
     if (err < 0)
         return Error_set(err);
 
-    return wrap_object(obj, self->repo);
+    return wrap_object(obj, self->repo, NULL);
 }
 
 

@@ -64,23 +64,26 @@ typedef struct {
             _ptr_type *_ptr_name;\
         } _name;
 
+#define OBJECT_TYPE(_name, _ptr_type, _ptr_name) \
+        typedef struct {\
+            PyObject_HEAD\
+            Repository *repo;\
+            _ptr_type *_ptr_name;\
+            const git_tree_entry *entry;\
+        } _name;
+
 
 /* git object types
  *
  * The structs for some of the object subtypes are identical except for
  * the type of their object pointers. */
-SIMPLE_TYPE(Object, git_object, obj)
-SIMPLE_TYPE(Commit, git_commit, commit)
-SIMPLE_TYPE(Tree, git_tree, tree)
-SIMPLE_TYPE(Blob, git_blob, blob)
-SIMPLE_TYPE(Tag, git_tag, tag)
+OBJECT_TYPE(Object, git_object, obj)
+OBJECT_TYPE(Commit, git_commit, commit)
+OBJECT_TYPE(Tree, git_tree, tree)
+OBJECT_TYPE(Blob, git_blob, blob)
+OBJECT_TYPE(Tag, git_tag, tag)
 
-/* git_worktree */
-typedef struct {
-    PyObject_HEAD
-    Repository *repo;
-    git_worktree *worktree;
-} Worktree;
+SIMPLE_TYPE(Worktree, git_worktree, worktree)
 
 /* git_note */
 typedef struct {

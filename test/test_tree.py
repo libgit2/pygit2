@@ -34,7 +34,7 @@ import operator
 
 import pytest
 
-from pygit2 import GIT_FILEMODE_TREE
+import pygit2
 from . import utils
 
 
@@ -47,13 +47,14 @@ class TreeTest(utils.BareRepoTestCase):
     def assertTreeEntryEqual(self, entry, sha, name, filemode):
         assert entry.hex == sha
         assert entry.name == name
-        assert entry._name == name.encode('utf-8')
         assert entry.filemode == filemode
+        if type(entry) is pygit2.TreeEntry:
+            assert entry._name == name.encode('utf-8')
 
     def test_read_tree(self):
         tree = self.repo[TREE_SHA]
         with pytest.raises(TypeError): tree[()]
-        with pytest.raises(IndexError):
+        with pytest.raises(TypeError):
             tree / 123
         self.assertRaisesWithArg(KeyError, 'abcd', lambda: tree['abcd'])
         self.assertRaisesWithArg(IndexError, -4, lambda: tree[-4])
@@ -67,7 +68,6 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(tree[-3], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree['a'], sha, 'a', 0o0100644)
         self.assertTreeEntryEqual(tree / 'a', sha, 'a', 0o0100644)
-        self.assertTreeEntryEqual(tree / 0, sha, 'a', 0o0100644)
 
         sha = '85f120ee4dac60d0719fd51731e4199aa5a37df6'
         assert 'b' in tree
@@ -75,7 +75,6 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(tree[-2], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree['b'], sha, 'b', 0o0100644)
         self.assertTreeEntryEqual(tree / 'b', sha, 'b', 0o0100644)
-        self.assertTreeEntryEqual(tree / 1, sha, 'b', 0o0100644)
 
         sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
         self.assertTreeEntryEqual(tree['c/d'], sha, 'd', 0o0100644)
@@ -86,7 +85,8 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree['ab/cd'])
         self.assertRaisesWithArg(KeyError, 'ab/cd', lambda: tree / 'ab/cd')
         self.assertRaisesWithArg(KeyError, 'ab', lambda: tree / 'c' / 'ab')
-        self.assertRaisesWithArg(TypeError, 'Only for trees', lambda: tree / 'a' / 'cd')
+        with pytest.raises(TypeError):
+            tree / 'a' / 'cd'
 
     def test_equality(self):
         tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
@@ -109,7 +109,7 @@ class TreeTest(utils.BareRepoTestCase):
 
         subtree_entry = tree / 'c'
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
-        assert subtree_entry.type == 'tree'
+        assert subtree_entry.type == pygit2.GIT_OBJ_TREE
 
         subtree = self.repo[subtree_entry.id]
         assert 1 == len(subtree)
@@ -117,7 +117,7 @@ class TreeTest(utils.BareRepoTestCase):
         self.assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
         subtree_entry = (tree / 'c')
-        assert subtree_entry.obj == self.repo[subtree_entry.id]
+        assert subtree_entry == self.repo[subtree_entry.id]
 
     def test_new_tree(self):
         repo = self.repo
@@ -130,7 +130,7 @@ class TreeTest(utils.BareRepoTestCase):
         t = repo.TreeBuilder()
         t.insert('x', b0, 0o0100644)
         t.insert('y', b1, 0o0100755)
-        t.insert('z', subtree.id, GIT_FILEMODE_TREE)
+        t.insert('z', subtree.id, pygit2.GIT_FILEMODE_TREE)
         tree = repo[t.write()]
 
         assert 'x' in tree
@@ -142,26 +142,28 @@ class TreeTest(utils.BareRepoTestCase):
         z = tree['z']
         assert x.filemode == 0o0100644
         assert y.filemode == 0o0100755
-        assert z.filemode == GIT_FILEMODE_TREE
+        assert z.filemode == pygit2.GIT_FILEMODE_TREE
+        assert x.type == 'blob'
+        assert y.type == 'blob'
+        assert z.type == 'tree'
 
         x = tree / 'x'
         y = tree / 'y'
         z = tree / 'z'
         assert x.filemode == 0o0100644
         assert y.filemode == 0o0100755
-        assert z.filemode == GIT_FILEMODE_TREE
+        assert z.filemode == pygit2.GIT_FILEMODE_TREE
+        assert x.type == pygit2.GIT_OBJ_BLOB
+        assert y.type == pygit2.GIT_OBJ_BLOB
+        assert z.type == pygit2.GIT_OBJ_TREE
 
         assert repo[x.id].id == b0
         assert repo[y.id].id == b1
         assert repo[z.id].id == subtree.id
 
-        assert x.type == 'blob'
-        assert y.type == 'blob'
-        assert z.type == 'tree'
-
-        assert x.obj == repo[x.id]
-        assert y.obj == repo[y.id]
-        assert z.obj == repo[z.id]
+        assert x == repo[x.id]
+        assert y == repo[y.id]
+        assert z == repo[z.id]
 
 
     def test_modify_tree(self):

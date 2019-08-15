@@ -47,6 +47,7 @@ Object_dealloc(Object* self)
 {
     Py_CLEAR(self->repo);
     git_object_free(self->obj);
+    git_tree_entry_free((git_tree_entry*)self->entry);
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -130,6 +131,28 @@ Object__pointer__get__(Object *self)
     return PyBytes_FromStringAndSize((char *) &self->obj, sizeof(git_object *));
 }
 
+PyDoc_STRVAR(Object_name__doc__,
+             "Name (will be None if the object was not reached trough a tree)");
+PyObject *
+Object_name__get__(Object *self)
+{
+    if (self->entry == NULL)
+        Py_RETURN_NONE;
+
+    return to_path(git_tree_entry_name(self->entry));
+}
+
+PyDoc_STRVAR(Object_filemode__doc__,
+             "Filemode (will be None if the object was not reached trough a tree)");
+PyObject *
+Object_filemode__get__(Object *self)
+{
+    if (self->entry == NULL)
+        Py_RETURN_NONE;
+
+    return PyInt_FromLong(git_tree_entry_filemode(self->entry));
+}
+
 
 PyDoc_STRVAR(Object_read_raw__doc__,
   "read_raw()\n"
@@ -177,7 +200,7 @@ Object_peel(Object *self, PyObject *py_type)
     if (err < 0)
         return Error_set(err);
 
-    return wrap_object(peeled, self->repo);
+    return wrap_object(peeled, self->repo, NULL);
 }
 
 Py_hash_t
@@ -243,6 +266,9 @@ PyGetSetDef Object_getseters[] = {
     GETTER(Object, short_id),
     GETTER(Object, type),
     GETTER(Object, _pointer),
+    // These come from git_tree_entry
+    GETTER(Object, name),
+    GETTER(Object, filemode),
     {NULL}
 };
 
@@ -297,7 +323,7 @@ PyTypeObject ObjectType = {
 };
 
 PyObject *
-wrap_object(git_object *c_object, Repository *repo)
+wrap_object(git_object *c_object, Repository *repo, const git_tree_entry *entry)
 {
     Object *py_obj = NULL;
 
@@ -324,6 +350,7 @@ wrap_object(git_object *c_object, Repository *repo)
             py_obj->repo = repo;
             Py_INCREF(repo);
         }
+        py_obj->entry = entry;
     }
     return (PyObject *)py_obj;
 }

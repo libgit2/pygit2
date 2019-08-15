@@ -173,13 +173,7 @@ Commit_tree__get__(Commit *commit)
     if (err < 0)
         return Error_set(err);
 
-    py_tree = PyObject_New(Tree, &TreeType);
-    if (py_tree) {
-        Py_INCREF(commit->repo);
-        py_tree->repo = commit->repo;
-        py_tree->tree = (git_tree*)tree;
-    }
-    return (PyObject*)py_tree;
+    return wrap_object((git_object*)tree, commit->repo, NULL);
 }
 
 PyDoc_STRVAR(Commit_tree_id__doc__, "The id of the tree attached to the commit.");
@@ -223,7 +217,7 @@ Commit_parents__get__(Commit *self)
             return Error_set_oid(err, parent_oid, GIT_OID_HEXSZ);
         }
 
-        py_parent = wrap_object((git_object*)parent, py_repo);
+        py_parent = wrap_object((git_object*)parent, py_repo, NULL);
         if (py_parent == NULL) {
             Py_DECREF(list);
             return NULL;

@@ -28,9 +28,10 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "error.h"
-#include "utils.h"
+#include "object.h"
 #include "oid.h"
 #include "tree.h"
+#include "utils.h"
 #include "walker.h"
 
 extern PyTypeObject CommitType;
@@ -157,13 +158,7 @@ Walker_iternext(Walker *self)
     if (err < 0)
         return Error_set(err);
 
-    py_commit = PyObject_New(Commit, &CommitType);
-    if (py_commit) {
-        py_commit->commit = commit;
-        Py_INCREF(self->repo);
-        py_commit->repo = self->repo;
-    }
-    return (PyObject*)py_commit;
+    return wrap_object((git_object*)commit, self->repo, NULL);
 }
 
 PyMethodDef Walker_methods[] = {

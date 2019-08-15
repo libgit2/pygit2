@@ -78,14 +78,8 @@ New objects are created using an specific API we will see later.
 
 This is the common interface for all Git objects:
 
-.. autoattribute:: pygit2.Object.id
-.. autoattribute:: pygit2.Object.type
-.. autoattribute:: pygit2.Object.short_id
-.. automethod:: pygit2.Object.read_raw
-.. automethod:: pygit2.Object.peel
-.. automethod:: pygit2.Object.__eq__(Object)
-.. automethod:: pygit2.Object.__ne__(Object)
-.. automethod:: pygit2.Object.__hash__
+.. autoclass:: pygit2.Object
+   :members: id, type, short_id, read_raw, peel, name, filemode, __eq__, __ne__, __hash__
 
 Blobs
 =================

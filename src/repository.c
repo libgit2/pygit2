@@ -314,7 +314,7 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
 
     err = git_object_lookup_prefix(&obj, self->repo, &oid, len, GIT_OBJ_ANY);
     if (err == 0)
-        return wrap_object(obj, self);
+        return wrap_object(obj, self, NULL);
 
     if (err == GIT_ENOTFOUND)
         Py_RETURN_NONE;
@@ -402,7 +402,7 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
     }
     Py_DECREF(tspec);
 
-    return wrap_object(c_obj, self);
+    return wrap_object(c_obj, self, NULL);
 }
 
 git_odb_object *

@@ -40,10 +40,11 @@ PyObject* TreeEntry_get_oid(TreeEntry *self);
 PyObject* TreeEntry_get_hex(TreeEntry *self);
 PyObject* TreeEntry_get_obj(TreeEntry *self);
 
-TreeEntry* tree_getitem_by_index(const git_tree *tree, Repository *repo, PyObject *py_index);
-TreeEntry* tree_getitem_by_path(const git_tree *tree, Repository *repo, PyObject *py_path);
+TreeEntry* tree_getentry_by_index(const git_tree *tree, Repository *repo,
+                                  PyObject *py_index);
+TreeEntry* tree_getentry_by_path(const git_tree *tree, Repository *repo,
+                                 PyObject *py_path);
 PyObject* Tree_diff_tree(Tree *self, PyObject *args);
-
 
 
 #endif

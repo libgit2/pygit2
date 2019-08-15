@@ -214,7 +214,8 @@ treeentry_to_object(TreeEntry* self)
     int err;
 
     if (self->repo == NULL) {
-        PyErr_SetString(PyExc_ValueError, "No repository associated with this TreeEntry");
+        PyErr_SetString(PyExc_ValueError,
+                        "No repository associated with this TreeEntry");
         return NULL;
     }
     py_repo = self->repo;
@@ -225,8 +226,9 @@ treeentry_to_object(TreeEntry* self)
         return NULL;
     }
 
-    return wrap_object(obj, py_repo);
+    return wrap_object(obj, py_repo, self->entry);
 }
+
 PyDoc_STRVAR(TreeEntry_obj__doc__, "Object (subtree/blob)");
 
 PyObject *
@@ -238,7 +240,7 @@ TreeEntry_obj__get__(TreeEntry *self)
         if (subtree == NULL)
             return NULL;
 
-        return wrap_object((git_object*)subtree, self->repo);
+        return wrap_object((git_object*)subtree, self->repo, self->entry);
     } else {
         return treeentry_to_object(self);
     }
@@ -302,10 +304,10 @@ TreeEntry_getitem(TreeEntry *self, PyObject *value)
 
     if (PyInt_Check(value)) {
         /* Case 1: integer */
-        r = tree_getitem_by_index(subtree, self->repo, value);
+        r = tree_getentry_by_index(subtree, self->repo, value);
     } else {
         /* Case 2: byte or text string */
-        r = tree_getitem_by_path(subtree, self->repo, value);
+        r = tree_getentry_by_path(subtree, self->repo, value);
     }
 
     git_tree_free(subtree);
@@ -533,7 +535,7 @@ Tree_iter(Tree *self)
 }
 
 TreeEntry *
-tree_getitem_by_index(const git_tree *tree, Repository *repo, PyObject *py_index)
+tree_getentry_by_index(const git_tree *tree, Repository *repo, PyObject *py_index)
 {
     int index;
     const git_tree_entry *entry_src;
@@ -558,7 +560,7 @@ tree_getitem_by_index(const git_tree *tree, Repository *repo, PyObject *py_index
 }
 
 TreeEntry *
-tree_getitem_by_path(const git_tree *tree, Repository *repo, PyObject *py_path)
+tree_getentry_by_path(const git_tree *tree, Repository *repo, PyObject *py_path)
 {
     char *path;
     git_tree_entry *entry;
@@ -586,14 +588,23 @@ tree_getitem_by_path(const git_tree *tree, Repository *repo, PyObject *py_path)
 }
 
 TreeEntry *
-Tree_getitem(Tree *self, PyObject *value)
+Tree_getentry(Tree *self, PyObject *value)
 {
     /* Case 1: integer */
     if (PyInt_Check(value))
-        return tree_getitem_by_index(self->tree, self->repo, value);
+        return tree_getentry_by_index(self->tree, self->repo, value);
 
     /* Case 2: byte or text string */
-    return tree_getitem_by_path(self->tree, self->repo, value);
+    return tree_getentry_by_path(self->tree, self->repo, value);
+}
+
+PyObject *
+Tree_getobj(Tree *self, PyObject *value)
+{
+    TreeEntry* entry = tree_getentry_by_path(self->tree, self->repo, value);
+    if (entry == NULL)
+        return NULL;
+    return treeentry_to_object(entry);
 }
 
 
@@ -782,7 +793,7 @@ PySequenceMethods Tree_as_sequence = {
 
 PyMappingMethods Tree_as_mapping = {
     (lenfunc)Tree_len,            /* mp_length */
-    (binaryfunc)Tree_getitem,     /* mp_subscript */
+    (binaryfunc)Tree_getentry,    /* mp_subscript */
     0,                            /* mp_ass_subscript */
 };
 
@@ -801,7 +812,7 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
 #if PY_MAJOR_VERSION < 3
-    (binaryfunc)Tree_getitem,   /* Py2: nb_divide */
+    (binaryfunc)Tree_getobj,    /* Py2: nb_divide */
 #endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
@@ -837,7 +848,7 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
     0,                          /* nb_floor_divide */
-    (binaryfunc)Tree_getitem,   /* nb_true_divide */
+    (binaryfunc)Tree_getobj,    /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
     0,                          /* nb_index */

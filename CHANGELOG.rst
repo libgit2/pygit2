@@ -1,13 +1,13 @@
 0.28.3 (UNRELEASED)
 -------------------------
 
-- Support for "/" operator to traverse trees
+- Support for ``/`` operator to traverse trees
   `#903 <https://github.com/libgit2/pygit2/pull/903>`_
 
-- New `Index.remove_all()`
+- New ``Index.remove_all()``
   `#920 <https://github.com/libgit2/pygit2/pull/920>`_
 
-- New `Repository.lookup_reference_dwim(..)` and `Repository.resolve_refish(..)`
+- New ``Repository.lookup_reference_dwim(..)`` and ``Repository.resolve_refish(..)``
   `#922 <https://github.com/libgit2/pygit2/pull/922>`_
 
 - Fix spurious exception in config

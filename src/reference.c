@@ -407,7 +407,7 @@ Reference_peel(Reference *self, PyObject *args)
     if (err < 0)
         return Error_set(err);
 
-    return wrap_object(obj, self->repo);
+    return wrap_object(obj, self->repo, NULL);
 }
 
 PyObject *
