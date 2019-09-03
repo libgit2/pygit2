@@ -159,3 +159,4 @@ Authors::
   Yu Jianjian
   chengyuhang
   earl
+  Dan Sully

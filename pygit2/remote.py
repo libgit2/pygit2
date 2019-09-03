@@ -216,6 +216,12 @@ class RemoteCallbacks(object):
         self._self_handle = ffi.new_handle(self)
         prune_callbacks.payload = self._self_handle
 
+    def _fill_connect_callbacks(self, connect_callbacks):
+        connect_callbacks.credentials = self._credentials_cb
+        # We need to make sure that this handle stays alive
+        self._self_handle = ffi.new_handle(self)
+        connect_callbacks.payload = self._self_handle
+
     # These functions exist to be called by the git_remote as
     # callbacks. They proxy the call to whatever the user set
 
@@ -372,6 +378,19 @@ class Remote(object):
 
         return maybe_string(C.git_remote_pushurl(self._remote))
 
+    def connect(self, callbacks=None, direction=C.GIT_DIRECTION_FETCH):
+        """Connect to the remote."""
+
+        remote_callbacks = ffi.new('git_remote_callbacks *')
+        C.git_remote_init_callbacks(remote_callbacks, C.GIT_REMOTE_CALLBACKS_VERSION)
+
+        if callbacks is None:
+            callbacks = RemoteCallbacks()
+
+        callbacks._fill_connect_callbacks(remote_callbacks)
+        err = C.git_remote_connect(self._remote, direction, remote_callbacks, ffi.NULL, ffi.NULL);
+        check_error(err)
+
     def save(self):
         """Save a remote to its repository's configuration."""
 
@@ -411,6 +430,40 @@ class Remote(object):
             callbacks._self_handle = None
 
         return TransferProgress(C.git_remote_stats(self._remote))
+
+    def ls_remotes(self, callbacks=None):
+        """Return a list of dicts that maps to `git_remote_head` from a `ls_remotes` call."""
+
+        self.connect(callbacks=callbacks)
+
+        refs = ffi.new('git_remote_head ***')
+        refs_len = ffi.new('size_t *')
+
+        err = C.git_remote_ls(refs, refs_len, self._remote)
+        check_error(err)
+
+        results = []
+
+        for i in range(int(refs_len[0])):
+
+            local = bool(refs[0][i].local)
+
+            if local:
+                loid = Oid(raw=bytes(ffi.buffer(refs[0][i].loid.id)[:]))
+            else:
+                loid = None
+
+            remote = {
+                "local": local,
+                "loid": loid,
+                "name": maybe_string(refs[0][i].name),
+                "symref_target": maybe_string(refs[0][i].symref_target),
+                "oid": Oid(raw=bytes(ffi.buffer(refs[0][i].oid.id)[:])),
+            }
+
+            results.append(remote)
+
+        return results
 
     def prune(self, callbacks=None):
         """Perform a prune against this remote."""

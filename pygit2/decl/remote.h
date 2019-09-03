@@ -123,3 +123,11 @@ const git_refspec * git_remote_get_refspec(const git_remote *remote, size_t n);
 int git_remote_get_fetch_refspecs(git_strarray *array, const git_remote *remote);
 int git_remote_get_push_refspecs(git_strarray *array, const git_remote *remote);
 void git_remote_free(git_remote *remote);
+
+int git_remote_connect(
+    git_remote *remote,
+    int direction,
+    const git_remote_callbacks *callbacks,
+    const git_proxy_options *proxy_opts,
+    const git_strarray *custom_headers);
+int git_remote_ls(const git_remote_head ***out, size_t *size, git_remote *remote);

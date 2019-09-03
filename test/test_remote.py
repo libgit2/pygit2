@@ -175,6 +175,14 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.create_remote(name, url)
         assert remote.name in [x.name for x in self.repo.remotes]
 
+    def test_ls_remotes(self):
+        assert 1 == len(self.repo.remotes)
+        remote = self.repo.remotes[0]
+
+        refs = remote.ls_remotes()
+
+        assert refs
+
     def test_remote_collection(self):
         remote = self.repo.remotes['origin']
         assert REMOTE_NAME == remote.name
@@ -249,7 +257,7 @@ class PruneTestCase(utils.RepoTestCase):
     def tearDown(self):
         self.clone_repo = None
         super(PruneTestCase, self).tearDown()
-        
+
     def test_fetch_remote_default(self):
         self.clone_repo.remotes[0].fetch()
         assert 'origin/i18n' in self.clone_repo.branches
