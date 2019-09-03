@@ -1,6 +1,8 @@
 0.28.3 (UNRELEASED)
 -------------------------
 
+- New support for ``Remote.ls_remotes(..)``
+
 - Support for ``/`` operator to traverse trees
   `#903 <https://github.com/libgit2/pygit2/pull/903>`_
 
