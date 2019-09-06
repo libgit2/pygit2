@@ -175,6 +175,7 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.create_remote(name, url)
         assert remote.name in [x.name for x in self.repo.remotes]
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
     def test_ls_remotes(self):
         assert 1 == len(self.repo.remotes)
         remote = self.repo.remotes[0]
@@ -182,6 +183,9 @@ class RepositoryTest(utils.RepoTestCase):
         refs = remote.ls_remotes()
 
         assert refs
+
+        # Check that a known ref is returned.
+        assert next(iter(r for r in refs if r['name'] == 'refs/tags/v0.28.2'))
 
     def test_remote_collection(self):
         remote = self.repo.remotes['origin']
