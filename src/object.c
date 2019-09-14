@@ -31,6 +31,7 @@
 #include "error.h"
 #include "types.h"
 #include "utils.h"
+#include "odb.h"
 #include "oid.h"
 #include "repository.h"
 #include "object.h"
@@ -162,13 +163,20 @@ PyDoc_STRVAR(Object_read_raw__doc__,
 PyObject *
 Object_read_raw(Object *self)
 {
+    int err;
     const git_oid *oid;
+    git_odb *odb;
     git_odb_object *obj;
     PyObject *aux;
 
     oid = git_object_id(self->obj);
 
-    obj = Repository_read_raw(self->repo->repo, oid, GIT_OID_HEXSZ);
+    err = git_repository_odb(&odb, self->repo->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    obj = Odb_read_raw(odb, oid, GIT_OID_HEXSZ);
+    git_odb_free(odb);
     if (obj == NULL)
         return NULL;
 

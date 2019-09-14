@@ -76,6 +76,25 @@ class BaseRepository(_Repository):
         ffi.buffer(repo_cptr)[:] = self._pointer[:]
         self._repo = repo_cptr[0]
 
+    # Backwards compatible ODB access
+    def read(self, *args, **kwargs):
+        """read(oid) -> type, data, size
+
+        Read raw object data from the repository.
+        """
+        return self.odb.read(*args, **kwargs)
+
+    def write(self, *args, **kwargs):
+        """write(type, data) -> Oid
+
+        Write raw object data into the repository. First arg is the object
+        type, the second one a buffer with data. Return the Oid of the created
+        object."""
+        return self.odb.write(*args, **kwargs)
+
+    def __iter__(self):
+        return iter(self.odb)
+
     def lookup_submodule(self, path):
         csub = ffi.new('git_submodule **')
         cpath = ffi.new('char[]', to_bytes(path))

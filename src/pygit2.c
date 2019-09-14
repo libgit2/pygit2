@@ -41,6 +41,7 @@ extern PyObject *AlreadyExistsError;
 extern PyObject *InvalidSpecError;
 
 extern PyTypeObject RepositoryType;
+extern PyTypeObject OdbType;
 extern PyTypeObject OidType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
@@ -276,6 +277,10 @@ moduleinit(PyObject* m)
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Repository)
+
+    /* Odb */
+    INIT_TYPE(OdbType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Odb)
 
     /* Oid */
     INIT_TYPE(OidType, NULL, PyType_GenericNew)
