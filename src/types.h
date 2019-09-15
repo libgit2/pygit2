@@ -56,6 +56,11 @@ typedef struct {
     git_oid oid;
 } Oid;
 
+typedef struct {
+    PyObject_HEAD
+    git_odb *odb;
+} Odb;
+
 
 #define SIMPLE_TYPE(_name, _ptr_type, _ptr_name) \
         typedef struct {\

@@ -31,6 +31,7 @@
 #include "types.h"
 #include "reference.h"
 #include "utils.h"
+#include "odb.h"
 #include "object.h"
 #include "oid.h"
 #include "note.h"
@@ -60,18 +61,6 @@ extern PyTypeObject NoteIterType;
 
 /* forward-declaration for Repsository._from_c() */
 PyTypeObject RepositoryType;
-
-git_otype
-int_to_loose_object_type(int type_id)
-{
-    switch((git_otype)type_id) {
-        case GIT_OBJ_COMMIT: return GIT_OBJ_COMMIT;
-        case GIT_OBJ_TREE: return GIT_OBJ_TREE;
-        case GIT_OBJ_BLOB: return GIT_OBJ_BLOB;
-        case GIT_OBJ_TAG: return GIT_OBJ_TAG;
-        default: return GIT_OBJ_BAD;
-    }
-}
 
 PyObject *
 wrap_repository(git_repository *c_repo)
@@ -180,42 +169,6 @@ Repository_clear(Repository *self)
 {
     Py_CLEAR(self->index);
     return 0;
-}
-
-static int
-Repository_build_as_iter(const git_oid *oid, void *accum)
-{
-    int err;
-    PyObject *py_oid = git_oid_to_python(oid);
-
-    err = PyList_Append((PyObject*)accum, py_oid);
-    Py_DECREF(py_oid);
-    return err;
-}
-
-PyObject *
-Repository_as_iter(Repository *self)
-{
-    git_odb *odb;
-    int err;
-    PyObject *accum = PyList_New(0);
-    PyObject *ret;
-
-    err = git_repository_odb(&odb, self->repo);
-    if (err < 0)
-        return Error_set(err);
-
-    err = git_odb_foreach(odb, Repository_build_as_iter, (void*)accum);
-    git_odb_free(odb);
-    if (err == GIT_EUSER)
-        return NULL;
-    if (err < 0)
-        return Error_set(err);
-
-    ret = PyObject_GetIter(accum);
-    Py_DECREF(accum);
-
-    return ret;
 }
 
 
@@ -405,114 +358,6 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
     return wrap_object(c_obj, self, NULL);
 }
 
-git_odb_object *
-Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len)
-{
-    git_odb *odb;
-    git_odb_object *obj;
-    int err;
-
-    err = git_repository_odb(&odb, repo);
-    if (err < 0) {
-        Error_set(err);
-        return NULL;
-    }
-
-    err = git_odb_read_prefix(&obj, odb, oid, (unsigned int)len);
-    git_odb_free(odb);
-    if (err < 0) {
-        Error_set_oid(err, oid, len);
-        return NULL;
-    }
-
-    return obj;
-}
-
-
-PyDoc_STRVAR(Repository_read__doc__,
-  "read(oid) -> type, data, size\n"
-  "\n"
-  "Read raw object data from the repository.");
-
-PyObject *
-Repository_read(Repository *self, PyObject *py_hex)
-{
-    git_oid oid;
-    git_odb_object *obj;
-    size_t len;
-    PyObject* tuple;
-
-    len = py_oid_to_git_oid(py_hex, &oid);
-    if (len == 0)
-        return NULL;
-
-    obj = Repository_read_raw(self->repo, &oid, len);
-    if (obj == NULL)
-        return NULL;
-
-    tuple = Py_BuildValue(
-    #if PY_MAJOR_VERSION == 2
-        "(ns#)",
-    #else
-        "(ny#)",
-    #endif
-        git_odb_object_type(obj),
-        git_odb_object_data(obj),
-        git_odb_object_size(obj));
-
-    git_odb_object_free(obj);
-    return tuple;
-}
-
-
-PyDoc_STRVAR(Repository_write__doc__,
-    "write(type, data) -> Oid\n"
-    "\n"
-    "Write raw object data into the repository. First arg is the object\n"
-    "type, the second one a buffer with data. Return the Oid of the created\n"
-    "object.");
-
-PyObject *
-Repository_write(Repository *self, PyObject *args)
-{
-    int err;
-    git_oid oid;
-    git_odb *odb;
-    git_odb_stream* stream;
-    int type_id;
-    const char* buffer;
-    Py_ssize_t buflen;
-    git_otype type;
-
-    if (!PyArg_ParseTuple(args, "Is#", &type_id, &buffer, &buflen))
-        return NULL;
-
-    type = int_to_loose_object_type(type_id);
-    if (type == GIT_OBJ_BAD)
-        return PyErr_Format(PyExc_ValueError, "%d", type_id);
-
-    err = git_repository_odb(&odb, self->repo);
-    if (err < 0)
-        return Error_set(err);
-
-    err = git_odb_open_wstream(&stream, odb, buflen, type);
-    git_odb_free(odb);
-    if (err < 0)
-        return Error_set(err);
-
-    err = git_odb_stream_write(stream, buffer, buflen);
-    if (err) {
-        git_odb_stream_free(stream);
-        return Error_set(err);
-    }
-
-    err = git_odb_stream_finalize_write(&oid, stream);
-    git_odb_stream_free(stream);
-    if (err)
-        return Error_set(err);
-
-    return git_oid_to_python(&oid);
-}
 
 PyDoc_STRVAR(Repository_path__doc__,
   "The normalized path to the git repository.");
@@ -1715,6 +1560,21 @@ Repository_default_signature__get__(Repository *self)
     return build_signature(NULL, sig, "utf-8");
 }
 
+PyDoc_STRVAR(Repository_odb__doc__, "Return the object database for this repository");
+
+PyObject *
+Repository_odb__get__(Repository *self)
+{
+    git_odb *odb;
+    int err;
+
+    err = git_repository_odb(&odb, self->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_odb(odb);
+}
+
 PyDoc_STRVAR(Repository__pointer__doc__, "Get the repo's pointer. For internal use only.");
 PyObject *
 Repository__pointer__get__(Repository *self)
@@ -2012,8 +1872,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),
     METHOD(Repository, apply, METH_O),
-    METHOD(Repository, read, METH_O),
-    METHOD(Repository, write, METH_VARARGS),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
@@ -2053,6 +1911,7 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, is_bare),
     GETSET(Repository, workdir),
     GETTER(Repository, default_signature),
+    GETTER(Repository, odb),
     GETTER(Repository, _pointer),
     {NULL}
 };
@@ -2091,7 +1950,7 @@ PyTypeObject RepositoryType = {
     (inquiry)Repository_clear,                 /* tp_clear          */
     0,                                         /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
-    (getiterfunc)Repository_as_iter,           /* tp_iter           */
+    0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     Repository_methods,                        /* tp_methods        */
     0,                                         /* tp_members        */
