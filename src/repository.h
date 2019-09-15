@@ -38,7 +38,6 @@ PyObject *wrap_repository(git_repository *c_repo);
 int  Repository_init(Repository *self, PyObject *args, PyObject *kwds);
 int  Repository_traverse(Repository *self, visitproc visit, void *arg);
 int  Repository_clear(Repository *self);
-int  Repository_contains(Repository *self, PyObject *value);
 
 git_odb_object*
 Repository_read_raw(git_repository *repo, const git_oid *oid, size_t len);
