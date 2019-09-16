@@ -29,10 +29,13 @@
 #include <Python.h>
 #include "error.h"
 #include "object.h"
+#include "odb_backend.h"
 #include "oid.h"
 #include "types.h"
 #include "utils.h"
 #include <git2/odb.h>
+
+PyTypeObject OdbBackendType;
 
 static git_otype
 int_to_loose_object_type(int type_id)
@@ -95,7 +98,9 @@ Odb_build_as_iter(const git_oid *oid, void *accum)
 
     err = PyList_Append((PyObject*)accum, py_oid);
     Py_DECREF(py_oid);
-    return err;
+    if (err < 0)
+        return GIT_EUSER;
+    return 0;
 }
 
 PyObject *
@@ -103,17 +108,20 @@ Odb_as_iter(Odb *self)
 {
     int err;
     PyObject *accum = PyList_New(0);
-    PyObject *ret;
+    PyObject *ret = NULL;
 
     err = git_odb_foreach(self->odb, Odb_build_as_iter, (void*)accum);
     if (err == GIT_EUSER)
-        return NULL;
-    if (err < 0)
-        return Error_set(err);
+        goto exit;
+    if (err < 0) {
+        ret = Error_set(err);
+        goto exit;
+    }
 
     ret = PyObject_GetIter(accum);
-    Py_DECREF(accum);
 
+exit:
+    Py_DECREF(accum);
     return ret;
 }
 
@@ -230,6 +238,90 @@ Odb_write(Odb *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Odb_add_backend__doc__,
+    "add_backend(backend, priority)\n"
+    "\n"
+    "Adds an OdbBackend to the list of backends for this object database.\n");
+
+PyObject *
+Odb_add_backend(Odb *self, PyObject *args)
+{
+    int err, priority;
+    OdbBackend *backend;
+
+    if (!PyArg_ParseTuple(args, "OI", &backend, &priority))
+        return NULL;
+
+    if (!PyObject_IsInstance((PyObject *)backend, (PyObject *)&OdbBackendType)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "add_backend expects an object of type "
+                        "pygit2.OdbBackend");
+        return NULL;
+    }
+
+    err = git_odb_add_backend(self->odb, backend->odb_backend, priority);
+    if (err > 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+
+PyMethodDef Odb_methods[] = {
+    METHOD(Odb, add_disk_alternate, METH_O),
+    METHOD(Odb, read, METH_O),
+    METHOD(Odb, write, METH_VARARGS),
+    METHOD(Odb, add_backend, METH_VARARGS),
+    {NULL}
+};
+
+
+PyDoc_STRVAR(Odb_backends__doc__,
+    "Return an iterable of backends for this object database.");
+
+PyObject *
+Odb_backends__get__(Odb *self)
+{
+    int err;
+    size_t i, nbackends;
+    git_odb_backend *backend;
+    PyObject *accum = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *py_backend;
+
+    if (accum == NULL)
+        return NULL;
+
+    nbackends = git_odb_num_backends(self->odb);
+    for (i = 0; i < nbackends; ++i) {
+        err = git_odb_get_backend(&backend, self->odb, i);
+        if (err != 0) {
+            ret = Error_set(err);
+            goto exit;
+        }
+
+        py_backend = wrap_odb_backend(backend);
+        if (py_backend == NULL)
+            goto exit;
+        err = PyList_Append(accum, py_backend);
+        if (err != 0)
+            goto exit;
+    }
+
+    ret = PyObject_GetIter(accum);
+
+exit:
+    Py_DECREF(accum);
+    return ret;
+}
+
+
+PyGetSetDef Odb_getseters[] = {
+    GETTER(Odb, backends),
+    {NULL}
+};
+
+
 int
 Odb_contains(Odb *self, PyObject *py_name)
 {
@@ -244,14 +336,6 @@ Odb_contains(Odb *self, PyObject *py_name)
 
     return git_odb_exists(self->odb, &oid);
 }
-
-
-PyMethodDef Odb_methods[] = {
-    METHOD(Odb, add_disk_alternate, METH_O),
-    METHOD(Odb, read, METH_O),
-    METHOD(Odb, write, METH_VARARGS),
-    {NULL}
-};
 
 PySequenceMethods Odb_as_sequence = {
     0,                          /* sq_length */
@@ -296,7 +380,7 @@ PyTypeObject OdbType = {
     0,                                         /* tp_iternext       */
     Odb_methods,                               /* tp_methods        */
     0,                                         /* tp_members        */
-    0,                                         /* tp_getset         */
+    Odb_getseters,                             /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */

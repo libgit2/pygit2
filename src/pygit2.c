@@ -42,6 +42,9 @@ extern PyObject *InvalidSpecError;
 
 extern PyTypeObject RepositoryType;
 extern PyTypeObject OdbType;
+extern PyTypeObject OdbBackendType;
+extern PyTypeObject OdbBackendPackType;
+extern PyTypeObject OdbBackendLooseType;
 extern PyTypeObject OidType;
 extern PyTypeObject ObjectType;
 extern PyTypeObject CommitType;
@@ -305,6 +308,13 @@ moduleinit(PyObject* m)
     /* Odb */
     INIT_TYPE(OdbType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Odb)
+
+    INIT_TYPE(OdbBackendType, NULL, NULL)
+    ADD_TYPE(m, OdbBackend)
+    INIT_TYPE(OdbBackendPackType, &OdbBackendType, PyType_GenericNew)
+    ADD_TYPE(m, OdbBackendPack)
+    INIT_TYPE(OdbBackendLooseType, &OdbBackendType, PyType_GenericNew)
+    ADD_TYPE(m, OdbBackendLoose)
 
     /* Oid */
     INIT_TYPE(OidType, NULL, PyType_GenericNew)
