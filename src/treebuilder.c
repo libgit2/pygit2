@@ -125,8 +125,7 @@ TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
         return NULL;
     }
 
-    TreeEntry* py_entry = wrap_tree_entry(entry, self->repo);
-    return treeentry_to_object(py_entry);
+    return treeentry_to_object(entry, self->repo);
 }
 
 

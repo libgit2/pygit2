@@ -37,7 +37,6 @@
 #include "diff.h"
 
 extern PyTypeObject TreeType;
-extern PyTypeObject TreeEntryType;
 extern PyTypeObject DiffType;
 extern PyTypeObject TreeIterType;
 extern PyTypeObject IndexType;
@@ -47,71 +46,7 @@ extern PyTypeObject IndexType;
 #endif
 
 
-void
-TreeEntry_dealloc(TreeEntry *self)
-{
-    git_tree_entry_free((git_tree_entry*)self->entry);
-    Py_CLEAR(self->repo);
-    PyObject_Del(self);
-}
-
-
-PyDoc_STRVAR(TreeEntry_filemode__doc__, "Filemode.");
-
-PyObject *
-TreeEntry_filemode__get__(TreeEntry *self)
-{
-    return PyInt_FromLong(git_tree_entry_filemode(self->entry));
-}
-
-
-PyDoc_STRVAR(TreeEntry_name__doc__, "Name.");
-
-PyObject *
-TreeEntry_name__get__(TreeEntry *self)
-{
-    return to_path(git_tree_entry_name(self->entry));
-}
-
-
-PyDoc_STRVAR(TreeEntry__name__doc__, "Name (bytes).");
-
-PyObject *
-TreeEntry__name__get__(TreeEntry *self)
-{
-    return PyBytes_FromString(git_tree_entry_name(self->entry));
-}
-
-
-PyDoc_STRVAR(TreeEntry_type__doc__, "Type.");
-
-PyObject *
-TreeEntry_type__get__(TreeEntry *self)
-{
-    return to_path(git_object_type2string(git_tree_entry_type(self->entry)));
-}
-
-
-PyDoc_STRVAR(TreeEntry_id__doc__, "Object id.");
-
-PyObject *
-TreeEntry_id__get__(TreeEntry *self)
-{
-    const git_oid *oid;
-
-    oid = git_tree_entry_id(self->entry);
-    return git_oid_to_python(oid);
-}
-
-PyDoc_STRVAR(TreeEntry_oid__doc__, "Object id.\n"
-    "This attribute is deprecated. Please use 'id'");
-
-PyObject *
-TreeEntry_oid__get__(TreeEntry *self)
-{
-    return TreeEntry_id__get__(self);
-}
-
+/*
 static int
 compare_ids(TreeEntry *a, TreeEntry *b)
 {
@@ -128,7 +63,7 @@ TreeEntry_richcompare(PyObject *a, PyObject *b, int op)
     TreeEntry *ta, *tb;
     int cmp;
 
-    /* We only support comparing to another tree entry */
+    // We only support comparing to another tree entry
     if (!PyObject_TypeCheck(b, &TreeEntryType)) {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -137,7 +72,8 @@ TreeEntry_richcompare(PyObject *a, PyObject *b, int op)
     ta = (TreeEntry *) a;
     tb = (TreeEntry *) b;
 
-    /* This is sorting order, if they sort equally, we still need to compare the ids */
+    // This is sorting order, if they sort equally, we still need to compare
+    // the ids
     cmp = git_tree_entry_cmp(ta->entry, tb->entry);
     if (cmp == 0)
         cmp = compare_ids(ta, tb);
@@ -170,15 +106,6 @@ TreeEntry_richcompare(PyObject *a, PyObject *b, int op)
     return res;
 }
 
-
-PyDoc_STRVAR(TreeEntry_hex__doc__, "Hex oid.");
-
-PyObject *
-TreeEntry_hex__get__(TreeEntry *self)
-{
-    return git_oid_to_py_str(git_tree_entry_id(self->entry));
-}
-
 git_tree *
 treeentry_to_subtree(TreeEntry* self)
 {
@@ -192,7 +119,8 @@ treeentry_to_subtree(TreeEntry* self)
     }
 
     if (self->repo == NULL) {
-        PyErr_SetString(PyExc_ValueError, "No repository associated with this TreeEntry");
+        PyErr_SetString(PyExc_ValueError,
+                        "No repository associated with this TreeEntry");
         return NULL;
     }
 
@@ -205,245 +133,27 @@ treeentry_to_subtree(TreeEntry* self)
 
     return subtree;
 }
+*/
 
 PyObject *
-treeentry_to_object(TreeEntry* self)
+treeentry_to_object(const git_tree_entry *entry, Repository *repo)
 {
-    Repository *py_repo;
-    git_object *obj= NULL;
+    git_object *obj;
     int err;
 
-    if (self == NULL) {
+    if (repo == NULL) {
+        PyErr_SetString(PyExc_ValueError, "expected repository");
         return NULL;
     }
 
-    if (self->repo == NULL) {
-        PyErr_SetString(PyExc_ValueError,
-                        "No repository associated with this TreeEntry");
-        return NULL;
-    }
-    py_repo = self->repo;
-
-    err = git_tree_entry_to_object(&obj, py_repo->repo, self->entry);
+    err = git_tree_entry_to_object(&obj, repo->repo, entry);
     if (err < 0) {
         Error_set(err);
         return NULL;
     }
 
-    return wrap_object(obj, py_repo, self->entry);
+    return wrap_object(obj, repo, entry);
 }
-
-PyDoc_STRVAR(TreeEntry_obj__doc__, "Object (subtree/blob)");
-
-PyObject *
-TreeEntry_obj__get__(TreeEntry *self)
-{
-    git_tree* subtree;
-    if (git_tree_entry_type(self->entry) == GIT_OBJ_TREE) {
-        subtree = treeentry_to_subtree(self);
-        if (subtree == NULL)
-            return NULL;
-
-        return wrap_object((git_object*)subtree, self->repo, self->entry);
-    }
-
-    return treeentry_to_object(self);
-}
-
-PyObject *
-TreeEntry_repr(TreeEntry *self)
-{
-    char str[GIT_OID_HEXSZ + 1] = { 0 };
-    const char *typename;
-
-    typename = git_object_type2string(git_tree_entry_type(self->entry));
-    git_oid_fmt(str, git_tree_entry_id(self->entry));
-    return PyString_FromFormat("pygit2.TreeEntry('%s', %s, %s)", git_tree_entry_name(self->entry), typename, str);
-}
-
-int
-TreeEntry_contains(TreeEntry *self, PyObject *py_name)
-{
-    int err;
-    git_tree *subtree;
-    git_tree_entry *entry;
-    char *name;
-
-    subtree = treeentry_to_subtree(self);
-    if (subtree == NULL)
-        return -1;
-
-    name = py_path_to_c_str(py_name);
-    if (name == NULL) {
-        git_tree_free(subtree);
-        return -1;
-    }
-
-    err = git_tree_entry_bypath(&entry, subtree, name);
-    git_tree_free(subtree);
-    free(name);
-
-    if (err == GIT_ENOTFOUND)
-        return 0;
-
-    if (err < 0) {
-        Error_set(err);
-        return -1;
-    }
-
-    git_tree_entry_free(entry);
-
-    return 1;
-}
-
-TreeEntry *
-TreeEntry_getitem(TreeEntry *self, PyObject *value)
-{
-    git_tree *subtree;
-    TreeEntry *r;
-
-    subtree = treeentry_to_subtree(self);
-    if (subtree == NULL)
-        return NULL;
-
-    if (PyInt_Check(value)) {
-        /* Case 1: integer */
-        r = tree_getentry_by_index(subtree, self->repo, value);
-    } else {
-        /* Case 2: byte or text string */
-        r = tree_getentry_by_path(subtree, self->repo, value);
-    }
-
-    git_tree_free(subtree);
-    return r;
-}
-
-
-PyGetSetDef TreeEntry_getseters[] = {
-    GETTER(TreeEntry, filemode),
-    GETTER(TreeEntry, name),
-    GETTER(TreeEntry, _name),
-    GETTER(TreeEntry, oid),
-    GETTER(TreeEntry, id),
-    GETTER(TreeEntry, hex),
-    GETTER(TreeEntry, type),
-    GETTER(TreeEntry, obj),
-    {NULL}
-};
-
-PySequenceMethods TreeEntry_as_sequence = {
-    0,                          /* sq_length */
-    0,                          /* sq_concat */
-    0,                          /* sq_repeat */
-    0,                          /* sq_item */
-    0,                          /* sq_slice */
-    0,                          /* sq_ass_item */
-    0,                          /* sq_ass_slice */
-    (objobjproc)TreeEntry_contains,  /* sq_contains */
-};
-
-PyMappingMethods TreeEntry_as_mapping = {
-    0,                          /* mp_length */
-    (binaryfunc)TreeEntry_getitem,  /* mp_subscript */
-    0,                          /* mp_ass_subscript */
-};
-
-/* Py2/3 compatible structure
- * see https://py3c.readthedocs.io/en/latest/ext-types.html#pynumbermethods
- */
-PyNumberMethods TreeEntry_as_number = {
-    0,                          /* nb_add */
-    0,                          /* nb_subtract */
-    0,                          /* nb_multiply */
-#if PY_MAJOR_VERSION < 3
-    (binaryfunc)TreeEntry_getitem,  /* Py2: nb_divide */
-#endif
-    0,                          /* nb_remainder */
-    0,                          /* nb_divmod */
-    0,                          /* nb_power */
-    0,                          /* nb_negative */
-    0,                          /* nb_positive */
-    0,                          /* nb_absolute */
-    0,                          /* nb_bool (Py2: nb_nonzero) */
-    0,                          /* nb_invert */
-    0,                          /* nb_lshift */
-    0,                          /* nb_rshift */
-    0,                          /* nb_and */
-    0,                          /* nb_xor */
-    0,                          /* nb_or */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* Py2: nb_coerce */
-#endif
-    0,                          /* nb_int */
-    0,                          /* nb_reserved (Py2: nb_long) */
-    0,                          /* nb_float */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* Py2: nb_oct */
-    0,                          /* Py2: nb_hex */
-#endif
-    0,                          /* nb_inplace_add */
-    0,                          /* nb_inplace_subtract */
-    0,                          /* nb_inplace_multiply */
-    0,                          /* nb_inplace_remainder */
-    0,                          /* nb_inplace_power */
-    0,                          /* nb_inplace_lshift */
-    0,                          /* nb_inplace_rshift */
-    0,                          /* nb_inplace_and */
-    0,                          /* nb_inplace_xor */
-    0,                          /* nb_inplace_or */
-    0,                          /* nb_floor_divide */
-    (binaryfunc)TreeEntry_getitem, /* nb_true_divide */
-    0,                          /* nb_inplace_floor_divide */
-    0,                          /* nb_inplace_true_divide */
-    0,                          /* nb_index */
-// Python 3.5+
-//  0,                          /* nb_matrix_multiply */
-//  0,                          /* nb_inplace_matrix_multiply */
-};
-
-
-PyDoc_STRVAR(TreeEntry__doc__, "TreeEntry objects.");
-
-PyTypeObject TreeEntryType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "_pygit2.TreeEntry",                       /* tp_name           */
-    sizeof(TreeEntry),                         /* tp_basicsize      */
-    0,                                         /* tp_itemsize       */
-    (destructor)TreeEntry_dealloc,             /* tp_dealloc        */
-    0,                                         /* tp_print          */
-    0,                                         /* tp_getattr        */
-    0,                                         /* tp_setattr        */
-    0,                                         /* tp_compare        */
-    (reprfunc)TreeEntry_repr,                  /* tp_repr           */
-    &TreeEntry_as_number,                      /* tp_as_number      */
-    &TreeEntry_as_sequence,                    /* tp_as_sequence    */
-    &TreeEntry_as_mapping,                     /* tp_as_mapping     */
-    0,                                         /* tp_hash           */
-    0,                                         /* tp_call           */
-    0,                                         /* tp_str            */
-    0,                                         /* tp_getattro       */
-    0,                                         /* tp_setattro       */
-    0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_CHECKTYPES,  /* tp_flags */
-    TreeEntry__doc__,                          /* tp_doc            */
-    0,                                         /* tp_traverse       */
-    0,                                         /* tp_clear          */
-    (richcmpfunc)TreeEntry_richcompare,        /* tp_richcompare    */
-    0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter           */
-    0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
-    0,                                         /* tp_members        */
-    TreeEntry_getseters,                       /* tp_getset         */
-    0,                                         /* tp_base           */
-    0,                                         /* tp_dict           */
-    0,                                         /* tp_descr_get      */
-    0,                                         /* tp_descr_set      */
-    0,                                         /* tp_dictoffset     */
-    0,                                         /* tp_init           */
-    0,                                         /* tp_alloc          */
-    0,                                         /* tp_new            */
-};
 
 Py_ssize_t
 Tree_len(Tree *self)
@@ -477,22 +187,6 @@ Tree_contains(Tree *self, PyObject *py_name)
     git_tree_entry_free(entry);
 
     return 1;
-}
-
-TreeEntry *
-wrap_tree_entry(const git_tree_entry *entry, Repository *repo)
-{
-    TreeEntry *py_entry;
-
-    py_entry = PyObject_New(TreeEntry, &TreeEntryType);
-    if (py_entry)
-    {
-        py_entry->entry = entry;
-        py_entry->repo = repo;  /* can be NULL */
-        Py_XINCREF(repo);
-   }
-
-    return py_entry;
 }
 
 int
@@ -538,7 +232,7 @@ Tree_iter(Tree *self)
     return (PyObject*)iter;
 }
 
-TreeEntry *
+PyObject*
 tree_getentry_by_index(const git_tree *tree, Repository *repo, PyObject *py_index)
 {
     int index;
@@ -560,10 +254,10 @@ tree_getentry_by_index(const git_tree *tree, Repository *repo, PyObject *py_inde
         return NULL;
     }
 
-    return wrap_tree_entry(entry, repo);
+    return treeentry_to_object(entry, repo);
 }
 
-TreeEntry *
+PyObject*
 tree_getentry_by_path(const git_tree *tree, Repository *repo, PyObject *py_path)
 {
     char *path;
@@ -585,32 +279,27 @@ tree_getentry_by_path(const git_tree *tree, Repository *repo, PyObject *py_path)
     }
 
     if (err < 0)
-        return (TreeEntry*)Error_set(err);
+        return Error_set(err);
 
     /* git_tree_entry_dup is already done in git_tree_entry_bypath */
-    return wrap_tree_entry(entry, repo);
+    return treeentry_to_object(entry, repo);
 }
 
 PyObject*
 Tree_subscript(Tree *self, PyObject *value)
 {
-    TreeEntry *entry;
-
+    /* Case 1: integer */
     if (PyInt_Check(value))
-        /* Case 1: integer */
-        entry = tree_getentry_by_index(self->tree, self->repo, value);
-    else
-        /* Case 2: byte or text string */
-        entry = tree_getentry_by_path(self->tree, self->repo, value);
+        return tree_getentry_by_index(self->tree, self->repo, value);
 
-    return treeentry_to_object(entry);
+    /* Case 2: byte or text string */
+    return tree_getentry_by_path(self->tree, self->repo, value);
 }
 
 PyObject *
 Tree_divide(Tree *self, PyObject *value)
 {
-    TreeEntry* entry = tree_getentry_by_path(self->tree, self->repo, value);
-    return treeentry_to_object(entry);
+    return tree_getentry_by_path(self->tree, self->repo, value);
 }
 
 
@@ -931,8 +620,7 @@ TreeIter_iternext(TreeIter *self)
         return NULL;
     }
 
-    TreeEntry* py_entry = wrap_tree_entry(entry, self->owner->repo);
-    return treeentry_to_object(py_entry);
+    return treeentry_to_object(entry, self->owner->repo);
 }
 
 
