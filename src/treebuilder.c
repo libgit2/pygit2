@@ -100,9 +100,9 @@ TreeBuilder_write(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_get__doc__,
-    "get(name) -> TreeEntry\n"
+    "get(name) -> Object\n"
     "\n"
-    "Return the TreeEntry for the given name, or None if there is not.");
+    "Return the Object for the given name, or None if there is not.");
 
 PyObject *
 TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
@@ -124,7 +124,9 @@ TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
         PyErr_SetNone(PyExc_MemoryError);
         return NULL;
     }
-    return (PyObject*)wrap_tree_entry(entry, NULL);
+
+    TreeEntry* py_entry = wrap_tree_entry(entry, self->repo);
+    return treeentry_to_object(py_entry);
 }
 
 

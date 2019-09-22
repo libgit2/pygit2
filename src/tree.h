@@ -45,6 +45,7 @@ TreeEntry* tree_getentry_by_index(const git_tree *tree, Repository *repo,
 TreeEntry* tree_getentry_by_path(const git_tree *tree, Repository *repo,
                                  PyObject *py_path);
 PyObject* Tree_diff_tree(Tree *self, PyObject *args);
+PyObject* treeentry_to_object(TreeEntry* self);
 
 
 #endif

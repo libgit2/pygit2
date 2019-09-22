@@ -56,7 +56,6 @@ extern PyTypeObject DiffStatsType;
 extern PyTypeObject PatchType;
 extern PyTypeObject TreeType;
 extern PyTypeObject TreeBuilderType;
-extern PyTypeObject TreeEntryType;
 extern PyTypeObject TreeIterType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
@@ -297,7 +296,6 @@ moduleinit(PyObject* m)
     INIT_TYPE(CommitType, &ObjectType, NULL)
     INIT_TYPE(SignatureType, NULL, PyType_GenericNew)
     INIT_TYPE(TreeType, &ObjectType, NULL)
-    INIT_TYPE(TreeEntryType, NULL, NULL)
     INIT_TYPE(TreeIterType, NULL, NULL)
     INIT_TYPE(TreeBuilderType, NULL, NULL)
     INIT_TYPE(BlobType, &ObjectType, NULL)
@@ -306,7 +304,6 @@ moduleinit(PyObject* m)
     ADD_TYPE(m, Commit)
     ADD_TYPE(m, Signature)
     ADD_TYPE(m, Tree)
-    ADD_TYPE(m, TreeEntry)
     ADD_TYPE(m, TreeBuilder)
     ADD_TYPE(m, Blob)
     ADD_TYPE(m, Tag)

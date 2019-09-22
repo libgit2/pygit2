@@ -48,8 +48,7 @@ class TreeTest(utils.BareRepoTestCase):
         assert entry.hex == sha
         assert entry.name == name
         assert entry.filemode == filemode
-        if type(entry) is pygit2.TreeEntry:
-            assert entry._name == name.encode('utf-8')
+        assert entry.raw_name == name.encode('utf-8')
 
     def test_read_tree(self):
         tree = self.repo[TREE_SHA]
@@ -103,13 +102,16 @@ class TreeTest(utils.BareRepoTestCase):
 
     def test_read_subtree(self):
         tree = self.repo[TREE_SHA]
+
         subtree_entry = tree['c']
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
-        assert subtree_entry.type == 'tree'
+        assert subtree_entry.type == pygit2.GIT_OBJ_TREE
+        assert subtree_entry.type_str == 'tree'
 
         subtree_entry = tree / 'c'
         self.assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
         assert subtree_entry.type == pygit2.GIT_OBJ_TREE
+        assert subtree_entry.type_str == 'tree'
 
         subtree = self.repo[subtree_entry.id]
         assert 1 == len(subtree)
@@ -133,50 +135,40 @@ class TreeTest(utils.BareRepoTestCase):
         t.insert('z', subtree.id, pygit2.GIT_FILEMODE_TREE)
         tree = repo[t.write()]
 
-        assert 'x' in tree
-        assert 'y' in tree
-        assert 'z' in tree
+        for name, oid, cls, filemode, type, type_str in [
+            ('x', b0, pygit2.Blob, pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_OBJ_BLOB, 'blob'),
+            ('y', b1, pygit2.Blob, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, pygit2.GIT_OBJ_BLOB, 'blob'),
+            ('z', subtree.id, pygit2.Tree, pygit2.GIT_FILEMODE_TREE, pygit2.GIT_OBJ_TREE, 'tree')]:
 
-        x = tree['x']
-        y = tree['y']
-        z = tree['z']
-        assert x.filemode == 0o0100644
-        assert y.filemode == 0o0100755
-        assert z.filemode == pygit2.GIT_FILEMODE_TREE
-        assert x.type == 'blob'
-        assert y.type == 'blob'
-        assert z.type == 'tree'
+            assert name in tree
+            obj = tree[name]
+            assert isinstance(obj, cls)
+            assert obj.name == name
+            assert obj.filemode == filemode
+            assert obj.type == type
+            assert obj.type_str == type_str
+            assert repo[obj.id].id == oid
+            assert obj == repo[obj.id]
 
-        x = tree / 'x'
-        y = tree / 'y'
-        z = tree / 'z'
-        assert x.filemode == 0o0100644
-        assert y.filemode == 0o0100755
-        assert z.filemode == pygit2.GIT_FILEMODE_TREE
-        assert x.type == pygit2.GIT_OBJ_BLOB
-        assert y.type == pygit2.GIT_OBJ_BLOB
-        assert z.type == pygit2.GIT_OBJ_TREE
-
-        assert repo[x.id].id == b0
-        assert repo[y.id].id == b1
-        assert repo[z.id].id == subtree.id
-
-        assert x == repo[x.id]
-        assert y == repo[y.id]
-        assert z == repo[z.id]
-
+            obj = tree / name
+            assert isinstance(obj, cls)
+            assert obj.name == name
+            assert obj.filemode == filemode
+            assert obj.type == type
+            assert obj.type_str == type_str
+            assert repo[obj.id].id == oid
+            assert obj == repo[obj.id]
 
     def test_modify_tree(self):
         tree = self.repo[TREE_SHA]
         with pytest.raises(TypeError): operator.setitem('c', tree['a'])
         with pytest.raises(TypeError): operator.delitem('c')
 
-
     def test_iterate_tree(self):
         """
-            Testing that we're able to iterate of a Tree object and that the
-            resulting sha strings are consitent with the sha strings we could
-            get with other Tree access methods.
+        Testing that we're able to iterate of a Tree object and that the
+        resulting sha strings are consitent with the sha strings we could
+        get with other Tree access methods.
         """
         tree = self.repo[TREE_SHA]
         for tree_entry in tree:

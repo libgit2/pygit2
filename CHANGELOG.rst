@@ -1,8 +1,6 @@
 0.28.3 (UNRELEASED)
 -------------------------
 
-- New support for ``Remote.ls_remotes(..)``
-
 - Support for ``/`` operator to traverse trees
   `#903 <https://github.com/libgit2/pygit2/pull/903>`_
 
@@ -12,6 +10,8 @@
 - New ``Repository.lookup_reference_dwim(..)`` and ``Repository.resolve_refish(..)``
   `#922 <https://github.com/libgit2/pygit2/pull/922>`_
 
+- New ``Remote.ls_remotes(..)``
+
 - Fix spurious exception in config
   `#916 <https://github.com/libgit2/pygit2/issues/916>`_
   `#917 <https://github.com/libgit2/pygit2/pull/917>`_
@@ -19,6 +19,27 @@
 - Minor fixes
   `#919 <https://github.com/libgit2/pygit2/pull/919>`_
   `#921 <https://github.com/libgit2/pygit2/pull/921>`_
+
+Breaking changes:
+
+- Now ``Tree[x]`` returns a ``Object`` instance instead of a ``TreeEntry``;
+  ``Object.type`` returns an integer while ``TreeEntry.type`` returned a
+  string::
+
+    # Before
+    if tree[x].type == 'tree':
+
+    # Now
+    if tree[x].type == GIT_OBJ_TREE:
+    if tree[x].type_str == 'tree':
+
+- Also, renamed ``TreeEntry._name`` to ``Object.raw_name``::
+
+    # Before
+    tree[x]._name
+
+    # Now
+    tree[x].raw_name
 
 
 0.28.2 (2019-05-26)

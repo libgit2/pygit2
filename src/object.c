@@ -124,6 +124,15 @@ Object_type__get__(Object *self)
     return PyInt_FromLong(git_object_type(self->obj));
 }
 
+PyDoc_STRVAR(Object_type_str__doc__,
+    "One of the 'commit', 'tree', 'blob' or 'tag' strings.");
+
+PyObject *
+Object_type_str__get__(Object *self)
+{
+    return to_path(git_object_type2string(git_object_type(self->obj)));
+}
+
 PyDoc_STRVAR(Object__pointer__doc__, "Get the object's pointer. For internal use only.");
 PyObject *
 Object__pointer__get__(Object *self)
@@ -141,6 +150,14 @@ Object_name__get__(Object *self)
         Py_RETURN_NONE;
 
     return to_path(git_tree_entry_name(self->entry));
+}
+
+PyDoc_STRVAR(Object_raw_name__doc__, "Name (bytes).");
+
+PyObject *
+Object_raw_name__get__(Object *self)
+{
+    return PyBytes_FromString(git_tree_entry_name(self->entry));
 }
 
 PyDoc_STRVAR(Object_filemode__doc__,
@@ -233,24 +250,15 @@ Object_richcompare(PyObject *o1, PyObject *o2, int op)
         return Py_NotImplemented;
     }
 
+    obj1 = (Object *) o1;
+    obj2 = (Object *) o2;
+    int equal = git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj));
     switch (op) {
         case Py_NE:
-            obj1 = (Object *) o1;
-            obj2 = (Object *) o2;
-            if (git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj))) {
-                res = Py_False;
-            } else {
-                res = Py_True;
-            }
+            res = (equal) ? Py_False : Py_True;
             break;
         case Py_EQ:
-            obj1 = (Object *) o1;
-            obj2 = (Object *) o2;
-            if (git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj))) {
-                res = Py_True;
-            } else {
-                res = Py_False;
-            }
+            res = (equal) ? Py_True : Py_False;
             break;
         case Py_LT:
         case Py_LE:
@@ -273,9 +281,11 @@ PyGetSetDef Object_getseters[] = {
     GETTER(Object, hex),
     GETTER(Object, short_id),
     GETTER(Object, type),
+    GETTER(Object, type_str),
     GETTER(Object, _pointer),
     // These come from git_tree_entry
     GETTER(Object, name),
+    GETTER(Object, raw_name),
     GETTER(Object, filemode),
     {NULL}
 };
@@ -313,7 +323,7 @@ PyTypeObject ObjectType = {
     Object__doc__,                             /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */
-    Object_richcompare,                        /* tp_richcompare    */
+    (richcmpfunc)Object_richcompare,           /* tp_richcompare    */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
