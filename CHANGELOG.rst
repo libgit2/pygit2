@@ -33,13 +33,24 @@ Breaking changes:
     if tree[x].type == GIT_OBJ_TREE:
     if tree[x].type_str == 'tree':
 
-- Also, renamed ``TreeEntry._name`` to ``Object.raw_name``::
+- Renamed ``TreeEntry._name`` to ``Object.raw_name``::
 
     # Before
     tree[x]._name
 
     # Now
     tree[x].raw_name
+
+- Object comparison is done by id. In the rare case you need to do tree-entry
+  comparison or sorting::
+
+    # Before
+    tree[x] < tree[y]
+    sorted(list(tree))
+
+    # Now
+    pygit2.tree_entry_cmp(x, y) < 0
+    sorted(list(tree), key=pygit2.tree_entry_key)
 
 
 0.28.2 (2019-05-26)

@@ -207,15 +207,39 @@ reference_is_valid_name(PyObject *self, PyObject *py_refname)
 }
 
 
+PyDoc_STRVAR(tree_entry_cmp__doc__,
+    "tree_entry_obj(a, b) -> int\n"
+    "\n"
+    "Returns < 0 if a is before b, > 0 if a is after b, and 0 if a and b are\n"
+    "the same. The sort criteria is the one Git uses to sort tree entries in\n"
+    "a tree object. This function wraps git_tree_entry_cmp.");
+
+PyObject *
+tree_entry_cmp(PyObject *self, PyObject *args)
+{
+    Object *a, *b;
+
+    if (!PyArg_ParseTuple(args, "O!O!", &ObjectType, &a, &ObjectType, &b))
+        return NULL;
+
+    if (a->entry == NULL || b->entry == NULL) {
+        PyErr_SetString(PyExc_ValueError, "objects lack entry information");
+        return NULL;
+    }
+
+    int cmp = git_tree_entry_cmp(a->entry, b->entry);
+    return PyInt_FromLong(cmp);
+}
+
+
 PyMethodDef module_methods[] = {
-    {"init_file_backend", init_file_backend, METH_VARARGS,
-    init_file_backend__doc__},
-    {"discover_repository", discover_repository, METH_VARARGS,
-     discover_repository__doc__},
-    {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
+    {"discover_repository", discover_repository, METH_VARARGS, discover_repository__doc__},
     {"hash", hash, METH_VARARGS, hash__doc__},
-    {"reference_is_valid_name", reference_is_valid_name, METH_O, reference_is_valid_name__doc__},
+    {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
+    {"init_file_backend", init_file_backend, METH_VARARGS, init_file_backend__doc__},
     {"option", option, METH_VARARGS, option__doc__},
+    {"reference_is_valid_name", reference_is_valid_name, METH_O, reference_is_valid_name__doc__},
+    {"tree_entry_cmp", tree_entry_cmp, METH_VARARGS, tree_entry_cmp__doc__},
     {NULL}
 };
 

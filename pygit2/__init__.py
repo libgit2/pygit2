@@ -25,8 +25,11 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
+# From the future
 from __future__ import absolute_import
+
+# Standard Library
+import functools
 
 # Low level API
 from _pygit2 import *
@@ -263,5 +266,8 @@ def clone_repository(
     check_error(err)
 
     return Repository._from_c(crepo[0], owned=True)
+
+
+tree_entry_key = functools.cmp_to_key(tree_entry_cmp)
 
 settings = Settings()

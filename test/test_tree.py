@@ -97,7 +97,7 @@ class TreeTest(utils.BareRepoTestCase):
 
     def test_sorting(self):
         tree_a = self.repo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
-        assert list(tree_a) == sorted(reversed(list(tree_a)))
+        assert list(tree_a) == sorted(reversed(list(tree_a)), key=pygit2.tree_entry_key)
         assert list(tree_a) != reversed(list(tree_a))
 
     def test_read_subtree(self):
