@@ -36,7 +36,7 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.4 - 3.8
+- Python 3.5 - 3.8
 - PyPy 3.5
 
 Python requirements (these are specified in ``setup.py``):

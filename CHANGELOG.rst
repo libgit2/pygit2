@@ -1,7 +1,7 @@
 1.0.0 (UNRELEASED)
 -------------------------
 
-- Drop Python 2.7 support, six no longer required
+- Drop Python 2.7 and 3.4 support, six no longer required
   `#941 <https://github.com/libgit2/pygit2/issues/941>`_
 
 - Add Python 3.8 support
