@@ -244,6 +244,7 @@ Object_richcompare(PyObject *o1, PyObject *o2, int op)
     PyObject *res;
     Object *obj1;
     Object *obj2;
+    int equal;
 
     if (!PyObject_TypeCheck(o2, &ObjectType)) {
         Py_INCREF(Py_NotImplemented);
@@ -252,7 +253,7 @@ Object_richcompare(PyObject *o1, PyObject *o2, int op)
 
     obj1 = (Object *) o1;
     obj2 = (Object *) o2;
-    int equal = git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj));
+    equal = git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj));
     switch (op) {
         case Py_NE:
             res = (equal) ? Py_False : Py_True;

@@ -218,6 +218,7 @@ PyObject *
 tree_entry_cmp(PyObject *self, PyObject *args)
 {
     Object *a, *b;
+    int cmp;
 
     if (!PyArg_ParseTuple(args, "O!O!", &ObjectType, &a, &ObjectType, &b))
         return NULL;
@@ -227,7 +228,7 @@ tree_entry_cmp(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    int cmp = git_tree_entry_cmp(a->entry, b->entry);
+    cmp = git_tree_entry_cmp(a->entry, b->entry);
     return PyInt_FromLong(cmp);
 }
 
