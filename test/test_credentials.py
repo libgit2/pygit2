@@ -1,5 +1,3 @@
-# -*- coding: UTF-8 -*-
-#
 # Copyright 2010-2019 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
@@ -27,7 +25,6 @@
 
 """Tests for credentials"""
 
-
 import unittest
 
 import pytest
@@ -36,6 +33,7 @@ import pygit2
 from pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT
 from pygit2 import Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
 from . import utils
+
 
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'

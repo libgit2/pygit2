@@ -1,5 +1,3 @@
-# -*- coding: UTF-8 -*-
-#
 # Copyright 2010-2019 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
@@ -24,8 +22,6 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
-
-"""Tests for Blame objects."""
 
 import pygit2
 from pygit2 import (

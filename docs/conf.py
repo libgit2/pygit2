@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # pygit2 documentation build configuration file, created by
 # sphinx-quickstart on Sun Jan  6 09:55:26 2013.
 #

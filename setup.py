@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# coding: UTF-8
-#
 # Copyright 2010-2019 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
