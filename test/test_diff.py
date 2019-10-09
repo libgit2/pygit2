@@ -189,7 +189,6 @@ class DiffTest(utils.BareRepoTestCase):
 
         def _test(diff):
             assert diff is not None
-            # self.assertIn is 2.7 only
             assert 2 == sum(map(lambda x: len(x.hunks), diff))
 
             patch = diff[0]

@@ -69,8 +69,6 @@ datetime documentation`_::
 
 Then you can make your message:
 
-    >>> # Until Python 2.7.9:
-    >>> from __future__ import unicode_literals
     >>> from datetime import datetime
     >>> tzinfo  = FixedOffset(commit.author.offset)
 

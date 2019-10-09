@@ -8,10 +8,6 @@ environment:
       secure: m6oBGys2nmQTRn7vDv8/FA==
   matrix:
   - GENERATOR: 'Visual Studio 10'
-    PYTHON: 'C:\Python27\python.exe'
-  - GENERATOR: 'Visual Studio 10 Win64'
-    PYTHON: 'C:\Python27-x64\python.exe'
-  - GENERATOR: 'Visual Studio 10'
     PYTHON: 'C:\Python34\python.exe'
   - GENERATOR: 'Visual Studio 10 Win64'
     PYTHON: 'C:\Python34-x64\python.exe'
