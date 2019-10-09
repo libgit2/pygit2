@@ -42,10 +42,8 @@ from . import utils
 # we need to check and change the test accordingly
 try:
     import __pypy__
-    pypy2 =  sys.version_info[0] < 3
 except ImportError:
     __pypy__ = None
-    pypy2 = False
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 

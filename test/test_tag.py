@@ -39,10 +39,8 @@ from . import utils
 # we need to check and change the test accordingly
 try:
     import __pypy__, sys
-    pypy2 =  sys.version_info[0] < 3
 except ImportError:
     __pypy__ = None
-    pypy2 = False
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 
