@@ -27,9 +27,6 @@
 
 """Tests for Object objects."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pytest
 
 from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag

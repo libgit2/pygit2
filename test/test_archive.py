@@ -25,16 +25,12 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Tests for Blame objects."""
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os
 import tarfile
 
 from pygit2 import Index, Oid, Tree, Object
 from . import utils
+
 
 TREE_HASH = 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 COMMIT_HASH = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'

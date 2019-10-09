@@ -65,11 +65,11 @@ option(PyObject *self, PyObject *args)
     if (!py_option)
         return NULL;
 
-    if (!PyInt_Check(py_option))
+    if (!PyLong_Check(py_option))
         return Error_type_error(
             "option should be an integer, got %.200s", py_option);
 
-    option = PyInt_AsLong(py_option);
+    option = PyLong_AsLong(py_option);
 
     switch (option) {
 
@@ -81,7 +81,7 @@ option(PyObject *self, PyObject *args)
             if (error < 0)
                 return Error_set(error);
 
-            return PyInt_FromSize_t(size);
+            return PyLong_FromSize_t(size);
         }
 
         case GIT_OPT_SET_MWINDOW_SIZE:
@@ -93,11 +93,11 @@ option(PyObject *self, PyObject *args)
             if (!py_size)
                 return NULL;
 
-            if (!PyInt_Check(py_size))
+            if (!PyLong_Check(py_size))
                 return Error_type_error(
                     "size should be an integer, got %.200s", py_size);
 
-            size = PyInt_AsSize_t(py_size);
+            size = PyLong_AsSize_t(py_size);
             error = git_libgit2_opts(GIT_OPT_SET_MWINDOW_SIZE, size);
             if (error  < 0)
                 return Error_set(error);
@@ -113,7 +113,7 @@ option(PyObject *self, PyObject *args)
             if (error < 0)
                 return Error_set(error);
 
-            return PyInt_FromSize_t(limit);
+            return PyLong_FromSize_t(limit);
         }
 
         case GIT_OPT_SET_MWINDOW_MAPPED_LIMIT:
@@ -125,8 +125,8 @@ option(PyObject *self, PyObject *args)
             if (!py_limit)
                 return NULL;
 
-            if (PyInt_Check(py_limit)) {
-                limit = PyInt_AsSize_t(py_limit);
+            if (PyLong_Check(py_limit)) {
+                limit = PyLong_AsSize_t(py_limit);
             } else if (PyLong_Check(py_limit)) {
                 limit = PyLong_AsSize_t(py_limit);
             } else {
@@ -149,11 +149,11 @@ option(PyObject *self, PyObject *args)
             if (!py_level)
                 return NULL;
 
-            if (!PyInt_Check(py_level))
+            if (!PyLong_Check(py_level))
                 return Error_type_error(
                     "level should be an integer, got %.200s", py_level);
 
-            return get_search_path(PyInt_AsLong(py_level));
+            return get_search_path(PyLong_AsLong(py_level));
         }
 
         case GIT_OPT_SET_SEARCH_PATH:
@@ -170,7 +170,7 @@ option(PyObject *self, PyObject *args)
             if (!py_path)
                 return NULL;
 
-            if (!PyInt_Check(py_level))
+            if (!PyLong_Check(py_level))
                 return Error_type_error(
                     "level should be an integer, got %.200s", py_level);
 
@@ -179,7 +179,7 @@ option(PyObject *self, PyObject *args)
                 return NULL;
 
             err = git_libgit2_opts(
-                GIT_OPT_SET_SEARCH_PATH, PyInt_AsLong(py_level), path);
+                GIT_OPT_SET_SEARCH_PATH, PyLong_AsLong(py_level), path);
             Py_DECREF(tpath);
 
             if (err < 0)
@@ -202,12 +202,12 @@ option(PyObject *self, PyObject *args)
             if (!py_limit)
                 return NULL;
 
-            if (!PyInt_Check(py_limit))
+            if (!PyLong_Check(py_limit))
                 return Error_type_error(
                     "limit should be an integer, got %.200s", py_limit);
 
-            object_type = PyInt_AsLong(py_object_type);
-            limit = PyInt_AsSize_t(py_limit);
+            object_type = PyLong_AsLong(py_object_type);
+            limit = PyLong_AsSize_t(py_limit);
             error = git_libgit2_opts(
                 GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, limit);
 
@@ -226,11 +226,11 @@ option(PyObject *self, PyObject *args)
             if (!py_max_size)
                 return NULL;
 
-            if (!PyInt_Check(py_max_size))
+            if (!PyLong_Check(py_max_size))
                 return Error_type_error(
                     "max_size should be an integer, got %.200s", py_max_size);
 
-            max_size = PyInt_AsSize_t(py_max_size);
+            max_size = PyLong_AsSize_t(py_max_size);
             error = git_libgit2_opts(GIT_OPT_SET_CACHE_MAX_SIZE, max_size);
             if (error < 0)
                 return Error_set(error);
@@ -248,8 +248,8 @@ option(PyObject *self, PyObject *args)
             if (error < 0)
                 return Error_set(error);
 
-            PyTuple_SetItem(tup, 0, PyInt_FromLong(current));
-            PyTuple_SetItem(tup, 1, PyInt_FromLong(allowed));
+            PyTuple_SetItem(tup, 0, PyLong_FromLong(current));
+            PyTuple_SetItem(tup, 1, PyLong_FromLong(allowed));
 
             return tup;
         }
@@ -300,10 +300,10 @@ option(PyObject *self, PyObject *args)
             if (!py_enabled)
                 return NULL;
 
-            if (!PyInt_Check(py_enabled))
+            if (!PyLong_Check(py_enabled))
                 return Error_type_error("expected integer, got %.200s", py_enabled);
 
-            enabled = PyInt_AsSize_t(py_enabled);
+            enabled = PyLong_AsSize_t(py_enabled);
             error = git_libgit2_opts(option, enabled);
             if (error < 0)
                 return Error_set(error);

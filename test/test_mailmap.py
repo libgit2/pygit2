@@ -27,13 +27,8 @@
 
 """Tests for Mailmap."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-import os
 import unittest
-import tempfile
 
-import pygit2
 from pygit2 import Mailmap
 from . import utils
 

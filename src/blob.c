@@ -145,7 +145,7 @@ PyDoc_STRVAR(Blob_size__doc__, "Size.");
 PyObject *
 Blob_size__get__(Blob *self)
 {
-    return PyInt_FromLongLong(git_blob_rawsize(self->blob));
+    return PyLong_FromLongLong(git_blob_rawsize(self->blob));
 }
 
 
@@ -179,44 +179,9 @@ Blob_getbuffer(Blob *self, Py_buffer *view, int flags)
                              git_blob_rawsize(self->blob), 1, flags);
 }
 
-#if PY_MAJOR_VERSION == 2
-
-static Py_ssize_t
-Blob_getreadbuffer(Blob *self, Py_ssize_t index, const void **ptr)
-{
-    if (index != 0) {
-        PyErr_SetString(PyExc_SystemError,
-                        "accessing non-existent blob segment");
-        return -1;
-    }
-    *ptr = (void *) git_blob_rawcontent(self->blob);
-    return git_blob_rawsize(self->blob);
-}
-
-static Py_ssize_t
-Blob_getsegcount(Blob *self, Py_ssize_t *lenp)
-{
-    if (lenp)
-        *lenp = git_blob_rawsize(self->blob);
-
-    return 1;
-}
-
-static PyBufferProcs Blob_as_buffer = {
-    (readbufferproc)Blob_getreadbuffer,
-    NULL,                       /* bf_getwritebuffer */
-    (segcountproc)Blob_getsegcount,
-    NULL,                       /* charbufferproc */
-    (getbufferproc)Blob_getbuffer,
-};
-
-#else
-
 static PyBufferProcs Blob_as_buffer = {
     (getbufferproc)Blob_getbuffer,
 };
-
-#endif  /* python 2 vs python 3 buffers */
 
 PyDoc_STRVAR(Blob__doc__, "Blob object.\n"
   "\n"
@@ -244,13 +209,7 @@ PyTypeObject BlobType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     &Blob_as_buffer,                           /* tp_as_buffer      */
-#if PY_MAJOR_VERSION == 2
-    Py_TPFLAGS_DEFAULT |                       /* tp_flags          */
-    Py_TPFLAGS_HAVE_GETCHARBUFFER |
-    Py_TPFLAGS_HAVE_NEWBUFFER,
-#else
     Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
-#endif
     Blob__doc__,                               /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */

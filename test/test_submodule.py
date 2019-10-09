@@ -27,13 +27,11 @@
 
 """Tests for Submodule objects."""
 
-# Import from the future
-from __future__ import absolute_import
-
 import os
 import unittest
 
 from . import utils
+
 
 SUBM_NAME = 'submodule'
 SUBM_PATH = 'submodule'

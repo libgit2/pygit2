@@ -27,13 +27,11 @@
 
 """Tests for Blame objects."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pytest
 
 from pygit2 import Signature, Oid
 from . import utils
+
 
 PATH = 'hello.txt'
 

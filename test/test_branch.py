@@ -27,13 +27,11 @@
 
 """Tests for branch methods."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pytest
 
 import pygit2
 from . import utils
+
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 I18N_LAST_COMMIT = '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'

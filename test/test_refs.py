@@ -27,15 +27,13 @@
 
 """Tests for reference objects."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pytest
 
 from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
 from pygit2 import Commit, Tree, reference_is_valid_name
 from pygit2 import AlreadyExistsError, GitError, InvalidSpecError
 from . import utils
+
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 

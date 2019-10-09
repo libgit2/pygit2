@@ -27,9 +27,6 @@
 
 """Tests for Tag objects."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pytest
 
 import pygit2
@@ -38,9 +35,10 @@ from . import utils
 # pypy (in python2 mode) raises TypeError on writing to read-only, so
 # we need to check and change the test accordingly
 try:
-    import __pypy__, sys
+    import __pypy__
 except ImportError:
     __pypy__ = None
+
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 

@@ -25,10 +25,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# The future
-from __future__ import absolute_import
-from __future__ import unicode_literals, print_function
-
 # Standard Library
 from os.path import join
 
@@ -39,6 +35,7 @@ try:
     import __pypy__
 except ImportError:
     __pypy__ = None
+
 
 class RepositorySignatureTest(utils.RepoTestCase):
 

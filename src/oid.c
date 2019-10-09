@@ -53,23 +53,6 @@ py_hex_to_git_oid(PyObject *py_oid, git_oid *oid)
     char *hex;
     Py_ssize_t len;
 
-#if PY_MAJOR_VERSION == 2
-    /* Bytes (only supported in Python 2) */
-    if (PyBytes_Check(py_oid)) {
-        err = PyBytes_AsStringAndSize(py_oid, &hex, &len);
-        if (err)
-            return 0;
-
-        err = git_oid_fromstrn(oid, hex, len);
-        if (err < 0) {
-            PyErr_SetObject(Error_type(err), py_oid);
-            return 0;
-        }
-
-        return (size_t)len;
-    }
-#endif
-
     /* Unicode */
     if (PyUnicode_Check(py_oid)) {
         py_hex = PyUnicode_AsASCIIString(py_oid);
@@ -151,12 +134,7 @@ git_oid_to_py_str(const git_oid *oid)
     char hex[GIT_OID_HEXSZ];
 
     git_oid_fmt(hex, oid);
-
-    #if PY_MAJOR_VERSION == 2
-    return PyBytes_FromStringAndSize(hex, GIT_OID_HEXSZ);
-    #else
     return to_unicode_n(hex, GIT_OID_HEXSZ, "utf-8", "strict");
-    #endif
 }
 
 

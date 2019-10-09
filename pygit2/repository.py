@@ -25,20 +25,11 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
-from __future__ import absolute_import
-
 # Import from the Standard Library
+from io import BytesIO
 from string import hexdigits
-import sys, tarfile
+import tarfile
 from time import time
-
-if sys.version_info[0] < 3:
-    from cStringIO import StringIO
-else:
-    from io import BytesIO as StringIO
-
-import six
 
 # Import from pygit2
 from _pygit2 import Repository as _Repository, init_file_backend
@@ -1045,7 +1036,7 @@ class BaseRepository(_Repository):
                 archive.addfile(info)
             else:
                 info.mode = tree[entry.path].filemode
-                archive.addfile(info, StringIO(content))
+                archive.addfile(info, BytesIO(content))
 
     #
     # Ahead-behind, which mostly lives on its own namespace
@@ -1283,7 +1274,7 @@ class References(object):
 
 class Repository(BaseRepository):
     def __init__(self, path, *args, **kwargs):
-        if not isinstance(path, six.string_types):
+        if not isinstance(path, str):
             path = path.decode('utf-8')
 
         path_backend = init_file_backend(path)

@@ -26,9 +26,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
-from __future__ import print_function
-
 # Import from the Standard Library
 import codecs
 from distutils.command.build import build
@@ -148,7 +145,7 @@ setup(name='pygit2',
       packages=['pygit2'],
       package_data={'pygit2': ['decl/*.h']},
       setup_requires=['cffi'],
-      install_requires=['cffi', 'six'],
+      install_requires=['cffi'],
       zip_safe=False,
       cmdclass=cmdclass,
       cffi_modules=['pygit2/_run.py:ffi'],

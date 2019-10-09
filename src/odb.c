@@ -177,11 +177,7 @@ Odb_read(Odb *self, PyObject *py_hex)
         return NULL;
 
     tuple = Py_BuildValue(
-    #if PY_MAJOR_VERSION == 2
-        "(ns#)",
-    #else
         "(ny#)",
-    #endif
         git_odb_object_type(obj),
         git_odb_object_data(obj),
         git_odb_object_size(obj));

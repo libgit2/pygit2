@@ -26,11 +26,6 @@ Hex oid
   form can be used to create Oid objects, just like raw oids. Also, the pygit2
   API directly accepts hex oids everywhere.
 
-  .. note::
-
-     In Python 3 hexadecimal oids are represented using the ``str`` type.
-     In Python 2 both ``str`` and ``unicode`` are accepted.
-
 Oid object
   An ``Oid`` object can be built from the raw or hexadecimal representations
   (see below). The pygit2 API always returns, and accepts, ``Oid`` objects.

@@ -229,7 +229,7 @@ tree_entry_cmp(PyObject *self, PyObject *args)
     }
 
     cmp = git_tree_entry_cmp(a->entry, b->entry);
-    return PyInt_FromLong(cmp);
+    return PyLong_FromLong(cmp);
 }
 
 
@@ -542,33 +542,22 @@ moduleinit(PyObject* m)
 }
 
 
-#if PY_MAJOR_VERSION < 3
-    PyMODINIT_FUNC
-    init_pygit2(void)
-    {
-        PyObject* m;
-        m = Py_InitModule3("_pygit2", module_methods,
-                           "Python bindings for libgit2.");
-        moduleinit(m);
-    }
-#else
-    struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "_pygit2",                       /* m_name */
-        "Python bindings for libgit2.",  /* m_doc */
-        -1,                              /* m_size */
-        module_methods,                  /* m_methods */
-        NULL,                            /* m_reload */
-        NULL,                            /* m_traverse */
-        NULL,                            /* m_clear */
-        NULL,                            /* m_free */
-    };
+struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_pygit2",                       /* m_name */
+    "Python bindings for libgit2.",  /* m_doc */
+    -1,                              /* m_size */
+    module_methods,                  /* m_methods */
+    NULL,                            /* m_reload */
+    NULL,                            /* m_traverse */
+    NULL,                            /* m_clear */
+    NULL,                            /* m_free */
+};
 
-    PyMODINIT_FUNC
-    PyInit__pygit2(void)
-    {
-        PyObject* m;
-        m = PyModule_Create(&moduledef);
-        return moduleinit(m);
-    }
-#endif
+PyMODINIT_FUNC
+PyInit__pygit2(void)
+{
+    PyObject* m;
+    m = PyModule_Create(&moduledef);
+    return moduleinit(m);
+}

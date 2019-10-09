@@ -121,7 +121,7 @@ PyDoc_STRVAR(Object_type__doc__,
 PyObject *
 Object_type__get__(Object *self)
 {
-    return PyInt_FromLong(git_object_type(self->obj));
+    return PyLong_FromLong(git_object_type(self->obj));
 }
 
 PyDoc_STRVAR(Object_type_str__doc__,
@@ -168,7 +168,7 @@ Object_filemode__get__(Object *self)
     if (self->entry == NULL)
         Py_RETURN_NONE;
 
-    return PyInt_FromLong(git_tree_entry_filemode(self->entry));
+    return PyLong_FromLong(git_tree_entry_filemode(self->entry));
 }
 
 

@@ -27,9 +27,6 @@
 
 """Tests for revision walk."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from pygit2 import GIT_SORT_NONE, GIT_SORT_TIME, GIT_SORT_REVERSE
 from . import utils
 

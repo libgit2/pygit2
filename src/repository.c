@@ -1444,7 +1444,7 @@ Repository_status(Repository *self)
             path = entry->head_to_index->old_file.path;
         else
             path = entry->index_to_workdir->old_file.path;
-        status = PyInt_FromLong((long) entry->status);
+        status = PyLong_FromLong((long) entry->status);
 
         err = PyDict_SetItemString(dict, path, status);
         Py_CLEAR(status);
@@ -1486,7 +1486,7 @@ Repository_status_file(Repository *self, PyObject *value)
         free(path);
         return err_obj;
     }
-    return PyInt_FromLong(status);
+    return PyLong_FromLong(status);
 }
 
 

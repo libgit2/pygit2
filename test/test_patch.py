@@ -25,13 +25,11 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pytest
 
 import pygit2
 from . import utils
+
 
 BLOB_OLD_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
 BLOB_NEW_SHA = '3b18e512dba79e4c8300dd08aeb37f8e728b8dad'

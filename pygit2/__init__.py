@@ -25,9 +25,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# From the future
-from __future__ import absolute_import
-
 # Standard Library
 import functools
 

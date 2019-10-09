@@ -27,10 +27,6 @@
 
 """Tests for Repository objects."""
 
-# Import from the future
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 # Import from the Standard Library
 import binascii
 import unittest
@@ -39,14 +35,9 @@ import tempfile
 import os
 from os.path import join, realpath
 import sys
+from urllib.request import pathname2url
 
 import pytest
-import six
-
-if six.PY2:
-    from urllib import pathname2url
-else:
-    from urllib.request import pathname2url
 
 # Import from pygit2
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT

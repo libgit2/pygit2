@@ -39,39 +39,8 @@
 #  define PYGIT2_FN_UNUSED
 #endif
 
-/* Python 2 support */
-#ifndef Py_hash_t
-  #define Py_hash_t long
-#endif
-
-#ifndef PyLong_AsSize_t
-  #define PyLong_AsSize_t (size_t)PyLong_AsSsize_t
-#endif
-
-#if PY_MAJOR_VERSION == 2
-  #define PyInt_AsSize_t (size_t)PyInt_AsLong
-  #define PyInt_FromLongLong PyInt_FromLong
-  #define PyBytes_AS_STRING PyString_AS_STRING
-  #define PyBytes_AsString PyString_AsString
-  #define PyBytes_AsStringAndSize PyString_AsStringAndSize
-  #define PyBytes_Check PyString_Check
-  #define PyBytes_FromString PyString_FromString
-  #define PyBytes_FromStringAndSize PyString_FromStringAndSize
-  #define PyBytes_Size PyString_Size
-  #define to_path(x) to_bytes(x)
-  #define to_encoding(x) to_bytes(x)
-#else
-  #define PyInt_Check PyLong_Check
-  #define PyInt_FromSize_t PyLong_FromSize_t
-  #define PyInt_FromLong PyLong_FromLong
-  #define PyInt_FromLongLong PyLong_FromLongLong
-  #define PyInt_AsLong PyLong_AsLong
-  #define PyInt_AsSize_t PyLong_AsSize_t
-
-  #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
-  #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
-  #define PyString_FromFormat(s, ...) PyUnicode_FromFormat(s, __VA_ARGS__)
-#endif
+#define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
+#define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
 
 
 #define CHECK_REFERENCE(self)\

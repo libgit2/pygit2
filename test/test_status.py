@@ -25,12 +25,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Tests for revision walk."""
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
-import pygit2
 from . import utils
 
 

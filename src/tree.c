@@ -41,10 +41,6 @@ extern PyTypeObject DiffType;
 extern PyTypeObject TreeIterType;
 extern PyTypeObject IndexType;
 
-#if PY_MAJOR_VERSION >= 3
-#define Py_TPFLAGS_CHECKTYPES 0  /* removed in Py3, needed in Py2 */
-#endif
-
 
 PyObject *
 treeentry_to_object(const git_tree_entry *entry, Repository *repo)
@@ -107,7 +103,7 @@ Tree_fix_index(const git_tree *tree, PyObject *py_index)
     size_t len;
     long slen;
 
-    index = PyInt_AsLong(py_index);
+    index = PyLong_AsLong(py_index);
     if (PyErr_Occurred())
         return -1;
 
@@ -200,7 +196,7 @@ PyObject*
 Tree_subscript(Tree *self, PyObject *value)
 {
     /* Case 1: integer */
-    if (PyInt_Check(value))
+    if (PyLong_Check(value))
         return tree_getentry_by_index(self->tree, self->repo, value);
 
     /* Case 2: byte or text string */
@@ -417,9 +413,6 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_add */
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
-#if PY_MAJOR_VERSION < 3
-    (binaryfunc)Tree_divide,    /* Py2: nb_divide */
-#endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
     0,                          /* nb_power */
@@ -433,16 +426,9 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_and */
     0,                          /* nb_xor */
     0,                          /* nb_or */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* Py2: nb_coerce */
-#endif
     0,                          /* nb_int */
     0,                          /* nb_reserved (Py2: nb_long) */
     0,                          /* nb_float */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* Py2: nb_oct */
-    0,                          /* Py2: nb_hex */
-#endif
     0,                          /* nb_inplace_add */
     0,                          /* nb_inplace_subtract */
     0,                          /* nb_inplace_multiply */
@@ -485,7 +471,7 @@ PyTypeObject TreeType = {
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_CHECKTYPES,  /* tp_flags */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
     Tree__doc__,                               /* tp_doc            */
     0,                                         /* tp_traverse       */
     0,                                         /* tp_clear          */

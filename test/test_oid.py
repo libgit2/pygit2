@@ -27,13 +27,8 @@
 
 """Tests for Object ids."""
 
-# Import from the future
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 # Import from the Standard Library
 from binascii import unhexlify
-from sys import version_info
 
 import pytest
 
@@ -59,14 +54,8 @@ class OidTest(utils.BareRepoTestCase):
         assert str(oid) == HEX
 
     def test_hex_bytes(self):
-        if version_info[0] == 2:
-            hex = bytes(HEX)
-            oid = Oid(hex=hex)
-            assert oid.raw == RAW
-            assert str(oid) == HEX
-        else:
-            hex = bytes(HEX, "ascii")
-            with pytest.raises(TypeError): Oid(hex=hex)
+        hex = bytes(HEX, "ascii")
+        with pytest.raises(TypeError): Oid(hex=hex)
 
     def test_none(self):
         with pytest.raises(ValueError): Oid()

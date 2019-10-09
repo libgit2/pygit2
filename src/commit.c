@@ -112,7 +112,7 @@ PyDoc_STRVAR(Commit_commit_time__doc__, "Commit time.");
 PyObject *
 Commit_commit_time__get__(Commit *commit)
 {
-    return PyInt_FromLongLong(git_commit_time(commit->commit));
+    return PyLong_FromLongLong(git_commit_time(commit->commit));
 }
 
 
@@ -121,7 +121,7 @@ PyDoc_STRVAR(Commit_commit_time_offset__doc__, "Commit time offset.");
 PyObject *
 Commit_commit_time_offset__get__(Commit *commit)
 {
-    return PyInt_FromLong(git_commit_time_offset(commit->commit));
+    return PyLong_FromLong(git_commit_time_offset(commit->commit));
 }
 
 

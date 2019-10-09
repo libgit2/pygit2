@@ -27,10 +27,6 @@
 
 """Tests for Odb objects."""
 
-# Import from the future
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 # Import from the Standard Library
 import binascii
 import os
@@ -43,6 +39,7 @@ from pygit2 import Odb, Oid
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB
 
 from . import utils
+
 
 BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))

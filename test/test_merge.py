@@ -27,10 +27,6 @@
 
 """Tests for merging and information about it."""
 
-# Import from the future
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os
 
 import pytest
@@ -40,6 +36,7 @@ from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD
 import pygit2
 
 from . import utils
+
 
 class MergeTestBasic(utils.RepoTestCaseForMerging):
 

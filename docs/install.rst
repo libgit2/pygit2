@@ -42,7 +42,6 @@ Supported versions of Python:
 Python requirements (these are specified in ``setup.py``):
 
 - cffi 1.0+
-- six
 
 Libgit2 **v0.28.x** (see the version numbering section below for details).
 Binary wheels already include libgit2, so you only need to worry about this if

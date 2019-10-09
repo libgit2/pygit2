@@ -238,12 +238,7 @@ PyObject *
 DiffDelta_status_char(DiffDelta *self)
 {
     char status = git_diff_status_char(self->status);
-
-#if PY_MAJOR_VERSION == 2
-    return Py_BuildValue("c", status);
-#else
     return Py_BuildValue("C", status);
-#endif
 }
 
 PyDoc_STRVAR(DiffDelta_is_binary__doc__, "True if binary data, False if not.");
@@ -346,28 +341,28 @@ PyDoc_STRVAR(DiffLine_old_lineno__doc__, "Line number in old file or -1 for adde
 PyObject *
 DiffLine_old_lineno__get__(DiffLine *self)
 {
-    return PyInt_FromLong(self->line->old_lineno);
+    return PyLong_FromLong(self->line->old_lineno);
 }
 
 PyDoc_STRVAR(DiffLine_new_lineno__doc__, "Line number in new file or -1 for deleted line");
 PyObject *
 DiffLine_new_lineno__get__(DiffLine *self)
 {
-    return PyInt_FromLong(self->line->new_lineno);
+    return PyLong_FromLong(self->line->new_lineno);
 }
 
 PyDoc_STRVAR(DiffLine_num_lines__doc__, "Number of newline characters in content");
 PyObject *
 DiffLine_num_lines__get__(DiffLine *self)
 {
-    return PyInt_FromLong(self->line->num_lines);
+    return PyLong_FromLong(self->line->num_lines);
 }
 
 PyDoc_STRVAR(DiffLine_content_offset__doc__, "Offset in the original file to the content");
 PyObject *
 DiffLine_content_offset__get__(DiffLine *self)
 {
-    return PyInt_FromLongLong(self->line->content_offset);
+    return PyLong_FromLongLong(self->line->content_offset);
 }
 
 PyDoc_STRVAR(DiffLine_content__doc__, "Content of the diff line");
@@ -506,7 +501,7 @@ diff_get_delta_byindex(git_diff *diff, size_t idx)
 {
     const git_diff_delta *delta = git_diff_get_delta(diff, idx);
     if (delta == NULL) {
-        PyErr_SetObject(PyExc_IndexError, PyInt_FromSize_t(idx));
+        PyErr_SetObject(PyExc_IndexError, PyLong_FromSize_t(idx));
         return NULL;
     }
 
@@ -637,7 +632,7 @@ PyDoc_STRVAR(DiffHunk_old_start__doc__, "Old start.");
 PyObject *
 DiffHunk_old_start__get__(DiffHunk *self)
 {
-  return PyInt_FromLong(self->hunk->old_start);
+  return PyLong_FromLong(self->hunk->old_start);
 }
 
 PyDoc_STRVAR(DiffHunk_old_lines__doc__, "Old lines.");
@@ -645,7 +640,7 @@ PyDoc_STRVAR(DiffHunk_old_lines__doc__, "Old lines.");
 PyObject *
 DiffHunk_old_lines__get__(DiffHunk *self)
 {
-  return PyInt_FromLong(self->hunk->old_lines);
+  return PyLong_FromLong(self->hunk->old_lines);
 }
 
 PyDoc_STRVAR(DiffHunk_new_start__doc__, "New start.");
@@ -653,7 +648,7 @@ PyDoc_STRVAR(DiffHunk_new_start__doc__, "New start.");
 PyObject *
 DiffHunk_new_start__get__(DiffHunk *self)
 {
-  return PyInt_FromLong(self->hunk->new_start);
+  return PyLong_FromLong(self->hunk->new_start);
 }
 
 PyDoc_STRVAR(DiffHunk_new_lines__doc__, "New lines.");
@@ -661,7 +656,7 @@ PyDoc_STRVAR(DiffHunk_new_lines__doc__, "New lines.");
 PyObject *
 DiffHunk_new_lines__get__(DiffHunk *self)
 {
-  return PyInt_FromLong(self->hunk->new_lines);
+  return PyLong_FromLong(self->hunk->new_lines);
 }
 
 PyDoc_STRVAR(DiffHunk_header__doc__, "Header.");
@@ -759,7 +754,7 @@ PyDoc_STRVAR(DiffStats_insertions__doc__, "Total number of insertions");
 PyObject *
 DiffStats_insertions__get__(DiffStats *self)
 {
-    return PyInt_FromSize_t(git_diff_stats_insertions(self->stats));
+    return PyLong_FromSize_t(git_diff_stats_insertions(self->stats));
 }
 
 PyDoc_STRVAR(DiffStats_deletions__doc__, "Total number of deletions");
@@ -767,7 +762,7 @@ PyDoc_STRVAR(DiffStats_deletions__doc__, "Total number of deletions");
 PyObject *
 DiffStats_deletions__get__(DiffStats *self)
 {
-    return PyInt_FromSize_t(git_diff_stats_deletions(self->stats));
+    return PyLong_FromSize_t(git_diff_stats_deletions(self->stats));
 }
 
 PyDoc_STRVAR(DiffStats_files_changed__doc__, "Total number of files changed");
@@ -775,7 +770,7 @@ PyDoc_STRVAR(DiffStats_files_changed__doc__, "Total number of files changed");
 PyObject *
 DiffStats_files_changed__get__(DiffStats *self)
 {
-    return PyInt_FromSize_t(git_diff_stats_files_changed(self->stats));
+    return PyLong_FromSize_t(git_diff_stats_files_changed(self->stats));
 }
 
 PyDoc_STRVAR(DiffStats_format__doc__,
@@ -976,10 +971,10 @@ Diff_getitem(Diff *self, PyObject *value)
 {
     size_t i;
 
-    if (!PyInt_Check(value))
+    if (!PyLong_Check(value))
         return NULL; /* FIXME Raise error */
 
-    i = PyInt_AsSize_t(value);
+    i = PyLong_AsSize_t(value);
     return diff_get_patch_byindex(self->diff, i);
 }
 

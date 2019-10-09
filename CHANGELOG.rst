@@ -1,7 +1,10 @@
-0.28.3 (UNRELEASED)
+1.0.0 (UNRELEASED)
 -------------------------
 
-- Support for ``/`` operator to traverse trees
+- Drop Python 2.7 support, six no longer required
+  `#941 <https://github.com/libgit2/pygit2/issues/941>`_
+
+- New support for ``/`` operator to traverse trees
   `#903 <https://github.com/libgit2/pygit2/pull/903>`_
 
 - New ``Index.remove_all()``

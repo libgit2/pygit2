@@ -348,7 +348,7 @@ Reference_type__get__(Reference *self)
 
     CHECK_REFERENCE(self);
     c_type = git_reference_type(self->reference);
-    return PyInt_FromLong(c_type);
+    return PyLong_FromLong(c_type);
 }
 
 

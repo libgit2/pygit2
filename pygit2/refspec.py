@@ -25,9 +25,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
-from __future__ import absolute_import
-
 # Import from pygit2
 from .errors import check_error
 from .ffi import ffi, C

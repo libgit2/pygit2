@@ -27,9 +27,6 @@
 
 """Tests for Blame objects."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pygit2
 from pygit2 import (
     GIT_OBJ_BLOB,
@@ -43,6 +40,7 @@ from pygit2 import (
 )
 from pygit2 import option
 from . import utils
+
 
 class OptionsTest(utils.NoRepoTestCase):
 

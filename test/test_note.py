@@ -27,13 +27,11 @@
 
 """Tests for note objects."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import pytest
 
 from pygit2 import Signature
 from . import utils
+
 
 NOTE = ('6c8980ba963cad8b25a9bcaf68d4023ee57370d8', 'note message')
 

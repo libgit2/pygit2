@@ -25,21 +25,32 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the future
-from __future__ import absolute_import
-
-# Import from the Standard Library
-from sys import version_info
-
 # Import from pygit2
 from .ffi import ffi
 
 
-if version_info[0] < 3:
-    from .py2 import is_string, to_bytes, to_str
-else:
-    from .py3 import is_string, to_bytes, to_str
+def to_bytes(s, encoding='utf-8', errors='strict'):
+    if s == ffi.NULL or s is None:
+        return ffi.NULL
 
+    if isinstance(s, bytes):
+        return s
+
+    return s.encode(encoding, errors)
+
+
+def is_string(s):
+    return isinstance(s, str)
+
+
+def to_str(s):
+    if type(s) is str:
+        return s
+
+    if type(s) is bytes:
+        return s.decode()
+
+    raise TypeError('unexpected type "%s"' % repr(s))
 
 
 def strarray_to_strings(arr):

@@ -27,9 +27,6 @@
 
 """Tests for Commit objects."""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import unittest
 import sys
 
@@ -44,6 +41,7 @@ try:
     import __pypy__
 except ImportError:
     __pypy__ = None
+
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 
