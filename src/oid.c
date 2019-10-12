@@ -41,6 +41,9 @@ git_oid_to_python(const git_oid *oid)
     Oid *py_oid;
 
     py_oid = PyObject_New(Oid, &OidType);
+    if (py_oid == NULL)
+        return NULL;
+
     git_oid_cpy(&(py_oid->oid), oid);
     return (PyObject*)py_oid;
 }

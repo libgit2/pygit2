@@ -61,6 +61,8 @@ RefLogIter_iternext(RefLogIter *self)
     if (self->i < self->size) {
         entry = git_reflog_entry_byindex(self->reflog, self->i);
         py_entry = PyObject_New(RefLogEntry, &RefLogEntryType);
+        if (py_entry == NULL)
+            return NULL;
 
         py_entry->oid_old = git_oid_to_python(git_reflog_entry_id_old(entry));
         py_entry->oid_new = git_oid_to_python(git_reflog_entry_id_new(entry));

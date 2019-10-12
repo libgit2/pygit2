@@ -95,11 +95,14 @@ Odb_build_as_iter(const git_oid *oid, void *accum)
 {
     int err;
     PyObject *py_oid = git_oid_to_python(oid);
+    if (py_oid == NULL)
+        return GIT_EUSER;
 
     err = PyList_Append((PyObject*)accum, py_oid);
     Py_DECREF(py_oid);
     if (err < 0)
         return GIT_EUSER;
+
     return 0;
 }
 
