@@ -160,7 +160,6 @@ PyObject *
 Commit_tree__get__(Commit *commit)
 {
     git_tree *tree;
-    Tree *py_tree;
     int err;
 
     err = git_commit_tree(&tree, commit->commit);

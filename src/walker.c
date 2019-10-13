@@ -147,7 +147,6 @@ Walker_iternext(Walker *self)
 {
     int err;
     git_commit *commit;
-    Commit *py_commit;
     git_oid oid;
 
     err = git_revwalk_next(&oid, self->walk);
