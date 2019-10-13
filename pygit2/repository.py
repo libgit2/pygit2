@@ -45,7 +45,7 @@ from .ffi import ffi, C
 from .index import Index
 from .remote import RemoteCollection
 from .blame import Blame
-from .utils import to_bytes, is_string, StrArray
+from .utils import to_bytes, StrArray
 from .submodule import Submodule
 
 
@@ -438,7 +438,7 @@ class BaseRepository(_Repository):
                 return None
 
             # If it's a string, then it has to be valid revspec
-            if is_string(obj):
+            if isinstance(obj, str):
                 obj = self.revparse_single(obj)
 
             # First we try to get to a blob
@@ -658,9 +658,9 @@ class BaseRepository(_Repository):
         theirs_ptr = ffi.new('git_commit **')
         cindex = ffi.new('git_index **')
 
-        if is_string(ours) or isinstance(ours, Oid):
+        if isinstance(ours, (str, Oid)):
             ours = self[ours]
-        if is_string(theirs) or isinstance(theirs, Oid):
+        if isinstance(theirs, (str, Oid)):
             theirs = self[theirs]
 
         ours = ours.peel(Commit)
@@ -709,11 +709,11 @@ class BaseRepository(_Repository):
         theirs_ptr = ffi.new('git_tree **')
         cindex = ffi.new('git_index **')
 
-        if is_string(ancestor) or isinstance(ancestor, Oid):
+        if isinstance(ancestor, (str, Oid)):
             ancestor = self[ancestor]
-        if is_string(ours) or isinstance(ours, Oid):
+        if isinstance(ours, (str, Oid)):
             ours = self[ours]
-        if is_string(theirs) or isinstance(theirs, Oid):
+        if isinstance(theirs, (str, Oid)):
             theirs = self[theirs]
 
         ancestor = ancestor.peel(Tree)
@@ -813,7 +813,7 @@ class BaseRepository(_Repository):
 
         result = ffi.new('git_describe_result **')
         if committish:
-            if is_string(committish):
+            if isinstance(committish, str):
                 committish = self.revparse_single(committish)
 
             commit = committish.peel(Commit)
@@ -1000,7 +1000,7 @@ class BaseRepository(_Repository):
         if isinstance(treeish, Tree):
             tree = treeish
 
-        if isinstance(treeish, Oid) or is_string(treeish):
+        if isinstance(treeish, (str, Oid)):
             treeish = self[treeish]
 
         # if we don't have a timestamp, try to get it from a commit

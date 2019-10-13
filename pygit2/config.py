@@ -26,11 +26,11 @@
 # Import from pygit2
 from .errors import check_error
 from .ffi import ffi, C
-from .utils import to_bytes, is_string
+from .utils import to_bytes
 
 
 def assert_string(v, desc):
-    if not is_string(v):
+    if not isinstance(v, str):
         raise TypeError("%s must be a string" % desc)
 
 

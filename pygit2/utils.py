@@ -37,10 +37,6 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
     return s.encode(encoding, errors)
 
 
-def is_string(s):
-    return isinstance(s, str)
-
-
 def to_str(s):
     if type(s) is str:
         return s
@@ -80,7 +76,7 @@ class StrArray(object):
 
         strings = [None] * len(l)
         for i in range(len(l)):
-            if not is_string(l[i]):
+            if not isinstance(l[i], str):
                 raise TypeError("Value must be a string")
 
             strings[i] = ffi.new('char []', to_bytes(l[i]))

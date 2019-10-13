@@ -29,7 +29,7 @@ import weakref
 from _pygit2 import Oid, Tree, Diff
 from .errors import check_error
 from .ffi import ffi, C
-from .utils import is_string, to_bytes, to_str
+from .utils import to_bytes, to_str
 from .utils import GenericIterator, StrArray
 
 
@@ -78,7 +78,7 @@ class Index(object):
 
     def __getitem__(self, key):
         centry = ffi.NULL
-        if is_string(key):
+        if isinstance(key, str):
             centry = C.git_index_get_bypath(self._index, to_bytes(key), 0)
         elif not key >= 0:
             raise ValueError(key)
@@ -124,7 +124,7 @@ class Index(object):
         inserted into the Index.
         """
         repo = self._repo
-        if is_string(tree):
+        if isinstance(tree, str):
             tree = repo[tree]
 
         if isinstance(tree, Oid):
@@ -197,7 +197,7 @@ class Index(object):
         Index without checking for the existence of the path or id.
         """
 
-        if is_string(path_or_entry):
+        if isinstance(path_or_entry, str):
             path = path_or_entry
             err = C.git_index_add_bypath(self._index, to_bytes(path))
         elif isinstance(path_or_entry, IndexEntry):
