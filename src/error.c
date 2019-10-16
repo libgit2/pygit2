@@ -135,3 +135,20 @@ Error_type_error(const char *format, PyObject *value)
     PyErr_Format(PyExc_TypeError, format, Py_TYPE(value)->tp_name);
     return NULL;
 }
+
+int
+git_error_for_exc()
+{
+    PyObject *err;
+    if ((err = PyErr_Occurred()) != NULL) {
+        if (PyErr_GivenExceptionMatches(err, PyExc_KeyError)) {
+            return GIT_ENOTFOUND;
+        }
+        if (PyErr_GivenExceptionMatches(err, PyExc_ValueError)) {
+            return GIT_EINVALID;
+        }
+        /* TODO: others? */
+        return GIT_EUSER;
+    }
+    return 0;
+}
