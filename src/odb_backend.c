@@ -36,6 +36,310 @@
 #include <git2/sys/alloc.h>
 #include <git2/sys/odb_backend.h>
 
+/*
+ * pygit2_odb_backend is a container for the state associated with a custom
+ * implementation of git_odb_backend. It holds a list of callable references
+ * which represent the Python class's implementations of each git_odb_backend
+ * function. The git_odb_backend field's function pointers are assigned to the
+ * pygit2_odb_backend_* functions, which handle translating between the libgit2
+ * ABI and the Python ABI.
+ */
+struct pygit2_odb_backend
+{
+    git_odb_backend backend;
+    PyObject *OdbBackend;
+    PyObject *read,
+             *read_prefix,
+             *read_header,
+             *write,
+             *writestream,
+             *readstream,
+             *exists,
+             *exists_prefix,
+             *refresh,
+             *foreach, /* __iter__ */
+             *writepack,
+             *freshen;
+};
+
+static int
+pygit2_odb_backend_read(void **ptr, size_t *sz,
+        git_object_t *type, git_odb_backend *_be, const git_oid *oid)
+{
+    int err;
+    PyObject *args, *py_oid, *result;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+
+    py_oid = git_oid_to_python(oid);
+    args = Py_BuildValue("(O)", py_oid);
+    result = PyObject_CallObject(be->read, args);
+    Py_DECREF(py_oid);
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    if (result == NULL)
+        return GIT_EUSER;
+
+    const char *bytes;
+    if (!PyArg_ParseTuple(result, "ny#", type, &bytes, sz) || !bytes)
+        return GIT_EUSER;
+
+    /* XXX: This assumes the default libgit2 allocator is in use and will
+     * probably segfault and/or destroy the universe otherwise */
+    *ptr = malloc(*sz);
+    if (!*ptr)
+        return GIT_EUSER;
+
+    memcpy(*ptr, bytes, *sz);
+    return 0;
+}
+
+static int
+pygit2_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz,
+        git_object_t *type, git_odb_backend *_be,
+        const git_oid *short_oid, size_t len)
+{
+    int err;
+    PyObject *args, *py_oid, *py_oid_out, *result;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+
+    py_oid = git_oid_to_python(short_oid);
+    args = Py_BuildValue("(O)", py_oid);
+    result = PyObject_CallObject(be->read_prefix, args);
+    Py_DECREF(py_oid);
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    if (result == NULL)
+        return GIT_EUSER;
+
+    const char *bytes;
+    if (!PyArg_ParseTuple(result, "Ony#",
+                &py_oid_out, type, &bytes, sz) || !bytes)
+        return GIT_EUSER;
+
+    /* XXX: This assumes the default libgit2 allocator is in use and will
+     * probably segfault and/or destroy the universe otherwise */
+    *ptr = malloc(*sz);
+    if (!*ptr)
+        return GIT_EUSER;
+
+    memcpy(*ptr, bytes, *sz);
+    py_oid_to_git_oid(py_oid_out, oid_out);
+    return 0;
+}
+
+static int
+pygit2_odb_backend_read_header(size_t *len, git_object_t *type,
+        git_odb_backend *_be, const git_oid *oid)
+{
+    int err;
+    PyObject *args, *py_oid, *result;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+
+    py_oid = git_oid_to_python(oid);
+    args = Py_BuildValue("(O)", py_oid);
+    result = PyObject_CallObject(be->read_header, args);
+    Py_DECREF(py_oid);
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    if (result == NULL)
+        return GIT_EUSER;
+
+    if (!PyArg_ParseTuple(result, "nn", type, len))
+        return GIT_EUSER;
+
+    return 0;
+}
+
+static int
+pygit2_odb_backend_write(git_odb_backend *_be, const git_oid *oid,
+        const void *data, size_t sz, git_object_t typ)
+{
+    int err;
+    PyObject *args, *py_oid, *result;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+
+    py_oid = git_oid_to_python(oid);
+    args = Py_BuildValue("(Oy#n)", py_oid, data, sz, typ);
+    result = PyObject_CallObject(be->write, args);
+    Py_DECREF(py_oid);
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    if (result == NULL)
+        return GIT_EUSER;
+
+    return 0;
+}
+
+static int
+pygit2_odb_backend_exists(git_odb_backend *_be, const git_oid *oid)
+{
+    int err;
+    PyObject *args, *py_oid, *result;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+
+    py_oid = git_oid_to_python(oid);
+    args = Py_BuildValue("(O)", py_oid);
+    result = PyObject_CallObject(be->exists, args);
+    Py_DECREF(py_oid);
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    if (!result)
+        return GIT_EUSER;
+
+    return PyObject_IsTrue(result);
+}
+
+static void
+pygit2_odb_backend_free(git_odb_backend *_be)
+{
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+    Py_DECREF(be->OdbBackend);
+}
+
+int
+OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
+{
+    if (args && PyTuple_Size(args) > 0) {
+        PyErr_SetString(PyExc_TypeError,
+                        "OdbBackend takes no arguments");
+        return -1;
+    }
+
+    if (kwds && PyDict_Size(kwds) > 0) {
+        PyErr_SetString(PyExc_TypeError,
+                        "OdbBackend takes no keyword arguments");
+        return -1;
+    }
+
+    struct pygit2_odb_backend *be = calloc(1, sizeof(struct pygit2_odb_backend));
+    be->backend.version = GIT_ODB_BACKEND_VERSION;
+    be->OdbBackend = (PyObject *)self;
+
+    be->read = PyObject_GetAttrString((PyObject *)self, "read");
+    if (be->read) {
+        be->backend.read = pygit2_odb_backend_read;
+        Py_INCREF(be->read);
+    }
+
+    be->read_prefix = PyObject_GetAttrString(
+            (PyObject *)self, "read_prefix");
+    if (be->read_prefix) {
+        be->backend.read_prefix = pygit2_odb_backend_read_prefix;
+        Py_INCREF(be->read_prefix);
+    }
+
+    be->read_header = PyObject_GetAttrString(
+            (PyObject *)self, "read_header");
+    if (be->read_header) {
+        be->backend.read_header = pygit2_odb_backend_read_header;
+        Py_INCREF(be->read_header);
+    }
+
+    be->write = PyObject_GetAttrString(
+            (PyObject *)self, "write");
+    if (be->write) {
+        be->backend.write = pygit2_odb_backend_write;
+        Py_INCREF(be->write);
+    }
+
+    /* TODO: Stream-based read/write
+    be->writestream = PyObject_GetAttrString(
+            (PyObject *)self, "writestream");
+    if (be->writestream) {
+        be->backend.writestream = pygit2_odb_backend_writestream;
+        Py_INCREF(be->writestream);
+    }
+
+    be->readstream = PyObject_GetAttrString(
+            (PyObject *)self, "readstream");
+    if (be->readstream) {
+        be->backend.readstream = pygit2_odb_backend_readstream;
+        Py_INCREF(be->readstream);
+    }
+    */
+
+    be->exists = PyObject_GetAttrString(
+            (PyObject *)self, "exists");
+    if (be->exists) {
+        be->backend.exists = pygit2_odb_backend_exists;
+        Py_INCREF(be->exists);
+    }
+
+    /*
+    be->exists_prefix = PyObject_GetAttrString(
+            (PyObject *)self, "exists_prefix");
+    if (be->exists_prefix) {
+        be->backend.exists_prefix = pygit2_odb_backend_exists_prefix;
+        Py_INCREF(be->exists_prefix);
+    }
+
+    be->refresh = PyObject_GetAttrString(
+            (PyObject *)self, "refresh");
+    if (be->refresh) {
+        be->backend.refresh = pygit2_odb_backend_refresh;
+        Py_INCREF(be->refresh);
+    }
+
+    be->writepack = PyObject_GetAttrString(
+            (PyObject *)self, "writepack");
+    if (be->writepack) {
+        be->backend.writepack = pygit2_odb_backend_writepack;
+        Py_INCREF(be->writepack);
+    }
+
+    be->freshen = PyObject_GetAttrString(
+            (PyObject *)self, "freshen");
+    if (be->freshen) {
+        be->backend.freshen = pygit2_odb_backend_freshen;
+        Py_INCREF(be->freshen);
+    }
+    */
+
+    Py_INCREF((PyObject *)self);
+    be->backend.free = pygit2_odb_backend_free;
+
+    self->odb_backend = (git_odb_backend *)be;
+    return 0;
+}
+
+void
+OdbBackend_dealloc(OdbBackend *self)
+{
+    if (self->odb_backend && self->odb_backend->read == pygit2_odb_backend_read) {
+        struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)self->odb_backend;
+        Py_CLEAR(be->read);
+        Py_CLEAR(be->read_prefix);
+        Py_CLEAR(be->read_header);
+        Py_CLEAR(be->write);
+        Py_CLEAR(be->writestream);
+        Py_CLEAR(be->readstream);
+        Py_CLEAR(be->exists);
+        Py_CLEAR(be->exists_prefix);
+        Py_CLEAR(be->refresh);
+        Py_CLEAR(be->foreach);
+        Py_CLEAR(be->writepack);
+        Py_CLEAR(be->freshen);
+        free(be);
+    }
+
+    Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
 static int
 OdbBackend_build_as_iter(const git_oid *oid, void *accum)
 {
@@ -77,7 +381,7 @@ exit:
 }
 
 PyDoc_STRVAR(OdbBackend_read__doc__,
-    "read(oid) -> (type, data, size)\n"
+    "read(oid) -> (type, data)\n"
     "\n"
     "Read raw object data from this odb backend.\n");
 
@@ -115,8 +419,113 @@ OdbBackend_read(OdbBackend *self, PyObject *py_hex)
     return tuple;
 }
 
+PyDoc_STRVAR(OdbBackend_read_prefix__doc__,
+    "read_prefix(oid) -> (oid, type, data)\n"
+    "\n"
+    "Read raw object data from this odb backend based on an oid prefix.\n");
+
+PyObject *
+OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
+{
+    int err;
+    git_oid oid, oid_out;
+    git_object_t type;
+    size_t len, sz;
+    void *data;
+    PyObject *tuple, *py_oid_out;
+
+    if (self->odb_backend->read_prefix == NULL) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    len = py_oid_to_git_oid(py_hex, &oid);
+    if (len == 0)
+        return NULL;
+
+    err = self->odb_backend->read_prefix(&oid_out,
+            &data, &sz, &type, self->odb_backend, &oid, len);
+    if (err != 0) {
+        Error_set_oid(err, &oid, len);
+        return NULL;
+    }
+
+    py_oid_out = git_oid_to_python(&oid_out);
+    tuple = Py_BuildValue("(ny#o)", type, data, sz, py_oid_out);
+
+    /* XXX: This assumes the default libgit2 allocator is in use and will
+     * probably segfault and/or destroy the universe otherwise */
+    free(data);
+
+    return tuple;
+}
+
+PyDoc_STRVAR(OdbBackend_read_header__doc__,
+    "read_header(oid) -> (type, len)\n"
+    "\n"
+    "Read raw object header from this odb backend.");
+
+PyObject *
+OdbBackend_read_header(OdbBackend *self, PyObject *py_hex)
+{
+    int err;
+    size_t len;
+    git_object_t type;
+    git_oid oid;
+
+    if (self->odb_backend->read_header == NULL) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    len = py_oid_to_git_oid(py_hex, &oid);
+    if (len == 0)
+        return NULL;
+
+    err = self->odb_backend->read_header(&len, &type, self->odb_backend, &oid);
+    if (err != 0) {
+        Error_set_oid(err, &oid, len);
+        return NULL;
+    }
+
+    return Py_BuildValue("(ni)", type, len);
+}
+
+PyDoc_STRVAR(OdbBackend_exists__doc__,
+    "exists(oid) -> bool\n"
+    "\n"
+    "Returns true if the given oid can be found in this odb.");
+
+PyObject *
+OdbBackend_exists(OdbBackend *self, PyObject *py_hex)
+{
+    int result;
+    size_t len;
+    git_oid oid;
+
+    if (self->odb_backend->exists == NULL) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    len = py_oid_to_git_oid(py_hex, &oid);
+    if (len == 0)
+        return NULL;
+
+    result = self->odb_backend->exists(self->odb_backend, &oid);
+    if (result < 0)
+        return Error_set(result);
+    else if (result == 0)
+        Py_RETURN_FALSE;
+    else
+        Py_RETURN_TRUE;
+}
+
 PyMethodDef OdbBackend_methods[] = {
     METHOD(OdbBackend, read, METH_O),
+    METHOD(OdbBackend, read_prefix, METH_O),
+    METHOD(OdbBackend, read_header, METH_O),
+    METHOD(OdbBackend, exists, METH_O),
     {NULL}
 };
 
@@ -127,7 +536,7 @@ PyTypeObject OdbBackendType = {
     "_pygit2.OdbBackend",                      /* tp_name           */
     sizeof(OdbBackend),                        /* tp_basicsize      */
     0,                                         /* tp_itemsize       */
-    0,                                         /* tp_dealloc        */
+    (destructor)OdbBackend_dealloc,            /* tp_dealloc        */
     0,                                         /* tp_print          */
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
@@ -158,7 +567,7 @@ PyTypeObject OdbBackendType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    0,                                         /* tp_init           */
+    (initproc)OdbBackend_init,                 /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
@@ -166,12 +575,12 @@ PyTypeObject OdbBackendType = {
 PyObject *
 wrap_odb_backend(git_odb_backend *c_odb_backend)
 {
-    OdbBackend *py_odb_backend = PyObject_New(OdbBackend, &OdbBackendType);
+    OdbBackend *pygit2_odb_backend = PyObject_New(OdbBackend, &OdbBackendType);
 
-    if (py_odb_backend)
-        py_odb_backend->odb_backend = c_odb_backend;
+    if (pygit2_odb_backend)
+        pygit2_odb_backend->odb_backend = c_odb_backend;
 
-    return (PyObject *)py_odb_backend;
+    return (PyObject *)pygit2_odb_backend;
 }
 
 PyDoc_STRVAR(OdbBackendPack__doc__, "Object database backend for packfiles.");

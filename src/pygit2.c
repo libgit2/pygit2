@@ -312,7 +312,7 @@ moduleinit(PyObject* m)
     INIT_TYPE(OdbType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Odb)
 
-    INIT_TYPE(OdbBackendType, NULL, NULL)
+    INIT_TYPE(OdbBackendType, NULL, PyType_GenericNew)
     ADD_TYPE(m, OdbBackend)
     INIT_TYPE(OdbBackendPackType, &OdbBackendType, PyType_GenericNew)
     ADD_TYPE(m, OdbBackendPack)

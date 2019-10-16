@@ -158,7 +158,7 @@ Odb_read_raw(git_odb *odb, const git_oid *oid, size_t len)
     int err;
 
     err = git_odb_read_prefix(&obj, odb, oid, (unsigned int)len);
-    if (err < 0) {
+    if (err < 0 && err != GIT_EUSER) {
         Error_set_oid(err, oid, len);
         return NULL;
     }
@@ -288,7 +288,7 @@ Odb_add_backend(Odb *self, PyObject *args)
     }
 
     err = git_odb_add_backend(self->odb, backend->odb_backend, priority);
-    if (err > 0)
+    if (err != 0)
         return Error_set(err);
 
     Py_RETURN_NONE;
