@@ -80,10 +80,13 @@ class Index(object):
         centry = ffi.NULL
         if isinstance(key, str):
             centry = C.git_index_get_bypath(self._index, to_bytes(key), 0)
-        elif not key >= 0:
-            raise ValueError(key)
+        elif isinstance(key, int):
+            if key >= 0:
+                centry = C.git_index_get_byindex(self._index, key)
+            else:
+                raise ValueError(key)
         else:
-            centry = C.git_index_get_byindex(self._index, key)
+            raise TypeError('Expected str or int, got %s' % type(key))
 
         if centry == ffi.NULL:
             raise KeyError(key)
