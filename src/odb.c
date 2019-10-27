@@ -240,6 +240,31 @@ Odb_write(Odb *self, PyObject *args)
     return git_oid_to_python(&oid);
 }
 
+PyDoc_STRVAR(Odb_exists__doc__,
+    "exists(oid) -> bool\n"
+    "\n"
+    "Returns true if the given oid can be found in this odb.");
+
+PyObject *
+Odb_exists(Odb *self, PyObject *py_hex)
+{
+    git_oid oid;
+    size_t len;
+    int result;
+
+    len = py_oid_to_git_oid(py_hex, &oid);
+    if (len == 0)
+        return NULL;
+
+    result = git_odb_exists(self->odb, &oid);
+    if (result < 0)
+        return Error_set(result);
+    else if (result == 0)
+        Py_RETURN_FALSE;
+    else
+        Py_RETURN_TRUE;
+}
+
 
 PyDoc_STRVAR(Odb_add_backend__doc__,
     "add_backend(backend, priority)\n"
@@ -274,6 +299,7 @@ PyMethodDef Odb_methods[] = {
     METHOD(Odb, add_disk_alternate, METH_O),
     METHOD(Odb, read, METH_O),
     METHOD(Odb, write, METH_VARARGS),
+    METHOD(Odb, exists, METH_O),
     METHOD(Odb, add_backend, METH_VARARGS),
     {NULL}
 };
