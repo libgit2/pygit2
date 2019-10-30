@@ -3,8 +3,7 @@ pygit2 - libgit2 bindings in Python
 ######################################################################
 
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
-implements Git plumbing.  Pygit2 works with Python 2.7, 3.4 - 3.7 and PyPy 2.7
-and 3.5
+implements Git plumbing.  Pygit2 works with Python 3.5 - 3.8 and PyPy 3.5
 
 .. image:: https://travis-ci.org/libgit2/pygit2.svg?branch=master
    :target: http://travis-ci.org/libgit2/pygit2
