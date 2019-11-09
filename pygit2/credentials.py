@@ -119,7 +119,7 @@ class Keypair(object):
 
 class KeypairFromAgent(Keypair):
     def __init__(self, username):
-        super(KeypairFromAgent, self).__init__(username, None, None, None)
+        super().__init__(username, None, None, None)
 
 
 class KeypairFromMemory(Keypair):

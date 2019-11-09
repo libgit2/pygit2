@@ -250,7 +250,7 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
 
 class PruneTestCase(utils.RepoTestCase):
     def setUp(self):
-        super(PruneTestCase, self).setUp()
+        super().setUp()
         cloned_repo_path = os.path.join(self.repo_ctxtmgr.temp_dir, 'test_remote_prune')
         pygit2.clone_repository(self.repo_path, cloned_repo_path)
         self.clone_repo = pygit2.Repository(cloned_repo_path)
@@ -258,7 +258,7 @@ class PruneTestCase(utils.RepoTestCase):
 
     def tearDown(self):
         self.clone_repo = None
-        super(PruneTestCase, self).tearDown()
+        super().tearDown()
 
     def test_fetch_remote_default(self):
         self.clone_repo.remotes[0].fetch()

@@ -36,7 +36,7 @@ CONFIG_FILENAME = "test_config"
 class ConfigTest(utils.RepoTestCase):
 
     def tearDown(self):
-        super(ConfigTest, self).tearDown()
+        super().tearDown()
         try:
             os.remove(CONFIG_FILENAME)
         except OSError:

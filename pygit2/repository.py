@@ -51,7 +51,7 @@ from .submodule import Submodule
 
 class BaseRepository(_Repository):
     def __init__(self, backend, *args, **kwargs):
-        super(BaseRepository, self).__init__(backend, *args, **kwargs)
+        super().__init__(backend, *args, **kwargs)
         self._common_init()
 
     def _common_init(self):
@@ -1276,7 +1276,7 @@ class Repository(BaseRepository):
             path = path.decode('utf-8')
 
         path_backend = init_file_backend(path)
-        super(Repository, self).__init__(backend=path_backend, *args, **kwargs)
+        super().__init__(backend=path_backend, *args, **kwargs)
 
     @classmethod
     def _from_c(cls, ptr, owned):

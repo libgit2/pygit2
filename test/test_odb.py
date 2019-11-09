@@ -33,7 +33,7 @@ import unittest
 import pytest
 
 # Import from pygit2
-from pygit2 import Odb, OdbBackend, OdbBackendPack, OdbBackendLoose, Oid
+from pygit2 import Odb, OdbBackendPack, OdbBackendLoose, Oid
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB
 
 from . import utils
@@ -62,7 +62,7 @@ class EmptyOdbTest(unittest.TestCase):
 
 class OdbTest(utils.BareRepoTestCase):
     def setUp(self):
-        super(OdbTest, self).setUp()
+        super().setUp()
         self.odb = self.repo.odb
 
     def test_iterable(self):
@@ -97,7 +97,7 @@ class OdbTest(utils.BareRepoTestCase):
 
 class OdbBackendTest(utils.BareRepoTestCase):
     def setUp(self):
-        super(OdbBackendTest, self).setUp()
+        super().setUp()
         self.ref_odb = self.repo.odb
         self.obj_path = os.path.join(os.path.dirname(__file__),
                 'data', 'testrepo.git', 'objects')

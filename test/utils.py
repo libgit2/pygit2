@@ -129,13 +129,13 @@ class NoRepoTestCase(unittest.TestCase):
 
 class AutoRepoTestCase(NoRepoTestCase):
     def setUp(self):
-        super(AutoRepoTestCase, self).setUp()
+        super().setUp()
         self.repo_ctxtmgr = TemporaryRepository(self.repo_spec)
         self.repo_path = self.repo_ctxtmgr.__enter__()
         self.repo = pygit2.Repository(self.repo_path)
 
     def tearDown(self):
-        super(AutoRepoTestCase, self).tearDown()
+        super().tearDown()
         self.repo_ctxtmgr.__exit__(None, None, None)
 
 
