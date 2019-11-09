@@ -27,6 +27,7 @@
 
 # Import from the Standard Library
 import binascii
+import gc
 import os
 import unittest
 
@@ -61,9 +62,15 @@ class EmptyOdbTest(unittest.TestCase):
         assert BLOB_HEX in self.odb
 
 class OdbTest(utils.BareRepoTestCase):
+
     def setUp(self):
         super().setUp()
         self.odb = self.repo.odb
+
+    def tearDown(self):
+        del self.odb
+        gc.collect()
+        super().tearDown()
 
     def test_iterable(self):
         assert BLOB_HEX in [str(o) for o in self.odb]
