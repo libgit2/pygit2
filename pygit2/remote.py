@@ -304,7 +304,7 @@ class RemoteCallbacks(object):
         try:
             ccred = get_credentials(credentials, url, username, allowed)
             cred_out[0] = ccred[0]
-        except Passthrough as e:
+        except Passthrough:
             return C.GIT_PASSTHROUGH
         except Exception as e:
             self._stored_exception = e
@@ -331,7 +331,7 @@ class RemoteCallbacks(object):
             val = certificate_check(None, bool(valid), ffi.string(host))
             if not val:
                 return C.GIT_ECERTIFICATE
-        except Passthrough as e:
+        except Passthrough:
             if is_ssh:
                 return 0
             elif valid:
@@ -427,7 +427,10 @@ class Remote(object):
         return TransferProgress(C.git_remote_stats(self._remote))
 
     def ls_remotes(self, callbacks=None):
-        """Return a list of dicts that maps to `git_remote_head` from a `ls_remotes` call."""
+        """
+        Return a list of dicts that maps to `git_remote_head` from a
+        `ls_remotes` call.
+        """
 
         self.connect(callbacks=callbacks)
 

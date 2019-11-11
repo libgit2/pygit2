@@ -213,9 +213,12 @@ reference_is_valid_name(PyObject *self, PyObject *py_refname)
 PyDoc_STRVAR(tree_entry_cmp__doc__,
     "tree_entry_obj(a, b) -> int\n"
     "\n"
+    "Rich comparison for objects, only available when the objects have been\n"
+    "obtained through a tree. The sort criteria is the one Git uses to sort\n"
+    "tree entries in a tree object. This function wraps git_tree_entry_cmp.\n"
+    "\n"
     "Returns < 0 if a is before b, > 0 if a is after b, and 0 if a and b are\n"
-    "the same. The sort criteria is the one Git uses to sort tree entries in\n"
-    "a tree object. This function wraps git_tree_entry_cmp.");
+    "the same.");
 
 PyObject *
 tree_entry_cmp(PyObject *self, PyObject *args)

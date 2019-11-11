@@ -39,11 +39,24 @@ Functions
      >>> repository_path = discover_repository(current_working_directory)
      >>> repo = Repository(repository_path)
 
+.. autofunction:: pygit2.tree_entry_cmp(object, other)
+
 
 The Repository class
 ===================================
 
-.. py:class:: pygit2.Repository(path)
+The API of the Repository class is quite large. Since this documentation is
+organized by features, the related bits are explained in the related chapters,
+for instance the :py:meth:`pygit2.Repository.checkout` method is explained in
+the Checkout section.
+
+Below there are some general attributes and methods:
+
+.. autoclass:: pygit2.Repository
+   :members: ahead_behind, apply, create_reference, default_signature,
+             descendant_of, describe, free, is_bare, is_empty, odb, path,
+             path_is_ignored, reset, revert_commit, state_cleanup, workdir,
+             write_archive
 
    The Repository constructor only takes one argument, the path of the
    repository to open.
@@ -53,29 +66,12 @@ The Repository class
      >>> from pygit2 import Repository
      >>> repo = Repository('pygit2/.git')
 
-The API of the Repository class is quite large. Since this documentation is
-organized by features, the related bits are explained in the related chapters,
-for instance the :py:meth:`pygit2.Repository.checkout` method is explained in
-the Checkout section.
 
-Below there are some general attributes and methods:
+The Odb class
+===================================
 
-.. autoattribute:: pygit2.Repository.path
-.. autoattribute:: pygit2.Repository.workdir
-.. autoattribute:: pygit2.Repository.is_bare
-.. autoattribute:: pygit2.Repository.is_empty
-.. autoattribute:: pygit2.Repository.default_signature
+.. autoclass:: pygit2.Odb
+   :members:
 
-.. automethod:: pygit2.Repository.apply
-.. automethod:: pygit2.Repository.ahead_behind
-.. automethod:: pygit2.Repository.create_reference
-.. automethod:: pygit2.Repository.descendant_of
-.. automethod:: pygit2.Repository.describe
-.. automethod:: pygit2.Repository.free
-.. automethod:: pygit2.Repository.path_is_ignored
-.. automethod:: pygit2.Repository.read
-.. automethod:: pygit2.Repository.reset
-.. automethod:: pygit2.Repository.revert_commit
-.. automethod:: pygit2.Repository.state_cleanup
-.. automethod:: pygit2.Repository.write
-.. automethod:: pygit2.Repository.write_archive
+.. autoclass:: pygit2.OdbBackend
+   :members:

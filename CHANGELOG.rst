@@ -7,26 +7,47 @@
 - Add Python 3.8 support
   `#918 <https://github.com/libgit2/pygit2/issues/918>`_
 
+- New ``Repository.odb`` returns new ``Odb`` type instance. And new
+  ``OdbBackend`` type.
+  `#940 <https://github.com/libgit2/pygit2/pull/940>`_
+  `#942 <https://github.com/libgit2/pygit2/pull/942>`_
+
 - New support for ``/`` operator to traverse trees
   `#903 <https://github.com/libgit2/pygit2/pull/903>`_
+  `#924 <https://github.com/libgit2/pygit2/issues/924>`_
 
 - New ``Index.remove_all()``
   `#920 <https://github.com/libgit2/pygit2/pull/920>`_
 
 - New ``Repository.lookup_reference_dwim(..)`` and ``Repository.resolve_refish(..)``
-  `#922 <https://github.com/libgit2/pygit2/pull/922>`_
+  `#922 <https://github.com/libgit2/pygit2/issues/922>`_
+  `#923 <https://github.com/libgit2/pygit2/pull/923>`_
 
 - New ``Remote.ls_remotes(..)``
+  `#935 <https://github.com/libgit2/pygit2/pull/935>`_
+  `#936 <https://github.com/libgit2/pygit2/issues/936>`_
 
 - Fix spurious exception in config
   `#916 <https://github.com/libgit2/pygit2/issues/916>`_
   `#917 <https://github.com/libgit2/pygit2/pull/917>`_
 
-- Minor fixes
+- Minor documentation and cosmetic changes
   `#919 <https://github.com/libgit2/pygit2/pull/919>`_
   `#921 <https://github.com/libgit2/pygit2/pull/921>`_
+  `#946 <https://github.com/libgit2/pygit2/pull/946>`_
+  `#950 <https://github.com/libgit2/pygit2/pull/950>`_
 
 Breaking changes:
+
+- Now the Repository has a new attribue ``odb`` for object database::
+
+    # Before
+    repository.read(...)
+    repository.write(...)
+
+    # Now
+    repository.odb.read(...)
+    repository.odb.write(...)
 
 - Now ``Tree[x]`` returns a ``Object`` instance instead of a ``TreeEntry``;
   ``Object.type`` returns an integer while ``TreeEntry.type`` returned a

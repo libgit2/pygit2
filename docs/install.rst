@@ -27,9 +27,6 @@ To install the source package:
 
    $ pip install pygit2 --no-binary
 
-It's preferable to install the source package, if it works for you. But the
-binary package will often be easier to install.
-
 
 Requirements
 ============
@@ -43,9 +40,8 @@ Python requirements (these are specified in ``setup.py``):
 
 - cffi 1.0+
 
-Libgit2 **v0.28.x** (see the version numbering section below for details).
-Binary wheels already include libgit2, so you only need to worry about this if
-you install the source package
+Libgit2 **v0.28.x**; binary wheels already include libgit2, so you only need to
+worry about this if you install the source package
 
 Optional libgit2 dependecies to support ssh and https:
 
@@ -60,31 +56,42 @@ To run the tests:
 Version numbers
 ===============
 
-.. warning::
-
-   One common mistake users do is to choose incompatible versions of libgit2
-   and pygit2. Double check the versions do match before filing a bug report.
-   Though you don't need to worry about this if you install a binary wheel.
-
 The version number of pygit2 is composed of three numbers separated by dots
-|lq| *major.minor.micro* |rq|, where the first two numbers
-|lq| *major.minor* |rq| match the first two numbers of the libgit2 version,
-while the last number |lq| *.micro* |rq| auto-increments independently.
+|lq| *major.minor.micro* |rq|:
 
-It is recommended to use the latest version in each series. Example of
-compatible releases:
+- *major* will always be 1 (until we release 2.0 in a far undefined future)
+- *minor* will increase whenever we make breaking changes, or add new features, or
+  upgrade to new versions of libgit2.
+- *micro* will increase for bug fixes.
 
-+-----------+--------+--------+--------+--------+--------+
-|**libgit2**| 0.28.2 | 0.27.8 | 0.26.8 | 0.25.1 | 0.24.6 |
-+-----------+--------+--------+--------+--------+--------+
-|**pygit2** | 0.28.2 | 0.27.4 | 0.26.4 | 0.25.1 | 0.24.2 |
-+-----------+--------+--------+--------+--------+--------+
+The table below summarizes the latest pygit2 versions with the supported versions
+of Python and the required libgit2 version.
+
++-----------+----------------+---------+
+| pygit2    | Python         | libgit2 |
++-----------+----------------+---------+
+| 1.0.x     | 3.5 - 3.8      | 0.28.x  |
++-----------+----------------+---------+
+| 0.28.2    | 2.7, 3.4 - 3.7 | 0.28.x  |
++-----------+----------------+---------+
 
 .. warning::
 
-   Backwards compatibility is not guaranteed even between micro releases.
-   Please check the release notes for incompatible changes before upgrading to
-   a new release.
+   It is recommended to use the latest 1.x.y release. Because only the latest
+   is supported.
+
+.. warning::
+
+   Backwards compatibility is not guaranteed in minor releases. Please check
+   the release notes for incompatible changes before upgrading to a new
+   release.
+
+History: the 0.x series
+-----------------------
+
+The development of pygit2 started in October 2010, the release of 1.0.0
+happened in November 2019. In the 0.x series the version numbering was
+lockstep with libgit2, e.g. pygit2 0.28.x worked with libgit2 0.28.x
 
 
 Advanced

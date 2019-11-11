@@ -79,7 +79,12 @@ New objects are created using an specific API we will see later.
 This is the common interface for all Git objects:
 
 .. autoclass:: pygit2.Object
-   :members: id, type, short_id, read_raw, peel, name, filemode, __eq__, __ne__, __hash__
+   :members: id, type, type_str, short_id, read_raw, peel, name, filemode
+
+   .. automethod:: __eq__(other)
+   .. automethod:: __ne__(other)
+   .. automethod:: __hash__()
+
 
 Blobs
 =================
@@ -141,55 +146,52 @@ creating the blob object:
 Trees
 =================
 
-A tree is a sorted collection of tree entries. It is similar to a folder or
-directory in a file system. Each entry points to another tree or a blob.  A
-tree can be iterated, and partially implements the sequence and mapping
+At the low level (libgit2) a tree is a sorted collection of tree entries. In
+pygit2 accessing an entry directly returns the object.
+
+A tree can be iterated, and partially implements the sequence and mapping
 interfaces.
 
 .. method:: Tree.__getitem__(name)
 
-   Return the TreeEntry object for the given *name*. Raise ``KeyError`` if
-   there is not a tree entry with that name.
+   ``Tree[name]``
+
+   Return the Object subclass instance for the given *name*. Raise ``KeyError``
+   if there is not a tree entry with that name.
 
 .. method:: Tree.__truediv__(name)
 
-   Return the TreeEntry object for the given *name*. Raise ``KeyError`` if
-   there is not a tree entry with that name. This allows navigating the tree
-   similarly to Pathlib using the slash operator via:
+   ``Tree / name``
 
-Example::
+   Return the Object subclass instance for the given *name*. Raise ``KeyError``
+   if there is not a tree entry with that name. This allows navigating the tree
+   similarly to Pathlib using the slash operator via.
 
-    >>> entry = tree / 'path' / 'deeper' / 'some.file'
+   Example::
+
+       >>> entry = tree / 'path' / 'deeper' / 'some.file'
 
 .. method:: Tree.__contains__(name)
+
+   ``name in Tree``
 
    Return True if there is a tree entry with the given name, False otherwise.
 
 .. method:: Tree.__len__()
 
-   Return the number of entries in the tree.
+   ``len(Tree)``
+
+   Return the number of objects in the tree.
 
 .. method:: Tree.__iter__()
 
-   Return an iterator over the entries of the tree.
+   ``for object in Tree``
+
+   Return an iterator over the objects in the tree.
 
 .. automethod:: pygit2.Tree.diff_to_tree
 .. automethod:: pygit2.Tree.diff_to_workdir
 .. automethod:: pygit2.Tree.diff_to_index
-
-Tree entries
-------------
-
-.. autoattribute:: pygit2.TreeEntry.name
-.. autoattribute:: pygit2.TreeEntry.id
-.. autoattribute:: pygit2.TreeEntry.hex
-.. autoattribute:: pygit2.TreeEntry.filemode
-.. autoattribute:: pygit2.TreeEntry.type
-.. autoattribute:: pygit2.TreeEntry.obj
-
-.. method:: TreeEntry.__cmp__(TreeEntry)
-
-   Rich comparison between tree entries.
 
 Example::
 
@@ -197,8 +199,8 @@ Example::
     >>> len(tree)                        # Number of entries
     6
 
-    >>> for entry in tree:               # Iteration
-    ...     print(entry.id, entry.type, entry.name)
+    >>> for obj in tree:                 # Iteration
+    ...     print(obj.id, obj.type_str, obj.name)
     ...
     7151ca7cd3e59f3eab19c485cfbf3cb30928d7fa blob .gitignore
     c36f4cf1e38ec1bb9d9ad146ed572b89ecfc9f18 blob COPYING
@@ -207,13 +209,9 @@ Example::
     85a67270a49ef16cdd3d328f06a3e4b459f09b27 blob setup.py
     3d8985bbec338eb4d47c5b01b863ee89d044bd53 tree test
 
-    >>> entry = tree / 'pygit2.c'         # Get an entry by name
-    >>> entry
-    <pygit2.TreeEntry object at 0xcc10f0>
-
-    >>> obj = entry.obj                   # Get the blob the entry points to
+    >>> obj = tree / 'pygit2.c'          # Get an object by name
     >>> obj
-    <pygit2.Blob object at 0xcc12d0>
+    <_pygit2.Blob at 0x7f08a70acc10>
 
 Creating trees
 --------------------
