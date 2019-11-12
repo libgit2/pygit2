@@ -35,6 +35,7 @@
 
 PyObject* Diff_changes(Diff *self);
 PyObject* Diff_patch(Diff *self);
+PyObject* Diff_patchid(Diff *self);
 
 PyObject* wrap_diff(git_diff *diff, Repository *repo);
 PyObject* wrap_diff_delta(const git_diff_delta *delta);

@@ -565,6 +565,22 @@ Diff_len(Diff *self)
     return (Py_ssize_t)git_diff_num_deltas(self->diff);
 }
 
+PyDoc_STRVAR(Diff_patchid__doc__,
+    "Corresponding patchid.");
+
+PyObject *
+Diff_patchid__get__(Diff *self)
+{
+    git_oid oid;
+    int err;
+
+    err = git_diff_patchid(&oid, self->diff, NULL);
+    if (err < 0)
+        return Error_set(err);
+    return git_oid_to_python(&oid);
+}
+
+
 PyDoc_STRVAR(Diff_deltas__doc__, "Iterate over the diff deltas.");
 
 PyObject *
@@ -1024,6 +1040,7 @@ PyGetSetDef Diff_getsetters[] = {
     GETTER(Diff, deltas),
     GETTER(Diff, patch),
     GETTER(Diff, stats),
+    GETTER(Diff, patchid),
     {NULL}
 };
 
