@@ -63,22 +63,22 @@ Note_remove(Note *self, PyObject* args)
 }
 
 
-PyDoc_STRVAR(Note_id__doc__,
-  "Gets the id of the blob containing the note message\n");
-
-PyObject *
-Note_id__get__(Note *self)
-{
-    return git_oid_to_python(git_note_id(self->note));
-}
-
-
 PyDoc_STRVAR(Note_message__doc__,
   "Gets message of the note\n");
 
 PyObject *
 Note_message__get__(Note *self)
 {
+    int err;
+
+    if (self->note)
+        return to_unicode(git_note_message(self->note), NULL, NULL);
+
+    err = git_note_read(&self->note, self->repo->repo, self->ref,
+                        &((Oid *)self->annotated_id)->oid);
+    if (err < 0)
+        return Error_set(err);
+
     return to_unicode(git_note_message(self->note), NULL, NULL);
 }
 
@@ -88,7 +88,9 @@ Note_dealloc(Note *self)
 {
     Py_CLEAR(self->repo);
     Py_CLEAR(self->annotated_id);
-    git_note_free(self->note);
+    Py_CLEAR(self->id);
+    if (self->note != NULL)
+        git_note_free(self->note);
     PyObject_Del(self);
 }
 
@@ -99,13 +101,13 @@ PyMethodDef Note_methods[] = {
 };
 
 PyMemberDef Note_members[] = {
+    MEMBER(Note, id, T_OBJECT, "id of the note object."),
     MEMBER(Note, annotated_id, T_OBJECT, "id of the annotated object."),
     {NULL}
 };
 
 PyGetSetDef Note_getseters[] = {
     GETTER(Note, message),
-    GETTER(Note, id),
     {NULL}
 };
 
@@ -163,7 +165,7 @@ NoteIter_iternext(NoteIter *self)
     if (err < 0)
         return Error_set(err);
 
-    return (PyObject*) wrap_note(self->repo, &annotated_id, self->ref);
+    return (PyObject*) wrap_note(self->repo, &note_id, &annotated_id, self->ref);
 }
 
 void
@@ -209,7 +211,7 @@ PyTypeObject NoteIterType = {
 
 
 PyObject *
-wrap_note(Repository* repo, git_oid* annotated_id, const char* ref)
+wrap_note(Repository* repo, git_oid* note_id, git_oid* annotated_id, const char* ref)
 {
     Note* py_note = NULL;
     int err = GIT_ERROR;
@@ -219,14 +221,20 @@ wrap_note(Repository* repo, git_oid* annotated_id, const char* ref)
         PyErr_NoMemory();
         return NULL;
     }
-
-    err = git_note_read(&py_note->note, repo->repo, ref, annotated_id);
-    if (err < 0)
-        return Error_set(err);
-
+    /* If the note has been provided, defer the git_note_read() call */
+    if (note_id != NULL) {
+        py_note->id = git_oid_to_python(note_id);
+        py_note->note = NULL;
+    } else {
+        err = git_note_read(&py_note->note, repo->repo, ref, annotated_id);
+        if (err < 0)
+            return Error_set(err);
+        py_note->id = git_oid_to_python(git_note_id(py_note->note));
+    }
     py_note->repo = repo;
     Py_INCREF(repo);
     py_note->annotated_id = git_oid_to_python(annotated_id);
+    py_note->ref = ref;
 
     return (PyObject*) py_note;
 }

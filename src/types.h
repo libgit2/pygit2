@@ -109,6 +109,8 @@ typedef struct {
     Repository *repo;
     git_note *note;
     PyObject* annotated_id;
+    PyObject* id;
+    const char *ref;
 } Note;
 
 typedef struct {

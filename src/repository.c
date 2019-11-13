@@ -1666,7 +1666,7 @@ Repository_lookup_note(Repository *self, PyObject* args)
     if (err < 0)
         return Error_set(err);
 
-    return (PyObject*) wrap_note(self, &annotated_id, ref);
+    return (PyObject*) wrap_note(self, NULL, &annotated_id, ref);
 }
 
 PyDoc_STRVAR(Repository_reset__doc__,

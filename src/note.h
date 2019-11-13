@@ -32,6 +32,7 @@
 #include <Python.h>
 #include <git2.h>
 
-PyObject* wrap_note(Repository* repo, git_oid* annotated_id, const char* ref);
+PyObject* wrap_note(Repository* repo, git_oid* note_id,
+                    git_oid* annotated_id, const char* ref);
 
 #endif
