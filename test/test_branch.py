@@ -111,10 +111,12 @@ class BranchesObjectTestCase(utils.RepoTestCase):
         branch = self.repo.branches.get('master')
         assert branch.branch_name == 'master'
         assert branch.name == 'refs/heads/master'
+        assert branch.raw_branch_name == branch.branch_name.encode('utf-8')
 
         branch = self.repo.branches.get('i18n')
         assert branch.branch_name == 'i18n'
         assert branch.name == 'refs/heads/i18n'
+        assert branch.raw_branch_name == branch.branch_name.encode('utf-8')
 
     def test_with_commit(self):
         branches = self.repo.branches.with_commit(EXCLUSIVE_MASTER_COMMIT)
