@@ -41,7 +41,6 @@ build_script:
     cmake . -DBUILD_CLAR=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="%LIBGIT2%" -G "%GENERATOR%"
     cmake --build . --target install
     cd ..
-    IF "%GENERATOR%"=="Visual Studio 10 Win64" ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" )
 
 # Build and install pygit2
 # Rename pygit2 folder, so when testing it picks the installed one
