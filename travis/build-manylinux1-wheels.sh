@@ -21,7 +21,8 @@ then
     exit 1
 fi
 
-PYTHONS=`ls /opt/python/`
+PYTHONS="cp35-cp35m cp36-cp36m cp37-cp37m cp38-cp38"
+
 
 # Avoid creation of __pycache__/*.py[c|o]
 export PYTHONDONTWRITEBYTECODE=1
@@ -39,7 +40,7 @@ export LIBGIT2="${STATIC_DEPS_PREFIX}"
 ZLIB_VERSION=1.2.11
 ZLIB_DOWNLOAD_DIR="${BUILD_DIR}/zlib-${ZLIB_VERSION}"
 
-LIBSSH2_VERSION=1.8.0
+LIBSSH2_VERSION=1.9.0
 LIBSSH2_CLONE_DIR="${BUILD_DIR}/libssh2"
 LIBSSH2_BUILD_DIR="${LIBSSH2_CLONE_DIR}/build"
 
@@ -52,7 +53,7 @@ function cleanup_garbage() {
     >&2 echo
     >&2 echo
     >&2 echo ===========================================
-    >&2 echo Cleaninig up python bytecode cache files...
+    >&2 echo Cleaning up python bytecode cache files...
     >&2 echo ===========================================
     >&2 echo
     find "${SRC_DIR}" \
@@ -68,7 +69,7 @@ function cleanup_garbage() {
     >&2 echo
     >&2 echo
     >&2 echo ======================================
-    >&2 echo Cleaninig up files untracked by Git...
+    >&2 echo Cleaning up files untracked by Git...
     >&2 echo ======================================
     >&2 echo
     git ${GIT_GLOBAL_ARGS} clean -fxd --exclude dist/
@@ -185,7 +186,8 @@ popd
 >&2 echo Building wheels:
 >&2 echo ================
 >&2 echo
-for PIP_BIN in /opt/python/*/bin/pip; do
+for PY in $PYTHONS; do
+    PIP_BIN="/opt/python/${PY}/bin/pip"
     cleanup_garbage
     >&2 echo Using "${PIP_BIN}"...
     ${PIP_BIN} wheel "${SRC_DIR}" -w "${ORIG_WHEEL_DIR}"
@@ -228,7 +230,8 @@ done
 >&2 echo Testing wheels installation:
 >&2 echo ============================
 >&2 echo
-for PIP_BIN in /opt/python/*/bin/pip; do
+for PY in $PYTHONS; do
+    PIP_BIN="/opt/python/${PY}/bin/pip"
     cleanup_garbage
     >&2 echo Using ${PIP_BIN}...
     ${PIP_BIN} install --no-compile "${DIST_NAME}" --no-index -f ${WHEEL_DEP_DIR} #&
@@ -242,7 +245,8 @@ wait
 >&2 echo SMOKE TESTING
 >&2 echo =============
 >&2 echo
-for PY_BIN in /opt/python/*/bin/python; do
+for PY in $PYTHONS; do
+    PY_BIN="/opt/python/${PY}/bin/python"
     cleanup_garbage
     $PY_BIN -B -V
     $PY_BIN -B -c '
@@ -279,7 +283,8 @@ done
 cp -v ${SRC_DIR}/pytest.ini ${BUILD_DIR}/
 cp -vr ${TESTS_SRC_DIR} ${TESTS_DIR}
 pushd "${BUILD_DIR}"
-for PY_BIN in /opt/python/*/bin/python; do
+for PY in $PYTHONS; do
+    PY_BIN="/opt/python/${PY}/bin/python"
     cleanup_garbage
     $PY_BIN -B -m pip install --no-compile pytest
     $PY_BIN -B -m pytest "${TESTS_DIR}" &
