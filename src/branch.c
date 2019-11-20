@@ -149,6 +149,23 @@ Branch_branch_name__get__(Branch *self)
         return Error_set(err);
 }
 
+PyDoc_STRVAR(Branch_raw_branch_name__doc__,
+  "The name of the local or remote branch (bytes).");
+
+PyObject *
+Branch_raw_branch_name__get__(Branch *self)
+{
+    int err;
+    const char *c_name;
+
+    CHECK_REFERENCE(self);
+
+    err = git_branch_name(&c_name, self->reference);
+    if (err == GIT_OK)
+        return PyBytes_FromString(c_name);
+    else
+        return Error_set(err);
+}
 
 PyDoc_STRVAR(Branch_remote_name__doc__,
   "The name of the remote set to be the upstream of this branch.");
@@ -263,6 +280,7 @@ PyMethodDef Branch_methods[] = {
 
 PyGetSetDef Branch_getseters[] = {
     GETTER(Branch, branch_name),
+    GETTER(Branch, raw_branch_name),
     GETTER(Branch, remote_name),
     GETSET(Branch, upstream),
     GETTER(Branch, upstream_name),
