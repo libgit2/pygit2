@@ -26,13 +26,13 @@ manylinux1_image_prefix="pyca/cryptography-manylinux1:"
 dock_ext_args=""
 declare -A docker_pull_pids=()  # This syntax requires at least bash v4
 
-for arch in x86_64 i686
+for arch in x86_64
 do
     docker pull "${manylinux1_image_prefix}${arch}" &
     docker_pull_pids[$arch]=$!
 done
 
-for arch in x86_64 i686
+for arch in x86_64
 do
     echo
     echo
