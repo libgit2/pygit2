@@ -25,6 +25,8 @@
 
 """Tests for reference objects."""
 
+import os
+
 import pytest
 
 from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
@@ -237,6 +239,19 @@ class ReferencesObjectTest(utils.RepoTestCase):
 
         assert ref1 != ref3
         assert not ref1 == ref3
+
+    def test_compress(self):
+        repo = self.repo
+        packed_refs_file = os.path.join(self.repo_path, '.git', 'packed-refs')
+        assert not os.path.exists(packed_refs_file)
+        old_refs = [(ref.name, ref.target.hex)
+                    for ref in repo.references.objects]
+
+        repo.references.compress()
+        assert os.path.exists(packed_refs_file)
+        new_refs = [(ref.name, ref.target.hex)
+                    for ref in repo.references.objects]
+        assert old_refs == new_refs
 
 class ReferencesTest(utils.RepoTestCase):
     def test_list_all_reference_objects(self):

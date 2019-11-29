@@ -1269,6 +1269,9 @@ class References(object):
     def objects(self):
         return self._repository.listall_reference_objects()
 
+    def compress(self):
+        return self._repository.compress_references()
+
 
 class Repository(BaseRepository):
     def __init__(self, path, *args, **kwargs):

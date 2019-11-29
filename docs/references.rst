@@ -29,6 +29,9 @@ Example::
     # Delete a reference
     >>> repo.references.delete('refs/tags/version1')
 
+    # Pack loose references
+    >>> repo.references.compress()
+
 
 Functions
 ===================================

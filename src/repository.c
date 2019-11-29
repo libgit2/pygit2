@@ -1407,6 +1407,31 @@ Repository_create_reference_symbolic(Repository *self,  PyObject *args,
     return wrap_reference(c_reference, self);
 }
 
+PyDoc_STRVAR(Repository_compress_references__doc__,
+  "compress_references()\n"
+  "\n"
+  "Suggest that the repository compress or optimize its references.\n"
+  "This mechanism is implementation-specific.  For on-disk reference\n"
+  "databases, for example, this may pack all loose references.");
+
+PyObject *
+Repository_compress_references(Repository *self)
+{
+    git_refdb *refdb;
+    int err;
+
+    err = git_repository_refdb(&refdb, self->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    err = git_refdb_compress(refdb);
+
+    git_refdb_free(refdb);
+    if (err < 0)
+        return Error_set(err);
+    Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(Repository_status__doc__,
   "status() -> {str: int}\n"
   "\n"
@@ -1874,6 +1899,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, apply, METH_O),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
+    METHOD(Repository, compress_references, METH_NOARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, listall_reference_objects, METH_NOARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
