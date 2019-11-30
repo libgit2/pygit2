@@ -374,6 +374,30 @@ class BaseRepository(_Repository):
     #
     # Diff
     #
+    def __whatever_to_tree_or_blob(self, obj):
+        if obj is None:
+            return None
+
+        # If it's a string, then it has to be valid revspec
+        if isinstance(obj, str):
+            obj = self.revparse_single(obj)
+        elif isinstance(obj, Oid):
+            obj = self[obj]
+
+        # First we try to get to a blob
+        try:
+            obj = obj.peel(Blob)
+        except Exception:
+            # And if that failed, try to get a tree, raising a type
+            # error if that still doesn't work
+            try:
+                obj = obj.peel(Tree)
+            except Exception:
+                raise TypeError('unexpected "%s"' % type(obj))
+
+        return obj
+
+
     def diff(self, a=None, b=None, cached=False, flags=GIT_DIFF_NORMAL,
              context_lines=3, interhunk_lines=0):
         """
@@ -433,29 +457,8 @@ class BaseRepository(_Repository):
         API (Tree.diff_to_tree()) directly.
         """
 
-        def whatever_to_tree_or_blob(obj):
-            if obj is None:
-                return None
-
-            # If it's a string, then it has to be valid revspec
-            if isinstance(obj, str):
-                obj = self.revparse_single(obj)
-
-            # First we try to get to a blob
-            try:
-                obj = obj.peel(Blob)
-            except Exception:
-                # And if that failed, try to get a tree, raising a type
-                # error if that still doesn't work
-                try:
-                    obj = obj.peel(Tree)
-                except Exception:
-                    raise TypeError('unexpected "%s"' % type(obj))
-
-            return obj
-
-        a = whatever_to_tree_or_blob(a)
-        b = whatever_to_tree_or_blob(b)
+        a = self.__whatever_to_tree_or_blob(a)
+        b = self.__whatever_to_tree_or_blob(b)
 
         opt_keys = ['flags', 'context_lines', 'interhunk_lines']
         opt_values = [flags, context_lines, interhunk_lines]

@@ -71,13 +71,15 @@ Note_message__get__(Note *self)
 {
     int err;
 
-    if (self->note)
-        return to_unicode(git_note_message(self->note), NULL, NULL);
-
-    err = git_note_read(&self->note, self->repo->repo, self->ref,
-                        &((Oid *)self->annotated_id)->oid);
-    if (err < 0)
-        return Error_set(err);
+    // Lazy load
+    if (self->note == NULL) {
+        err = git_note_read(&self->note,
+                            self->repo->repo,
+                            self->ref,
+                            &((Oid *)self->annotated_id)->oid);
+        if (err < 0)
+            return Error_set(err);
+    }
 
     return to_unicode(git_note_message(self->note), NULL, NULL);
 }

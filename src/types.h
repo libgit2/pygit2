@@ -107,10 +107,10 @@ SIMPLE_TYPE(Worktree, git_worktree, worktree)
 typedef struct {
     PyObject_HEAD
     Repository *repo;
-    git_note *note;
-    PyObject* annotated_id;
-    PyObject* id;
     const char *ref;
+    PyObject *annotated_id;
+    PyObject *id;
+    git_note *note;
 } Note;
 
 typedef struct {

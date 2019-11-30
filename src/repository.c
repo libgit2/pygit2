@@ -347,12 +347,12 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 
     /* 2- Lookup */
     err = git_revparse_single(&c_obj, self->repo, c_spec);
-
     if (err < 0) {
         PyObject *err_obj = Error_set_str(err, c_spec);
         Py_DECREF(tspec);
         return err_obj;
     }
+
     Py_DECREF(tspec);
 
     return wrap_object(c_obj, self, NULL);
@@ -678,28 +678,27 @@ Repository_walk(Repository *self, PyObject *args)
     /* Push */
     if (value != Py_None) {
         err = py_oid_to_git_oid_expand(self->repo, value, &oid);
-        if (err < 0) {
-            git_revwalk_free(walk);
-            return NULL;
-        }
+        if (err < 0)
+            goto error;
 
         err = git_revwalk_push(walk, &oid);
         if (err < 0) {
-            git_revwalk_free(walk);
-            return Error_set(err);
+            Error_set(err);
+            goto error;
         }
     }
 
     py_walker = PyObject_New(Walker, &WalkerType);
-    if (!py_walker) {
-        git_revwalk_free(walk);
-        return NULL;
+    if (py_walker) {
+        Py_INCREF(self);
+        py_walker->repo = self;
+        py_walker->walk = walk;
+        return (PyObject*)py_walker;
     }
 
-    Py_INCREF(self);
-    py_walker->repo = self;
-    py_walker->walk = walk;
-    return (PyObject*)py_walker;
+error:
+    git_revwalk_free(walk);
+    return NULL;
 }
 
 
