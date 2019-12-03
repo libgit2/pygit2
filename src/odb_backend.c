@@ -204,6 +204,37 @@ pygit2_odb_backend_exists(git_odb_backend *_be, const git_oid *oid)
     return PyObject_IsTrue(result);
 }
 
+static int
+pygit2_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
+        const git_oid *partial, size_t len)
+{
+    int err;
+    PyObject *args, *py_oid, *py_oid_out, *result;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+
+    py_oid = git_oid_to_python(partial);
+    args = Py_BuildValue("(O)", py_oid);
+    result = PyObject_CallObject(be->exists_prefix, args);
+    Py_DECREF(py_oid);
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    if (result == NULL)
+        return GIT_EUSER;
+
+    if (!PyArg_ParseTuple(result, "O", &py_oid_out))
+        return GIT_EUSER;
+
+    if (py_oid_out == Py_None)
+        return GIT_ENOTFOUND;
+
+    py_oid_to_git_oid(py_oid_out, out);
+    Py_DECREF(py_oid_out);
+    return 0;
+}
+
 static void
 pygit2_odb_backend_free(git_odb_backend *_be)
 {
@@ -280,7 +311,6 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         Py_INCREF(be->exists);
     }
 
-    /*
     be->exists_prefix = PyObject_GetAttrString(
             (PyObject *)self, "exists_prefix");
     if (be->exists_prefix) {
@@ -288,6 +318,7 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         Py_INCREF(be->exists_prefix);
     }
 
+    /*
     be->refresh = PyObject_GetAttrString(
             (PyObject *)self, "refresh");
     if (be->refresh) {
@@ -521,11 +552,44 @@ OdbBackend_exists(OdbBackend *self, PyObject *py_hex)
         Py_RETURN_TRUE;
 }
 
+PyDoc_STRVAR(OdbBackend_exists_prefix__doc__,
+    "exists_prefix(partial oid) -> complete oid\n"
+    "\n"
+    "Given a partial oid, returns the full oid. Raises KeyError if not found,\n"
+    "or ValueError if ambiguous.");
+
+PyObject *
+OdbBackend_exists_prefix(OdbBackend *self, PyObject *py_hex)
+{
+    int result;
+    size_t len;
+    git_oid oid;
+
+    if (self->odb_backend->exists_prefix == NULL) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    len = py_oid_to_git_oid(py_hex, &oid);
+    if (len == 0)
+        return NULL;
+
+    git_oid out;
+    result = self->odb_backend->exists_prefix(&out,
+            self->odb_backend, &oid, len);
+
+    if (result < 0)
+        return Error_set(result);
+
+    return git_oid_to_python(&out);
+}
+
 PyMethodDef OdbBackend_methods[] = {
     METHOD(OdbBackend, read, METH_O),
     METHOD(OdbBackend, read_prefix, METH_O),
     METHOD(OdbBackend, read_header, METH_O),
     METHOD(OdbBackend, exists, METH_O),
+    METHOD(OdbBackend, exists_prefix, METH_O),
     {NULL}
 };
 

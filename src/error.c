@@ -145,7 +145,7 @@ git_error_for_exc()
             return GIT_ENOTFOUND;
         }
         if (PyErr_GivenExceptionMatches(err, PyExc_ValueError)) {
-            return GIT_EINVALID;
+            return GIT_EAMBIGUOUS;
         }
         /* TODO: others? */
         return GIT_EUSER;
