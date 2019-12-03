@@ -235,6 +235,23 @@ pygit2_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
     return 0;
 }
 
+static int
+pygit2_odb_backend_refresh(git_odb_backend *_be)
+{
+    int err;
+    PyObject *args;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+
+    args = Py_BuildValue("()"); /* XXX: Is this necessary? */
+    PyObject_CallObject(be->exists_prefix, args);
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    return 0;
+}
+
 static void
 pygit2_odb_backend_free(git_odb_backend *_be)
 {
@@ -318,7 +335,6 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         Py_INCREF(be->exists_prefix);
     }
 
-    /*
     be->refresh = PyObject_GetAttrString(
             (PyObject *)self, "refresh");
     if (be->refresh) {
@@ -326,6 +342,7 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         Py_INCREF(be->refresh);
     }
 
+    /*
     be->writepack = PyObject_GetAttrString(
             (PyObject *)self, "writepack");
     if (be->writepack) {
@@ -584,12 +601,35 @@ OdbBackend_exists_prefix(OdbBackend *self, PyObject *py_hex)
     return git_oid_to_python(&out);
 }
 
+PyDoc_STRVAR(OdbBackend_refresh__doc__,
+    "refresh()\n"
+    "\n"
+    "If the backend supports a refreshing mechanism, this function will invoke\n"
+    "it. However, the backend implementation should try to stay up-to-date as\n"
+    "much as possible by itself as libgit2 will not automatically invoke this\n"
+    "function. For instance, a potential strategy for the backend\n"
+    "implementation to utilize this could be internally calling the refresh\n"
+    "function on failed lookups.");
+
+PyObject *
+OdbBackend_refresh(OdbBackend *self)
+{
+    if (self->odb_backend->refresh == NULL) {
+        /* XXX: Should we no-op instead? */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+    self->odb_backend->refresh(self->odb_backend);
+    return Py_None;
+}
+
 PyMethodDef OdbBackend_methods[] = {
     METHOD(OdbBackend, read, METH_O),
     METHOD(OdbBackend, read_prefix, METH_O),
     METHOD(OdbBackend, read_header, METH_O),
     METHOD(OdbBackend, exists, METH_O),
     METHOD(OdbBackend, exists_prefix, METH_O),
+    METHOD(OdbBackend, refresh, METH_NOARGS),
     {NULL}
 };
 
