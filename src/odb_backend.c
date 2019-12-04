@@ -57,7 +57,6 @@ struct pygit2_odb_backend
              *exists,
              *exists_prefix,
              *refresh,
-             *foreach, /* __iter__ */
              *writepack,
              *freshen;
 };
@@ -252,6 +251,30 @@ pygit2_odb_backend_refresh(git_odb_backend *_be)
     return 0;
 }
 
+static int
+pygit2_odb_backend_foreach(git_odb_backend *_be,
+        git_odb_foreach_cb cb, void *payload)
+{
+    int err;
+    PyObject *item;
+    git_oid oid;
+    struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
+    PyObject *iterator = PyObject_GetIter((PyObject *)be->OdbBackend);
+    assert(iterator);
+
+    while ((item = PyIter_Next(iterator))) {
+        py_oid_to_git_oid(item, &oid);
+        cb(&oid, payload);
+        Py_DECREF(item);
+    }
+
+    if ((err = git_error_for_exc()) != 0) {
+        return err;
+    }
+
+    return 0;
+}
+
 static void
 pygit2_odb_backend_free(git_odb_backend *_be)
 {
@@ -342,6 +365,10 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         Py_INCREF(be->refresh);
     }
 
+    if (PyIter_Check((PyObject *)self)) {
+        be->backend.foreach = pygit2_odb_backend_foreach;
+    }
+
     /*
     be->writepack = PyObject_GetAttrString(
             (PyObject *)self, "writepack");
@@ -379,7 +406,6 @@ OdbBackend_dealloc(OdbBackend *self)
         Py_CLEAR(be->exists);
         Py_CLEAR(be->exists_prefix);
         Py_CLEAR(be->refresh);
-        Py_CLEAR(be->foreach);
         Py_CLEAR(be->writepack);
         Py_CLEAR(be->freshen);
         free(be);
