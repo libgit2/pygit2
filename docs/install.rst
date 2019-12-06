@@ -90,7 +90,7 @@ History: the 0.x series
 -----------------------
 
 The development of pygit2 started in October 2010, the release of 1.0.0
-happened in November 2019. In the 0.x series the version numbering was
+happened in December 2019. In the 0.x series the version numbering was
 lockstep with libgit2, e.g. pygit2 0.28.x worked with libgit2 0.28.x
 
 

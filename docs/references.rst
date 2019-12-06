@@ -101,54 +101,6 @@ Example. These two lines are equivalent::
 .. autoattribute:: pygit2.Repository.head_is_detached
 .. autoattribute:: pygit2.Repository.head_is_unborn
 
-Branches
-====================
-
-.. py:attribute:: Repository.branches
-
-Branches inherit from References, and additionally provide specialized
-accessors for some unique features.
-
-.. autoclass:: pygit2.repository.Branches
-   :members:
-   :undoc-members:
-   :special-members: __getitem__, __iter__, __contains__
-
-Example::
-
-    >>> # Listing all branches
-    >>> branches_list = list(repo.branches)
-    >>> # Local only
-    >>> local_branches = list(repo.branches.local)
-    >>> # Remote only
-    >>> remote_branches = list(repo.branches.remote)
-
-    >>> # Get a branch
-    >>> branch = repo.branches['master']
-    >>> other_branch = repo.branches['does-not-exist']  # Will raise a KeyError
-    >>> other_branch = repo.branches.get('does-not-exist')  # Returns None
-
-    >>> remote_branch = repo.branches.remote['upstream/feature']
-
-    >>> # Create a local branch
-    >>> new_branch = repo.branches.local.create('new-branch')
-
-    >>> And delete it
-    >>> repo.branches.delete('new-branch')
-
-
-The Branch type
-====================
-
-.. autoattribute:: pygit2.Branch.branch_name
-.. autoattribute:: pygit2.Branch.remote_name
-.. autoattribute:: pygit2.Branch.upstream
-.. autoattribute:: pygit2.Branch.upstream_name
-.. automethod:: pygit2.Branch.rename
-.. automethod:: pygit2.Branch.delete
-.. automethod:: pygit2.Branch.is_head
-.. automethod:: pygit2.Branch.is_checked_out
-
 The reference log
 ====================
 

@@ -6,6 +6,7 @@ Authors::
   Sviatoslav Sydorenko
   Matthias Bartelmeß
   W. Trevor King
+  Robert Coup
   Dave Borowitz
   Brandon Milton
   Daniel Rodríguez Troitiño
@@ -37,6 +38,7 @@ Authors::
   Nicolas Dandrimont
   Raphael Medaer (Escaux)
   Anatoly Techtonik
+  Dan Sully
   David Versmisse
   Mikhail Yushkovskiy
   Robin Stocker
@@ -57,7 +59,6 @@ Authors::
   Nika Layzell
   Peter-Yi Zhang
   Petr Viktorin
-  Robert Coup
   Robert Hölzl
   Ron Cohen
   Thomas Kluyver
@@ -68,6 +69,8 @@ Authors::
   Andrey Devyatkin
   Arno van Lumig
   Ben Davis
+  Colin Watson
+  Drew DeVault
   Dustin Raimondi
   Eric Schrijver
   Greg Fitzgerald
@@ -86,6 +89,7 @@ Authors::
   Kaarel Kitsemets
   Ken Dreyer
   Kevin KIN-FOO
+  Marcel Waldvogel
   Masud Rahman
   Michael Sondergaard
   Natanael Arndt
@@ -111,7 +115,7 @@ Authors::
   Chason Chaffin
   Chris Jerdonek
   Chris Rebert
-  Colin Watson
+  Christopher Hunt
   Cristian Hotea
   Cyril Jouve
   Daniel Bruce
@@ -127,9 +131,11 @@ Authors::
   Erik van Zijst
   Ferengee
   Frazer McLean
+  Gregory Herrero
   Gustavo Di Pietro
   Holger Frey
   Hugh Cole-Baker
+  Isabella Stephens
   Jasper Lievisse Adriaanse
   Jonathan Robson
   Josh Bleecher Snyder
@@ -152,6 +158,8 @@ Authors::
   Rodrigo Bistolfi
   Ross Nicoll
   Rui Abreu Ferreira
+  Saul Pwanson
+  Shane Turner
   Sheeo
   Soasme
   Steven Winfield
@@ -159,4 +167,3 @@ Authors::
   Yu Jianjian
   chengyuhang
   earl
-  Dan Sully

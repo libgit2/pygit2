@@ -1,5 +1,5 @@
 **********************************************************************
-The Index file and the Working copy
+Index file & Working copy
 **********************************************************************
 
 .. autoattribute:: pygit2.Repository.index

@@ -41,3 +41,8 @@ Example::
 
           >>> f(...)
       """
+
+Running Valgrind
+===================================
+
+valgrind --tool=memcheck --suppressions=misc/valgrind-python.supp ~/Python-3.7.4/bin/pytest

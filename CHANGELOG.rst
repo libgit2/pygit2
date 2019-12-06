@@ -1,4 +1,4 @@
-1.0.0 (UNRELEASED)
+1.0.0 (2019-12-06)
 -------------------------
 
 - Drop Python 2.7 and 3.4 support, six no longer required
@@ -7,25 +7,34 @@
 - Add Python 3.8 support
   `#918 <https://github.com/libgit2/pygit2/issues/918>`_
 
-- New ``Repository.odb`` returns new ``Odb`` type instance. And new
-  ``OdbBackend`` type.
-  `#940 <https://github.com/libgit2/pygit2/pull/940>`_
-  `#942 <https://github.com/libgit2/pygit2/pull/942>`_
-
 - New support for ``/`` operator to traverse trees
   `#903 <https://github.com/libgit2/pygit2/pull/903>`_
   `#924 <https://github.com/libgit2/pygit2/issues/924>`_
 
+- New ``Branch.raw_branch_name``
+  `#954 <https://github.com/libgit2/pygit2/pull/954>`_
+
 - New ``Index.remove_all()``
   `#920 <https://github.com/libgit2/pygit2/pull/920>`_
+
+- New ``Remote.ls_remotes(..)``
+  `#935 <https://github.com/libgit2/pygit2/pull/935>`_
+  `#936 <https://github.com/libgit2/pygit2/issues/936>`_
 
 - New ``Repository.lookup_reference_dwim(..)`` and ``Repository.resolve_refish(..)``
   `#922 <https://github.com/libgit2/pygit2/issues/922>`_
   `#923 <https://github.com/libgit2/pygit2/pull/923>`_
 
-- New ``Remote.ls_remotes(..)``
-  `#935 <https://github.com/libgit2/pygit2/pull/935>`_
-  `#936 <https://github.com/libgit2/pygit2/issues/936>`_
+- New ``Repository.odb`` returns new ``Odb`` type instance. And new
+  ``OdbBackend`` type.
+  `#940 <https://github.com/libgit2/pygit2/pull/940>`_
+  `#942 <https://github.com/libgit2/pygit2/pull/942>`_
+
+- New ``Repository.references.compress()``
+  `#961 <https://github.com/libgit2/pygit2/pull/961>`_
+
+- Optimization: Load notes lazily
+  `#958 <https://github.com/libgit2/pygit2/pull/958>`_
 
 - Fix spurious exception in config
   `#916 <https://github.com/libgit2/pygit2/issues/916>`_

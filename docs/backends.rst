@@ -1,5 +1,5 @@
 **********************************************************************
-Custom backends
+Backends
 **********************************************************************
 
 There is some support for custom backends, but undocumented. See

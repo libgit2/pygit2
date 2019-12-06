@@ -32,24 +32,25 @@ Usage guide:
    :maxdepth: 1
 
    general
-   repository
-   oid
-   objects
 
    backends
    blame
+   branches
+   commit_log
    config
    diff
    features
-   log
+   index_file
    mailmap
    merge
+   oid
+   objects
    references
    remotes
+   repository
    revparse
    settings
    submodule
-   working-copy
    worktree
 
 

@@ -1,5 +1,5 @@
 **********************************************************************
-Git Objects
+Objects
 **********************************************************************
 
 There are four types of Git objects: blobs, trees, commits and tags. For each

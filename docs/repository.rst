@@ -1,5 +1,5 @@
 **********************************************************************
-The repository
+Repository
 **********************************************************************
 
 Everything starts either by creating a new repository, or by opening an
