@@ -649,6 +649,14 @@ OdbBackend_refresh(OdbBackend *self)
     return Py_None;
 }
 
+/*
+ * TODO:
+ * - write
+ * - writepack
+ * - writestream
+ * - readstream
+ * - freshen
+ */
 PyMethodDef OdbBackend_methods[] = {
     METHOD(OdbBackend, read, METH_O),
     METHOD(OdbBackend, read_prefix, METH_O),
