@@ -301,66 +301,66 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
     be->backend.version = GIT_ODB_BACKEND_VERSION;
     be->OdbBackend = (PyObject *)self;
 
-    be->read = PyObject_GetAttrString((PyObject *)self, "read");
-    if (be->read) {
+    if (PyObject_HasAttrString((PyObject *)self, "read")) {
+        be->read = PyObject_GetAttrString((PyObject *)self, "read");
         be->backend.read = pygit2_odb_backend_read;
         Py_INCREF(be->read);
     }
 
-    be->read_prefix = PyObject_GetAttrString(
-            (PyObject *)self, "read_prefix");
-    if (be->read_prefix) {
+    if (PyObject_HasAttrString((PyObject *)self, "read_prefix")) {
+        be->read_prefix = PyObject_GetAttrString(
+                (PyObject *)self, "read_prefix");
         be->backend.read_prefix = pygit2_odb_backend_read_prefix;
         Py_INCREF(be->read_prefix);
     }
 
-    be->read_header = PyObject_GetAttrString(
-            (PyObject *)self, "read_header");
-    if (be->read_header) {
+    if (PyObject_HasAttrString((PyObject *)self, "read_header")) {
+        be->read_header = PyObject_GetAttrString(
+                (PyObject *)self, "read_header");
         be->backend.read_header = pygit2_odb_backend_read_header;
         Py_INCREF(be->read_header);
     }
 
-    be->write = PyObject_GetAttrString(
-            (PyObject *)self, "write");
-    if (be->write) {
+    if (PyObject_HasAttrString((PyObject *)self, "write")) {
+        be->write = PyObject_GetAttrString(
+                (PyObject *)self, "write");
         be->backend.write = pygit2_odb_backend_write;
         Py_INCREF(be->write);
     }
 
     /* TODO: Stream-based read/write
-    be->writestream = PyObject_GetAttrString(
-            (PyObject *)self, "writestream");
-    if (be->writestream) {
+    if (PyObject_HasAttrString((PyObject *)self, "writestream")) {
+        be->writestream = PyObject_GetAttrString(
+                (PyObject *)self, "writestream");
         be->backend.writestream = pygit2_odb_backend_writestream;
         Py_INCREF(be->writestream);
     }
 
-    be->readstream = PyObject_GetAttrString(
-            (PyObject *)self, "readstream");
-    if (be->readstream) {
+    if (PyObject_HasAttrString((PyObject *)self, "readstream")) {
+        be->readstream = PyObject_GetAttrString(
+                (PyObject *)self, "readstream");
         be->backend.readstream = pygit2_odb_backend_readstream;
         Py_INCREF(be->readstream);
     }
     */
 
-    be->exists = PyObject_GetAttrString(
-            (PyObject *)self, "exists");
-    if (be->exists) {
+    if (PyObject_HasAttrString((PyObject *)self, "exists")) {
+        be->exists = PyObject_GetAttrString(
+                (PyObject *)self, "exists");
         be->backend.exists = pygit2_odb_backend_exists;
         Py_INCREF(be->exists);
     }
 
-    be->exists_prefix = PyObject_GetAttrString(
-            (PyObject *)self, "exists_prefix");
-    if (be->exists_prefix) {
+    if (PyObject_HasAttrString((PyObject *)self, "exists_prefix")) {
+        be->exists_prefix = PyObject_GetAttrString(
+                (PyObject *)self, "exists_prefix");
         be->backend.exists_prefix = pygit2_odb_backend_exists_prefix;
         Py_INCREF(be->exists_prefix);
     }
 
-    be->refresh = PyObject_GetAttrString(
-            (PyObject *)self, "refresh");
-    if (be->refresh) {
+    if (PyObject_HasAttrString((PyObject *)self, "refresh")) {
+        be->refresh = PyObject_GetAttrString(
+                (PyObject *)self, "refresh");
         be->backend.refresh = pygit2_odb_backend_refresh;
         Py_INCREF(be->refresh);
     }
@@ -369,17 +369,17 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         be->backend.foreach = pygit2_odb_backend_foreach;
     }
 
-    /*
-    be->writepack = PyObject_GetAttrString(
-            (PyObject *)self, "writepack");
-    if (be->writepack) {
+    /* TODO:
+    if (PyObject_HasAttrString((PyObject *)self, "writepack")) {
+        be->writepack = PyObject_GetAttrString(
+                (PyObject *)self, "writepack");
         be->backend.writepack = pygit2_odb_backend_writepack;
         Py_INCREF(be->writepack);
     }
 
-    be->freshen = PyObject_GetAttrString(
-            (PyObject *)self, "freshen");
-    if (be->freshen) {
+    if (PyObject_HasAttrString((PyObject *)self, "freshen")) {
+        be->freshen = PyObject_GetAttrString(
+                (PyObject *)self, "freshen");
         be->backend.freshen = pygit2_odb_backend_freshen;
         Py_INCREF(be->freshen);
     }
@@ -525,7 +525,7 @@ OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
     }
 
     py_oid_out = git_oid_to_python(&oid_out);
-    tuple = Py_BuildValue("(ny#o)", type, data, sz, py_oid_out);
+    tuple = Py_BuildValue("(ny#O)", type, data, sz, py_oid_out);
 
     /* XXX: This assumes the default libgit2 allocator is in use and will
      * probably segfault and/or destroy the universe otherwise */
