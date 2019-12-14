@@ -35,7 +35,7 @@
 #include "utils.h"
 #include <git2/odb.h>
 
-PyTypeObject OdbBackendType;
+extern PyTypeObject OdbBackendType;
 
 static git_otype
 int_to_loose_object_type(int type_id)
