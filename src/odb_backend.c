@@ -85,9 +85,7 @@ pygit2_odb_backend_read(void **ptr, size_t *sz,
     if (!PyArg_ParseTuple(result, "ny#", type, &bytes, sz) || !bytes)
         return GIT_EUSER;
 
-    /* XXX: This assumes the default libgit2 allocator is in use and will
-     * probably segfault and/or destroy the universe otherwise */
-    *ptr = malloc(*sz);
+    *ptr = git_odb_backend_data_alloc(_be, *sz);
     if (!*ptr)
         return GIT_EUSER;
 
@@ -121,9 +119,7 @@ pygit2_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz,
                 &py_oid_out, type, &bytes, sz) || !bytes)
         return GIT_EUSER;
 
-    /* XXX: This assumes the default libgit2 allocator is in use and will
-     * probably segfault and/or destroy the universe otherwise */
-    *ptr = malloc(*sz);
+    *ptr = git_odb_backend_data_alloc(_be, *sz);
     if (!*ptr)
         return GIT_EUSER;
 
@@ -486,9 +482,7 @@ OdbBackend_read(OdbBackend *self, PyObject *py_hex)
 
     tuple = Py_BuildValue("(ny#)", type, data, sz);
 
-    /* XXX: This assumes the default libgit2 allocator is in use and will
-     * probably segfault and/or destroy the universe otherwise */
-    free(data);
+    git_odb_backend_data_free(self->odb_backend, data);
 
     return tuple;
 }
@@ -527,9 +521,7 @@ OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
     py_oid_out = git_oid_to_python(&oid_out);
     tuple = Py_BuildValue("(ny#O)", type, data, sz, py_oid_out);
 
-    /* XXX: This assumes the default libgit2 allocator is in use and will
-     * probably segfault and/or destroy the universe otherwise */
-    free(data);
+    git_odb_backend_data_free(self->odb_backend, data);
 
     return tuple;
 }
