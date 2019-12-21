@@ -101,29 +101,3 @@ class OdbTest(utils.BareRepoTestCase):
 
         oid = self.odb.write(GIT_OBJ_BLOB, data)
         assert type(oid) == Oid
-
-
-class OdbBackendTest(utils.BareRepoTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.ref_odb = self.repo.odb
-        self.obj_path = os.path.join(os.path.dirname(__file__),
-                'data', 'testrepo.git', 'objects')
-
-    def tearDown(self):
-        del self.ref_odb
-        gc.collect()
-        super().tearDown()
-
-    def test_pack(self):
-        pack = OdbBackendPack(self.obj_path)
-        assert len(list(pack)) > 0
-        for obj in pack:
-            assert obj in self.ref_odb
-
-    def test_loose(self):
-        pack = OdbBackendLoose(self.obj_path, 5, False)
-        assert len(list(pack)) > 0
-        for obj in pack:
-            assert obj in self.ref_odb
