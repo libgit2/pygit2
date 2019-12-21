@@ -220,7 +220,7 @@ class RemoteCallbacks(object):
     # These functions exist to be called by the git_remote as
     # callbacks. They proxy the call to whatever the user set
 
-    @ffi.callback('git_transfer_progress_cb')
+    @ffi.callback('git_indexer_progress_cb')
     def _transfer_progress_cb(stats_ptr, data):
         self = ffi.from_handle(data)
 

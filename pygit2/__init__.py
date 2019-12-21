@@ -229,7 +229,7 @@ def clone_repository(
     d_handle = ffi.new_handle(d)
 
     # Perform the initialization with the version we compiled
-    C.git_clone_init_options(opts, C.GIT_CLONE_OPTIONS_VERSION)
+    C.git_clone_options_init(opts, C.GIT_CLONE_OPTIONS_VERSION)
 
     # We need to keep the ref alive ourselves
     checkout_branch_ref = None

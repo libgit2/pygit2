@@ -33,7 +33,7 @@ typedef struct git_clone_options {
 	void *remote_cb_payload;
 } git_clone_options;
 
-int git_clone_init_options(
+int git_clone_options_init(
 	git_clone_options *opts,
 	unsigned int version);
 

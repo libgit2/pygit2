@@ -64,6 +64,7 @@ h_files = [
     'pack.h',
     'transport.h',
     'proxy.h',
+    'indexer.h',
     'remote.h',
     'clone.h',
     'common.h',

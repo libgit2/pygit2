@@ -33,17 +33,6 @@ typedef struct git_signature {
 	git_time when;
 } git_signature;
 
-typedef struct git_transfer_progress {
-	unsigned int total_objects;
-	unsigned int indexed_objects;
-	unsigned int received_objects;
-	unsigned int local_objects;
-	unsigned int total_deltas;
-	unsigned int indexed_deltas;
-	size_t received_bytes;
-} git_transfer_progress;
-
-
 typedef enum git_cert_t {
 	GIT_CERT_NONE,
 	GIT_CERT_X509,
@@ -56,7 +45,6 @@ typedef struct {
 } git_cert;
 
 typedef int (*git_transport_message_cb)(const char *str, int len, void *payload);
-typedef int (*git_transfer_progress_cb)(const git_transfer_progress *stats, void *payload);
 typedef int (*git_transport_certificate_check_cb)(git_cert *cert, int valid, const char *host, void *payload);
 
 typedef enum {

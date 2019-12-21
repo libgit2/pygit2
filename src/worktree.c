@@ -71,7 +71,7 @@ Worktree_prune(Worktree *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|i", &force))
         return NULL;
 
-    git_worktree_prune_init_options(&prune_opts, GIT_WORKTREE_PRUNE_OPTIONS_VERSION);
+    git_worktree_prune_options_init(&prune_opts, GIT_WORKTREE_PRUNE_OPTIONS_VERSION);
     prune_opts.flags = force & (GIT_WORKTREE_PRUNE_VALID | GIT_WORKTREE_PRUNE_LOCKED);
 
     err = git_worktree_prune(self->worktree, &prune_opts);

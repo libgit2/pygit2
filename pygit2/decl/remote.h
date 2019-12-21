@@ -2,13 +2,13 @@
 #define GIT_PUSH_OPTIONS_VERSION ...
 #define GIT_REMOTE_CALLBACKS_VERSION ...
 
-typedef enum git_remote_completion_type {
+typedef enum git_remote_completion_t {
 	GIT_REMOTE_COMPLETION_DOWNLOAD,
 	GIT_REMOTE_COMPLETION_INDEXING,
 	GIT_REMOTE_COMPLETION_ERROR,
-} git_remote_completion_type;
+} git_remote_completion_t;
 
-typedef int (*git_push_transfer_progress)(
+typedef int (*git_push_transfer_progress_cb)(
 	unsigned int current,
 	unsigned int total,
 	size_t bytes,
@@ -23,21 +23,23 @@ typedef struct {
 
 typedef int (*git_push_negotiation)(const git_push_update **updates, size_t len, void *payload);
 typedef int (*git_push_update_reference_cb)(const char *refname, const char *status, void *data);
+typedef int (*git_url_resolve_cb)(git_buf *url_resolved, const char *url, int direction, void *payload);
 
 struct git_remote_callbacks {
 	unsigned int version;
 	git_transport_message_cb sideband_progress;
-	int (*completion)(git_remote_completion_type type, void *data);
+	int (*completion)(git_remote_completion_t type, void *data);
 	git_cred_acquire_cb credentials;
 	git_transport_certificate_check_cb certificate_check;
-	git_transfer_progress_cb transfer_progress;
+	git_indexer_progress_cb transfer_progress;
 	int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data);
 	git_packbuilder_progress pack_progress;
-	git_push_transfer_progress push_transfer_progress;
+	git_push_transfer_progress_cb push_transfer_progress;
 	git_push_update_reference_cb push_update_reference;
 	git_push_negotiation push_negotiation;
 	git_transport_cb transport;
 	void *payload;
+	git_url_resolve_cb resolve_url;
 };
 
 typedef struct {
@@ -112,7 +114,7 @@ int git_remote_prune(git_remote *remote, const git_remote_callbacks *callbacks);
 int git_remote_push(git_remote *remote,
 				const git_strarray *refspecs,
 				const git_push_options *opts);
-const git_transfer_progress * git_remote_stats(git_remote *remote);
+const git_indexer_progress * git_remote_stats(git_remote *remote);
 int git_remote_add_push(git_repository *repo, const char *remote, const char *refspec);
 int git_remote_add_fetch(git_repository *repo, const char *remote, const char *refspec);
 int git_remote_init_callbacks(
