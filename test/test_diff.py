@@ -63,6 +63,8 @@ index 297efb8..0000000
 -c/d contents
 """
 
+PATCHID = 'f31412498a17e6c3fbc635f2c5f9aa3ef4c1a9b7'
+
 PATCH_BINARY = """diff --git a/binary_file b/binary_file
 index 86e5c10..b835d73 100644
 Binary files a/binary_file and b/binary_file differ
@@ -278,6 +280,13 @@ class DiffTest(utils.BareRepoTestCase):
         delta = patch.delta
         assert delta.old_file.id.hex == '7f129fd57e31e935c6d60a0c794efe4e6927664b'
         assert delta.new_file.id.hex == 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
+
+    def test_diff_patchid(self):
+        commit_a = self.repo[COMMIT_SHA1_1]
+        commit_b = self.repo[COMMIT_SHA1_2]
+        diff = commit_a.tree.diff_to_tree(commit_b.tree)
+        assert diff.patch == PATCH
+        assert diff.patchid.hex == PATCHID
 
     def test_hunk_content(self):
         commit_a = self.repo[COMMIT_SHA1_1]
