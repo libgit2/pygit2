@@ -39,7 +39,7 @@ The Diff type
 ====================
 
 .. autoclass:: pygit2.Diff
-   :members: deltas, find_similar, merge, parse_diff, patch, stats
+   :members: deltas, find_similar, merge, parse_diff, patch, patchid, stats
 
    .. method:: Diff.__iter__()
 

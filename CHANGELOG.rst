@@ -1,3 +1,20 @@
+1.1.0 (UNRELEASED)
+-------------------------
+
+- Upgrade to next libgit2 major version
+  `#959 <https://github.com/libgit2/pygit2/pull/959>`_
+
+- Continued work on custom odb backends
+  `#948 <https://github.com/libgit2/pygit2/pull/948>`_
+
+- New ``Diff.patchid`` getter
+  `#960 <https://github.com/libgit2/pygit2/pull/960>`_
+  `#877 <https://github.com/libgit2/pygit2/issues/877>`_
+
+- New ``settings.disable_pack_keep_file_checks(...)``
+  `#908 <https://github.com/libgit2/pygit2/pull/908>`_
+
+
 1.0.1 (2019-12-21)
 -------------------------
 

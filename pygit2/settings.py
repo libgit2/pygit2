@@ -82,7 +82,7 @@ class Settings:
 
     @property
     def mwindow_size(self):
-        """Maximum mmap window size"""
+        """Get or set the maximum mmap window size"""
         return option(_pygit2.GIT_OPT_GET_MWINDOW_SIZE)
 
     @mwindow_size.setter
@@ -91,20 +91,32 @@ class Settings:
 
     @property
     def mwindow_mapped_limit(self):
-        """Mwindow mapped limit"""
+        """
+        Get or set the maximum memory that will be mapped in total by the
+        library
+        """
         return option(_pygit2.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT)
 
     @mwindow_mapped_limit.setter
     def mwindow_mapped_limit(self, value):
-        """Mwindow mapped limit"""
         return option(_pygit2.GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, value)
 
     @property
     def cached_memory(self):
-        """Maximum mmap window size"""
+        """
+        Get the current bytes in cache and the maximum that would be
+        allowed in the cache.
+        """
         return option(_pygit2.GIT_OPT_GET_CACHED_MEMORY)
 
     def enable_caching(self, value=True):
+        """
+        Enable or disable caching completely.
+
+        Because caches are repository-specific, disabling the cache
+        cannot immediately clear all cached objects, but each cache will
+        be cleared on the next attempt to update anything in it.
+        """
         return option(_pygit2.GIT_OPT_ENABLE_CACHING, value)
 
     def disable_pack_keep_file_checks(self, value=True):
@@ -116,15 +128,22 @@ class Settings:
         return option(_pygit2.GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS, value)
 
     def cache_max_size(self, value):
+        """
+        Set the maximum total data size that will be cached in memory
+        across all repositories before libgit2 starts evicting objects
+        from the cache.  This is a soft limit, in that the library might
+        briefly exceed it, but will start aggressively evicting objects
+        from cache when that happens.  The default cache size is 256MB.
+        """
         return option(_pygit2.GIT_OPT_SET_CACHE_MAX_SIZE, value)
 
     def cache_object_limit(self, object_type, value):
-        """Set the maximum data size for the given type of object to be
-           considered eligible for caching in memory.
-
-        Setting to value to zero means that that type of object will not
-        be cached. Defaults to 0 for GIT_OBJ_BLOB (i.e. won't cache
-        blobs) and 4k for GIT_OBJ_COMMIT, GIT_OBJ_TREE, and GIT_OBJ_TAG.
+        """
+        Set the maximum data size for the given type of object to be
+        considered eligible for caching in memory.  Setting to value to
+        zero means that that type of object will not be cached.
+        Defaults to 0 for GIT_OBJECT_BLOB (i.e. won't cache blobs) and 4k
+        for GIT_OBJECT_COMMIT, GIT_OBJECT_TREE, and GIT_OBJECT_TAG.
         """
         return option(_pygit2.GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
 
@@ -158,9 +177,17 @@ class Settings:
         """Reset the TLS certificate lookup folder."""
         self.ssl_cert_dir = self._default_tls_verify_paths.capath
 
-    def set_ssl_cert_locations(self, ssl_cert_file, ssl_cert_dir):
-        """Set both file path and lookup dir for TLS certs in libgit2.
+    def set_ssl_cert_locations(self, cert_file, cert_dir):
         """
-        option(_pygit2.GIT_OPT_SET_SSL_CERT_LOCATIONS, ssl_cert_file, ssl_cert_dir)
-        self._ssl_cert_file = ssl_cert_file
-        self._ssl_cert_dir = ssl_cert_dir
+        Set the SSL certificate-authority locations.
+
+        - `cert_file` is the location of a file containing several
+          certificates concatenated together.
+        - `cert_dir` is the location of a directory holding several
+          certificates, one per file.
+
+        Either parameter may be `NULL`, but not both.
+        """
+        option(_pygit2.GIT_OPT_SET_SSL_CERT_LOCATIONS, cert_file, cert_dir)
+        self._ssl_cert_file = cert_file
+        self._ssl_cert_dir = cert_dir
