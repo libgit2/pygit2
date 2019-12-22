@@ -22,33 +22,25 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
-"""Settings mapping."""
+
+"""
+Settings mapping.
+"""
 
 from ssl import get_default_verify_paths
 
+import _pygit2
 from _pygit2 import option
-from _pygit2 import GIT_OPT_GET_SEARCH_PATH, GIT_OPT_SET_SEARCH_PATH
-from _pygit2 import GIT_OPT_GET_MWINDOW_SIZE, GIT_OPT_SET_MWINDOW_SIZE
-from _pygit2 import GIT_OPT_GET_MWINDOW_MAPPED_LIMIT, GIT_OPT_SET_MWINDOW_MAPPED_LIMIT
-from _pygit2 import GIT_OPT_SET_CACHE_OBJECT_LIMIT
-from _pygit2 import GIT_OPT_GET_CACHED_MEMORY
-from _pygit2 import GIT_OPT_ENABLE_CACHING
-from _pygit2 import GIT_OPT_SET_CACHE_MAX_SIZE
-from _pygit2 import GIT_OPT_SET_SSL_CERT_LOCATIONS
-
 from .errors import GitError
-
-
-__metaclass__ = type  # make all classes new-style by default
 
 
 class SearchPathList:
 
     def __getitem__(self, key):
-        return option(GIT_OPT_GET_SEARCH_PATH, key)
+        return option(_pygit2.GIT_OPT_GET_SEARCH_PATH, key)
 
     def __setitem__(self, key, value):
-        option(GIT_OPT_SET_SEARCH_PATH, key, value)
+        option(_pygit2.GIT_OPT_SET_SEARCH_PATH, key, value)
 
 
 class Settings:
@@ -91,32 +83,40 @@ class Settings:
     @property
     def mwindow_size(self):
         """Maximum mmap window size"""
-        return option(GIT_OPT_GET_MWINDOW_SIZE)
+        return option(_pygit2.GIT_OPT_GET_MWINDOW_SIZE)
 
     @mwindow_size.setter
     def mwindow_size(self, value):
-        option(GIT_OPT_SET_MWINDOW_SIZE, value)
+        option(_pygit2.GIT_OPT_SET_MWINDOW_SIZE, value)
 
     @property
     def mwindow_mapped_limit(self):
         """Mwindow mapped limit"""
-        return option(GIT_OPT_GET_MWINDOW_MAPPED_LIMIT)
+        return option(_pygit2.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT)
 
     @mwindow_mapped_limit.setter
     def mwindow_mapped_limit(self, value):
         """Mwindow mapped limit"""
-        return option(GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, value)
+        return option(_pygit2.GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, value)
 
     @property
     def cached_memory(self):
         """Maximum mmap window size"""
-        return option(GIT_OPT_GET_CACHED_MEMORY)
+        return option(_pygit2.GIT_OPT_GET_CACHED_MEMORY)
 
     def enable_caching(self, value=True):
-        return option(GIT_OPT_ENABLE_CACHING, value)
+        return option(_pygit2.GIT_OPT_ENABLE_CACHING, value)
+
+    def disable_pack_keep_file_checks(self, value=True):
+        """
+        This will cause .keep file existence checks to be skipped when
+        accessing packfiles, which can help performance with remote
+        filesystems.
+        """
+        return option(_pygit2.GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS, value)
 
     def cache_max_size(self, value):
-        return option(GIT_OPT_SET_CACHE_MAX_SIZE, value)
+        return option(_pygit2.GIT_OPT_SET_CACHE_MAX_SIZE, value)
 
     def cache_object_limit(self, object_type, value):
         """Set the maximum data size for the given type of object to be
@@ -126,7 +126,7 @@ class Settings:
         be cached. Defaults to 0 for GIT_OBJ_BLOB (i.e. won't cache
         blobs) and 4k for GIT_OBJ_COMMIT, GIT_OBJ_TREE, and GIT_OBJ_TAG.
         """
-        return option(GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
+        return option(_pygit2.GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
 
     @property
     def ssl_cert_file(self):
@@ -161,6 +161,6 @@ class Settings:
     def set_ssl_cert_locations(self, ssl_cert_file, ssl_cert_dir):
         """Set both file path and lookup dir for TLS certs in libgit2.
         """
-        option(GIT_OPT_SET_SSL_CERT_LOCATIONS, ssl_cert_file, ssl_cert_dir)
+        option(_pygit2.GIT_OPT_SET_SSL_CERT_LOCATIONS, ssl_cert_file, ssl_cert_dir)
         self._ssl_cert_file = ssl_cert_file
         self._ssl_cert_dir = ssl_cert_dir

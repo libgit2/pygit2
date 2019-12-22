@@ -24,17 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 import pygit2
-from pygit2 import (
-    GIT_OBJ_BLOB,
-    GIT_OPT_GET_MWINDOW_SIZE, GIT_OPT_SET_MWINDOW_SIZE,
-    GIT_OPT_GET_SEARCH_PATH, GIT_OPT_SET_SEARCH_PATH,
-    GIT_OPT_GET_MWINDOW_MAPPED_LIMIT, GIT_OPT_SET_MWINDOW_MAPPED_LIMIT,
-    GIT_CONFIG_LEVEL_SYSTEM, GIT_CONFIG_LEVEL_XDG, GIT_CONFIG_LEVEL_GLOBAL,
-    GIT_OPT_SET_CACHE_OBJECT_LIMIT,
-    GIT_OPT_GET_CACHED_MEMORY,
-    GIT_OPT_ENABLE_CACHING,
-)
-from pygit2 import option
+from pygit2 import option, GIT_OBJ_BLOB
 from . import utils
 
 
@@ -56,8 +46,8 @@ class OptionsTest(utils.NoRepoTestCase):
 
     def test_mwindow_size(self):
         self.__option(
-            GIT_OPT_GET_MWINDOW_SIZE,
-            GIT_OPT_SET_MWINDOW_SIZE,
+            pygit2.GIT_OPT_GET_MWINDOW_SIZE,
+            pygit2.GIT_OPT_SET_MWINDOW_SIZE,
             200 * 1024)
 
     def test_mwindow_size_proxy(self):
@@ -65,8 +55,8 @@ class OptionsTest(utils.NoRepoTestCase):
 
     def test_mwindow_mapped_limit_200(self):
         self.__option(
-            GIT_OPT_GET_MWINDOW_MAPPED_LIMIT,
-            GIT_OPT_SET_MWINDOW_MAPPED_LIMIT,
+            pygit2.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT,
+            pygit2.GIT_OPT_SET_MWINDOW_MAPPED_LIMIT,
             200 * 1024)
 
     def test_mwindow_mapped_limit_300(self):
@@ -74,26 +64,32 @@ class OptionsTest(utils.NoRepoTestCase):
 
     def test_cache_object_limit(self):
         new_limit = 2 * 1024
-        option(GIT_OPT_SET_CACHE_OBJECT_LIMIT, GIT_OBJ_BLOB, new_limit)
+        option(pygit2.GIT_OPT_SET_CACHE_OBJECT_LIMIT, GIT_OBJ_BLOB, new_limit)
 
     def test_cache_object_limit_proxy(self):
         new_limit = 4 * 1024
         pygit2.settings.cache_object_limit(GIT_OBJ_BLOB, new_limit)
 
     def test_cached_memory(self):
-        value = option(GIT_OPT_GET_CACHED_MEMORY)
+        value = option(pygit2.GIT_OPT_GET_CACHED_MEMORY)
         assert value[1] == 256 * 1024**2
 
     def test_cached_memory_proxy(self):
         assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
-    def test_enable_cache(self):
-        option(GIT_OPT_ENABLE_CACHING, False)
-        option(GIT_OPT_ENABLE_CACHING, True)
-
-    def test_enable_cache_proxy(self):
+    def test_enable_caching(self):
         pygit2.settings.enable_caching(False)
         pygit2.settings.enable_caching(True)
+        # Lower level API
+        option(pygit2.GIT_OPT_ENABLE_CACHING, False)
+        option(pygit2.GIT_OPT_ENABLE_CACHING, True)
+
+    def test_disable_pack_keep_file_checks(self):
+        pygit2.settings.disable_pack_keep_file_checks(False)
+        pygit2.settings.disable_pack_keep_file_checks(True)
+        # Lower level API
+        option(pygit2.GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS, False)
+        option(pygit2.GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS, True)
 
     def test_cache_max_size_proxy(self):
         pygit2.settings.cache_max_size(128 * 1024**2)
@@ -102,18 +98,18 @@ class OptionsTest(utils.NoRepoTestCase):
         assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
     def test_search_path(self):
-        paths = [(GIT_CONFIG_LEVEL_GLOBAL, '/tmp/global'),
-                 (GIT_CONFIG_LEVEL_XDG,    '/tmp/xdg'),
-                 (GIT_CONFIG_LEVEL_SYSTEM, '/tmp/etc')]
+        paths = [(pygit2.GIT_CONFIG_LEVEL_GLOBAL, '/tmp/global'),
+                 (pygit2.GIT_CONFIG_LEVEL_XDG,    '/tmp/xdg'),
+                 (pygit2.GIT_CONFIG_LEVEL_SYSTEM, '/tmp/etc')]
 
         for level, path in paths:
-            option(GIT_OPT_SET_SEARCH_PATH, level, path)
-            assert path == option(GIT_OPT_GET_SEARCH_PATH, level)
+            option(pygit2.GIT_OPT_SET_SEARCH_PATH, level, path)
+            assert path == option(pygit2.GIT_OPT_GET_SEARCH_PATH, level)
 
     def test_search_path_proxy(self):
-        paths = [(GIT_CONFIG_LEVEL_GLOBAL, '/tmp2/global'),
-                 (GIT_CONFIG_LEVEL_XDG,    '/tmp2/xdg'),
-                 (GIT_CONFIG_LEVEL_SYSTEM, '/tmp2/etc')]
+        paths = [(pygit2.GIT_CONFIG_LEVEL_GLOBAL, '/tmp2/global'),
+                 (pygit2.GIT_CONFIG_LEVEL_XDG,    '/tmp2/xdg'),
+                 (pygit2.GIT_CONFIG_LEVEL_SYSTEM, '/tmp2/etc')]
 
         for level, path in paths:
             pygit2.settings.search_path[level] = path

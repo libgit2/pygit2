@@ -254,6 +254,13 @@ option(PyObject *self, PyObject *args)
             return tup;
         }
 
+        case GIT_OPT_GET_TEMPLATE_PATH:
+        case GIT_OPT_SET_TEMPLATE_PATH:
+        {
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+        }
+
         case GIT_OPT_SET_SSL_CERT_LOCATIONS:
         {
             PyObject *py_file, *py_dir;
@@ -284,6 +291,12 @@ option(PyObject *self, PyObject *args)
             Py_RETURN_NONE;
         }
 
+        case GIT_OPT_SET_USER_AGENT:
+        {
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+        }
+
         // int enabled
         case GIT_OPT_ENABLE_CACHING:
         case GIT_OPT_ENABLE_STRICT_OBJECT_CREATION:
@@ -292,6 +305,7 @@ option(PyObject *self, PyObject *args)
         case GIT_OPT_ENABLE_FSYNC_GITDIR:
         case GIT_OPT_ENABLE_STRICT_HASH_VERIFICATION:
         case GIT_OPT_ENABLE_UNSAVED_INDEX_SAFETY:
+        case GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS:
         {
             PyObject *py_enabled;
             int enabled;
@@ -312,9 +326,6 @@ option(PyObject *self, PyObject *args)
         }
 
         // Not implemented
-        case GIT_OPT_GET_TEMPLATE_PATH:
-        case GIT_OPT_SET_TEMPLATE_PATH:
-        case GIT_OPT_SET_USER_AGENT:
         case GIT_OPT_SET_SSL_CIPHERS:
         case GIT_OPT_GET_USER_AGENT:
         case GIT_OPT_GET_WINDOWS_SHAREMODE:
