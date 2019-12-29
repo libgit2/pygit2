@@ -946,7 +946,15 @@ Diff_merge(Diff *self, PyObject *args)
 PyDoc_STRVAR(Diff_find_similar__doc__,
   "find_similar([flags, rename_threshold, copy_threshold, rename_from_rewrite_threshold, break_rewrite_threshold, rename_limit])\n"
   "\n"
-  "Find renamed files in diff and updates them in-place in the diff itself.");
+  "Transform a diff marking file renames, copies, etc.\n"
+  "\n"
+  "This modifies a diff in place, replacing old entries that look like\n"
+  "renames or copies with new entries reflecting those changes. This also "
+  "will, if requested, break modified files into add/remove pairs if the "
+  "amount of change is above a threshold.\n"
+  "\n"
+  "flags - Combination of GIT_DIFF_FIND_* and GIT_DIFF_BREAK_* constants."
+  );
 
 PyObject *
 Diff_find_similar(Diff *self, PyObject *args, PyObject *kwds)
@@ -954,10 +962,14 @@ Diff_find_similar(Diff *self, PyObject *args, PyObject *kwds)
     int err;
     git_diff_find_options opts = GIT_DIFF_FIND_OPTIONS_INIT;
 
-    char *keywords[] = {"flags", "rename_threshold", "copy_threshold", "rename_from_rewrite_threshold", "break_rewrite_threshold", "rename_limit", NULL};
+    char *keywords[] = {"flags", "rename_threshold", "copy_threshold",
+                        "rename_from_rewrite_threshold",
+                        "break_rewrite_threshold", "rename_limit", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iHHHHI", keywords,
-                &opts.flags, &opts.rename_threshold, &opts.copy_threshold, &opts.rename_from_rewrite_threshold, &opts.break_rewrite_threshold, &opts.rename_limit))
+            &opts.flags, &opts.rename_threshold, &opts.copy_threshold,
+            &opts.rename_from_rewrite_threshold, &opts.break_rewrite_threshold,
+            &opts.rename_limit))
         return NULL;
 
     err = git_diff_find_similar(self->diff, &opts);

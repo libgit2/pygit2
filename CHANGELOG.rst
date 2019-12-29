@@ -14,6 +14,9 @@
 - New ``settings.disable_pack_keep_file_checks(...)``
   `#908 <https://github.com/libgit2/pygit2/pull/908>`_
 
+- New ``GIT_DIFF_`` and ``GIT_DELTA_`` constants
+  `#738 <https://github.com/libgit2/pygit2/issues/738>`_
+
 
 1.0.1 (2019-12-21)
 -------------------------

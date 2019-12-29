@@ -422,19 +422,21 @@ class BaseRepository(_Repository):
             Otherwise the referred object is compared to 'a'
 
         cached
-            if 'b' is None, by default the working directory is compared to 'a'.
+            If 'b' is None, by default the working directory is compared to 'a'.
             If 'cached' is set to True, the index/staging area is used for comparing.
 
         flag
-            a GIT_DIFF_* constant
+            A combination of GIT_DIFF_* constants. For a list of the constants,
+            with a description, see git_diff_option_t in
+            https://github.com/libgit2/libgit2/blob/master/include/git2/diff.h
 
         context_lines
-            the number of unchanged lines that define the boundary
-            of a hunk (and to display before and after)
+            The number of unchanged lines that define the boundary of a hunk
+            (and to display before and after)
 
         interhunk_lines
-            the maximum number of unchanged lines between hunk
-            boundaries before the hunks will be merged into a one
+            The maximum number of unchanged lines between hunk boundaries
+            before the hunks will be merged into a one
 
         Examples::
 
