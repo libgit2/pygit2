@@ -41,11 +41,11 @@ extern PyObject *GitError;
 PyDoc_STRVAR(Commit_message_encoding__doc__, "Message encoding.");
 
 PyObject *
-Commit_message_encoding__get__(Commit *commit)
+Commit_message_encoding__get__(Commit *self)
 {
-    const char *encoding;
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
-    encoding = git_commit_message_encoding(commit->commit);
+    const char *encoding = git_commit_message_encoding(self->commit);
     if (encoding == NULL)
         Py_RETURN_NONE;
 
@@ -56,26 +56,26 @@ Commit_message_encoding__get__(Commit *commit)
 PyDoc_STRVAR(Commit_message__doc__, "The commit message, a text string.");
 
 PyObject *
-Commit_message__get__(Commit *commit)
+Commit_message__get__(Commit *self)
 {
-    const char *message, *encoding;
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
-    message = git_commit_message(commit->commit);
-    encoding = git_commit_message_encoding(commit->commit);
+    const char *message = git_commit_message(self->commit);
+    const char *encoding = git_commit_message_encoding(self->commit);
     return to_unicode(message, encoding, NULL);
 }
 
 PyDoc_STRVAR(Commit_gpg_signature__doc__, "A tuple with the GPG signature and the signed payload.");
 
 PyObject *
-Commit_gpg_signature__get__(Commit *commit)
+Commit_gpg_signature__get__(Commit *self)
 {
     git_buf gpg_signature = { NULL }, signed_data = { NULL };
     PyObject *py_gpg_signature, *py_signed_data;
 
-    const git_oid *oid = git_commit_id(commit->commit);
+    const git_oid *oid = Object__id((Object*)self);
     int err = git_commit_extract_signature(
-        &gpg_signature, &signed_data, commit->repo->repo, (git_oid*) oid, NULL
+        &gpg_signature, &signed_data, self->repo->repo, (git_oid*) oid, NULL
     );
 
     if (err != GIT_OK){
@@ -101,27 +101,30 @@ Commit_gpg_signature__get__(Commit *commit)
 PyDoc_STRVAR(Commit_raw_message__doc__, "Message (bytes).");
 
 PyObject *
-Commit_raw_message__get__(Commit *commit)
+Commit_raw_message__get__(Commit *self)
 {
-    return PyBytes_FromString(git_commit_message(commit->commit));
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+    return PyBytes_FromString(git_commit_message(self->commit));
 }
 
 
 PyDoc_STRVAR(Commit_commit_time__doc__, "Commit time.");
 
 PyObject *
-Commit_commit_time__get__(Commit *commit)
+Commit_commit_time__get__(Commit *self)
 {
-    return PyLong_FromLongLong(git_commit_time(commit->commit));
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+    return PyLong_FromLongLong(git_commit_time(self->commit));
 }
 
 
 PyDoc_STRVAR(Commit_commit_time_offset__doc__, "Commit time offset.");
 
 PyObject *
-Commit_commit_time_offset__get__(Commit *commit)
+Commit_commit_time_offset__get__(Commit *self)
 {
-    return PyLong_FromLong(git_commit_time_offset(commit->commit));
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+    return PyLong_FromLong(git_commit_time_offset(self->commit));
 }
 
 
@@ -130,11 +133,10 @@ PyDoc_STRVAR(Commit_committer__doc__, "The committer of the commit.");
 PyObject *
 Commit_committer__get__(Commit *self)
 {
-    const git_signature *signature;
-    const char *encoding;
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
-    signature = git_commit_committer(self->commit);
-    encoding = git_commit_message_encoding(self->commit);
+    const git_signature *signature = git_commit_committer(self->commit);
+    const char *encoding = git_commit_message_encoding(self->commit);
 
     return build_signature((Object*)self, signature, encoding);
 }
@@ -145,11 +147,10 @@ PyDoc_STRVAR(Commit_author__doc__, "The author of the commit.");
 PyObject *
 Commit_author__get__(Commit *self)
 {
-    const git_signature *signature;
-    const char *encoding;
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
-    signature = git_commit_author(self->commit);
-    encoding = git_commit_message_encoding(self->commit);
+    const git_signature *signature = git_commit_author(self->commit);
+    const char *encoding = git_commit_message_encoding(self->commit);
 
     return build_signature((Object*)self, signature, encoding);
 }
@@ -157,30 +158,32 @@ Commit_author__get__(Commit *self)
 PyDoc_STRVAR(Commit_tree__doc__, "The tree object attached to the commit.");
 
 PyObject *
-Commit_tree__get__(Commit *commit)
+Commit_tree__get__(Commit *self)
 {
     git_tree *tree;
-    int err;
 
-    err = git_commit_tree(&tree, commit->commit);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    int err = git_commit_tree(&tree, self->commit);
     if (err == GIT_ENOTFOUND) {
         char tree_id[GIT_OID_HEXSZ + 1] = { 0 };
-        git_oid_fmt(tree_id, git_commit_tree_id(commit->commit));
+        git_oid_fmt(tree_id, git_commit_tree_id(self->commit));
         return PyErr_Format(GitError, "Unable to read tree %s", tree_id);
     }
 
     if (err < 0)
         return Error_set(err);
 
-    return wrap_object((git_object*)tree, commit->repo, NULL);
+    return wrap_object((git_object*)tree, self->repo, NULL);
 }
 
 PyDoc_STRVAR(Commit_tree_id__doc__, "The id of the tree attached to the commit.");
 
 PyObject *
-Commit_tree_id__get__(Commit *commit)
+Commit_tree_id__get__(Commit *self)
 {
-    return git_oid_to_python(git_commit_tree_id(commit->commit));
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+    return git_oid_to_python(git_commit_tree_id(self->commit));
 }
 
 PyDoc_STRVAR(Commit_parents__doc__, "The list of parent commits.");
@@ -195,6 +198,8 @@ Commit_parents__get__(Commit *self)
     int err;
     PyObject *py_parent;
     PyObject *list;
+
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
     parent_count = git_commit_parentcount(self->commit);
     list = PyList_New(parent_count);
@@ -236,6 +241,8 @@ Commit_parent_ids__get__(Commit *self)
     unsigned int i, parent_count;
     const git_oid *id;
     PyObject *list;
+
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
     parent_count = git_commit_parentcount(self->commit);
     list = PyList_New(parent_count);

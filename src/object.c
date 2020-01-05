@@ -53,18 +53,41 @@ Object_dealloc(Object* self)
 }
 
 
+git_object*
+Object__load(Object *self)
+{
+    if (self->obj == NULL) {
+        int err = git_tree_entry_to_object(&self->obj, self->repo->repo, self->entry);
+        if (err < 0) {
+            Error_set(err);
+            return NULL;
+        }
+    }
+
+    return self->obj;
+}
+
+const git_oid*
+Object__id(Object *self)
+{
+    return (self->obj) ? git_object_id(self->obj) : git_tree_entry_id(self->entry);
+}
+
+
+git_object_t
+Object__type(Object *self)
+{
+    return (self->obj) ? git_object_type(self->obj) : git_tree_entry_type(self->entry);
+}
+
+
 PyDoc_STRVAR(Object_id__doc__,
     "The object id, an instance of the Oid type.");
 
 PyObject *
 Object_id__get__(Object *self)
 {
-    const git_oid *oid;
-
-    oid = git_object_id(self->obj);
-    assert(oid);
-
-    return git_oid_to_python(oid);
+    return git_oid_to_python(Object__id(self));
 }
 
 PyDoc_STRVAR(Object_oid__doc__,
@@ -85,12 +108,7 @@ PyDoc_STRVAR(Object_hex__doc__,
 PyObject *
 Object_hex__get__(Object *self)
 {
-    const git_oid *oid;
-
-    oid = git_object_id(self->obj);
-    assert(oid);
-
-    return git_oid_to_py_str(oid);
+    return git_oid_to_py_str(Object__id(self));
 }
 
 
@@ -100,15 +118,14 @@ PyDoc_STRVAR(Object_short_id__doc__,
 PyObject *
 Object_short_id__get__(Object *self)
 {
+    if (Object__load(self) == NULL) { return NULL; } // Lazy load
+
     git_buf short_id = { NULL, 0, 0 };
-    PyObject *py_short_id;
-
     int err = git_object_short_id(&short_id, self->obj);
-
     if (err != GIT_OK)
         return Error_set(err);
 
-    py_short_id = to_unicode_n(short_id.ptr, short_id.size, NULL, "strict");
+    PyObject *py_short_id = to_unicode_n(short_id.ptr, short_id.size, NULL, "strict");
     git_buf_dispose(&short_id);
     return py_short_id;
 }
@@ -121,7 +138,7 @@ PyDoc_STRVAR(Object_type__doc__,
 PyObject *
 Object_type__get__(Object *self)
 {
-    return PyLong_FromLong(git_object_type(self->obj));
+    return PyLong_FromLong(Object__type(self));
 }
 
 PyDoc_STRVAR(Object_type_str__doc__,
@@ -130,7 +147,7 @@ PyDoc_STRVAR(Object_type_str__doc__,
 PyObject *
 Object_type_str__get__(Object *self)
 {
-    return to_path(git_object_type2string(git_object_type(self->obj)));
+    return to_path(git_object_type2string(Object__type(self)));
 }
 
 PyDoc_STRVAR(Object__pointer__doc__, "Get the object's pointer. For internal use only.");
@@ -138,6 +155,7 @@ PyObject *
 Object__pointer__get__(Object *self)
 {
     /* Bytes means a raw buffer */
+    if (Object__load(self) == NULL) { return NULL; } // Lazy load
     return PyBytes_FromStringAndSize((char *) &self->obj, sizeof(git_object *));
 }
 
@@ -181,18 +199,15 @@ PyObject *
 Object_read_raw(Object *self)
 {
     int err;
-    const git_oid *oid;
     git_odb *odb;
-    git_odb_object *obj;
     PyObject *aux;
-
-    oid = git_object_id(self->obj);
 
     err = git_repository_odb(&odb, self->repo->repo);
     if (err < 0)
         return Error_set(err);
 
-    obj = Odb_read_raw(odb, oid, GIT_OID_HEXSZ);
+    const git_oid *oid = Object__id(self);
+    git_odb_object *obj = Odb_read_raw(odb, oid, GIT_OID_HEXSZ);
     git_odb_free(odb);
     if (obj == NULL)
         return NULL;
@@ -217,6 +232,8 @@ Object_peel(Object *self, PyObject *py_type)
     git_otype otype;
     git_object *peeled;
 
+    if (Object__load(self) == NULL) { return NULL; } // Lazy load
+
     otype = py_object_to_otype(py_type);
     if (otype == GIT_OBJ_BAD)
         return NULL;
@@ -229,9 +246,9 @@ Object_peel(Object *self, PyObject *py_type)
 }
 
 Py_hash_t
-Object_hash(Object *object)
+Object_hash(Object *self)
 {
-    const git_oid *oid = git_object_id(object->obj);
+    const git_oid *oid = Object__id(self);
     PyObject *py_oid = git_oid_to_py_str(oid);
     Py_hash_t ret = PyObject_Hash(py_oid);
     Py_DECREF(py_oid);
@@ -242,18 +259,13 @@ PyObject *
 Object_richcompare(PyObject *o1, PyObject *o2, int op)
 {
     PyObject *res;
-    Object *obj1;
-    Object *obj2;
-    int equal;
 
     if (!PyObject_TypeCheck(o2, &ObjectType)) {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
     }
 
-    obj1 = (Object *) o1;
-    obj2 = (Object *) o2;
-    equal = git_oid_equal(git_object_id(obj1->obj), git_object_id(obj2->obj));
+    int equal = git_oid_equal(Object__id((Object *)o1), Object__id((Object *)o2));
     switch (op) {
         case Py_NE:
             res = (equal) ? Py_False : Py_True;
@@ -346,7 +358,9 @@ wrap_object(git_object *c_object, Repository *repo, const git_tree_entry *entry)
 {
     Object *py_obj = NULL;
 
-    switch (git_object_type(c_object)) {
+    git_object_t obj_type = (c_object) ? git_object_type(c_object) : git_tree_entry_type(entry);
+
+    switch (obj_type) {
         case GIT_OBJ_COMMIT:
             py_obj = PyObject_New(Object, &CommitType);
             break;

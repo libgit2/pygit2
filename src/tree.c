@@ -45,48 +45,37 @@ extern PyTypeObject IndexType;
 PyObject *
 treeentry_to_object(const git_tree_entry *entry, Repository *repo)
 {
-    git_object *obj;
-    int err;
-
     if (repo == NULL) {
         PyErr_SetString(PyExc_ValueError, "expected repository");
         return NULL;
     }
 
-    err = git_tree_entry_to_object(&obj, repo->repo, entry);
-    if (err < 0) {
-        Error_set(err);
-        return NULL;
-    }
-
-    return wrap_object(obj, repo, entry);
+    return wrap_object(NULL, repo, entry);
 }
 
 Py_ssize_t
 Tree_len(Tree *self)
 {
-    assert(self->tree);
+    if (Object__load((Object*)self) == NULL) { return -1; } // Lazy load
     return (Py_ssize_t)git_tree_entrycount(self->tree);
 }
 
 int
 Tree_contains(Tree *self, PyObject *py_name)
 {
-    int err;
-    git_tree_entry *entry;
-    char *name;
+    if (Object__load((Object*)self) == NULL) { return -1; } // Lazy load
 
-    name = py_path_to_c_str(py_name);
+    char *name = py_path_to_c_str(py_name);
     if (name == NULL)
         return -1;
 
-    err = git_tree_entry_bypath(&entry, self->tree, name);
+    git_tree_entry *entry;
+    int err = git_tree_entry_bypath(&entry, self->tree, name);
     free(name);
 
-    if (err == GIT_ENOTFOUND)
+    if (err == GIT_ENOTFOUND) {
         return 0;
-
-    if (err < 0) {
+    } else if (err < 0) {
         Error_set(err);
         return -1;
     }
@@ -195,6 +184,8 @@ tree_getentry_by_path(const git_tree *tree, Repository *repo, PyObject *py_path)
 PyObject*
 Tree_subscript(Tree *self, PyObject *value)
 {
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
     /* Case 1: integer */
     if (PyLong_Check(value))
         return tree_getentry_by_index(self->tree, self->repo, value);
@@ -206,6 +197,7 @@ Tree_subscript(Tree *self, PyObject *value)
 PyObject *
 Tree_divide(Tree *self, PyObject *value)
 {
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
     return tree_getentry_by_path(self->tree, self->repo, value);
 }
 
@@ -233,19 +225,19 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff *diff;
-    Repository *py_repo;
     int err;
 
     if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
                                         &opts.interhunk_lines))
         return NULL;
 
-    py_repo = self->repo;
-    err = git_diff_tree_to_workdir(&diff, py_repo->repo, self->tree, &opts);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    err = git_diff_tree_to_workdir(&diff, self->repo->repo, self->tree, &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_diff(diff, py_repo);
+    return wrap_diff(diff, self->repo);
 }
 
 
@@ -278,7 +270,6 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
     git_index *index;
     char *buffer;
     Py_ssize_t length;
-    Repository *py_repo;
     PyObject *py_idx, *py_idx_ptr;
     int err;
 
@@ -312,12 +303,13 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
     /* the "buffer" contains the pointer */
     index = *((git_index **) buffer);
 
-    py_repo = self->repo;
-    err = git_diff_tree_to_index(&diff, py_repo->repo, self->tree, index, &opts);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    err = git_diff_tree_to_index(&diff, self->repo->repo, self->tree, index, &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_diff(diff, py_repo);
+    return wrap_diff(diff, self->repo);
 }
 
 
@@ -351,34 +343,38 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff *diff;
-    git_tree *from, *to, *tmp;
-    Repository *py_repo;
+    git_tree *from, *to = NULL, *tmp;
     int err, swap = 0;
     char *keywords[] = {"obj", "flags", "context_lines", "interhunk_lines",
                         "swap", NULL};
 
-    Tree *py_tree = NULL;
+    Tree *other = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!IHHi", keywords,
-                                     &TreeType, &py_tree, &opts.flags,
+                                     &TreeType, &other, &opts.flags,
                                      &opts.context_lines,
                                      &opts.interhunk_lines, &swap))
         return NULL;
 
-    py_repo = self->repo;
-    to = (py_tree == NULL) ? NULL : py_tree->tree;
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
     from = self->tree;
+
+    if (other) {
+        if (Object__load((Object*)other) == NULL) { return NULL; } // Lazy load
+        to = other->tree;
+    }
+
     if (swap > 0) {
         tmp = from;
         from = to;
         to = tmp;
     }
 
-    err = git_diff_tree_to_tree(&diff, py_repo->repo, from, to, &opts);
+    err = git_diff_tree_to_tree(&diff, self->repo->repo, from, to, &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_diff(diff, py_repo);
+    return wrap_diff(diff, self->repo);
 }
 
 

@@ -41,9 +41,10 @@ PyDoc_STRVAR(Tag_target__doc__, "Tagged object.");
 PyObject *
 Tag_target__get__(Tag *self)
 {
-    const git_oid *oid;
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
-    oid = git_tag_target_id(self->tag);
+    const git_oid *oid = git_tag_target_id(self->tag);
+
     return git_oid_to_python(oid);
 }
 
@@ -56,10 +57,11 @@ PyDoc_STRVAR(Tag_get_object__doc__,
 PyObject *
 Tag_get_object(Tag *self)
 {
-    int err;
     git_object* obj;
 
-    err = git_tag_peel(&obj, self->tag);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    int err = git_tag_peel(&obj, self->tag);
     if (err < 0)
         return Error_set(err);
 
@@ -72,10 +74,12 @@ PyDoc_STRVAR(Tag_name__doc__, "Tag name.");
 PyObject *
 Tag_name__get__(Tag *self)
 {
-    const char *name;
-    name = git_tag_name(self->tag);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    const char *name = git_tag_name(self->tag);
     if (!name)
         Py_RETURN_NONE;
+
     return to_unicode(name, "utf-8", "strict");
 }
 
@@ -85,10 +89,12 @@ PyDoc_STRVAR(Tag_raw_name__doc__, "Tag name (bytes).");
 PyObject *
 Tag_raw_name__get__(Tag *self)
 {
-    const char *name;
-    name = git_tag_name(self->tag);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    const char *name = git_tag_name(self->tag);
     if (!name)
         Py_RETURN_NONE;
+
     return PyBytes_FromString(name);
 }
 
@@ -98,6 +104,8 @@ PyDoc_STRVAR(Tag_tagger__doc__, "Tagger.");
 PyObject *
 Tag_tagger__get__(Tag *self)
 {
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
     const git_signature *signature = git_tag_tagger(self->tag);
     if (!signature)
         Py_RETURN_NONE;
@@ -111,10 +119,12 @@ PyDoc_STRVAR(Tag_message__doc__, "Tag message.");
 PyObject *
 Tag_message__get__(Tag *self)
 {
-    const char *message;
-    message = git_tag_message(self->tag);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    const char *message = git_tag_message(self->tag);
     if (!message)
         Py_RETURN_NONE;
+
     return to_unicode(message, "utf-8", "strict");
 }
 
@@ -124,10 +134,12 @@ PyDoc_STRVAR(Tag_raw_message__doc__, "Tag message (bytes).");
 PyObject *
 Tag_raw_message__get__(Tag *self)
 {
-    const char *message;
-    message = git_tag_message(self->tag);
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    const char *message = git_tag_message(self->tag);
     if (!message)
         Py_RETURN_NONE;
+
     return PyBytes_FromString(message);
 }
 
