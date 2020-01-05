@@ -30,6 +30,7 @@
 #include <structmember.h>
 #include "diff.h"
 #include "error.h"
+#include "object.h"
 #include "oid.h"
 #include "types.h"
 #include "utils.h"
@@ -128,14 +129,14 @@ Patch_create_from(PyObject *self, PyObject *args, PyObject *kwds)
   if (oldobj != Py_None && PyObject_TypeCheck(oldobj, &BlobType))
   {
     /* The old object exists and is a blob */
-    if (!PyArg_Parse(oldobj, "O!", &BlobType, &oldblob))
-      return NULL;
+    oldblob = (Blob*)oldobj;
+    if (Object__load((Object*)oldblob) == NULL) { return NULL; } // Lazy load
 
     if (newobj != Py_None && PyObject_TypeCheck(newobj, &BlobType))
     {
       /* The new object exists and is a blob */
-      if (!PyArg_Parse(newobj, "O!", &BlobType, &newblob))
-        return NULL;
+      newblob = (Blob*)newobj;
+      if (Object__load((Object*)newblob) == NULL) { return NULL; } // Lazy load
 
       err = git_patch_from_blobs(&patch, oldblob->blob, old_as_path,
                                  newblob->blob, new_as_path, &opts);

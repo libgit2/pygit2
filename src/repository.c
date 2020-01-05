@@ -1540,6 +1540,7 @@ Repository_TreeBuilder(Repository *self, PyObject *args)
                 /* return Error_set(GIT_EINVALIDARGS); */
                 return Error_set(GIT_ERROR);
             }
+            if (Object__load((Object*)py_tree) == NULL) { return NULL; } // Lazy load
             tree = py_tree->tree;
         } else {
             err = py_oid_to_git_oid_expand(self->repo, py_src, &oid);

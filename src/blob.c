@@ -66,22 +66,25 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_patch *patch;
     char *old_as_path = NULL, *new_as_path = NULL;
-    Blob *py_blob = NULL;
+    Blob *other = NULL;
     int err;
     char *keywords[] = {"blob", "flag", "old_as_path", "new_as_path", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!Iss", keywords,
-                                     &BlobType, &py_blob, &opts.flags,
+                                     &BlobType, &other, &opts.flags,
                                      &old_as_path, &new_as_path))
         return NULL;
 
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+    if (other && Object__load((Object*)other) == NULL) { return NULL; } // Lazy load
+
     err = git_patch_from_blobs(&patch, self->blob, old_as_path,
-                               py_blob ? py_blob->blob : NULL, new_as_path,
+                               other ? other->blob : NULL, new_as_path,
                                &opts);
     if (err < 0)
         return Error_set(err);
 
-    return wrap_patch(patch, self, py_blob);
+    return wrap_patch(patch, self, other);
 }
 
 
@@ -124,6 +127,8 @@ Blob_diff_to_buffer(Blob *self, PyObject *args, PyObject *kwds)
                                      &old_as_path, &buffer_as_path))
         return NULL;
 
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
     err = git_patch_from_blob_and_buffer(&patch, self->blob, old_as_path,
                                          buffer, buffer_len, buffer_as_path,
                                          &opts);
@@ -145,6 +150,7 @@ PyDoc_STRVAR(Blob_size__doc__, "Size.");
 PyObject *
 Blob_size__get__(Blob *self)
 {
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
     return PyLong_FromLongLong(git_blob_rawsize(self->blob));
 }
 
@@ -154,6 +160,8 @@ PyDoc_STRVAR(Blob_is_binary__doc__, "True if binary data, False if not.");
 PyObject *
 Blob_is_binary__get__(Blob *self)
 {
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
     if (git_blob_is_binary(self->blob))
         Py_RETURN_TRUE;
     Py_RETURN_FALSE;
@@ -174,6 +182,7 @@ PyGetSetDef Blob_getseters[] = {
 static int
 Blob_getbuffer(Blob *self, Py_buffer *view, int flags)
 {
+    if (Object__load((Object*)self) == NULL) { return -1; } // Lazy load
     return PyBuffer_FillInfo(view, (PyObject *) self,
                              (void *) git_blob_rawcontent(self->blob),
                              git_blob_rawsize(self->blob), 1, flags);
