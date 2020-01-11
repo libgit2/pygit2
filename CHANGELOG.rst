@@ -1,3 +1,10 @@
+1.0.2 (2020-01-11)
+-------------------------
+
+- Fix enumerating tree entries with submodules
+  `#967 <https://github.com/libgit2/pygit2/issues/967>`_
+
+
 1.0.1 (2019-12-21)
 -------------------------
 
