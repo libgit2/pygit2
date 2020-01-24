@@ -27,9 +27,9 @@
 
 #include "error.h"
 
-PyObject *GitError;
-PyObject *AlreadyExistsError;
-PyObject *InvalidSpecError;
+extern PyObject *GitError;
+extern PyObject *AlreadyExistsError;
+extern PyObject *InvalidSpecError;
 
 PyObject *
 Error_type(int type)

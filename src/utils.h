@@ -152,6 +152,15 @@ int py_object_to_otype(PyObject *py_type);
     if (PyModule_AddObject(module, #type, (PyObject*) & type ## Type) == -1)\
         return NULL;
 
+#define ADD_EXC(m, name, base)\
+    name = PyErr_NewException("_pygit2." #name, base, NULL);\
+    if (name == NULL) goto fail;\
+    Py_INCREF(name);\
+    if (PyModule_AddObject(m, #name, name)) {\
+        Py_DECREF(name);\
+        goto fail;\
+    }
+
 #define ADD_CONSTANT_INT(m, name) \
     if (PyModule_AddIntConstant(m, #name, name) == -1) return NULL;
 

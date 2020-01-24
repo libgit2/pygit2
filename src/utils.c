@@ -37,23 +37,25 @@ extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 
 /**
- * py_str_to_c_str() returns a newly allocated C string holding the string
+ * py_str_to_c_str() returns a *newly allocated* C string holding the string
  * contained in the 'value' argument.
  */
 char *
 py_str_to_c_str(PyObject *value, const char *encoding)
 {
-    const char *borrowed;
-    char *c_str = NULL;
     PyObject *tmp = NULL;
 
-    borrowed = py_str_borrow_c_str(&tmp, value, encoding);
+    const char *borrowed = py_str_borrow_c_str(&tmp, value, encoding);
     if (!borrowed)
         return NULL;
 
-    c_str = strdup(borrowed);
-
+    char *c_str = strdup(borrowed);
     Py_DECREF(tmp);
+
+    if (!c_str) {
+        // FIXME Set exception
+    }
+
     return c_str;
 }
 
@@ -64,27 +66,32 @@ py_str_to_c_str(PyObject *value, const char *encoding)
 const char *
 py_str_borrow_c_str(PyObject **tvalue, PyObject *value, const char *encoding)
 {
-    /* Case 1: byte string */
-    if (PyBytes_Check(value)) {
-        Py_INCREF(value);
-        *tvalue = value;
-        return PyBytes_AsString(value);
-    }
+    PyObject *py_str;
 
-    /* Case 2: text string */
-    if (PyUnicode_Check(value)) {
-        if (encoding == NULL)
-            *tvalue = PyUnicode_AsUTF8String(value);
-        else
-            *tvalue = PyUnicode_AsEncodedString(value, encoding, "strict");
-        if (*tvalue == NULL)
+    // Get new PyBytes reference from value
+    if (PyUnicode_Check(value)) { // Text string
+        py_str = (encoding) ? PyUnicode_AsEncodedString(value, encoding, "strict")
+                            : PyUnicode_AsUTF8String(value);
+        if (py_str == NULL)
             return NULL;
-        return PyBytes_AsString(*tvalue);
+    } else if (PyBytes_Check(value)) { // Byte string
+        py_str = value;
+        Py_INCREF(py_str);
+    } else { // Type error
+        Error_type_error("unexpected %.200s", value);
+        return NULL;
     }
 
-    /* Type error */
-    Error_type_error("unexpected %.200s", value);
-    return NULL;
+    // Borrow c string from the new PyBytes reference
+    char *c_str = PyBytes_AsString(py_str);
+    if (c_str == NULL) {
+        Py_DECREF(py_str);
+        return NULL;
+    }
+
+    // Return the borrowed c string and the new PyBytes reference
+    *tvalue = py_str;
+    return c_str;
 }
 
 /**

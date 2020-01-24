@@ -36,9 +36,9 @@
 #include "oid.h"
 #include "options.h"
 
-extern PyObject *GitError;
-extern PyObject *AlreadyExistsError;
-extern PyObject *InvalidSpecError;
+PyObject *GitError;
+PyObject *AlreadyExistsError;
+PyObject *InvalidSpecError;
 
 extern PyTypeObject RepositoryType;
 extern PyTypeObject OdbType;
@@ -250,9 +250,23 @@ PyMethodDef module_methods[] = {
     {NULL}
 };
 
-PyObject *
-moduleinit(PyObject* m)
+
+struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_pygit2",                       /* m_name */
+    "Python bindings for libgit2.",  /* m_doc */
+    -1,                              /* m_size */
+    module_methods,                  /* m_methods */
+    NULL,                            /* m_reload */
+    NULL,                            /* m_traverse */
+    NULL,                            /* m_clear */
+    NULL,                            /* m_free */
+};
+
+PyMODINIT_FUNC
+PyInit__pygit2(void)
 {
+    PyObject *m = PyModule_Create(&moduledef);
     if (m == NULL)
         return NULL;
 
@@ -292,18 +306,10 @@ moduleinit(PyObject* m)
     ADD_CONSTANT_INT(m, GIT_OPT_SET_PACK_MAX_OBJECTS);
     ADD_CONSTANT_INT(m, GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS);
 
-    /* Errors */
-    GitError = PyErr_NewException("_pygit2.GitError", NULL, NULL);
-    Py_INCREF(GitError);
-    PyModule_AddObject(m, "GitError", GitError);
-
-    AlreadyExistsError = PyErr_NewException("_pygit2.AlreadyExistsError", PyExc_ValueError, NULL);
-    Py_INCREF(AlreadyExistsError);
-    PyModule_AddObject(m, "AlreadyExistsError", AlreadyExistsError);
-
-    InvalidSpecError = PyErr_NewException("_pygit2.InvalidSpecError", PyExc_ValueError, NULL);
-    Py_INCREF(InvalidSpecError);
-    PyModule_AddObject(m, "InvalidSpecError", InvalidSpecError);
+    /* Exceptions */
+    ADD_EXC(m, GitError, NULL);
+    ADD_EXC(m, AlreadyExistsError, PyExc_ValueError);
+    ADD_EXC(m, InvalidSpecError, PyExc_ValueError);
 
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
@@ -574,25 +580,8 @@ moduleinit(PyObject* m)
     git_libgit2_init();
 
     return m;
-}
 
-
-struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "_pygit2",                       /* m_name */
-    "Python bindings for libgit2.",  /* m_doc */
-    -1,                              /* m_size */
-    module_methods,                  /* m_methods */
-    NULL,                            /* m_reload */
-    NULL,                            /* m_traverse */
-    NULL,                            /* m_clear */
-    NULL,                            /* m_free */
-};
-
-PyMODINIT_FUNC
-PyInit__pygit2(void)
-{
-    PyObject* m;
-    m = PyModule_Create(&moduledef);
-    return moduleinit(m);
+fail:
+    Py_DECREF(m);
+    return NULL;
 }

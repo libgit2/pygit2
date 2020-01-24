@@ -264,11 +264,15 @@ option(PyObject *self, PyObject *args)
         case GIT_OPT_SET_SSL_CERT_LOCATIONS:
         {
             PyObject *py_file, *py_dir;
-            const char *file_path, *dir_path;
+            char *file_path, *dir_path;
             int err;
 
             py_file = PyTuple_GetItem(args, 1);
+            if (!py_file)
+                return NULL;
             py_dir = PyTuple_GetItem(args, 2);
+            if (!py_dir)
+                return NULL;
 
             /* py_file and py_dir are only valid if they are strings */
             if (PyUnicode_Check(py_file) || PyBytes_Check(py_file)) {
@@ -284,6 +288,8 @@ option(PyObject *self, PyObject *args)
             }
 
             err = git_libgit2_opts(GIT_OPT_SET_SSL_CERT_LOCATIONS, file_path, dir_path);
+            free(file_path);
+            free(dir_path);
 
             if (err < 0)
                 return Error_set(err);

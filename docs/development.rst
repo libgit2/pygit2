@@ -45,4 +45,25 @@ Example::
 Running Valgrind
 ===================================
 
-valgrind --tool=memcheck --suppressions=misc/valgrind-python.supp ~/Python-3.7.4/bin/pytest
+Step 1. Build libc and libgit2 with debug symbols. See your distribution
+documentation.
+
+Step 2. Build Python to be used with valgrind, e.g.::
+
+  $ ./configure --prefix=~/Python-3.7.4 --without-pymalloc --with-pydebug --with-valgrind
+  $ make
+  $ make install
+  $ export PYTHONBIN=~/Python-3.7.4/bin
+
+Step 3. Build pygit2 with debug symbols::
+
+  $ rm build -rf && $PYTHONBIN/python3 setup.py build_ext --inplace -g
+
+Step 4. Install requirements::
+
+  $ $PYTHONBIN/python3 setup.py install
+  $ pip insall pytest
+
+Step 4. Run valgrind:
+
+  $ valgrind -v --leak-check=full --suppressions=misc/valgrind-python.supp $PYTHONBIN/pytest &> valgrind.txt
