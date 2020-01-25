@@ -196,16 +196,11 @@ PyDoc_STRVAR(reference_is_valid_name__doc__,
 PyObject *
 reference_is_valid_name(PyObject *self, PyObject *py_refname)
 {
-    char* refname;
-    int result;
-
-    refname = py_str_to_c_str(py_refname, NULL);
-    if (refname == NULL) {
+    const char *refname = pgit_borrow(py_refname);
+    if (refname == NULL)
         return NULL;
-    }
 
-    result = git_reference_is_valid_name(refname);
-    free(refname);
+    int result = git_reference_is_valid_name(refname);
     return PyBool_FromLong(result);
 }
 

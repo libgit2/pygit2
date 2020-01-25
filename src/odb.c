@@ -52,29 +52,27 @@ int_to_loose_object_type(int type_id)
 int
 Odb_init(Odb *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *py_path = NULL;
-    const char *path;
-    int err;
-
     if (kwds && PyDict_Size(kwds) > 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "Odb takes no keyword arguments");
+        PyErr_SetString(PyExc_TypeError, "Odb takes no keyword arguments");
         return -1;
     }
 
+    PyObject *py_path = NULL;
     if (!PyArg_ParseTuple(args, "|O", &py_path))
         return -1;
 
+    int err;
     if (py_path) {
-        path = py_path_to_c_str(py_path);
+        char *path = pgit_encode_fsdefault(py_path);
         if (path == NULL)
             return -1;
         err = git_odb_open(&self->odb, path);
+        free(path);
     } else {
         err = git_odb_new(&self->odb);
     }
 
-    if (err < 0) {
+    if (err) {
         Error_set(err);
         return -1;
     }
@@ -137,15 +135,13 @@ PyDoc_STRVAR(Odb_add_disk_alternate__doc__,
 PyObject *
 Odb_add_disk_alternate(Odb *self, PyObject *py_path)
 {
-    int err;
-    const char *path;
-
-    path = py_path_to_c_str(py_path);
+    char *path = pgit_encode_fsdefault(py_path);
     if (path == NULL)
         return NULL;
 
-    err = git_odb_add_disk_alternate(self->odb, path);
-    if (err < 0)
+    int err = git_odb_add_disk_alternate(self->odb, path);
+    free(path);
+    if (err)
         return Error_set(err);
 
     Py_RETURN_NONE;

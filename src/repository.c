@@ -335,25 +335,16 @@ PyDoc_STRVAR(Repository_revparse_single__doc__,
 PyObject *
 Repository_revparse_single(Repository *self, PyObject *py_spec)
 {
-    git_object *c_obj;
-    const char *c_spec;
-    PyObject *tspec;
-    int err;
-
-    /* 1- Get the C revision spec */
-    c_spec = py_str_borrow_c_str(&tspec, py_spec, NULL);
+    /* Get the C revision spec */
+    const char *c_spec = pgit_borrow(py_spec);
     if (c_spec == NULL)
         return NULL;
 
-    /* 2- Lookup */
-    err = git_revparse_single(&c_obj, self->repo, c_spec);
-    if (err < 0) {
-        PyObject *err_obj = Error_set_str(err, c_spec);
-        Py_DECREF(tspec);
-        return err_obj;
-    }
-
-    Py_DECREF(tspec);
+    /* Lookup */
+    git_object *c_obj;
+    int err = git_revparse_single(&c_obj, self->repo, c_spec);
+    if (err)
+        return Error_set_str(err, c_spec);
 
     return wrap_object(c_obj, self, NULL);
 }
@@ -391,17 +382,12 @@ Repository_workdir__get__(Repository *self, void *closure)
 int
 Repository_workdir__set__(Repository *self, PyObject *py_workdir)
 {
-    int err;
-    const char *workdir;
-    PyObject *tworkdir;
-
-    workdir = py_str_borrow_c_str(&tworkdir, py_workdir, NULL);
+    const char *workdir = pgit_borrow(py_workdir);
     if (workdir == NULL)
         return -1;
 
-    err = git_repository_set_workdir(self->repo, workdir, 0 /* update_gitlink */);
-    Py_DECREF(tworkdir);
-    if (err < 0) {
+    int err = git_repository_set_workdir(self->repo, workdir, 0 /* update_gitlink */);
+    if (err) {
         Error_set_str(err, workdir);
         return -1;
     }
@@ -866,16 +852,13 @@ Repository_create_commit(Repository *self, PyObject *args)
     Signature *py_author, *py_committer;
     PyObject *py_oid, *py_message, *py_parents, *py_parent;
     PyObject *py_result = NULL;
-    PyObject *tmessage;
-    const char *message = NULL;
     char *update_ref = NULL;
     char *encoding = NULL;
     git_oid oid;
     git_tree *tree = NULL;
     int parent_count;
     git_commit **parents = NULL;
-    int err = 0, i = 0;
-    size_t len;
+    int i = 0;
 
     if (!PyArg_ParseTuple(args, "zO!O!OOO!|s",
                           &update_ref,
@@ -887,15 +870,16 @@ Repository_create_commit(Repository *self, PyObject *args)
                           &encoding))
         return NULL;
 
-    len = py_oid_to_git_oid(py_oid, &oid);
+    size_t len = py_oid_to_git_oid(py_oid, &oid);
     if (len == 0)
         return NULL;
 
-    message = py_str_borrow_c_str(&tmessage, py_message, encoding);
+    PyObject *tmessage;
+    const char *message = pgit_borrow_encoding(py_message, encoding, &tmessage);
     if (message == NULL)
         return NULL;
 
-    err = git_tree_lookup_prefix(&tree, self->repo, &oid, len);
+    int err = git_tree_lookup_prefix(&tree, self->repo, &oid, len);
     if (err < 0) {
         Error_set(err);
         goto out;
@@ -1220,16 +1204,15 @@ Repository_init_submodules(Repository* self, PyObject *args, PyObject *kwds)
     PyObject *list = Py_None;
     PyObject *oflag = Py_False;
     char *kwlist[] = {"submodules", "overwrite", NULL};
-    int err, fflag;
-    PyObject *iter, *subpath, *next;
+    int err;
+    PyObject *iter, *next;
     const char *c_subpath;
     git_submodule *submodule;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OO", kwlist, &list, &oflag))
         return NULL;
 
-    fflag = PyObject_IsTrue(oflag);
-
+    int fflag = PyObject_IsTrue(oflag);
     if (fflag != 0 && fflag != 1)
         fflag = 0;
 
@@ -1250,18 +1233,18 @@ Repository_init_submodules(Repository* self, PyObject *args, PyObject *kwds)
         if (!next)
             break;
 
-        c_subpath = py_str_borrow_c_str(&subpath, next, NULL);
+        c_subpath = pgit_borrow(next);
+        if (c_subpath == NULL)
+            return NULL;
 
-        git_submodule_lookup(&submodule, self->repo, c_subpath);
-        Py_DECREF(subpath);
+        err = git_submodule_lookup(&submodule, self->repo, c_subpath);
         if (!submodule) {
-            PyErr_SetString(PyExc_KeyError,
-                "Submodule does not exist");
+            PyErr_SetString(PyExc_KeyError, "Submodule does not exist");
             return NULL;
         }
 
         err = git_submodule_init(submodule, fflag);
-        if (err != 0) {
+        if (err) {
             return Error_set(err);
         }
     }
@@ -1277,18 +1260,15 @@ PyDoc_STRVAR(Repository_lookup_reference__doc__,
 PyObject *
 Repository_lookup_reference(Repository *self, PyObject *py_name)
 {
-    git_reference *c_reference;
-    char *c_name;
-    int err;
-
     /* 1- Get the C name */
-    c_name = py_path_to_c_str(py_name);
+    char *c_name = pgit_encode_fsdefault(py_name);
     if (c_name == NULL)
         return NULL;
 
     /* 2- Lookup */
-    err = git_reference_lookup(&c_reference, self->repo, c_name);
-    if (err < 0) {
+    git_reference *c_reference;
+    int err = git_reference_lookup(&c_reference, self->repo, c_name);
+    if (err) {
         PyObject *err_obj = Error_set_str(err, c_name);
         free(c_name);
         return err_obj;
@@ -1307,18 +1287,15 @@ PyDoc_STRVAR(Repository_lookup_reference_dwim__doc__,
 PyObject *
 Repository_lookup_reference_dwim(Repository *self, PyObject *py_name)
 {
-    git_reference *c_reference;
-    char *c_name;
-    int err;
-
     /* 1- Get the C name */
-    c_name = py_path_to_c_str(py_name);
+    char *c_name = pgit_encode_fsdefault(py_name);
     if (c_name == NULL)
         return NULL;
 
     /* 2- Lookup */
-    err = git_reference_dwim(&c_reference, self->repo, c_name);
-    if (err < 0) {
+    git_reference *c_reference;
+    int err = git_reference_dwim(&c_reference, self->repo, c_name);
+    if (err) {
         PyObject *err_obj = Error_set_str(err, c_name);
         free(c_name);
         return err_obj;
@@ -1496,20 +1473,19 @@ PyDoc_STRVAR(Repository_status_file__doc__,
 PyObject *
 Repository_status_file(Repository *self, PyObject *value)
 {
-    char *path;
-    unsigned int status;
-    int err;
-
-    path = py_path_to_c_str(value);
+    char *path = pgit_encode_fsdefault(value);
     if (!path)
         return NULL;
 
-    err = git_status_file(&status, self->repo, path);
-    if (err < 0) {
-        PyObject *err_obj =  Error_set_str(err, path);
+    unsigned int status;
+    int err = git_status_file(&status, self->repo, path);
+    if (err) {
+        PyObject *err_obj = Error_set_str(err, path);
         free(path);
         return err_obj;
     }
+    free(path);
+
     return PyLong_FromLong(status);
 }
 

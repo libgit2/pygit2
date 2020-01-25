@@ -158,30 +158,22 @@ option(PyObject *self, PyObject *args)
 
         case GIT_OPT_SET_SEARCH_PATH:
         {
-            PyObject *py_level, *py_path, *tpath;
-            const char *path;
-            int err;
-
-            py_level = PyTuple_GetItem(args, 1);
+            PyObject *py_level = PyTuple_GetItem(args, 1);
             if (!py_level)
                 return NULL;
 
-            py_path = PyTuple_GetItem(args, 2);
+            PyObject *py_path = PyTuple_GetItem(args, 2);
             if (!py_path)
                 return NULL;
 
             if (!PyLong_Check(py_level))
-                return Error_type_error(
-                    "level should be an integer, got %.200s", py_level);
+                return Error_type_error("level should be an integer, got %.200s", py_level);
 
-            path = py_str_borrow_c_str(&tpath, py_path, NULL);
+            const char *path = pgit_borrow(py_path);
             if (!path)
                 return NULL;
 
-            err = git_libgit2_opts(
-                GIT_OPT_SET_SEARCH_PATH, PyLong_AsLong(py_level), path);
-            Py_DECREF(tpath);
-
+            int err = git_libgit2_opts(GIT_OPT_SET_SEARCH_PATH, PyLong_AsLong(py_level), path);
             if (err < 0)
                 return Error_set(err);
 
@@ -264,7 +256,7 @@ option(PyObject *self, PyObject *args)
         case GIT_OPT_SET_SSL_CERT_LOCATIONS:
         {
             PyObject *py_file, *py_dir;
-            char *file_path, *dir_path;
+            char *file_path=NULL, *dir_path=NULL;
             int err;
 
             py_file = PyTuple_GetItem(args, 1);
@@ -275,23 +267,17 @@ option(PyObject *self, PyObject *args)
                 return NULL;
 
             /* py_file and py_dir are only valid if they are strings */
-            if (PyUnicode_Check(py_file) || PyBytes_Check(py_file)) {
-                file_path = py_str_to_c_str(py_file, Py_FileSystemDefaultEncoding);
-            } else {
-                file_path = NULL;
-            }
+            if (PyUnicode_Check(py_file) || PyBytes_Check(py_file))
+                file_path = pgit_encode_fsdefault(py_file);
 
-            if (PyUnicode_Check(py_dir) || PyBytes_Check(py_dir)) {
-                dir_path = py_str_to_c_str(py_dir, Py_FileSystemDefaultEncoding);
-            } else {
-                dir_path = NULL;
-            }
+            if (PyUnicode_Check(py_dir) || PyBytes_Check(py_dir))
+                dir_path = pgit_encode_fsdefault(py_dir);
 
             err = git_libgit2_opts(GIT_OPT_SET_SSL_CERT_LOCATIONS, file_path, dir_path);
             free(file_path);
             free(dir_path);
 
-            if (err < 0)
+            if (err)
                 return Error_set(err);
 
             Py_RETURN_NONE;

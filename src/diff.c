@@ -1024,16 +1024,12 @@ Diff_parse_diff(PyObject *self, PyObject *py_str)
 {
     /* A wrapper around git_diff_from_buffer */
     git_diff *diff;
-    const char *content = NULL;
-    int err;
-    PyObject *tvalue;
 
-    content = py_str_borrow_c_str(&tvalue, py_str, NULL);
+    const char *content = pgit_borrow(py_str);
     if (content == NULL)
         return NULL;
 
-    err = git_diff_from_buffer(&diff, content, strlen(content));
-    Py_DECREF(tvalue);
+    int err = git_diff_from_buffer(&diff, content, strlen(content));
     if (err < 0)
         return Error_set(err);
 

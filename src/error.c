@@ -105,14 +105,13 @@ Error_set_exc(PyObject* exception)
 PyObject *
 Error_set_str(int err, const char *str)
 {
-    const git_error* error;
     if (err == GIT_ENOTFOUND) {
         /* KeyError expects the arg to be the missing key. */
         PyErr_SetString(PyExc_KeyError, str);
         return NULL;
     }
 
-    error = git_error_last();
+    const git_error *error = git_error_last();
     if (error == NULL) /* Expected error - no error msg set */
         return PyErr_Format(Error_type(err), "%s", str);
 

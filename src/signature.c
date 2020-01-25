@@ -39,30 +39,25 @@ int
 Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 {
     char *keywords[] = {"name", "email", "time", "offset", "encoding", NULL};
-    PyObject *py_name, *tname;
+    PyObject *py_name;
     char *email, *encoding = "utf-8";
-    const char *name;
     long long time = -1;
     int offset = 0;
-    int err;
-    git_signature *signature;
 
     if (!PyArg_ParseTupleAndKeywords(
             args, kwds, "Os|Lis", keywords,
             &py_name, &email, &time, &offset, &encoding))
         return -1;
 
-    name = py_str_borrow_c_str(&tname, py_name, encoding);
+    PyObject *tname;
+    const char *name = pgit_borrow_encoding(py_name, encoding, &tname);
     if (name == NULL)
         return -1;
 
-    if (time == -1) {
-        err = git_signature_now(&signature, name, email);
-    } else {
-        err = git_signature_new(&signature, name, email, time, offset);
-    }
+    git_signature *signature;
+    int err = (time == -1) ? git_signature_now(&signature, name, email)
+                           : git_signature_new(&signature, name, email, time, offset);
     Py_DECREF(tname);
-
     if (err < 0) {
         Error_set(err);
         return -1;
@@ -124,7 +119,7 @@ PyDoc_STRVAR(Signature_raw_name__doc__, "Name (bytes).");
 PyObject *
 Signature_raw_name__get__(Signature *self)
 {
-    return to_bytes(self->signature->name);
+    return PyBytes_FromString(self->signature->name);
 }
 
 
@@ -133,7 +128,7 @@ PyDoc_STRVAR(Signature_raw_email__doc__, "Email (bytes).");
 PyObject *
 Signature_raw_email__get__(Signature *self)
 {
-    return to_bytes(self->signature->email);
+    return PyBytes_FromString(self->signature->email);
 }
 
 

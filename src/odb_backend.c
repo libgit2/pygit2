@@ -718,25 +718,22 @@ PyDoc_STRVAR(OdbBackendPack__doc__, "Object database backend for packfiles.");
 int
 OdbBackendPack_init(OdbBackendPack *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *py_path;
-    const char *path;
-    int err;
-
     if (kwds && PyDict_Size(kwds) > 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "OdbBackendPack takes no keyword arguments");
+        PyErr_SetString(PyExc_TypeError, "OdbBackendPack takes no keyword arguments");
         return -1;
     }
 
+    PyObject *py_path;
     if (!PyArg_ParseTuple(args, "O", &py_path))
         return -1;
 
-    path = py_path_to_c_str(py_path);
+    char *path = pgit_encode_fsdefault(py_path);
     if (path == NULL)
         return -1;
-    err = git_odb_backend_pack(&self->super.odb_backend, path);
 
-    if (err < 0) {
+    int err = git_odb_backend_pack(&self->super.odb_backend, path);
+    free(path);
+    if (err) {
         Error_set(err);
         return -1;
     }
@@ -811,29 +808,26 @@ PyDoc_STRVAR(OdbBackendLoose__doc__,
 int
 OdbBackendLoose_init(OdbBackendLoose *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *py_path;
-    const char *path;
-    int compression_level, do_fsync;
-    unsigned int dir_mode = 0, file_mode = 0;
-    int err;
-
     if (kwds && PyDict_Size(kwds) > 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "OdbBackendLoose takes no keyword arguments");
+        PyErr_SetString(PyExc_TypeError, "OdbBackendLoose takes no keyword arguments");
         return -1;
     }
 
+    PyObject *py_path;
+    int compression_level, do_fsync;
+    unsigned int dir_mode = 0, file_mode = 0;
     if (!PyArg_ParseTuple(args, "Oip|II", &py_path, &compression_level,
-                &do_fsync, &dir_mode, &file_mode))
+                          &do_fsync, &dir_mode, &file_mode))
         return -1;
 
-    path = py_path_to_c_str(py_path);
+    char *path = pgit_encode_fsdefault(py_path);
     if (path == NULL)
         return -1;
-    err = git_odb_backend_loose(&self->super.odb_backend, path,
-            compression_level, do_fsync, dir_mode, file_mode);
 
-    if (err < 0) {
+    int err = git_odb_backend_loose(&self->super.odb_backend, path, compression_level,
+                                    do_fsync, dir_mode, file_mode);
+    free(path);
+    if (err) {
         Error_set(err);
         return -1;
     }

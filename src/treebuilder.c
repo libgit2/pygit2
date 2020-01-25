@@ -107,19 +107,16 @@ PyDoc_STRVAR(TreeBuilder_get__doc__,
 PyObject *
 TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
 {
-    char *filename;
-    const git_tree_entry *entry_src;
-    git_tree_entry *entry;
-
-    filename = py_path_to_c_str(py_filename);
+    char *filename = pgit_encode_fsdefault(py_filename);
     if (filename == NULL)
         return NULL;
 
-    entry_src = git_treebuilder_get(self->bld, filename);
+    const git_tree_entry *entry_src = git_treebuilder_get(self->bld, filename);
     free(filename);
     if (entry_src == NULL)
         Py_RETURN_NONE;
 
+    git_tree_entry *entry;
     if (git_tree_entry_dup(&entry, entry_src) < 0) {
         PyErr_SetNone(PyExc_MemoryError);
         return NULL;
@@ -137,15 +134,13 @@ PyDoc_STRVAR(TreeBuilder_remove__doc__,
 PyObject *
 TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
 {
-    char *filename = py_path_to_c_str(py_filename);
-    int err = 0;
-
+    char *filename = pgit_encode_fsdefault(py_filename);
     if (filename == NULL)
         return NULL;
 
-    err = git_treebuilder_remove(self->bld, filename);
+    int err = git_treebuilder_remove(self->bld, filename);
     free(filename);
-    if (err < 0)
+    if (err)
         return Error_set(err);
 
     Py_RETURN_NONE;

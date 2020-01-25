@@ -156,22 +156,20 @@ PyDoc_STRVAR(Reference_rename__doc__,
 PyObject *
 Reference_rename(Reference *self, PyObject *py_name)
 {
-    char *c_name;
-    int err;
-    git_reference *new_reference;
-
     CHECK_REFERENCE(self);
 
     /* Get the C name */
-    c_name = py_path_to_c_str(py_name);
+    char *c_name = pgit_encode_fsdefault(py_name);
     if (c_name == NULL)
         return NULL;
 
     /* Rename */
-    err = git_reference_rename(&new_reference, self->reference, c_name, 0, NULL);
-    git_reference_free(self->reference);
+    git_reference *new_reference;
+    int err = git_reference_rename(&new_reference, self->reference, c_name, 0, NULL);
     free(c_name);
-    if (err < 0)
+
+    git_reference_free(self->reference);
+    if (err)
         return Error_set(err);
 
     self->reference = new_reference;
@@ -253,7 +251,6 @@ PyObject *
 Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
 {
     git_oid oid;
-    char *c_name;
     int err;
     git_reference *new_ref;
     PyObject *py_target = NULL;
@@ -282,7 +279,7 @@ Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
     }
 
     /* Case 2: Symbolic */
-    c_name = py_path_to_c_str(py_target);
+    char *c_name = pgit_encode_fsdefault(py_target);
     if (c_name == NULL)
         return NULL;
 

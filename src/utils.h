@@ -57,8 +57,7 @@
 
 
 /* Utilities */
-#define to_unicode(x, encoding, errors)\
-        to_unicode_n(x, strlen(x), encoding, errors)
+#define to_unicode(x, encoding, errors) to_unicode_n(x, strlen(x), encoding, errors)
 
 PYGIT2_FN_UNUSED
 Py_LOCAL_INLINE(PyObject*)
@@ -81,23 +80,16 @@ to_unicode_n(const char *value, size_t len, const char *encoding,
     return PyUnicode_Decode(value, len, encoding, errors);
 }
 
-PYGIT2_FN_UNUSED
-Py_LOCAL_INLINE(PyObject*)
-to_bytes(const char * value)
-{
-    return PyBytes_FromString(value);
-}
+const char* pgit_borrow(PyObject *value);
+const char* pgit_borrow_encoding(PyObject *value, const char *encoding, PyObject **tvalue);
+char* pgit_encode(PyObject *value, const char *encoding);
+char* pgit_encode_fsdefault(PyObject *value);
 
-char * py_str_to_c_str(PyObject *value, const char *encoding);
-const char *py_str_borrow_c_str(PyObject **tvaue, PyObject *value, const char *encoding);
 
-PyObject * get_pylist_from_git_strarray(git_strarray *strarray);
-int get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist);
+//PyObject * get_pylist_from_git_strarray(git_strarray *strarray);
+//int get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist);
 
 int py_object_to_otype(PyObject *py_type);
-
-#define py_path_to_c_str(py_path) \
-        py_str_to_c_str(py_path, Py_FileSystemDefaultEncoding)
 
 /* Helpers to make shorter PyMethodDef and PyGetSetDef blocks */
 #define METHOD(type, name, args)\

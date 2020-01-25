@@ -37,15 +37,15 @@ extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 
 /**
- * py_str_to_c_str() returns a *newly allocated* C string holding the string
- * contained in the 'value' argument.
+ * Return a *newly allocated* C string holding the string contained in the
+ * 'value' argument.
  */
 char *
-py_str_to_c_str(PyObject *value, const char *encoding)
+pgit_encode(PyObject *value, const char *encoding)
 {
     PyObject *tmp = NULL;
 
-    const char *borrowed = py_str_borrow_c_str(&tmp, value, encoding);
+    const char *borrowed = pgit_borrow_encoding(value, encoding, &tmp);
     if (!borrowed)
         return NULL;
 
@@ -59,12 +59,18 @@ py_str_to_c_str(PyObject *value, const char *encoding)
     return c_str;
 }
 
+char*
+pgit_encode_fsdefault(PyObject *value)
+{
+    return pgit_encode(value, Py_FileSystemDefaultEncoding);
+}
+
 /**
  * Return a pointer to the underlying C string in 'value'. The pointer is
- * guaranteed by 'tvalue'. Decrease its refcount when done with the string.
+ * guaranteed by 'tvalue', decrease its refcount when done with the string.
  */
-const char *
-py_str_borrow_c_str(PyObject **tvalue, PyObject *value, const char *encoding)
+const char*
+pgit_borrow_encoding(PyObject *value, const char *encoding, PyObject **tvalue)
 {
     PyObject *py_str;
 
@@ -94,9 +100,34 @@ py_str_borrow_c_str(PyObject **tvalue, PyObject *value, const char *encoding)
     return c_str;
 }
 
+
+/**
+ * Return a borrowed c string with the representation of the given Unicode or
+ * Bytes object:
+ * - If value is Unicode return the UTF-8 representation
+ * - If value is Bytes return the raw sttring
+ * In both cases the returned string is owned by value and must not be
+ * modified, nor freed.
+ */
+const char*
+pgit_borrow(PyObject *value)
+{
+    if (PyUnicode_Check(value)) { // Text string
+        return PyUnicode_AsUTF8(value);
+    } else if (PyBytes_Check(value)) { // Byte string
+        return PyBytes_AsString(value);
+    }
+
+    // Type error
+    Error_type_error("unexpected %.200s", value);
+    return NULL;
+}
+
+
 /**
  * Converts the (struct) git_strarray to a Python list
  */
+/*
 PyObject *
 get_pylist_from_git_strarray(git_strarray *strarray)
 {
@@ -113,11 +144,13 @@ get_pylist_from_git_strarray(git_strarray *strarray)
 
     return new_list;
 }
+*/
 
 /**
  * Converts the Python list to struct git_strarray
  * returns -1 if conversion failed
  */
+/*
 int
 get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 {
@@ -133,7 +166,7 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 
     n = PyList_Size(pylist);
 
-    /* allocate new git_strarray */
+    // allocate new git_strarray
     ptr = calloc(n, sizeof(char *));
     if (!ptr) {
         PyErr_SetNone(PyExc_MemoryError);
@@ -145,7 +178,7 @@ get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
 
     for (index = 0; index < n; index++) {
         item = PyList_GetItem(pylist, index);
-        str = py_str_to_c_str(item, NULL);
+        str = pgit_encode(item, NULL);
         if (!str)
             goto on_error;
 
@@ -163,6 +196,7 @@ on_error:
 
     return -1;
 }
+*/
 
 static git_otype
 py_type_to_git_type(PyTypeObject *py_type)
