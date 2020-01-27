@@ -73,8 +73,13 @@ wrap_diff_file(const git_diff_file *file)
     py_file = PyObject_New(DiffFile, &DiffFileType);
     if (py_file) {
         py_file->id = git_oid_to_python(&file->id);
-        py_file->path = file->path != NULL ? strdup(file->path) : NULL;
-        py_file->raw_path = file->path != NULL ? PyBytes_FromString(file->path) : NULL;
+        if (file->path) {
+            py_file->path = strdup(file->path);
+            py_file->raw_path = PyBytes_FromString(file->path);
+        } else {
+            py_file->path = NULL;
+            py_file->raw_path = NULL;
+        }
         py_file->size = file->size;
         py_file->flags = file->flags;
         py_file->mode = file->mode;
@@ -169,6 +174,7 @@ static void
 DiffFile_dealloc(DiffFile *self)
 {
     Py_CLEAR(self->id);
+    Py_CLEAR(self->raw_path);
     free(self->path);
     PyObject_Del(self);
 }
