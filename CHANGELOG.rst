@@ -18,6 +18,13 @@
   `#738 <https://github.com/libgit2/pygit2/issues/738>`_
 
 
+1.0.3 (2020-01-31)
+-------------------------
+
+- Fix memory leak in DiffFile
+  `#943 <https://github.com/libgit2/pygit2/issues/943>`_
+
+
 1.0.2 (2020-01-11)
 -------------------------
 
