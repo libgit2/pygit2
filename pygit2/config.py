@@ -51,14 +51,13 @@ class ConfigIterator(object):
         err = C.git_config_next(centry, self._iter)
         check_error(err)
 
-        return ConfigEntry._from_c(centry[0], True)
+        return ConfigEntry._from_c(centry[0], self)
 
     def next(self):
         return self.__next__()
 
     def __next__(self):
-        entry = self._next_entry()
-        return entry
+        return self._next_entry()
 
 
 class ConfigMultivarIterator(ConfigIterator):
@@ -193,7 +192,7 @@ class Config(object):
 
         entry = self._get_entry(key)
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, entry.raw_value)
+        err = C.git_config_parse_bool(res, entry.c_value)
         check_error(err)
 
         return res[0] != 0
@@ -208,7 +207,7 @@ class Config(object):
 
         entry = self._get_entry(key)
         res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, entry.raw_value)
+        err = C.git_config_parse_int64(res, entry.c_value)
         check_error(err)
 
         return res[0]
@@ -289,46 +288,45 @@ class ConfigEntry(object):
     """
 
     @classmethod
-    def _from_c(cls, ptr, from_iterator=False):
-        """Builds the entry from a ``git_config_entry`` pointer. ``from_iterator``
-        should be ``True`` when the entry was created during ``git_config_iterator``
-        actions
+    def _from_c(cls, ptr, iterator=None):
+        """Builds the entry from a ``git_config_entry`` pointer.
+
+        ``iterator`` must be a ``ConfigIterator`` instance if the entry was
+        created during ``git_config_iterator`` actions.
         """
         entry = cls.__new__(cls)
         entry._entry = ptr
-        entry.from_iterator = from_iterator
+        entry.iterator = iterator
         return entry
 
     def __del__(self):
-        if not self.from_iterator:
+        if self.iterator is None:
             C.git_config_entry_free(self._entry)
 
     @property
-    def value(self):
-        """The entry's value as a string
-        """
-        return self.decode_as_string(self._entry.value)
-
-    @property
-    def level(self):
-        """The entry's ``git_config_level_t`` value
-        """
-        return self._entry.level
-
-    @property
-    def name(self):
-        """The entry's name
-        """
-        return self.decode_as_string(self._entry.name)
+    def c_value(self):
+        """The raw ``cData`` entry value."""
+        return self._entry.value
 
     @property
     def raw_value(self):
-        """The raw ``cData`` entry value
-        """
-        return self._entry.value
+        return ffi.string(self.c_value)
 
-    @staticmethod
-    def decode_as_string(value):
-        """Returns ``value`` as a decoded ``utf-8`` string.
-        """
-        return ffi.string(value).decode('utf-8')
+    @property
+    def value(self):
+        """The entry's value as a string."""
+        return self.raw_value.decode('utf-8')
+
+    @property
+    def raw_name(self):
+        return ffi.string(self._entry.name)
+
+    @property
+    def name(self):
+        """The entry's name."""
+        return self.raw_name.decode('utf-8')
+
+    @property
+    def level(self):
+        """The entry's ``git_config_level_t`` value."""
+        return self._entry.level
