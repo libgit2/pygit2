@@ -23,6 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from cached_property import cached_property
+
 # Import from pygit2
 from .errors import check_error
 from .ffi import ffi, C
@@ -297,6 +299,18 @@ class ConfigEntry(object):
         entry = cls.__new__(cls)
         entry._entry = ptr
         entry.iterator = iterator
+
+        # It should be enough to keep a reference to iterator, so we only call
+        # git_config_iterator_free when we've deleted all ConfigEntry objects.
+        # But it's not, to reproduce the error comment the lines below and run
+        # the script in https://github.com/libgit2/pygit2/issues/970
+        # So instead we load the Python object immmediately. Ideally we should
+        # investigate libgit2 source code.
+        if iterator is not None:
+            entry.raw_name = entry.raw_name
+            entry.raw_value = entry.raw_value
+            entry.level = entry.level
+
         return entry
 
     def __del__(self):
@@ -308,18 +322,18 @@ class ConfigEntry(object):
         """The raw ``cData`` entry value."""
         return self._entry.value
 
-    @property
+    @cached_property
+    def raw_name(self):
+        return ffi.string(self._entry.name)
+
+    @cached_property
     def raw_value(self):
         return ffi.string(self.c_value)
 
-    @property
-    def value(self):
-        """The entry's value as a string."""
-        return self.raw_value.decode('utf-8')
-
-    @property
-    def raw_name(self):
-        return ffi.string(self._entry.name)
+    @cached_property
+    def level(self):
+        """The entry's ``git_config_level_t`` value."""
+        return self._entry.level
 
     @property
     def name(self):
@@ -327,6 +341,6 @@ class ConfigEntry(object):
         return self.raw_name.decode('utf-8')
 
     @property
-    def level(self):
-        """The entry's ``git_config_level_t`` value."""
-        return self._entry.level
+    def value(self):
+        """The entry's value as a string."""
+        return self.raw_value.decode('utf-8')
