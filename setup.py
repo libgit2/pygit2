@@ -124,7 +124,7 @@ if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
 ext_modules = [
-    Extension('_pygit2', pygit2_exts, libraries=['git2'],
+    Extension('pygit2._pygit2', pygit2_exts, libraries=['git2'],
               include_dirs=[libgit2_include],
               library_dirs=[libgit2_lib]),
 ]

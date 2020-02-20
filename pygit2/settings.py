@@ -29,8 +29,8 @@ Settings mapping.
 
 from ssl import get_default_verify_paths
 
-import _pygit2
-from _pygit2 import option
+from . import _pygit2
+from ._pygit2 import option
 from .errors import GitError
 
 

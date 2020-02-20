@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from _pygit2 import Oid
+from ._pygit2 import Oid
 from .errors import check_error
 from .ffi import ffi, C
 

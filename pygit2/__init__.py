@@ -27,7 +27,7 @@
 import functools
 
 # Low level API
-from _pygit2 import *
+from ._pygit2 import *
 
 # High level API
 from .blame import Blame, BlameHunk

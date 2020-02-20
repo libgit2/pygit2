@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from _pygit2 import Oid
+from ._pygit2 import Oid
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .refspec import Refspec
