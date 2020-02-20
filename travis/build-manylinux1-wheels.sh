@@ -252,9 +252,9 @@ for PY in $PYTHONS; do
     $PY_BIN -B -c '
 import pygit2
 print("libgit2 version: %s" % pygit2.LIBGIT2_VERSION)
-print("pygit2 supports threads: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
-print("pygit2 supports HTTPS: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
-print("pygit2 supports SSH: %s" % str(bool(pygit2.GIT_FEATURE_THREADS)))
+print("pygit2 supports threads: %s" % str(bool(pygit2.features & pygit2.GIT_FEATURE_THREADS)))
+print("pygit2 supports HTTPS: %s" % str(bool(pygit2.features & pygit2.GIT_FEATURE_HTTPS)))
+print("pygit2 supports SSH: %s" % str(bool(pygit2.features & pygit2.GIT_FEATURE_SSH)))
 print("")
     '
 done
