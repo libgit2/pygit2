@@ -26,7 +26,7 @@
 # Import from pygit2
 from .ffi import ffi, C
 from .utils import GenericIterator
-from _pygit2 import Signature, Oid
+from ._pygit2 import Signature, Oid
 
 
 def wrap_signature(csig):

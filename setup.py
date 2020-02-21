@@ -102,7 +102,7 @@ class BuildWithDLLs(build):
         elif compiler_type == 'mingw32':
             libgit2_dlls.append('libgit2.dll')
         look_dirs = [libgit2_bin] + getenv("PATH", "").split(pathsep)
-        target = abspath(self.build_lib)
+        target = abspath(os.path.join(self.build_lib, "pygit2"))
         for bin in libgit2_dlls:
             for look in look_dirs:
                 f = os.path.join(look, bin)
@@ -124,7 +124,7 @@ if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
 ext_modules = [
-    Extension('_pygit2', pygit2_exts, libraries=['git2'],
+    Extension('pygit2._pygit2', pygit2_exts, libraries=['git2'],
               include_dirs=[libgit2_include],
               library_dirs=[libgit2_lib]),
 ]

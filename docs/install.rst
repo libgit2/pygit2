@@ -139,7 +139,7 @@ library:
    Traceback (most recent call last):
      File "<string>", line 1, in <module>
      File "pygit2/__init__.py", line 29, in <module>
-       from _pygit2 import *
+       from ._pygit2 import *
    ImportError: libgit2.so.0: cannot open shared object file: No such file or directory
 
 This happens for instance in Ubuntu, the libgit2 library is installed within
@@ -229,7 +229,7 @@ everytime. Verify yourself if curious:
 
 .. code-block:: sh
 
-   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.27.0-py2.7-linux-x86_64.egg/_pygit2.so | grep PATH
+   $ readelf --dynamic lib/python2.7/site-packages/pygit2-0.27.0-py2.7-linux-x86_64.egg/pygit2/_pygit2.so | grep PATH
     0x000000000000001d (RUNPATH)            Library runpath: [/tmp/venv/lib]
 
 

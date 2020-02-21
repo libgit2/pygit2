@@ -30,14 +30,14 @@ import tarfile
 from time import time
 
 # Import from pygit2
-from _pygit2 import Repository as _Repository, init_file_backend
-from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from _pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
-from _pygit2 import GIT_FILEMODE_LINK
-from _pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
-from _pygit2 import GIT_REF_SYMBOLIC
-from _pygit2 import Reference, Tree, Commit, Blob
-from _pygit2 import InvalidSpecError
+from ._pygit2 import Repository as _Repository, init_file_backend
+from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
+from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
+from ._pygit2 import GIT_FILEMODE_LINK
+from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
+from ._pygit2 import GIT_REF_SYMBOLIC
+from ._pygit2 import Reference, Tree, Commit, Blob
+from ._pygit2 import InvalidSpecError
 
 from .config import Config
 from .errors import check_error
