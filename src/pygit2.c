@@ -63,6 +63,7 @@ extern PyTypeObject TreeIterType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 extern PyTypeObject WalkerType;
+extern PyTypeObject RefdbType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
@@ -395,6 +396,10 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_RESET_SOFT)
     ADD_CONSTANT_INT(m, GIT_RESET_MIXED)
     ADD_CONSTANT_INT(m, GIT_RESET_HARD)
+
+    /* Refdb */
+    INIT_TYPE(RefdbType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, Refdb)
 
     /*
      * References

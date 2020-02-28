@@ -74,6 +74,11 @@ typedef struct {
     OdbBackend super;
 } OdbBackendLoose;
 
+typedef struct {
+    PyObject_HEAD
+    git_refdb *refdb;
+} Refdb;
+
 
 #define SIMPLE_TYPE(_name, _ptr_type, _ptr_name) \
         typedef struct {\

@@ -35,6 +35,7 @@
 #include "object.h"
 #include "oid.h"
 #include "note.h"
+#include "refdb.h"
 #include "repository.h"
 #include "diff.h"
 #include "branch.h"
@@ -1586,6 +1587,21 @@ Repository_odb__get__(Repository *self)
     return wrap_odb(odb);
 }
 
+PyDoc_STRVAR(Repository_refdb__doc__, "Return the reference database for this repository");
+
+PyObject *
+Repository_refdb__get__(Repository *self)
+{
+    git_refdb *refdb;
+    int err;
+
+    err = git_repository_refdb(&refdb, self->repo);
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_refdb(refdb);
+}
+
 PyDoc_STRVAR(Repository__pointer__doc__, "Get the repo's pointer. For internal use only.");
 PyObject *
 Repository__pointer__get__(Repository *self)
@@ -1929,6 +1945,7 @@ PyGetSetDef Repository_getseters[] = {
     GETSET(Repository, workdir),
     GETTER(Repository, default_signature),
     GETTER(Repository, odb),
+    GETTER(Repository, refdb),
     GETTER(Repository, _pointer),
     {NULL}
 };
