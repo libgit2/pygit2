@@ -79,6 +79,15 @@ typedef struct {
     git_refdb *refdb;
 } Refdb;
 
+typedef struct {
+    PyObject_HEAD
+    git_refdb_backend *refdb_backend;
+} RefdbBackend;
+
+typedef struct {
+    RefdbBackend super;
+} RefdbFsBackend;
+
 
 #define SIMPLE_TYPE(_name, _ptr_type, _ptr_name) \
         typedef struct {\

@@ -64,6 +64,8 @@ extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject RefdbType;
+extern PyTypeObject RefdbBackendType;
+extern PyTypeObject RefdbFsBackendType;
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
@@ -400,6 +402,11 @@ PyInit__pygit2(void)
     /* Refdb */
     INIT_TYPE(RefdbType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Refdb)
+
+    INIT_TYPE(RefdbBackendType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, RefdbBackend)
+    INIT_TYPE(RefdbFsBackendType, &RefdbBackendType, PyType_GenericNew)
+    ADD_TYPE(m, RefdbFsBackend)
 
     /*
      * References
