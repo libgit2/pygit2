@@ -399,7 +399,7 @@ PyInit__pygit2(void)
     /*
      * References
      */
-    INIT_TYPE(ReferenceType, NULL, NULL)
+    INIT_TYPE(ReferenceType, NULL, PyType_GenericNew)
     INIT_TYPE(RefLogEntryType, NULL, NULL)
     INIT_TYPE(RefLogIterType, NULL, NULL)
     INIT_TYPE(NoteType, NULL, NULL)

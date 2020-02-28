@@ -36,10 +36,12 @@
 #include "oid.h"
 #include "signature.h"
 #include "reference.h"
+#include <git2/sys/refs.h>
 
 
 extern PyObject *GitError;
 extern PyTypeObject RefLogEntryType;
+extern PyTypeObject RepositoryType;
 extern PyTypeObject SignatureType;
 
 PyTypeObject ReferenceType;
@@ -114,6 +116,62 @@ PyTypeObject RefLogIterType = {
     PyObject_SelfIter,                         /* tp_iter           */
     (iternextfunc)RefLogIter_iternext,         /* tp_iternext       */
 };
+
+PyDoc_STRVAR(Reference__doc__,
+        "Reference(name: str, target: str): create a symbolic reference\n"
+        "\n"
+        "Reference(name: str, oid: oid, peel: oid): create a direct reference\n"
+        "\n"
+        "'peel' is the first non-tag object's OID, or None.\n"
+        "\n"
+        "The purpose of this constructor is for use in custom refdb backends.\n"
+        "References created with this function are unlikely to work as\n"
+        "expected in other contexts.\n");
+
+static int
+Reference_init_symbolic(Reference *self, PyObject *args, PyObject *kwds)
+{
+    const char *name, *target;
+    if (!PyArg_ParseTuple(args, "ss", &name, &target)) {
+        return -1;
+    }
+    self->reference = git_reference__alloc_symbolic(name, target);
+    return 0;
+}
+
+int
+Reference_init(Reference *self, PyObject *args, PyObject *kwds)
+{
+    const char *name;
+    git_oid oid, peel;
+    PyObject *py_oid, *py_peel;
+
+    if (kwds && PyDict_Size(kwds) > 0) {
+        PyErr_SetString(PyExc_TypeError, "Reference takes no keyword arguments");
+        return -1;
+    }
+
+    Py_ssize_t nargs = PyTuple_Size(args);
+    if (nargs == 2) {
+        return Reference_init_symbolic(self, args, kwds);
+    } else if (nargs != 3) {
+        PyErr_SetString(PyExc_TypeError,
+                "Invalid arguments to Reference constructor");
+        return -1;
+    }
+
+    if (!PyArg_ParseTuple(args, "sOO", &name, &py_oid, &py_peel)) {
+        return -1;
+    }
+
+    py_oid_to_git_oid(py_oid, &oid);
+    if (py_peel != Py_None) {
+        py_oid_to_git_oid(py_peel, &peel);
+    }
+
+    self->reference = git_reference__alloc(name, &oid, &peel);
+    return 0;
+}
 
 void
 Reference_dealloc(Reference *self)
@@ -580,9 +638,6 @@ PyGetSetDef Reference_getseters[] = {
     {NULL}
 };
 
-
-PyDoc_STRVAR(Reference__doc__, "Reference.");
-
 PyTypeObject ReferenceType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_pygit2.Reference",                       /* tp_name           */
@@ -619,7 +674,7 @@ PyTypeObject ReferenceType = {
     0,                                         /* tp_descr_get      */
     0,                                         /* tp_descr_set      */
     0,                                         /* tp_dictoffset     */
-    0,                                         /* tp_init           */
+    (initproc)Reference_init,                  /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
 };
