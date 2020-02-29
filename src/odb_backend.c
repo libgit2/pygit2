@@ -65,31 +65,34 @@ static int
 pygit2_odb_backend_read(void **ptr, size_t *sz,
         git_object_t *type, git_odb_backend *_be, const git_oid *oid)
 {
-    int err;
     PyObject *args, *py_oid, *result;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
 
     py_oid = git_oid_to_python(oid);
-    args = Py_BuildValue("(O)", py_oid);
-    result = PyObject_CallObject(be->read, args);
-    Py_DECREF(py_oid);
+    if (py_oid == NULL)
+        return GIT_EUSER;
 
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
+    args = Py_BuildValue("(N)", py_oid);
+    result = PyObject_CallObject(be->read, args);
+    Py_DECREF(args);
 
     if (result == NULL)
-        return GIT_EUSER;
+        return git_error_for_exc();
 
     const char *bytes;
-    if (!PyArg_ParseTuple(result, "ny#", type, &bytes, sz) || !bytes)
+    if (!PyArg_ParseTuple(result, "ny#", type, &bytes, sz) || !bytes) {
+        Py_DECREF(result);
         return GIT_EUSER;
+    }
 
     *ptr = git_odb_backend_data_alloc(_be, *sz);
-    if (!*ptr)
+    if (!*ptr) {
+        Py_DECREF(result);
         return GIT_EUSER;
+    }
 
     memcpy(*ptr, bytes, *sz);
+    Py_DECREF(result);
     return 0;
 }
 
@@ -98,33 +101,37 @@ pygit2_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz,
         git_object_t *type, git_odb_backend *_be,
         const git_oid *short_oid, size_t len)
 {
-    int err;
     PyObject *args, *py_oid, *py_oid_out, *result;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
 
     py_oid = git_oid_to_python(short_oid);
-    args = Py_BuildValue("(O)", py_oid);
-    result = PyObject_CallObject(be->read_prefix, args);
-    Py_DECREF(py_oid);
+    if (py_oid == NULL)
+        return GIT_EUSER;
 
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
+    args = Py_BuildValue("(N)", py_oid);
+    result = PyObject_CallObject(be->read_prefix, args);
+    Py_DECREF(args);
 
     if (result == NULL)
-        return GIT_EUSER;
+        return git_error_for_exc();
 
     const char *bytes;
     if (!PyArg_ParseTuple(result, "Ony#",
-                &py_oid_out, type, &bytes, sz) || !bytes)
+                &py_oid_out, type, &bytes, sz) || !bytes) {
+        Py_DECREF(result);
         return GIT_EUSER;
+    }
+
 
     *ptr = git_odb_backend_data_alloc(_be, *sz);
-    if (!*ptr)
+    if (!*ptr) {
+        Py_DECREF(result);
         return GIT_EUSER;
+    }
 
     memcpy(*ptr, bytes, *sz);
     py_oid_to_git_oid(py_oid_out, oid_out);
+    Py_DECREF(result);
     return 0;
 }
 
@@ -132,25 +139,26 @@ static int
 pygit2_odb_backend_read_header(size_t *len, git_object_t *type,
         git_odb_backend *_be, const git_oid *oid)
 {
-    int err;
     PyObject *args, *py_oid, *result;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
 
     py_oid = git_oid_to_python(oid);
-    args = Py_BuildValue("(O)", py_oid);
-    result = PyObject_CallObject(be->read_header, args);
-    Py_DECREF(py_oid);
+    if (py_oid == NULL)
+        return GIT_EUSER;
 
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
+    args = Py_BuildValue("(N)", py_oid);
+    result = PyObject_CallObject(be->read_header, args);
+    Py_DECREF(args);
 
     if (result == NULL)
-        return GIT_EUSER;
+        return git_error_for_exc();
 
-    if (!PyArg_ParseTuple(result, "nn", type, len))
+    if (!PyArg_ParseTuple(result, "nn", type, len)) {
+        Py_DECREF(result);
         return GIT_EUSER;
+    }
 
+    Py_DECREF(result);
     return 0;
 }
 
@@ -158,72 +166,74 @@ static int
 pygit2_odb_backend_write(git_odb_backend *_be, const git_oid *oid,
         const void *data, size_t sz, git_object_t typ)
 {
-    int err;
     PyObject *args, *py_oid, *result;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
 
     py_oid = git_oid_to_python(oid);
-    args = Py_BuildValue("(Oy#n)", py_oid, data, sz, typ);
-    result = PyObject_CallObject(be->write, args);
-    Py_DECREF(py_oid);
-
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
-
-    if (result == NULL)
+    if (py_oid == NULL)
         return GIT_EUSER;
 
+    args = Py_BuildValue("(Ny#n)", py_oid, data, sz, typ);
+    result = PyObject_CallObject(be->write, args);
+    Py_DECREF(args);
+
+    if (result == NULL)
+        return git_error_for_exc();
+
+    Py_DECREF(result);
     return 0;
 }
 
 static int
 pygit2_odb_backend_exists(git_odb_backend *_be, const git_oid *oid)
 {
-    int err;
     PyObject *args, *py_oid, *result;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
 
     py_oid = git_oid_to_python(oid);
-    args = Py_BuildValue("(O)", py_oid);
-    result = PyObject_CallObject(be->exists, args);
-    Py_DECREF(py_oid);
-
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
-
-    if (!result)
+    if (py_oid == NULL)
         return GIT_EUSER;
 
-    return PyObject_IsTrue(result);
+    args = Py_BuildValue("(N)", py_oid);
+    result = PyObject_CallObject(be->exists, args);
+    Py_DECREF(args);
+
+    if (result == NULL)
+        return git_error_for_exc();
+
+    int r = PyObject_IsTrue(result);
+    Py_DECREF(result);
+    return r;
 }
 
 static int
 pygit2_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
         const git_oid *partial, size_t len)
 {
-    int err;
     PyObject *args, *py_oid, *py_oid_out, *result;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
 
     py_oid = git_oid_to_python(partial);
-    args = Py_BuildValue("(O)", py_oid);
-    result = PyObject_CallObject(be->exists_prefix, args);
-    Py_DECREF(py_oid);
+    if (py_oid == NULL)
+        return GIT_EUSER;
 
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
+    args = Py_BuildValue("(N)", py_oid);
+    result = PyObject_CallObject(be->exists_prefix, args);
+    Py_DECREF(args);
 
     if (result == NULL)
-        return GIT_EUSER;
+        return git_error_for_exc();
 
-    if (!PyArg_ParseTuple(result, "O", &py_oid_out))
+    if (!PyArg_ParseTuple(result, "O", &py_oid_out)) {
+        Py_DECREF(result);
         return GIT_EUSER;
+    }
 
-    if (py_oid_out == Py_None)
+    Py_DECREF(result);
+
+    if (py_oid_out == Py_None) {
         return GIT_ENOTFOUND;
+    }
 
     py_oid_to_git_oid(py_oid_out, out);
     Py_DECREF(py_oid_out);
@@ -233,23 +243,15 @@ pygit2_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
 static int
 pygit2_odb_backend_refresh(git_odb_backend *_be)
 {
-    int err;
-    PyObject *args;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
-
     PyObject_CallObject(be->exists_prefix, NULL);
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
-
-    return 0;
+    return git_error_for_exc();
 }
 
 static int
 pygit2_odb_backend_foreach(git_odb_backend *_be,
         git_odb_foreach_cb cb, void *payload)
 {
-    int err;
     PyObject *item;
     git_oid oid;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
@@ -262,11 +264,7 @@ pygit2_odb_backend_foreach(git_odb_backend *_be,
         Py_DECREF(item);
     }
 
-    if ((err = git_error_for_exc()) != 0) {
-        return err;
-    }
-
-    return 0;
+    return git_error_for_exc();
 }
 
 static void
@@ -298,28 +296,24 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
     if (PyObject_HasAttrString((PyObject *)self, "read")) {
         be->read = PyObject_GetAttrString((PyObject *)self, "read");
         be->backend.read = pygit2_odb_backend_read;
-        Py_INCREF(be->read);
     }
 
     if (PyObject_HasAttrString((PyObject *)self, "read_prefix")) {
         be->read_prefix = PyObject_GetAttrString(
                 (PyObject *)self, "read_prefix");
         be->backend.read_prefix = pygit2_odb_backend_read_prefix;
-        Py_INCREF(be->read_prefix);
     }
 
     if (PyObject_HasAttrString((PyObject *)self, "read_header")) {
         be->read_header = PyObject_GetAttrString(
                 (PyObject *)self, "read_header");
         be->backend.read_header = pygit2_odb_backend_read_header;
-        Py_INCREF(be->read_header);
     }
 
     if (PyObject_HasAttrString((PyObject *)self, "write")) {
         be->write = PyObject_GetAttrString(
                 (PyObject *)self, "write");
         be->backend.write = pygit2_odb_backend_write;
-        Py_INCREF(be->write);
     }
 
     /* TODO: Stream-based read/write
@@ -327,14 +321,12 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         be->writestream = PyObject_GetAttrString(
                 (PyObject *)self, "writestream");
         be->backend.writestream = pygit2_odb_backend_writestream;
-        Py_INCREF(be->writestream);
     }
 
     if (PyObject_HasAttrString((PyObject *)self, "readstream")) {
         be->readstream = PyObject_GetAttrString(
                 (PyObject *)self, "readstream");
         be->backend.readstream = pygit2_odb_backend_readstream;
-        Py_INCREF(be->readstream);
     }
     */
 
@@ -342,21 +334,18 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
         be->exists = PyObject_GetAttrString(
                 (PyObject *)self, "exists");
         be->backend.exists = pygit2_odb_backend_exists;
-        Py_INCREF(be->exists);
     }
 
     if (PyObject_HasAttrString((PyObject *)self, "exists_prefix")) {
         be->exists_prefix = PyObject_GetAttrString(
                 (PyObject *)self, "exists_prefix");
         be->backend.exists_prefix = pygit2_odb_backend_exists_prefix;
-        Py_INCREF(be->exists_prefix);
     }
 
     if (PyObject_HasAttrString((PyObject *)self, "refresh")) {
         be->refresh = PyObject_GetAttrString(
                 (PyObject *)self, "refresh");
         be->backend.refresh = pygit2_odb_backend_refresh;
-        Py_INCREF(be->refresh);
     }
 
     if (PyIter_Check((PyObject *)self)) {
@@ -418,7 +407,6 @@ OdbBackend_build_as_iter(const git_oid *oid, void *accum)
         return GIT_EUSER;
 
     err = PyList_Append((PyObject*)accum, py_oid);
-    Py_DECREF(py_oid);
     if (err < 0)
         return GIT_EUSER;
 
@@ -517,6 +505,9 @@ OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
     }
 
     py_oid_out = git_oid_to_python(&oid_out);
+    if (py_oid_out == NULL) {
+        return Error_set_exc(PyExc_MemoryError);
+    }
     tuple = Py_BuildValue("(ny#O)", type, data, sz, py_oid_out);
 
     git_odb_backend_data_free(self->odb_backend, data);
