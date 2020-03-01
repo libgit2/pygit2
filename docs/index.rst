@@ -1,36 +1,73 @@
-.. pygit2 documentation master file, created by
-   sphinx-quickstart on Sun Jan  6 09:55:26 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to pygit2's documentation!
-==================================
+######################################################################
+pygit2 - libgit2 bindings in Python
+######################################################################
 
 Pygit2 is a set of Python bindings to the libgit2 shared library, libgit2
-implements the core of Git.  Pygit2 works with Python 3.5 - 3.8 and pypy.
+implements Git plumbing.  Pygit2 works with Python 3.5 - 3.8 and PyPy 3.5
 
-Links:
+.. image:: https://travis-ci.org/libgit2/pygit2.svg?branch=master
+   :target: http://travis-ci.org/libgit2/pygit2
 
-- http://www.pygit2.org/ -- Documentation
-- https://github.com/libgit2/pygit2 -- Source code and issue tracker
-- https://pypi.python.org/pypi/pygit2 -- Download
-- https://github.com/libgit2/pygit2/blob/master/CHANGELOG.rst -- Changelog
-- https://github.com/libgit2/pygit2/blob/master/AUTHORS.rst -- Authors
+.. image:: https://ci.appveyor.com/api/projects/status/edmwc0dctk5nacx0/branch/master?svg=true
+   :target: https://ci.appveyor.com/project/jdavid/pygit2/branch/master
 
-Start:
+Links
+=====================================
+
+- Documentation - http://www.pygit2.org/ |br|
+  Install - http://www.pygit2.org/install.html
+- Download - https://pypi.python.org/pypi/pygit2
+- Source code and issue tracker - https://github.com/libgit2/pygit2
+- Changelog - https://github.com/libgit2/pygit2/blob/master/CHANGELOG.rst
+- Authors - https://github.com/libgit2/pygit2/blob/master/AUTHORS.rst
+
+.. |br| raw:: html
+
+   <br/>
+
+Sponsors
+=====================================
+
+- `SourceHut <https://sourcehut.org>`_
+
+Add your name to the list, `become a sponsor <https://github.com/sponsors/jdavid>`_.
+
+
+License: GPLv2 with linking exception
+=====================================
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+In addition to the permissions in the GNU General Public License,
+the authors give you unlimited permission to link the compiled
+version of this file into combinations with other programs,
+and to distribute those combinations without any restriction
+coming from the use of this file.  (The General Public License
+restrictions do apply in other respects; for example, they cover
+modification of the file, and distribution when not linked into
+a combined executable.)
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING.  If not, write to
+the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
+
+
+Table of Contents
+=====================================
 
 .. toctree::
    :maxdepth: 1
 
    install
-   development
    recipes
-
-Usage guide:
-
-.. toctree::
-   :maxdepth: 1
-
    general
 
    backends
@@ -43,8 +80,8 @@ Usage guide:
    index_file
    mailmap
    merge
-   oid
    objects
+   oid
    references
    remotes
    repository
@@ -53,8 +90,9 @@ Usage guide:
    submodule
    worktree
 
+   development
 
 Indices and tables
-==================
+=====================================
 
 * :ref:`genindex`

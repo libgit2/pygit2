@@ -13,6 +13,7 @@ Authors::
   Richo Healey
   Christian Boos
   Julien Miotte
+  Drew DeVault
   Nick Hynes
   Richard Möhn
   Xu Tao
@@ -70,10 +71,10 @@ Authors::
   Arno van Lumig
   Ben Davis
   Colin Watson
-  Drew DeVault
   Dustin Raimondi
   Eric Schrijver
   Greg Fitzgerald
+  Gregory Herrero
   Guillermo Pérez
   Hervé Cauwelier
   Huang Huang
@@ -131,7 +132,6 @@ Authors::
   Erik van Zijst
   Ferengee
   Frazer McLean
-  Gregory Herrero
   Gustavo Di Pietro
   Holger Frey
   Hugh Cole-Baker
@@ -141,6 +141,7 @@ Authors::
   Josh Bleecher Snyder
   Justin Clift
   Kyriakos Oikonomakos
+  Lukas Berk
   Mathieu Bridon
   Mathieu Pillard
   Matthaus Woolard

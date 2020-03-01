@@ -1,7 +1,7 @@
-1.1.0 (UNRELEASED)
+1.1.0 (2020-03-01)
 -------------------------
 
-- Upgrade to next libgit2 major version
+- Upgrade to libgit2 0.99
   `#959 <https://github.com/libgit2/pygit2/pull/959>`_
 
 - Continued work on custom odb backends
@@ -16,6 +16,31 @@
 
 - New ``GIT_DIFF_`` and ``GIT_DELTA_`` constants
   `#738 <https://github.com/libgit2/pygit2/issues/738>`_
+
+- Fix crash in iteration of config entries
+  `#970 <https://github.com/libgit2/pygit2/issues/970>`_
+
+- Travis: fix printing features when building Linux wheels
+  `#977 <https://github.com/libgit2/pygit2/pull/977>`_
+
+- Move ``_pygit2`` to ``pygit2._pygit2``
+  `#978 <https://github.com/libgit2/pygit2/pull/978>`_
+
+Requirements changes:
+
+- Now libgit2 0.99 is required
+- New requirement: cached-property
+
+Breaking changes:
+
+- In the rare case you're directly importing the low level ``_pygit2``, the
+  import has changed::
+
+    # Before
+    import _pygit2
+
+    # Now
+    from pygit2 import _pygit2
 
 
 1.0.3 (2020-01-31)
