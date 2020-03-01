@@ -30,7 +30,7 @@ export PYTHONDONTWRITEBYTECODE=1
 SRC_DIR=/io
 GIT_GLOBAL_ARGS="--git-dir=${SRC_DIR}/.git --work-tree=${SRC_DIR}"
 TESTS_SRC_DIR="${SRC_DIR}/test"
-BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux1-build.XXXXXXXXXX"`
+BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux2010-build.XXXXXXXXXX"`
 TESTS_DIR="${BUILD_DIR}/test"
 STATIC_DEPS_PREFIX="${BUILD_DIR}/static-deps"
 LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
@@ -95,12 +95,7 @@ ARCH=`uname -m`
 >&2 echo Installing system deps...
 >&2 echo ========================
 >&2 echo
-# Install a system package required by our library
-# libgit2 needs cmake 2.8, which can be found in EPEL
-yum -y install \
-    git libffi-devel \
-    pkgconfig \
-    cmake28
+yum -y install git libffi-devel cmake3
 
 >&2 echo
 >&2 echo
@@ -141,14 +136,14 @@ git clone \
 
 mkdir -p "${LIBSSH2_BUILD_DIR}"
 pushd "${LIBSSH2_BUILD_DIR}"
-cmake28 "${LIBSSH2_CLONE_DIR}" \
+cmake3 "${LIBSSH2_CLONE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${STATIC_DEPS_PREFIX}" \
     -DBUILD_SHARED_LIBS=OFF \
     -DBUILD_EXAMPLES=OFF \
     -DBUILD_TESTING=OFF \
     -DCRYPTO_BACKEND=OpenSSL \
     -DENABLE_ZLIB_COMPRESSION=ON
-cmake28 --build "${LIBSSH2_BUILD_DIR}" --target install
+cmake3 --build "${LIBSSH2_BUILD_DIR}" --target install
 popd
 
 >&2 echo
@@ -172,12 +167,12 @@ git clone \
 mkdir -p "${LIBGIT2_BUILD_DIR}"
 pushd "${LIBGIT2_BUILD_DIR}"
 # Ref https://libgit2.org/docs/guides/build-and-link/
-cmake28 "${LIBGIT2_CLONE_DIR}" \
+cmake3 "${LIBGIT2_CLONE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${STATIC_DEPS_PREFIX}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_CLAR=OFF \
     -DTHREADSAFE=ON
-cmake28 --build "${LIBGIT2_BUILD_DIR}" --target install
+cmake3 --build "${LIBGIT2_BUILD_DIR}" --target install
 popd
 
 >&2 echo
@@ -217,7 +212,7 @@ done
 >&2 echo
 for PY in $PYTHONS; do
     PIP_BIN="/opt/python/${PY}/bin/pip"
-    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_${ARCH}.whl`
+    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux2010_${ARCH}.whl`
     cleanup_garbage
     >&2 echo Downloading ${WHEEL_FILE} deps using ${PIP_BIN}...
     ${PIP_BIN} download -d "${WHEEL_DEP_DIR}" "${WHEEL_FILE}"
@@ -267,7 +262,7 @@ cleanup_garbage
 >&2 echo
 for PY in $PYTHONS; do
     WHEEL_BIN="/opt/python/${PY}/bin/wheel"
-    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux1_${ARCH}.whl`
+    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux2010_${ARCH}.whl`
     >&2 echo Analysing ${WHEEL_FILE}...
     auditwheel show "${WHEEL_FILE}"
     ${WHEEL_BIN} unpack -d "${BUILD_DIR}/${PY}-${DIST_NAME}" "${WHEEL_FILE}"

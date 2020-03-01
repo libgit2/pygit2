@@ -14,21 +14,21 @@ env:
   global:
     LIBGIT2: ~/libgit2/_install/
     LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
-    LIBGIT2_VERSION: "0.28"
+    LIBGIT2_VERSION: "0.99"
 
 
 jobs:
   include:
   - stage: &deploy_stage Publish to PyPI (runs only for tagged commits)
     name: >-
-      OS-specific manylinux1 wheels
+      OS-specific manylinux wheels
     python: "3.7"
     services:
     - docker
     before_install: []
     install: skip
     script: &docker-script
-    - travis/build-all-manylinux1-wheels.sh "pygit2" "${LIBGIT2_VERSION}"
+    - travis/build-all-manylinux-wheels.sh "${LIBGIT2_VERSION}"
     - ls -alh dist
     before_deploy:
     - ls dist
@@ -37,7 +37,7 @@ jobs:
     deploy:
       provider: pypi
       # `skip-cleanup: true` is required to preserve binary wheels, built
-      # inside of manylinux1 docker container during `script` step above.
+      # inside of manylinux docker container during `script` step above.
       skip-cleanup: true
       # `skip-existing: true` is required to skip uploading dists, already
       # present in PYPI instead of failing the whole process.
@@ -50,7 +50,7 @@ jobs:
         secure: "j/4klKkq6sJuPEYwA1n5PD1Z02SbfTwt9Jj1omnOUOzVv3njJ73IHHELvIxtn18yj8uIKs8XpCUbpMKFGdWzc/WNj8xQPHVaRIlCrKVbZiUH/zfbuWOWlKlSEbNZ5+vVsnNbTN1FEwxDV9+CQKsibUG2Y1OzBqLx1gBSRpjq+ro="
       # Although Travis CI instructs `setup.py` to build source distribution,
       # which is default value for distribution option (`distribution: sdist`),
-      # it will also upload all wheels we've previously built in manylinux1
+      # it will also upload all wheels we've previously built in manylinux
       # docker container using `twine upload -r pypi dist/*` command.
       # Also since commit https://github.com/travis-ci/dpl/commit/90b5e39
       # it is default that Travis PYPI provider has `skip_upload_docs: true`

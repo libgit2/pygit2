@@ -9,8 +9,7 @@ fi
 
 cd ~
 
-#git clone --depth=1 -b "maint/v${LIBGIT2_VERSION}" https://github.com/libgit2/libgit2.git
-git clone --depth=1 -b master https://github.com/libgit2/libgit2.git
+git clone --depth=1 -b "maint/v${LIBGIT2_VERSION}" https://github.com/libgit2/libgit2.git
 cd libgit2/
 
 mkdir build && cd build
