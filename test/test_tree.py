@@ -167,6 +167,17 @@ class TreeTest(utils.BareRepoTestCase):
         for tree_entry in tree:
             assert tree_entry == tree[tree_entry.name]
 
+    def test_iterate_tree_nested(self):
+        """
+        Testing that we're able to iterate of a Tree object and then iterate
+        trees we receive as a result.
+        """
+        tree = self.repo[TREE_SHA]
+        for tree_entry in tree:
+            if isinstance(tree_entry, pygit2.Tree):
+                for tree_entry2 in tree_entry:
+                    pass
+
     def test_deep_contains(self):
         tree = self.repo[TREE_SHA]
         assert 'a' in tree

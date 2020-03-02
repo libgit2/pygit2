@@ -119,6 +119,8 @@ Tree_iter(Tree *self)
 {
     TreeIter *iter;
 
+    if (Object__load(self) == NULL) { return NULL; } // Lazy load
+
     iter = PyObject_New(TreeIter, &TreeIterType);
     if (iter) {
         Py_INCREF(self);
