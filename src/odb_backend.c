@@ -237,9 +237,7 @@ pygit2_odb_backend_refresh(git_odb_backend *_be)
     PyObject *args;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
 
-    args = Py_BuildValue("()"); /* XXX: Is this necessary? */
-    PyObject_CallObject(be->exists_prefix, args);
-
+    PyObject_CallObject(be->exists_prefix, NULL);
     if ((err = git_error_for_exc()) != 0) {
         return err;
     }
