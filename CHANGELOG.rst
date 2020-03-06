@@ -1,3 +1,13 @@
+1.1.1 (2020-03-06)
+-------------------------
+
+- Fix crash in tree iteration
+  `#984 <https://github.com/libgit2/pygit2/pull/984>`_
+  `#980 <https://github.com/libgit2/pygit2/issues/980>`_
+
+- Do not include the docs in dist files, so they're much smaller now
+
+
 1.1.0 (2020-03-01)
 -------------------------
 
