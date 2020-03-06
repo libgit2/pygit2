@@ -56,11 +56,15 @@ class sdist_files_from_git(sdist):
             print(stderrdata)
             sys.exit()
 
+        def exclude(line):
+            for prefix in ['.', 'appveyor.yml', 'docs/', 'misc/', 'travis/']:
+                if line.startswith(prefix):
+                    return True
+            return False
+
         for line in stdoutdata.splitlines():
-            # Skip hidden files at the root
-            if line[0] == '.':
-                continue
-            self.filelist.append(line)
+            if not exclude(line):
+                self.filelist.append(line)
 
         # Ok
         self.filelist.sort()
