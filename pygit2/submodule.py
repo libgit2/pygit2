@@ -79,4 +79,3 @@ class Submodule(object):
         """Head of the submodule."""
         head = C.git_submodule_head_id(self._subm)
         return Oid(raw=bytes(ffi.buffer(head)[:]))
-

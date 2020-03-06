@@ -114,15 +114,15 @@ class NoRepoTestCase(unittest.TestCase):
         with pytest.raises(exc_class) as excinfo:
             func(*args, **kwargs)
         assert excinfo.value.args == (arg,)
-        
+
         # Explicitly clear the Exception Info. Citing https://docs.pytest.org/en/latest/reference.html#pytest-raises:
         #
-        # Clearing those references breaks a reference cycle 
-        # (ExceptionInfo –> caught exception –> frame stack raising the exception 
-        # –> current frame stack –> local variables –> ExceptionInfo) which makes 
-        # Python keep all objects referenced from that cycle (including all local 
-        # variables in the current frame) alive until the next cyclic garbage collection 
-        # run. See the official Python try statement documentation for more detailed 
+        # Clearing those references breaks a reference cycle
+        # (ExceptionInfo –> caught exception –> frame stack raising the exception
+        # –> current frame stack –> local variables –> ExceptionInfo) which makes
+        # Python keep all objects referenced from that cycle (including all local
+        # variables in the current frame) alive until the next cyclic garbage collection
+        # run. See the official Python try statement documentation for more detailed
         # information.
         del excinfo
 

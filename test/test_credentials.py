@@ -69,7 +69,7 @@ class CredentialCreateTest(utils.NoRepoTestCase):
 
     def test_ssh_agent(self):
         username = "git"
- 
+
         cred = KeypairFromAgent(username)
         assert (username, None, None, None) == cred.credential_tuple
 
