@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../build/lib.' + version_string))
 # -- Project information -----------------------------------------------------
 
 project = 'pygit2'
-copyright = '2010-2019 The pygit2 contributors'
+copyright = '2010-2020 The pygit2 contributors'
 #author = ''
 
 # The full version, including alpha/beta/rc tags
