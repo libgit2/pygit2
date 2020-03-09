@@ -32,6 +32,7 @@
 #include "types.h"
 #include "utils.h"
 #include <git2/refdb.h>
+#include <git2/sys/refdb_backend.h>
 
 extern PyTypeObject RepositoryType;
 extern PyTypeObject RefdbType;
@@ -55,6 +56,21 @@ PyObject *
 Refdb_compress(Refdb *self)
 {
     int err = git_refdb_compress(self->refdb);
+    if (err != 0)
+        return Error_set(err);
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Refdb_set_backend__doc__,
+        "set_backend(backend: RefdbBackend)\n"
+        "\n"
+        "Sets a custom RefdbBackend for this Refdb.");
+
+PyObject *
+Refdb_set_backend(Refdb *self, RefdbBackend *backend)
+{
+    int err;
+    err = git_refdb_set_backend(self->refdb, backend->refdb_backend);
     if (err != 0)
         return Error_set(err);
     Py_RETURN_NONE;
@@ -111,6 +127,7 @@ Refdb_open(PyObject *self, Repository *repo)
 
 PyMethodDef Refdb_methods[] = {
     METHOD(Refdb, compress, METH_NOARGS),
+    METHOD(Refdb, set_backend, METH_O),
     {"new", (PyCFunction) Refdb_new,
       METH_O | METH_STATIC, Refdb_new__doc__},
     {"open", (PyCFunction) Refdb_open,
