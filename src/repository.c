@@ -1907,6 +1907,38 @@ Repository_apply(Repository *self, PyObject *py_diff)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Repository_set_odb__doc__,
+  "set_odb(odb: Odb)\n"
+  "\n"
+  "Sets the object database for this repository.\n"
+  "This is a low-level function, most users won't need it.\n");
+
+PyObject *
+Repository_set_odb(Repository *self, Odb *odb)
+{
+    int err;
+    err = git_repository_set_odb(self->repo, odb->odb);
+    if (err < 0)
+        return Error_set(err);
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Repository_set_refdb__doc__,
+  "set_refdb(refdb: Refdb)\n"
+  "\n"
+  "Sets the reference database for this repository.\n"
+  "This is a low-level function, most users won't need it.\n");
+
+PyObject *
+Repository_set_refdb(Repository *self, Refdb *refdb)
+{
+    int err;
+    err = git_repository_set_refdb(self->repo, refdb->refdb);
+    if (err < 0)
+        return Error_set(err);
+    Py_RETURN_NONE;
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
@@ -1950,6 +1982,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, list_worktrees, METH_VARARGS),
     METHOD(Repository, _from_c, METH_VARARGS),
     METHOD(Repository, _disown, METH_NOARGS),
+    METHOD(Repository, set_odb, METH_O),
+    METHOD(Repository, set_refdb, METH_O),
     {NULL}
 };
 
