@@ -81,7 +81,7 @@ wrap_repository(git_repository *c_repo)
 int
 Repository_init(Repository *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *backend;
+    PyObject *backend = NULL;
 
     if (kwds && PyDict_Size(kwds) > 0) {
         PyErr_SetString(PyExc_TypeError,
@@ -89,8 +89,21 @@ Repository_init(Repository *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (!PyArg_ParseTuple(args, "O", &backend)) {
+    if (!PyArg_ParseTuple(args, "|O", &backend)) {
         return -1;
+    }
+
+    if (backend == NULL) {
+        /* Create repository without odb/refdb */
+        int err = git_repository_new(&self->repo);
+        if (err != 0) {
+            Error_set(err);
+            return -1;
+        }
+        self->owned = 1;
+        self->config = NULL;
+        self->index = NULL;
+        return 0;
     }
 
     self->repo = PyCapsule_GetPointer(backend, "backend");
@@ -357,10 +370,15 @@ PyDoc_STRVAR(Repository_path__doc__,
 PyObject *
 Repository_path__get__(Repository *self, void *closure)
 {
+    const char *c_path;
     if (self->repo == NULL)
       Py_RETURN_NONE;
 
-    return to_path(git_repository_path(self->repo));
+    c_path = git_repository_path(self->repo);
+    if (c_path == NULL)
+        Py_RETURN_NONE;
+
+    return to_path(c_path);
 }
 
 

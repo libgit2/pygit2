@@ -50,8 +50,8 @@ from .submodule import Submodule
 
 
 class BaseRepository(_Repository):
-    def __init__(self, backend, *args, **kwargs):
-        super().__init__(backend, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._common_init()
 
     def _common_init(self):
@@ -1279,15 +1279,18 @@ class References(object):
 
 
 class Repository(BaseRepository):
-    def __init__(self, path, *args, **kwargs):
-        if hasattr(path, "__fspath__"):
-            path = path.__fspath__()
-
-        if not isinstance(path, str):
-            path = path.decode('utf-8')
-
-        path_backend = init_file_backend(path)
-        super().__init__(backend=path_backend, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        if len(args) != 0:
+            path = args[0]
+            args = args[1:]
+            if hasattr(path, "__fspath__"):
+                path = path.__fspath__()
+            if not isinstance(path, str):
+                path = path.decode('utf-8')
+            path_backend = init_file_backend(path)
+            super().__init__(path_backend, *args, **kwargs)
+        else:
+            super().__init__(*args, **kwargs)
 
     @classmethod
     def _from_c(cls, ptr, owned):
