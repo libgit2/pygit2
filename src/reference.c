@@ -633,8 +633,8 @@ wrap_reference(git_reference * c_reference, Repository *repo)
     py_reference = PyObject_New(Reference, &ReferenceType);
     if (py_reference) {
         py_reference->reference = c_reference;
+        py_reference->repo = repo;
         if (repo) {
-            py_reference->repo = repo;
             Py_INCREF(repo);
         }
     }
