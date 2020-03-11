@@ -272,13 +272,13 @@ class BaseRepository(_Repository):
         copts, refs = Repository._checkout_args_to_options(**kwargs)
         check_error(C.git_checkout_head(self._repo, copts))
 
-    def checkout_index(self, **kwargs):
-        """Checkout the repository's index
+    def checkout_index(self, index=None, **kwargs):
+        """Checkout the given index or the repository's index
 
         For arguments, see Repository.checkout().
         """
         copts, refs = Repository._checkout_args_to_options(**kwargs)
-        check_error(C.git_checkout_index(self._repo, ffi.NULL, copts))
+        check_error(C.git_checkout_index(self._repo, index._index if index else ffi.NULL, copts))
 
     def checkout_tree(self, treeish, **kwargs):
         """Checkout the given treeish
