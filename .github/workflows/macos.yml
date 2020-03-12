@@ -1,0 +1,119 @@
+---
+name: macOS
+
+on:
+  push: {}
+
+jobs:
+  build:
+    name: py-${{ matrix.py.ver }} libgit2-${{ matrix.libgit2}}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        libgit2: ['maint/v0.99']
+        py:
+          - ver: '3.6'
+            release: '3.6.8'  # last Python.org binary release
+          - ver: '3.7'
+            release: '3.7.7'
+          - ver: '3.8'
+            release: '3.8.2'
+    env:
+      HOMEBREW_CACHE: ${{ github.workspace }}/.cache/brew
+      CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
+      CCACHE_COMPRESS: 1
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+    steps:
+      - name: checkout pygit2
+        uses: actions/checkout@v2
+        with:
+          path: pygit2
+
+      - name: checkout libgit2
+        uses: actions/checkout@v2
+        with:
+          repository: libgit2/libgit2
+          path: libgit2
+          ref: ${{ matrix.libgit2 }}
+
+      - id: cache
+        uses: actions/cache@v1.1.0
+        with:
+          path: .cache
+          key: cache-libgit2.${{ matrix.libgit2 }}-py.${{ matrix.py.release }}
+          restore-keys: |
+            cache-
+
+      - name: setup python
+        run: |
+          mkdir -p .cache/python/ .cache/pip/
+          PKG="python-${{ matrix.py.release }}-macosx10.9.pkg"
+          URL="https://www.python.org/ftp/python/${{ matrix.py.release }}/$PKG"
+          wget --no-verbose -P .cache/python -N "$URL"
+          sudo installer -pkg ".cache/python/$PKG" -target /
+          export PATH=/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin:$PATH
+          echo "::add-path::/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin"
+          which python3
+          python3 -VV
+          test "$(python3 -V)" = "Python ${{ matrix.py.release }}"
+
+      - name: setup
+        run: |
+          mkdir -p .cache/brew/ .cache/ccache/
+          brew install ccache pkg-config
+          python3 -m venv venv/
+          echo "::add-path::${{ github.workspace }}/venv/bin:/usr/local/opt/ccache/libexec"
+          venv/bin/pip3 install delocate pytest
+
+      - name: build libgit2
+        id: libgit2
+        working-directory: libgit2
+        env:
+          PKG_CONFIG_PATH: /dev/null
+        run: |
+          mkdir env/
+          cmake . \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/libgit2/env \
+          -DBUILD_EXAMPLES=NO \
+          -DBUILD_CLAR=NO \
+          -DUSE_SSH=NO
+          cmake --build . --target install
+          VERSION=$(PKG_CONFIG_PATH=$(pwd) pkg-config --modversion libgit2)
+          echo "::set-output name=version::$VERSION"
+
+      - name: build pygit2
+        id: pygit2
+        working-directory: pygit2
+        env:
+          LIBGIT2: "${{ github.workspace }}/libgit2/env"
+          LDFLAGS: "-Wl,-rpath,'${{ github.workspace }}/libgit2/env/lib'"
+        run: |
+          python3 setup.py bdist_wheel
+          delocate-listdeps dist/pygit2-*macosx*.whl
+          delocate-wheel -v -w dist/fixed-wheels/ dist/pygit2-*macosx*.whl
+          WHEEL=$(basename dist/fixed-wheels/*.whl)
+          echo "::set-output name=wheel::$WHEEL"
+          delocate-listdeps dist/fixed-wheels/$WHEEL
+
+      - name: pygit2 tests
+        working-directory: pygit2
+        run: |
+          mv pygit2 pygit2~
+          mv ../libgit2/env ../libgit2/env~
+          pip3 install dist/fixed-wheels/pygit2-*.whl
+          mkdir -p testresults/
+          pytest -v test/ --junitxml=testresults/testresults.xml
+
+      - name: save test results
+        uses: actions/upload-artifact@v1
+        if: always()
+        with:
+          name: "test-results-py_${{ matrix.py.ver }}-libgit2_${{ steps.libgit2.outputs.version }}"
+          path: pygit2/testresults/
+
+      - name: save wheel
+        uses: actions/upload-artifact@v1
+        with:
+          name: "macOS-wheel-py_${{ matrix.py.ver }}-libgit2_${{ steps.libgit2.outputs.version }}"
+          path: pygit2/dist/fixed-wheels/
