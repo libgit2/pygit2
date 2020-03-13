@@ -680,7 +680,7 @@ class WorktreeTestCase(utils.RepoTestCase):
             # Confirm the name attribute matches the specified name
             assert worktree.name == worktree_name
             # Confirm the path attribute points to the correct path
-            assert os.path.realpath(worktree.path) == worktree_dir
+            assert os.path.realpath(worktree.path) == os.path.realpath(worktree_dir)
             # The "gitdir" in a worktree should be a file with a reference to
             # the actual gitdir. Let's make sure that the path exists and is a
             # file.
