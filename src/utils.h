@@ -39,6 +39,10 @@
 #  define PYGIT2_FN_UNUSED
 #endif
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6 && (!defined(PYPY_VERSION) || PYPY_VERSION_NUM >= 0x07030000)
+#define HAS_FSPATH_SUPPORT
+#endif
+
 #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
 #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
 

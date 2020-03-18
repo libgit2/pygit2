@@ -32,6 +32,7 @@ import shutil
 import tempfile
 import os
 from os.path import join, realpath
+from pathlib import Path
 import sys
 from urllib.request import pathname2url
 
@@ -517,6 +518,11 @@ class InitRepositoryTest(utils.NoRepoTestCase):
         repo = init_repository(self._temp_dir)
         assert not repo.is_bare
 
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_no_arg_aspath(self):
+        repo = init_repository(Path(self._temp_dir))
+        assert not repo.is_bare
+
     def test_pos_arg_false(self):
         repo = init_repository(self._temp_dir, False)
         assert not repo.is_bare
@@ -539,6 +545,13 @@ class DiscoverRepositoryTest(utils.NoRepoTestCase):
     def test_discover_repo(self):
         repo = init_repository(self._temp_dir, False)
         subdir = os.path.join(self._temp_dir, "test1", "test2")
+        os.makedirs(subdir)
+        assert repo.path == discover_repository(subdir)
+
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_discover_repo_aspath(self):
+        repo = init_repository(Path(self._temp_dir), False)
+        subdir = Path(self._temp_dir) / "test1" / "test2"
         os.makedirs(subdir)
         assert repo.path == discover_repository(subdir)
 
@@ -570,12 +583,24 @@ class StringTypesRepositoryTest(utils.NoRepoTestCase):
         repo_path = './test/data/testrepo.git/'
         pygit2.Repository(repo_path)
 
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_aspath(self):
+        repo_path = Path('./test/data/testrepo.git/')
+        pygit2.Repository(repo_path)
+
 
 class CloneRepositoryTest(utils.NoRepoTestCase):
 
     def test_clone_repository(self):
         repo_path = "./test/data/testrepo.git/"
         repo = clone_repository(repo_path, self._temp_dir)
+        assert not repo.is_empty
+        assert not repo.is_bare
+
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_clone_repository_aspath(self):
+        repo_path = Path("./test/data/testrepo.git/")
+        repo = clone_repository(repo_path, Path(self._temp_dir))
         assert not repo.is_empty
         assert not repo.is_bare
 
@@ -709,6 +734,16 @@ class WorktreeTestCase(utils.RepoTestCase):
         # something to take up with libgit2.
         worktree.prune(True)
         assert self.repo.list_worktrees() == []
+
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_worktree_aspath(self):
+        worktree_name = 'foo'
+        worktree_dir = Path(tempfile.mkdtemp())
+        # Delete temp path so that it's not present when we attempt to add the
+        # worktree later
+        os.rmdir(worktree_dir)
+        self.repo.add_worktree(worktree_name, worktree_dir)
+        assert self.repo.list_worktrees() == [worktree_name]
 
     def test_worktree_custom_ref(self):
         worktree_name = 'foo'

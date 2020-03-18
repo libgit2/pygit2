@@ -27,6 +27,7 @@
 
 import os
 import unittest
+from pathlib import Path
 
 from . import utils
 
@@ -36,10 +37,16 @@ SUBM_PATH = 'submodule'
 SUBM_URL = 'https://github.com/libgit2/pygit2'
 SUBM_HEAD_SHA = '819cbff552e46ac4b8d10925cc422a30aa04e78e'
 
+
 class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
     def test_lookup_submodule(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
+        assert s is not None
+
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_lookup_submodule_aspath(self):
+        s = self.repo.lookup_submodule(Path(SUBM_PATH))
         assert s is not None
 
     def test_listall_submodules(self):
