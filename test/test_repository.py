@@ -42,6 +42,8 @@ import pytest
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid, Reference, hashfile
+from pygit2 import Odb, OdbBackendLoose, OdbBackendPack
+from pygit2 import Refdb, RefdbFsBackend
 import pygit2
 from . import utils
 
@@ -777,3 +779,27 @@ class WorktreeTestCase(utils.RepoTestCase):
 
         # The branch still exists
         assert branch_name in self.repo.branches
+
+class CustomRepositoryTest(utils.RepoTestCase):
+    def setUp(self):
+        super().setUp()
+        odb = Odb()
+        object_path = os.path.join(self.repo.path, 'objects')
+        odb.add_backend(OdbBackendPack(os.path.join(object_path, 'pack')), 1)
+        odb.add_backend(OdbBackendLoose(object_path, 0, False), 1)
+        refdb = Refdb.new(self.repo)
+        refdb.set_backend(RefdbFsBackend(self.repo))
+        self.test_repo = pygit2.Repository()
+        self.test_repo.set_odb(odb)
+        self.test_repo.set_refdb(refdb)
+
+    def test_references(self):
+        refs = [(ref.name, ref.target.hex)
+                for ref in self.test_repo.references.objects]
+        assert sorted(refs) == [
+            ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+            ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+
+    def test_objects(self):
+        a = self.test_repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')
+        assert (GIT_OBJ_BLOB, b'foobar\n') == a
