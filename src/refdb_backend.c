@@ -595,25 +595,37 @@ RefdbBackend_write(RefdbBackend *self, PyObject *args)
     Reference *ref;
     int force;
     Signature *who;
+    const git_signature *sig = NULL;
     char *message, *old_target;
     PyObject *py_old;
-    git_oid old;
+    git_oid _old, *old = NULL;
     if (self->refdb_backend->write == NULL) {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
     }
 
-    if (!PyArg_ParseTuple(args, "O!pO!sOs", &ReferenceType, &ref,
-                &force, &SignatureType, &who, &message, &py_old, &old_target))
+    if (!PyArg_ParseTuple(args, "O!pOzOz", &ReferenceType, &ref,
+                &force, &who, &message, &py_old, &old_target))
         return NULL;
 
-    py_oid_to_git_oid(py_old, &old);
+    if ((PyObject *)py_old != Py_None) {
+        py_oid_to_git_oid(py_old, &_old);
+        old = &_old;
+    }
+
+    if ((PyObject *)who != Py_None) {
+        if (!PyObject_IsInstance((PyObject *)who, (PyObject *)&SignatureType)) {
+            PyErr_SetString(PyExc_TypeError,
+                            "Signature must be type pygit2.Signature");
+            return NULL;
+        }
+        sig = who->signature;
+    }
 
     err = self->refdb_backend->write(self->refdb_backend,
-            ref->reference, force, who->signature, message, &old, old_target);
-    if (err != 0) {
+            ref->reference, force, sig, message, old, old_target);
+    if (err != 0)
         return Error_set(err);
-    }
 
     Py_RETURN_NONE;
 }
@@ -675,20 +687,20 @@ RefdbBackend_delete(RefdbBackend *self, PyObject *args)
         py_oid_to_git_oid(py_old_id, &old_id);
         err = self->refdb_backend->del(self->refdb_backend,
                 ref_name, &old_id, old_target);
-        Py_DECREF(py_old_id);
     } else {
         err = self->refdb_backend->del(self->refdb_backend,
                 ref_name, NULL, old_target);
     }
 
-    if (err != 0)
+    if (err != 0) {
         return Error_set(err);
+    }
 
     Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(RefdbBackend_compress__doc__,
-    "delete(ref_name: str, old_id: Oid, old_target: str)\n"
+    "compress()\n"
     "\n"
     "Suggests that the implementation compress or optimize its references.\n"
     "This behavior is implementation-specific.");
@@ -737,7 +749,7 @@ RefdbBackend_has_log(RefdbBackend *self, PyObject *_ref_name)
         return Error_set(err);
     }
 
-    if (err == 0) {
+    if (err == 1) {
         Py_RETURN_TRUE;
     } else {
         Py_RETURN_FALSE;
