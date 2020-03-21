@@ -1,3 +1,19 @@
+1.2.0 (UNRELEASED)
+-------------------------
+
+- Drop support for Python 3.5
+  `#991 <https://github.com/libgit2/pygit2/issues/991>`_
+
+- New MacOS wheels
+  `#988 <https://github.com/libgit2/pygit2/pull/988>`_
+
+- New ``index`` optional parameter in ``Repository.checkout_index``
+  `#987 <https://github.com/libgit2/pygit2/pull/987>`_
+
+- Fix warning with ``pip install pygit2``
+  `#986 <https://github.com/libgit2/pygit2/issues/986>`_
+
+
 1.1.1 (2020-03-06)
 -------------------------
 

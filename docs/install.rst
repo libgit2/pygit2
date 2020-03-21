@@ -33,8 +33,8 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.5 - 3.8
-- PyPy 3.5
+- Python 3.6+
+- PyPy 3.6+
 
 Python requirements (these are specified in ``setup.py``):
 
@@ -70,6 +70,8 @@ of Python and the required libgit2 version.
 
 +-----------+----------------+----------------+
 | pygit2    | Python         | libgit2        |
++-----------+----------------+----------------+
+| 1.2.x     | 3.6 - 3.8      | 0.99.x, 1.0.x  |
 +-----------+----------------+----------------+
 | 1.1.x     | 3.5 - 3.8      | 0.99.x, 1.0.x  |
 +-----------+----------------+----------------+

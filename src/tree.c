@@ -439,9 +439,8 @@ PyNumberMethods Tree_as_number = {
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
     0,                          /* nb_index */
-// Python 3.5+
-//  0,                          /* nb_matrix_multiply */
-//  0,                          /* nb_inplace_matrix_multiply */
+    0,                          /* nb_matrix_multiply */
+    0,                          /* nb_inplace_matrix_multiply */
 };
 
 PyDoc_STRVAR(Tree__doc__, "Tree objects.");
