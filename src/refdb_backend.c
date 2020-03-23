@@ -27,13 +27,13 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include <fnmatch.h>
 #include "error.h"
 #include "types.h"
 #include "oid.h"
 #include "reference.h"
 #include "signature.h"
 #include "utils.h"
+#include "wildmatch.h"
 #include <git2/refdb.h>
 #include <git2/sys/refdb_backend.h>
 
@@ -77,7 +77,7 @@ iterator_get_next(struct pygit2_refdb_iterator *iter)
             return ref;
         }
         const char *name = git_reference_name(ref->reference);
-        if (fnmatch(iter->glob, name, 0) != FNM_NOMATCH) {
+        if (wildmatch(iter->glob, name, 0) != WM_NOMATCH) {
             return ref;
         }
     }
