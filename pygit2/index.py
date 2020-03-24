@@ -78,7 +78,7 @@ class Index(object):
 
     def __getitem__(self, key):
         centry = ffi.NULL
-        if isinstance(key, str):
+        if isinstance(key, str) or hasattr(key, '__fspath__'):
             centry = C.git_index_get_bypath(self._index, to_bytes(key), 0)
         elif isinstance(key, int):
             if key >= 0:
@@ -200,13 +200,13 @@ class Index(object):
         Index without checking for the existence of the path or id.
         """
 
-        if isinstance(path_or_entry, str):
-            path = path_or_entry
-            err = C.git_index_add_bypath(self._index, to_bytes(path))
-        elif isinstance(path_or_entry, IndexEntry):
+        if isinstance(path_or_entry, IndexEntry):
             entry = path_or_entry
             centry, str_ref = entry._to_c()
             err = C.git_index_add(self._index, centry)
+        elif isinstance(path_or_entry, str) or hasattr(path_or_entry, '__fspath__'):
+            path = path_or_entry
+            err = C.git_index_add_bypath(self._index, to_bytes(path))
         else:
             raise AttributeError('argument must be string or IndexEntry')
 

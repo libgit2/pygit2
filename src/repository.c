@@ -724,13 +724,18 @@ PyObject *
 Repository_create_blob_fromworkdir(Repository *self, PyObject *args)
 {
     git_oid oid;
-    const char* path;
+    PyBytesObject *py_path = NULL;
+    const char* path = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s", &path))
+    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path))
         return NULL;
 
+    if (py_path != NULL)
+        path = PyBytes_AS_STRING(py_path);
+
     err = git_blob_create_fromworkdir(&oid, self->repo, path);
+    Py_XDECREF(py_path);
     if (err < 0)
         return Error_set(err);
 
@@ -747,13 +752,18 @@ PyObject *
 Repository_create_blob_fromdisk(Repository *self, PyObject *args)
 {
     git_oid oid;
-    const char* path;
+    PyBytesObject *py_path = NULL;
+    const char* path = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s", &path))
+    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path))
         return NULL;
 
+    if (py_path != NULL)
+      path = PyBytes_AS_STRING(py_path);
+
     err = git_blob_create_fromdisk(&oid, self->repo, path);
+    Py_XDECREF(py_path);
     if (err < 0)
         return Error_set(err);
 
@@ -1757,20 +1767,25 @@ PyObject *
 Repository_add_worktree(Repository *self, PyObject *args)
 {
     char *c_name;
-    char *c_path;
+    PyBytesObject *py_path = NULL;
+    char *c_path = NULL;
     Reference *py_reference = NULL;
     git_worktree *wt;
     git_worktree_add_options add_opts = GIT_WORKTREE_ADD_OPTIONS_INIT;
-    
+
     int err;
 
-    if (!PyArg_ParseTuple(args, "ss|O!", &c_name, &c_path, &ReferenceType, &py_reference))
+    if (!PyArg_ParseTuple(args, "sO&|O!", &c_name, PyUnicode_FSConverter, &py_path, &ReferenceType, &py_reference))
         return NULL;
+
+    if (py_path != NULL)
+        c_path = PyBytes_AS_STRING(py_path);
 
     if(py_reference != NULL)
         add_opts.ref = py_reference->reference;
-    
+
     err = git_worktree_add(&wt, self->repo, c_name, c_path, &add_opts);
+    Py_XDECREF(py_path);
     if (err < 0)
         return Error_set(err);
 

@@ -24,7 +24,9 @@
 # Boston, MA 02110-1301, USA.
 
 # Standard Library
+import unittest
 from os.path import join
+from pathlib import Path
 
 # pygit2
 from . import utils
@@ -49,3 +51,10 @@ class RepositorySignatureTest(utils.RepoTestCase):
         assert self.repo.get_attr('file.py', 'text')
         assert not self.repo.get_attr('file.jpg', 'text')
         assert "lf" == self.repo.get_attr('file.sh', 'eol')
+
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_no_attr_aspath(self):
+        with open(join(self.repo.workdir, '.gitattributes'), 'w+') as f:
+            print('*.py  text\n', file=f)
+
+        assert self.repo.get_attr(Path('file.py'), 'text')

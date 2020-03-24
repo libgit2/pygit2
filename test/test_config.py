@@ -24,6 +24,8 @@
 # Boston, MA 02110-1301, USA.
 
 import os
+import unittest
+from pathlib import Path
 
 import pytest
 
@@ -88,6 +90,17 @@ class ConfigTest(utils.RepoTestCase):
         assert config.get_bool('this.that')
         assert 'something.other.here' in config
         assert not config.get_bool('something.other.here')
+
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_add_aspath(self):
+        config = Config()
+
+        new_file = open(CONFIG_FILENAME, "w")
+        new_file.write("[this]\n\tthat = true\n")
+        new_file.close()
+
+        config.add_file(Path(CONFIG_FILENAME), 0)
+        assert 'this.that' in config
 
     def test_read(self):
         config = self.repo.config

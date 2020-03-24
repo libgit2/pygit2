@@ -1280,6 +1280,9 @@ class References(object):
 
 class Repository(BaseRepository):
     def __init__(self, path, *args, **kwargs):
+        if hasattr(path, "__fspath__"):
+            path = path.__fspath__()
+
         if not isinstance(path, str):
             path = path.decode('utf-8')
 

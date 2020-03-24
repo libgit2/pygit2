@@ -26,6 +26,8 @@
 """Tests for Blob objects."""
 
 import io
+import unittest
+from pathlib import Path
 
 import pytest
 
@@ -126,6 +128,13 @@ class BlobTest(utils.RepoTestCase):
         assert len(BLOB_FILE_CONTENT) == blob.size
         assert BLOB_FILE_CONTENT == blob.read_raw()
 
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_create_blob_fromworkdir_aspath(self):
+
+        blob_oid = self.repo.create_blob_fromworkdir(Path("bye.txt"))
+        blob = self.repo[blob_oid]
+
+        assert isinstance(blob, pygit2.Blob)
 
     def test_create_blob_outside_workdir(self):
         with pytest.raises(KeyError):

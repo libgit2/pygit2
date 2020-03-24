@@ -72,19 +72,32 @@ pgit_encode_fsdefault(PyObject *value)
 const char*
 pgit_borrow_encoding(PyObject *value, const char *encoding, PyObject **tvalue)
 {
-    PyObject *py_str;
+    PyObject *py_value = NULL;
+    PyObject *py_str = NULL;
+
+#if defined(HAS_FSPATH_SUPPORT)
+    py_value = PyOS_FSPath(value);
+    if (py_value == NULL) {
+        Error_type_error("unexpected %.200s", value);
+        return NULL;
+    }
+#else
+    py_value = value;
+    Py_INCREF(value);
+#endif
 
     // Get new PyBytes reference from value
-    if (PyUnicode_Check(value)) { // Text string
-        py_str = (encoding) ? PyUnicode_AsEncodedString(value, encoding, "strict")
-                            : PyUnicode_AsUTF8String(value);
+    if (PyUnicode_Check(py_value)) { // Text string
+        py_str = (encoding) ? PyUnicode_AsEncodedString(py_value, encoding, "strict")
+                            : PyUnicode_AsUTF8String(py_value);
+        Py_DECREF(py_value);
         if (py_str == NULL)
             return NULL;
-    } else if (PyBytes_Check(value)) { // Byte string
-        py_str = value;
-        Py_INCREF(py_str);
+    } else if (PyBytes_Check(py_value)) { // Byte string
+        py_str = py_value;
     } else { // Type error
         Error_type_error("unexpected %.200s", value);
+        Py_DECREF(py_value);
         return NULL;
     }
 

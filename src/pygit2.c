@@ -85,17 +85,28 @@ PyObject *
 discover_repository(PyObject *self, PyObject *args)
 {
     git_buf repo_path = {NULL};
-    const char *path;
-    PyObject *py_repo_path;
+    const char *path = NULL;
+    PyBytesObject *py_path = NULL;
     int across_fs = 0;
+    PyBytesObject *py_ceiling_dirs = NULL;
     const char *ceiling_dirs = NULL;
+    PyObject *py_repo_path = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s|Is", &path, &across_fs, &ceiling_dirs))
+    if (!PyArg_ParseTuple(args, "O&|IO&", PyUnicode_FSConverter, &py_path, &across_fs, PyUnicode_FSConverter, &py_ceiling_dirs))
         return NULL;
+
+    if (py_path != NULL)
+        path = PyBytes_AS_STRING(py_path);
+    if (py_ceiling_dirs != NULL)
+        ceiling_dirs = PyBytes_AS_STRING(py_ceiling_dirs);
 
     memset(&repo_path, 0, sizeof(git_buf));
     err = git_repository_discover(&repo_path, path, across_fs, ceiling_dirs);
+
+    Py_XDECREF(py_path);
+    Py_XDECREF(py_ceiling_dirs);
+
     if (err == GIT_ENOTFOUND)
         Py_RETURN_NONE;
     if (err < 0)
@@ -116,13 +127,18 @@ PyObject *
 hashfile(PyObject *self, PyObject *args)
 {
     git_oid oid;
-    const char* path;
+    PyBytesObject *py_path = NULL;
+    const char* path = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s", &path))
+    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path))
         return NULL;
 
+    if (py_path != NULL)
+        path = PyBytes_AS_STRING(py_path);
+
     err = git_odb_hashfile(&oid, path, GIT_OBJ_BLOB);
+    Py_XDECREF(py_path);
     if (err < 0)
         return Error_set(err);
 
@@ -161,14 +177,18 @@ PyDoc_STRVAR(init_file_backend__doc__,
 PyObject *
 init_file_backend(PyObject *self, PyObject *args)
 {
+    PyBytesObject *py_path = NULL;
     const char* path = NULL;
     int err = GIT_OK;
     git_repository *repository = NULL;
-    if (!PyArg_ParseTuple(args, "s", &path)) {
+    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path)) {
         return NULL;
     }
+    if (py_path != NULL)
+        path = PyBytes_AS_STRING(py_path);
 
     err = git_repository_open(&repository, path);
+    Py_XDECREF(py_path);
     if (err < 0) {
         Error_set_str(err, path);
         goto cleanup;

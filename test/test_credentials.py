@@ -26,6 +26,7 @@
 """Tests for credentials"""
 
 import unittest
+from pathlib import Path
 
 import pytest
 
@@ -62,6 +63,16 @@ class CredentialCreateTest(utils.NoRepoTestCase):
         username = "git"
         pubkey = "id_rsa.pub"
         privkey = "id_rsa"
+        passphrase = "bad wolf"
+
+        cred = Keypair(username, pubkey, privkey, passphrase)
+        assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
+
+    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    def test_ssh_key_aspath(self):
+        username = "git"
+        pubkey = Path("id_rsa.pub")
+        privkey = Path("id_rsa")
         passphrase = "bad wolf"
 
         cred = Keypair(username, pubkey, privkey, passphrase)

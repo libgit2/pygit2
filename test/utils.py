@@ -29,6 +29,7 @@ import os
 import shutil
 import socket
 import stat
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -50,6 +51,14 @@ def no_network():
             _no_network = False
 
     return _no_network
+
+
+is_pypy = '__pypy__' in sys.builtin_module_names
+
+if is_pypy:
+    has_fspath = sys.pypy_version_info >= (7, 3)
+else:
+    has_fspath = sys.version_info >= (3, 6)
 
 
 def force_rm_handle(remove_path, path, excinfo):

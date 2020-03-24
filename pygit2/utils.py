@@ -23,6 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import os
+
 # Import from pygit2
 from .ffi import ffi
 
@@ -31,6 +33,9 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
     if s == ffi.NULL or s is None:
         return ffi.NULL
 
+    if hasattr(s, '__fspath__'):
+        s = os.fspath(s)
+
     if isinstance(s, bytes):
         return s
 
@@ -38,6 +43,9 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
 
 
 def to_str(s):
+    if hasattr(s, '__fspath__'):
+        s = os.fspath(s)
+
     if type(s) is str:
         return s
 
@@ -76,10 +84,11 @@ class StrArray(object):
 
         strings = [None] * len(l)
         for i in range(len(l)):
-            if not isinstance(l[i], str):
-                raise TypeError("Value must be a string")
+            li = l[i]
+            if not isinstance(li, str) and not hasattr(li, '__fspath__'):
+                raise TypeError("Value must be a string or PathLike object")
 
-            strings[i] = ffi.new('char []', to_bytes(l[i]))
+            strings[i] = ffi.new('char []', to_bytes(li))
 
         self._arr = ffi.new('char *[]', strings)
         self._strings = strings
