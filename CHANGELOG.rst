@@ -7,11 +7,18 @@
 - New MacOS wheels
   `#988 <https://github.com/libgit2/pygit2/pull/988>`_
 
+- New support for path objects
+  `#990 <https://github.com/libgit2/pygit2/pull/990>`_
+  `#955 <https://github.com/libgit2/pygit2/issues/955>`_
+
 - New ``index`` optional parameter in ``Repository.checkout_index``
   `#987 <https://github.com/libgit2/pygit2/pull/987>`_
 
 - Fix warning with ``pip install pygit2``
   `#986 <https://github.com/libgit2/pygit2/issues/986>`_
+
+- Tests: disable global Git config
+  `#989 <https://github.com/libgit2/pygit2/issues/989>`_
 
 
 1.1.1 (2020-03-06)
