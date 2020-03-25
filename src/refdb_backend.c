@@ -582,8 +582,8 @@ RefdbBackend_lookup(RefdbBackend *self, PyObject *py_str)
 }
 
 PyDoc_STRVAR(RefdbBackend_write__doc__,
-    "write(ref: Reference, force: bool, who: Signature, message: str, \n"
-    "   old: oid, old_target: str)\n"
+    "write(ref: Reference, force: bool, who: Signature, message: str, "
+    "old: oid, old_target: str)\n"
     "\n"
     "Writes a new reference to the reference database.");
 // TODO: Better docs? libgit2 is scant on documentation for this, too.

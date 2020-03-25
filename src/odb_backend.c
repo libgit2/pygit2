@@ -772,8 +772,8 @@ PyTypeObject OdbBackendPackType = {
 };
 
 PyDoc_STRVAR(OdbBackendLoose__doc__,
-        "OdbBackendLoose(objects_dir, compression_level,\n"
-        "    do_fsync, dir_mode=0, file_mode=0)\n"
+        "OdbBackendLoose(objects_dir, compression_level,"
+        " do_fsync, dir_mode=0, file_mode=0)\n"
         "\n"
         "Object database backend for loose objects.\n"
         "\n"

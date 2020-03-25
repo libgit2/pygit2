@@ -56,10 +56,14 @@ Below there are some general attributes and methods:
    :members: ahead_behind, apply, create_reference, default_signature,
              descendant_of, describe, free, is_bare, is_empty, odb, path,
              path_is_ignored, reset, revert_commit, state_cleanup, workdir,
-             write_archive
+             write_archive, set_odb, set_refdb
 
    The Repository constructor only takes one argument, the path of the
-   repository to open.
+   repository to open. Alternatively, constructing a repository with no
+   arguments will create a repository with no backends. You can use this path
+   to create repositories with custom backends. Note that most operations on
+   the repository are considered invalid and may lead to undefined behavior if
+   attempted before providing an odb and refdb via set_odb and set_refdb.
 
    Example::
 
@@ -73,5 +77,8 @@ The Odb class
 .. autoclass:: pygit2.Odb
    :members:
 
-.. autoclass:: pygit2.OdbBackend
+The Refdb class
+===================================
+
+.. autoclass:: pygit2.Refdb
    :members:
