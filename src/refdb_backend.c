@@ -198,7 +198,6 @@ pygit2_refdb_backend_lookup(git_reference **out,
 
     *out = result->reference;
 out:
-    Py_DECREF(result);
     return err;
 }
 
@@ -451,25 +450,11 @@ RefdbBackend_init(RefdbBackend *self, PyObject *args, PyObject *kwds)
         be->backend.ensure_log = pygit2_refdb_backend_ensure_log;
     }
 
-    if (PyObject_HasAttrString((PyObject *)self, "reflog_read")) {
-        be->reflog_read = PyObject_GetAttrString((PyObject *)self, "reflog_read");
-        be->backend.reflog_read = pygit2_refdb_backend_reflog_read;
-    }
-
-    if (PyObject_HasAttrString((PyObject *)self, "reflog_write")) {
-        be->reflog_write = PyObject_GetAttrString((PyObject *)self, "reflog_write");
-        be->backend.reflog_write = pygit2_refdb_backend_reflog_write;
-    }
-
-    if (PyObject_HasAttrString((PyObject *)self, "reflog_rename")) {
-        be->reflog_rename = PyObject_GetAttrString((PyObject *)self, "reflog_rename");
-        be->backend.reflog_rename = pygit2_refdb_backend_reflog_rename;
-    }
-
-    if (PyObject_HasAttrString((PyObject *)self, "reflog_delete")) {
-        be->reflog_delete = PyObject_GetAttrString((PyObject *)self, "reflog_delete");
-        be->backend.reflog_delete = pygit2_refdb_backend_reflog_delete;
-    }
+    /* TODO: First-class reflog support */
+    be->backend.reflog_read = pygit2_refdb_backend_reflog_read;
+    be->backend.reflog_write = pygit2_refdb_backend_reflog_write;
+    be->backend.reflog_rename = pygit2_refdb_backend_reflog_rename;
+    be->backend.reflog_delete = pygit2_refdb_backend_reflog_delete;
 
     /* TODO: transactions
     if (PyObject_HasAttrString((PyObject *)self, "lock")) {
