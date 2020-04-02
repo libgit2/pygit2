@@ -4,8 +4,11 @@
 - Drop support for Python 3.5
   `#991 <https://github.com/libgit2/pygit2/issues/991>`_
 
-- New MacOS wheels
-  `#988 <https://github.com/libgit2/pygit2/pull/988>`_
+- Upgrade to libgit2 1.0
+  `#982 <https://github.com/libgit2/pygit2/pull/982>`_
+
+- New support for custom reference database backends
+  `#982 <https://github.com/libgit2/pygit2/pull/982>`_
 
 - New support for path objects
   `#990 <https://github.com/libgit2/pygit2/pull/990>`_
@@ -13,6 +16,9 @@
 
 - New ``index`` optional parameter in ``Repository.checkout_index``
   `#987 <https://github.com/libgit2/pygit2/pull/987>`_
+
+- New MacOS wheels
+  `#988 <https://github.com/libgit2/pygit2/pull/988>`_
 
 - Fix warning with ``pip install pygit2``
   `#986 <https://github.com/libgit2/pygit2/issues/986>`_

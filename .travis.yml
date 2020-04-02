@@ -13,7 +13,7 @@ env:
   global:
     LIBGIT2: ~/libgit2/_install/
     LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
-    LIBGIT2_VERSION: "master"
+    LIBGIT2_VERSION: "1.0"
 
 
 jobs:
