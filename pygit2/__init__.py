@@ -223,9 +223,8 @@ def clone_repository(
     branch = checkout_branch or None
 
     # Data, let's use a dict as we don't really want much more
-    d = {}
-    d['repository_cb'] = repository
-    d['remote_cb'] = remote
+    d = {'repository_cb': repository,
+         'remote_cb': remote}
     d_handle = ffi.new_handle(d)
 
     # Perform the initialization with the version we compiled
@@ -245,7 +244,6 @@ def clone_repository(
         opts.remote_cb = _remote_create_cb
         opts.remote_cb_payload = d_handle
 
-
     opts.bare = bare
 
     if callbacks is None:
@@ -255,11 +253,14 @@ def clone_repository(
 
     err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
 
-    if 'exception' in d:
-        raise d['exception']
+    # Error handling
+    exc = d.get('exception', callbacks._stored_exception)
+    if exc:
+        raise exc
 
     check_error(err)
 
+    # Ok
     return Repository._from_c(crepo[0], owned=True)
 
 

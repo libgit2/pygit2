@@ -108,12 +108,12 @@ class Index(object):
         """
 
         err = C.git_index_read(self._index, force)
-        check_error(err, True)
+        check_error(err, io=True)
 
     def write(self):
         """Write the contents of the Index to disk."""
         err = C.git_index_write(self._index)
-        check_error(err, True)
+        check_error(err, io=True)
 
     def clear(self):
         err = C.git_index_clear(self._index)
@@ -170,14 +170,14 @@ class Index(object):
         """Remove an entry from the Index.
         """
         err = C.git_index_remove(self._index, to_bytes(path), level)
-        check_error(err, True)
+        check_error(err, io=True)
 
     def remove_all(self, pathspecs):
         """Remove all index entries matching pathspecs.
         """
         with StrArray(pathspecs) as arr:
             err = C.git_index_remove_all(self._index, arr, ffi.NULL, ffi.NULL)
-            check_error(err, True)
+            check_error(err, io=True)
 
     def add_all(self, pathspecs=[]):
         """Add or update index entries matching files in the working directory.
@@ -187,7 +187,7 @@ class Index(object):
         """
         with StrArray(pathspecs) as arr:
             err = C.git_index_add_all(self._index, arr, 0, ffi.NULL, ffi.NULL)
-            check_error(err, True)
+            check_error(err, io=True)
 
     def add(self, path_or_entry):
         """Add or update an entry in the Index.
@@ -210,7 +210,7 @@ class Index(object):
         else:
             raise AttributeError('argument must be string or IndexEntry')
 
-        check_error(err, True)
+        check_error(err, io=True)
 
     def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
         """

@@ -562,7 +562,7 @@ class BaseRepository(_Repository):
         """Index representing the repository's index file."""
         cindex = ffi.new('git_index **')
         err = C.git_repository_index(cindex, self._repo)
-        check_error(err, True)
+        check_error(err, io=True)
 
         return Index.from_c(self, cindex)
 

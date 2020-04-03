@@ -80,7 +80,7 @@ class Config(object):
             assert_string(path, "path")
             err = C.git_config_open_ondisk(cconfig, to_bytes(path))
 
-        check_error(err, True)
+        check_error(err, io=True)
         self._config = cconfig[0]
 
     @classmethod
@@ -261,7 +261,7 @@ class Config(object):
     def _from_found_config(fn):
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
         err = fn(buf)
-        check_error(err, True)
+        check_error(err, io=True)
         cpath = ffi.string(buf.ptr).decode('utf-8')
         C.git_buf_dispose(buf)
 
