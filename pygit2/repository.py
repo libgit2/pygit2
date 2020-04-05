@@ -40,7 +40,7 @@ from ._pygit2 import Reference, Tree, Commit, Blob
 from ._pygit2 import InvalidSpecError
 
 from .config import Config
-from .errors import check_error
+from .errors import GitException, GitIOError
 from .ffi import ffi, C
 from .index import Index
 from .remote import RemoteCollection
@@ -88,8 +88,7 @@ class BaseRepository(_Repository):
         csub = ffi.new('git_submodule **')
         cpath = ffi.new('char[]', to_bytes(path))
 
-        err = C.git_submodule_lookup(csub, self._repo, cpath)
-        check_error(err)
+        GitException.check_result(C.git_submodule_lookup)(csub, self._repo, cpath)
         return Submodule._from_c(self, csub[0])
 
     def update_submodules(self, submodules=None, init=False, callbacks=None):
@@ -110,12 +109,7 @@ class BaseRepository(_Repository):
 
         for submodule in submodules:
             submodule_instance = self.lookup_submodule(submodule)
-            err = C.git_submodule_update(
-                submodule_instance._subm,
-                i,
-                opts)
-            check_error(err)
-
+            GitException.check_result(C.git_submodule_update)(submodule_instance._subm,i,opts)
         return None
 
     #
@@ -159,8 +153,7 @@ class BaseRepository(_Repository):
         (if they are available).
         """
         cconfig = ffi.new('git_config **')
-        err = C.git_repository_config(cconfig, self._repo)
-        check_error(err)
+        GitException.check_result(C.git_repository_config)(cconfig, self._repo)
 
         return Config.from_c(self, cconfig[0])
 
@@ -172,9 +165,7 @@ class BaseRepository(_Repository):
         of the configuration files.
         """
         cconfig = ffi.new('git_config **')
-        err = C.git_repository_config_snapshot(cconfig, self._repo)
-        check_error(err)
-
+        GitException.check_result(C.git_repository_config_snapshot)(cconfig, self._repo)
         return Config.from_c(self, cconfig[0])
 
     #
@@ -241,7 +232,7 @@ class BaseRepository(_Repository):
     def _checkout_args_to_options(strategy=None, directory=None, paths=None):
         # Create the options struct to pass
         copts = ffi.new('git_checkout_options *')
-        check_error(C.git_checkout_init_options(copts, 1))
+        GitException.check_result(C.git_checkout_init_options)(copts, 1)
 
         # References we need to keep to strings and so forth
         refs = []
@@ -270,7 +261,7 @@ class BaseRepository(_Repository):
         For arguments, see Repository.checkout().
         """
         copts, refs = Repository._checkout_args_to_options(**kwargs)
-        check_error(C.git_checkout_head(self._repo, copts))
+        GitException.check_result(C.git_checkout_head)(self._repo, copts)
 
     def checkout_index(self, index=None, **kwargs):
         """Checkout the given index or the repository's index
@@ -278,7 +269,7 @@ class BaseRepository(_Repository):
         For arguments, see Repository.checkout().
         """
         copts, refs = Repository._checkout_args_to_options(**kwargs)
-        check_error(C.git_checkout_index(self._repo, index._index if index else ffi.NULL, copts))
+        GitException.check_result(C.git_checkout_index)(self._repo, index._index if index else ffi.NULL, copts)
 
     def checkout_tree(self, treeish, **kwargs):
         """Checkout the given treeish
@@ -288,8 +279,7 @@ class BaseRepository(_Repository):
         copts, refs = Repository._checkout_args_to_options(**kwargs)
         cptr = ffi.new('git_object **')
         ffi.buffer(cptr)[:] = treeish._pointer[:]
-
-        check_error(C.git_checkout_tree(self._repo, cptr[0], copts))
+        GitException.check_result(C.git_checkout_tree)(self._repo, cptr[0], copts)
 
     def checkout(self, refname=None, **kwargs):
         """
@@ -363,13 +353,11 @@ class BaseRepository(_Repository):
         if isinstance(target, Oid):
             oid = ffi.new('git_oid *')
             ffi.buffer(oid)[:] = target.raw[:]
-            err = C.git_repository_set_head_detached(self._repo, oid)
-            check_error(err)
+            GitException.check_result(C.git_repository_set_head_detached)(self._repo, oid)
             return
 
         # if it's a string, then it's a reference name
-        err = C.git_repository_set_head(self._repo, to_bytes(target))
-        check_error(err)
+        GitException.check_result(C.git_repository_set_head)(self._repo, to_bytes(target))
 
     #
     # Diff
@@ -549,9 +537,7 @@ class BaseRepository(_Repository):
             options.max_line = max_line
 
         cblame = ffi.new('git_blame **')
-        err = C.git_blame_file(cblame, self._repo, to_bytes(path), options)
-        check_error(err)
-
+        GitException.check_result(C.git_blame_file)(cblame, self._repo, to_bytes(path), options)
         return Blame._from_c(self, cblame[0])
 
     #
@@ -561,9 +547,7 @@ class BaseRepository(_Repository):
     def index(self):
         """Index representing the repository's index file."""
         cindex = ffi.new('git_index **')
-        err = C.git_repository_index(cindex, self._repo)
-        check_error(err, io=True)
-
+        GitIOError.check_result(C.git_repository_index)(cindex, self._repo)
         return Index.from_c(self, cindex)
 
     #
@@ -591,9 +575,7 @@ class BaseRepository(_Repository):
             raise ValueError("unkown favor value %s" % favor)
 
         opts = ffi.new('git_merge_options *')
-        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
-        check_error(err)
-
+        GitException.check_result(C.git_merge_init_options)(opts, C.GIT_MERGE_OPTIONS_VERSION)
         opts.file_favor = favor_val
 
         return opts
@@ -619,12 +601,7 @@ class BaseRepository(_Repository):
         ctheirs, theirs_str_ref = (
             theirs._to_c() if theirs is not None else (ffi.NULL, ffi.NULL))
 
-        err = C.git_merge_file_from_index(
-            cmergeresult, self._repo,
-            cancestor, cours, ctheirs,
-            ffi.NULL);
-        check_error(err)
-
+        GitException.check_result(C.git_merge_file_from_index)(cmergeresult, self._repo,cancestor, cours, ctheirs,ffi.NULL);
         ret = ffi.string(cmergeresult.ptr,
                          cmergeresult.len).decode('utf-8')
         C.git_merge_file_result_free(cmergeresult)
@@ -676,9 +653,7 @@ class BaseRepository(_Repository):
         ffi.buffer(ours_ptr)[:] = ours._pointer[:]
         ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
 
-        err = C.git_merge_commits(cindex, self._repo, ours_ptr[0], theirs_ptr[0], opts)
-        check_error(err)
-
+        GitException.check_result(C.git_merge_commits)(cindex, self._repo, ours_ptr[0], theirs_ptr[0], opts)
         return Index.from_c(self, cindex)
 
     def merge_trees(self, ancestor, ours, theirs, favor='normal'):
@@ -731,9 +706,7 @@ class BaseRepository(_Repository):
         ffi.buffer(ours_ptr)[:] = ours._pointer[:]
         ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
 
-        err = C.git_merge_trees(cindex, self._repo, ancestor_ptr[0], ours_ptr[0], theirs_ptr[0], opts)
-        check_error(err)
-
+        GitException.check_result(C.git_merge_trees)(cindex, self._repo, ancestor_ptr[0], ours_ptr[0], theirs_ptr[0], opts)
         return Index.from_c(self, cindex)
 
     #
@@ -826,10 +799,9 @@ class BaseRepository(_Repository):
             cptr = ffi.new('git_object **')
             ffi.buffer(cptr)[:] = commit._pointer[:]
 
-            err = C.git_describe_commit(result, cptr[0], options)
+            GitException.check_result(C.git_describe_commit)(result, cptr[0], options)
         else:
-            err = C.git_describe_workdir(result, self._repo, options)
-        check_error(err)
+            GitException.check_result(C.git_describe_workdir)(result, self._repo, options)
 
         try:
             format_options = ffi.new('git_describe_format_options *')
@@ -845,9 +817,7 @@ class BaseRepository(_Repository):
                 format_options.dirty_suffix = dirty_ptr
 
             buf = ffi.new('git_buf *', (ffi.NULL, 0))
-
-            err = C.git_describe_format(buf, result[0], format_options)
-            check_error(err)
+            GitException.check_result(C.git_describe_format)(buf, result[0], format_options)
 
             try:
                 return ffi.string(buf.ptr).decode('utf-8')
@@ -903,15 +873,13 @@ class BaseRepository(_Repository):
         ffi.buffer(stasher_cptr)[:] = stasher._pointer[:]
 
         coid = ffi.new('git_oid *')
-        err = C.git_stash_save(coid, self._repo, stasher_cptr[0], stash_msg, flags)
-        check_error(err)
-
+        GitException.check_result(C.git_stash_save)(coid, self._repo, stasher_cptr[0], stash_msg, flags)
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
     @staticmethod
     def _stash_args_to_options(reinstate_index=False, **kwargs):
         stash_opts = ffi.new('git_stash_apply_options *')
-        check_error(C.git_stash_apply_init_options(stash_opts, 1))
+        GitException.check_result(C.git_stash_apply_init_options)(stash_opts, 1)
 
         flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
         stash_opts.flags = flags
@@ -944,7 +912,7 @@ class BaseRepository(_Repository):
             >>> repo.stash_apply(strategy=GIT_CHECKOUT_ALLOW_CONFLICTS)
         """
         stash_opts = Repository._stash_args_to_options(**kwargs)
-        check_error(C.git_stash_apply(self._repo, index, stash_opts))
+        GitException.check_result(C.git_stash_apply)(self._repo, index, stash_opts)
 
     def stash_drop(self, index=0):
         """
@@ -956,7 +924,7 @@ class BaseRepository(_Repository):
             The position within the stash list of the stash to remove. 0 is
             the most recent stash.
         """
-        check_error(C.git_stash_drop(self._repo, index))
+        GitException.check_result(C.git_stash_drop)(self._repo, index)
 
     def stash_pop(self, index=0, **kwargs):
         """Apply a stashed state and remove it from the stash list.
@@ -964,7 +932,7 @@ class BaseRepository(_Repository):
         For arguments, see Repository.stash_apply().
         """
         stash_opts = Repository._stash_args_to_options(**kwargs)
-        check_error(C.git_stash_pop(self._repo, index, stash_opts))
+        GitException.check_result(C.git_stash_pop)(self._repo, index, stash_opts)
 
     #
     # Utility for writing a tree into an archive
@@ -1074,8 +1042,7 @@ class BaseRepository(_Repository):
         oid1, oid2 = ffi.new('git_oid *'), ffi.new('git_oid *')
         ffi.buffer(oid1)[:] = local.raw[:]
         ffi.buffer(oid2)[:] = upstream.raw[:]
-        err = C.git_graph_ahead_behind(ahead, behind, self._repo, oid1, oid2)
-        check_error(err)
+        GitException.check_result(C.git_graph_ahead_behind)(ahead, behind, self._repo, oid1, oid2)
 
         return int(ahead[0]), int(behind[0])
 
@@ -1104,8 +1071,7 @@ class BaseRepository(_Repository):
         """
 
         cvalue = ffi.new('char **')
-        err = C.git_attr_get(cvalue, self._repo, flags, to_bytes(path), to_bytes(name))
-        check_error(err)
+        GitException.check_result(C.git_attr_get)(cvalue, self._repo, flags, to_bytes(path), to_bytes(name))
 
         # Now let's see if we can figure out what the value is
         attr_kind = C.git_attr_value(cvalue[0])
@@ -1128,9 +1094,7 @@ class BaseRepository(_Repository):
         cname = ffi.new('char **')
         cemail = ffi.new('char **')
 
-        err = C.git_repository_ident(cname, cemail, self._repo)
-        check_error(err)
-
+        GitException.check_result(C.git_repository_ident)(cname, cemail, self._repo)
         return (ffi.string(cname).decode('utf-8'), ffi.string(cemail).decode('utf-8'))
 
     def set_ident(self, name, email):
@@ -1141,8 +1105,7 @@ class BaseRepository(_Repository):
         used. If none is set, it will be read from the configuration.
         """
 
-        err = C.git_repository_set_ident(self._repo, to_bytes(name), to_bytes(email))
-        check_error(err)
+        GitException.check_result(C.git_repository_set_ident)(self._repo, to_bytes(name), to_bytes(email))
 
     def revert_commit(self, revert_commit, our_commit, mainline=0):
         """
@@ -1170,13 +1133,8 @@ class BaseRepository(_Repository):
         ffi.buffer(our_commit_ptr)[:] = our_commit._pointer[:]
 
         opts = ffi.new('git_merge_options *')
-        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
-        check_error(err)
-
-        err = C.git_revert_commit(
-            cindex, self._repo, revert_commit_ptr[0], our_commit_ptr[0], mainline, opts
-        )
-        check_error(err)
+        GitException.check_result(C.git_merge_init_options)(opts, C.GIT_MERGE_OPTIONS_VERSION)
+        GitException.check_result(C.git_revert_commit)(cindex, self._repo, revert_commit_ptr[0], our_commit_ptr[0], mainline, opts)
 
         return Index.from_c(self, cindex)
 

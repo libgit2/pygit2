@@ -25,7 +25,7 @@
 
 # Import from pygit2
 from ._pygit2 import Oid
-from .errors import check_error, Passthrough
+from .errors import GitException, GitPassthroughError
 from .ffi import ffi, C
 from .refspec import Refspec
 from .utils import to_bytes, strarray_to_strings, StrArray
@@ -118,7 +118,7 @@ class RemoteCallbacks(object):
         allowed_types : int
             Credential types supported by the remote.
         """
-        raise Passthrough
+        raise GitPassthroughError
 
     def certificate_check(self, certificate, valid, host):
         """
@@ -140,7 +140,7 @@ class RemoteCallbacks(object):
             The hostname we want to connect to.
         """
 
-        raise Passthrough
+        raise GitPassthroughError
 
     def transfer_progress(self, stats):
         """
@@ -267,7 +267,6 @@ class RemoteCallbacks(object):
             s = maybe_string(refname)
             a = Oid(raw=bytes(ffi.buffer(a)[:]))
             b = Oid(raw=bytes(ffi.buffer(b)[:]))
-
             update_tips(s, a, b)
         except Exception as e:
             self._stored_exception = e
@@ -304,7 +303,7 @@ class RemoteCallbacks(object):
         try:
             ccred = get_credentials(credentials, url, username, allowed)
             cred_out[0] = ccred[0]
-        except Passthrough:
+        except GitPassthroughError:
             return C.GIT_PASSTHROUGH
         except Exception as e:
             self._stored_exception = e
@@ -325,13 +324,13 @@ class RemoteCallbacks(object):
 
             certificate_check = getattr(self, 'certificate_check', None)
             if not certificate_check:
-                raise Passthrough
+                raise GitPassthroughError
 
             # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
             val = certificate_check(None, bool(valid), ffi.string(host))
             if not val:
                 return C.GIT_ECERTIFICATE
-        except Passthrough:
+        except GitPassthroughError:
             if is_ssh:
                 return 0
             elif valid:
@@ -343,6 +342,7 @@ class RemoteCallbacks(object):
             return C.GIT_EUSER
 
         return 0
+
 
 class Remote(object):
     def __init__(self, repo, ptr):
@@ -383,14 +383,12 @@ class Remote(object):
             callbacks = RemoteCallbacks()
 
         callbacks._fill_connect_callbacks(remote_callbacks)
-        err = C.git_remote_connect(self._remote, direction, remote_callbacks, ffi.NULL, ffi.NULL);
-        check_error(err)
+        GitException.check_result(C.git_remote_connect)(self._remote, direction, remote_callbacks, ffi.NULL, ffi.NULL);
 
     def save(self):
         """Save a remote to its repository's configuration."""
 
-        err = C.git_remote_save(self._remote)
-        check_error(err)
+        GitException.check_result(C.git_remote_save)(self._remote)
 
     def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED):
         """Perform a fetch against this remote. Returns a <TransferProgress>
@@ -407,7 +405,7 @@ class Remote(object):
         """
 
         fetch_opts = ffi.new('git_fetch_options *')
-        err = C.git_fetch_init_options(fetch_opts, C.GIT_FETCH_OPTIONS_VERSION)
+        GitException.check_result(C.git_fetch_init_options)(fetch_opts, C.GIT_FETCH_OPTIONS_VERSION)
 
         if callbacks is None:
             callbacks = RemoteCallbacks()
@@ -417,10 +415,11 @@ class Remote(object):
 
         try:
             with StrArray(refspecs) as arr:
-                err = C.git_remote_fetch(self._remote, arr, fetch_opts, to_bytes(message))
+                GitException.check_result(C.git_remote_fetch)(self._remote, arr, fetch_opts, to_bytes(message))
+                # TODO check if _stored_exceptions is still needed for anything or if it can be replaced with the new GitException logic
                 if callbacks._stored_exception:
                     raise callbacks._stored_exception
-                check_error(err)
+
         finally:
             callbacks._self_handle = None
 
@@ -437,8 +436,7 @@ class Remote(object):
         refs = ffi.new('git_remote_head ***')
         refs_len = ffi.new('size_t *')
 
-        err = C.git_remote_ls(refs, refs_len, self._remote)
-        check_error(err)
+        GitException.check_result(C.git_remote_ls)(refs, refs_len, self._remote)
 
         results = []
 
@@ -471,8 +469,7 @@ class Remote(object):
         if callbacks is None:
             callbacks = RemoteCallbacks()
         callbacks._fill_prune_callbacks(remote_callbacks)
-        err = C.git_remote_prune(self._remote, remote_callbacks)
-        check_error(err)
+        GitException.check_result(C.git_remote_prune)(self._remote, remote_callbacks)
 
     @property
     def refspec_count(self):
@@ -490,8 +487,7 @@ class Remote(object):
         """Refspecs that will be used for fetching"""
 
         specs = ffi.new('git_strarray *')
-        err = C.git_remote_get_fetch_refspecs(specs, self._remote)
-        check_error(err)
+        GitException.check_result(C.git_remote_get_fetch_refspecs)(specs, self._remote)
 
         return strarray_to_strings(specs)
 
@@ -500,8 +496,7 @@ class Remote(object):
         """Refspecs that will be used for pushing"""
 
         specs = ffi.new('git_strarray *')
-        err = C.git_remote_get_push_refspecs(specs, self._remote)
-        check_error(err)
+        GitException.check_result(C.git_remote_get_push_refspecs)(specs, self._remote)
 
         return strarray_to_strings(specs)
 
@@ -522,7 +517,7 @@ class Remote(object):
             Push refspecs to use.
         """
         push_opts = ffi.new('git_push_options *')
-        err = C.git_push_init_options(push_opts, C.GIT_PUSH_OPTIONS_VERSION)
+        GitException.check_result(C.git_push_init_options)(push_opts, C.GIT_PUSH_OPTIONS_VERSION)
 
         if callbacks is None:
             callbacks = RemoteCallbacks()
@@ -532,8 +527,7 @@ class Remote(object):
 
         try:
             with StrArray(specs) as refspecs:
-                err = C.git_remote_push(self._remote, refspecs, push_opts)
-                check_error(err)
+                GitException.check_result(C.git_remote_push)(self._remote, refspecs, push_opts)
         finally:
             callbacks._self_handle = None
 
@@ -558,33 +552,26 @@ def get_credentials(fn, url, username, allowed):
     ccred = ffi.new('git_cred **')
     if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
         name, passwd = credential_tuple
-        err = C.git_cred_userpass_plaintext_new(ccred, to_bytes(name),
-                                                to_bytes(passwd))
+        GitException.check_result(C.git_cred_userpass_plaintext_new)(ccred, to_bytes(name),to_bytes(passwd))
 
     elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
         name, pubkey, privkey, passphrase = credential_tuple
         if pubkey is None and privkey is None:
-            err = C.git_cred_ssh_key_from_agent(ccred, to_bytes(name))
+            GitException.check_result(C.git_cred_ssh_key_from_agent)(ccred, to_bytes(name))
         else:
-            err = C.git_cred_ssh_key_new(ccred, to_bytes(name),
-                                         to_bytes(pubkey), to_bytes(privkey),
-                                         to_bytes(passphrase))
+            GitException.check_result(C.git_cred_ssh_key_new)(ccred, to_bytes(name),to_bytes(pubkey), to_bytes(privkey),to_bytes(passphrase))
 
     elif cred_type == C.GIT_CREDTYPE_USERNAME:
         name, = credential_tuple
-        err = C.git_cred_username_new(ccred, to_bytes(name))
+        GitException.check_result(C.git_cred_username_new)(ccred, to_bytes(name))
 
     elif cred_type == C.GIT_CREDTYPE_SSH_MEMORY:
         name, pubkey, privkey, passphrase = credential_tuple
         if pubkey is None and privkey is None:
             raise TypeError("SSH keys from memory are empty")
-        err = C.git_cred_ssh_key_memory_new(ccred, to_bytes(name),
-                                            to_bytes(pubkey), to_bytes(privkey),
-                                            to_bytes(passphrase))
+        GitException.check_result(C.git_cred_ssh_key_memory_new)(ccred, to_bytes(name),to_bytes(pubkey), to_bytes(privkey),to_bytes(passphrase))
     else:
         raise TypeError("unsupported credential type")
-
-    check_error(err)
 
     return ccred
 
@@ -605,9 +592,7 @@ class RemoteCollection(object):
         names = ffi.new('git_strarray *')
 
         try:
-            err = C.git_remote_list(names, self._repo._repo)
-            check_error(err)
-
+            GitException.check_result(C.git_remote_list)(names, self._repo._repo)
             return names.count
         finally:
             C.git_strarray_free(names)
@@ -616,14 +601,10 @@ class RemoteCollection(object):
         names = ffi.new('git_strarray *')
 
         try:
-            err = C.git_remote_list(names, self._repo._repo)
-            check_error(err)
-
+            GitException.check_result(C.git_remote_list)(names, self._repo._repo)
             cremote = ffi.new('git_remote **')
             for i in range(names.count):
-                err = C.git_remote_lookup(cremote, self._repo._repo, names.strings[i])
-                check_error(err)
-
+                GitException.check_result(C.git_remote_lookup)(cremote, self._repo._repo, names.strings[i])
                 yield Remote(self._repo, cremote[0])
         finally:
             C.git_strarray_free(names)
@@ -631,11 +612,8 @@ class RemoteCollection(object):
     def __getitem__(self, name):
         if isinstance(name, int):
             return list(self)[name]
-
         cremote = ffi.new('git_remote **')
-        err = C.git_remote_lookup(cremote, self._repo._repo, to_bytes(name))
-        check_error(err)
-
+        GitException.check_result(C.git_remote_lookup)(cremote, self._repo._repo, to_bytes(name))
         return Remote(self._repo, cremote[0])
 
     def create(self, name, url, fetch=None):
@@ -644,15 +622,12 @@ class RemoteCollection(object):
 
         If 'fetch' is provided, this fetch refspec will be used instead of the default
         """
-
         cremote = ffi.new('git_remote **')
 
         if fetch:
-            err = C.git_remote_create_with_fetchspec(cremote, self._repo._repo, to_bytes(name), to_bytes(url), to_bytes(fetch))
+            GitException.check_result(C.git_remote_create_with_fetchspec)(cremote, self._repo._repo, to_bytes(name), to_bytes(url), to_bytes(fetch))
         else:
-            err = C.git_remote_create(cremote, self._repo._repo, to_bytes(name), to_bytes(url))
-
-        check_error(err)
+            GitException.check_result(C.git_remote_create)(cremote, self._repo._repo, to_bytes(name), to_bytes(url))
 
         return Remote(self._repo, cremote[0])
 
@@ -671,9 +646,7 @@ class RemoteCollection(object):
             raise ValueError("New remote name must be a non-empty string")
 
         problems = ffi.new('git_strarray *')
-        err = C.git_remote_rename(problems, self._repo._repo, to_bytes(name), to_bytes(new_name))
-        check_error(err)
-
+        GitException.check_result(C.git_remote_rename)(problems, self._repo._repo, to_bytes(name), to_bytes(new_name))
         ret = strarray_to_strings(problems)
         C.git_strarray_free(problems)
 
@@ -684,31 +657,24 @@ class RemoteCollection(object):
 
         All remote-tracking branches and configuration settings for the remote will be removed.
         """
-        err = C.git_remote_delete(self._repo._repo, to_bytes(name))
-        check_error(err)
+        GitException.check_result(C.git_remote_delete)(self._repo._repo, to_bytes(name))
 
     def set_url(self, name, url):
         """ Set the URL for a remote
         """
-        err = C.git_remote_set_url(self._repo._repo, to_bytes(name), to_bytes(url))
-        check_error(err)
+        GitException.check_result(C.git_remote_set_url)(self._repo._repo, to_bytes(name), to_bytes(url))
 
     def set_push_url(self, name, url):
         """Set the push-URL for a remote
         """
-        err = C.git_remote_set_pushurl(self._repo._repo, to_bytes(name), to_bytes(url))
-        check_error(err)
+        GitException.check_result(C.git_remote_set_pushurl)(self._repo._repo, to_bytes(name), to_bytes(url))
 
     def add_fetch(self, name, refspec):
         """Add a fetch refspec (str) to the remote
         """
-
-        err = C.git_remote_add_fetch(self._repo._repo, to_bytes(name), to_bytes(refspec))
-        check_error(err)
+        GitException.check_result(C.git_remote_add_fetch)(self._repo._repo, to_bytes(name), to_bytes(refspec))
 
     def add_push(self, name, refspec):
         """Add a push refspec (str) to the remote
         """
-
-        err = C.git_remote_add_push(self._repo._repo, to_bytes(name), to_bytes(refspec))
-        check_error(err)
+        GitException.check_result(C.git_remote_add_push)(self._repo._repo, to_bytes(name), to_bytes(refspec))

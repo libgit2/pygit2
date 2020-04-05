@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from .errors import check_error
+from .errors import GitException
 from .ffi import ffi, C
 from .utils import to_bytes
 
@@ -73,9 +73,7 @@ class Refspec(object):
 
     def _transform(self, ref, fn):
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
-        err = fn(buf, self._refspec, to_bytes(ref))
-        check_error(err)
-
+        GitException.check_result(fn)(buf, self._refspec, to_bytes(ref))
         try:
             return ffi.string(buf.ptr).decode('utf-8')
         finally:

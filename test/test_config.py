@@ -107,10 +107,8 @@ class ConfigTest(utils.RepoTestCase):
 
         with pytest.raises(TypeError): config[()]
         with pytest.raises(TypeError): config[-4]
-        self.assertRaisesWithArg(ValueError, "invalid config item name 'abc'",
-                                 lambda: config['abc'])
-        self.assertRaisesWithArg(KeyError, 'abc.def',
-                                 lambda: config['abc.def'])
+        self.assertRaisesWithArg(ValueError, "invalid config item name 'abc'", lambda: config['abc'])
+        self.assertRaisesWithArg(KeyError, "config value 'abc.def' was not found", lambda: config['abc.def'])
 
         assert 'core.bare' in config
         assert not config.get_bool('core.bare')
