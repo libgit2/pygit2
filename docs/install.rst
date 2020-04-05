@@ -169,7 +169,7 @@ when explaining how to install libgit2 within a virtual environment.
 
 ``LIBGIT2_LIB`` -- This is a more rarely used build option, it allows to
 override the library directory where libgit2 is installed, useful if different
-from ``$LIBGIT2/lib``.
+from ``$LIBGIT2/lib`` and ``$LIBGIT2/lib64``.
 
 
 libgit2 within a virtual environment

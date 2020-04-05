@@ -54,9 +54,21 @@ def _get_libgit2_path():
 
 
 def get_libgit2_paths():
-    libgit2_path = _get_libgit2_path()
+    # Base path
+    path = _get_libgit2_path()
+
+    # Library dirs
+    libgit2_lib = getenv('LIBGIT2_LIB')
+    if libgit2_lib is None:
+        libgit2_lib = [os.path.join(path, 'lib'), os.path.join(path, 'lib64')]
+    else:
+        libgit2_lib = [libgit2_lib]
+
     return (
-        os.path.join(libgit2_path, 'bin'),
-        os.path.join(libgit2_path, 'include'),
-        getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib')),
+        os.path.join(path, 'bin'),
+        {
+            'libraries': ['git2'],
+            'include_dirs': [os.path.join(path, 'include')],
+            'library_dirs': libgit2_lib,
+        }
     )

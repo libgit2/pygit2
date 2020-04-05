@@ -41,7 +41,7 @@ from _build import __version__, get_libgit2_paths
 del sys.path[0]
 
 
-libgit2_bin, libgit2_include, libgit2_lib = get_libgit2_paths()
+libgit2_bin, libgit2_kw = get_libgit2_paths()
 
 pygit2_exts = [os.path.join('src', name) for name in sorted(listdir('src'))
                if name.endswith('.c')]
@@ -127,9 +127,7 @@ if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
 ext_modules = [
-    Extension('pygit2._pygit2', pygit2_exts, libraries=['git2'],
-              include_dirs=[libgit2_include],
-              library_dirs=[libgit2_lib]),
+    Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)
 ]
 
 setup(name='pygit2',
