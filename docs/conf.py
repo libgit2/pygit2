@@ -24,7 +24,7 @@ copyright = '2010-2020 The pygit2 contributors'
 #author = ''
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.1'
+release = '1.2.0'
 
 
 # -- General configuration ---------------------------------------------------

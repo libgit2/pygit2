@@ -1,4 +1,4 @@
-1.2.0 (UNRELEASED)
+1.2.0 (2020-04-05)
 -------------------------
 
 - Drop support for Python 3.5
@@ -19,6 +19,9 @@
 
 - New MacOS wheels
   `#988 <https://github.com/libgit2/pygit2/pull/988>`_
+
+- Fix re-raise exception from credentials callback in clone_repository
+  `#996 <https://github.com/libgit2/pygit2/issues/996>`_
 
 - Fix warning with ``pip install pygit2``
   `#986 <https://github.com/libgit2/pygit2/issues/986>`_

@@ -5,15 +5,15 @@ Authors::
   Nico von Geyso
   Sviatoslav Sydorenko
   Matthias Bartelmeß
-  W. Trevor King
   Robert Coup
+  W. Trevor King
+  Drew DeVault
   Dave Borowitz
   Brandon Milton
   Daniel Rodríguez Troitiño
   Richo Healey
   Christian Boos
   Julien Miotte
-  Drew DeVault
   Nick Hynes
   Richard Möhn
   Xu Tao
@@ -119,6 +119,7 @@ Authors::
   Christopher Hunt
   Cristian Hotea
   Cyril Jouve
+  Dan Cecile
   Daniel Bruce
   Daniele Esposti
   David Black
