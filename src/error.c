@@ -136,7 +136,7 @@ Error_type_error(const char *format, PyObject *value)
 }
 
 int
-git_error_for_exc()
+git_error_for_exc(void)
 {
     PyObject *err;
     if ((err = PyErr_Occurred()) != NULL) {
