@@ -26,7 +26,7 @@
 from cached_property import cached_property
 
 # Import from pygit2
-from .errors import check_error
+from .errors import GitException, GitIOError
 from .ffi import ffi, C
 from .utils import to_bytes
 
@@ -50,9 +50,7 @@ class ConfigIterator(object):
 
     def _next_entry(self):
         centry = ffi.new('git_config_entry **')
-        err = C.git_config_next(centry, self._iter)
-        check_error(err)
-
+        GitException.check_result(C.git_config_next)(centry, self._iter)
         return ConfigEntry._from_c(centry[0], self)
 
     def next(self):
@@ -75,12 +73,10 @@ class Config(object):
         cconfig = ffi.new('git_config **')
 
         if not path:
-            err = C.git_config_new(cconfig)
+            GitIOError.check_result(C.git_config_new)(cconfig)
         else:
             assert_string(path, "path")
-            err = C.git_config_open_ondisk(cconfig, to_bytes(path))
-
-        check_error(err, io=True)
+            GitIOError.check_result(C.git_config_open_ondisk)(cconfig, to_bytes(path))
         self._config = cconfig[0]
 
     @classmethod
@@ -101,27 +97,19 @@ class Config(object):
         assert_string(key, "key")
 
         entry = ffi.new('git_config_entry **')
-        err = C.git_config_get_entry(entry, self._config, to_bytes(key))
+        GitException.check_result(C.git_config_get_entry)(entry, self._config, to_bytes(key))
 
-        return err, ConfigEntry._from_c(entry[0])
+        return ConfigEntry._from_c(entry[0])
 
     def _get_entry(self, key):
-        err, entry = self._get(key)
-
-        if err == C.GIT_ENOTFOUND:
-            raise KeyError(key)
-
-        check_error(err)
+        entry = self._get(key)
         return entry
 
     def __contains__(self, key):
-        err, cstr = self._get(key)
-
-        if err == C.GIT_ENOTFOUND:
+        try:
+            self._get(key)
+        except KeyError:
             return False
-
-        check_error(err)
-
         return True
 
     def __getitem__(self, key):
@@ -131,29 +119,21 @@ class Config(object):
 
     def __setitem__(self, key, value):
         assert_string(key, "key")
-
-        err = 0
         if isinstance(value, bool):
-            err = C.git_config_set_bool(self._config, to_bytes(key), value)
+            GitException.check_result(C.git_config_set_bool)(self._config, to_bytes(key), value)
         elif isinstance(value, int):
-            err = C.git_config_set_int64(self._config, to_bytes(key), value)
+            GitException.check_result(C.git_config_set_int64)(self._config, to_bytes(key), value)
         else:
-            err = C.git_config_set_string(self._config, to_bytes(key),
-                                          to_bytes(value))
-
-        check_error(err)
+            GitException.check_result(C.git_config_set_string)(self._config, to_bytes(key),to_bytes(value))
 
     def __delitem__(self, key):
         assert_string(key, "key")
+        GitException.check_result(C.git_config_delete_entry)(self._config, to_bytes(key))
 
-        err = C.git_config_delete_entry(self._config, to_bytes(key))
-        check_error(err)
 
     def __iter__(self):
         citer = ffi.new('git_config_iterator **')
-        err = C.git_config_iterator_new(citer, self._config)
-        check_error(err)
-
+        GitException.check_result(C.git_config_iterator_new)(citer, self._config)
         return ConfigIterator(self, citer[0])
 
     def get_multivar(self, name, regex=None):
@@ -165,11 +145,7 @@ class Config(object):
         assert_string(name, "name")
 
         citer = ffi.new('git_config_iterator **')
-        err = C.git_config_multivar_iterator_new(citer, self._config,
-                                                 to_bytes(name),
-                                                 to_bytes(regex))
-        check_error(err)
-
+        GitException.check_result(C.git_config_multivar_iterator_new)(citer, self._config, to_bytes(name), to_bytes(regex))
         return ConfigMultivarIterator(self, citer[0])
 
     def set_multivar(self, name, regex, value):
@@ -180,9 +156,8 @@ class Config(object):
         assert_string(regex, "regex")
         assert_string(value, "value")
 
-        err = C.git_config_set_multivar(self._config, to_bytes(name),
-                                        to_bytes(regex), to_bytes(value))
-        check_error(err)
+        GitException.check_result(C.git_config_set_multivar)(self._config, to_bytes(name),to_bytes(regex), to_bytes(value))
+
 
     def get_bool(self, key):
         """Look up *key* and parse its value as a boolean as per the git-config
@@ -191,12 +166,9 @@ class Config(object):
         Truthy values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',
         0, 'off' and 'no'
         """
-
         entry = self._get_entry(key)
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, entry.c_value)
-        check_error(err)
-
+        GitException.check_result(C.git_config_parse_bool)(res, entry.c_value)
         return res[0] != 0
 
     def get_int(self, key):
@@ -209,17 +181,14 @@ class Config(object):
 
         entry = self._get_entry(key)
         res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, entry.c_value)
-        check_error(err)
+        GitException.check_result(C.git_config_parse_int64)(res, entry.c_value)
 
         return res[0]
 
     def add_file(self, path, level=0, force=0):
         """Add a config file instance to an existing config."""
+        GitException.check_result(C.git_config_add_file_ondisk)(self._config, to_bytes(path), level, ffi.NULL, force)
 
-        err = C.git_config_add_file_ondisk(self._config, to_bytes(path), level,
-                                           ffi.NULL, force)
-        check_error(err)
 
     def snapshot(self):
         """Create a snapshot from this Config object.
@@ -228,9 +197,7 @@ class Config(object):
         of the configuration files.
         """
         ccfg = ffi.new('git_config **')
-        err = C.git_config_snapshot(ccfg, self._config)
-        check_error(err)
-
+        GitException.check_result(C.git_config_snapshot)(ccfg, self._config)
         return Config.from_c(self._repo, ccfg[0])
 
     #
@@ -240,17 +207,15 @@ class Config(object):
     @staticmethod
     def parse_bool(text):
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, to_bytes(text))
-        check_error(err)
+        GitException.check_result(C.git_config_parse_bool)(res, to_bytes(text))
+
 
         return res[0] != 0
 
     @staticmethod
     def parse_int(text):
         res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, to_bytes(text))
-        check_error(err)
-
+        GitException.check_result(C.git_config_parse_int64)(res, to_bytes(text))
         return res[0]
 
     #
@@ -260,8 +225,7 @@ class Config(object):
     @staticmethod
     def _from_found_config(fn):
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
-        err = fn(buf)
-        check_error(err, io=True)
+        GitIOError.check_result(fn)(buf)
         cpath = ffi.string(buf.ptr).decode('utf-8')
         C.git_buf_dispose(buf)
 

@@ -33,7 +33,7 @@ from ._pygit2 import *
 from .blame import Blame, BlameHunk
 from .config import Config
 from .credentials import *
-from .errors import check_error, Passthrough
+from .errors import GitException, GitPassthroughError, Passthrough
 from .ffi import ffi, C
 from .index import Index, IndexEntry
 from .remote import Remote, RemoteCallbacks, get_credentials
@@ -145,8 +145,7 @@ def init_repository(path, bare=False,
 
     # Call
     crepository = ffi.new('git_repository **')
-    err = C.git_repository_init_ext(crepository, to_bytes(path), options)
-    check_error(err)
+    GitException.check_result(C.git_repository_init_ext)(crepository, to_bytes(path), options)
 
     # Ok
     return Repository(to_str(path))
@@ -250,17 +249,11 @@ def clone_repository(
         callbacks = RemoteCallbacks()
 
     callbacks._fill_fetch_options(opts.fetch_opts)
-
-    err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
-
+    GitException.check_result(C.git_clone)(crepo, to_bytes(url), to_bytes(path), opts)
     # Error handling
     exc = d.get('exception', callbacks._stored_exception)
     if exc:
         raise exc
-
-    check_error(err)
-
-    # Ok
     return Repository._from_c(crepo[0], owned=True)
 
 

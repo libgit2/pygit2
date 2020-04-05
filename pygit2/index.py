@@ -27,7 +27,7 @@ import weakref
 
 # Import from pygit2
 from ._pygit2 import Oid, Tree, Diff
-from .errors import check_error
+from .errors import GitException, GitIOError
 from .ffi import ffi, C
 from .utils import to_bytes, to_str
 from .utils import GenericIterator, StrArray
@@ -42,9 +42,7 @@ class Index(object):
         to read from and write to.
         """
         cindex = ffi.new('git_index **')
-        err = C.git_index_open(cindex, to_bytes(path))
-        check_error(err)
-
+        GitException.check_result(C.git_index_open)(cindex, to_bytes(path))
         self._repo = None
         self._index = cindex[0]
         self._cindex = cindex
@@ -69,11 +67,10 @@ class Index(object):
         return C.git_index_entrycount(self._index)
 
     def __contains__(self, path):
-        err = C.git_index_find(ffi.NULL, self._index, to_bytes(path))
-        if err == C.GIT_ENOTFOUND:
+        try:
+            GitException.check_result(C.git_index_find)(ffi.NULL, self._index, to_bytes(path))
+        except KeyError:
             return False
-
-        check_error(err)
         return True
 
     def __getitem__(self, key):
@@ -107,17 +104,14 @@ class Index(object):
             has changed.
         """
 
-        err = C.git_index_read(self._index, force)
-        check_error(err, io=True)
+        GitIOError.check_result(C.git_index_read)(self._index, force)
 
     def write(self):
         """Write the contents of the Index to disk."""
-        err = C.git_index_write(self._index)
-        check_error(err, io=True)
+        GitIOError.check_result(C.git_index_write)(self._index)
 
     def clear(self):
-        err = C.git_index_clear(self._index)
-        check_error(err)
+        GitException.check_result(C.git_index_clear)(self._index)
 
     def read_tree(self, tree):
         """Replace the contents of the Index with those of the given tree,
@@ -140,8 +134,7 @@ class Index(object):
 
         tree_cptr = ffi.new('git_tree **')
         ffi.buffer(tree_cptr)[:] = tree._pointer[:]
-        err = C.git_index_read_tree(self._index, tree_cptr[0])
-        check_error(err)
+        GitException.check_result(C.git_index_read_tree)(self._index, tree_cptr[0])
 
     def write_tree(self, repo=None):
         """Create a tree out of the Index. Return the <Oid> object of the
@@ -159,25 +152,22 @@ class Index(object):
         repo = repo or self._repo
 
         if repo:
-            err = C.git_index_write_tree_to(coid, self._index, repo._repo)
+            GitException.check_result(C.git_index_write_tree_to)(coid, self._index, repo._repo)
         else:
-            err = C.git_index_write_tree(coid, self._index)
+            GitException.check_result(C.git_index_write_tree)(coid, self._index)
 
-        check_error(err)
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
     def remove(self, path, level=0):
         """Remove an entry from the Index.
         """
-        err = C.git_index_remove(self._index, to_bytes(path), level)
-        check_error(err, io=True)
+        GitIOError.check_result(C.git_index_remove)(self._index, to_bytes(path), level)
 
     def remove_all(self, pathspecs):
         """Remove all index entries matching pathspecs.
         """
         with StrArray(pathspecs) as arr:
-            err = C.git_index_remove_all(self._index, arr, ffi.NULL, ffi.NULL)
-            check_error(err, io=True)
+            GitIOError.check_result(C.git_index_remove_all)(self._index, arr, ffi.NULL, ffi.NULL)
 
     def add_all(self, pathspecs=[]):
         """Add or update index entries matching files in the working directory.
@@ -186,8 +176,7 @@ class Index(object):
         be added.
         """
         with StrArray(pathspecs) as arr:
-            err = C.git_index_add_all(self._index, arr, 0, ffi.NULL, ffi.NULL)
-            check_error(err, io=True)
+            GitIOError.check_result(C.git_index_add_all)(self._index, arr, 0, ffi.NULL, ffi.NULL)
 
     def add(self, path_or_entry):
         """Add or update an entry in the Index.
@@ -203,14 +192,13 @@ class Index(object):
         if isinstance(path_or_entry, IndexEntry):
             entry = path_or_entry
             centry, str_ref = entry._to_c()
-            err = C.git_index_add(self._index, centry)
+            GitIOError.check_result(C.git_index_add)(self._index, centry)
         elif isinstance(path_or_entry, str) or hasattr(path_or_entry, '__fspath__'):
             path = path_or_entry
-            err = C.git_index_add_bypath(self._index, to_bytes(path))
+            GitIOError.check_result(C.git_index_add_bypath)(self._index, to_bytes(path))
         else:
             raise AttributeError('argument must be string or IndexEntry')
 
-        check_error(err, io=True)
 
     def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
         """
@@ -235,18 +223,12 @@ class Index(object):
             raise ValueError('diff needs an associated repository')
 
         copts = ffi.new('git_diff_options *')
-        err = C.git_diff_init_options(copts, 1)
-        check_error(err)
-
+        GitException.check_result(C.git_diff_init_options)(copts, 1)
         copts.flags = flags
         copts.context_lines = context_lines
         copts.interhunk_lines = interhunk_lines
-
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_index_to_workdir(cdiff, repo._repo, self._index,
-                                          copts)
-        check_error(err)
-
+        GitException.check_result(C.git_diff_index_to_workdir)(cdiff, repo._repo, self._index,copts)
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
 
     def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
@@ -278,8 +260,7 @@ class Index(object):
             raise TypeError('tree must be a Tree')
 
         copts = ffi.new('git_diff_options *')
-        err = C.git_diff_init_options(copts, 1)
-        check_error(err)
+        GitException.check_result(C.git_diff_init_options)(copts, 1)
 
         copts.flags = flags
         copts.context_lines = context_lines
@@ -289,9 +270,7 @@ class Index(object):
         ffi.buffer(ctree)[:] = tree._pointer[:]
 
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_tree_to_index(cdiff, repo._repo, ctree[0],
-                                       self._index, copts)
-        check_error(err)
+        GitException.check_result(C.git_diff_tree_to_index)(cdiff, repo._repo, ctree[0],self._index, copts)
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
 
@@ -390,10 +369,7 @@ class ConflictCollection(object):
         cancestor = ffi.new('git_index_entry **')
         cours = ffi.new('git_index_entry **')
         ctheirs = ffi.new('git_index_entry **')
-
-        err = C.git_index_conflict_get(cancestor, cours, ctheirs,
-                                       self._index._index, to_bytes(path))
-        check_error(err)
+        GitException.check_result(C.git_index_conflict_get)(cancestor, cours, ctheirs, self._index._index, to_bytes(path))
 
         ancestor = IndexEntry._from_c(cancestor[0])
         ours = IndexEntry._from_c(cours[0])
@@ -402,8 +378,7 @@ class ConflictCollection(object):
         return ancestor, ours, theirs
 
     def __delitem__(self, path):
-        err = C.git_index_conflict_remove(self._index._index, to_bytes(path))
-        check_error(err)
+        GitException.check_result(C.git_index_conflict_remove)(self._index._index, to_bytes(path))
 
     def __iter__(self):
         return ConflictIterator(self._index)
@@ -413,8 +388,7 @@ class ConflictIterator(object):
 
     def __init__(self, index):
         citer = ffi.new('git_index_conflict_iterator **')
-        err = C.git_index_conflict_iterator_new(citer, index._index)
-        check_error(err)
+        GitException.check_result(C.git_index_conflict_iterator_new)(citer, index._index)
         self._index = index
         self._iter = citer[0]
 
@@ -429,11 +403,7 @@ class ConflictIterator(object):
         cours = ffi.new('git_index_entry **')
         ctheirs = ffi.new('git_index_entry **')
 
-        err = C.git_index_conflict_next(cancestor, cours, ctheirs, self._iter)
-        if err == C.GIT_ITEROVER:
-            raise StopIteration
-
-        check_error(err)
+        GitException.check_result(C.git_index_conflict_next)(cancestor, cours, ctheirs, self._iter)
 
         ancestor = IndexEntry._from_c(cancestor[0])
         ours = IndexEntry._from_c(cours[0])

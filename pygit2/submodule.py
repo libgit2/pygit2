@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 from ._pygit2 import Oid
-from .errors import check_error
+from .errors import GitException
 from .ffi import ffi, C
 
 
@@ -45,9 +45,7 @@ class Submodule(object):
     def open(self):
         """Open the repository for a submodule."""
         crepo = ffi.new('git_repository **')
-        err = C.git_submodule_open(crepo, self._subm)
-        check_error(err)
-
+        GitException.check_result(C.git_submodule_open)(crepo, self._subm)
         return self._repo._from_c(crepo[0], True)
 
     @property
