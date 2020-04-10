@@ -1,3 +1,10 @@
+1.2.1 (UNRELEASED)
+-------------------------
+
+- Internal: Use @ffi.def_extern instead of @ffi.callback
+  `#899 <https://github.com/libgit2/pygit2/issues/899>`_
+
+
 1.2.0 (2020-04-05)
 -------------------------
 

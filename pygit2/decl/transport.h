@@ -59,4 +59,3 @@ int git_cred_ssh_key_memory_new(
 	const char *publickey,
 	const char *privatekey,
 	const char *passphrase);
-

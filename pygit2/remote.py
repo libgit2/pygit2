@@ -183,11 +183,11 @@ class RemoteCallbacks(object):
         """
 
     def _fill_fetch_options(self, fetch_opts):
-        fetch_opts.callbacks.sideband_progress = self._sideband_progress_cb
-        fetch_opts.callbacks.transfer_progress = self._transfer_progress_cb
-        fetch_opts.callbacks.update_tips = self._update_tips_cb
-        fetch_opts.callbacks.credentials = self._credentials_cb
-        fetch_opts.callbacks.certificate_check = self._certificate_cb
+        fetch_opts.callbacks.sideband_progress = C._sideband_progress_cb
+        fetch_opts.callbacks.transfer_progress = C._transfer_progress_cb
+        fetch_opts.callbacks.update_tips = C._update_tips_cb
+        fetch_opts.callbacks.credentials = C._credentials_cb
+        fetch_opts.callbacks.certificate_check = C._certificate_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         fetch_opts.callbacks.payload = self._self_handle
@@ -195,154 +195,154 @@ class RemoteCallbacks(object):
         self._stored_exception = None
 
     def _fill_push_options(self, push_opts):
-        push_opts.callbacks.sideband_progress = self._sideband_progress_cb
-        push_opts.callbacks.transfer_progress = self._transfer_progress_cb
-        push_opts.callbacks.update_tips = self._update_tips_cb
-        push_opts.callbacks.credentials = self._credentials_cb
-        push_opts.callbacks.certificate_check = self._certificate_cb
-        push_opts.callbacks.push_update_reference = self._push_update_reference_cb
+        push_opts.callbacks.sideband_progress = C._sideband_progress_cb
+        push_opts.callbacks.transfer_progress = C._transfer_progress_cb
+        push_opts.callbacks.update_tips = C._update_tips_cb
+        push_opts.callbacks.credentials = C._credentials_cb
+        push_opts.callbacks.certificate_check = C._certificate_cb
+        push_opts.callbacks.push_update_reference = C._push_update_reference_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         push_opts.callbacks.payload = self._self_handle
 
     def _fill_prune_callbacks(self, prune_callbacks):
-        prune_callbacks.update_tips = self._update_tips_cb
+        prune_callbacks.update_tips = C._update_tips_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         prune_callbacks.payload = self._self_handle
 
     def _fill_connect_callbacks(self, connect_callbacks):
-        connect_callbacks.credentials = self._credentials_cb
+        connect_callbacks.credentials = C._credentials_cb
         # We need to make sure that this handle stays alive
         self._self_handle = ffi.new_handle(self)
         connect_callbacks.payload = self._self_handle
 
-    # These functions exist to be called by the git_remote as
-    # callbacks. They proxy the call to whatever the user set
 
-    @ffi.callback('git_indexer_progress_cb')
-    def _transfer_progress_cb(stats_ptr, data):
-        self = ffi.from_handle(data)
+# These functions exist to be called by the git_remote as callbacks. They proxy
+# the call to whatever the user set
 
-        transfer_progress = getattr(self, 'transfer_progress', None)
-        if not transfer_progress:
+@ffi.def_extern()
+def _transfer_progress_cb(stats_ptr, data):
+    self = ffi.from_handle(data)
+
+    transfer_progress = getattr(self, 'transfer_progress', None)
+    if not transfer_progress:
+        return 0
+
+    try:
+        transfer_progress(TransferProgress(stats_ptr))
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.def_extern()
+def _sideband_progress_cb(string, length, data):
+    self = ffi.from_handle(data)
+
+    progress = getattr(self, 'progress', None)
+    if not progress:
+        return 0
+
+    try:
+        s = ffi.string(string, length).decode('utf-8')
+        progress(s)
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.def_extern()
+def _update_tips_cb(refname, a, b, data):
+    self = ffi.from_handle(data)
+
+    update_tips = getattr(self, 'update_tips', None)
+    if not update_tips:
+        return 0
+
+    try:
+        s = maybe_string(refname)
+        a = Oid(raw=bytes(ffi.buffer(a)[:]))
+        b = Oid(raw=bytes(ffi.buffer(b)[:]))
+
+        update_tips(s, a, b)
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.def_extern()
+def _push_update_reference_cb(ref, msg, data):
+    self = ffi.from_handle(data)
+
+    push_update_reference = getattr(self, 'push_update_reference', None)
+    if not push_update_reference:
+        return 0
+
+    try:
+        refname = ffi.string(ref)
+        message = maybe_string(msg)
+        push_update_reference(refname, message)
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.def_extern()
+def _credentials_cb(cred_out, url, username, allowed, data):
+    self = ffi.from_handle(data)
+
+    credentials = getattr(self, 'credentials', None)
+    if not credentials:
+        return 0
+
+    try:
+        ccred = get_credentials(credentials, url, username, allowed)
+        cred_out[0] = ccred[0]
+    except Passthrough:
+        return C.GIT_PASSTHROUGH
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.def_extern()
+def _certificate_cb(cert_i, valid, host, data):
+    self = ffi.from_handle(data)
+
+    # We want to simulate what should happen if libgit2 supported pass-through for
+    # this callback. For SSH, 'valid' is always False, because it doesn't look
+    # at known_hosts, but we do want to let it through in order to do what libgit2 would
+    # if the callback were not set.
+    try:
+        is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
+
+        certificate_check = getattr(self, 'certificate_check', None)
+        if not certificate_check:
+            raise Passthrough
+
+        # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
+        val = certificate_check(None, bool(valid), ffi.string(host))
+        if not val:
+            return C.GIT_ECERTIFICATE
+    except Passthrough:
+        if is_ssh:
             return 0
-
-        try:
-            transfer_progress(TransferProgress(stats_ptr))
-        except Exception as e:
-            self._stored_exception = e
-            return C.GIT_EUSER
-
-        return 0
-
-    @ffi.callback('git_transport_message_cb')
-    def _sideband_progress_cb(string, length, data):
-        self = ffi.from_handle(data)
-
-        progress = getattr(self, 'progress', None)
-        if not progress:
+        elif valid:
             return 0
+        else:
+            return C.GIT_ECERTIFICATE
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
 
-        try:
-            s = ffi.string(string, length).decode('utf-8')
-            progress(s)
-        except Exception as e:
-            self._stored_exception = e
-            return C.GIT_EUSER
+    return 0
 
-        return 0
-
-    @ffi.callback(
-        'int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data)'
-    )
-    def _update_tips_cb(refname, a, b, data):
-        self = ffi.from_handle(data)
-
-        update_tips = getattr(self, 'update_tips', None)
-        if not update_tips:
-            return 0
-
-        try:
-            s = maybe_string(refname)
-            a = Oid(raw=bytes(ffi.buffer(a)[:]))
-            b = Oid(raw=bytes(ffi.buffer(b)[:]))
-
-            update_tips(s, a, b)
-        except Exception as e:
-            self._stored_exception = e
-            return C.GIT_EUSER
-
-        return 0
-
-    @ffi.callback('git_push_update_reference_cb')
-    def _push_update_reference_cb(ref, msg, data):
-        self = ffi.from_handle(data)
-
-        push_update_reference = getattr(self, 'push_update_reference', None)
-        if not push_update_reference:
-            return 0
-
-        try:
-            refname = ffi.string(ref)
-            message = maybe_string(msg)
-            push_update_reference(refname, message)
-        except Exception as e:
-            self._stored_exception = e
-            return C.GIT_EUSER
-
-        return 0
-
-    @ffi.callback('git_cred_acquire_cb')
-    def _credentials_cb(cred_out, url, username, allowed, data):
-        self = ffi.from_handle(data)
-
-        credentials = getattr(self, 'credentials', None)
-        if not credentials:
-            return 0
-
-        try:
-            ccred = get_credentials(credentials, url, username, allowed)
-            cred_out[0] = ccred[0]
-        except Passthrough:
-            return C.GIT_PASSTHROUGH
-        except Exception as e:
-            self._stored_exception = e
-            return C.GIT_EUSER
-
-        return 0
-
-    @ffi.callback('git_transport_certificate_check_cb')
-    def _certificate_cb(cert_i, valid, host, data):
-        self = ffi.from_handle(data)
-
-        # We want to simulate what should happen if libgit2 supported pass-through for
-        # this callback. For SSH, 'valid' is always False, because it doesn't look
-        # at known_hosts, but we do want to let it through in order to do what libgit2 would
-        # if the callback were not set.
-        try:
-            is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
-
-            certificate_check = getattr(self, 'certificate_check', None)
-            if not certificate_check:
-                raise Passthrough
-
-            # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
-            val = certificate_check(None, bool(valid), ffi.string(host))
-            if not val:
-                return C.GIT_ECERTIFICATE
-        except Passthrough:
-            if is_ssh:
-                return 0
-            elif valid:
-                return 0
-            else:
-                return C.GIT_ECERTIFICATE
-        except Exception as e:
-            self._stored_exception = e
-            return C.GIT_EUSER
-
-        return 0
 
 class Remote(object):
     def __init__(self, repo, ptr):

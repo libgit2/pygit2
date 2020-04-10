@@ -151,7 +151,7 @@ def init_repository(path, bare=False,
     # Ok
     return Repository(to_str(path))
 
-@ffi.callback('git_repository_create_cb')
+@ffi.def_extern()
 def _repository_create_cb(repo_out, path, bare, data):
     d = ffi.from_handle(data)
     try:
@@ -165,7 +165,7 @@ def _repository_create_cb(repo_out, path, bare, data):
 
     return 0
 
-@ffi.callback('git_remote_create_cb')
+@ffi.def_extern()
 def _remote_create_cb(remote_out, repo, name, url, data):
     d = ffi.from_handle(data)
     try:
@@ -237,11 +237,11 @@ def clone_repository(
         opts.checkout_branch = checkout_branch_ref
 
     if repository:
-        opts.repository_cb = _repository_create_cb
+        opts.repository_cb = C._repository_create_cb
         opts.repository_cb_payload = d_handle
 
     if remote:
-        opts.remote_cb = _remote_create_cb
+        opts.remote_cb = C._remote_create_cb
         opts.remote_cb_payload = d_handle
 
     opts.bare = bare

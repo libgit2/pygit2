@@ -42,4 +42,3 @@ int git_clone(
 	const char *url,
 	const char *local_path,
 	const git_clone_options *options);
-

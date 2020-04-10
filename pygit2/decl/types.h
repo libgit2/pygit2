@@ -55,4 +55,3 @@ typedef enum {
 	GIT_SUBMODULE_IGNORE_DIRTY     = 3,
 	GIT_SUBMODULE_IGNORE_ALL       = 4,
 } git_submodule_ignore_t;
-

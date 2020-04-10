@@ -80,6 +80,7 @@ h_files = [
     'revert.h',
     'stash.h',
     'submodule.h',
+    'callbacks.h', # Bridge from libgit2 to Python
 ]
 h_source = []
 for h_file in h_files:

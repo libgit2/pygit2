@@ -38,7 +38,7 @@ Supported versions of Python:
 
 Python requirements (these are specified in ``setup.py``):
 
-- cffi 1.0+
+- cffi 1.4+
 - cached-property
 
 Libgit2 **v0.28.x**; binary wheels already include libgit2, so you only need to
