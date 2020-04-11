@@ -381,8 +381,8 @@ class Remote(object):
 
         if callbacks is None:
             callbacks = RemoteCallbacks()
-
         callbacks._fill_connect_callbacks(remote_callbacks)
+
         err = C.git_remote_connect(self._remote, direction, remote_callbacks, ffi.NULL, ffi.NULL);
         check_error(err)
 
@@ -406,18 +406,20 @@ class Remote(object):
             always keep the remote branches
         """
 
-        fetch_opts = ffi.new('git_fetch_options *')
-        err = C.git_fetch_init_options(fetch_opts, C.GIT_FETCH_OPTIONS_VERSION)
+        message = to_bytes(message)
+
+        opts = ffi.new('git_fetch_options *')
+        err = C.git_fetch_init_options(opts, C.GIT_FETCH_OPTIONS_VERSION)
 
         if callbacks is None:
             callbacks = RemoteCallbacks()
+        callbacks._fill_fetch_options(opts)
 
-        callbacks._fill_fetch_options(fetch_opts)
-        fetch_opts.prune = prune
+        opts.prune = prune
 
         try:
             with StrArray(refspecs) as arr:
-                err = C.git_remote_fetch(self._remote, arr, fetch_opts, to_bytes(message))
+                err = C.git_remote_fetch(self._remote, arr, opts, message)
                 if callbacks._stored_exception:
                     raise callbacks._stored_exception
                 check_error(err)
@@ -468,9 +470,11 @@ class Remote(object):
 
         remote_callbacks = ffi.new('git_remote_callbacks *')
         C.git_remote_init_callbacks(remote_callbacks, C.GIT_REMOTE_CALLBACKS_VERSION)
+
         if callbacks is None:
             callbacks = RemoteCallbacks()
         callbacks._fill_prune_callbacks(remote_callbacks)
+
         err = C.git_remote_prune(self._remote, remote_callbacks)
         check_error(err)
 
@@ -526,10 +530,9 @@ class Remote(object):
 
         if callbacks is None:
             callbacks = RemoteCallbacks()
-
         callbacks._fill_push_options(push_opts)
-        # Build custom callback structure
 
+        # Build custom callback structure
         try:
             with StrArray(specs) as refspecs:
                 err = C.git_remote_push(self._remote, refspecs, push_opts)
@@ -642,15 +645,18 @@ class RemoteCollection(object):
         """Create a new remote with the given name and url. Returns a <Remote>
         object.
 
-        If 'fetch' is provided, this fetch refspec will be used instead of the default
+        If 'fetch' is provided, this fetch refspec will be used instead of the
+        default.
         """
-
         cremote = ffi.new('git_remote **')
 
+        name = to_bytes(name)
+        url = to_bytes(url)
         if fetch:
-            err = C.git_remote_create_with_fetchspec(cremote, self._repo._repo, to_bytes(name), to_bytes(url), to_bytes(fetch))
+            fetch = to_bytes(fetch)
+            err = C.git_remote_create_with_fetchspec(cremote, self._repo._repo, name, url, fetch)
         else:
-            err = C.git_remote_create(cremote, self._repo._repo, to_bytes(name), to_bytes(url))
+            err = C.git_remote_create(cremote, self._repo._repo, name, url)
 
         check_error(err)
 

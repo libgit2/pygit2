@@ -44,7 +44,7 @@ from .config import Config
 from .errors import check_error
 from .ffi import ffi, C
 from .index import Index
-from .remote import RemoteCollection
+from .remote import RemoteCollection, RemoteCallbacks
 from .blame import Blame
 from .utils import to_bytes, StrArray
 from .submodule import Submodule
@@ -99,22 +99,16 @@ class BaseRepository(_Repository):
 
         # prepare options
         opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_init_options(
-            opts,
-            C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
-        if callbacks is not None:
-            callbacks._fill_fetch_options(opts.fetch_opts)
-        if init:
-            i = 1
-        else:
-            i = 0
+        C.git_submodule_update_init_options(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
 
+        if callbacks is None:
+            callbacks = RemoteCallbacks()
+        callbacks._fill_fetch_options(opts.fetch_opts)
+
+        i = 1 if init else 0
         for submodule in submodules:
             submodule_instance = self.lookup_submodule(submodule)
-            err = C.git_submodule_update(
-                submodule_instance._subm,
-                i,
-                opts)
+            err = C.git_submodule_update(submodule_instance._subm, i, opts)
             check_error(err)
 
         return None

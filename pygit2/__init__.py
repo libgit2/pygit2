@@ -248,7 +248,6 @@ def clone_repository(
 
     if callbacks is None:
         callbacks = RemoteCallbacks()
-
     callbacks._fill_fetch_options(opts.fetch_opts)
 
     err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
