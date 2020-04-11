@@ -25,6 +25,7 @@
 
 # Import from pygit2
 from ._pygit2 import Oid
+from .callbacks import git_fetch_options, git_push_options, git_remote_callbacks
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .refspec import Refspec
@@ -181,41 +182,6 @@ class RemoteCallbacks(object):
         message : str
             Rejection message from the remote. If None, the update was accepted.
         """
-
-    def _fill_fetch_options(self, fetch_opts):
-        fetch_opts.callbacks.sideband_progress = C._sideband_progress_cb
-        fetch_opts.callbacks.transfer_progress = C._transfer_progress_cb
-        fetch_opts.callbacks.update_tips = C._update_tips_cb
-        fetch_opts.callbacks.credentials = C._credentials_cb
-        fetch_opts.callbacks.certificate_check = C._certificate_cb
-        # We need to make sure that this handle stays alive
-        self._self_handle = ffi.new_handle(self)
-        fetch_opts.callbacks.payload = self._self_handle
-
-        self._stored_exception = None
-
-    def _fill_push_options(self, push_opts):
-        push_opts.callbacks.sideband_progress = C._sideband_progress_cb
-        push_opts.callbacks.transfer_progress = C._transfer_progress_cb
-        push_opts.callbacks.update_tips = C._update_tips_cb
-        push_opts.callbacks.credentials = C._credentials_cb
-        push_opts.callbacks.certificate_check = C._certificate_cb
-        push_opts.callbacks.push_update_reference = C._push_update_reference_cb
-        # We need to make sure that this handle stays alive
-        self._self_handle = ffi.new_handle(self)
-        push_opts.callbacks.payload = self._self_handle
-
-    def _fill_prune_callbacks(self, prune_callbacks):
-        prune_callbacks.update_tips = C._update_tips_cb
-        # We need to make sure that this handle stays alive
-        self._self_handle = ffi.new_handle(self)
-        prune_callbacks.payload = self._self_handle
-
-    def _fill_connect_callbacks(self, connect_callbacks):
-        connect_callbacks.credentials = C._credentials_cb
-        # We need to make sure that this handle stays alive
-        self._self_handle = ffi.new_handle(self)
-        connect_callbacks.payload = self._self_handle
 
 
 # These functions exist to be called by the git_remote as callbacks. They proxy
@@ -374,21 +340,15 @@ class Remote(object):
         return maybe_string(C.git_remote_pushurl(self._remote))
 
     def connect(self, callbacks=None, direction=C.GIT_DIRECTION_FETCH):
-        """Connect to the remote."""
-
-        remote_callbacks = ffi.new('git_remote_callbacks *')
-        C.git_remote_init_callbacks(remote_callbacks, C.GIT_REMOTE_CALLBACKS_VERSION)
-
-        if callbacks is None:
-            callbacks = RemoteCallbacks()
-        callbacks._fill_connect_callbacks(remote_callbacks)
-
-        err = C.git_remote_connect(self._remote, direction, remote_callbacks, ffi.NULL, ffi.NULL);
-        check_error(err)
+        """Connect to the remote.
+        """
+        with git_remote_callbacks(callbacks) as (remote_callbacks, cb):
+            err = C.git_remote_connect(self._remote, direction, remote_callbacks, ffi.NULL, ffi.NULL)
+            check_error(err, cb)
 
     def save(self):
-        """Save a remote to its repository's configuration."""
-
+        """Save a remote to its repository's configuration.
+        """
         err = C.git_remote_save(self._remote)
         check_error(err)
 
@@ -405,26 +365,12 @@ class Remote(object):
             repository that does not exist in the remote and the last will
             always keep the remote branches
         """
-
         message = to_bytes(message)
-
-        opts = ffi.new('git_fetch_options *')
-        err = C.git_fetch_init_options(opts, C.GIT_FETCH_OPTIONS_VERSION)
-
-        if callbacks is None:
-            callbacks = RemoteCallbacks()
-        callbacks._fill_fetch_options(opts)
-
-        opts.prune = prune
-
-        try:
+        with git_fetch_options(callbacks) as (opts, cb):
+            opts.prune = prune
             with StrArray(refspecs) as arr:
-                err = C.git_remote_fetch(self._remote, arr, opts, message)
-                if callbacks._stored_exception:
-                    raise callbacks._stored_exception
-                check_error(err)
-        finally:
-            callbacks._self_handle = None
+                err = C.git_remote_fetch(self._remote, arr, opts, to_bytes(message))
+                check_error(err, cb)
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
@@ -443,11 +389,8 @@ class Remote(object):
         check_error(err)
 
         results = []
-
         for i in range(int(refs_len[0])):
-
             local = bool(refs[0][i].local)
-
             if local:
                 loid = Oid(raw=bytes(ffi.buffer(refs[0][i].loid.id)[:]))
             else:
@@ -466,17 +409,11 @@ class Remote(object):
         return results
 
     def prune(self, callbacks=None):
-        """Perform a prune against this remote."""
-
-        remote_callbacks = ffi.new('git_remote_callbacks *')
-        C.git_remote_init_callbacks(remote_callbacks, C.GIT_REMOTE_CALLBACKS_VERSION)
-
-        if callbacks is None:
-            callbacks = RemoteCallbacks()
-        callbacks._fill_prune_callbacks(remote_callbacks)
-
-        err = C.git_remote_prune(self._remote, remote_callbacks)
-        check_error(err)
+        """Perform a prune against this remote.
+        """
+        with git_remote_callbacks(callbacks) as (remote_callbacks, cb):
+            err = C.git_remote_prune(self._remote, remote_callbacks)
+            check_error(err, cb)
 
     @property
     def refspec_count(self):
@@ -525,20 +462,11 @@ class Remote(object):
         specs : [str]
             Push refspecs to use.
         """
-        push_opts = ffi.new('git_push_options *')
-        err = C.git_push_init_options(push_opts, C.GIT_PUSH_OPTIONS_VERSION)
-
-        if callbacks is None:
-            callbacks = RemoteCallbacks()
-        callbacks._fill_push_options(push_opts)
-
-        # Build custom callback structure
-        try:
+        with git_push_options(callbacks) as (opts, cb):
             with StrArray(specs) as refspecs:
-                err = C.git_remote_push(self._remote, refspecs, push_opts)
-                check_error(err)
-        finally:
-            callbacks._self_handle = None
+                err = C.git_remote_push(self._remote, refspecs, opts)
+                check_error(err, cb)
+
 
 def get_credentials(fn, url, username, allowed):
     """Call fn and return the credentials object"""

@@ -31,6 +31,7 @@ from ._pygit2 import *
 
 # High level API
 from .blame import Blame, BlameHunk
+from .callbacks import git_fetch_options
 from .config import Config
 from .credentials import *
 from .errors import check_error, Passthrough
@@ -246,18 +247,12 @@ def clone_repository(
 
     opts.bare = bare
 
-    if callbacks is None:
-        callbacks = RemoteCallbacks()
-    callbacks._fill_fetch_options(opts.fetch_opts)
-
-    err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
-
-    # Error handling
-    exc = d.get('exception', callbacks._stored_exception)
-    if exc:
-        raise exc
-
-    check_error(err)
+    with git_fetch_options(callbacks, opts=opts.fetch_opts) as (_, cb):
+        err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
+        exc = d.get('exception')
+        if exc:
+            raise exc
+        check_error(err, cb)
 
     # Ok
     return Repository._from_c(crepo[0], owned=True)

@@ -40,11 +40,12 @@ from ._pygit2 import GIT_REF_SYMBOLIC
 from ._pygit2 import Reference, Tree, Commit, Blob
 from ._pygit2 import InvalidSpecError
 
+from .callbacks import git_fetch_options
 from .config import Config
 from .errors import check_error
 from .ffi import ffi, C
 from .index import Index
-from .remote import RemoteCollection, RemoteCallbacks
+from .remote import RemoteCollection
 from .blame import Blame
 from .utils import to_bytes, StrArray
 from .submodule import Submodule
@@ -101,15 +102,12 @@ class BaseRepository(_Repository):
         opts = ffi.new('git_submodule_update_options *')
         C.git_submodule_update_init_options(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
 
-        if callbacks is None:
-            callbacks = RemoteCallbacks()
-        callbacks._fill_fetch_options(opts.fetch_opts)
-
-        i = 1 if init else 0
-        for submodule in submodules:
-            submodule_instance = self.lookup_submodule(submodule)
-            err = C.git_submodule_update(submodule_instance._subm, i, opts)
-            check_error(err)
+        with git_fetch_options(callbacks, opts=opts.fetch_opts) as (_, cb):
+            i = 1 if init else 0
+            for submodule in submodules:
+                submodule_instance = self.lookup_submodule(submodule)
+                err = C.git_submodule_update(submodule_instance._subm, i, opts)
+                check_error(err, cb)
 
         return None
 
