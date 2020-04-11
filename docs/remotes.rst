@@ -7,8 +7,6 @@ Remotes
    The collection of configured remotes, an instance of
    :py:class:`pygit2.remote.RemoteCollection`
 
-.. automethod:: pygit2.Repository.create_remote
-
 The remote collection
 ==========================
 

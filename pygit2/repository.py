@@ -28,6 +28,7 @@ from io import BytesIO
 from string import hexdigits
 import tarfile
 from time import time
+import warnings
 
 # Import from pygit2
 from ._pygit2 import Repository as _Repository, init_file_backend
@@ -141,10 +142,7 @@ class BaseRepository(_Repository):
     # Remotes
     #
     def create_remote(self, name, url):
-        """Create a new remote. Return a <Remote> object.
-
-        This method is deprecated, please use Remote.remotes.create()
-        """
+        warnings.warn("Use repo.remotes.create(..)", DeprecationWarning)
         return self.remotes.create(name, url)
 
     #

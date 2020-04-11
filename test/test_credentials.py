@@ -45,7 +45,9 @@ REMOTE_REPO_BYTES = 2758
 
 ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
+
 class CredentialCreateTest(utils.NoRepoTestCase):
+
     def test_username(self):
         username = "git"
 
@@ -95,29 +97,29 @@ class CredentialCreateTest(utils.NoRepoTestCase):
 
 
 class CredentialCallback(utils.RepoTestCase):
+
     def test_callback(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
-            @staticmethod
-            def credentials(url, username, allowed):
+            def credentials(self, url, username, allowed):
                 assert allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT
                 raise Exception("I don't know the password")
 
         url = "https://github.com/github/github"
-        remote = self.repo.create_remote("github", url)
+        remote = self.repo.remotes.create("github", url)
 
         with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_bad_cred_type(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
-            @staticmethod
-            def credentials(url, username, allowed):
+            def credentials(self, url, username, allowed):
                 assert allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT
                 return Keypair("git", "foo.pub", "foo", "sekkrit")
 
         url = "https://github.com/github/github"
-        remote = self.repo.create_remote("github", url)
+        remote = self.repo.remotes.create("github", url)
         with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
+
 
 class CallableCredentialTest(utils.RepoTestCase):
 
@@ -127,5 +129,5 @@ class CallableCredentialTest(utils.RepoTestCase):
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         url = 'https://github.com/libgit2/TestGitRepository'
-        remote = self.repo.create_remote("bb", url)
+        remote = self.repo.remotes.create("bb", url)
         remote.fetch(callbacks=callbacks)

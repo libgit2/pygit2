@@ -56,14 +56,14 @@ class RepositoryTest(utils.RepoTestCase):
         name = 'upstream'
         url = 'git://github.com/libgit2/pygit2.git'
 
-        remote = self.repo.create_remote(name, url)
+        remote = self.repo.remotes.create(name, url)
 
         assert type(remote) == pygit2.Remote
         assert name == remote.name
         assert url == remote.url
         assert remote.push_url is None
 
-        with pytest.raises(ValueError): self.repo.create_remote(*(name, url))
+        with pytest.raises(ValueError): self.repo.remotes.create(*(name, url))
 
     def test_remote_create_with_refspec(self):
         name = 'upstream'
@@ -82,7 +82,7 @@ class RepositoryTest(utils.RepoTestCase):
         name = 'upstream'
         url = 'git://github.com/libgit2/pygit2.git'
 
-        self.repo.create_remote(name, url)
+        self.repo.remotes.create(name, url)
         assert 2 == len(self.repo.remotes)
         remote = self.repo.remotes[1]
 
@@ -170,7 +170,7 @@ class RepositoryTest(utils.RepoTestCase):
 
         name = 'upstream'
         url = 'git://github.com/libgit2/pygit2.git'
-        remote = self.repo.create_remote(name, url)
+        remote = self.repo.remotes.create(name, url)
         assert remote.name in [x.name for x in self.repo.remotes]
 
     @unittest.skipIf(utils.no_network(), "Requires network")
@@ -300,7 +300,7 @@ class PushTestCase(unittest.TestCase):
         self.clone_ctxtmgr = utils.TemporaryRepository(('git', 'testrepo.git'))
         self.origin = pygit2.Repository(self.origin_ctxtmgr.__enter__())
         self.clone = pygit2.Repository(self.clone_ctxtmgr.__enter__())
-        self.remote = self.clone.create_remote('origin', self.origin.path)
+        self.remote = self.clone.remotes.create('origin', self.origin.path)
 
     def tearDown(self):
         self.origin = None
