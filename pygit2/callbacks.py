@@ -30,6 +30,7 @@ Python.
 
 # Standard Library
 from contextlib import contextmanager
+from functools import wraps
 
 # pygit2
 from ._pygit2 import Oid
@@ -134,10 +135,30 @@ def git_remote_callbacks(callbacks):
 # and keep the exception, to be re-raised later.
 #
 
-@ffi.def_extern()
-def _certificate_cb(cert_i, valid, host, data):
-    self = ffi.from_handle(data)
+def callback_proxy(f):
+    @wraps(f)
+    def wrapper(*args):
+        data = ffi.from_handle(args[-1])
+        args = args[:-1] + (data,)
+        try:
+            return f(*args)
+        except Passthrough:
+            # A user defined callback can raise Passthrough to decline to act;
+            # then libgit2 will behave as if there was no callback set in the
+            # first place.
+            return C.GIT_PASSTHROUGH
+        except Exception as e:
+            # Keep the exception to be re-raised later, and inform libgit2 that
+            # the user defined callback has failed.
+            data._stored_exception = e
+            return C.GIT_EUSER
 
+    return wrapper
+
+
+@ffi.def_extern()
+@callback_proxy
+def _certificate_cb(cert_i, valid, host, data):
     # We want to simulate what should happen if libgit2 supported pass-through for
     # this callback. For SSH, 'valid' is always False, because it doesn't look
     # at known_hosts, but we do want to let it through in order to do what libgit2 would
@@ -145,7 +166,7 @@ def _certificate_cb(cert_i, valid, host, data):
     try:
         is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
 
-        certificate_check = getattr(self, 'certificate_check', None)
+        certificate_check = getattr(data, 'certificate_check', None)
         if not certificate_check:
             raise Passthrough
 
@@ -160,105 +181,71 @@ def _certificate_cb(cert_i, valid, host, data):
             return 0
         else:
             return C.GIT_ECERTIFICATE
-    except Exception as e:
-        self._stored_exception = e
-        return C.GIT_EUSER
 
     return 0
 
 
 @ffi.def_extern()
+@callback_proxy
 def _credentials_cb(cred_out, url, username, allowed, data):
-    self = ffi.from_handle(data)
-
-    credentials = getattr(self, 'credentials', None)
+    credentials = getattr(data, 'credentials', None)
     if not credentials:
         return 0
 
-    try:
-        ccred = get_credentials(credentials, url, username, allowed)
-        cred_out[0] = ccred[0]
-    except Passthrough:
-        return C.GIT_PASSTHROUGH
-    except Exception as e:
-        self._stored_exception = e
-        return C.GIT_EUSER
-
+    ccred = get_credentials(credentials, url, username, allowed)
+    cred_out[0] = ccred[0]
     return 0
 
-@ffi.def_extern()
-def _push_update_reference_cb(ref, msg, data):
-    self = ffi.from_handle(data)
 
-    push_update_reference = getattr(self, 'push_update_reference', None)
+@ffi.def_extern()
+@callback_proxy
+def _push_update_reference_cb(ref, msg, data):
+    push_update_reference = getattr(data, 'push_update_reference', None)
     if not push_update_reference:
         return 0
 
-    try:
-        refname = ffi.string(ref)
-        message = maybe_string(msg)
-        push_update_reference(refname, message)
-    except Exception as e:
-        self._stored_exception = e
-        return C.GIT_EUSER
-
+    refname = ffi.string(ref)
+    message = maybe_string(msg)
+    push_update_reference(refname, message)
     return 0
 
-@ffi.def_extern()
-def _sideband_progress_cb(string, length, data):
-    self = ffi.from_handle(data)
 
-    progress = getattr(self, 'progress', None)
+@ffi.def_extern()
+@callback_proxy
+def _sideband_progress_cb(string, length, data):
+    progress = getattr(data, 'progress', None)
     if not progress:
         return 0
 
-    try:
-        s = ffi.string(string, length).decode('utf-8')
-        progress(s)
-    except Exception as e:
-        self._stored_exception = e
-        return C.GIT_EUSER
-
+    s = ffi.string(string, length).decode('utf-8')
+    progress(s)
     return 0
 
 
 @ffi.def_extern()
+@callback_proxy
 def _transfer_progress_cb(stats_ptr, data):
     from .remote import TransferProgress
 
-    self = ffi.from_handle(data)
-
-    transfer_progress = getattr(self, 'transfer_progress', None)
+    transfer_progress = getattr(data, 'transfer_progress', None)
     if not transfer_progress:
         return 0
 
-    try:
-        transfer_progress(TransferProgress(stats_ptr))
-    except Exception as e:
-        self._stored_exception = e
-        return C.GIT_EUSER
-
+    transfer_progress(TransferProgress(stats_ptr))
     return 0
 
 
 @ffi.def_extern()
+@callback_proxy
 def _update_tips_cb(refname, a, b, data):
-    self = ffi.from_handle(data)
-
-    update_tips = getattr(self, 'update_tips', None)
+    update_tips = getattr(data, 'update_tips', None)
     if not update_tips:
         return 0
 
-    try:
-        s = maybe_string(refname)
-        a = Oid(raw=bytes(ffi.buffer(a)[:]))
-        b = Oid(raw=bytes(ffi.buffer(b)[:]))
-
-        update_tips(s, a, b)
-    except Exception as e:
-        self._stored_exception = e
-        return C.GIT_EUSER
-
+    s = maybe_string(refname)
+    a = Oid(raw=bytes(ffi.buffer(a)[:]))
+    b = Oid(raw=bytes(ffi.buffer(b)[:]))
+    update_tips(s, a, b)
     return 0
 
 
