@@ -87,7 +87,8 @@ def rmtree(path):
         shutil.rmtree(path, onerror=onerror)
 
 
-class TemporaryRepository(object):
+class TemporaryRepository:
+
     def __init__(self, repo_spec):
         self.repo_spec = repo_spec
 

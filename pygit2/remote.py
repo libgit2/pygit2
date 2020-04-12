@@ -32,8 +32,9 @@ from .refspec import Refspec
 from .utils import maybe_string, to_bytes, strarray_to_strings, StrArray
 
 
-class TransferProgress(object):
-    """Progress downloading and indexing data during a fetch"""
+class TransferProgress:
+    """Progress downloading and indexing data during a fetch.
+    """
 
     def __init__(self, tp):
 
@@ -59,9 +60,11 @@ class TransferProgress(object):
         """"Number of bytes received up to now"""
 
 
-class Remote(object):
+class Remote:
+
     def __init__(self, repo, ptr):
-        """The constructor is for internal use only"""
+        """The constructor is for internal use only.
+        """
 
         self._repo = repo
         self._remote = ptr
@@ -217,7 +220,7 @@ class Remote(object):
                 check_error(err, cb)
 
 
-class RemoteCollection(object):
+class RemoteCollection:
     """Collection of configured remotes
 
     You can use this class to look up and manage the remotes configured

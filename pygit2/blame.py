@@ -37,7 +37,7 @@ def wrap_signature(csig):
                      ffi.string(csig.email).decode('utf-8'),
                      csig.when.time, csig.when.offset, 'utf-8')
 
-class BlameHunk(object):
+class BlameHunk:
 
     @classmethod
     def _from_c(cls, blame, ptr):
@@ -95,7 +95,7 @@ class BlameHunk(object):
         return ffi.string(path).decode('utf-8')
 
 
-class Blame(object):
+class Blame:
 
     @classmethod
     def _from_c(cls, repo, ptr):

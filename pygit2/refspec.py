@@ -29,8 +29,10 @@ from .ffi import ffi, C
 from .utils import to_bytes
 
 
-class Refspec(object):
-    """The constructor is for internal use only"""
+class Refspec:
+    """The constructor is for internal use only.
+    """
+
     def __init__(self, owner, ptr):
         self._owner = owner
         self._refspec = ptr

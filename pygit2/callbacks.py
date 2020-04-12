@@ -303,7 +303,7 @@ def _update_tips_cb(refname, a, b, data):
 # outside.
 #
 
-class RemoteCallbacks(object):
+class RemoteCallbacks:
     """Base class for pygit2 remote callbacks.
 
     Inherit from this class and override the callbacks which you want to use

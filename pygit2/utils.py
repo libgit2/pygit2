@@ -70,7 +70,7 @@ def strarray_to_strings(arr):
     return l
 
 
-class StrArray(object):
+class StrArray:
     """A git_strarray wrapper
 
     Use this in order to get a git_strarray* to pass to libgit2 out of a
@@ -108,7 +108,7 @@ class StrArray(object):
         pass
 
 
-class GenericIterator(object):
+class GenericIterator:
     """Helper to easily implement an iterator.
 
     The constructor gets a container which must implement __len__ and

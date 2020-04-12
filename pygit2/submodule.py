@@ -28,7 +28,7 @@ from .errors import check_error
 from .ffi import ffi, C
 
 
-class Submodule(object):
+class Submodule:
 
     @classmethod
     def _from_c(cls, repo, cptr):

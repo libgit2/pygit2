@@ -33,7 +33,7 @@ from .utils import to_bytes, to_str
 from .utils import GenericIterator, StrArray
 
 
-class Index(object):
+class Index:
 
     def __init__(self, path=None):
         """Create a new Index
@@ -332,7 +332,7 @@ class Index(object):
         return self._conflicts()
 
 
-class IndexEntry(object):
+class IndexEntry:
     __slots__ = ['id', 'path', 'mode']
 
     def __init__(self, path, object_id, mode):
@@ -381,7 +381,7 @@ class IndexEntry(object):
         return entry
 
 
-class ConflictCollection(object):
+class ConflictCollection:
 
     def __init__(self, index):
         self._index = index
@@ -409,7 +409,7 @@ class ConflictCollection(object):
         return ConflictIterator(self._index)
 
 
-class ConflictIterator(object):
+class ConflictIterator:
 
     def __init__(self, index):
         citer = ffi.new('git_index_conflict_iterator **')

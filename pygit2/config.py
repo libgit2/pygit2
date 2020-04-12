@@ -36,7 +36,7 @@ def assert_string(v, desc):
         raise TypeError("%s must be a string" % desc)
 
 
-class ConfigIterator(object):
+class ConfigIterator:
 
     def __init__(self, config, ptr):
         self._iter = ptr
@@ -68,8 +68,9 @@ class ConfigMultivarIterator(ConfigIterator):
         return entry.value
 
 
-class Config(object):
-    """Git configuration management"""
+class Config:
+    """Git configuration management.
+    """
 
     def __init__(self, path=None):
         cconfig = ffi.new('git_config **')
@@ -285,8 +286,9 @@ class Config(object):
         """
         return Config._from_found_config(C.git_config_find_xdg)
 
-class ConfigEntry(object):
-    """An entry in a configuation object
+
+class ConfigEntry:
+    """An entry in a configuation object.
     """
 
     @classmethod

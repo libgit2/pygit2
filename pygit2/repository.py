@@ -1171,7 +1171,8 @@ class BaseRepository(_Repository):
         return Index.from_c(self, cindex)
 
 
-class Branches(object):
+class Branches:
+
     def __init__(self, repository, flag=GIT_BRANCH_ALL, commit=None):
         self._repository = repository
         self._flag = flag
@@ -1234,7 +1235,8 @@ class Branches(object):
         return self.get(name) is not None
 
 
-class References(object):
+class References:
+
     def __init__(self, repository):
         self._repository = repository
 

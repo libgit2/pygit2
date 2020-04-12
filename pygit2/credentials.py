@@ -31,7 +31,7 @@ GIT_CREDTYPE_SSH_KEY = C.GIT_CREDTYPE_SSH_KEY
 GIT_CREDTYPE_SSH_MEMORY = C.GIT_CREDTYPE_SSH_MEMORY
 
 
-class Username(object):
+class Username:
     """Username credentials
 
     This is an object suitable for passing to a remote's credentials
@@ -53,7 +53,7 @@ class Username(object):
         return self
 
 
-class UserPass(object):
+class UserPass:
     """Username/Password credentials
 
     This is an object suitable for passing to a remote's credentials
@@ -76,7 +76,7 @@ class UserPass(object):
         return self
 
 
-class Keypair(object):
+class Keypair:
     """
     SSH key pair credentials.
 
