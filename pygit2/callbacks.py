@@ -1,3 +1,28 @@
+# Copyright 2010-2020 The pygit2 contributors
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2,
+# as published by the Free Software Foundation.
+#
+# In addition to the permissions in the GNU General Public License,
+# the authors give you unlimited permission to link the compiled
+# version of this file into combinations with other programs,
+# and to distribute those combinations without any restriction
+# coming from the use of this file.  (The General Public License
+# restrictions do apply in other respects; for example, they cover
+# modification of the file, and distribution when not linked into
+# a combined executable.)
+#
+# This file is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING.  If not, write to
+# the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
+
 """
 This is a utility module, it's here to support calls from libgit2 to written in
 Python.
@@ -7,12 +32,30 @@ Python.
 from contextlib import contextmanager
 
 # pygit2
+from ._pygit2 import Oid
+from .errors import check_error, Passthrough
 from .ffi import ffi, C
+from .utils import maybe_string, to_bytes
 
+
+#
+# The context managers below wrap calls to libgit2 functions, which them in
+# turn call to user defined functions written in Python.
+#
+# pygit2 api:
+# -> wrapper (context manager)
+#    -> libgit2 function
+#       -> cffi function (proxy)
+#          -> user defined function (Python callback)
+#          <- returns or raises exception
+#       <- returns error code or success to libgit2
+#    <- returns error code or success
+# <- returns object on success, or reraises exception from user defined
+#    function, or raises exception from libgit2 error
+#
 
 @contextmanager
 def git_fetch_options(callbacks, opts=None):
-    from .remote import RemoteCallbacks
     if callbacks is None:
         callbacks = RemoteCallbacks()
 
@@ -37,7 +80,6 @@ def git_fetch_options(callbacks, opts=None):
 
 @contextmanager
 def git_push_options(callbacks, opts=None):
-    from .remote import RemoteCallbacks
     if callbacks is None:
         callbacks = RemoteCallbacks()
 
@@ -63,7 +105,6 @@ def git_push_options(callbacks, opts=None):
 
 @contextmanager
 def git_remote_callbacks(callbacks):
-    from .remote import RemoteCallbacks
     if callbacks is None:
         callbacks = RemoteCallbacks()
 
@@ -80,3 +121,319 @@ def git_remote_callbacks(callbacks):
 
     # Give back control
     yield cdata, callbacks
+
+
+
+#
+# C callbacks
+#
+# These functions are translated to C by cffi. They are called by libgit2, and
+# proxy to the user defined callbacks written in Python, then back to libgit2.
+#
+# When an exception happens in the Python callback, they return GIT_EUSER and
+# and keep the exception, to be re-raised later.
+#
+
+@ffi.def_extern()
+def _certificate_cb(cert_i, valid, host, data):
+    self = ffi.from_handle(data)
+
+    # We want to simulate what should happen if libgit2 supported pass-through for
+    # this callback. For SSH, 'valid' is always False, because it doesn't look
+    # at known_hosts, but we do want to let it through in order to do what libgit2 would
+    # if the callback were not set.
+    try:
+        is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
+
+        certificate_check = getattr(self, 'certificate_check', None)
+        if not certificate_check:
+            raise Passthrough
+
+        # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
+        val = certificate_check(None, bool(valid), ffi.string(host))
+        if not val:
+            return C.GIT_ECERTIFICATE
+    except Passthrough:
+        if is_ssh:
+            return 0
+        elif valid:
+            return 0
+        else:
+            return C.GIT_ECERTIFICATE
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+
+@ffi.def_extern()
+def _credentials_cb(cred_out, url, username, allowed, data):
+    self = ffi.from_handle(data)
+
+    credentials = getattr(self, 'credentials', None)
+    if not credentials:
+        return 0
+
+    try:
+        ccred = get_credentials(credentials, url, username, allowed)
+        cred_out[0] = ccred[0]
+    except Passthrough:
+        return C.GIT_PASSTHROUGH
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.def_extern()
+def _push_update_reference_cb(ref, msg, data):
+    self = ffi.from_handle(data)
+
+    push_update_reference = getattr(self, 'push_update_reference', None)
+    if not push_update_reference:
+        return 0
+
+    try:
+        refname = ffi.string(ref)
+        message = maybe_string(msg)
+        push_update_reference(refname, message)
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+@ffi.def_extern()
+def _sideband_progress_cb(string, length, data):
+    self = ffi.from_handle(data)
+
+    progress = getattr(self, 'progress', None)
+    if not progress:
+        return 0
+
+    try:
+        s = ffi.string(string, length).decode('utf-8')
+        progress(s)
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+
+@ffi.def_extern()
+def _transfer_progress_cb(stats_ptr, data):
+    from .remote import TransferProgress
+
+    self = ffi.from_handle(data)
+
+    transfer_progress = getattr(self, 'transfer_progress', None)
+    if not transfer_progress:
+        return 0
+
+    try:
+        transfer_progress(TransferProgress(stats_ptr))
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+
+@ffi.def_extern()
+def _update_tips_cb(refname, a, b, data):
+    self = ffi.from_handle(data)
+
+    update_tips = getattr(self, 'update_tips', None)
+    if not update_tips:
+        return 0
+
+    try:
+        s = maybe_string(refname)
+        a = Oid(raw=bytes(ffi.buffer(a)[:]))
+        b = Oid(raw=bytes(ffi.buffer(b)[:]))
+
+        update_tips(s, a, b)
+    except Exception as e:
+        self._stored_exception = e
+        return C.GIT_EUSER
+
+    return 0
+
+
+#
+# Public interface
+# These functions are used within this module, but may also be used from the
+# outside.
+#
+
+class RemoteCallbacks(object):
+    """Base class for pygit2 remote callbacks.
+
+    Inherit from this class and override the callbacks which you want to use
+    in your class, which you can then pass to the network operations.
+    """
+
+    def __init__(self, credentials=None, certificate=None):
+        """Initialize some callbacks in-line
+
+        Use this constructor to provide credentials and certificate
+        callbacks in-line, instead of defining your own class for these ones.
+
+        You can e.g. also pass in one of the credential objects as 'credentials'
+        instead of creating a function which returns a hard-coded object.
+        """
+
+        if credentials is not None:
+            self.credentials = credentials
+        if certificate is not None:
+            self.certificate = certificate
+
+    def sideband_progress(self, string):
+        """
+        Progress output callback.  Override this function with your own
+        progress reporting function
+
+        Parameters:
+
+        string : str
+            Progress output from the remote.
+        """
+
+    def credentials(self, url, username_from_url, allowed_types):
+        """
+        Credentials callback.  If the remote server requires authentication,
+        this function will be called and its return value used for
+        authentication. Override it if you want to be able to perform
+        authentication.
+
+        Returns: credential
+
+        Parameters:
+
+        url : str
+            The url of the remote.
+
+        username_from_url : str or None
+            Username extracted from the url, if any.
+
+        allowed_types : int
+            Credential types supported by the remote.
+        """
+        raise Passthrough
+
+    def certificate_check(self, certificate, valid, host):
+        """
+        Certificate callback. Override with your own function to determine
+        whether to accept the server's certificate.
+
+        Returns: True to connect, False to abort.
+
+        Parameters:
+
+        certificate : None
+            The certificate. It is currently always None while we figure out
+            how to represent it cross-platform.
+
+        valid : bool
+            Whether the TLS/SSH library thinks the certificate is valid.
+
+        host : str
+            The hostname we want to connect to.
+        """
+
+        raise Passthrough
+
+    def transfer_progress(self, stats):
+        """
+        Transfer progress callback. Override with your own function to report
+        transfer progress.
+
+        Parameters:
+
+        stats : TransferProgress
+            The progress up to now.
+        """
+
+    def update_tips(self, refname, old, new):
+        """
+        Update tips callabck. Override with your own function to report
+        reference updates.
+
+        Parameters:
+
+        refname : str
+            The name of the reference that's being updated.
+
+        old : Oid
+            The reference's old value.
+
+        new : Oid
+            The reference's new value.
+        """
+
+    def push_update_reference(self, refname, message):
+        """
+        Push update reference callback. Override with your own function to
+        report the remote's acceptance or rejection of reference updates.
+
+        refname : str
+            The name of the reference (on the remote).
+
+        message : str
+            Rejection message from the remote. If None, the update was accepted.
+        """
+
+
+def get_credentials(fn, url, username, allowed):
+    """Call fn and return the credentials object.
+    """
+    url_str = maybe_string(url)
+    username_str = maybe_string(username)
+
+    creds = fn(url_str, username_str, allowed)
+
+    credential_type = getattr(creds, 'credential_type', None)
+    credential_tuple = getattr(creds, 'credential_tuple', None)
+    if not credential_type or not credential_tuple:
+        raise TypeError("credential does not implement interface")
+
+    cred_type = credential_type
+
+    if not (allowed & cred_type):
+        raise TypeError("invalid credential type")
+
+    ccred = ffi.new('git_cred **')
+    if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
+        name, passwd = credential_tuple
+        err = C.git_cred_userpass_plaintext_new(ccred, to_bytes(name),
+                                                to_bytes(passwd))
+
+    elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
+        name, pubkey, privkey, passphrase = credential_tuple
+        name = to_bytes(name)
+        if pubkey is None and privkey is None:
+            err = C.git_cred_ssh_key_from_agent(ccred, name)
+        else:
+            err = C.git_cred_ssh_key_new(ccred, name, to_bytes(pubkey),
+                                         to_bytes(privkey),
+                                         to_bytes(passphrase))
+
+    elif cred_type == C.GIT_CREDTYPE_USERNAME:
+        name, = credential_tuple
+        err = C.git_cred_username_new(ccred, to_bytes(name))
+
+    elif cred_type == C.GIT_CREDTYPE_SSH_MEMORY:
+        name, pubkey, privkey, passphrase = credential_tuple
+        if pubkey is None and privkey is None:
+            raise TypeError("SSH keys from memory are empty")
+        err = C.git_cred_ssh_key_memory_new(ccred, to_bytes(name),
+                                            to_bytes(pubkey), to_bytes(privkey),
+                                            to_bytes(passphrase))
+    else:
+        raise TypeError("unsupported credential type")
+
+    check_error(err)
+
+    return ccred

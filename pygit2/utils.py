@@ -29,6 +29,13 @@ import os
 from .ffi import ffi
 
 
+def maybe_string(ptr):
+    if not ptr:
+        return None
+
+    return ffi.string(ptr).decode('utf8')
+
+
 def to_bytes(s, encoding='utf-8', errors='strict'):
     if s == ffi.NULL or s is None:
         return ffi.NULL

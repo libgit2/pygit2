@@ -31,13 +31,13 @@ from ._pygit2 import *
 
 # High level API
 from .blame import Blame, BlameHunk
-from .callbacks import git_fetch_options
+from .callbacks import git_fetch_options, get_credentials, RemoteCallbacks
 from .config import Config
 from .credentials import *
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .index import Index, IndexEntry
-from .remote import Remote, RemoteCallbacks, get_credentials
+from .remote import Remote
 from .repository import Repository
 from .settings import Settings
 from .submodule import Submodule
