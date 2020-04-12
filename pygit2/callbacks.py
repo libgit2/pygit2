@@ -55,6 +55,38 @@ from .utils import maybe_string, to_bytes
 #    function, or raises exception from libgit2 error
 #
 
+class Payload:
+
+    def __init__(self, **kw):
+        for key, value in kw.items():
+            setattr(self, key, value)
+        self._stored_exception = None
+
+    def check_error(self):
+        if self._stored_exception is not None:
+            raise self._stored_exception
+
+
+@contextmanager
+def git_clone_options(payload, opts=None):
+    if opts is None:
+        opts = ffi.new('git_clone_options *')
+        C.git_clone_options_init(opts, C.GIT_CLONE_OPTIONS_VERSION)
+
+    handle = ffi.new_handle(payload)
+
+    # Plug callbacks
+    if payload.repository:
+        opts.repository_cb = C._repository_create_cb
+        opts.repository_cb_payload = handle
+    if payload.remote:
+        opts.remote_cb = C._remote_create_cb
+        opts.remote_cb_payload = handle
+
+    # Give back control
+    yield opts, payload
+
+
 @contextmanager
 def git_fetch_options(callbacks, opts=None):
     if callbacks is None:
@@ -153,16 +185,15 @@ def callback_proxy(f):
             data._stored_exception = e
             return C.GIT_EUSER
 
-    return wrapper
+    return ffi.def_extern()(wrapper)
 
 
-@ffi.def_extern()
 @callback_proxy
 def _certificate_cb(cert_i, valid, host, data):
-    # We want to simulate what should happen if libgit2 supported pass-through for
-    # this callback. For SSH, 'valid' is always False, because it doesn't look
-    # at known_hosts, but we do want to let it through in order to do what libgit2 would
-    # if the callback were not set.
+    # We want to simulate what should happen if libgit2 supported pass-through
+    # for this callback. For SSH, 'valid' is always False, because it doesn't
+    # look at known_hosts, but we do want to let it through in order to do what
+    # libgit2 would if the callback were not set.
     try:
         is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
 
@@ -185,7 +216,6 @@ def _certificate_cb(cert_i, valid, host, data):
     return 0
 
 
-@ffi.def_extern()
 @callback_proxy
 def _credentials_cb(cred_out, url, username, allowed, data):
     credentials = getattr(data, 'credentials', None)
@@ -197,7 +227,6 @@ def _credentials_cb(cred_out, url, username, allowed, data):
     return 0
 
 
-@ffi.def_extern()
 @callback_proxy
 def _push_update_reference_cb(ref, msg, data):
     push_update_reference = getattr(data, 'push_update_reference', None)
@@ -210,7 +239,28 @@ def _push_update_reference_cb(ref, msg, data):
     return 0
 
 
-@ffi.def_extern()
+@callback_proxy
+def _remote_create_cb(remote_out, repo, name, url, data):
+    from .repository import Repository
+
+    remote = data.remote(Repository._from_c(repo, False), ffi.string(name), ffi.string(url))
+    remote_out[0] = remote._remote
+    # we no longer own the C object
+    remote._remote = ffi.NULL
+
+    return 0
+
+
+@callback_proxy
+def _repository_create_cb(repo_out, path, bare, data):
+    repository = data.repository(ffi.string(path), bare != 0)
+    # we no longer own the C object
+    repository._disown()
+    repo_out[0] = repository._repo
+
+    return 0
+
+
 @callback_proxy
 def _sideband_progress_cb(string, length, data):
     progress = getattr(data, 'progress', None)
@@ -222,7 +272,6 @@ def _sideband_progress_cb(string, length, data):
     return 0
 
 
-@ffi.def_extern()
 @callback_proxy
 def _transfer_progress_cb(stats_ptr, data):
     from .remote import TransferProgress
@@ -235,7 +284,6 @@ def _transfer_progress_cb(stats_ptr, data):
     return 0
 
 
-@ffi.def_extern()
 @callback_proxy
 def _update_tips_cb(refname, a, b, data):
     update_tips = getattr(data, 'update_tips', None)

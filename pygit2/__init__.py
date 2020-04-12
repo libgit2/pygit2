@@ -31,7 +31,8 @@ from ._pygit2 import *
 
 # High level API
 from .blame import Blame, BlameHunk
-from .callbacks import git_fetch_options, get_credentials, RemoteCallbacks
+from .callbacks import git_clone_options, git_fetch_options, get_credentials
+from .callbacks import Payload, RemoteCallbacks
 from .config import Config
 from .credentials import *
 from .errors import check_error, Passthrough
@@ -152,33 +153,6 @@ def init_repository(path, bare=False,
     # Ok
     return Repository(to_str(path))
 
-@ffi.def_extern()
-def _repository_create_cb(repo_out, path, bare, data):
-    d = ffi.from_handle(data)
-    try:
-        repository = d['repository_cb'](ffi.string(path), bare != 0)
-        # we no longer own the C object
-        repository._disown()
-        repo_out[0] = repository._repo
-    except Exception as e:
-        d['exception'] = e
-        return C.GIT_EUSER
-
-    return 0
-
-@ffi.def_extern()
-def _remote_create_cb(remote_out, repo, name, url, data):
-    d = ffi.from_handle(data)
-    try:
-        remote = d['remote_cb'](Repository._from_c(repo, False), ffi.string(name), ffi.string(url))
-        remote_out[0] = remote._remote
-        # we no longer own the C object
-        remote._remote = ffi.NULL
-    except Exception as e:
-        d['exception'] = e
-        return C.GIT_EUSER
-
-    return 0
 
 def clone_repository(
         url, path, bare=False, repository=None, remote=None,
@@ -218,41 +192,22 @@ def clone_repository(
         `pyclass:RemoteCallbacks`.
     """
 
-    opts = ffi.new('git_clone_options *')
-    crepo = ffi.new('git_repository **')
+    # Initialize payload
+    payload = Payload(repository=repository, remote=remote)
 
-    branch = checkout_branch or None
+    with git_clone_options(payload) as (opts, _):
+        opts.bare = bare
 
-    # Data, let's use a dict as we don't really want much more
-    d = {'repository_cb': repository,
-         'remote_cb': remote}
-    d_handle = ffi.new_handle(d)
+        #checkout_branch_ref = None
+        if checkout_branch:
+            checkout_branch_ref = ffi.new('char []', to_bytes(checkout_branch))
+            opts.checkout_branch = checkout_branch_ref
 
-    # Perform the initialization with the version we compiled
-    C.git_clone_options_init(opts, C.GIT_CLONE_OPTIONS_VERSION)
-
-    # We need to keep the ref alive ourselves
-    checkout_branch_ref = None
-    if branch:
-        checkout_branch_ref = ffi.new('char []', to_bytes(branch))
-        opts.checkout_branch = checkout_branch_ref
-
-    if repository:
-        opts.repository_cb = C._repository_create_cb
-        opts.repository_cb_payload = d_handle
-
-    if remote:
-        opts.remote_cb = C._remote_create_cb
-        opts.remote_cb_payload = d_handle
-
-    opts.bare = bare
-
-    with git_fetch_options(callbacks, opts=opts.fetch_opts) as (_, cb):
-        err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
-        exc = d.get('exception')
-        if exc:
-            raise exc
-        check_error(err, cb)
+        with git_fetch_options(callbacks, opts=opts.fetch_opts) as (_, cb):
+            crepo = ffi.new('git_repository **')
+            err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
+            payload.check_error()
+            check_error(err, cb)
 
     # Ok
     return Repository._from_c(crepo[0], owned=True)
