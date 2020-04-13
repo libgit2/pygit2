@@ -24,8 +24,42 @@
 # Boston, MA 02110-1301, USA.
 
 """
-This is a utility module, it's here to support calls from libgit2 to written in
-Python.
+In this module we keep everything concerning callback. This is how it works,
+with an example:
+
+1. The pygit2 API calls libgit2, it passes a payload object
+   e.g. Remote.fetch calls git_remote_fetch
+
+2. libgit2 calls Python callbacks
+   e.g. git_remote_fetch calls _transfer_progress_cb
+
+3. Optionally, the Python callback may proxy to a user defined function
+   e.g. _transfer_progress_cb calls RemoteCallbacks.transfer_progress
+
+4. The user defined function may return something on success, or raise an
+   exception on error, or raise the special Passthrough exception.
+
+5. The callback may return in 3 different ways to libgit2:
+
+   - Returns GIT_OK on success.
+   - Returns GIT_PASSTHROUGH if the user defined function raised Passthrough,
+     this tells libgit2 to act as if this callback didn't exist in the first
+     place.
+   - Returns GIT_EUSER if another exception was raised, and keeps the exception
+     in the payload to be re-raised later.
+
+6. libgit2 returns to the pygit2 API, with an error code
+   e.g. git_remote_fetch returns to Remote.fetch
+
+7. The pygit2 API will:
+
+   - Return something on success.
+   - Raise the original exception if libgit2 returns GIT_EUSER
+   - Raise another exception if libgit2 returns another error code
+
+The payload object is passed all the way, so pygit2 API can send information to
+the inner user defined function, and this can send back results to the pygit2
+API.
 """
 
 # Standard Library
@@ -40,19 +74,8 @@ from .utils import maybe_string, to_bytes
 
 
 #
-# The context managers below wrap calls to libgit2 functions, which them in
-# turn call to user defined functions written in Python.
-#
-# pygit2 api:
-# -> wrapper (context manager)
-#    -> libgit2 function
-#       -> cffi function (proxy)
-#          -> user defined function (Python callback)
-#          <- returns or raises exception
-#       <- returns error code or success to libgit2
-#    <- returns error code or success
-# <- returns object on success, or reraises exception from user defined
-#    function, or raises exception from libgit2 error
+# The payload is the way to pass information from the pygit2 API, through
+# libgit2, to the Python callbacks. And back.
 #
 
 class Payload:
@@ -62,264 +85,30 @@ class Payload:
             setattr(self, key, value)
         self._stored_exception = None
 
-    def check_error(self):
-        if self._stored_exception is not None:
+    def check_error(self, error_code):
+        if error_code == C.GIT_EUSER:
+            assert self._stored_exception is not None
             raise self._stored_exception
 
-
-@contextmanager
-def git_clone_options(payload, opts=None):
-    if opts is None:
-        opts = ffi.new('git_clone_options *')
-        C.git_clone_options_init(opts, C.GIT_CLONE_OPTIONS_VERSION)
-
-    handle = ffi.new_handle(payload)
-
-    # Plug callbacks
-    if payload.repository:
-        opts.repository_cb = C._repository_create_cb
-        opts.repository_cb_payload = handle
-    if payload.remote:
-        opts.remote_cb = C._remote_create_cb
-        opts.remote_cb_payload = handle
-
-    # Give back control
-    yield opts, payload
+        check_error(error_code)
 
 
-@contextmanager
-def git_fetch_options(callbacks, opts=None):
-    if callbacks is None:
-        callbacks = RemoteCallbacks()
-
-    if opts is None:
-        opts = ffi.new('git_fetch_options *')
-        C.git_fetch_init_options(opts, C.GIT_FETCH_OPTIONS_VERSION)
-
-    # Plug callbacks
-    opts.callbacks.sideband_progress = C._sideband_progress_cb
-    opts.callbacks.transfer_progress = C._transfer_progress_cb
-    opts.callbacks.update_tips = C._update_tips_cb
-    opts.callbacks.credentials = C._credentials_cb
-    opts.callbacks.certificate_check = C._certificate_cb
-    # Payload
-    callbacks._stored_exception = None
-    handle = ffi.new_handle(callbacks)
-    opts.callbacks.payload = handle
-
-    # Give back control
-    yield opts, callbacks
-
-
-@contextmanager
-def git_push_options(callbacks, opts=None):
-    if callbacks is None:
-        callbacks = RemoteCallbacks()
-
-    if opts is None:
-        opts = ffi.new('git_push_options *')
-        C.git_push_init_options(opts, C.GIT_PUSH_OPTIONS_VERSION)
-
-    # Plug callbacks
-    opts.callbacks.sideband_progress = C._sideband_progress_cb
-    opts.callbacks.transfer_progress = C._transfer_progress_cb
-    opts.callbacks.update_tips = C._update_tips_cb
-    opts.callbacks.credentials = C._credentials_cb
-    opts.callbacks.certificate_check = C._certificate_cb
-    opts.callbacks.push_update_reference = C._push_update_reference_cb
-    # Payload
-    callbacks._stored_exception = None
-    handle = ffi.new_handle(callbacks)
-    opts.callbacks.payload = handle
-
-    # Give back control
-    yield opts, callbacks
-
-
-@contextmanager
-def git_remote_callbacks(callbacks):
-    if callbacks is None:
-        callbacks = RemoteCallbacks()
-
-    cdata = ffi.new('git_remote_callbacks *')
-    C.git_remote_init_callbacks(cdata, C.GIT_REMOTE_CALLBACKS_VERSION)
-
-    # Plug callbacks
-    cdata.credentials = C._credentials_cb
-    cdata.update_tips = C._update_tips_cb
-    # Payload
-    callbacks._stored_exception = None
-    handle = ffi.new_handle(callbacks)
-    cdata.payload = handle
-
-    # Give back control
-    yield cdata, callbacks
-
-
-
-#
-# C callbacks
-#
-# These functions are translated to C by cffi. They are called by libgit2, and
-# proxy to the user defined callbacks written in Python, then back to libgit2.
-#
-# When an exception happens in the Python callback, they return GIT_EUSER and
-# and keep the exception, to be re-raised later.
-#
-
-def callback_proxy(f):
-    @wraps(f)
-    def wrapper(*args):
-        data = ffi.from_handle(args[-1])
-        args = args[:-1] + (data,)
-        try:
-            return f(*args)
-        except Passthrough:
-            # A user defined callback can raise Passthrough to decline to act;
-            # then libgit2 will behave as if there was no callback set in the
-            # first place.
-            return C.GIT_PASSTHROUGH
-        except Exception as e:
-            # Keep the exception to be re-raised later, and inform libgit2 that
-            # the user defined callback has failed.
-            data._stored_exception = e
-            return C.GIT_EUSER
-
-    return ffi.def_extern()(wrapper)
-
-
-@callback_proxy
-def _certificate_cb(cert_i, valid, host, data):
-    # We want to simulate what should happen if libgit2 supported pass-through
-    # for this callback. For SSH, 'valid' is always False, because it doesn't
-    # look at known_hosts, but we do want to let it through in order to do what
-    # libgit2 would if the callback were not set.
-    try:
-        is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
-
-        certificate_check = getattr(data, 'certificate_check', None)
-        if not certificate_check:
-            raise Passthrough
-
-        # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
-        val = certificate_check(None, bool(valid), ffi.string(host))
-        if not val:
-            return C.GIT_ECERTIFICATE
-    except Passthrough:
-        if is_ssh:
-            return 0
-        elif valid:
-            return 0
-        else:
-            return C.GIT_ECERTIFICATE
-
-    return 0
-
-
-@callback_proxy
-def _credentials_cb(cred_out, url, username, allowed, data):
-    credentials = getattr(data, 'credentials', None)
-    if not credentials:
-        return 0
-
-    ccred = get_credentials(credentials, url, username, allowed)
-    cred_out[0] = ccred[0]
-    return 0
-
-
-@callback_proxy
-def _push_update_reference_cb(ref, msg, data):
-    push_update_reference = getattr(data, 'push_update_reference', None)
-    if not push_update_reference:
-        return 0
-
-    refname = ffi.string(ref)
-    message = maybe_string(msg)
-    push_update_reference(refname, message)
-    return 0
-
-
-@callback_proxy
-def _remote_create_cb(remote_out, repo, name, url, data):
-    from .repository import Repository
-
-    remote = data.remote(Repository._from_c(repo, False), ffi.string(name), ffi.string(url))
-    remote_out[0] = remote._remote
-    # we no longer own the C object
-    remote._remote = ffi.NULL
-
-    return 0
-
-
-@callback_proxy
-def _repository_create_cb(repo_out, path, bare, data):
-    repository = data.repository(ffi.string(path), bare != 0)
-    # we no longer own the C object
-    repository._disown()
-    repo_out[0] = repository._repo
-
-    return 0
-
-
-@callback_proxy
-def _sideband_progress_cb(string, length, data):
-    progress = getattr(data, 'progress', None)
-    if not progress:
-        return 0
-
-    s = ffi.string(string, length).decode('utf-8')
-    progress(s)
-    return 0
-
-
-@callback_proxy
-def _transfer_progress_cb(stats_ptr, data):
-    from .remote import TransferProgress
-
-    transfer_progress = getattr(data, 'transfer_progress', None)
-    if not transfer_progress:
-        return 0
-
-    transfer_progress(TransferProgress(stats_ptr))
-    return 0
-
-
-@callback_proxy
-def _update_tips_cb(refname, a, b, data):
-    update_tips = getattr(data, 'update_tips', None)
-    if not update_tips:
-        return 0
-
-    s = maybe_string(refname)
-    a = Oid(raw=bytes(ffi.buffer(a)[:]))
-    b = Oid(raw=bytes(ffi.buffer(b)[:]))
-    update_tips(s, a, b)
-    return 0
-
-
-#
-# Public interface
-# These functions are used within this module, but may also be used from the
-# outside.
-#
-
-class RemoteCallbacks:
+class RemoteCallbacks(Payload):
     """Base class for pygit2 remote callbacks.
 
     Inherit from this class and override the callbacks which you want to use
     in your class, which you can then pass to the network operations.
+
+    For the credentials, you can either subclass and override the 'credentials'
+    method, or if it's a constant value, pass the value to the constructor,
+    e.g. RemoteCallbacks(credentials=credentials).
+
+    You can as well pass the certificate the same way, for example:
+    RemoteCallbacks(certificate=certificate).
     """
 
     def __init__(self, credentials=None, certificate=None):
-        """Initialize some callbacks in-line
-
-        Use this constructor to provide credentials and certificate
-        callbacks in-line, instead of defining your own class for these ones.
-
-        You can e.g. also pass in one of the credential objects as 'credentials'
-        instead of creating a function which returns a hard-coded object.
-        """
-
+        super().__init__()
         if credentials is not None:
             self.credentials = credentials
         if certificate is not None:
@@ -420,6 +209,252 @@ class RemoteCallbacks:
             Rejection message from the remote. If None, the update was accepted.
         """
 
+
+#
+# The context managers below wrap the calls to libgit2 functions, which them in
+# turn call to callbacks defined later in this module. These context managers
+# are used in the pygit2 API, see for instance remote.py
+#
+
+@contextmanager
+def git_clone_options(payload, opts=None):
+    if opts is None:
+        opts = ffi.new('git_clone_options *')
+        C.git_clone_options_init(opts, C.GIT_CLONE_OPTIONS_VERSION)
+
+    handle = ffi.new_handle(payload)
+
+    # Plug callbacks
+    if payload.repository:
+        opts.repository_cb = C._repository_create_cb
+        opts.repository_cb_payload = handle
+    if payload.remote:
+        opts.remote_cb = C._remote_create_cb
+        opts.remote_cb_payload = handle
+
+    # Give back control
+    payload._stored_exception = None
+    payload.clone_options = opts
+    yield payload
+
+
+@contextmanager
+def git_fetch_options(payload, opts=None):
+    if payload is None:
+        payload = RemoteCallbacks()
+
+    if opts is None:
+        opts = ffi.new('git_fetch_options *')
+        C.git_fetch_init_options(opts, C.GIT_FETCH_OPTIONS_VERSION)
+
+    # Plug callbacks
+    opts.callbacks.sideband_progress = C._sideband_progress_cb
+    opts.callbacks.transfer_progress = C._transfer_progress_cb
+    opts.callbacks.update_tips = C._update_tips_cb
+    opts.callbacks.credentials = C._credentials_cb
+    opts.callbacks.certificate_check = C._certificate_cb
+    # Payload
+    handle = ffi.new_handle(payload)
+    opts.callbacks.payload = handle
+
+    # Give back control
+    payload.fetch_options = opts
+    payload._stored_exception = None
+    yield payload
+
+
+@contextmanager
+def git_push_options(payload, opts=None):
+    if payload is None:
+        payload = RemoteCallbacks()
+
+    opts = ffi.new('git_push_options *')
+    C.git_push_init_options(opts, C.GIT_PUSH_OPTIONS_VERSION)
+
+    # Plug callbacks
+    opts.callbacks.sideband_progress = C._sideband_progress_cb
+    opts.callbacks.transfer_progress = C._transfer_progress_cb
+    opts.callbacks.update_tips = C._update_tips_cb
+    opts.callbacks.credentials = C._credentials_cb
+    opts.callbacks.certificate_check = C._certificate_cb
+    opts.callbacks.push_update_reference = C._push_update_reference_cb
+    # Payload
+    handle = ffi.new_handle(payload)
+    opts.callbacks.payload = handle
+
+    # Give back control
+    payload.push_options = opts
+    payload._stored_exception = None
+    yield payload
+
+
+@contextmanager
+def git_remote_callbacks(payload):
+    if payload is None:
+        payload = RemoteCallbacks()
+
+    cdata = ffi.new('git_remote_callbacks *')
+    C.git_remote_init_callbacks(cdata, C.GIT_REMOTE_CALLBACKS_VERSION)
+
+    # Plug callbacks
+    cdata.credentials = C._credentials_cb
+    cdata.update_tips = C._update_tips_cb
+    # Payload
+    handle = ffi.new_handle(payload)
+    cdata.payload = handle
+
+    # Give back control
+    payload._stored_exception = None
+    payload.remote_callbacks = cdata
+    yield payload
+
+
+#
+# C callbacks
+#
+# These functions are called by libgit2. They cannot raise execptions, since
+# they return to libgit2, they can only send back error codes.
+#
+# They cannot be overriden, but sometimes the only thing these functions do is
+# to proxy the call to a user defined function. If user defined functions
+# raises an exception, the callback must store it somewhere and return
+# GIT_EUSER to libgit2, then the outer Python code will be able to reraise the
+# exception.
+#
+
+def libgit2_callback(f):
+    @wraps(f)
+    def wrapper(*args):
+        data = ffi.from_handle(args[-1])
+        args = args[:-1] + (data,)
+        try:
+            return f(*args)
+        except Passthrough:
+            # A user defined callback can raise Passthrough to decline to act;
+            # then libgit2 will behave as if there was no callback set in the
+            # first place.
+            return C.GIT_PASSTHROUGH
+        except Exception as e:
+            # Keep the exception to be re-raised later, and inform libgit2 that
+            # the user defined callback has failed.
+            data._stored_exception = e
+            return C.GIT_EUSER
+
+    return ffi.def_extern()(wrapper)
+
+
+@libgit2_callback
+def _certificate_cb(cert_i, valid, host, data):
+    # We want to simulate what should happen if libgit2 supported pass-through
+    # for this callback. For SSH, 'valid' is always False, because it doesn't
+    # look at known_hosts, but we do want to let it through in order to do what
+    # libgit2 would if the callback were not set.
+    try:
+        is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
+
+        certificate_check = getattr(data, 'certificate_check', None)
+        if not certificate_check:
+            raise Passthrough
+
+        # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
+        val = certificate_check(None, bool(valid), ffi.string(host))
+        if not val:
+            return C.GIT_ECERTIFICATE
+    except Passthrough:
+        if is_ssh:
+            return 0
+        elif valid:
+            return 0
+        else:
+            return C.GIT_ECERTIFICATE
+
+    return 0
+
+
+@libgit2_callback
+def _credentials_cb(cred_out, url, username, allowed, data):
+    credentials = getattr(data, 'credentials', None)
+    if not credentials:
+        return 0
+
+    ccred = get_credentials(credentials, url, username, allowed)
+    cred_out[0] = ccred[0]
+    return 0
+
+
+@libgit2_callback
+def _push_update_reference_cb(ref, msg, data):
+    push_update_reference = getattr(data, 'push_update_reference', None)
+    if not push_update_reference:
+        return 0
+
+    refname = ffi.string(ref)
+    message = maybe_string(msg)
+    push_update_reference(refname, message)
+    return 0
+
+
+@libgit2_callback
+def _remote_create_cb(remote_out, repo, name, url, data):
+    from .repository import Repository
+
+    remote = data.remote(Repository._from_c(repo, False), ffi.string(name), ffi.string(url))
+    remote_out[0] = remote._remote
+    # we no longer own the C object
+    remote._remote = ffi.NULL
+
+    return 0
+
+
+@libgit2_callback
+def _repository_create_cb(repo_out, path, bare, data):
+    repository = data.repository(ffi.string(path), bare != 0)
+    # we no longer own the C object
+    repository._disown()
+    repo_out[0] = repository._repo
+
+    return 0
+
+
+@libgit2_callback
+def _sideband_progress_cb(string, length, data):
+    progress = getattr(data, 'progress', None)
+    if not progress:
+        return 0
+
+    s = ffi.string(string, length).decode('utf-8')
+    progress(s)
+    return 0
+
+
+@libgit2_callback
+def _transfer_progress_cb(stats_ptr, data):
+    from .remote import TransferProgress
+
+    transfer_progress = getattr(data, 'transfer_progress', None)
+    if not transfer_progress:
+        return 0
+
+    transfer_progress(TransferProgress(stats_ptr))
+    return 0
+
+
+@libgit2_callback
+def _update_tips_cb(refname, a, b, data):
+    update_tips = getattr(data, 'update_tips', None)
+    if not update_tips:
+        return 0
+
+    s = maybe_string(refname)
+    a = Oid(raw=bytes(ffi.buffer(a)[:]))
+    b = Oid(raw=bytes(ffi.buffer(b)[:]))
+    update_tips(s, a, b)
+    return 0
+
+
+#
+# Other functions, used above.
+#
 
 def get_credentials(fn, url, username, allowed):
     """Call fn and return the credentials object.

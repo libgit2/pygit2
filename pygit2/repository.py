@@ -102,12 +102,12 @@ class BaseRepository(_Repository):
         opts = ffi.new('git_submodule_update_options *')
         C.git_submodule_update_init_options(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
 
-        with git_fetch_options(callbacks, opts=opts.fetch_opts) as (_, cb):
+        with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
             i = 1 if init else 0
             for submodule in submodules:
                 submodule_instance = self.lookup_submodule(submodule)
                 err = C.git_submodule_update(submodule_instance._subm, i, opts)
-                check_error(err, cb)
+                payload.check_error(err)
 
         return None
 

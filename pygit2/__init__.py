@@ -192,22 +192,26 @@ def clone_repository(
         `pyclass:RemoteCallbacks`.
     """
 
-    # Initialize payload
-    payload = Payload(repository=repository, remote=remote)
+    if callbacks is None:
+        callbacks = RemoteCallbacks()
 
-    with git_clone_options(payload) as (opts, _):
+    # Add repository and remote to the payload
+    payload = callbacks
+    payload.repository = repository
+    payload.remote = remote
+
+    with git_clone_options(payload):
+        opts = payload.clone_options
         opts.bare = bare
 
-        #checkout_branch_ref = None
         if checkout_branch:
             checkout_branch_ref = ffi.new('char []', to_bytes(checkout_branch))
             opts.checkout_branch = checkout_branch_ref
 
-        with git_fetch_options(callbacks, opts=opts.fetch_opts) as (_, cb):
+        with git_fetch_options(payload, opts=opts.fetch_opts):
             crepo = ffi.new('git_repository **')
             err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
-            payload.check_error()
-            check_error(err, cb)
+            payload.check_error(err)
 
     # Ok
     return Repository._from_c(crepo[0], owned=True)

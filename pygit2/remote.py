@@ -94,9 +94,11 @@ class Remote:
     def connect(self, callbacks=None, direction=C.GIT_DIRECTION_FETCH):
         """Connect to the remote.
         """
-        with git_remote_callbacks(callbacks) as (remote_callbacks, cb):
-            err = C.git_remote_connect(self._remote, direction, remote_callbacks, ffi.NULL, ffi.NULL)
-            check_error(err, cb)
+        with git_remote_callbacks(callbacks) as payload:
+            err = C.git_remote_connect(self._remote, direction,
+                                       payload.remote_callbacks, ffi.NULL,
+                                       ffi.NULL)
+            payload.check_error(err)
 
     def save(self):
         """Save a remote to its repository's configuration.
@@ -118,11 +120,12 @@ class Remote:
             always keep the remote branches
         """
         message = to_bytes(message)
-        with git_fetch_options(callbacks) as (opts, cb):
+        with git_fetch_options(callbacks) as payload:
+            opts = payload.fetch_options
             opts.prune = prune
             with StrArray(refspecs) as arr:
                 err = C.git_remote_fetch(self._remote, arr, opts, to_bytes(message))
-                check_error(err, cb)
+                payload.check_error(err)
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
@@ -163,9 +166,9 @@ class Remote:
     def prune(self, callbacks=None):
         """Perform a prune against this remote.
         """
-        with git_remote_callbacks(callbacks) as (remote_callbacks, cb):
-            err = C.git_remote_prune(self._remote, remote_callbacks)
-            check_error(err, cb)
+        with git_remote_callbacks(callbacks) as payload:
+            err = C.git_remote_prune(self._remote, payload.remote_callbacks)
+            payload.check_error(err)
 
     @property
     def refspec_count(self):
@@ -214,10 +217,11 @@ class Remote:
         specs : [str]
             Push refspecs to use.
         """
-        with git_push_options(callbacks) as (opts, cb):
+        with git_push_options(callbacks) as payload:
+            opts = payload.push_options
             with StrArray(specs) as refspecs:
                 err = C.git_remote_push(self._remote, refspecs, opts)
-                check_error(err, cb)
+                payload.check_error(err)
 
 
 class RemoteCollection:

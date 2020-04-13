@@ -31,11 +31,6 @@ from ._pygit2 import GitError
 value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
 
 def check_error(err, cb=None, io=False):
-    if err == C.GIT_EUSER:
-        assert cb is not None
-        assert cb._stored_exception is not None
-        raise cb._stored_exception
-
     if err >= 0:
         return
 
