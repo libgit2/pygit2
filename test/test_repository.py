@@ -643,6 +643,17 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
 
         assert not repo.is_empty
 
+    @unittest.skipIf(utils.no_network(), "Requires network")
+    def test_clone_bad_credentials(self):
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def credentials(self, url, username, allowed):
+                raise RuntimeError('Unexpected error')
+
+        url = "https://github.com/github/github"
+        with pytest.raises(RuntimeError) as exc:
+            clone_repository(url, self._temp_dir, callbacks=MyCallbacks())
+        assert str(exc.value) == 'Unexpected error'
+
     def test_clone_with_checkout_branch(self):
         # create a test case which isolates the remote
         test_repo = clone_repository('./test/data/testrepo.git',

@@ -34,6 +34,10 @@ def check_error(err, io=False):
     if err >= 0:
         return
 
+    # These are special error codes, they should never reach here
+    test = err != C.GIT_EUSER and err != C.GIT_PASSTHROUGH
+    assert test, f'Unexpected error code {err}'
+
     # Error message
     giterr = C.git_error_last()
     if giterr != ffi.NULL:

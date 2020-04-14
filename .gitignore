@@ -1,5 +1,6 @@
 /.cache/
 /.eggs/
+/.envrc
 /.tox/
 /build/
 /dist/

@@ -1,4 +1,4 @@
-.PHONY: build
+.PHONY: build html
 
 build:
 	python setup.py build_ext --inplace -g
