@@ -17,9 +17,16 @@ Install pygit2:
 
 .. code-block:: sh
 
+   $ pip --version
+   pip 19.3.1 from /usr/lib64/python3.6/site-packages/pip (python 3.6)
    $ pip install pygit2
 
 The line above will install binary wheels if available in your platform.
+
+.. warning::
+
+   pip 18.1 is known not to pick the binary wheel. Please verify that you have
+   pip 19.0 or later.
 
 To install the source package:
 
