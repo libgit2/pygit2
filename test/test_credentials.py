@@ -106,7 +106,6 @@ class CredentialCallback(utils.RepoTestCase):
 
         url = "https://github.com/github/github"
         remote = self.repo.remotes.create("github", url)
-
         with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
 
     @unittest.skipIf(utils.no_network(), "Requires network")
@@ -119,6 +118,24 @@ class CredentialCallback(utils.RepoTestCase):
         url = "https://github.com/github/github"
         remote = self.repo.remotes.create("github", url)
         with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
+
+    @unittest.skipIf(utils.no_network(), "Requires network")
+    def test_fetch_certificate_check(self):
+        class MyCallbacks(pygit2.RemoteCallbacks):
+            def certificate_check(self, certificate, valid, host):
+                assert certificate is None
+                assert valid is True
+                assert host == b'github.com'
+                return False
+
+        url = 'https://github.com/libgit2/pygit2.git'
+        remote = self.repo.remotes.create('https', url)
+        with pytest.raises(pygit2.GitError) as exc:
+            remote.fetch(callbacks=MyCallbacks())
+        assert str(exc.value) == 'user rejected certificate for github.com'
+
+        # XXX This would be nice, but it's not yet supported
+        #assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
 
 
 class CallableCredentialTest(utils.RepoTestCase):
