@@ -132,9 +132,14 @@ class CredentialCallback(utils.RepoTestCase):
         remote = self.repo.remotes.create('https', url)
         with pytest.raises(pygit2.GitError) as exc:
             remote.fetch(callbacks=MyCallbacks())
-        assert str(exc.value) == 'user rejected certificate for github.com'
 
-        # XXX This would be nice, but it's not yet supported
+        # libgit2 uses different error message for Linux and Windows
+        # TODO test one or the other depending on the platform
+        assert str(exc.value) in (
+            'user rejected certificate for github.com', # httpclient
+            'user cancelled certificate check') # winhttp
+
+        # TODO Add GitError.error_code
         #assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
 
 
