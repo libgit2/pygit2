@@ -5,11 +5,11 @@ extern "Python" int _certificate_cb(
     void *payload);
 
 extern "Python" int _credentials_cb(
-	git_cred **cred,
-	const char *url,
-	const char *username_from_url,
-	unsigned int allowed_types,
-	void *payload);
+    git_credential **out,
+    const char *url,
+    const char *username_from_url,
+    unsigned int allowed_types,
+    void *payload);
 
 extern "Python" int _push_update_reference_cb(
     const char *refname,

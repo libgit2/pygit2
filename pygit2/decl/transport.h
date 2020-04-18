@@ -1,14 +1,14 @@
-typedef struct git_cred git_cred;
+typedef struct git_credential git_credential;
 
 typedef enum {
-	GIT_CREDTYPE_USERPASS_PLAINTEXT = 1,
-	GIT_CREDTYPE_SSH_KEY = 2,
-	GIT_CREDTYPE_SSH_CUSTOM = 4,
-	GIT_CREDTYPE_DEFAULT = 8,
-	GIT_CREDTYPE_SSH_INTERACTIVE = 16,
-	GIT_CREDTYPE_USERNAME = 32,
-	GIT_CREDTYPE_SSH_MEMORY = 64,
-} git_credtype_t;
+	GIT_CREDENTIAL_USERPASS_PLAINTEXT = (1u << 0),
+	GIT_CREDENTIAL_SSH_KEY = (1u << 1),
+	GIT_CREDENTIAL_SSH_CUSTOM = (1u << 2),
+	GIT_CREDENTIAL_DEFAULT = (1u << 3),
+	GIT_CREDENTIAL_SSH_INTERACTIVE = (1u << 4),
+	GIT_CREDENTIAL_USERNAME = (1u << 5),
+	GIT_CREDENTIAL_SSH_MEMORY = (1u << 6),
+} git_credential_t;
 
 typedef enum {
 	GIT_CERT_SSH_MD5 = 1,
@@ -28,33 +28,33 @@ typedef struct {
 	size_t len;
 } git_cert_x509;
 
-typedef int (*git_cred_acquire_cb)(
-	git_cred **cred,
-	const char *url,
-	const char *username_from_url,
-	unsigned int allowed_types,
-	void *payload);
+typedef int (*git_credential_acquire_cb)(
+    git_credential **out,
+    const char *url,
+    const char *username_from_url,
+    unsigned int allowed_types,
+    void *payload);
 
 typedef int (*git_transport_cb)(git_transport **out, git_remote *owner, void *param);
-int git_cred_username_new(git_cred **cred, const char *username);
-int git_cred_userpass_plaintext_new(
-	git_cred **out,
+int git_credential_username_new(git_credential **out, const char *username);
+int git_credential_userpass_plaintext_new(
+	git_credential **out,
 	const char *username,
 	const char *password);
 
-int git_cred_ssh_key_new(
-	git_cred **out,
+int git_credential_ssh_key_new(
+	git_credential **out,
 	const char *username,
 	const char *publickey,
 	const char *privatekey,
 	const char *passphrase);
 
-int git_cred_ssh_key_from_agent(
-	git_cred **out,
+int git_credential_ssh_key_from_agent(
+	git_credential **out,
 	const char *username);
 
-int git_cred_ssh_key_memory_new(
-	git_cred **out,
+int git_credential_ssh_key_memory_new(
+	git_credential **out,
 	const char *username,
 	const char *publickey,
 	const char *privatekey,

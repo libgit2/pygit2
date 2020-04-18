@@ -13,9 +13,9 @@ Example for cloning a git repository over ssh.
     class MyRemoteCallbacks(pygit2.RemoteCallbacks):
 
         def credentials(self, url, username_from_url, allowed_types):
-            if allowed_types & pygit2.credentials.GIT_CREDTYPE_USERNAME:
+            if allowed_types & pygit2.credentials.GIT_CREDENTIAL_USERNAME:
                 return pygit2.Username("git")
-            elif allowed_types & pygit2.credentials.GIT_CREDTYPE_SSH_KEY:
+            elif allowed_types & pygit2.credentials.GIT_CREDENTIAL_SSH_KEY:
                 return pygit2.Keypair("git", "id_rsa.pub", "id_rsa", "")
             else:
                 return None

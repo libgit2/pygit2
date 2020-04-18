@@ -29,7 +29,7 @@ struct git_remote_callbacks {
 	unsigned int version;
 	git_transport_message_cb sideband_progress;
 	int (*completion)(git_remote_completion_t type, void *data);
-	git_cred_acquire_cb credentials;
+	git_credential_acquire_cb credentials;
 	git_transport_certificate_check_cb certificate_check;
 	git_indexer_progress_cb transfer_progress;
 	int (*update_tips)(const char *refname, const git_oid *a, const git_oid *b, void *data);

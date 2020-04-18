@@ -25,10 +25,20 @@
 
 from .ffi import C
 
-GIT_CREDTYPE_USERNAME = C.GIT_CREDTYPE_USERNAME
-GIT_CREDTYPE_USERPASS_PLAINTEXT = C.GIT_CREDTYPE_USERPASS_PLAINTEXT
-GIT_CREDTYPE_SSH_KEY = C.GIT_CREDTYPE_SSH_KEY
-GIT_CREDTYPE_SSH_MEMORY = C.GIT_CREDTYPE_SSH_MEMORY
+
+GIT_CREDENTIAL_USERPASS_PLAINTEXT = C.GIT_CREDENTIAL_USERPASS_PLAINTEXT
+GIT_CREDENTIAL_SSH_KEY = C.GIT_CREDENTIAL_SSH_KEY
+GIT_CREDENTIAL_SSH_CUSTOM = C.GIT_CREDENTIAL_SSH_CUSTOM
+GIT_CREDENTIAL_DEFAULT = C.GIT_CREDENTIAL_DEFAULT
+GIT_CREDENTIAL_SSH_INTERACTIVE = C.GIT_CREDENTIAL_SSH_INTERACTIVE
+GIT_CREDENTIAL_USERNAME = C.GIT_CREDENTIAL_USERNAME
+GIT_CREDENTIAL_SSH_MEMORY = C.GIT_CREDENTIAL_SSH_MEMORY
+
+# XXX Deprecated: here for backwards compatibility
+GIT_CREDTYPE_USERNAME = GIT_CREDENTIAL_USERNAME
+GIT_CREDTYPE_USERPASS_PLAINTEXT = GIT_CREDENTIAL_USERPASS_PLAINTEXT
+GIT_CREDTYPE_SSH_KEY = GIT_CREDENTIAL_SSH_KEY
+GIT_CREDTYPE_SSH_MEMORY = GIT_CREDENTIAL_SSH_MEMORY
 
 
 class Username:
@@ -43,7 +53,7 @@ class Username:
 
     @property
     def credential_type(self):
-        return GIT_CREDTYPE_USERNAME
+        return GIT_CREDENTIAL_USERNAME
 
     @property
     def credential_tuple(self):
@@ -66,7 +76,7 @@ class UserPass:
 
     @property
     def credential_type(self):
-        return GIT_CREDTYPE_USERPASS_PLAINTEXT
+        return GIT_CREDENTIAL_USERPASS_PLAINTEXT
 
     @property
     def credential_tuple(self):
@@ -107,7 +117,7 @@ class Keypair:
 
     @property
     def credential_type(self):
-        return GIT_CREDTYPE_SSH_KEY
+        return GIT_CREDENTIAL_SSH_KEY
 
     @property
     def credential_tuple(self):
@@ -125,4 +135,4 @@ class KeypairFromAgent(Keypair):
 class KeypairFromMemory(Keypair):
     @property
     def credential_type(self):
-        return GIT_CREDTYPE_SSH_MEMORY
+        return GIT_CREDENTIAL_SSH_MEMORY

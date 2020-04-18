@@ -31,7 +31,6 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import GIT_CREDTYPE_USERPASS_PLAINTEXT
 from pygit2 import Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
 from . import utils
 
@@ -101,7 +100,7 @@ class CredentialCallback(utils.RepoTestCase):
     def test_callback(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
             def credentials(self, url, username, allowed):
-                assert allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT
+                assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
                 raise Exception("I don't know the password")
 
         url = "https://github.com/github/github"
@@ -112,7 +111,7 @@ class CredentialCallback(utils.RepoTestCase):
     def test_bad_cred_type(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
             def credentials(self, url, username, allowed):
-                assert allowed & GIT_CREDTYPE_USERPASS_PLAINTEXT
+                assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
                 return Keypair("git", "foo.pub", "foo", "sekkrit")
 
         url = "https://github.com/github/github"

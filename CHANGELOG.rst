@@ -4,10 +4,19 @@
 - Internal: Use @ffi.def_extern instead of @ffi.callback
   `#899 <https://github.com/libgit2/pygit2/issues/899>`_
 
+- New tests
+  `#538 <https://github.com/libgit2/pygit2/pull/538>`_
+  `#996 <https://github.com/libgit2/pygit2/issues/996>`_
+
+- Documentation changes
+  `#999 <https://github.com/libgit2/pygit2/issues/999>`_
+
 Deprecations:
 
 - Deprecate ``Repository.create_remote(...)``, use instead
   ``Repository.remotes.create(...)``
+
+- Deprecate ``GIT_CREDTYPE_XXX`` contants, use ``GIT_CREDENTIAL_XXX`` instead.
 
 
 1.2.0 (2020-04-05)

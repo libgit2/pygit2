@@ -474,33 +474,33 @@ def get_credentials(fn, url, username, allowed):
     if not (allowed & cred_type):
         raise TypeError("invalid credential type")
 
-    ccred = ffi.new('git_cred **')
-    if cred_type == C.GIT_CREDTYPE_USERPASS_PLAINTEXT:
+    ccred = ffi.new('git_credential **')
+    if cred_type == C.GIT_CREDENTIAL_USERPASS_PLAINTEXT:
         name, passwd = credential_tuple
-        err = C.git_cred_userpass_plaintext_new(ccred, to_bytes(name),
-                                                to_bytes(passwd))
+        err = C.git_credential_userpass_plaintext_new(ccred, to_bytes(name),
+                                                      to_bytes(passwd))
 
-    elif cred_type == C.GIT_CREDTYPE_SSH_KEY:
+    elif cred_type == C.GIT_CREDENTIAL_SSH_KEY:
         name, pubkey, privkey, passphrase = credential_tuple
         name = to_bytes(name)
         if pubkey is None and privkey is None:
-            err = C.git_cred_ssh_key_from_agent(ccred, name)
+            err = C.git_credential_ssh_key_from_agent(ccred, name)
         else:
-            err = C.git_cred_ssh_key_new(ccred, name, to_bytes(pubkey),
-                                         to_bytes(privkey),
-                                         to_bytes(passphrase))
+            err = C.git_credential_ssh_key_new(ccred, name, to_bytes(pubkey),
+                                               to_bytes(privkey),
+                                               to_bytes(passphrase))
 
-    elif cred_type == C.GIT_CREDTYPE_USERNAME:
+    elif cred_type == C.GIT_CREDENTIAL_USERNAME:
         name, = credential_tuple
-        err = C.git_cred_username_new(ccred, to_bytes(name))
+        err = C.git_credential_username_new(ccred, to_bytes(name))
 
-    elif cred_type == C.GIT_CREDTYPE_SSH_MEMORY:
+    elif cred_type == C.GIT_CREDENTIAL_SSH_MEMORY:
         name, pubkey, privkey, passphrase = credential_tuple
         if pubkey is None and privkey is None:
             raise TypeError("SSH keys from memory are empty")
-        err = C.git_cred_ssh_key_memory_new(ccred, to_bytes(name),
-                                            to_bytes(pubkey), to_bytes(privkey),
-                                            to_bytes(passphrase))
+        err = C.git_credential_ssh_key_memory_new(ccred, to_bytes(name),
+                                                  to_bytes(pubkey), to_bytes(privkey),
+                                                  to_bytes(passphrase))
     else:
         raise TypeError("unsupported credential type")
 

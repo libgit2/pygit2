@@ -10,8 +10,8 @@ typedef struct {
 	unsigned int version;
 	git_proxy_t type;
 	const char *url;
-	git_cred_acquire_cb credentials;
-        git_transport_certificate_check_cb certificate_check;
+	git_credential_acquire_cb credentials;
+	git_transport_certificate_check_cb certificate_check;
 	void *payload;
 } git_proxy_options;
 
