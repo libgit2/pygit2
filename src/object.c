@@ -175,6 +175,9 @@ PyDoc_STRVAR(Object_raw_name__doc__, "Name (bytes).");
 PyObject *
 Object_raw_name__get__(Object *self)
 {
+    if (self->entry == NULL)
+        Py_RETURN_NONE;
+
     return PyBytes_FromString(git_tree_entry_name(self->entry));
 }
 
