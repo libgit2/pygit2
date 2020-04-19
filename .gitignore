@@ -6,6 +6,7 @@
 /dist/
 /docs/_build/
 /MANIFEST
+/venv*
 __pycache__/
 *.egg-info
 *.pyc

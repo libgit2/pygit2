@@ -32,10 +32,10 @@ from pathlib import Path
 from . import utils
 
 
-SUBM_NAME = 'submodule'
-SUBM_PATH = 'submodule'
-SUBM_URL = 'https://github.com/libgit2/pygit2'
-SUBM_HEAD_SHA = '819cbff552e46ac4b8d10925cc422a30aa04e78e'
+SUBM_NAME = 'TestGitRepository'
+SUBM_PATH = 'TestGitRepository'
+SUBM_URL = 'https://github.com/libgit2/TestGitRepository'
+SUBM_HEAD_SHA = '49322bb17d3acc9146f98c97d078513228bbf3c0'
 
 
 class SubmoduleTest(utils.SubmoduleRepoTestCase):
@@ -77,7 +77,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_init_and_update(self):
-        subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
+        subrepo_file_path = os.path.join(self.repo_path, 'TestGitRepository', 'master.txt')
         assert not os.path.exists(subrepo_file_path)
         self.repo.init_submodules()
         self.repo.update_submodules()
@@ -85,15 +85,15 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_specified_update(self):
-        subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
+        subrepo_file_path = os.path.join(self.repo_path, 'TestGitRepository', 'master.txt')
         assert not os.path.exists(subrepo_file_path)
-        self.repo.init_submodules(submodules=['submodule'])
-        self.repo.update_submodules(submodules=['submodule'])
+        self.repo.init_submodules(submodules=['TestGitRepository'])
+        self.repo.update_submodules(submodules=['TestGitRepository'])
         assert os.path.exists(subrepo_file_path)
 
     @unittest.skipIf(utils.no_network(), "Requires network")
     def test_oneshot_update(self):
-        subrepo_file_path = os.path.join(self.repo_path, 'submodule', 'setup.py')
+        subrepo_file_path = os.path.join(self.repo_path, 'TestGitRepository', 'master.txt')
         assert not os.path.exists(subrepo_file_path)
         self.repo.update_submodules(init=True)
         assert os.path.exists(subrepo_file_path)
