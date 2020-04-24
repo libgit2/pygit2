@@ -352,12 +352,8 @@ def _certificate_cb(cert_i, valid, host, data):
     try:
         is_ssh = cert_i.cert_type == C.GIT_CERT_HOSTKEY_LIBSSH2
 
-        certificate_check = getattr(data, 'certificate_check', None)
-        if not certificate_check:
-            raise Passthrough
-
         # python's parsing is deep in the libraries and assumes an OpenSSL-owned cert
-        val = certificate_check(None, bool(valid), ffi.string(host))
+        val = data.certificate_check(None, bool(valid), ffi.string(host))
         if not val:
             return C.GIT_ECERTIFICATE
     except Passthrough:
