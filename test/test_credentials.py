@@ -45,54 +45,52 @@ REMOTE_REPO_BYTES = 2758
 ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
 
-class CredentialCreateTest(utils.NoRepoTestCase):
+def test_username():
+    username = "git"
+    cred = Username(username)
+    assert (username,) == cred.credential_tuple
 
-    def test_username(self):
-        username = "git"
 
-        cred = Username(username)
-        assert (username,) == cred.credential_tuple
+def test_userpass():
+    username = "git"
+    password = "sekkrit"
 
-    def test_userpass(self):
-        username = "git"
-        password = "sekkrit"
+    cred = UserPass(username, password)
+    assert (username, password) == cred.credential_tuple
 
-        cred = UserPass(username, password)
-        assert (username, password) == cred.credential_tuple
+def test_ssh_key():
+    username = "git"
+    pubkey = "id_rsa.pub"
+    privkey = "id_rsa"
+    passphrase = "bad wolf"
 
-    def test_ssh_key(self):
-        username = "git"
-        pubkey = "id_rsa.pub"
-        privkey = "id_rsa"
-        passphrase = "bad wolf"
+    cred = Keypair(username, pubkey, privkey, passphrase)
+    assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
-        cred = Keypair(username, pubkey, privkey, passphrase)
-        assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
+@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+def test_ssh_key_aspath():
+    username = "git"
+    pubkey = Path("id_rsa.pub")
+    privkey = Path("id_rsa")
+    passphrase = "bad wolf"
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
-    def test_ssh_key_aspath(self):
-        username = "git"
-        pubkey = Path("id_rsa.pub")
-        privkey = Path("id_rsa")
-        passphrase = "bad wolf"
+    cred = Keypair(username, pubkey, privkey, passphrase)
+    assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
-        cred = Keypair(username, pubkey, privkey, passphrase)
-        assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
+def test_ssh_agent():
+    username = "git"
 
-    def test_ssh_agent(self):
-        username = "git"
+    cred = KeypairFromAgent(username)
+    assert (username, None, None, None) == cred.credential_tuple
 
-        cred = KeypairFromAgent(username)
-        assert (username, None, None, None) == cred.credential_tuple
+def test_ssh_from_memory():
+    username = "git"
+    pubkey = "public key data"
+    privkey = "private key data"
+    passphrase = "secret passphrase"
 
-    def test_ssh_from_memory(self):
-        username = "git"
-        pubkey = "public key data"
-        privkey = "private key data"
-        passphrase = "secret passphrase"
-
-        cred = KeypairFromMemory(username, pubkey, privkey, passphrase)
-        assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
+    cred = KeypairFromMemory(username, pubkey, privkey, passphrase)
+    assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
 
 class CredentialCallback(utils.RepoTestCase):

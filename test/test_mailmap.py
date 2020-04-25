@@ -25,10 +25,7 @@
 
 """Tests for Mailmap."""
 
-import unittest
-
 from pygit2 import Mailmap
-from . import utils
 
 
 TEST_MAILMAP = """\
@@ -65,32 +62,30 @@ TEST_RESOLVE = [
     ("Charles", "charles@charles.xx", "Charles", "charles@charles.xx")
 ]
 
-class ParsingTest(utils.NoRepoTestCase):
 
-    def test_empty(self):
-        mailmap = Mailmap()
+def test_empty():
+    mailmap = Mailmap()
 
-        for (_, _, name, email) in TEST_RESOLVE:
-            self.assertEqual(mailmap.resolve(name, email), (name, email))
+    for (_, _, name, email) in TEST_RESOLVE:
+        assert mailmap.resolve(name, email) == (name, email)
 
-    def test_new(self):
-        mailmap = Mailmap()
 
-        # Add entries to the mailmap
-        for entry in TEST_ENTRIES:
-            mailmap.add_entry(*entry)
+def test_new():
+    mailmap = Mailmap()
 
-        for (real_name, real_email, name, email) in TEST_RESOLVE:
-            self.assertEqual(mailmap.resolve(name, email), (real_name, real_email))
+    # Add entries to the mailmap
+    for entry in TEST_ENTRIES:
+        mailmap.add_entry(*entry)
 
-    def test_parsed(self):
-        mailmap = Mailmap.from_buffer(TEST_MAILMAP)
+    for (real_name, real_email, name, email) in TEST_RESOLVE:
+        assert mailmap.resolve(name, email) == (real_name, real_email)
 
-        for (real_name, real_email, name, email) in TEST_RESOLVE:
-            self.assertEqual(mailmap.resolve(name, email), (real_name, real_email))
+
+def test_parsed():
+    mailmap = Mailmap.from_buffer(TEST_MAILMAP)
+
+    for (real_name, real_email, name, email) in TEST_RESOLVE:
+        assert mailmap.resolve(name, email) == (real_name, real_email)
 
 
 # TODO: Add a testcase which uses .mailmap in a repo
-
-if __name__ == '__main__':
-    unittest.main()

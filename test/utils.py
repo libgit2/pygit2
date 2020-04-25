@@ -109,23 +109,28 @@ class TemporaryRepository:
         rmtree(self.temp_dir)
 
 
-class NoRepoTestCase(unittest.TestCase):
+class AutoRepoTestCase(unittest.TestCase):
 
     def setUp(self):
         self._temp_dir = tempfile.mkdtemp()
         self.repo = None
+        self.repo_ctxtmgr = TemporaryRepository(self.repo_spec)
+        self.repo_path = self.repo_ctxtmgr.__enter__()
+        self.repo = pygit2.Repository(self.repo_path)
 
     def tearDown(self):
         del self.repo
         gc.collect()
         rmtree(self._temp_dir)
+        self.repo_ctxtmgr.__exit__(None, None, None)
 
     def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
         with pytest.raises(exc_class) as excinfo:
             func(*args, **kwargs)
         assert excinfo.value.args == (arg,)
 
-        # Explicitly clear the Exception Info. Citing https://docs.pytest.org/en/latest/reference.html#pytest-raises:
+        # Explicitly clear the Exception Info. Citing
+        # https://docs.pytest.org/en/latest/reference.html#pytest-raises:
         #
         # Clearing those references breaks a reference cycle
         # (ExceptionInfo –> caught exception –> frame stack raising the exception
@@ -135,18 +140,6 @@ class NoRepoTestCase(unittest.TestCase):
         # run. See the official Python try statement documentation for more detailed
         # information.
         del excinfo
-
-
-class AutoRepoTestCase(NoRepoTestCase):
-    def setUp(self):
-        super().setUp()
-        self.repo_ctxtmgr = TemporaryRepository(self.repo_spec)
-        self.repo_path = self.repo_ctxtmgr.__enter__()
-        self.repo = pygit2.Repository(self.repo_path)
-
-    def tearDown(self):
-        super().tearDown()
-        self.repo_ctxtmgr.__exit__(None, None, None)
 
 
 class BareRepoTestCase(AutoRepoTestCase):

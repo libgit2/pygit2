@@ -518,39 +518,38 @@ class ReferencesTest(utils.RepoTestCase):
         assert commit.tree.id == ref.peel(Tree).id
 
 
-class ReferenceIsValidNameTest(utils.NoRepoTestCase):
 
-    def test_valid_reference_names_ascii(self):
-        assert reference_is_valid_name('HEAD')
-        assert reference_is_valid_name('refs/heads/master')
-        assert reference_is_valid_name('refs/heads/perfectly/valid')
-        assert reference_is_valid_name('refs/tags/v1')
-        assert reference_is_valid_name('refs/special/ref')
+def test_valid_reference_names_ascii():
+    assert reference_is_valid_name('HEAD')
+    assert reference_is_valid_name('refs/heads/master')
+    assert reference_is_valid_name('refs/heads/perfectly/valid')
+    assert reference_is_valid_name('refs/tags/v1')
+    assert reference_is_valid_name('refs/special/ref')
 
-    def test_valid_reference_names_unicode(self):
-        assert reference_is_valid_name('refs/heads/ünicöde')
-        assert reference_is_valid_name('refs/tags/😀')
+def test_valid_reference_names_unicode():
+    assert reference_is_valid_name('refs/heads/ünicöde')
+    assert reference_is_valid_name('refs/tags/😀')
 
-    def test_invalid_reference_names(self):
-        assert not reference_is_valid_name('')
-        assert not reference_is_valid_name(' refs/heads/master')
-        assert not reference_is_valid_name('refs/heads/in..valid')
-        assert not reference_is_valid_name('refs/heads/invalid~')
-        assert not reference_is_valid_name('refs/heads/invalid^')
-        assert not reference_is_valid_name('refs/heads/invalid:')
-        assert not reference_is_valid_name('refs/heads/invalid\\')
-        assert not reference_is_valid_name('refs/heads/invalid?')
-        assert not reference_is_valid_name('refs/heads/invalid[')
-        assert not reference_is_valid_name('refs/heads/invalid*')
-        assert not reference_is_valid_name('refs/heads/@{no}')
-        assert not reference_is_valid_name('refs/heads/foo//bar')
+def test_invalid_reference_names():
+    assert not reference_is_valid_name('')
+    assert not reference_is_valid_name(' refs/heads/master')
+    assert not reference_is_valid_name('refs/heads/in..valid')
+    assert not reference_is_valid_name('refs/heads/invalid~')
+    assert not reference_is_valid_name('refs/heads/invalid^')
+    assert not reference_is_valid_name('refs/heads/invalid:')
+    assert not reference_is_valid_name('refs/heads/invalid\\')
+    assert not reference_is_valid_name('refs/heads/invalid?')
+    assert not reference_is_valid_name('refs/heads/invalid[')
+    assert not reference_is_valid_name('refs/heads/invalid*')
+    assert not reference_is_valid_name('refs/heads/@{no}')
+    assert not reference_is_valid_name('refs/heads/foo//bar')
 
-    def test_invalid_arguments(self):
-        with pytest.raises(TypeError):
-            reference_is_valid_name()
-        with pytest.raises(TypeError):
-            reference_is_valid_name(None)
-        with pytest.raises(TypeError):
-            reference_is_valid_name(1)
-        with pytest.raises(TypeError):
-            reference_is_valid_name('too', 'many')
+def test_invalid_arguments():
+    with pytest.raises(TypeError):
+        reference_is_valid_name()
+    with pytest.raises(TypeError):
+        reference_is_valid_name(None)
+    with pytest.raises(TypeError):
+        reference_is_valid_name(1)
+    with pytest.raises(TypeError):
+        reference_is_valid_name('too', 'many')

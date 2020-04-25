@@ -28,42 +28,39 @@ import time
 import pytest
 
 from pygit2 import Signature
-from .utils import NoRepoTestCase
 
 
-class SignatureTest(NoRepoTestCase):
+def test_default():
+    signature = Signature(
+        'Foo Ibáñez', 'foo@example.com', 1322174594, 60)
+    encoding = signature._encoding
+    assert encoding == 'utf-8'
+    assert signature.name == signature.raw_name.decode(encoding)
+    assert signature.name.encode(encoding) == signature.raw_name
+    assert signature.email == signature.raw_email.decode(encoding)
+    assert signature.email.encode(encoding) == signature.raw_email
 
-    def test_default(self):
-        signature = Signature(
-            'Foo Ibáñez', 'foo@example.com', 1322174594, 60)
-        encoding = signature._encoding
-        assert encoding == 'utf-8'
-        assert signature.name == signature.raw_name.decode(encoding)
-        assert signature.name.encode(encoding) == signature.raw_name
-        assert signature.email == signature.raw_email.decode(encoding)
-        assert signature.email.encode(encoding) == signature.raw_email
+def test_ascii():
+    with pytest.raises(UnicodeEncodeError):
+        Signature('Foo Ibáñez', 'foo@example.com', encoding='ascii')
 
-    def test_ascii(self):
-        with pytest.raises(UnicodeEncodeError):
-            Signature('Foo Ibáñez', 'foo@example.com', encoding='ascii')
+def test_latin1():
+    encoding = 'iso-8859-1'
+    signature = Signature(
+        'Foo Ibáñez', 'foo@example.com', encoding=encoding)
+    assert encoding == signature._encoding
+    assert signature.name == signature.raw_name.decode(encoding)
+    assert signature.name.encode(encoding) == signature.raw_name
+    assert signature.email == signature.raw_email.decode(encoding)
+    assert signature.email.encode(encoding) == signature.raw_email
 
-    def test_latin1(self):
-        encoding = 'iso-8859-1'
-        signature = Signature(
-            'Foo Ibáñez', 'foo@example.com', encoding=encoding)
-        assert encoding == signature._encoding
-        assert signature.name == signature.raw_name.decode(encoding)
-        assert signature.name.encode(encoding) == signature.raw_name
-        assert signature.email == signature.raw_email.decode(encoding)
-        assert signature.email.encode(encoding) == signature.raw_email
-
-    def test_now(self):
-        encoding = 'utf-8'
-        signature = Signature(
-            'Foo Ibáñez', 'foo@example.com', encoding=encoding)
-        assert encoding == signature._encoding
-        assert signature.name == signature.raw_name.decode(encoding)
-        assert signature.name.encode(encoding) == signature.raw_name
-        assert signature.email == signature.raw_email.decode(encoding)
-        assert signature.email.encode(encoding) == signature.raw_email
-        assert abs(signature.time - time.time()) < 5
+def test_now():
+    encoding = 'utf-8'
+    signature = Signature(
+        'Foo Ibáñez', 'foo@example.com', encoding=encoding)
+    assert encoding == signature._encoding
+    assert signature.name == signature.raw_name.decode(encoding)
+    assert signature.name.encode(encoding) == signature.raw_name
+    assert signature.email == signature.raw_email.decode(encoding)
+    assert signature.email.encode(encoding) == signature.raw_email
+    assert abs(signature.time - time.time()) < 5

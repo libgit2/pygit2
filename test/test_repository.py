@@ -502,63 +502,57 @@ class RepositorySignatureTest(utils.RepoTestCase):
         assert 'Random J Hacker' == sig.name
         assert 'rjh@example.com' == sig.email
 
-class NewRepositoryTest(utils.NoRepoTestCase):
 
-    def test_new_repo(self):
-        repo = init_repository(self._temp_dir, False)
+def test_new_repo(tmp_path):
+    repo = init_repository(tmp_path, False)
 
-        oid = repo.write(GIT_OBJ_BLOB, "Test")
-        assert type(oid) == Oid
+    oid = repo.write(GIT_OBJ_BLOB, "Test")
+    assert type(oid) == Oid
 
-        assert os.path.exists(os.path.join(self._temp_dir, '.git'))
-
-
-class InitRepositoryTest(utils.NoRepoTestCase):
-    # under the assumption that repo.is_bare works
-
-    def test_no_arg(self):
-        repo = init_repository(self._temp_dir)
-        assert not repo.is_bare
-
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
-    def test_no_arg_aspath(self):
-        repo = init_repository(Path(self._temp_dir))
-        assert not repo.is_bare
-
-    def test_pos_arg_false(self):
-        repo = init_repository(self._temp_dir, False)
-        assert not repo.is_bare
-
-    def test_pos_arg_true(self):
-        repo = init_repository(self._temp_dir, True)
-        assert repo.is_bare
-
-    def test_keyword_arg_false(self):
-        repo = init_repository(self._temp_dir, bare=False)
-        assert not repo.is_bare
-
-    def test_keyword_arg_true(self):
-        repo = init_repository(self._temp_dir, bare=True)
-        assert repo.is_bare
+    assert os.path.exists(os.path.join(tmp_path, '.git'))
 
 
-class DiscoverRepositoryTest(utils.NoRepoTestCase):
+def test_no_arg(tmp_path):
+    repo = init_repository(tmp_path)
+    assert not repo.is_bare
 
-    def test_discover_repo(self):
-        repo = init_repository(self._temp_dir, False)
-        subdir = os.path.join(self._temp_dir, "test1", "test2")
-        os.makedirs(subdir)
-        assert repo.path == discover_repository(subdir)
+@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+def test_no_arg_aspath(tmp_path):
+    repo = init_repository(Path(tmp_path))
+    assert not repo.is_bare
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
-    def test_discover_repo_aspath(self):
-        repo = init_repository(Path(self._temp_dir), False)
-        subdir = Path(self._temp_dir) / "test1" / "test2"
-        os.makedirs(subdir)
-        assert repo.path == discover_repository(subdir)
+def test_pos_arg_false(tmp_path):
+    repo = init_repository(tmp_path, False)
+    assert not repo.is_bare
 
-    def test_discover_repo_not_found(self):
-        assert discover_repository(tempfile.tempdir) is None
+def test_pos_arg_true(tmp_path):
+    repo = init_repository(tmp_path, True)
+    assert repo.is_bare
+
+def test_keyword_arg_false(tmp_path):
+    repo = init_repository(tmp_path, bare=False)
+    assert not repo.is_bare
+
+def test_keyword_arg_true(tmp_path):
+    repo = init_repository(tmp_path, bare=True)
+    assert repo.is_bare
+
+
+def test_discover_repo(tmp_path):
+    repo = init_repository(tmp_path, False)
+    subdir = os.path.join(tmp_path, "test1", "test2")
+    os.makedirs(subdir)
+    assert repo.path == discover_repository(subdir)
+
+@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+def test_discover_repo_aspath(tmp_path):
+    repo = init_repository(Path(tmp_path), False)
+    subdir = Path(tmp_path) / "test1" / "test2"
+    os.makedirs(subdir)
+    assert repo.path == discover_repository(subdir)
+
+def test_discover_repo_not_found():
+    assert discover_repository(tempfile.tempdir) is None
 
 
 class EmptyRepositoryTest(utils.EmptyRepoTestCase):
@@ -574,136 +568,132 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
         assert not self.repo.head_is_detached
 
 
-class StringTypesRepositoryTest(utils.NoRepoTestCase):
+def test_bytes_string():
+    repo_path = b'./test/data/testrepo.git/'
+    pygit2.Repository(repo_path)
 
-    def test_bytes_string(self):
-        repo_path = b'./test/data/testrepo.git/'
-        pygit2.Repository(repo_path)
+def test_unicode_string():
+    # String is unicode because of unicode_literals
+    repo_path = './test/data/testrepo.git/'
+    pygit2.Repository(repo_path)
 
-    def test_unicode_string(self):
-        # String is unicode because of unicode_literals
-        repo_path = './test/data/testrepo.git/'
-        pygit2.Repository(repo_path)
-
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
-    def test_aspath(self):
-        repo_path = Path('./test/data/testrepo.git/')
-        pygit2.Repository(repo_path)
+@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+def test_aspath():
+    repo_path = Path('./test/data/testrepo.git/')
+    pygit2.Repository(repo_path)
 
 
-class CloneRepositoryTest(utils.NoRepoTestCase):
+def test_clone_repository(tmp_path):
+    repo_path = "./test/data/testrepo.git/"
+    repo = clone_repository(repo_path, tmp_path)
+    assert not repo.is_empty
+    assert not repo.is_bare
 
-    def test_clone_repository(self):
-        repo_path = "./test/data/testrepo.git/"
-        repo = clone_repository(repo_path, self._temp_dir)
-        assert not repo.is_empty
-        assert not repo.is_bare
+@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+def test_clone_repository_aspath(tmp_path):
+    repo_path = Path("./test/data/testrepo.git/")
+    repo = clone_repository(repo_path, Path(tmp_path))
+    assert not repo.is_empty
+    assert not repo.is_bare
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
-    def test_clone_repository_aspath(self):
-        repo_path = Path("./test/data/testrepo.git/")
-        repo = clone_repository(repo_path, Path(self._temp_dir))
-        assert not repo.is_empty
-        assert not repo.is_bare
+def test_clone_bare_repository(tmp_path):
+    repo_path = "./test/data/testrepo.git/"
+    repo = clone_repository(repo_path, tmp_path, bare=True)
+    assert not repo.is_empty
+    assert repo.is_bare
 
-    def test_clone_bare_repository(self):
-        repo_path = "./test/data/testrepo.git/"
-        repo = clone_repository(repo_path, self._temp_dir, bare=True)
-        assert not repo.is_empty
-        assert repo.is_bare
+def test_clone_repository_and_remote_callbacks(tmp_path):
+    src_repo_relpath = "./test/data/testrepo.git/"
+    repo_path = os.path.join(tmp_path, "clone-into")
+    url = pathname2url(os.path.realpath(src_repo_relpath))
 
-    def test_clone_repository_and_remote_callbacks(self):
-        src_repo_relpath = "./test/data/testrepo.git/"
-        repo_path = os.path.join(self._temp_dir, "clone-into")
-        url = pathname2url(os.path.realpath(src_repo_relpath))
+    if url.startswith('///'):
+        url = 'file:' + url
+    else:
+        url = 'file://' + url
 
-        if url.startswith('///'):
-            url = 'file:' + url
-        else:
-            url = 'file://' + url
+    def create_repository(path, bare):
+        return init_repository(path, bare)
 
-        def create_repository(path, bare):
-            return init_repository(path, bare)
+    # here we override the name
+    def create_remote(repo, name, url):
+        return repo.remotes.create("custom_remote", url)
 
-        # here we override the name
-        def create_remote(repo, name, url):
-            return repo.remotes.create("custom_remote", url)
+    repo = clone_repository(url, repo_path, repository=create_repository, remote=create_remote)
+    assert not repo.is_empty
+    assert 'refs/remotes/custom_remote/master' in repo.listall_references()
+    assert repo.remotes["custom_remote"] is not None
 
-        repo = clone_repository(url, repo_path, repository=create_repository, remote=create_remote)
-        assert not repo.is_empty
-        assert 'refs/remotes/custom_remote/master' in repo.listall_references()
-        assert repo.remotes["custom_remote"] is not None
+@unittest.skipIf(utils.no_network(), "Requires network")
+def test_clone_with_credentials(tmp_path):
+    url = 'https://github.com/libgit2/TestGitRepository'
+    credentials = pygit2.UserPass("libgit2", "libgit2")
+    callbacks = pygit2.RemoteCallbacks(credentials=credentials)
+    repo = clone_repository(url, tmp_path, callbacks=callbacks)
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
-    def test_clone_with_credentials(self):
-        url = 'https://github.com/libgit2/TestGitRepository'
-        credentials = pygit2.UserPass("libgit2", "libgit2")
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
-        repo = clone_repository(url, self._temp_dir, callbacks=callbacks)
+    assert not repo.is_empty
 
-        assert not repo.is_empty
+@unittest.skipIf(utils.no_network(), "Requires network")
+def test_clone_bad_credentials(tmp_path):
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def credentials(self, url, username, allowed):
+            raise RuntimeError('Unexpected error')
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
-    def test_clone_bad_credentials(self):
-        class MyCallbacks(pygit2.RemoteCallbacks):
-            def credentials(self, url, username, allowed):
-                raise RuntimeError('Unexpected error')
+    url = "https://github.com/github/github"
+    with pytest.raises(RuntimeError) as exc:
+        clone_repository(url, tmp_path, callbacks=MyCallbacks())
+    assert str(exc.value) == 'Unexpected error'
 
-        url = "https://github.com/github/github"
-        with pytest.raises(RuntimeError) as exc:
-            clone_repository(url, self._temp_dir, callbacks=MyCallbacks())
-        assert str(exc.value) == 'Unexpected error'
+def test_clone_with_checkout_branch(tmp_path):
+    # create a test case which isolates the remote
+    test_repo = clone_repository('./test/data/testrepo.git',
+                                 os.path.join(tmp_path, 'testrepo-orig.git'),
+                                 bare=True)
+    test_repo.create_branch('test', test_repo[test_repo.head.target])
+    repo = clone_repository(test_repo.path,
+                            os.path.join(tmp_path, 'testrepo.git'),
+                            checkout_branch='test', bare=True)
+    assert repo.lookup_reference('HEAD').target == 'refs/heads/test'
 
-    def test_clone_with_checkout_branch(self):
-        # create a test case which isolates the remote
-        test_repo = clone_repository('./test/data/testrepo.git',
-                                     os.path.join(self._temp_dir, 'testrepo-orig.git'),
-                                     bare=True)
-        test_repo.create_branch('test', test_repo[test_repo.head.target])
-        repo = clone_repository(test_repo.path,
-                                os.path.join(self._temp_dir, 'testrepo.git'),
-                                checkout_branch='test', bare=True)
-        assert repo.lookup_reference('HEAD').target == 'refs/heads/test'
+# FIXME The tests below are commented because they are broken:
+#
+# - test_clone_push_url: Passes, but does nothing useful.
+#
+# - test_clone_fetch_spec: Segfaults because of a bug in libgit2 0.19,
+#   this has been fixed already, so wait for 0.20
+#
+# - test_clone_push_spec: Passes, but does nothing useful.
+#
 
-    # FIXME The tests below are commented because they are broken:
-    #
-    # - test_clone_push_url: Passes, but does nothing useful.
-    #
-    # - test_clone_fetch_spec: Segfaults because of a bug in libgit2 0.19,
-    #   this has been fixed already, so wait for 0.20
-    #
-    # - test_clone_push_spec: Passes, but does nothing useful.
-    #
-
-#   def test_clone_push_url(self):
-#       repo_path = "./test/data/testrepo.git/"
-#       repo = clone_repository(
-#           repo_path, self._temp_dir, push_url="custom_push_url"
-#       )
-#       assert not repo.is_empty
-#       # FIXME: When pygit2 supports retrieving the pushurl parameter,
-#       # enable this test
-#       # assert repo.remotes[0].pushurl == "custom_push_url"
-
-#   def test_clone_fetch_spec(self):
-#       repo_path = "./test/data/testrepo.git/"
-#       repo = clone_repository(repo_path, self._temp_dir,
-#                               fetch_spec="refs/heads/test")
-#       assert not repo.is_empty
-#       # FIXME: When pygit2 retrieve the fetchspec we passed to git clone.
-#       # fetchspec seems to be going through, but the Repository class is
-#       # not getting it.
-#       # assert repo.remotes[0].fetchspec == "refs/heads/test"
-
-#   def test_clone_push_spec(self):
-#       repo_path = "./test/data/testrepo.git/"
-#       repo = clone_repository(repo_path, self._temp_dir,
-#                               push_spec="refs/heads/test")
-#       assert not repo.is_empty
-#       # FIXME: When pygit2 supports retrieving the pushspec parameter,
-#       # enable this test
-#       # not sure how to test this either... couldn't find pushspec
-#       # assert repo.remotes[0].fetchspec == "refs/heads/test"
+#def test_clone_push_url():
+#    repo_path = "./test/data/testrepo.git/"
+#    repo = clone_repository(
+#        repo_path, tmp_path, push_url="custom_push_url"
+#    )
+#    assert not repo.is_empty
+#    # FIXME: When pygit2 supports retrieving the pushurl parameter,
+#    # enable this test
+#    # assert repo.remotes[0].pushurl == "custom_push_url"
+#
+#def test_clone_fetch_spec():
+#    repo_path = "./test/data/testrepo.git/"
+#    repo = clone_repository(repo_path, tmp_path,
+#                            fetch_spec="refs/heads/test")
+#    assert not repo.is_empty
+#    # FIXME: When pygit2 retrieve the fetchspec we passed to git clone.
+#    # fetchspec seems to be going through, but the Repository class is
+#    # not getting it.
+#    # assert repo.remotes[0].fetchspec == "refs/heads/test"
+#
+#def test_clone_push_spec():
+#    repo_path = "./test/data/testrepo.git/"
+#    repo = clone_repository(repo_path, tmp_path,
+#                            push_spec="refs/heads/test")
+#    assert not repo.is_empty
+#    # FIXME: When pygit2 supports retrieving the pushspec parameter,
+#    # enable this test
+#    # not sure how to test this either... couldn't find pushspec
+#    # assert repo.remotes[0].fetchspec == "refs/heads/test"
 
 class WorktreeTestCase(utils.RepoTestCase):
 
