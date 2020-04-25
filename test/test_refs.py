@@ -242,7 +242,7 @@ class ReferencesObjectTest(utils.RepoTestCase):
 
     def test_compress(self):
         repo = self.repo
-        packed_refs_file = os.path.join(self.repo_path, '.git', 'packed-refs')
+        packed_refs_file = os.path.join(repo.path, 'packed-refs')
         assert not os.path.exists(packed_refs_file)
         old_refs = [(ref.name, ref.target.hex)
                     for ref in repo.references.objects]

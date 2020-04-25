@@ -27,7 +27,7 @@
 
 import os
 
-from pygit2 import Refdb, RefdbBackend, RefdbFsBackend, Repository
+from pygit2 import RefdbBackend, RefdbFsBackend
 from pygit2 import Reference
 
 from . import utils
@@ -105,7 +105,7 @@ class CustomRefdbBackendTest(utils.RepoTestCase):
 
     def test_compress(self):
         repo = self.repo
-        packed_refs_file = os.path.join(self.repo_path, '.git', 'packed-refs')
+        packed_refs_file = os.path.join(repo.path, 'packed-refs')
         assert not os.path.exists(packed_refs_file)
         self.backend.compress()
         assert os.path.exists(packed_refs_file)

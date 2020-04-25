@@ -123,7 +123,6 @@ class TemporaryRepository:
 class AutoRepoTestCase(unittest.TestCase):
 
     def setUp(self):
-        self._temp_dir = tempfile.mkdtemp()
         self.repo = None
         self.repo_ctxtmgr = TemporaryRepository(self.repo_spec)
         self.repo_path = self.repo_ctxtmgr.__enter__()
@@ -132,7 +131,6 @@ class AutoRepoTestCase(unittest.TestCase):
     def tearDown(self):
         del self.repo
         gc.collect()
-        rmtree(self._temp_dir)
         self.repo_ctxtmgr.__exit__(None, None, None)
 
     def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
@@ -168,11 +166,6 @@ class RepoTestCaseForMerging(AutoRepoTestCase):
     repo_spec = 'tar', 'testrepoformerging'
 
 
-class Utf8BranchRepoTestCase(AutoRepoTestCase):
-
-    repo_spec = 'tar', 'utf8branchrepo'
-
-
 class DirtyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'dirtyrepo'
@@ -181,18 +174,3 @@ class DirtyRepoTestCase(AutoRepoTestCase):
 class EmptyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'emptyrepo'
-
-
-class SubmoduleRepoTestCase(AutoRepoTestCase):
-
-    repo_spec = 'tar', 'submodulerepo'
-
-
-class BinaryFileRepoTestCase(AutoRepoTestCase):
-
-    repo_spec = 'tar', 'binaryfilerepo'
-
-
-class GpgSignedRepoTestCase(AutoRepoTestCase):
-
-    repo_spec = 'tar', 'gpgsigned'

@@ -247,10 +247,11 @@ class EmptyRepositoryTest(utils.EmptyRepoTestCase):
 class PruneTestCase(utils.RepoTestCase):
     def setUp(self):
         super().setUp()
+        repo = self.repo
         cloned_repo_path = os.path.join(self.repo_ctxtmgr.temp_dir, 'test_remote_prune')
-        pygit2.clone_repository(self.repo_path, cloned_repo_path)
+        pygit2.clone_repository(repo.workdir, cloned_repo_path)
         self.clone_repo = pygit2.Repository(cloned_repo_path)
-        self.repo.branches.delete('i18n')
+        repo.branches.delete('i18n')
 
     def tearDown(self):
         self.clone_repo = None
@@ -283,11 +284,6 @@ class PruneTestCase(utils.RepoTestCase):
         remote.prune(callbacks)
         assert pruned == ['refs/remotes/origin/i18n']
         assert 'origin/i18n' not in self.clone_repo.branches
-
-class Utf8BranchTest(utils.Utf8BranchRepoTestCase):
-    def test_fetch(self):
-        remote = self.repo.remotes.create('origin', self.repo.workdir)
-        remote.fetch()
 
 
 class PushTestCase(unittest.TestCase):
