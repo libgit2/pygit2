@@ -29,7 +29,6 @@
 import binascii
 import gc
 import os
-import unittest
 
 import pytest
 

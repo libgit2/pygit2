@@ -37,10 +37,6 @@ import pygit2
 from pygit2 import Oid
 from . import utils
 
-try:
-    import __pypy__
-except ImportError:
-    __pypy__ = None
 
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'
@@ -173,7 +169,7 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.remotes.create(name, url)
         assert remote.name in [x.name for x in self.repo.remotes]
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_ls_remotes(self):
         assert 1 == len(self.repo.remotes)
         remote = self.repo.remotes[0]
@@ -198,7 +194,7 @@ class RepositoryTest(utils.RepoTestCase):
         remote = self.repo.remotes.create(name, url)
         assert remote.name in [x.name for x in self.repo.remotes]
 
-    @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
+    @utils.refcount
     def test_remote_refcount(self):
         start = sys.getrefcount(self.repo)
         remote = self.repo.remotes[0]

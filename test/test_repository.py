@@ -27,7 +27,6 @@
 
 # Import from the Standard Library
 import binascii
-import unittest
 import shutil
 import tempfile
 import os
@@ -46,11 +45,6 @@ from pygit2 import Odb, OdbBackendLoose, OdbBackendPack
 from pygit2 import Refdb, RefdbFsBackend
 import pygit2
 from . import utils
-
-try:
-    import __pypy__
-except ImportError:
-    __pypy__ = None
 
 
 HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
@@ -159,7 +153,7 @@ class RepositoryTest(utils.BareRepoTestCase):
         expanded = self.repo.expand_id(commit_sha[:7])
         assert commit_sha == expanded.hex
 
-    @unittest.skipIf(__pypy__ is not None, "skip refcounts checks in pypy")
+    @utils.refcount
     def test_lookup_commit_refcount(self):
         start = sys.getrefcount(self.repo)
         commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -516,7 +510,7 @@ def test_no_arg(tmp_path):
     repo = init_repository(tmp_path)
     assert not repo.is_bare
 
-@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+@utils.fspath
 def test_no_arg_aspath(tmp_path):
     repo = init_repository(Path(tmp_path))
     assert not repo.is_bare
@@ -544,7 +538,7 @@ def test_discover_repo(tmp_path):
     os.makedirs(subdir)
     assert repo.path == discover_repository(subdir)
 
-@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+@utils.fspath
 def test_discover_repo_aspath(tmp_path):
     repo = init_repository(Path(tmp_path), False)
     subdir = Path(tmp_path) / "test1" / "test2"
@@ -577,7 +571,7 @@ def test_unicode_string():
     repo_path = './test/data/testrepo.git/'
     pygit2.Repository(repo_path)
 
-@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+@utils.fspath
 def test_aspath():
     repo_path = Path('./test/data/testrepo.git/')
     pygit2.Repository(repo_path)
@@ -589,7 +583,7 @@ def test_clone_repository(tmp_path):
     assert not repo.is_empty
     assert not repo.is_bare
 
-@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+@utils.fspath
 def test_clone_repository_aspath(tmp_path):
     repo_path = Path("./test/data/testrepo.git/")
     repo = clone_repository(repo_path, Path(tmp_path))
@@ -624,7 +618,8 @@ def test_clone_repository_and_remote_callbacks(tmp_path):
     assert 'refs/remotes/custom_remote/master' in repo.listall_references()
     assert repo.remotes["custom_remote"] is not None
 
-@unittest.skipIf(utils.no_network(), "Requires network")
+
+@utils.network
 def test_clone_with_credentials(tmp_path):
     url = 'https://github.com/libgit2/TestGitRepository'
     credentials = pygit2.UserPass("libgit2", "libgit2")
@@ -633,7 +628,7 @@ def test_clone_with_credentials(tmp_path):
 
     assert not repo.is_empty
 
-@unittest.skipIf(utils.no_network(), "Requires network")
+@utils.network
 def test_clone_bad_credentials(tmp_path):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(self, url, username, allowed):
@@ -738,7 +733,7 @@ class WorktreeTestCase(utils.RepoTestCase):
         worktree.prune(True)
         assert self.repo.list_worktrees() == []
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_worktree_aspath(self):
         worktree_name = 'foo'
         worktree_dir = Path(tempfile.mkdtemp())

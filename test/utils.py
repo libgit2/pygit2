@@ -39,18 +39,18 @@ import pytest
 import pygit2
 
 
-_no_network = None
 def no_network():
-    global _no_network
-    if _no_network is None:
-        try:
-            socket.gethostbyname('github.com')
-        except socket.gaierror:
-            _no_network = True
-        else:
-            _no_network = False
+    try:
+        socket.gethostbyname('github.com')
+    except socket.gaierror:
+        return True
+    else:
+        return False
 
-    return _no_network
+network = pytest.mark.skipif(
+    no_network(),
+    reason='Requires network'
+)
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
@@ -59,6 +59,17 @@ if is_pypy:
     has_fspath = sys.pypy_version_info >= (7, 3)
 else:
     has_fspath = sys.version_info >= (3, 6)
+
+
+fspath = pytest.mark.skipif(
+    not has_fspath,
+    reason='Requires PEP-519 (FSPath) support')
+
+
+refcount = pytest.mark.skipif(
+    is_pypy,
+    reason='skip refcounts checks in pypy'
+)
 
 
 def force_rm_handle(remove_path, path, excinfo):

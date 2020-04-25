@@ -26,7 +26,6 @@
 """Tests for Refdb objects."""
 
 import os
-import unittest
 
 from pygit2 import Refdb, RefdbBackend, RefdbFsBackend, Repository
 from pygit2 import Reference

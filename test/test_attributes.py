@@ -24,7 +24,6 @@
 # Boston, MA 02110-1301, USA.
 
 # Standard Library
-import unittest
 from os.path import join
 from pathlib import Path
 
@@ -52,7 +51,7 @@ class RepositorySignatureTest(utils.RepoTestCase):
         assert not self.repo.get_attr('file.jpg', 'text')
         assert "lf" == self.repo.get_attr('file.sh', 'eol')
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_no_attr_aspath(self):
         with open(join(self.repo.workdir, '.gitattributes'), 'w+') as f:
             print('*.py  text\n', file=f)

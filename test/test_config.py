@@ -24,7 +24,6 @@
 # Boston, MA 02110-1301, USA.
 
 import os
-import unittest
 from pathlib import Path
 
 import pytest
@@ -91,7 +90,7 @@ class ConfigTest(utils.RepoTestCase):
         assert 'something.other.here' in config
         assert not config.get_bool('something.other.here')
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_add_aspath(self):
         config = Config()
 

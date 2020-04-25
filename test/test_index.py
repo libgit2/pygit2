@@ -26,7 +26,6 @@
 """Tests for Index files."""
 
 import os
-import unittest
 from pathlib import Path
 
 import pytest
@@ -72,7 +71,7 @@ class IndexTest(utils.RepoTestCase):
         assert len(index) == 3
         assert index['bye.txt'].hex == sha
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_add_aspath(self):
         index = self.repo.index
 
@@ -116,7 +115,7 @@ class IndexTest(utils.RepoTestCase):
         assert index['bye.txt'].hex == sha_bye
         assert index['hello.txt'].hex == sha_hello
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_add_all_aspath(self):
         self.test_clear()
 
@@ -202,14 +201,14 @@ class IndexTest(utils.RepoTestCase):
 
         index.remove_all(['not-existing'])  # this doesn't error
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_remove_aspath(self):
         index = self.repo.index
         assert 'hello.txt' in index
         index.remove(Path('hello.txt'))
         assert 'hello.txt' not in index
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_remove_all_aspath(self):
         index = self.repo.index
         assert 'hello.txt' in index
@@ -246,7 +245,7 @@ class IndexEntryTest(utils.RepoTestCase):
         tree_id = index.write_tree()
         assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == str(tree_id)
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_create_entry_aspath(self):
         index = self.repo.index
         hello_entry = index[Path('hello.txt')]

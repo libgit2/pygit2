@@ -25,7 +25,6 @@
 
 """Tests for credentials"""
 
-import unittest
 from pathlib import Path
 
 import pytest
@@ -67,7 +66,7 @@ def test_ssh_key():
     cred = Keypair(username, pubkey, privkey, passphrase)
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
-@unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+@utils.fspath
 def test_ssh_key_aspath():
     username = "git"
     pubkey = Path("id_rsa.pub")
@@ -105,7 +104,7 @@ class CredentialCallback(utils.RepoTestCase):
         remote = self.repo.remotes.create("github", url)
         with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_bad_cred_type(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
             def credentials(self, url, username, allowed):
@@ -116,7 +115,7 @@ class CredentialCallback(utils.RepoTestCase):
         remote = self.repo.remotes.create("github", url)
         with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_fetch_certificate_check(self):
         class MyCallbacks(pygit2.RemoteCallbacks):
             def certificate_check(self, certificate, valid, host):
@@ -142,7 +141,7 @@ class CredentialCallback(utils.RepoTestCase):
 
 class CallableCredentialTest(utils.RepoTestCase):
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_user_pass(self):
         credentials = UserPass("libgit2", "libgit2")
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)

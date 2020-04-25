@@ -26,7 +26,6 @@
 """Tests for Submodule objects."""
 
 import os
-import unittest
 from pathlib import Path
 
 from . import utils
@@ -44,7 +43,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         s = self.repo.lookup_submodule(SUBM_PATH)
         assert s is not None
 
-    @unittest.skipIf(not utils.has_fspath, "Requires PEP-519 (FSPath) support")
+    @utils.fspath
     def test_lookup_submodule_aspath(self):
         s = self.repo.lookup_submodule(Path(SUBM_PATH))
         assert s is not None
@@ -54,7 +53,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         assert len(submodules) == 1
         assert submodules[0] == SUBM_PATH
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_submodule_open(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
         self.repo.init_submodules()
@@ -75,7 +74,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         s = self.repo.lookup_submodule(SUBM_PATH)
         assert SUBM_URL == s.url
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_init_and_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'TestGitRepository', 'master.txt')
         assert not os.path.exists(subrepo_file_path)
@@ -83,7 +82,7 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         self.repo.update_submodules()
         assert os.path.exists(subrepo_file_path)
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_specified_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'TestGitRepository', 'master.txt')
         assert not os.path.exists(subrepo_file_path)
@@ -91,14 +90,14 @@ class SubmoduleTest(utils.SubmoduleRepoTestCase):
         self.repo.update_submodules(submodules=['TestGitRepository'])
         assert os.path.exists(subrepo_file_path)
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_oneshot_update(self):
         subrepo_file_path = os.path.join(self.repo_path, 'TestGitRepository', 'master.txt')
         assert not os.path.exists(subrepo_file_path)
         self.repo.update_submodules(init=True)
         assert os.path.exists(subrepo_file_path)
 
-    @unittest.skipIf(utils.no_network(), "Requires network")
+    @utils.network
     def test_head_id(self):
         s = self.repo.lookup_submodule(SUBM_PATH)
         assert str(s.head_id) == SUBM_HEAD_SHA
