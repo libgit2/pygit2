@@ -549,17 +549,15 @@ def test_discover_repo_not_found():
     assert discover_repository(tempfile.tempdir) is None
 
 
-class EmptyRepositoryTest(utils.EmptyRepoTestCase):
+def test_is_empty(emptyrepo):
+    assert emptyrepo.is_empty
 
-    def test_is_empty(self):
-        assert self.repo.is_empty
+def test_is_base(emptyrepo):
+    assert not emptyrepo.is_bare
 
-    def test_is_base(self):
-        assert not self.repo.is_bare
-
-    def test_head(self):
-        assert self.repo.head_is_unborn
-        assert not self.repo.head_is_detached
+def test_head(emptyrepo):
+    assert emptyrepo.head_is_unborn
+    assert not emptyrepo.head_is_detached
 
 
 def test_bytes_string():

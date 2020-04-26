@@ -1,5 +1,6 @@
 import pytest
 import pygit2
+from . import utils
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -13,3 +14,24 @@ def disable_global_git_config():
               pygit2.GIT_CONFIG_LEVEL_SYSTEM]
     for level in levels:
         pygit2.settings.search_path[level] = ""
+
+
+@pytest.fixture
+def dirtyrepo():
+    repo_spec = 'tar', 'dirtyrepo'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)
+
+
+@pytest.fixture
+def emptyrepo():
+    repo_spec = 'tar', 'emptyrepo'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)
+
+
+@pytest.fixture
+def mergerepo():
+    repo_spec = 'tar', 'testrepoformerging'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)

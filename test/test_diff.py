@@ -108,35 +108,34 @@ STATS_EXPECTED = """ a   | 2 +-
  delete mode 100644 c/d
 """
 
-class DiffDirtyTest(utils.DirtyRepoTestCase):
-    def test_diff_empty_index(self):
-        repo = self.repo
+def test_diff_empty_index(dirtyrepo):
+    repo = dirtyrepo
 
-        head = repo[repo.lookup_reference('HEAD').resolve().target]
-        diff = head.tree.diff_to_index(repo.index)
-        files = [patch.delta.new_file.path for patch in diff]
-        assert DIFF_HEAD_TO_INDEX_EXPECTED == files
+    head = repo[repo.lookup_reference('HEAD').resolve().target]
+    diff = head.tree.diff_to_index(repo.index)
+    files = [patch.delta.new_file.path for patch in diff]
+    assert DIFF_HEAD_TO_INDEX_EXPECTED == files
 
-        diff = repo.diff('HEAD', cached=True)
-        files = [patch.delta.new_file.path for patch in diff]
-        assert DIFF_HEAD_TO_INDEX_EXPECTED == files
+    diff = repo.diff('HEAD', cached=True)
+    files = [patch.delta.new_file.path for patch in diff]
+    assert DIFF_HEAD_TO_INDEX_EXPECTED == files
 
-    def test_workdir_to_tree(self):
-        repo = self.repo
-        head = repo[repo.lookup_reference('HEAD').resolve().target]
+def test_workdir_to_tree(dirtyrepo):
+    repo = dirtyrepo
+    head = repo[repo.lookup_reference('HEAD').resolve().target]
 
-        diff = head.tree.diff_to_workdir()
-        files = [patch.delta.new_file.path for patch in diff]
-        assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
+    diff = head.tree.diff_to_workdir()
+    files = [patch.delta.new_file.path for patch in diff]
+    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
 
-        diff = repo.diff('HEAD')
-        files = [patch.delta.new_file.path for patch in diff]
-        assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
+    diff = repo.diff('HEAD')
+    files = [patch.delta.new_file.path for patch in diff]
+    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
 
-    def test_index_to_workdir(self):
-        diff = self.repo.diff()
-        files = [patch.delta.new_file.path for patch in diff]
-        assert DIFF_INDEX_TO_WORK_EXPECTED == files
+def test_index_to_workdir(dirtyrepo):
+    diff = dirtyrepo.diff()
+    files = [patch.delta.new_file.path for patch in diff]
+    assert DIFF_INDEX_TO_WORK_EXPECTED == files
 
 
 class DiffTest(utils.BareRepoTestCase):

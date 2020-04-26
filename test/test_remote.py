@@ -202,46 +202,45 @@ class RepositoryTest(utils.RepoTestCase):
         end = sys.getrefcount(self.repo)
         assert start == end
 
-class EmptyRepositoryTest(utils.EmptyRepoTestCase):
-    def test_fetch(self):
-        remote = self.repo.remotes[0]
-        stats = remote.fetch()
-        assert stats.received_bytes == REMOTE_REPO_BYTES
-        assert stats.indexed_objects == REMOTE_REPO_OBJECTS
-        assert stats.received_objects == REMOTE_REPO_OBJECTS
 
-    def test_transfer_progress(self):
-        class MyCallbacks(pygit2.RemoteCallbacks):
-            def transfer_progress(self, stats):
-                self.tp = stats
+def test_fetch(emptyrepo):
+    remote = emptyrepo.remotes[0]
+    stats = remote.fetch()
+    assert stats.received_bytes == REMOTE_REPO_BYTES
+    assert stats.indexed_objects == REMOTE_REPO_OBJECTS
+    assert stats.received_objects == REMOTE_REPO_OBJECTS
 
-        callbacks = MyCallbacks()
-        remote = self.repo.remotes[0]
-        stats = remote.fetch(callbacks=callbacks)
-        assert stats.received_bytes == callbacks.tp.received_bytes
-        assert stats.indexed_objects == callbacks.tp.indexed_objects
-        assert stats.received_objects == callbacks.tp.received_objects
+def test_transfer_progress(emptyrepo):
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def transfer_progress(emptyrepo, stats):
+            emptyrepo.tp = stats
 
-    def test_update_tips(self):
-        remote = self.repo.remotes[0]
-        tips = [('refs/remotes/origin/master', Oid(hex='0'*40),
-                 Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78')),
-                ('refs/tags/root', Oid(hex='0'*40),
-                 Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'))]
+    callbacks = MyCallbacks()
+    remote = emptyrepo.remotes[0]
+    stats = remote.fetch(callbacks=callbacks)
+    assert stats.received_bytes == callbacks.tp.received_bytes
+    assert stats.indexed_objects == callbacks.tp.indexed_objects
+    assert stats.received_objects == callbacks.tp.received_objects
 
-        class MyCallbacks(pygit2.RemoteCallbacks):
-            def __init__(self, test_self, tips):
-                self.test = test_self
-                self.tips = tips
-                self.i = 0
+def test_update_tips(emptyrepo):
+    remote = emptyrepo.remotes[0]
+    tips = [('refs/remotes/origin/master', Oid(hex='0'*40),
+             Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78')),
+            ('refs/tags/root', Oid(hex='0'*40),
+             Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'))]
 
-            def update_tips(self, name, old, new):
-                self.test.assertEqual(self.tips[self.i], (name, old, new))
-                self.i += 1
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def __init__(self, tips):
+            self.tips = tips
+            self.i = 0
 
-        callbacks = MyCallbacks(self, tips)
-        remote.fetch(callbacks=callbacks)
-        assert callbacks.i > 0
+        def update_tips(self, name, old, new):
+            assert self.tips[self.i] == (name, old, new)
+            self.i += 1
+
+    callbacks = MyCallbacks(tips)
+    remote.fetch(callbacks=callbacks)
+    assert callbacks.i > 0
 
 
 class PruneTestCase(utils.RepoTestCase):

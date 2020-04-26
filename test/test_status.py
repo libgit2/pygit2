@@ -23,16 +23,12 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from . import utils
 
-
-class StatusTest(utils.DirtyRepoTestCase):
-
-    def test_status(self):
-        """
-        For every file in the status, check that the flags are correct.
-        """
-        git_status = self.repo.status()
-        for filepath, status in git_status.items():
-            assert filepath in git_status
-            assert status == git_status[filepath]
+def test_status(dirtyrepo):
+    """
+    For every file in the status, check that the flags are correct.
+    """
+    git_status = dirtyrepo.status()
+    for filepath, status in git_status.items():
+        assert filepath in git_status
+        assert status == git_status[filepath]

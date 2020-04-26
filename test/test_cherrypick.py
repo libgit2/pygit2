@@ -27,38 +27,33 @@
 
 import os
 
+import pygit2
 import pytest
 
-import pygit2
-from . import utils
+
+def test_cherrypick_none(mergerepo):
+    with pytest.raises(TypeError): mergerepo.cherrypick(None)
+
+def test_cherrypick_invalid_hex(mergerepo):
+    branch_head_hex = '12345678'
+    with pytest.raises(KeyError): mergerepo.cherrypick(branch_head_hex)
+
+def test_cherrypick_already_something_in_index(mergerepo):
+    branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
+    branch_oid = mergerepo.get(branch_head_hex).id
+    with open(os.path.join(mergerepo.workdir, 'inindex.txt'), 'w') as f:
+        f.write('new content')
+    mergerepo.index.add('inindex.txt')
+    with pytest.raises(pygit2.GitError): mergerepo.cherrypick(branch_oid)
 
 
-class CherrypickTestBasic(utils.RepoTestCaseForMerging):
-
-    def test_cherrypick_none(self):
-        with pytest.raises(TypeError): self.repo.cherrypick(None)
-
-    def test_cherrypick_invalid_hex(self):
-        branch_head_hex = '12345678'
-        with pytest.raises(KeyError): self.repo.cherrypick(branch_head_hex)
-
-    def test_cherrypick_already_something_in_index(self):
-        branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
-        branch_oid = self.repo.get(branch_head_hex).id
-        with open(os.path.join(self.repo.workdir, 'inindex.txt'), 'w') as f:
-            f.write('new content')
-        self.repo.index.add('inindex.txt')
-        with pytest.raises(pygit2.GitError): self.repo.cherrypick(branch_oid)
-
-class CherrypickTestWithConflicts(utils.RepoTestCaseForMerging):
-
-    def test_cherrypick_remove_conflicts(self):
-        other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
-        self.repo.cherrypick(other_branch_tip)
-        idx = self.repo.index
-        conflicts = idx.conflicts
-        assert conflicts is not None
-        conflicts['.gitignore']
-        del idx.conflicts['.gitignore']
-        with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
-        assert idx.conflicts is None
+def test_cherrypick_remove_conflicts(mergerepo):
+    other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    mergerepo.cherrypick(other_branch_tip)
+    idx = mergerepo.index
+    conflicts = idx.conflicts
+    assert conflicts is not None
+    conflicts['.gitignore']
+    del idx.conflicts['.gitignore']
+    with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
+    assert idx.conflicts is None

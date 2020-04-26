@@ -90,14 +90,10 @@ class DescribeTest(utils.RepoTestCase):
         assert 'thetag-0-g2be5719' == self.repo.describe(always_use_long_format=True)
 
 
-class DescribeDirtyWorkdirTest(utils.DirtyRepoTestCase):
+def test_describe(dirtyrepo):
+    add_tag(dirtyrepo, 'thetag', 'a763aa560953e7cfb87ccbc2f536d665aa4dff22')
+    assert 'thetag' == dirtyrepo.describe()
 
-    def setUp(self):
-        super(utils.DirtyRepoTestCase, self).setUp()
-        add_tag(self.repo, 'thetag', 'a763aa560953e7cfb87ccbc2f536d665aa4dff22')
-
-    def test_describe(self):
-        assert 'thetag' == self.repo.describe()
-
-    def test_describe_with_dirty_suffix(self):
-        assert 'thetag-dirty' == self.repo.describe(dirty_suffix='-dirty')
+def test_describe_with_dirty_suffix(dirtyrepo):
+    add_tag(dirtyrepo, 'thetag', 'a763aa560953e7cfb87ccbc2f536d665aa4dff22')
+    assert 'thetag-dirty' == dirtyrepo.describe(dirty_suffix='-dirty')
