@@ -27,94 +27,95 @@
 
 import os
 
-from pygit2 import RefdbBackend, RefdbFsBackend
-from pygit2 import Reference
+import pygit2
+import pytest
 
-from . import utils
 
 # Note: the refdb abstraction from libgit2 is meant to provide information
 # which libgit2 transforms into something more useful, and in general YMMV by
 # using the backend directly. So some of these tests are a bit vague or
 # incomplete, to avoid hitting the semi-valid states that refdbs produce by
 # design.
-class ProxyRefdbBackend(RefdbBackend):
-    def __init__(self, source):
-        self.source = source
+class ProxyRefdbBackend(pygit2.RefdbBackend):
+    def __init__(testrepo, source):
+        testrepo.source = source
 
-    def exists(self, ref):
-        print(self, self.source, ref)
-        return self.source.exists(ref)
+    def exists(testrepo, ref):
+        print(testrepo, testrepo.source, ref)
+        return testrepo.source.exists(ref)
 
-    def lookup(self, ref):
-        return self.source.lookup(ref)
+    def lookup(testrepo, ref):
+        return testrepo.source.lookup(ref)
 
-    def write(self, ref, force, who, message, old, old_target):
-        return self.source.write(ref, force, who, message, old, old_target)
+    def write(testrepo, ref, force, who, message, old, old_target):
+        return testrepo.source.write(ref, force, who, message, old, old_target)
 
-    def rename(self, old_name, new_name, force, who, message):
-        return self.source.rename(old_name, new_name, force, who, message)
+    def rename(testrepo, old_name, new_name, force, who, message):
+        return testrepo.source.rename(old_name, new_name, force, who, message)
 
-    def delete(self, ref_name, old_id, old_target):
-        return self.source.delete(ref_name, old_id, old_target)
+    def delete(testrepo, ref_name, old_id, old_target):
+        return testrepo.source.delete(ref_name, old_id, old_target)
 
-    def compress(self):
-        return self.source.compress()
+    def compress(testrepo):
+        return testrepo.source.compress()
 
-    def has_log(self, ref_name):
-        return self.source.has_log(ref_name)
+    def has_log(testrepo, ref_name):
+        return testrepo.source.has_log(ref_name)
 
-    def ensure_log(self, ref_name):
-        return self.source.ensure_log(ref_name)
+    def ensure_log(testrepo, ref_name):
+        return testrepo.source.ensure_log(ref_name)
 
-    def __iter__(self):
-        return iter(self.source)
+    def __iter__(testrepo):
+        return iter(testrepo.source)
 
-class CustomRefdbBackendTest(utils.RepoTestCase):
-    def setUp(self):
-        super().setUp()
-        self.backend = ProxyRefdbBackend(RefdbFsBackend(self.repo))
 
-    def test_exists(self):
-        assert not self.backend.exists('refs/heads/does-not-exist')
-        assert self.backend.exists('refs/heads/master')
+@pytest.fixture
+def repo(testrepo):
+    testrepo.backend = ProxyRefdbBackend(pygit2.RefdbFsBackend(testrepo))
+    yield testrepo
 
-    def test_lookup(self):
-        assert self.backend.lookup('refs/heads/does-not-exist') is None
-        assert self.backend.lookup('refs/heads/master').name == 'refs/heads/master'
 
-    def test_write(self):
-        master = self.backend.lookup('refs/heads/master')
-        commit = self.repo.get(master.target)
-        ref = Reference("refs/heads/test-write", master.target, None)
-        self.backend.write(ref, False, commit.author,
-                "Create test-write", None, None)
-        assert self.backend.lookup("refs/heads/test-write").target == master.target
+def test_exists(repo):
+    assert not repo.backend.exists('refs/heads/does-not-exist')
+    assert repo.backend.exists('refs/heads/master')
 
-    def test_rename(self):
-        old_ref = self.backend.lookup('refs/heads/i18n')
-        target = self.repo.get(old_ref.target)
-        who = target.committer
-        self.backend.rename('refs/heads/i18n', 'refs/heads/intl',
-                False, target.committer, target.message)
-        assert self.backend.lookup('refs/heads/intl').target == target.id
+def test_lookup(repo):
+    assert repo.backend.lookup('refs/heads/does-not-exist') is None
+    assert repo.backend.lookup('refs/heads/master').name == 'refs/heads/master'
 
-    def test_delete(self):
-        old = self.backend.lookup('refs/heads/i18n')
-        self.backend.delete('refs/heads/i18n', old.target, None)
-        assert not self.backend.lookup('refs/heads/i18n')
+def test_write(repo):
+    master = repo.backend.lookup('refs/heads/master')
+    commit = repo.get(master.target)
+    ref = pygit2.Reference("refs/heads/test-write", master.target, None)
+    repo.backend.write(ref, False, commit.author,
+            "Create test-write", None, None)
+    assert repo.backend.lookup("refs/heads/test-write").target == master.target
 
-    def test_compress(self):
-        repo = self.repo
-        packed_refs_file = os.path.join(repo.path, 'packed-refs')
-        assert not os.path.exists(packed_refs_file)
-        self.backend.compress()
-        assert os.path.exists(packed_refs_file)
+def test_rename(repo):
+    old_ref = repo.backend.lookup('refs/heads/i18n')
+    target = repo.get(old_ref.target)
+    who = target.committer
+    repo.backend.rename('refs/heads/i18n', 'refs/heads/intl',
+            False, target.committer, target.message)
+    assert repo.backend.lookup('refs/heads/intl').target == target.id
 
-    def test_has_log(self):
-        assert self.backend.has_log('refs/heads/master')
-        assert not self.backend.has_log('refs/heads/does-not-exist')
+def test_delete(repo):
+    old = repo.backend.lookup('refs/heads/i18n')
+    repo.backend.delete('refs/heads/i18n', old.target, None)
+    assert not repo.backend.lookup('refs/heads/i18n')
 
-    def test_ensure_log(self):
-        assert not self.backend.has_log('refs/heads/new-log')
-        self.backend.ensure_log('refs/heads/new-log')
-        assert self.backend.has_log('refs/heads/new-log')
+def test_compress(repo):
+    repo = repo
+    packed_refs_file = os.path.join(repo.path, 'packed-refs')
+    assert not os.path.exists(packed_refs_file)
+    repo.backend.compress()
+    assert os.path.exists(packed_refs_file)
+
+def test_has_log(repo):
+    assert repo.backend.has_log('refs/heads/master')
+    assert not repo.backend.has_log('refs/heads/does-not-exist')
+
+def test_ensure_log(repo):
+    assert not repo.backend.has_log('refs/heads/new-log')
+    repo.backend.ensure_log('refs/heads/new-log')
+    assert repo.backend.has_log('refs/heads/new-log')

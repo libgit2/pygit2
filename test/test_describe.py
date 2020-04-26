@@ -29,7 +29,6 @@ import pytest
 
 from pygit2 import GIT_DESCRIBE_TAGS, GIT_DESCRIBE_ALL
 import pygit2
-from . import utils
 
 
 def add_tag(repo, name, target):
@@ -40,60 +39,59 @@ def add_tag(repo, name, target):
     return sha
 
 
-class DescribeTest(utils.RepoTestCase):
+def test_describe(testrepo):
+    add_tag(testrepo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
+    assert 'thetag-2-g2be5719' == testrepo.describe()
 
-    def test_describe(self):
-        add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        assert 'thetag-2-g2be5719' == self.repo.describe()
+def test_describe_without_ref(testrepo):
+    with pytest.raises(pygit2.GitError): testrepo.describe()
 
-    def test_describe_without_ref(self):
-        with pytest.raises(pygit2.GitError): self.repo.describe()
+def test_describe_default_oid(testrepo):
+    assert '2be5719' == testrepo.describe(show_commit_oid_as_fallback=True)
 
-    def test_describe_default_oid(self):
-        assert '2be5719' == self.repo.describe(show_commit_oid_as_fallback=True)
+def test_describe_strategies(testrepo):
+    assert 'heads/master' == testrepo.describe(describe_strategy=GIT_DESCRIBE_ALL)
 
-    def test_describe_strategies(self):
-        assert 'heads/master' == self.repo.describe(describe_strategy=GIT_DESCRIBE_ALL)
+    testrepo.create_reference('refs/tags/thetag', '4ec4389a8068641da2d6578db0419484972284c8')
+    with pytest.raises(KeyError): testrepo.describe()
+    assert 'thetag-2-g2be5719' == testrepo.describe(describe_strategy=GIT_DESCRIBE_TAGS)
 
-        self.repo.create_reference('refs/tags/thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        with pytest.raises(KeyError): self.repo.describe()
-        assert 'thetag-2-g2be5719' == self.repo.describe(describe_strategy=GIT_DESCRIBE_TAGS)
+def test_describe_pattern(testrepo):
+    add_tag(testrepo, 'private/tag1', '5ebeeebb320790caf276b9fc8b24546d63316533')
+    add_tag(testrepo, 'public/tag2', '4ec4389a8068641da2d6578db0419484972284c8')
 
-    def test_describe_pattern(self):
-        add_tag(self.repo, 'private/tag1', '5ebeeebb320790caf276b9fc8b24546d63316533')
-        add_tag(self.repo, 'public/tag2', '4ec4389a8068641da2d6578db0419484972284c8')
+    assert 'public/tag2-2-g2be5719' == testrepo.describe(pattern='public/*')
 
-        assert 'public/tag2-2-g2be5719' == self.repo.describe(pattern='public/*')
+def test_describe_committish(testrepo):
+    add_tag(testrepo, 'thetag', 'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+    assert 'thetag-4-g2be5719' == testrepo.describe(committish='HEAD')
+    assert 'thetag-1-g5ebeeeb' == testrepo.describe(committish='HEAD^')
 
-    def test_describe_committish(self):
-        add_tag(self.repo, 'thetag', 'acecd5ea2924a4b900e7e149496e1f4b57976e51')
-        assert 'thetag-4-g2be5719' == self.repo.describe(committish='HEAD')
-        assert 'thetag-1-g5ebeeeb' == self.repo.describe(committish='HEAD^')
+    assert 'thetag-4-g2be5719' == testrepo.describe(committish=testrepo.head)
 
-        assert 'thetag-4-g2be5719' == self.repo.describe(committish=self.repo.head)
+    assert 'thetag-1-g6aaa262' == testrepo.describe(committish='6aaa262e655dd54252e5813c8e5acd7780ed097d')
+    assert 'thetag-1-g6aaa262' == testrepo.describe(committish='6aaa262')
 
-        assert 'thetag-1-g6aaa262' == self.repo.describe(committish='6aaa262e655dd54252e5813c8e5acd7780ed097d')
-        assert 'thetag-1-g6aaa262' == self.repo.describe(committish='6aaa262')
+def test_describe_follows_first_branch_only(testrepo):
+    add_tag(testrepo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
+    with pytest.raises(KeyError):
+        testrepo.describe(only_follow_first_parent=True)
 
-    def test_describe_follows_first_branch_only(self):
-        add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        with pytest.raises(KeyError):
-            self.repo.describe(only_follow_first_parent=True)
+def test_describe_abbreviated_size(testrepo):
+    add_tag(testrepo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
+    assert 'thetag-2-g2be5719152d4f82c' == testrepo.describe(abbreviated_size=16)
+    assert 'thetag' == testrepo.describe(abbreviated_size=0)
 
-    def test_describe_abbreviated_size(self):
-        add_tag(self.repo, 'thetag', '4ec4389a8068641da2d6578db0419484972284c8')
-        assert 'thetag-2-g2be5719152d4f82c' == self.repo.describe(abbreviated_size=16)
-        assert 'thetag' == self.repo.describe(abbreviated_size=0)
-
-    def test_describe_long_format(self):
-        add_tag(self.repo, 'thetag', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')
-        assert 'thetag-0-g2be5719' == self.repo.describe(always_use_long_format=True)
+def test_describe_long_format(testrepo):
+    add_tag(testrepo, 'thetag', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')
+    assert 'thetag-0-g2be5719' == testrepo.describe(always_use_long_format=True)
 
 
-def test_describe(dirtyrepo):
+
+def test_describe_dirty(dirtyrepo):
     add_tag(dirtyrepo, 'thetag', 'a763aa560953e7cfb87ccbc2f536d665aa4dff22')
     assert 'thetag' == dirtyrepo.describe()
 
-def test_describe_with_dirty_suffix(dirtyrepo):
+def test_describe_dirty_with_suffix(dirtyrepo):
     add_tag(dirtyrepo, 'thetag', 'a763aa560953e7cfb87ccbc2f536d665aa4dff22')
     assert 'thetag-dirty' == dirtyrepo.describe(dirty_suffix='-dirty')

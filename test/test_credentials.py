@@ -92,60 +92,56 @@ def test_ssh_from_memory():
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
 
-class CredentialCallback(utils.RepoTestCase):
+def test_callback(testrepo):
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def credentials(testrepo, url, username, allowed):
+            assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
+            raise Exception("I don't know the password")
 
-    def test_callback(self):
-        class MyCallbacks(pygit2.RemoteCallbacks):
-            def credentials(self, url, username, allowed):
-                assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
-                raise Exception("I don't know the password")
+    url = "https://github.com/github/github"
+    remote = testrepo.remotes.create("github", url)
+    with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
 
-        url = "https://github.com/github/github"
-        remote = self.repo.remotes.create("github", url)
-        with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
+@utils.network
+def test_bad_cred_type(testrepo):
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def credentials(testrepo, url, username, allowed):
+            assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
+            return Keypair("git", "foo.pub", "foo", "sekkrit")
 
-    @utils.network
-    def test_bad_cred_type(self):
-        class MyCallbacks(pygit2.RemoteCallbacks):
-            def credentials(self, url, username, allowed):
-                assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
-                return Keypair("git", "foo.pub", "foo", "sekkrit")
+    url = "https://github.com/github/github"
+    remote = testrepo.remotes.create("github", url)
+    with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
 
-        url = "https://github.com/github/github"
-        remote = self.repo.remotes.create("github", url)
-        with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
+@utils.network
+def test_fetch_certificate_check(testrepo):
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def certificate_check(testrepo, certificate, valid, host):
+            assert certificate is None
+            assert valid is True
+            assert host == b'github.com'
+            return False
 
-    @utils.network
-    def test_fetch_certificate_check(self):
-        class MyCallbacks(pygit2.RemoteCallbacks):
-            def certificate_check(self, certificate, valid, host):
-                assert certificate is None
-                assert valid is True
-                assert host == b'github.com'
-                return False
+    url = 'https://github.com/libgit2/pygit2.git'
+    remote = testrepo.remotes.create('https', url)
+    with pytest.raises(pygit2.GitError) as exc:
+        remote.fetch(callbacks=MyCallbacks())
 
-        url = 'https://github.com/libgit2/pygit2.git'
-        remote = self.repo.remotes.create('https', url)
-        with pytest.raises(pygit2.GitError) as exc:
-            remote.fetch(callbacks=MyCallbacks())
+    # libgit2 uses different error message for Linux and Windows
+    # TODO test one or the other depending on the platform
+    assert str(exc.value) in (
+        'user rejected certificate for github.com', # httpclient
+        'user cancelled certificate check') # winhttp
 
-        # libgit2 uses different error message for Linux and Windows
-        # TODO test one or the other depending on the platform
-        assert str(exc.value) in (
-            'user rejected certificate for github.com', # httpclient
-            'user cancelled certificate check') # winhttp
-
-        # TODO Add GitError.error_code
-        #assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
+    # TODO Add GitError.error_code
+    #assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
 
 
-class CallableCredentialTest(utils.RepoTestCase):
+@utils.network
+def test_user_pass(testrepo):
+    credentials = UserPass("libgit2", "libgit2")
+    callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
-    @utils.network
-    def test_user_pass(self):
-        credentials = UserPass("libgit2", "libgit2")
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
-
-        url = 'https://github.com/libgit2/TestGitRepository'
-        remote = self.repo.remotes.create("bb", url)
-        remote.fetch(callbacks=callbacks)
+    url = 'https://github.com/libgit2/TestGitRepository'
+    remote = testrepo.remotes.create("bb", url)
+    remote.fetch(callbacks=callbacks)

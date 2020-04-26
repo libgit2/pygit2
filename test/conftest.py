@@ -55,3 +55,10 @@ def mergerepo():
     repo_spec = 'tar', 'testrepoformerging'
     with utils.TemporaryRepository(repo_spec) as path:
         yield pygit2.Repository(path)
+
+
+@pytest.fixture
+def testrepo():
+    repo_spec = 'tar', 'testrepo'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)

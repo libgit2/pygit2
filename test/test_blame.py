@@ -28,7 +28,6 @@
 import pytest
 
 from pygit2 import Signature, Oid
-from . import utils
 
 
 PATH = 'hello.txt'
@@ -45,15 +44,72 @@ HUNKS = [
                1297696908, 60, encoding='utf-8'), False)
 ]
 
-class BlameTest(utils.RepoTestCase):
 
-    def test_blame_index(self):
-        repo = self.repo
-        blame = repo.blame(PATH)
+def test_blame_index(testrepo):
+    blame = testrepo.blame(PATH)
 
-        assert len(blame) == 3
+    assert len(blame) == 3
 
-        for i, hunk in enumerate(blame):
+    for i, hunk in enumerate(blame):
+        assert hunk.lines_in_hunk == 1
+        assert HUNKS[i][0] == hunk.final_commit_id
+        assert HUNKS[i][1] == hunk.final_start_line_number
+        assert HUNKS[i][2] == hunk.final_committer
+        assert HUNKS[i][0] == hunk.orig_commit_id
+        assert hunk.orig_path == PATH
+        assert HUNKS[i][1] == hunk.orig_start_line_number
+        assert HUNKS[i][2] == hunk.orig_committer
+        assert HUNKS[i][3] == hunk.boundary
+
+def test_blame_with_invalid_index(testrepo):
+    blame = testrepo.blame(PATH)
+
+    def test():
+        blame[100000]
+        blame[-1]
+
+    with pytest.raises(IndexError): test()
+
+def test_blame_for_line(testrepo):
+    blame = testrepo.blame(PATH)
+
+    for i, line in zip(range(0, 2), range(1, 3)):
+        hunk = blame.for_line(line)
+
+        assert hunk.lines_in_hunk == 1
+        assert HUNKS[i][0] == hunk.final_commit_id
+        assert HUNKS[i][1] == hunk.final_start_line_number
+        assert HUNKS[i][2] == hunk.final_committer
+        assert HUNKS[i][0] == hunk.orig_commit_id
+        assert hunk.orig_path == PATH
+        assert HUNKS[i][1] == hunk.orig_start_line_number
+        assert HUNKS[i][2] == hunk.orig_committer
+        assert HUNKS[i][3] == hunk.boundary
+
+def test_blame_with_invalid_line(testrepo):
+    blame = testrepo.blame(PATH)
+
+    def test():
+        blame.for_line(0)
+        blame.for_line(100000)
+        blame.for_line(-1)
+
+    with pytest.raises(IndexError): test()
+
+def test_blame_newest(testrepo):
+    revs = [
+        ( 'master^2',   3 ),
+        ( 'master^2^',  2 ),
+        ( 'master^2^^', 1 ),
+    ]
+
+    for rev, num_commits in revs:
+        commit = testrepo.revparse_single(rev)
+        blame = testrepo.blame(PATH, newest_commit=commit.id)
+
+        assert len(blame) == num_commits
+
+        for i, hunk in enumerate(tuple(blame)[:num_commits]):
             assert hunk.lines_in_hunk == 1
             assert HUNKS[i][0] == hunk.final_commit_id
             assert HUNKS[i][1] == hunk.final_start_line_number
@@ -63,67 +119,3 @@ class BlameTest(utils.RepoTestCase):
             assert HUNKS[i][1] == hunk.orig_start_line_number
             assert HUNKS[i][2] == hunk.orig_committer
             assert HUNKS[i][3] == hunk.boundary
-
-    def test_blame_with_invalid_index(self):
-        repo = self.repo
-        blame = repo.blame(PATH)
-
-        def test():
-            blame[100000]
-            blame[-1]
-
-        with pytest.raises(IndexError): test()
-
-    def test_blame_for_line(self):
-        repo = self.repo
-        blame = repo.blame(PATH)
-
-        for i, line in zip(range(0, 2), range(1, 3)):
-            hunk = blame.for_line(line)
-
-            assert hunk.lines_in_hunk == 1
-            assert HUNKS[i][0] == hunk.final_commit_id
-            assert HUNKS[i][1] == hunk.final_start_line_number
-            assert HUNKS[i][2] == hunk.final_committer
-            assert HUNKS[i][0] == hunk.orig_commit_id
-            assert hunk.orig_path == PATH
-            assert HUNKS[i][1] == hunk.orig_start_line_number
-            assert HUNKS[i][2] == hunk.orig_committer
-            assert HUNKS[i][3] == hunk.boundary
-
-    def test_blame_with_invalid_line(self):
-        repo = self.repo
-        blame = repo.blame(PATH)
-
-        def test():
-            blame.for_line(0)
-            blame.for_line(100000)
-            blame.for_line(-1)
-
-        with pytest.raises(IndexError): test()
-
-    def test_blame_newest(self):
-        repo = self.repo
-
-        revs = [
-            ( 'master^2',   3 ),
-            ( 'master^2^',  2 ),
-            ( 'master^2^^', 1 ),
-        ]
-
-        for rev, num_commits in revs:
-            commit = repo.revparse_single(rev)
-            blame = repo.blame(PATH, newest_commit=commit.id)
-
-            assert len(blame) == num_commits
-
-            for i, hunk in enumerate(tuple(blame)[:num_commits]):
-                assert hunk.lines_in_hunk == 1
-                assert HUNKS[i][0] == hunk.final_commit_id
-                assert HUNKS[i][1] == hunk.final_start_line_number
-                assert HUNKS[i][2] == hunk.final_committer
-                assert HUNKS[i][0] == hunk.orig_commit_id
-                assert hunk.orig_path == PATH
-                assert HUNKS[i][1] == hunk.orig_start_line_number
-                assert HUNKS[i][2] == hunk.orig_committer
-                assert HUNKS[i][3] == hunk.boundary

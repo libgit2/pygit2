@@ -30,30 +30,23 @@ from pathlib import Path
 # pygit2
 from . import utils
 
-try:
-    import __pypy__
-except ImportError:
-    __pypy__ = None
 
+def test_no_attr(testrepo):
+    assert testrepo.get_attr('file', 'foo') is None
 
-class RepositorySignatureTest(utils.RepoTestCase):
+    with open(join(testrepo.workdir, '.gitattributes'), 'w+') as f:
+        print('*.py  text\n', file=f)
+        print('*.jpg -text\n', file=f)
+        print('*.sh  eol=lf\n', file=f)
 
-    def test_no_attr(self):
-        assert self.repo.get_attr('file', 'foo') is None
+    assert testrepo.get_attr('file.py', 'foo') is None
+    assert testrepo.get_attr('file.py', 'text')
+    assert not testrepo.get_attr('file.jpg', 'text')
+    assert "lf" == testrepo.get_attr('file.sh', 'eol')
 
-        with open(join(self.repo.workdir, '.gitattributes'), 'w+') as f:
-            print('*.py  text\n', file=f)
-            print('*.jpg -text\n', file=f)
-            print('*.sh  eol=lf\n', file=f)
+@utils.fspath
+def test_no_attr_aspath(testrepo):
+    with open(join(testrepo.workdir, '.gitattributes'), 'w+') as f:
+        print('*.py  text\n', file=f)
 
-        assert self.repo.get_attr('file.py', 'foo') is None
-        assert self.repo.get_attr('file.py', 'text')
-        assert not self.repo.get_attr('file.jpg', 'text')
-        assert "lf" == self.repo.get_attr('file.sh', 'eol')
-
-    @utils.fspath
-    def test_no_attr_aspath(self):
-        with open(join(self.repo.workdir, '.gitattributes'), 'w+') as f:
-            print('*.py  text\n', file=f)
-
-        assert self.repo.get_attr(Path('file.py'), 'text')
+    assert testrepo.get_attr(Path('file.py'), 'text')

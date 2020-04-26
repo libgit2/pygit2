@@ -27,41 +27,38 @@ import os
 import tarfile
 
 from pygit2 import Index, Oid, Tree, Object
-from . import utils
 
 
 TREE_HASH = 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 COMMIT_HASH = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
-class ArchiveTest(utils.RepoTestCase):
+def check_writing(repo, treeish, timestamp=None):
+    archive = tarfile.open('foo.tar', mode='w')
+    repo.write_archive(treeish, archive)
 
-    def check_writing(self, treeish, timestamp=None):
-        archive = tarfile.open('foo.tar', mode='w')
-        self.repo.write_archive(treeish, archive)
+    index = Index()
+    if isinstance(treeish, Object):
+        index.read_tree(treeish.peel(Tree))
+    else:
+        index.read_tree(repo[treeish].peel(Tree))
 
-        index = Index()
-        if isinstance(treeish, Object):
-            index.read_tree(treeish.peel(Tree))
-        else:
-            index.read_tree(self.repo[treeish].peel(Tree))
+    assert len(index) == len(archive.getmembers())
 
-        assert len(index) == len(archive.getmembers())
+    if timestamp:
+        fileinfo = archive.getmembers()[0]
+        assert timestamp == fileinfo.mtime
 
-        if timestamp:
-            fileinfo = archive.getmembers()[0]
-            assert timestamp == fileinfo.mtime
+    archive.close()
+    assert os.path.isfile('foo.tar')
+    os.remove('foo.tar')
 
-        archive.close()
-        assert os.path.isfile('foo.tar')
-        os.remove('foo.tar')
+def test_write_tree(testrepo):
+    check_writing(testrepo, TREE_HASH)
+    check_writing(testrepo, Oid(hex=TREE_HASH))
+    check_writing(testrepo, testrepo[TREE_HASH])
 
-    def test_write_tree(self):
-        self.check_writing(TREE_HASH)
-        self.check_writing(Oid(hex=TREE_HASH))
-        self.check_writing(self.repo[TREE_HASH])
-
-    def test_write_commit(self):
-        commit_timestamp = self.repo[COMMIT_HASH].committer.time
-        self.check_writing(COMMIT_HASH, commit_timestamp)
-        self.check_writing(Oid(hex=COMMIT_HASH), commit_timestamp)
-        self.check_writing(self.repo[COMMIT_HASH], commit_timestamp)
+def test_write_commit(testrepo):
+    commit_timestamp = testrepo[COMMIT_HASH].committer.time
+    check_writing(testrepo, COMMIT_HASH, commit_timestamp)
+    check_writing(testrepo, Oid(hex=COMMIT_HASH), commit_timestamp)
+    check_writing(testrepo, testrepo[COMMIT_HASH], commit_timestamp)

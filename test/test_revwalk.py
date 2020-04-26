@@ -26,7 +26,6 @@
 """Tests for revision walk."""
 
 from pygit2 import GIT_SORT_NONE, GIT_SORT_TIME, GIT_SORT_REVERSE
-from . import utils
 
 
 # In the order given by git log
@@ -51,60 +50,57 @@ REVLOGS = [
 ]
 
 
-class RevlogTestTest(utils.RepoTestCase):
-    def test_log(self):
-        ref = self.repo.lookup_reference('HEAD')
-        for i, entry in enumerate(ref.log()):
-            assert entry.committer.name == REVLOGS[i][0]
-            assert entry.message == REVLOGS[i][1]
+def test_log(testrepo):
+    ref = testrepo.lookup_reference('HEAD')
+    for i, entry in enumerate(ref.log()):
+        assert entry.committer.name == REVLOGS[i][0]
+        assert entry.message == REVLOGS[i][1]
 
 
-class WalkerTest(utils.RepoTestCase):
+def test_walk(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    assert [x.hex for x in walker] == log
 
-    def test_walk(self):
-        walker = self.repo.walk(log[0], GIT_SORT_TIME)
-        assert [x.hex for x in walker] == log
+def test_reverse(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_TIME | GIT_SORT_REVERSE)
+    assert [x.hex for x in walker] == list(reversed(log))
 
-    def test_reverse(self):
-        walker = self.repo.walk(log[0], GIT_SORT_TIME | GIT_SORT_REVERSE)
-        assert [x.hex for x in walker] == list(reversed(log))
+def test_hide(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
+    assert len(list(walker)) == 2
 
-    def test_hide(self):
-        walker = self.repo.walk(log[0], GIT_SORT_TIME)
-        walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
-        assert len(list(walker)) == 2
+def test_hide_prefix(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker.hide('4ec4389a')
+    assert len(list(walker)) == 2
 
-    def test_hide_prefix(self):
-        walker = self.repo.walk(log[0], GIT_SORT_TIME)
-        walker.hide('4ec4389a')
-        assert len(list(walker)) == 2
+def test_reset(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker.reset()
+    assert [x.hex for x in walker] == []
 
-    def test_reset(self):
-        walker = self.repo.walk(log[0], GIT_SORT_TIME)
-        walker.reset()
-        assert [x.hex for x in walker] == []
+def test_push(testrepo):
+    walker = testrepo.walk(log[-1], GIT_SORT_TIME)
+    assert [x.hex for x in walker] == log[-1:]
+    walker.reset()
+    walker.push(log[0])
+    assert [x.hex for x in walker] == log
 
-    def test_push(self):
-        walker = self.repo.walk(log[-1], GIT_SORT_TIME)
-        assert [x.hex for x in walker] == log[-1:]
-        walker.reset()
-        walker.push(log[0])
-        assert [x.hex for x in walker] == log
+def test_sort(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker.sort(GIT_SORT_TIME | GIT_SORT_REVERSE)
+    assert [x.hex for x in walker] == list(reversed(log))
 
-    def test_sort(self):
-        walker = self.repo.walk(log[0], GIT_SORT_TIME)
-        walker.sort(GIT_SORT_TIME | GIT_SORT_REVERSE)
-        assert [x.hex for x in walker] == list(reversed(log))
+def test_simplify_first_parent(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker.simplify_first_parent()
+    assert len(list(walker)) == 3
 
-    def test_simplify_first_parent(self):
-        walker = self.repo.walk(log[0], GIT_SORT_TIME)
-        walker.simplify_first_parent()
-        assert len(list(walker)) == 3
+def test_default_sorting(testrepo):
+    walker = testrepo.walk(log[0], GIT_SORT_NONE)
+    list1 = list([x.id for x in walker])
+    walker = testrepo.walk(log[0])
+    list2 = list([x.id for x in walker])
 
-    def test_default_sorting(self):
-        walker = self.repo.walk(log[0], GIT_SORT_NONE)
-        list1 = list([x.id for x in walker])
-        walker = self.repo.walk(log[0])
-        list2 = list([x.id for x in walker])
-
-        assert list1 == list2
+    assert list1 == list2

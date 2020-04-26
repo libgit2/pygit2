@@ -34,164 +34,159 @@ from . import utils
 
 CONFIG_FILENAME = "test_config"
 
-class ConfigTest(utils.RepoTestCase):
 
-    def tearDown(self):
-        super().tearDown()
-        try:
-            os.remove(CONFIG_FILENAME)
-        except OSError:
-            pass
+@pytest.fixture
+def config(testrepo):
+    yield testrepo.config
+    try:
+        os.remove(CONFIG_FILENAME)
+    except OSError:
+        pass
 
-    def test_config(self):
-        assert self.repo.config is not None
 
-    def test_global_config(self):
-        try:
-            assert Config.get_global_config() is not None
-        except IOError:
-            # There is no user config
-            pass
+def test_config(config):
+    assert config is not None
 
-    def test_system_config(self):
-        try:
-            assert Config.get_system_config() is not None
-        except IOError:
-            # There is no system config
-            pass
+def test_global_config():
+    try:
+        assert Config.get_global_config() is not None
+    except IOError:
+        # There is no user config
+        pass
 
-    def test_new(self):
-        # Touch file
-        open(CONFIG_FILENAME, 'w').close()
+def test_system_config():
+    try:
+        assert Config.get_system_config() is not None
+    except IOError:
+        # There is no system config
+        pass
 
-        config_write = Config(CONFIG_FILENAME)
-        assert config_write is not None
+def test_new():
+    # Touch file
+    open(CONFIG_FILENAME, 'w').close()
 
-        config_write['core.bare'] = False
-        config_write['core.editor'] = 'ed'
+    config_write = Config(CONFIG_FILENAME)
+    assert config_write is not None
 
-        config_read = Config(CONFIG_FILENAME)
-        assert 'core.bare' in config_read
-        assert not config_read.get_bool('core.bare')
-        assert 'core.editor' in config_read
-        assert config_read['core.editor'] == 'ed'
+    config_write['core.bare'] = False
+    config_write['core.editor'] = 'ed'
 
-    def test_add(self):
-        config = Config()
+    config_read = Config(CONFIG_FILENAME)
+    assert 'core.bare' in config_read
+    assert not config_read.get_bool('core.bare')
+    assert 'core.editor' in config_read
+    assert config_read['core.editor'] == 'ed'
 
-        new_file = open(CONFIG_FILENAME, "w")
-        new_file.write("[this]\n\tthat = true\n")
-        new_file.write("[something \"other\"]\n\there = false")
-        new_file.close()
+def test_add():
+    config = Config()
 
-        config.add_file(CONFIG_FILENAME, 0)
-        assert 'this.that' in config
-        assert config.get_bool('this.that')
-        assert 'something.other.here' in config
-        assert not config.get_bool('something.other.here')
+    new_file = open(CONFIG_FILENAME, "w")
+    new_file.write("[this]\n\tthat = true\n")
+    new_file.write("[something \"other\"]\n\there = false")
+    new_file.close()
 
-    @utils.fspath
-    def test_add_aspath(self):
-        config = Config()
+    config.add_file(CONFIG_FILENAME, 0)
+    assert 'this.that' in config
+    assert config.get_bool('this.that')
+    assert 'something.other.here' in config
+    assert not config.get_bool('something.other.here')
 
-        new_file = open(CONFIG_FILENAME, "w")
-        new_file.write("[this]\n\tthat = true\n")
-        new_file.close()
+@utils.fspath
+def test_add_aspath():
+    config = Config()
 
-        config.add_file(Path(CONFIG_FILENAME), 0)
-        assert 'this.that' in config
+    new_file = open(CONFIG_FILENAME, "w")
+    new_file.write("[this]\n\tthat = true\n")
+    new_file.close()
 
-    def test_read(self):
-        config = self.repo.config
+    config.add_file(Path(CONFIG_FILENAME), 0)
+    assert 'this.that' in config
 
-        with pytest.raises(TypeError): config[()]
-        with pytest.raises(TypeError): config[-4]
-        utils.assertRaisesWithArg(ValueError, "invalid config item name 'abc'",
-                                  lambda: config['abc'])
-        utils.assertRaisesWithArg(KeyError, 'abc.def',
-                                  lambda: config['abc.def'])
+def test_read(config):
+    with pytest.raises(TypeError): config[()]
+    with pytest.raises(TypeError): config[-4]
+    utils.assertRaisesWithArg(ValueError, "invalid config item name 'abc'",
+                              lambda: config['abc'])
+    utils.assertRaisesWithArg(KeyError, 'abc.def',
+                              lambda: config['abc.def'])
 
-        assert 'core.bare' in config
-        assert not config.get_bool('core.bare')
-        assert 'core.editor' in config
-        assert config['core.editor'] == 'ed'
-        assert 'core.repositoryformatversion' in config
-        assert config.get_int('core.repositoryformatversion') == 0
+    assert 'core.bare' in config
+    assert not config.get_bool('core.bare')
+    assert 'core.editor' in config
+    assert config['core.editor'] == 'ed'
+    assert 'core.repositoryformatversion' in config
+    assert config.get_int('core.repositoryformatversion') == 0
 
-        new_file = open(CONFIG_FILENAME, "w")
-        new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
-        new_file.close()
+    new_file = open(CONFIG_FILENAME, "w")
+    new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
+    new_file.close()
 
-        config.add_file(CONFIG_FILENAME, 0)
-        assert 'this.that' in config
+    config.add_file(CONFIG_FILENAME, 0)
+    assert 'this.that' in config
 
-        assert 2 == len(list(config.get_multivar('this.that')))
-        l = list(config.get_multivar('this.that', 'bar'))
-        assert 1 == len(l)
-        assert l[0] == 'foobar'
+    assert 2 == len(list(config.get_multivar('this.that')))
+    l = list(config.get_multivar('this.that', 'bar'))
+    assert 1 == len(l)
+    assert l[0] == 'foobar'
 
-    def test_write(self):
-        config = self.repo.config
+def test_write(config):
+    with pytest.raises(TypeError):
+        config.__setitem__((), 'This should not work')
 
-        with pytest.raises(TypeError):
-            config.__setitem__((), 'This should not work')
+    assert 'core.dummy1' not in config
+    config['core.dummy1'] = 42
+    assert 'core.dummy1' in config
+    assert config.get_int('core.dummy1') == 42
 
-        assert 'core.dummy1' not in config
-        config['core.dummy1'] = 42
-        assert 'core.dummy1' in config
-        assert config.get_int('core.dummy1') == 42
+    assert 'core.dummy2' not in config
+    config['core.dummy2'] = 'foobar'
+    assert 'core.dummy2' in config
+    assert config['core.dummy2'] == 'foobar'
 
-        assert 'core.dummy2' not in config
-        config['core.dummy2'] = 'foobar'
-        assert 'core.dummy2' in config
-        assert config['core.dummy2'] == 'foobar'
+    assert 'core.dummy3' not in config
+    config['core.dummy3'] = True
+    assert 'core.dummy3' in config
+    assert config['core.dummy3']
 
-        assert 'core.dummy3' not in config
-        config['core.dummy3'] = True
-        assert 'core.dummy3' in config
-        assert config['core.dummy3']
+    del config['core.dummy1']
+    assert 'core.dummy1' not in config
+    del config['core.dummy2']
+    assert 'core.dummy2' not in config
+    del config['core.dummy3']
+    assert 'core.dummy3' not in config
 
-        del config['core.dummy1']
-        assert 'core.dummy1' not in config
-        del config['core.dummy2']
-        assert 'core.dummy2' not in config
-        del config['core.dummy3']
-        assert 'core.dummy3' not in config
+    new_file = open(CONFIG_FILENAME, "w")
+    new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
+    new_file.close()
 
-        new_file = open(CONFIG_FILENAME, "w")
-        new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
-        new_file.close()
+    config.add_file(CONFIG_FILENAME, 6)
+    assert 'this.that' in config
+    l = config.get_multivar('this.that', 'foo.*')
+    assert 2 == len(list(l))
 
-        config.add_file(CONFIG_FILENAME, 6)
-        assert 'this.that' in config
-        l = config.get_multivar('this.that', 'foo.*')
-        assert 2 == len(list(l))
+    config.set_multivar('this.that', '^.*beer', 'fool')
+    l = list(config.get_multivar('this.that', 'fool'))
+    assert len(l) == 1
+    assert l[0] == 'fool'
 
-        config.set_multivar('this.that', '^.*beer', 'fool')
-        l = list(config.get_multivar('this.that', 'fool'))
-        assert len(l) == 1
-        assert l[0] == 'fool'
+    config.set_multivar('this.that', 'foo.*', 'foo-123456')
+    l = config.get_multivar('this.that', 'foo.*')
+    assert 2 == len(list(l))
+    for i in l:
+        assert i == 'foo-123456'
 
-        config.set_multivar('this.that', 'foo.*', 'foo-123456')
-        l = config.get_multivar('this.that', 'foo.*')
-        assert 2 == len(list(l))
-        for i in l:
-            assert i == 'foo-123456'
+def test_iterator(config):
+    lst = {}
+    for entry in config:
+        assert entry.level > -1
+        lst[entry.name] = entry.value
 
-    def test_iterator(self):
-        config = self.repo.config
-        lst = {}
+    assert 'core.bare' in lst
+    assert lst['core.bare']
 
-        for entry in config:
-            assert entry.level > -1
-            lst[entry.name] = entry.value
+def test_parsing():
+    assert Config.parse_bool("on")
+    assert Config.parse_bool("1")
 
-        assert 'core.bare' in lst
-        assert lst['core.bare']
-
-    def test_parsing(self):
-        assert Config.parse_bool("on")
-        assert Config.parse_bool("1")
-
-        assert 5 == Config.parse_int("5")
-        assert 1024 == Config.parse_int("1k")
+    assert 5 == Config.parse_int("5")
+    assert 1024 == Config.parse_int("1k")

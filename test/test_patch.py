@@ -23,10 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pytest
-
 import pygit2
-from . import utils
+import pytest
 
 
 BLOB_OLD_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
@@ -82,226 +80,181 @@ index a520c24..0000000
 """
 
 
-class PatchTest(utils.RepoTestCase):
-
-    def test_patch_create_from_buffers(self):
-        patch = pygit2.Patch.create_from(
-            BLOB_OLD_CONTENT,
-            BLOB_NEW_CONTENT,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH
-
-    def test_patch_create_from_blobs(self):
-        old_blob = self.repo[BLOB_OLD_SHA]
-        new_blob = self.repo[BLOB_NEW_SHA]
-
-        patch = pygit2.Patch.create_from(
-            old_blob,
-            new_blob,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH2
-
-    def test_patch_create_from_blob_buffer(self):
-        old_blob = self.repo[BLOB_OLD_SHA]
-        patch = pygit2.Patch.create_from(
-            old_blob,
-            BLOB_NEW_CONTENT,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH
-
-    def test_patch_create_from_blob_buffer_add(self):
-        patch = pygit2.Patch.create_from(
-            None,
-            BLOB_NEW_CONTENT,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH_ADDED
-
-    def test_patch_create_from_blob_buffer_delete(self):
-        old_blob = self.repo[BLOB_OLD_SHA]
-
-        patch = pygit2.Patch.create_from(
-            old_blob,
-            None,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH_DELETED
-
-    def test_patch_create_from_bad_old_type_arg(self):
-        with pytest.raises(TypeError):
-            pygit2.Patch.create_from(self.repo, BLOB_NEW_CONTENT)
-
-    def test_patch_create_from_bad_new_type_arg(self):
-        with pytest.raises(TypeError):
-            pygit2.Patch.create_from(None, self.repo)
-
-    def test_context_lines(self):
-        old_blob = self.repo[BLOB_OLD_SHA]
-        new_blob = self.repo[BLOB_NEW_SHA]
-
-        patch = pygit2.Patch.create_from(
-            old_blob,
-            new_blob,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        context_count = len(
-            [line for line in patch.text.splitlines() if line.startswith(" ")]
-        )
-
-        assert context_count != 0
-
-    def test_no_context_lines(self):
-        old_blob = self.repo[BLOB_OLD_SHA]
-        new_blob = self.repo[BLOB_NEW_SHA]
-
-        patch = pygit2.Patch.create_from(
-            old_blob,
-            new_blob,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-            context_lines=0,
-        )
-
-        context_count = len(
-            [line for line in patch.text.splitlines() if line.startswith(" ")]
-        )
-
-        assert context_count == 0
-
-    def test_patch_create_blob_blobs(self):
-        old_blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
-        new_blob = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
-
-        patch = pygit2.Patch.create_from(
-            old_blob,
-            new_blob,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH
-
-    def test_patch_create_blob_buffer(self):
-        blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
-        patch = pygit2.Patch.create_from(
-            blob,
-            BLOB_NEW_CONTENT,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH
-
-    def test_patch_create_blob_delete(self):
-        blob = self.repo[self.repo.create_blob(BLOB_OLD_CONTENT)]
-        patch = pygit2.Patch.create_from(
-            blob,
-            None,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH_DELETED
-
-    def test_patch_create_blob_add(self):
-        blob = self.repo[self.repo.create_blob(BLOB_NEW_CONTENT)]
-        patch = pygit2.Patch.create_from(
-            None,
-            blob,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        assert patch.text == BLOB_PATCH_ADDED
-
-    def test_patch_delete_blob(self):
-        blob = self.repo[BLOB_OLD_SHA]
-        patch = pygit2.Patch.create_from(
-            blob,
-            None,
-            old_as_path=BLOB_OLD_PATH,
-            new_as_path=BLOB_NEW_PATH,
-        )
-
-        # Make sure that even after deleting the blob the patch still has the
-        # necessary references to generate its patch
-        del blob
-        assert patch.text == BLOB_PATCH_DELETED
-
-    def test_patch_multi_blob(self):
-        blob = self.repo[BLOB_OLD_SHA]
-        patch = pygit2.Patch.create_from(
-            blob,
-            None
-        )
-        patch_text = patch.text
-
-        blob = self.repo[BLOB_OLD_SHA]
-        patch2 = pygit2.Patch.create_from(
-            blob,
-            None
-        )
-        patch_text2 = patch.text
-
-        assert patch_text == patch_text2
-        assert patch_text == patch.text
-        assert patch_text2 == patch2.text
-        assert patch.text == patch2.text
-
-
-expected_diff = b"""diff --git a/iso-8859-1.txt b/iso-8859-1.txt
-index e84e339..201e0c9 100644
---- a/iso-8859-1.txt
-+++ b/iso-8859-1.txt
-@@ -1 +1,2 @@
- Kristian H\xf8gsberg
-+foo
-"""
-
-def test_patch_from_non_utf8():
-    # blobs encoded in ISO-8859-1
-    old_content = b'Kristian H\xf8gsberg\n'
-    new_content = old_content + b'foo\n'
+def test_patch_create_from_buffers():
     patch = pygit2.Patch.create_from(
-        old_content,
-        new_content,
-        old_as_path='iso-8859-1.txt',
-        new_as_path='iso-8859-1.txt',
+        BLOB_OLD_CONTENT,
+        BLOB_NEW_CONTENT,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
     )
 
-    assert patch.data == expected_diff
-    assert patch.text == expected_diff.decode('utf-8', errors='replace')
+    assert patch.text == BLOB_PATCH
 
-    # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
-    # decoding, so assert that we cannot get the original content back:
-    assert patch.text.encode('utf-8') != expected_diff
+def test_patch_create_from_blobs(testrepo):
+    old_blob = testrepo[BLOB_OLD_SHA]
+    new_blob = testrepo[BLOB_NEW_SHA]
 
-def test_patch_create_from_blobs(encodingrepo):
     patch = pygit2.Patch.create_from(
-        encodingrepo['e84e339ac7fcc823106efa65a6972d7a20016c85'],
-        encodingrepo['201e0c908e3d9f526659df3e556c3d06384ef0df'],
-        old_as_path='iso-8859-1.txt',
-        new_as_path='iso-8859-1.txt',
+        old_blob,
+        new_blob,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
     )
 
-    assert patch.data == expected_diff
-    assert patch.text == expected_diff.decode('utf-8', errors='replace')
+    assert patch.text == BLOB_PATCH2
 
-    # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
-    # decoding, so assert that we cannot get the original content back:
-    assert patch.text.encode('utf-8') != expected_diff
+def test_patch_create_from_blob_buffer(testrepo):
+    old_blob = testrepo[BLOB_OLD_SHA]
+    patch = pygit2.Patch.create_from(
+        old_blob,
+        BLOB_NEW_CONTENT,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    assert patch.text == BLOB_PATCH
+
+def test_patch_create_from_blob_buffer_add(testrepo):
+    patch = pygit2.Patch.create_from(
+        None,
+        BLOB_NEW_CONTENT,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    assert patch.text == BLOB_PATCH_ADDED
+
+def test_patch_create_from_blob_buffer_delete(testrepo):
+    old_blob = testrepo[BLOB_OLD_SHA]
+
+    patch = pygit2.Patch.create_from(
+        old_blob,
+        None,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    assert patch.text == BLOB_PATCH_DELETED
+
+def test_patch_create_from_bad_old_type_arg(testrepo):
+    with pytest.raises(TypeError):
+        pygit2.Patch.create_from(testrepo, BLOB_NEW_CONTENT)
+
+def test_patch_create_from_bad_new_type_arg(testrepo):
+    with pytest.raises(TypeError):
+        pygit2.Patch.create_from(None, testrepo)
+
+def test_context_lines(testrepo):
+    old_blob = testrepo[BLOB_OLD_SHA]
+    new_blob = testrepo[BLOB_NEW_SHA]
+
+    patch = pygit2.Patch.create_from(
+        old_blob,
+        new_blob,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    context_count = len(
+        [line for line in patch.text.splitlines() if line.startswith(" ")]
+    )
+
+    assert context_count != 0
+
+def test_no_context_lines(testrepo):
+    old_blob = testrepo[BLOB_OLD_SHA]
+    new_blob = testrepo[BLOB_NEW_SHA]
+
+    patch = pygit2.Patch.create_from(
+        old_blob,
+        new_blob,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+        context_lines=0,
+    )
+
+    context_count = len(
+        [line for line in patch.text.splitlines() if line.startswith(" ")]
+    )
+
+    assert context_count == 0
+
+def test_patch_create_blob_blobs(testrepo):
+    old_blob = testrepo[testrepo.create_blob(BLOB_OLD_CONTENT)]
+    new_blob = testrepo[testrepo.create_blob(BLOB_NEW_CONTENT)]
+
+    patch = pygit2.Patch.create_from(
+        old_blob,
+        new_blob,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    assert patch.text == BLOB_PATCH
+
+def test_patch_create_blob_buffer(testrepo):
+    blob = testrepo[testrepo.create_blob(BLOB_OLD_CONTENT)]
+    patch = pygit2.Patch.create_from(
+        blob,
+        BLOB_NEW_CONTENT,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    assert patch.text == BLOB_PATCH
+
+def test_patch_create_blob_delete(testrepo):
+    blob = testrepo[testrepo.create_blob(BLOB_OLD_CONTENT)]
+    patch = pygit2.Patch.create_from(
+        blob,
+        None,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    assert patch.text == BLOB_PATCH_DELETED
+
+def test_patch_create_blob_add(testrepo):
+    blob = testrepo[testrepo.create_blob(BLOB_NEW_CONTENT)]
+    patch = pygit2.Patch.create_from(
+        None,
+        blob,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    assert patch.text == BLOB_PATCH_ADDED
+
+def test_patch_delete_blob(testrepo):
+    blob = testrepo[BLOB_OLD_SHA]
+    patch = pygit2.Patch.create_from(
+        blob,
+        None,
+        old_as_path=BLOB_OLD_PATH,
+        new_as_path=BLOB_NEW_PATH,
+    )
+
+    # Make sure that even after deleting the blob the patch still has the
+    # necessary references to generate its patch
+    del blob
+    assert patch.text == BLOB_PATCH_DELETED
+
+def test_patch_multi_blob(testrepo):
+    blob = testrepo[BLOB_OLD_SHA]
+    patch = pygit2.Patch.create_from(
+        blob,
+        None
+    )
+    patch_text = patch.text
+
+    blob = testrepo[BLOB_OLD_SHA]
+    patch2 = pygit2.Patch.create_from(
+        blob,
+        None
+    )
+    patch_text2 = patch.text
+
+    assert patch_text == patch_text2
+    assert patch_text == patch.text
+    assert patch_text2 == patch2.text
+    assert patch.text == patch2.text
