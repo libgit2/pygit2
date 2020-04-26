@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import gc
+# Standard library
 import hashlib
 import os
 import shutil
@@ -32,11 +32,8 @@ import stat
 import sys
 import tarfile
 import tempfile
-import unittest
 
 import pytest
-
-import pygit2
 
 
 def no_network():
@@ -85,7 +82,6 @@ def gen_blob_sha1(data):
     m = hashlib.sha1()
     m.update(('blob %d\0' % len(data)).encode())
     m.update(data)
-
     return m.hexdigest()
 
 
@@ -100,15 +96,15 @@ def rmtree(path):
 
 class TemporaryRepository:
 
-    def __init__(self, repo_spec):
-        self.repo_spec = repo_spec
+    def __init__(self, name, container='tar'):
+        self.name = name
+        self.container = container
 
     def __enter__(self):
-        container, name = self.repo_spec
-        repo_path = os.path.join(os.path.dirname(__file__), 'data', name)
+        repo_path = os.path.join(os.path.dirname(__file__), 'data', self.name)
         self.temp_dir = tempfile.mkdtemp()
-        temp_repo_path = os.path.join(self.temp_dir, name)
-        if container == 'tar':
+        temp_repo_path = os.path.join(self.temp_dir, self.name)
+        if self.container == 'tar':
             tar = tarfile.open('.'.join((repo_path, 'tar')))
             tar.extractall(self.temp_dir)
             tar.close()
@@ -136,22 +132,3 @@ def assertRaisesWithArg(exc_class, arg, func, *args, **kwargs):
     # collection run. See the official Python try statement documentation for
     # more detailed information.
     del excinfo
-
-
-class AutoRepoTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.repo = None
-        self.repo_ctxtmgr = TemporaryRepository(self.repo_spec)
-        self.repo_path = self.repo_ctxtmgr.__enter__()
-        self.repo = pygit2.Repository(self.repo_path)
-
-    def tearDown(self):
-        del self.repo
-        gc.collect()
-        self.repo_ctxtmgr.__exit__(None, None, None)
-
-
-class RepoTestCase(AutoRepoTestCase):
-
-    repo_spec = 'tar', 'testrepo'

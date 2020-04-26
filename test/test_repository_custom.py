@@ -23,36 +23,31 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import os
+
 import pygit2
 import pytest
 
-from . import utils
-
 
 @pytest.fixture
-def repo():
-    with utils.TemporaryRepository('binaryfilerepo') as path:
-        yield pygit2.Repository(path)
+def repo(testrepo):
+    odb = pygit2.Odb()
+    object_path = os.path.join(testrepo.path, 'objects')
+    odb.add_backend(pygit2.OdbBackendPack(os.path.join(object_path, 'pack')), 1)
+    odb.add_backend(pygit2.OdbBackendLoose(object_path, 0, False), 1)
+    refdb = pygit2.Refdb.new(testrepo)
+    refdb.set_backend(pygit2.RefdbFsBackend(testrepo))
+    repo = pygit2.Repository()
+    repo.set_odb(odb)
+    repo.set_refdb(refdb)
+    yield repo
 
+def test_references(repo):
+    refs = [(ref.name, ref.target.hex) for ref in repo.references.objects]
+    assert sorted(refs) == [
+        ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+        ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
 
-PATCH_BINARY = """diff --git a/binary_file b/binary_file
-index 86e5c10..b835d73 100644
-Binary files a/binary_file and b/binary_file differ
-"""
-
-PATCH_BINARY_SHOW = """diff --git a/binary_file b/binary_file
-index 86e5c1008b5ce635d3e3fffa4434c5eccd8f00b6..b835d73543244b6694f36a8c5dfdffb71b153db7 100644
-GIT binary patch
-literal 8
-Pc${NM%FIhFs^kIy3n&7R
-
-literal 8
-Pc${NM&PdElPvrst3ey5{
-
-"""
-
-def test_binary_diff(repo):
-    diff = repo.diff('HEAD', 'HEAD^')
-    assert PATCH_BINARY == diff.patch
-    diff = repo.diff('HEAD', 'HEAD^', flags=pygit2.GIT_DIFF_SHOW_BINARY)
-    assert PATCH_BINARY_SHOW == diff.patch
+def test_objects(repo):
+    a = repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')
+    assert (pygit2.GIT_OBJ_BLOB, b'foobar\n') == a

@@ -29,10 +29,9 @@ import pytest
 from . import utils
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def repo():
-    repo_spec = 'tar', 'gpgsigned'
-    with utils.TemporaryRepository(repo_spec) as path:
+    with utils.TemporaryRepository('gpgsigned') as path:
         yield pygit2.Repository(path)
 
 

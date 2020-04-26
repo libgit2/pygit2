@@ -28,10 +28,9 @@ import pytest
 from . import utils
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def repo():
-    repo_spec = 'tar', 'utf8branchrepo'
-    with utils.TemporaryRepository(repo_spec) as path:
+    with utils.TemporaryRepository('utf8branchrepo') as path:
         yield pygit2.Repository(path)
 
 def test_fetch(repo):

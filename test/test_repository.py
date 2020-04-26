@@ -25,7 +25,7 @@
 
 """Tests for Repository objects."""
 
-# Import from the Standard Library
+# Standard Library
 import shutil
 import tempfile
 import os
@@ -35,293 +35,287 @@ from urllib.request import pathname2url
 
 import pytest
 
-# Import from pygit2
-from pygit2 import GIT_OBJ_BLOB
+# pygit2
+import pygit2
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid
-from pygit2 import Odb, OdbBackendLoose, OdbBackendPack
-from pygit2 import Refdb, RefdbFsBackend
-import pygit2
 from . import utils
 
 
-class RepositoryTest_II(utils.RepoTestCase):
+def test_is_empty(testrepo):
+    assert not testrepo.is_empty
 
-    def test_is_empty(self):
-        assert not self.repo.is_empty
+def test_is_bare(testrepo):
+    assert not testrepo.is_bare
 
-    def test_is_bare(self):
-        assert not self.repo.is_bare
+def test_get_path(testrepo_path):
+    testrepo, path = testrepo_path
+    expected = realpath(join(path, '.git'))
+    assert realpath(testrepo.path) == expected
 
-    def test_get_path(self):
-        directory = realpath(self.repo.path)
-        expected = realpath(join(self.repo_path, '.git'))
-        assert directory == expected
+def test_get_workdir(testrepo_path):
+    testrepo, path = testrepo_path
+    expected = realpath(path)
+    assert realpath(testrepo.workdir) == expected
 
-    def test_get_workdir(self):
-        directory = realpath(self.repo.workdir)
-        expected = realpath(self.repo_path)
-        assert directory == expected
+def test_set_workdir(testrepo):
+    directory = tempfile.mkdtemp()
+    testrepo.workdir = directory
+    assert realpath(testrepo.workdir) == realpath(directory)
 
-    def test_set_workdir(self):
-        directory = tempfile.mkdtemp()
-        self.repo.workdir = directory
-        assert realpath(self.repo.workdir) == realpath(directory)
+def test_checkout_ref(testrepo):
+    ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
 
-    def test_checkout_ref(self):
-        ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
+    # checkout i18n with conflicts and default strategy should
+    # not be possible
+    with pytest.raises(pygit2.GitError): testrepo.checkout(ref_i18n)
 
-        # checkout i18n with conflicts and default strategy should
-        # not be possible
-        with pytest.raises(pygit2.GitError): self.repo.checkout(ref_i18n)
+    # checkout i18n with GIT_CHECKOUT_FORCE
+    head = testrepo.head
+    head = testrepo[head.target]
+    assert 'new' not in head.tree
+    testrepo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
 
-        # checkout i18n with GIT_CHECKOUT_FORCE
-        head = self.repo.head
-        head = self.repo[head.target]
-        assert 'new' not in head.tree
-        self.repo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
+    head = testrepo.head
+    head = testrepo[head.target]
+    assert head.hex == ref_i18n.target.hex
+    assert 'new' in head.tree
+    assert 'bye.txt' not in testrepo.status()
 
-        head = self.repo.head
-        head = self.repo[head.target]
-        assert head.hex == ref_i18n.target.hex
-        assert 'new' in head.tree
-        assert 'bye.txt' not in self.repo.status()
+def test_checkout_branch(testrepo):
+    branch_i18n = testrepo.lookup_branch('i18n')
 
-    def test_checkout_branch(self):
-        branch_i18n = self.repo.lookup_branch('i18n')
+    # checkout i18n with conflicts and default strategy should
+    # not be possible
+    with pytest.raises(pygit2.GitError): testrepo.checkout(branch_i18n)
 
-        # checkout i18n with conflicts and default strategy should
-        # not be possible
-        with pytest.raises(pygit2.GitError): self.repo.checkout(branch_i18n)
+    # checkout i18n with GIT_CHECKOUT_FORCE
+    head = testrepo.head
+    head = testrepo[head.target]
+    assert 'new' not in head.tree
+    testrepo.checkout(branch_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
 
-        # checkout i18n with GIT_CHECKOUT_FORCE
-        head = self.repo.head
-        head = self.repo[head.target]
-        assert 'new' not in head.tree
-        self.repo.checkout(branch_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
+    head = testrepo.head
+    head = testrepo[head.target]
+    assert head.hex == branch_i18n.target.hex
+    assert 'new' in head.tree
+    assert 'bye.txt' not in testrepo.status()
 
-        head = self.repo.head
-        head = self.repo[head.target]
-        assert head.hex == branch_i18n.target.hex
-        assert 'new' in head.tree
-        assert 'bye.txt' not in self.repo.status()
+def test_checkout_index(testrepo):
+    # some changes to working dir
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'w') as f:
+        f.write('new content')
 
-    def test_checkout_index(self):
-        # some changes to working dir
-        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
-            f.write('new content')
+    # checkout index
+    assert 'hello.txt' in testrepo.status()
+    testrepo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
+    assert 'hello.txt' not in testrepo.status()
 
-        # checkout index
-        assert 'hello.txt' in self.repo.status()
-        self.repo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
-        assert 'hello.txt' not in self.repo.status()
+def test_checkout_head(testrepo):
+    # some changes to the index
+    with open(os.path.join(testrepo.workdir, 'bye.txt'), 'w') as f:
+        f.write('new content')
+    testrepo.index.add('bye.txt')
 
-    def test_checkout_head(self):
-        # some changes to the index
-        with open(os.path.join(self.repo.workdir, 'bye.txt'), 'w') as f:
-            f.write('new content')
-        self.repo.index.add('bye.txt')
+    # checkout from index should not change anything
+    assert 'bye.txt' in testrepo.status()
+    testrepo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
+    assert 'bye.txt' in testrepo.status()
 
-        # checkout from index should not change anything
-        assert 'bye.txt' in self.repo.status()
-        self.repo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
-        assert 'bye.txt' in self.repo.status()
+    # checkout from head will reset index as well
+    testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
+    assert 'bye.txt' not in testrepo.status()
 
-        # checkout from head will reset index as well
-        self.repo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
-        assert 'bye.txt' not in self.repo.status()
+def test_checkout_alternative_dir(testrepo):
+    ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
+    extra_dir = os.path.join(testrepo.workdir, 'extra-dir')
+    os.mkdir(extra_dir)
+    assert len(os.listdir(extra_dir)) == 0
+    testrepo.checkout(ref_i18n, directory=extra_dir)
+    assert not len(os.listdir(extra_dir)) == 0
 
-    def test_checkout_alternative_dir(self):
-        ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
-        extra_dir = os.path.join(self.repo.workdir, 'extra-dir')
-        os.mkdir(extra_dir)
-        assert len(os.listdir(extra_dir)) == 0
-        self.repo.checkout(ref_i18n, directory=extra_dir)
-        assert not len(os.listdir(extra_dir)) == 0
+def test_checkout_paths(testrepo):
+    ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
+    ref_master = testrepo.lookup_reference('refs/heads/master')
+    testrepo.checkout(ref_master)
+    testrepo.checkout(ref_i18n, paths=['new'])
+    status = testrepo.status()
+    assert status['new'] == pygit2.GIT_STATUS_INDEX_NEW
 
-    def test_checkout_paths(self):
-        ref_i18n = self.repo.lookup_reference('refs/heads/i18n')
-        ref_master = self.repo.lookup_reference('refs/heads/master')
-        self.repo.checkout(ref_master)
-        self.repo.checkout(ref_i18n, paths=['new'])
-        status = self.repo.status()
-        assert status['new'] == pygit2.GIT_STATUS_INDEX_NEW
+def test_merge_base(testrepo):
+    commit = testrepo.merge_base(
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+        '4ec4389a8068641da2d6578db0419484972284c8')
+    assert commit.hex == 'acecd5ea2924a4b900e7e149496e1f4b57976e51'
 
-    def test_merge_base(self):
-        commit = self.repo.merge_base(
-            '5ebeeebb320790caf276b9fc8b24546d63316533',
-            '4ec4389a8068641da2d6578db0419484972284c8')
-        assert commit.hex == 'acecd5ea2924a4b900e7e149496e1f4b57976e51'
+    # Create a commit without any merge base to any other
+    sig = pygit2.Signature("me", "me@example.com")
+    indep = testrepo.create_commit(None, sig, sig, "a new root commit",
+                                    testrepo[commit].peel(pygit2.Tree).id, [])
 
-        # Create a commit without any merge base to any other
-        sig = pygit2.Signature("me", "me@example.com")
-        indep = self.repo.create_commit(None, sig, sig, "a new root commit",
-                                        self.repo[commit].peel(pygit2.Tree).id, [])
+    assert testrepo.merge_base(indep, commit) is None
 
-        assert self.repo.merge_base(indep, commit) is None
+def test_descendent_of(testrepo):
+    assert not testrepo.descendant_of(
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+        '4ec4389a8068641da2d6578db0419484972284c8')
+    assert not testrepo.descendant_of(
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+        '5ebeeebb320790caf276b9fc8b24546d63316533')
+    assert testrepo.descendant_of(
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+        'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+    assert not testrepo.descendant_of(
+        'acecd5ea2924a4b900e7e149496e1f4b57976e51',
+        '5ebeeebb320790caf276b9fc8b24546d63316533')
 
-    def test_descendent_of(self):
-        assert not self.repo.descendant_of(
-            '5ebeeebb320790caf276b9fc8b24546d63316533',
-            '4ec4389a8068641da2d6578db0419484972284c8')
-        assert not self.repo.descendant_of(
-            '5ebeeebb320790caf276b9fc8b24546d63316533',
+    with pytest.raises(pygit2.GitError):
+        testrepo.descendant_of(
+            '2' * 40,  # a valid but inexistent SHA
             '5ebeeebb320790caf276b9fc8b24546d63316533')
-        assert self.repo.descendant_of(
-            '5ebeeebb320790caf276b9fc8b24546d63316533',
-            'acecd5ea2924a4b900e7e149496e1f4b57976e51')
-        assert not self.repo.descendant_of(
-            'acecd5ea2924a4b900e7e149496e1f4b57976e51',
-            '5ebeeebb320790caf276b9fc8b24546d63316533')
 
-        with pytest.raises(pygit2.GitError):
-            self.repo.descendant_of(
-                '2' * 40,  # a valid but inexistent SHA
-                '5ebeeebb320790caf276b9fc8b24546d63316533')
+def test_ahead_behind(testrepo):
+    ahead, behind = testrepo.ahead_behind(
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+        '4ec4389a8068641da2d6578db0419484972284c8')
+    assert 1 == ahead
+    assert 2 == behind
 
-    def test_ahead_behind(self):
-        ahead, behind = self.repo.ahead_behind(
-            '5ebeeebb320790caf276b9fc8b24546d63316533',
-            '4ec4389a8068641da2d6578db0419484972284c8')
-        assert 1 == ahead
-        assert 2 == behind
+    ahead, behind = testrepo.ahead_behind(
+        '4ec4389a8068641da2d6578db0419484972284c8',
+        '5ebeeebb320790caf276b9fc8b24546d63316533')
+    assert 2 == ahead
+    assert 1 == behind
 
-        ahead, behind = self.repo.ahead_behind(
-            '4ec4389a8068641da2d6578db0419484972284c8',
-            '5ebeeebb320790caf276b9fc8b24546d63316533')
-        assert 2 == ahead
-        assert 1 == behind
+def test_reset_hard(testrepo):
+    ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
+    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+        lines = f.readlines()
+    assert "hola mundo\n" in lines
+    assert "bonjour le monde\n" in lines
 
-    def test_reset_hard(self):
-        ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
-            lines = f.readlines()
-        assert "hola mundo\n" in lines
-        assert "bonjour le monde\n" in lines
+    testrepo.reset(
+        ref,
+        pygit2.GIT_RESET_HARD)
+    assert testrepo.head.target.hex == ref
 
-        self.repo.reset(
-            ref,
-            pygit2.GIT_RESET_HARD)
-        assert self.repo.head.target.hex == ref
+    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+        lines = f.readlines()
+    #Hard reset will reset the working copy too
+    assert "hola mundo\n" not in lines
+    assert "bonjour le monde\n" not in lines
 
-        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
-            lines = f.readlines()
-        #Hard reset will reset the working copy too
-        assert "hola mundo\n" not in lines
-        assert "bonjour le monde\n" not in lines
+def test_reset_soft(testrepo):
+    ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
+    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+        lines = f.readlines()
+    assert "hola mundo\n" in lines
+    assert "bonjour le monde\n" in lines
 
-    def test_reset_soft(self):
-        ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
-            lines = f.readlines()
-        assert "hola mundo\n" in lines
-        assert "bonjour le monde\n" in lines
+    testrepo.reset(
+        ref,
+        pygit2.GIT_RESET_SOFT)
+    assert testrepo.head.target.hex == ref
+    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+        lines = f.readlines()
+    #Soft reset will not reset the working copy
+    assert "hola mundo\n" in lines
+    assert "bonjour le monde\n" in lines
 
-        self.repo.reset(
-            ref,
-            pygit2.GIT_RESET_SOFT)
-        assert self.repo.head.target.hex == ref
-        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
-            lines = f.readlines()
-        #Soft reset will not reset the working copy
-        assert "hola mundo\n" in lines
-        assert "bonjour le monde\n" in lines
+    #soft reset will keep changes in the index
+    diff = testrepo.diff(cached=True)
+    with pytest.raises(KeyError): diff[0]
 
-        #soft reset will keep changes in the index
-        diff = self.repo.diff(cached=True)
-        with pytest.raises(KeyError): diff[0]
+def test_reset_mixed(testrepo):
+    ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
+    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+        lines = f.readlines()
+    assert "hola mundo\n" in lines
+    assert "bonjour le monde\n" in lines
 
-    def test_reset_mixed(self):
-        ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
-            lines = f.readlines()
-        assert "hola mundo\n" in lines
-        assert "bonjour le monde\n" in lines
+    testrepo.reset(
+        ref,
+        pygit2.GIT_RESET_MIXED)
 
-        self.repo.reset(
-            ref,
-            pygit2.GIT_RESET_MIXED)
+    assert testrepo.head.target.hex == ref
 
-        assert self.repo.head.target.hex == ref
+    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+        lines = f.readlines()
+    #mixed reset will not reset the working copy
+    assert "hola mundo\n" in lines
+    assert "bonjour le monde\n" in lines
 
-        with open(os.path.join(self.repo.workdir, "hello.txt")) as f:
-            lines = f.readlines()
-        #mixed reset will not reset the working copy
-        assert "hola mundo\n" in lines
-        assert "bonjour le monde\n" in lines
+    #mixed reset will set the index to match working copy
+    diff = testrepo.diff(cached=True)
+    assert "hola mundo\n" in diff.patch
+    assert "bonjour le monde\n" in diff.patch
 
-        #mixed reset will set the index to match working copy
-        diff = self.repo.diff(cached=True)
-        assert "hola mundo\n" in diff.patch
-        assert "bonjour le monde\n" in diff.patch
+def test_stash(testrepo):
+    # some changes to working dir
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'w') as f:
+        f.write('new content')
 
-    def test_stash(self):
-        # some changes to working dir
-        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'w') as f:
-            f.write('new content')
+    sig = pygit2.Signature('Stasher', 'stasher@example.com')
+    testrepo.stash(sig, include_untracked=True)
+    assert 'hello.txt' not in testrepo.status()
+    testrepo.stash_apply()
+    assert 'hello.txt' in testrepo.status()
+    testrepo.stash_drop()
+    with pytest.raises(KeyError): testrepo.stash_pop()
 
-        sig = pygit2.Signature('Stasher', 'stasher@example.com')
-        self.repo.stash(sig, include_untracked=True)
-        assert 'hello.txt' not in self.repo.status()
-        self.repo.stash_apply()
-        assert 'hello.txt' in self.repo.status()
-        self.repo.stash_drop()
-        with pytest.raises(KeyError): self.repo.stash_pop()
+def test_revert(testrepo):
+    master = testrepo.head.peel()
+    commit_to_revert = testrepo['4ec4389a8068641da2d6578db0419484972284c8']
+    parent = commit_to_revert.parents[0]
+    commit_diff_stats = (
+        parent.tree.diff_to_tree(commit_to_revert.tree).stats
+    )
 
-    def test_revert(self):
-        master = self.repo.head.peel()
-        commit_to_revert = self.repo['4ec4389a8068641da2d6578db0419484972284c8']
-        parent = commit_to_revert.parents[0]
-        commit_diff_stats = (
-            parent.tree.diff_to_tree(commit_to_revert.tree).stats
-        )
+    revert_index = testrepo.revert_commit(commit_to_revert, master)
+    revert_diff_stats = revert_index.diff_to_tree(master.tree).stats
 
-        revert_index = self.repo.revert_commit(commit_to_revert, master)
-        revert_diff_stats = revert_index.diff_to_tree(master.tree).stats
+    assert revert_diff_stats.insertions == commit_diff_stats.deletions
+    assert revert_diff_stats.deletions == commit_diff_stats.insertions
+    assert revert_diff_stats.files_changed == commit_diff_stats.files_changed
 
-        assert revert_diff_stats.insertions == commit_diff_stats.deletions
-        assert revert_diff_stats.deletions == commit_diff_stats.insertions
-        assert revert_diff_stats.files_changed == commit_diff_stats.files_changed
+def test_diff_patch(testrepo):
+    new_content = ['bye world', 'adiós', 'au revoir monde']
+    new_content = ''.join(x + os.linesep for x in new_content)
 
-    def test_diff_patch(self):
-        new_content = ['bye world', 'adiós', 'au revoir monde']
-        new_content = ''.join(x + os.linesep for x in new_content)
+    # create the patch
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'wb') as f:
+        f.write(new_content.encode('utf-8'))
 
-        # create the patch
-        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'wb') as f:
-            f.write(new_content.encode('utf-8'))
+    patch = testrepo.diff().patch
 
-        patch = self.repo.diff().patch
+    # rollback all changes
+    testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
 
-        # rollback all changes
-        self.repo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
+    # apply the patch and compare
+    diff = pygit2.Diff.parse_diff(patch)
+    testrepo.apply(diff)
 
-        # apply the patch and compare
-        diff = pygit2.Diff.parse_diff(patch)
-        self.repo.apply(diff)
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'rb') as f:
+        content = f.read().decode('utf-8')
 
-        with open(os.path.join(self.repo.workdir, 'hello.txt'), 'rb') as f:
-            content = f.read().decode('utf-8')
-
-        assert content == new_content
+    assert content == new_content
 
 
-class RepositorySignatureTest(utils.RepoTestCase):
 
-    def test_default_signature(self):
-        config = self.repo.config
-        config['user.name'] = 'Random J Hacker'
-        config['user.email'] ='rjh@example.com'
+def test_default_signature(testrepo):
+    config = testrepo.config
+    config['user.name'] = 'Random J Hacker'
+    config['user.email'] ='rjh@example.com'
 
-        sig = self.repo.default_signature
-        assert 'Random J Hacker' == sig.name
-        assert 'rjh@example.com' == sig.email
+    sig = testrepo.default_signature
+    assert 'Random J Hacker' == sig.name
+    assert 'rjh@example.com' == sig.email
 
 
 def test_new_repo(tmp_path):
     repo = init_repository(tmp_path, False)
 
-    oid = repo.write(GIT_OBJ_BLOB, "Test")
+    oid = repo.write(pygit2.GIT_OBJ_BLOB, "Test")
     assert type(oid) == Oid
 
     assert os.path.exists(os.path.join(tmp_path, '.git'))
@@ -368,17 +362,6 @@ def test_discover_repo_aspath(tmp_path):
 
 def test_discover_repo_not_found():
     assert discover_repository(tempfile.tempdir) is None
-
-
-def test_is_empty(emptyrepo):
-    assert emptyrepo.is_empty
-
-def test_is_base(emptyrepo):
-    assert not emptyrepo.is_bare
-
-def test_head(emptyrepo):
-    assert emptyrepo.head_is_unborn
-    assert not emptyrepo.head_is_detached
 
 
 def test_bytes_string():
@@ -509,112 +492,87 @@ def test_clone_with_checkout_branch(tmp_path):
 #    # not sure how to test this either... couldn't find pushspec
 #    # assert repo.remotes[0].fetchspec == "refs/heads/test"
 
-class WorktreeTestCase(utils.RepoTestCase):
 
-    def test_worktree(self):
-        worktree_name = 'foo'
-        worktree_dir = tempfile.mkdtemp()
-        # Delete temp path so that it's not present when we attempt to add the
-        # worktree later
-        os.rmdir(worktree_dir)
+def test_worktree(testrepo):
+    worktree_name = 'foo'
+    worktree_dir = tempfile.mkdtemp()
+    # Delete temp path so that it's not present when we attempt to add the
+    # worktree later
+    os.rmdir(worktree_dir)
 
-        def _check_worktree(worktree):
-            # Confirm the name attribute matches the specified name
-            assert worktree.name == worktree_name
-            # Confirm the path attribute points to the correct path
-            assert os.path.realpath(worktree.path) == os.path.realpath(worktree_dir)
-            # The "gitdir" in a worktree should be a file with a reference to
-            # the actual gitdir. Let's make sure that the path exists and is a
-            # file.
-            assert os.path.isfile(os.path.join(worktree_dir, '.git'))
+    def _check_worktree(worktree):
+        # Confirm the name attribute matches the specified name
+        assert worktree.name == worktree_name
+        # Confirm the path attribute points to the correct path
+        assert os.path.realpath(worktree.path) == os.path.realpath(worktree_dir)
+        # The "gitdir" in a worktree should be a file with a reference to
+        # the actual gitdir. Let's make sure that the path exists and is a
+        # file.
+        assert os.path.isfile(os.path.join(worktree_dir, '.git'))
 
-        # We should have zero worktrees
-        assert self.repo.list_worktrees() == []
-        # Add a worktree
-        worktree = self.repo.add_worktree(worktree_name, worktree_dir)
-        # Check that the worktree was added properly
-        _check_worktree(worktree)
-        # We should have one worktree now
-        assert self.repo.list_worktrees() == [worktree_name]
-        # We should also have a branch of the same name
-        assert worktree_name in self.repo.listall_branches()
-        # Test that lookup_worktree() returns a properly-instantiated
-        # pygit2._Worktree object
-        _check_worktree(self.repo.lookup_worktree(worktree_name))
-        # Remove the worktree dir
-        shutil.rmtree(worktree_dir)
-        # Prune the worktree. For some reason, libgit2 treats a worktree as
-        # valid unless both the worktree directory and data dir under
-        # $GIT_DIR/worktrees are gone. This doesn't make much sense since the
-        # normal usage involves removing the worktree directory and then
-        # pruning. So, for now we have to force the prune. This may be
-        # something to take up with libgit2.
-        worktree.prune(True)
-        assert self.repo.list_worktrees() == []
+    # We should have zero worktrees
+    assert testrepo.list_worktrees() == []
+    # Add a worktree
+    worktree = testrepo.add_worktree(worktree_name, worktree_dir)
+    # Check that the worktree was added properly
+    _check_worktree(worktree)
+    # We should have one worktree now
+    assert testrepo.list_worktrees() == [worktree_name]
+    # We should also have a branch of the same name
+    assert worktree_name in testrepo.listall_branches()
+    # Test that lookup_worktree() returns a properly-instantiated
+    # pygit2._Worktree object
+    _check_worktree(testrepo.lookup_worktree(worktree_name))
+    # Remove the worktree dir
+    shutil.rmtree(worktree_dir)
+    # Prune the worktree. For some reason, libgit2 treats a worktree as
+    # valid unless both the worktree directory and data dir under
+    # $GIT_DIR/worktrees are gone. This doesn't make much sense since the
+    # normal usage involves removing the worktree directory and then
+    # pruning. So, for now we have to force the prune. This may be
+    # something to take up with libgit2.
+    worktree.prune(True)
+    assert testrepo.list_worktrees() == []
 
-    @utils.fspath
-    def test_worktree_aspath(self):
-        worktree_name = 'foo'
-        worktree_dir = Path(tempfile.mkdtemp())
-        # Delete temp path so that it's not present when we attempt to add the
-        # worktree later
-        os.rmdir(worktree_dir)
-        self.repo.add_worktree(worktree_name, worktree_dir)
-        assert self.repo.list_worktrees() == [worktree_name]
+@utils.fspath
+def test_worktree_aspath(testrepo):
+    worktree_name = 'foo'
+    worktree_dir = Path(tempfile.mkdtemp())
+    # Delete temp path so that it's not present when we attempt to add the
+    # worktree later
+    os.rmdir(worktree_dir)
+    testrepo.add_worktree(worktree_name, worktree_dir)
+    assert testrepo.list_worktrees() == [worktree_name]
 
-    def test_worktree_custom_ref(self):
-        worktree_name = 'foo'
-        worktree_dir = tempfile.mkdtemp()
-        branch_name = 'version1'
+def test_worktree_custom_ref(testrepo):
+    worktree_name = 'foo'
+    worktree_dir = tempfile.mkdtemp()
+    branch_name = 'version1'
 
-        # New branch based on head
-        tip = self.repo.revparse_single('HEAD')
-        worktree_ref = self.repo.branches.create(branch_name, tip)
-        # Delete temp path so that it's not present when we attempt to add the
-        # worktree later
-        os.rmdir(worktree_dir)
+    # New branch based on head
+    tip = testrepo.revparse_single('HEAD')
+    worktree_ref = testrepo.branches.create(branch_name, tip)
+    # Delete temp path so that it's not present when we attempt to add the
+    # worktree later
+    os.rmdir(worktree_dir)
 
-        # Add a worktree for the given ref
-        worktree = self.repo.add_worktree(worktree_name, worktree_dir, worktree_ref)
-        # We should have one worktree now
-        assert self.repo.list_worktrees() == [worktree_name]
-        # We should not have a branch of the same name
-        assert worktree_name not in self.repo.listall_branches()
+    # Add a worktree for the given ref
+    worktree = testrepo.add_worktree(worktree_name, worktree_dir, worktree_ref)
+    # We should have one worktree now
+    assert testrepo.list_worktrees() == [worktree_name]
+    # We should not have a branch of the same name
+    assert worktree_name not in testrepo.listall_branches()
 
-        # The given ref is checked out in the "worktree repository"
-        assert worktree_ref.is_checked_out()
+    # The given ref is checked out in the "worktree repository"
+    assert worktree_ref.is_checked_out()
 
-        # Remove the worktree dir and prune the worktree
-        shutil.rmtree(worktree_dir)
-        worktree.prune(True)
-        assert self.repo.list_worktrees() == []
+    # Remove the worktree dir and prune the worktree
+    shutil.rmtree(worktree_dir)
+    worktree.prune(True)
+    assert testrepo.list_worktrees() == []
 
-        # The ref is no longer checked out
-        assert worktree_ref.is_checked_out() == False
+    # The ref is no longer checked out
+    assert worktree_ref.is_checked_out() == False
 
-        # The branch still exists
-        assert branch_name in self.repo.branches
-
-class CustomRepositoryTest(utils.RepoTestCase):
-    def setUp(self):
-        super().setUp()
-        odb = Odb()
-        object_path = os.path.join(self.repo.path, 'objects')
-        odb.add_backend(OdbBackendPack(os.path.join(object_path, 'pack')), 1)
-        odb.add_backend(OdbBackendLoose(object_path, 0, False), 1)
-        refdb = Refdb.new(self.repo)
-        refdb.set_backend(RefdbFsBackend(self.repo))
-        self.test_repo = pygit2.Repository()
-        self.test_repo.set_odb(odb)
-        self.test_repo.set_refdb(refdb)
-
-    def test_references(self):
-        refs = [(ref.name, ref.target.hex)
-                for ref in self.test_repo.references.objects]
-        assert sorted(refs) == [
-            ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
-            ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
-
-    def test_objects(self):
-        a = self.test_repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')
-        assert (GIT_OBJ_BLOB, b'foobar\n') == a
+    # The branch still exists
+    assert branch_name in testrepo.branches

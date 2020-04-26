@@ -23,36 +23,13 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pygit2
-import pytest
 
-from . import utils
+def test_is_empty(emptyrepo):
+    assert emptyrepo.is_empty
 
+def test_is_base(emptyrepo):
+    assert not emptyrepo.is_bare
 
-@pytest.fixture
-def repo():
-    with utils.TemporaryRepository('binaryfilerepo') as path:
-        yield pygit2.Repository(path)
-
-
-PATCH_BINARY = """diff --git a/binary_file b/binary_file
-index 86e5c10..b835d73 100644
-Binary files a/binary_file and b/binary_file differ
-"""
-
-PATCH_BINARY_SHOW = """diff --git a/binary_file b/binary_file
-index 86e5c1008b5ce635d3e3fffa4434c5eccd8f00b6..b835d73543244b6694f36a8c5dfdffb71b153db7 100644
-GIT binary patch
-literal 8
-Pc${NM%FIhFs^kIy3n&7R
-
-literal 8
-Pc${NM&PdElPvrst3ey5{
-
-"""
-
-def test_binary_diff(repo):
-    diff = repo.diff('HEAD', 'HEAD^')
-    assert PATCH_BINARY == diff.patch
-    diff = repo.diff('HEAD', 'HEAD^', flags=pygit2.GIT_DIFF_SHOW_BINARY)
-    assert PATCH_BINARY_SHOW == diff.patch
+def test_head(emptyrepo):
+    assert emptyrepo.head_is_unborn
+    assert not emptyrepo.head_is_detached

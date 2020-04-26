@@ -240,14 +240,12 @@ def test_update_tips(emptyrepo):
 
 @pytest.fixture
 def origin():
-    repo_spec = 'git', 'testrepo.git'
-    with utils.TemporaryRepository(repo_spec) as path:
+    with utils.TemporaryRepository('testrepo.git', 'git') as path:
         yield pygit2.Repository(path)
 
 @pytest.fixture
 def clone():
-    repo_spec = 'git', 'testrepo.git'
-    with utils.TemporaryRepository(repo_spec) as path:
+    with utils.TemporaryRepository('testrepo.git', 'git') as path:
         yield pygit2.Repository(path)
 
 @pytest.fixture

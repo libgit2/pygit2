@@ -39,229 +39,219 @@ def test_bare(barerepo):
     assert len(barerepo.index) == 0
 
 
-class IndexTest(utils.RepoTestCase):
+def test_index(testrepo):
+    assert testrepo.index is not None
 
-    def test_index(self):
-        assert self.repo.index is not None
+def test_read(testrepo):
+    index = testrepo.index
+    assert len(index) == 2
 
-    def test_read(self):
-        index = self.repo.index
-        assert len(index) == 2
+    with pytest.raises(TypeError): index[()]
+    utils.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
+    utils.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
 
-        with pytest.raises(TypeError): index[()]
-        utils.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
-        utils.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
+    sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
+    assert 'hello.txt' in index
+    assert index['hello.txt'].hex == sha
+    assert index['hello.txt'].path == 'hello.txt'
+    assert index[1].hex == sha
 
-        sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
-        assert 'hello.txt' in index
-        assert index['hello.txt'].hex == sha
-        assert index['hello.txt'].path == 'hello.txt'
-        assert index[1].hex == sha
+def test_add(testrepo):
+    index = testrepo.index
 
-    def test_add(self):
-        index = self.repo.index
+    sha = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
+    assert 'bye.txt' not in index
+    index.add('bye.txt')
+    assert 'bye.txt' in index
+    assert len(index) == 3
+    assert index['bye.txt'].hex == sha
 
-        sha = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
-        assert 'bye.txt' not in index
-        index.add('bye.txt')
-        assert 'bye.txt' in index
-        assert len(index) == 3
-        assert index['bye.txt'].hex == sha
+@utils.fspath
+def test_add_aspath(testrepo):
+    index = testrepo.index
 
-    @utils.fspath
-    def test_add_aspath(self):
-        index = self.repo.index
+    assert 'bye.txt' not in index
+    index.add(Path('bye.txt'))
+    assert 'bye.txt' in index
 
-        assert 'bye.txt' not in index
-        index.add(Path('bye.txt'))
-        assert 'bye.txt' in index
+def test_add_all(testrepo):
+    clear(testrepo)
 
-    def test_add_all(self):
-        self.test_clear()
+    sha_bye = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
+    sha_hello = 'a520c24d85fbfc815d385957eed41406ca5a860b'
 
-        index = self.repo.index
+    index = testrepo.index
+    index.add_all(['*.txt'])
 
-        sha_bye = '0907563af06c7464d62a70cdd135a6ba7d2b41d8'
-        sha_hello = 'a520c24d85fbfc815d385957eed41406ca5a860b'
+    assert 'bye.txt' in index
+    assert 'hello.txt' in index
 
-        index.add_all(['*.txt'])
+    assert index['bye.txt'].hex == sha_bye
+    assert index['hello.txt'].hex == sha_hello
 
-        assert 'bye.txt' in index
-        assert 'hello.txt' in index
+    clear(testrepo)
 
-        assert index['bye.txt'].hex == sha_bye
-        assert index['hello.txt'].hex == sha_hello
+    index.add_all(['bye.t??', 'hello.*'])
+    assert 'bye.txt' in index
+    assert 'hello.txt' in index
 
-        self.test_clear()
+    assert index['bye.txt'].hex == sha_bye
+    assert index['hello.txt'].hex == sha_hello
 
-        index.add_all(['bye.t??', 'hello.*'])
+    clear(testrepo)
 
-        assert 'bye.txt' in index
-        assert 'hello.txt' in index
+    index.add_all(['[byehlo]*.txt'])
+    assert 'bye.txt' in index
+    assert 'hello.txt' in index
 
-        assert index['bye.txt'].hex == sha_bye
-        assert index['hello.txt'].hex == sha_hello
+    assert index['bye.txt'].hex == sha_bye
+    assert index['hello.txt'].hex == sha_hello
 
-        self.test_clear()
+@utils.fspath
+def test_add_all_aspath(testrepo):
+    clear(testrepo)
 
-        index.add_all(['[byehlo]*.txt'])
+    index = testrepo.index
+    index.add_all([Path('bye.txt'), Path('hello.txt')])
+    assert 'bye.txt' in index
+    assert 'hello.txt' in index
 
-        assert 'bye.txt' in index
-        assert 'hello.txt' in index
+def clear(repo):
+    index = repo.index
+    assert len(index) == 2
+    index.clear()
+    assert len(index) == 0
 
-        assert index['bye.txt'].hex == sha_bye
-        assert index['hello.txt'].hex == sha_hello
+def test_write(testrepo):
+    index = testrepo.index
+    index.add('bye.txt')
+    index.write()
 
-    @utils.fspath
-    def test_add_all_aspath(self):
-        self.test_clear()
-
-        index = self.repo.index
-
-        index.add_all([Path('bye.txt'), Path('hello.txt')])
-
-        assert 'bye.txt' in index
-        assert 'hello.txt' in index
-
-    def test_clear(self):
-        index = self.repo.index
-        assert len(index) == 2
-        index.clear()
-        assert len(index) == 0
-
-    def test_write(self):
-        index = self.repo.index
-        index.add('bye.txt')
-        index.write()
-
-        index.clear()
-        assert 'bye.txt' not in index
-        index.read()
-        assert 'bye.txt' in index
+    index.clear()
+    assert 'bye.txt' not in index
+    index.read()
+    assert 'bye.txt' in index
 
 
-    def test_read_tree(self):
-        tree_oid = '68aba62e560c0ebc3396e8ae9335232cd93a3f60'
-        # Test reading first tree
-        index = self.repo.index
-        assert len(index) == 2
-        index.read_tree(tree_oid)
-        assert len(index) == 1
-        # Test read-write returns the same oid
-        oid = index.write_tree()
-        assert oid.hex == tree_oid
-        # Test the index is only modified in memory
-        index.read()
-        assert len(index) == 2
+def test_read_tree(testrepo):
+    tree_oid = '68aba62e560c0ebc3396e8ae9335232cd93a3f60'
+    # Test reading first tree
+    index = testrepo.index
+    assert len(index) == 2
+    index.read_tree(tree_oid)
+    assert len(index) == 1
+    # Test read-write returns the same oid
+    oid = index.write_tree()
+    assert oid.hex == tree_oid
+    # Test the index is only modified in memory
+    index.read()
+    assert len(index) == 2
 
 
-    def test_write_tree(self):
-        oid = self.repo.index.write_tree()
-        assert oid.hex == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
+def test_write_tree(testrepo):
+    oid = testrepo.index.write_tree()
+    assert oid.hex == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
-    def test_iter(self):
-        index = self.repo.index
-        n = len(index)
-        assert len(list(index)) == n
+def test_iter(testrepo):
+    index = testrepo.index
+    n = len(index)
+    assert len(list(index)) == n
 
-        # Compare SHAs, not IndexEntry object identity
-        entries = [index[x].hex for x in range(n)]
-        assert list(x.hex for x in index) == entries
+    # Compare SHAs, not IndexEntry object identity
+    entries = [index[x].hex for x in range(n)]
+    assert list(x.hex for x in index) == entries
 
-    def test_mode(self):
-        """
-            Testing that we can access an index entry mode.
-        """
-        index = self.repo.index
+def test_mode(testrepo):
+    """
+        Testing that we can access an index entry mode.
+    """
+    index = testrepo.index
 
-        hello_mode = index['hello.txt'].mode
-        assert hello_mode == 33188
+    hello_mode = index['hello.txt'].mode
+    assert hello_mode == 33188
 
-    def test_bare_index(self):
-        index = pygit2.Index(os.path.join(self.repo.path, 'index'))
-        assert [x.hex for x in index] == [x.hex for x in self.repo.index]
+def test_bare_index(testrepo):
+    index = pygit2.Index(os.path.join(testrepo.path, 'index'))
+    assert [x.hex for x in index] == [x.hex for x in testrepo.index]
 
-        with pytest.raises(pygit2.GitError): index.add('bye.txt')
+    with pytest.raises(pygit2.GitError): index.add('bye.txt')
 
-    def test_remove(self):
-        index = self.repo.index
-        assert 'hello.txt' in index
-        index.remove('hello.txt')
-        assert 'hello.txt' not in index
+def test_remove(testrepo):
+    index = testrepo.index
+    assert 'hello.txt' in index
+    index.remove('hello.txt')
+    assert 'hello.txt' not in index
 
-    def test_remove_all(self):
-        index = self.repo.index
-        print([i.path for i in index])
-        assert 'hello.txt' in index
-        index.remove_all(['*.txt'])
-        assert 'hello.txt' not in index
+def test_remove_all(testrepo):
+    index = testrepo.index
+    print([i.path for i in index])
+    assert 'hello.txt' in index
+    index.remove_all(['*.txt'])
+    assert 'hello.txt' not in index
 
-        index.remove_all(['not-existing'])  # this doesn't error
+    index.remove_all(['not-existing'])  # this doesn't error
 
-    @utils.fspath
-    def test_remove_aspath(self):
-        index = self.repo.index
-        assert 'hello.txt' in index
-        index.remove(Path('hello.txt'))
-        assert 'hello.txt' not in index
+@utils.fspath
+def test_remove_aspath(testrepo):
+    index = testrepo.index
+    assert 'hello.txt' in index
+    index.remove(Path('hello.txt'))
+    assert 'hello.txt' not in index
 
-    @utils.fspath
-    def test_remove_all_aspath(self):
-        index = self.repo.index
-        assert 'hello.txt' in index
-        index.remove_all([Path('hello.txt')])
-        assert 'hello.txt' not in index
+@utils.fspath
+def test_remove_all_aspath(testrepo):
+    index = testrepo.index
+    assert 'hello.txt' in index
+    index.remove_all([Path('hello.txt')])
+    assert 'hello.txt' not in index
 
-    def test_change_attributes(self):
-        index = self.repo.index
-        entry = index['hello.txt']
-        ign_entry = index['.gitignore']
-        assert ign_entry.id != entry.id
-        assert entry.mode != pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
-        entry.path = 'foo.txt'
-        entry.id = ign_entry.id
-        entry.mode = pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
-        assert 'foo.txt' == entry.path
-        assert ign_entry.id == entry.id
-        assert pygit2.GIT_FILEMODE_BLOB_EXECUTABLE == entry.mode
+def test_change_attributes(testrepo):
+    index = testrepo.index
+    entry = index['hello.txt']
+    ign_entry = index['.gitignore']
+    assert ign_entry.id != entry.id
+    assert entry.mode != pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
+    entry.path = 'foo.txt'
+    entry.id = ign_entry.id
+    entry.mode = pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
+    assert 'foo.txt' == entry.path
+    assert ign_entry.id == entry.id
+    assert pygit2.GIT_FILEMODE_BLOB_EXECUTABLE == entry.mode
 
-    def test_write_tree_to(self):
-        pygit2.option(pygit2.GIT_OPT_ENABLE_STRICT_OBJECT_CREATION, False)
-        with utils.TemporaryRepository(('tar', 'emptyrepo')) as path:
-            nrepo = Repository(path)
-            id = self.repo.index.write_tree(nrepo)
-            assert nrepo[id] is not None
-
-class IndexEntryTest(utils.RepoTestCase):
-
-    def test_create_entry(self):
-        index = self.repo.index
-        hello_entry = index['hello.txt']
-        entry = pygit2.IndexEntry('README.md', hello_entry.id, hello_entry.mode)
-        index.add(entry)
-        tree_id = index.write_tree()
-        assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == str(tree_id)
-
-    @utils.fspath
-    def test_create_entry_aspath(self):
-        index = self.repo.index
-        hello_entry = index[Path('hello.txt')]
-        entry = pygit2.IndexEntry(Path('README.md'), hello_entry.id, hello_entry.mode)
-        index.add(entry)
-        index.write_tree()
+def test_write_tree_to(testrepo):
+    pygit2.option(pygit2.GIT_OPT_ENABLE_STRICT_OBJECT_CREATION, False)
+    with utils.TemporaryRepository('emptyrepo') as path:
+        nrepo = Repository(path)
+        id = testrepo.index.write_tree(nrepo)
+        assert nrepo[id] is not None
 
 
-class StandaloneIndexTest(utils.RepoTestCase):
+def test_create_entry(testrepo):
+    index = testrepo.index
+    hello_entry = index['hello.txt']
+    entry = pygit2.IndexEntry('README.md', hello_entry.id, hello_entry.mode)
+    index.add(entry)
+    tree_id = index.write_tree()
+    assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == str(tree_id)
 
-    def test_create_empty(self):
-        Index()
+@utils.fspath
+def test_create_entry_aspath(testrepo):
+    index = testrepo.index
+    hello_entry = index[Path('hello.txt')]
+    entry = pygit2.IndexEntry(Path('README.md'), hello_entry.id, hello_entry.mode)
+    index.add(entry)
+    index.write_tree()
 
-    def test_create_empty_read_tree_as_string(self):
-        index = Index()
-        # no repo associated, so we don't know where to read from
-        with pytest.raises(TypeError):
-            index('read_tree', 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
 
-    def test_create_empty_read_tree(self):
-        index = Index()
-        index.read_tree(self.repo['fd937514cb799514d4b81bb24c5fcfeb6472b245'])
+def test_create_empty():
+    Index()
+
+def test_create_empty_read_tree_as_string():
+    index = Index()
+    # no repo associated, so we don't know where to read from
+    with pytest.raises(TypeError):
+        index('read_tree', 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+
+def test_create_empty_read_tree(testrepo):
+    index = Index()
+    index.read_tree(testrepo['fd937514cb799514d4b81bb24c5fcfeb6472b245'])
