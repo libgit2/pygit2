@@ -303,7 +303,7 @@ class RepositoryTest_II(utils.RepoTestCase):
         with open(os.path.join(self.repo.workdir, 'hello.txt'), 'rb') as f:
             content = f.read().decode('utf-8')
 
-        self.assertEqual(content, new_content)
+        assert content == new_content
 
 
 class RepositorySignatureTest(utils.RepoTestCase):

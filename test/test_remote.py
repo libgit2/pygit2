@@ -25,11 +25,8 @@
 
 """Tests for Remote objects."""
 
-
-import gc
 import os.path
 import sys
-import unittest
 
 import pytest
 
@@ -285,49 +282,49 @@ class PruneTestCase(utils.RepoTestCase):
         assert 'origin/i18n' not in self.clone_repo.branches
 
 
-class PushTestCase(unittest.TestCase):
-    def setUp(self):
-        self.origin_ctxtmgr = utils.TemporaryRepository(('git', 'testrepo.git'))
-        self.clone_ctxtmgr = utils.TemporaryRepository(('git', 'testrepo.git'))
-        self.origin = pygit2.Repository(self.origin_ctxtmgr.__enter__())
-        self.clone = pygit2.Repository(self.clone_ctxtmgr.__enter__())
-        self.remote = self.clone.remotes.create('origin', self.origin.path)
+@pytest.fixture
+def origin():
+    repo_spec = 'git', 'testrepo.git'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)
 
-    def tearDown(self):
-        self.origin = None
-        self.clone = None
-        self.remote = None
-        gc.collect()
+@pytest.fixture
+def clone():
+    repo_spec = 'git', 'testrepo.git'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)
 
-        self.origin_ctxtmgr.__exit__(None, None, None)
-        self.clone_ctxtmgr.__exit__(None, None, None)
+@pytest.fixture
+def remote(origin, clone):
+    yield clone.remotes.create('origin', origin.path)
 
-    def test_push_fast_forward_commits_to_remote_succeeds(self):
-        tip = self.clone[self.clone.head.target]
-        oid = self.clone.create_commit(
-            'refs/heads/master', tip.author, tip.author, 'empty commit',
-            tip.tree.id, [tip.id]
-        )
-        self.remote.push(['refs/heads/master'])
-        assert self.origin[self.origin.head.target].id == oid
 
-    def test_push_when_up_to_date_succeeds(self):
-        self.remote.push(['refs/heads/master'])
-        origin_tip = self.origin[self.origin.head.target].id
-        clone_tip = self.clone[self.clone.head.target].id
-        assert origin_tip == clone_tip
+def test_push_fast_forward_commits_to_remote_succeeds(origin, clone, remote):
+    tip = clone[clone.head.target]
+    oid = clone.create_commit(
+        'refs/heads/master', tip.author, tip.author, 'empty commit',
+        tip.tree.id, [tip.id]
+    )
+    remote.push(['refs/heads/master'])
+    assert origin[origin.head.target].id == oid
 
-    def test_push_non_fast_forward_commits_to_remote_fails(self):
-        tip = self.origin[self.origin.head.target]
-        self.origin.create_commit(
-            'refs/heads/master', tip.author, tip.author, 'some commit',
-            tip.tree.id, [tip.id]
-        )
-        tip = self.clone[self.clone.head.target]
-        self.clone.create_commit(
-            'refs/heads/master', tip.author, tip.author, 'other commit',
-            tip.tree.id, [tip.id]
-        )
+def test_push_when_up_to_date_succeeds(origin, clone, remote):
+    remote.push(['refs/heads/master'])
+    origin_tip = origin[origin.head.target].id
+    clone_tip = clone[clone.head.target].id
+    assert origin_tip == clone_tip
 
-        with pytest.raises(pygit2.GitError):
-            self.remote.push(['refs/heads/master'])
+def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
+    tip = origin[origin.head.target]
+    origin.create_commit(
+        'refs/heads/master', tip.author, tip.author, 'some commit',
+        tip.tree.id, [tip.id]
+    )
+    tip = clone[clone.head.target]
+    clone.create_commit(
+        'refs/heads/master', tip.author, tip.author, 'other commit',
+        tip.tree.id, [tip.id]
+    )
+
+    with pytest.raises(pygit2.GitError):
+        remote.push(['refs/heads/master'])

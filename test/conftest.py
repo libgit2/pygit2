@@ -43,6 +43,12 @@ def emptyrepo():
     with utils.TemporaryRepository(repo_spec) as path:
         yield pygit2.Repository(path)
 
+@pytest.fixture
+def encodingrepo():
+    repo_spec = 'tar', 'encoding'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)
+
 
 @pytest.fixture
 def mergerepo():

@@ -29,7 +29,6 @@
 import binascii
 import gc
 import os
-import unittest
 
 import pytest
 
@@ -43,22 +42,15 @@ BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
 BLOB_OID = Oid(raw=BLOB_RAW)
 
-class EmptyOdbTest(unittest.TestCase):
-    def setUp(self):
-        self.odb = Odb()
 
-    def test_iterable(self):
-        assert len([str(o) for o in self.odb]) == 0
+def test_emptyodb():
+    odb = Odb()
 
-    def test_contains(self):
-        assert BLOB_HEX not in self.odb
-
-    def test_add_disk_alternate(self):
-        assert BLOB_HEX not in self.odb
-        path = os.path.join(os.path.dirname(__file__),
-                'data', 'testrepo.git', 'objects')
-        self.odb.add_disk_alternate(path)
-        assert BLOB_HEX in self.odb
+    assert len([str(o) for o in odb]) == 0
+    assert BLOB_HEX not in odb
+    path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
+    odb.add_disk_alternate(path)
+    assert BLOB_HEX in odb
 
 
 @pytest.fixture

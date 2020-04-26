@@ -264,9 +264,7 @@ class PatchTest(utils.RepoTestCase):
         assert patch.text == patch2.text
 
 
-class PatchEncodingTest(utils.AutoRepoTestCase):
-    repo_spec = 'tar', 'encoding'
-    expected_diff = b"""diff --git a/iso-8859-1.txt b/iso-8859-1.txt
+expected_diff = b"""diff --git a/iso-8859-1.txt b/iso-8859-1.txt
 index e84e339..201e0c9 100644
 --- a/iso-8859-1.txt
 +++ b/iso-8859-1.txt
@@ -275,39 +273,35 @@ index e84e339..201e0c9 100644
 +foo
 """
 
-    def test_patch_from_non_utf8(self):
-        # blobs encoded in ISO-8859-1
-        old_content = b'Kristian H\xf8gsberg\n'
-        new_content = old_content + b'foo\n'
-        patch = pygit2.Patch.create_from(
-            old_content,
-            new_content,
-            old_as_path='iso-8859-1.txt',
-            new_as_path='iso-8859-1.txt',
-        )
+def test_patch_from_non_utf8():
+    # blobs encoded in ISO-8859-1
+    old_content = b'Kristian H\xf8gsberg\n'
+    new_content = old_content + b'foo\n'
+    patch = pygit2.Patch.create_from(
+        old_content,
+        new_content,
+        old_as_path='iso-8859-1.txt',
+        new_as_path='iso-8859-1.txt',
+    )
 
-        self.assertEqual(patch.data, self.expected_diff)
+    assert patch.data == expected_diff
+    assert patch.text == expected_diff.decode('utf-8', errors='replace')
 
-        self.assertEqual(
-            patch.text, self.expected_diff.decode('utf-8', errors='replace'))
+    # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
+    # decoding, so assert that we cannot get the original content back:
+    assert patch.text.encode('utf-8') != expected_diff
 
-        # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
-        # decoding, so assert that we cannot get the original content back:
-        self.assertNotEqual(patch.text.encode('utf-8'), self.expected_diff)
+def test_patch_create_from_blobs(encodingrepo):
+    patch = pygit2.Patch.create_from(
+        encodingrepo['e84e339ac7fcc823106efa65a6972d7a20016c85'],
+        encodingrepo['201e0c908e3d9f526659df3e556c3d06384ef0df'],
+        old_as_path='iso-8859-1.txt',
+        new_as_path='iso-8859-1.txt',
+    )
 
-    def test_patch_create_from_blobs(self):
-        patch = pygit2.Patch.create_from(
-            self.repo['e84e339ac7fcc823106efa65a6972d7a20016c85'],
-            self.repo['201e0c908e3d9f526659df3e556c3d06384ef0df'],
-            old_as_path='iso-8859-1.txt',
-            new_as_path='iso-8859-1.txt',
-        )
+    assert patch.data == expected_diff
+    assert patch.text == expected_diff.decode('utf-8', errors='replace')
 
-        self.assertEqual(patch.data, self.expected_diff)
-
-        self.assertEqual(
-            patch.text, self.expected_diff.decode('utf-8', errors='replace'))
-
-        # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
-        # decoding, so assert that we cannot get the original content back:
-        self.assertNotEqual(patch.text.encode('utf-8'), self.expected_diff)
+    # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
+    # decoding, so assert that we cannot get the original content back:
+    assert patch.text.encode('utf-8') != expected_diff
