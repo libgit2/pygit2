@@ -26,203 +26,24 @@
 """Tests for Repository objects."""
 
 # Import from the Standard Library
-import binascii
 import shutil
 import tempfile
 import os
 from os.path import join, realpath
 from pathlib import Path
-import sys
 from urllib.request import pathname2url
 
 import pytest
 
 # Import from pygit2
-from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB, GIT_OBJ_COMMIT
+from pygit2 import GIT_OBJ_BLOB
 from pygit2 import init_repository, clone_repository, discover_repository
-from pygit2 import Oid, Reference, hashfile
+from pygit2 import Oid
 from pygit2 import Odb, OdbBackendLoose, OdbBackendPack
 from pygit2 import Refdb, RefdbFsBackend
 import pygit2
 from . import utils
 
-
-HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
-PARENT_SHA = 'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87'  # HEAD^
-BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
-BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
-BLOB_OID = Oid(raw=BLOB_RAW)
-
-
-class RepositoryTest(utils.BareRepoTestCase):
-
-    def test_is_empty(self):
-        assert not self.repo.is_empty
-
-    def test_is_bare(self):
-        assert self.repo.is_bare
-
-    def test_head(self):
-        head = self.repo.head
-        assert HEAD_SHA == head.target.hex
-        assert type(head) == Reference
-        assert not self.repo.head_is_unborn
-        assert not self.repo.head_is_detached
-
-    def test_set_head(self):
-        # Test setting a detatched HEAD.
-        self.repo.set_head(Oid(hex=PARENT_SHA))
-        assert self.repo.head.target.hex == PARENT_SHA
-        # And test setting a normal HEAD.
-        self.repo.set_head("refs/heads/master")
-        assert self.repo.head.name == "refs/heads/master"
-        assert self.repo.head.target.hex == HEAD_SHA
-
-    def test_read(self):
-        with pytest.raises(TypeError): self.repo.read(123)
-        self.assertRaisesWithArg(KeyError, '1' * 40, self.repo.read, '1' * 40)
-
-        ab = self.repo.read(BLOB_OID)
-        a = self.repo.read(BLOB_HEX)
-        assert ab == a
-        assert (GIT_OBJ_BLOB, b'a contents\n') == a
-
-        a2 = self.repo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        assert (GIT_OBJ_BLOB, b'a contents 2\n') == a2
-
-        a_hex_prefix = BLOB_HEX[:4]
-        a3 = self.repo.read(a_hex_prefix)
-        assert (GIT_OBJ_BLOB, b'a contents\n') == a3
-
-    def test_write(self):
-        data = b"hello world"
-        # invalid object type
-        with pytest.raises(ValueError): self.repo.write(GIT_OBJ_ANY, data)
-
-        oid = self.repo.write(GIT_OBJ_BLOB, data)
-        assert type(oid) == Oid
-
-    def test_contains(self):
-        with pytest.raises(TypeError): 123 in self.repo
-        assert BLOB_OID in self.repo
-        assert BLOB_HEX in self.repo
-        assert BLOB_HEX[:10] in self.repo
-        assert ('a' * 40) not in self.repo
-        assert ('a' * 20) not in self.repo
-
-    def test_iterable(self):
-        l = [obj for obj in self.repo]
-        oid = Oid(hex=BLOB_HEX)
-        assert oid in l
-
-    def test_lookup_blob(self):
-        with pytest.raises(TypeError): self.repo[123]
-        assert self.repo[BLOB_OID].hex == BLOB_HEX
-        a = self.repo[BLOB_HEX]
-        assert b'a contents\n' == a.read_raw()
-        assert BLOB_HEX == a.hex
-        assert GIT_OBJ_BLOB == a.type
-
-    def test_lookup_blob_prefix(self):
-        a = self.repo[BLOB_HEX[:5]]
-        assert b'a contents\n' == a.read_raw()
-        assert BLOB_HEX == a.hex
-        assert GIT_OBJ_BLOB == a.type
-
-    def test_lookup_commit(self):
-        commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
-        commit = self.repo[commit_sha]
-        assert commit_sha == commit.hex
-        assert GIT_OBJ_COMMIT == commit.type
-        assert commit.message == ('Second test data commit.\n\n'
-                                  'This commit has some additional text.\n')
-
-    def test_lookup_commit_prefix(self):
-        commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
-        commit_sha_prefix = commit_sha[:7]
-        too_short_prefix = commit_sha[:3]
-        commit = self.repo[commit_sha_prefix]
-        assert commit_sha == commit.hex
-        assert GIT_OBJ_COMMIT == commit.type
-        assert 'Second test data commit.\n\n' 'This commit has some additional text.\n' == commit.message
-        with pytest.raises(ValueError):
-            self.repo.__getitem__(too_short_prefix)
-
-    def test_expand_id(self):
-        commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
-        expanded = self.repo.expand_id(commit_sha[:7])
-        assert commit_sha == expanded.hex
-
-    @utils.refcount
-    def test_lookup_commit_refcount(self):
-        start = sys.getrefcount(self.repo)
-        commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
-        commit = self.repo[commit_sha]
-        del commit
-        end = sys.getrefcount(self.repo)
-        assert start == end
-
-    def test_get_path(self):
-        directory = realpath(self.repo.path)
-        expected = realpath(self.repo_path)
-        assert directory == expected
-
-    def test_get_workdir(self):
-        assert self.repo.workdir is None
-
-    def test_revparse_single(self):
-        parent = self.repo.revparse_single('HEAD^')
-        assert parent.hex == PARENT_SHA
-
-    def test_hash(self):
-        data = "foobarbaz"
-        hashed_sha1 = pygit2.hash(data)
-        written_sha1 = self.repo.create_blob(data)
-        assert hashed_sha1 == written_sha1
-
-    def test_hashfile(self):
-        data = "bazbarfoo"
-        handle, tempfile_path = tempfile.mkstemp()
-        with os.fdopen(handle, 'w') as fh:
-            fh.write(data)
-        hashed_sha1 = hashfile(tempfile_path)
-        os.unlink(tempfile_path)
-        written_sha1 = self.repo.create_blob(data)
-        assert hashed_sha1 == written_sha1
-
-    def test_conflicts_in_bare_repository(self):
-        def create_conflict_file(repo, branch, content):
-            oid = repo.create_blob(content.encode('utf-8'))
-            tb = repo.TreeBuilder()
-            tb.insert('conflict', oid, pygit2.GIT_FILEMODE_BLOB)
-            tree = tb.write()
-
-            sig = pygit2.Signature('Author', 'author@example.com')
-            commit = repo.create_commit(branch.name, sig, sig,
-                    'Conflict', tree, [branch.target])
-            assert commit is not None
-            return commit
-
-        b1 = self.repo.create_branch('b1', self.repo.head.peel())
-        c1 = create_conflict_file(self.repo, b1, 'ASCII - abc')
-        b2 = self.repo.create_branch('b2', self.repo.head.peel())
-        c2 = create_conflict_file(self.repo, b2, 'Unicode - äüö')
-
-        index = self.repo.merge_commits(c1, c2)
-        assert index.conflicts is not None
-
-        # ConflictCollection does not allow calling len(...) on it directly so
-        # we have to calculate length by iterating over its entries
-        assert sum(1 for _ in index.conflicts) == 1
-
-        (a, t, o) = index.conflicts['conflict']
-        diff = self.repo.merge_file_from_index(a, t, o)
-        assert diff == '''<<<<<<< conflict
-ASCII - abc
-=======
-Unicode - äüö
->>>>>>> conflict
-'''
 
 class RepositoryTest_II(utils.RepoTestCase):
 

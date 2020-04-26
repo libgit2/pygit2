@@ -25,47 +25,48 @@
 
 """Tests for Odb backends."""
 
-# Import from the Standard Library
+# Standard Library
 import binascii
 import gc
 import os
 
 import pytest
 
-# Import from pygit2
-from pygit2 import Odb, OdbBackend, OdbBackendPack, OdbBackendLoose, Oid
-from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB
-
+# pygit2
+from pygit2 import OdbBackend, OdbBackendPack, OdbBackendLoose, Oid
+from pygit2 import GIT_OBJ_BLOB
 from . import utils
+
 
 BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
 BLOB_OID = Oid(raw=BLOB_RAW)
 
-class OdbBackendTest(utils.BareRepoTestCase):
 
-    def setUp(self):
-        super().setUp()
-        self.ref_odb = self.repo.odb
-        self.obj_path = os.path.join(os.path.dirname(__file__),
-                'data', 'testrepo.git', 'objects')
+@pytest.fixture
+def odb(barerepo):
+    odb = barerepo.odb
+    path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
+    yield odb, path
+    del odb
+    gc.collect()
 
-    def tearDown(self):
-        del self.ref_odb
-        gc.collect()
-        super().tearDown()
+def test_pack(odb):
+    odb, path = odb
 
-    def test_pack(self):
-        pack = OdbBackendPack(self.obj_path)
-        assert len(list(pack)) > 0
-        for obj in pack:
-            assert obj in self.ref_odb
+    pack = OdbBackendPack(path)
+    assert len(list(pack)) > 0
+    for obj in pack:
+        assert obj in odb
 
-    def test_loose(self):
-        pack = OdbBackendLoose(self.obj_path, 5, False)
-        assert len(list(pack)) > 0
-        for obj in pack:
-            assert obj in self.ref_odb
+def test_loose(odb):
+    odb, path = odb
+
+    pack = OdbBackendLoose(path, 5, False)
+    assert len(list(pack)) > 0
+    for obj in pack:
+        assert obj in odb
+
 
 class ProxyBackend(OdbBackend):
     def __init__(self, source):
@@ -91,37 +92,39 @@ class ProxyBackend(OdbBackend):
     def __iter__(self):
         return iter(self.source)
 
-class CustomBackendTest(utils.BareRepoTestCase):
-    def setUp(self):
-        super().setUp()
-        self.obj_path = os.path.join(os.path.dirname(__file__),
-                'data', 'testrepo.git', 'objects')
-        self.odb = ProxyBackend(OdbBackendPack(self.obj_path))
 
-    def test_iterable(self):
-        assert BLOB_HEX in [str(o) for o in self.odb]
+@pytest.fixture
+def proxy(barerepo):
+    path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
+    yield ProxyBackend(OdbBackendPack(path))
 
-    def test_read(self):
-        with pytest.raises(TypeError): self.odb.read(123)
-        self.assertRaisesWithArg(KeyError, '1' * 40, self.odb.read, '1' * 40)
 
-        ab = self.odb.read(BLOB_OID)
-        a = self.odb.read(BLOB_HEX)
-        assert ab == a
-        assert (GIT_OBJ_BLOB, b'a contents\n') == a
+def test_iterable(proxy):
+    assert BLOB_HEX in [str(o) for o in proxy]
 
-    def test_read_prefix(self):
-        a_hex_prefix = BLOB_HEX[:4]
-        a3 = self.odb.read_prefix(a_hex_prefix)
-        assert (GIT_OBJ_BLOB, b'a contents\n', BLOB_OID) == a3
+def test_read(proxy):
+    with pytest.raises(TypeError):
+        proxy.read(123)
+    utils.assertRaisesWithArg(KeyError, '1' * 40, proxy.read, '1' * 40)
 
-    def test_exists(self):
-        with pytest.raises(TypeError): self.odb.exists(123)
+    ab = proxy.read(BLOB_OID)
+    a = proxy.read(BLOB_HEX)
+    assert ab == a
+    assert (GIT_OBJ_BLOB, b'a contents\n') == a
 
-        assert self.odb.exists('1' * 40) == False
-        assert self.odb.exists(BLOB_HEX) == True
+def test_read_prefix(proxy):
+    a_hex_prefix = BLOB_HEX[:4]
+    a3 = proxy.read_prefix(a_hex_prefix)
+    assert (GIT_OBJ_BLOB, b'a contents\n', BLOB_OID) == a3
 
-    def test_exists_prefix(self):
-        a_hex_prefix = BLOB_HEX[:4]
-        a3 = self.odb.exists_prefix(a_hex_prefix)
-        assert BLOB_HEX == a3.hex
+def test_exists(proxy):
+    with pytest.raises(TypeError):
+        proxy.exists(123)
+
+    assert proxy.exists('1' * 40) == False
+    assert proxy.exists(BLOB_HEX) == True
+
+def test_exists_prefix(proxy):
+    a_hex_prefix = BLOB_HEX[:4]
+    a3 = proxy.exists_prefix(a_hex_prefix)
+    assert BLOB_HEX == a3.hex

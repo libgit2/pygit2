@@ -17,6 +17,20 @@ def disable_global_git_config():
 
 
 @pytest.fixture
+def barerepo():
+    repo_spec = 'git', 'testrepo.git'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path)
+
+
+@pytest.fixture
+def barerepo_path():
+    repo_spec = 'git', 'testrepo.git'
+    with utils.TemporaryRepository(repo_spec) as path:
+        yield pygit2.Repository(path), path
+
+
+@pytest.fixture
 def dirtyrepo():
     repo_spec = 'tar', 'dirtyrepo'
     with utils.TemporaryRepository(repo_spec) as path:

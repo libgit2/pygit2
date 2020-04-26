@@ -35,11 +35,8 @@ from pygit2 import Repository, Index
 from . import utils
 
 
-class IndexBareTest(utils.BareRepoTestCase):
-
-    def test_bare(self):
-        index = self.repo.index
-        assert len(index) == 0
+def test_bare(barerepo):
+    assert len(barerepo.index) == 0
 
 
 class IndexTest(utils.RepoTestCase):
@@ -52,8 +49,8 @@ class IndexTest(utils.RepoTestCase):
         assert len(index) == 2
 
         with pytest.raises(TypeError): index[()]
-        self.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
-        self.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
+        utils.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
+        utils.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
 
         sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
         assert 'hello.txt' in index

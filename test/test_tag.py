@@ -25,71 +25,60 @@
 
 """Tests for Tag objects."""
 
-import pytest
-
 import pygit2
-from . import utils
-
-# pypy (in python2 mode) raises TypeError on writing to read-only, so
-# we need to check and change the test accordingly
-try:
-    import __pypy__
-except ImportError:
-    __pypy__ = None
+import pytest
 
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 
 
-class TagTest(utils.BareRepoTestCase):
+def test_read_tag(barerepo):
+    repo = barerepo
+    tag = repo[TAG_SHA]
+    target = repo[tag.target]
+    assert isinstance(tag, pygit2.Tag)
+    assert pygit2.GIT_OBJ_TAG == tag.type
+    assert pygit2.GIT_OBJ_COMMIT == target.type
+    assert 'root' == tag.name
+    assert 'Tagged root commit.\n' == tag.message
+    assert 'Initial test data commit.\n' == target.message
+    assert tag.tagger == pygit2.Signature('Dave Borowitz', 'dborowitz@google.com', 1288724692, -420)
 
-    def test_read_tag(self):
-        repo = self.repo
-        tag = repo[TAG_SHA]
-        target = repo[tag.target]
-        assert isinstance(tag, pygit2.Tag)
-        assert pygit2.GIT_OBJ_TAG == tag.type
-        assert pygit2.GIT_OBJ_COMMIT == target.type
-        assert 'root' == tag.name
-        assert 'Tagged root commit.\n' == tag.message
-        assert 'Initial test data commit.\n' == target.message
-        assert tag.tagger == pygit2.Signature('Dave Borowitz', 'dborowitz@google.com', 1288724692, -420)
+def test_new_tag(barerepo):
+    name = 'thetag'
+    target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
+    message = 'Tag a blob.\n'
+    tagger = pygit2.Signature('John Doe', 'jdoe@example.com', 12347, 0)
 
-    def test_new_tag(self):
-        name = 'thetag'
-        target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
-        message = 'Tag a blob.\n'
-        tagger = pygit2.Signature('John Doe', 'jdoe@example.com', 12347, 0)
+    target_prefix = target[:5]
+    too_short_prefix = target[:3]
+    with pytest.raises(ValueError):
+        barerepo.create_tag(name, too_short_prefix, pygit2.GIT_OBJ_BLOB, tagger, message)
 
-        target_prefix = target[:5]
-        too_short_prefix = target[:3]
-        with pytest.raises(ValueError):
-            self.repo.create_tag(name, too_short_prefix, pygit2.GIT_OBJ_BLOB, tagger, message)
+    sha = barerepo.create_tag(name, target_prefix, pygit2.GIT_OBJ_BLOB,
+                               tagger, message)
+    tag = barerepo[sha]
 
-        sha = self.repo.create_tag(name, target_prefix, pygit2.GIT_OBJ_BLOB,
-                                   tagger, message)
-        tag = self.repo[sha]
+    assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.hex
+    assert name == tag.name
+    assert target == tag.target.hex
+    assert tagger == tag.tagger
+    assert message == tag.message
+    assert name == barerepo[tag.hex].name
 
-        assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.hex
-        assert name == tag.name
-        assert target == tag.target.hex
-        assert tagger == tag.tagger
-        assert message == tag.message
-        assert name == self.repo[tag.hex].name
+def test_modify_tag(barerepo):
+    name = 'thetag'
+    target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
+    message = 'Tag a blob.\n'
+    tagger = ('John Doe', 'jdoe@example.com', 12347)
 
-    def test_modify_tag(self):
-        name = 'thetag'
-        target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
-        message = 'Tag a blob.\n'
-        tagger = ('John Doe', 'jdoe@example.com', 12347)
+    tag = barerepo[TAG_SHA]
+    with pytest.raises(AttributeError): setattr(tag, 'name', name)
+    with pytest.raises(AttributeError): setattr(tag, 'target', target)
+    with pytest.raises(AttributeError): setattr(tag, 'tagger', tagger)
+    with pytest.raises(AttributeError): setattr(tag, 'message', message)
 
-        tag = self.repo[TAG_SHA]
-        with pytest.raises(AttributeError): setattr(tag, 'name', name)
-        with pytest.raises(AttributeError): setattr(tag, 'target', target)
-        with pytest.raises(AttributeError): setattr(tag, 'tagger', tagger)
-        with pytest.raises(AttributeError): setattr(tag, 'message', message)
-
-    def test_get_object(self):
-        repo = self.repo
-        tag = repo[TAG_SHA]
-        assert repo[tag.target].id == tag.get_object().id
+def test_get_object(barerepo):
+    repo = barerepo
+    tag = repo[TAG_SHA]
+    assert repo[tag.target].id == tag.get_object().id

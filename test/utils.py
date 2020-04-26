@@ -120,6 +120,24 @@ class TemporaryRepository:
         rmtree(self.temp_dir)
 
 
+def assertRaisesWithArg(exc_class, arg, func, *args, **kwargs):
+    with pytest.raises(exc_class) as excinfo:
+        func(*args, **kwargs)
+    assert excinfo.value.args == (arg,)
+
+    # Explicitly clear the Exception Info. Citing
+    # https://docs.pytest.org/en/latest/reference.html#pytest-raises:
+    #
+    # Clearing those references breaks a reference cycle
+    # (ExceptionInfo –> caught exception –> frame stack raising the exception
+    # –> current frame stack –> local variables –> ExceptionInfo) which makes
+    # Python keep all objects referenced from that cycle (including all local
+    # variables in the current frame) alive until the next cyclic garbage
+    # collection run. See the official Python try statement documentation for
+    # more detailed information.
+    del excinfo
+
+
 class AutoRepoTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -132,28 +150,6 @@ class AutoRepoTestCase(unittest.TestCase):
         del self.repo
         gc.collect()
         self.repo_ctxtmgr.__exit__(None, None, None)
-
-    def assertRaisesWithArg(self, exc_class, arg, func, *args, **kwargs):
-        with pytest.raises(exc_class) as excinfo:
-            func(*args, **kwargs)
-        assert excinfo.value.args == (arg,)
-
-        # Explicitly clear the Exception Info. Citing
-        # https://docs.pytest.org/en/latest/reference.html#pytest-raises:
-        #
-        # Clearing those references breaks a reference cycle
-        # (ExceptionInfo –> caught exception –> frame stack raising the exception
-        # –> current frame stack –> local variables –> ExceptionInfo) which makes
-        # Python keep all objects referenced from that cycle (including all local
-        # variables in the current frame) alive until the next cyclic garbage collection
-        # run. See the official Python try statement documentation for more detailed
-        # information.
-        del excinfo
-
-
-class BareRepoTestCase(AutoRepoTestCase):
-
-    repo_spec = 'git', 'testrepo.git'
 
 
 class RepoTestCase(AutoRepoTestCase):

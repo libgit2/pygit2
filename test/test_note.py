@@ -25,10 +25,8 @@
 
 """Tests for note objects."""
 
-import pytest
-
 from pygit2 import Signature
-from . import utils
+import pytest
 
 
 NOTE = ('6c8980ba963cad8b25a9bcaf68d4023ee57370d8', 'note message')
@@ -40,35 +38,34 @@ NOTES = [
      'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87')]
 
 
-class NotesTest(utils.BareRepoTestCase):
+def test_create_note(barerepo):
+    annotated_id = barerepo.revparse_single('HEAD~3').hex
+    author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
+    note_id = barerepo.create_note(NOTE[1], author, committer, annotated_id)
+    assert NOTE[0] == note_id.hex
 
-    def test_create_note(self):
-        annotated_id = self.repo.revparse_single('HEAD~3').hex
-        author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
-        note_id = self.repo.create_note(NOTE[1], author, committer,
-                                        annotated_id)
-        assert NOTE[0] == note_id.hex
+    # check the note blob
+    assert NOTE[1].encode() == barerepo[note_id].data
 
-        # check the note blob
-        assert NOTE[1].encode() == self.repo[note_id].data
+def test_lookup_note(barerepo):
+    annotated_id = barerepo.head.target.hex
+    note = barerepo.lookup_note(annotated_id)
+    assert NOTES[0][0] == note.id.hex
+    assert NOTES[0][1] == note.message
 
-    def test_lookup_note(self):
-        annotated_id = self.repo.head.target.hex
-        note = self.repo.lookup_note(annotated_id)
-        assert NOTES[0][0] == note.id.hex
-        assert NOTES[0][1] == note.message
+def test_remove_note(barerepo):
+    head = barerepo.head
+    note = barerepo.lookup_note(head.target.hex)
+    author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
+    note.remove(author, committer)
+    with pytest.raises(KeyError):
+        barerepo.lookup_note(head.target.hex)
 
-    def test_remove_note(self):
-        head = self.repo.head
-        note = self.repo.lookup_note(head.target.hex)
-        author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
-        note.remove(author, committer)
-        with pytest.raises(KeyError): self.repo.lookup_note(head.target.hex)
+def test_iterate_notes(barerepo):
+    for i, note in enumerate(barerepo.notes()):
+        entry = (note.id.hex, note.message, note.annotated_id.hex)
+        assert NOTES[i] == entry
 
-    def test_iterate_notes(self):
-        for i, note in enumerate(self.repo.notes()):
-            entry = (note.id.hex, note.message, note.annotated_id.hex)
-            assert NOTES[i] == entry
-
-    def test_iterate_non_existing_ref(self):
-        with pytest.raises(KeyError): self.repo.notes("refs/notes/bad_ref")
+def test_iterate_non_existing_ref(barerepo):
+    with pytest.raises(KeyError):
+        barerepo.notes("refs/notes/bad_ref")

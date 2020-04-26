@@ -23,45 +23,41 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from . import utils
-
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
 
-class TreeBuilderTest(utils.BareRepoTestCase):
-
-    def test_new_empty_treebuilder(self):
-        self.repo.TreeBuilder()
+def test_new_empty_treebuilder(barerepo):
+    barerepo.TreeBuilder()
 
 
-    def test_noop_treebuilder(self):
-        tree = self.repo[TREE_SHA]
-        bld = self.repo.TreeBuilder(TREE_SHA)
-        result = bld.write()
+def test_noop_treebuilder(barerepo):
+    tree = barerepo[TREE_SHA]
+    bld = barerepo.TreeBuilder(TREE_SHA)
+    result = bld.write()
 
-        assert len(bld) == len(tree)
-        assert tree.id == result
-
-
-    def test_noop_treebuilder_from_tree(self):
-        tree = self.repo[TREE_SHA]
-        bld = self.repo.TreeBuilder(tree)
-        result = bld.write()
-
-        assert len(bld) == len(tree)
-        assert tree.id == result
+    assert len(bld) == len(tree)
+    assert tree.id == result
 
 
-    def test_rebuild_treebuilder(self):
-        tree = self.repo[TREE_SHA]
-        bld = self.repo.TreeBuilder()
-        for entry in tree:
-            name = entry.name
-            assert bld.get(name) is None
-            bld.insert(name, entry.hex, entry.filemode)
-            assert bld.get(name).id == entry.id
-        result = bld.write()
+def test_noop_treebuilder_from_tree(barerepo):
+    tree = barerepo[TREE_SHA]
+    bld = barerepo.TreeBuilder(tree)
+    result = bld.write()
 
-        assert len(bld) == len(tree)
-        assert tree.id == result
+    assert len(bld) == len(tree)
+    assert tree.id == result
+
+
+def test_rebuild_treebuilder(barerepo):
+    tree = barerepo[TREE_SHA]
+    bld = barerepo.TreeBuilder()
+    for entry in tree:
+        name = entry.name
+        assert bld.get(name) is None
+        bld.insert(name, entry.hex, entry.filemode)
+        assert bld.get(name).id == entry.id
+    result = bld.write()
+
+    assert len(bld) == len(tree)
+    assert tree.id == result

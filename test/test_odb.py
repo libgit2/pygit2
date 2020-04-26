@@ -25,7 +25,7 @@
 
 """Tests for Odb objects."""
 
-# Import from the Standard Library
+# Standard Library
 import binascii
 import gc
 import os
@@ -33,10 +33,9 @@ import unittest
 
 import pytest
 
-# Import from pygit2
-from pygit2 import Odb, OdbBackendPack, OdbBackendLoose, Oid
+# pygit2
+from pygit2 import Odb, Oid
 from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB
-
 from . import utils
 
 
@@ -61,43 +60,42 @@ class EmptyOdbTest(unittest.TestCase):
         self.odb.add_disk_alternate(path)
         assert BLOB_HEX in self.odb
 
-class OdbTest(utils.BareRepoTestCase):
 
-    def setUp(self):
-        super().setUp()
-        self.odb = self.repo.odb
+@pytest.fixture
+def odb(barerepo):
+    odb = barerepo.odb
+    yield odb
+    del odb
+    gc.collect()
 
-    def tearDown(self):
-        del self.odb
-        gc.collect()
-        super().tearDown()
+def test_iterable(odb):
+    assert BLOB_HEX in [str(o) for o in odb]
 
-    def test_iterable(self):
-        assert BLOB_HEX in [str(o) for o in self.odb]
+def test_contains(odb):
+    assert BLOB_HEX in odb
 
-    def test_contains(self):
-        assert BLOB_HEX in self.odb
+def test_read(odb):
+    with pytest.raises(TypeError):
+        odb.read(123)
+    utils.assertRaisesWithArg(KeyError, '1' * 40, odb.read, '1' * 40)
 
-    def test_read(self):
-        with pytest.raises(TypeError): self.odb.read(123)
-        self.assertRaisesWithArg(KeyError, '1' * 40, self.odb.read, '1' * 40)
+    ab = odb.read(BLOB_OID)
+    a = odb.read(BLOB_HEX)
+    assert ab == a
+    assert (GIT_OBJ_BLOB, b'a contents\n') == a
 
-        ab = self.odb.read(BLOB_OID)
-        a = self.odb.read(BLOB_HEX)
-        assert ab == a
-        assert (GIT_OBJ_BLOB, b'a contents\n') == a
+    a2 = odb.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
+    assert (GIT_OBJ_BLOB, b'a contents 2\n') == a2
 
-        a2 = self.odb.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-        assert (GIT_OBJ_BLOB, b'a contents 2\n') == a2
+    a_hex_prefix = BLOB_HEX[:4]
+    a3 = odb.read(a_hex_prefix)
+    assert (GIT_OBJ_BLOB, b'a contents\n') == a3
 
-        a_hex_prefix = BLOB_HEX[:4]
-        a3 = self.odb.read(a_hex_prefix)
-        assert (GIT_OBJ_BLOB, b'a contents\n') == a3
+def test_write(odb):
+    data = b"hello world"
+    # invalid object type
+    with pytest.raises(ValueError):
+        odb.write(GIT_OBJ_ANY, data)
 
-    def test_write(self):
-        data = b"hello world"
-        # invalid object type
-        with pytest.raises(ValueError): self.odb.write(GIT_OBJ_ANY, data)
-
-        oid = self.odb.write(GIT_OBJ_BLOB, data)
-        assert type(oid) == Oid
+    oid = odb.write(GIT_OBJ_BLOB, data)
+    assert type(oid) == Oid
