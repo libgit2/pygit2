@@ -17,47 +17,47 @@ def disable_global_git_config():
 
 
 @pytest.fixture
-def barerepo():
-    with utils.TemporaryRepository('testrepo.git', 'git') as path:
+def barerepo(tmp_path):
+    with utils.TemporaryRepository('testrepo.git', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
-def barerepo_path():
-    with utils.TemporaryRepository('testrepo.git', 'git') as path:
+def barerepo_path(tmp_path):
+    with utils.TemporaryRepository('testrepo.git', tmp_path) as path:
         yield pygit2.Repository(path), path
 
 
 @pytest.fixture
-def dirtyrepo():
-    with utils.TemporaryRepository('dirtyrepo') as path:
+def dirtyrepo(tmp_path):
+    with utils.TemporaryRepository('dirtyrepo.tar', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
-def emptyrepo():
-    with utils.TemporaryRepository('emptyrepo') as path:
+def emptyrepo(tmp_path):
+    with utils.TemporaryRepository('emptyrepo.tar', tmp_path) as path:
         yield pygit2.Repository(path)
 
 @pytest.fixture
-def encodingrepo():
-    with utils.TemporaryRepository('encoding') as path:
-        yield pygit2.Repository(path)
-
-
-@pytest.fixture
-def mergerepo():
-    with utils.TemporaryRepository('testrepoformerging') as path:
+def encodingrepo(tmp_path):
+    with utils.TemporaryRepository('encoding.tar', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
-def testrepo():
-    with utils.TemporaryRepository('testrepo') as path:
+def mergerepo(tmp_path):
+    with utils.TemporaryRepository('testrepoformerging.tar', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
-def testrepo_path():
-    with utils.TemporaryRepository('testrepo') as path:
+def testrepo(tmp_path):
+    with utils.TemporaryRepository('testrepo.tar', tmp_path) as path:
+        yield pygit2.Repository(path)
+
+
+@pytest.fixture
+def testrepo_path(tmp_path):
+    with utils.TemporaryRepository('testrepo.tar', tmp_path) as path:
         yield pygit2.Repository(path), path

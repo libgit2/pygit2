@@ -41,8 +41,8 @@ SUBM_HEAD_SHA = '49322bb17d3acc9146f98c97d078513228bbf3c0'
 
 
 @pytest.fixture
-def repo():
-    with utils.TemporaryRepository('submodulerepo') as path:
+def repo(tmp_path):
+    with utils.TemporaryRepository('submodulerepo.tar', tmp_path) as path:
         yield pygit2.Repository(path)
 
 

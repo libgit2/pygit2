@@ -218,9 +218,9 @@ def test_change_attributes(testrepo):
     assert ign_entry.id == entry.id
     assert pygit2.GIT_FILEMODE_BLOB_EXECUTABLE == entry.mode
 
-def test_write_tree_to(testrepo):
+def test_write_tree_to(testrepo, tmp_path):
     pygit2.option(pygit2.GIT_OPT_ENABLE_STRICT_OBJECT_CREATION, False)
-    with utils.TemporaryRepository('emptyrepo') as path:
+    with utils.TemporaryRepository('emptyrepo.tar', tmp_path) as path:
         nrepo = Repository(path)
         id = testrepo.index.write_tree(nrepo)
         assert nrepo[id] is not None

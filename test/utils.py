@@ -31,7 +31,6 @@ import socket
 import stat
 import sys
 import tarfile
-import tempfile
 
 import pytest
 
@@ -96,24 +95,30 @@ def rmtree(path):
 
 class TemporaryRepository:
 
-    def __init__(self, name, container='tar'):
+    def __init__(self, name, tmp_path):
         self.name = name
-        self.container = container
+        self.tmp_path = tmp_path
 
     def __enter__(self):
-        repo_path = os.path.join(os.path.dirname(__file__), 'data', self.name)
-        self.temp_dir = tempfile.mkdtemp()
-        temp_repo_path = os.path.join(self.temp_dir, self.name)
-        if self.container == 'tar':
-            tar = tarfile.open('.'.join((repo_path, 'tar')))
-            tar.extractall(self.temp_dir)
+        name = self.name
+        basename, extension = os.path.splitext(name)
+        path = os.path.join(os.path.dirname(__file__), 'data', name)
+
+        temp_repo_path = os.path.join(self.tmp_path, basename)
+
+        if extension == '.tar':
+            tar = tarfile.open(path)
+            tar.extractall(self.tmp_path)
             tar.close()
+        elif extension == '.git':
+            shutil.copytree(path, temp_repo_path)
         else:
-            shutil.copytree(repo_path, temp_repo_path)
+            raise ValueError(f'Unexpected {extension} extension')
+
         return temp_repo_path
 
     def __exit__(self, exc_type, exc_value, traceback):
-        rmtree(self.temp_dir)
+        pass
 
 
 def assertRaisesWithArg(exc_class, arg, func, *args, **kwargs):

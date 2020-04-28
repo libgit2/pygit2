@@ -30,8 +30,8 @@ from . import utils
 
 
 @pytest.fixture
-def repo():
-    with utils.TemporaryRepository('binaryfilerepo') as path:
+def repo(tmp_path):
+    with utils.TemporaryRepository('binaryfilerepo.tar', tmp_path) as path:
         yield pygit2.Repository(path)
 
 

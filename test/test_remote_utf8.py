@@ -29,8 +29,8 @@ from . import utils
 
 
 @pytest.fixture
-def repo():
-    with utils.TemporaryRepository('utf8branchrepo') as path:
+def repo(tmp_path):
+    with utils.TemporaryRepository('utf8branchrepo.tar', tmp_path) as path:
         yield pygit2.Repository(path)
 
 def test_fetch(repo):
