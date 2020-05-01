@@ -167,5 +167,6 @@ Authors::
   Steven Winfield
   Vladimir Rutsky
   Yu Jianjian
+  buhl
   chengyuhang
   earl

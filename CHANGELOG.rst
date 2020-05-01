@@ -1,10 +1,18 @@
-1.2.1 (UNRELEASED)
+1.2.1 (2020-05-01)
 -------------------------
+
+- Fix segfault in ``Object.raw_name`` when not reached through a tree
+  `#1002 <https://github.com/libgit2/pygit2/pull/1002>`_
 
 - Internal: Use @ffi.def_extern instead of @ffi.callback
   `#899 <https://github.com/libgit2/pygit2/issues/899>`_
 
-- New tests
+- Internal: callbacks code refactored
+
+- Test suite completely switched to pytest
+  `#824 <https://github.com/libgit2/pygit2/issues/824>`_
+
+- New unit tests
   `#538 <https://github.com/libgit2/pygit2/pull/538>`_
   `#996 <https://github.com/libgit2/pygit2/issues/996>`_
 
