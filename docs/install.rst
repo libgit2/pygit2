@@ -54,7 +54,7 @@ worry about this if you install the source package
 Optional libgit2 dependecies to support ssh and https:
 
 - https: WinHTTP (Windows), SecureTransport (OS X) or OpenSSL.
-- ssh: libssh2, pkg-config
+- ssh: libssh2 1.9.0 or later, pkg-config
 
 To run the tests:
 
