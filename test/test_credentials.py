@@ -92,6 +92,34 @@ def test_ssh_from_memory():
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
 
+@utils.network
+def test_keypair(tmp_path, pygit2_empty_key):
+    url = 'ssh://git@github.com/pygit2/empty'
+    with pytest.raises(pygit2.GitError):
+        pygit2.clone_repository(url, tmp_path)
+
+    prv, pub, secret = pygit2_empty_key
+
+    keypair = pygit2.Keypair("git", pub, prv, secret)
+    callbacks = pygit2.RemoteCallbacks(credentials=keypair)
+    pygit2.clone_repository(url, tmp_path, callbacks=callbacks)
+
+
+@utils.network
+def test_keypair_from_memory(tmp_path, pygit2_empty_key):
+    url = 'ssh://git@github.com/pygit2/empty'
+    with pytest.raises(pygit2.GitError):
+        pygit2.clone_repository(url, tmp_path)
+
+    prv, pub, secret = pygit2_empty_key
+    prv_mem = open(prv).read()
+    pub_mem = open(pub).read()
+
+    keypair = pygit2.KeypairFromMemory("git", pub_mem, prv_mem, secret)
+    callbacks = pygit2.RemoteCallbacks(credentials=keypair)
+    pygit2.clone_repository(url, tmp_path, callbacks=callbacks)
+
+
 def test_callback(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(testrepo, url, username, allowed):

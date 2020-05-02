@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import pygit2
 from . import utils
@@ -14,6 +16,12 @@ def disable_global_git_config():
               pygit2.GIT_CONFIG_LEVEL_SYSTEM]
     for level in levels:
         pygit2.settings.search_path[level] = ""
+
+
+@pytest.fixture
+def pygit2_empty_key():
+    path = os.path.join(os.path.dirname(__file__), 'keys', 'pygit2_empty')
+    return path, f'{path}.pub', 'empty'
 
 
 @pytest.fixture
