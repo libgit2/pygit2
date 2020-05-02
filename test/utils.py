@@ -32,20 +32,27 @@ import stat
 import sys
 import tarfile
 
+import pygit2
 import pytest
 
 
-def no_network():
-    try:
-        socket.gethostbyname('github.com')
-    except socket.gaierror:
-        return True
-    else:
-        return False
 
-network = pytest.mark.skipif(
-    no_network(),
+try:
+    socket.gethostbyname('github.com')
+except socket.gaierror:
+    has_network = False
+else:
+    has_network = True
+
+requires_network = pytest.mark.skipif(
+    not has_network,
     reason='Requires network'
+)
+
+
+requires_ssh = pytest.mark.skipif(
+    not (pygit2.features & pygit2.GIT_FEATURE_THREADS),
+    reason='Requires SSH'
 )
 
 
@@ -55,7 +62,6 @@ if is_pypy:
     has_fspath = sys.pypy_version_info >= (7, 3)
 else:
     has_fspath = sys.version_info >= (3, 6)
-
 
 fspath = pytest.mark.skipif(
     not has_fspath,

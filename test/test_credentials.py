@@ -92,7 +92,8 @@ def test_ssh_from_memory():
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
 
-@utils.network
+@utils.requires_network
+@utils.requires_ssh
 def test_keypair(tmp_path, pygit2_empty_key):
     url = 'ssh://git@github.com/pygit2/empty'
     with pytest.raises(pygit2.GitError):
@@ -105,7 +106,8 @@ def test_keypair(tmp_path, pygit2_empty_key):
     pygit2.clone_repository(url, tmp_path, callbacks=callbacks)
 
 
-@utils.network
+@utils.requires_network
+@utils.requires_ssh
 def test_keypair_from_memory(tmp_path, pygit2_empty_key):
     url = 'ssh://git@github.com/pygit2/empty'
     with pytest.raises(pygit2.GitError):
@@ -130,7 +132,7 @@ def test_callback(testrepo):
     remote = testrepo.remotes.create("github", url)
     with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
 
-@utils.network
+@utils.requires_network
 def test_bad_cred_type(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(testrepo, url, username, allowed):
@@ -141,7 +143,7 @@ def test_bad_cred_type(testrepo):
     remote = testrepo.remotes.create("github", url)
     with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
 
-@utils.network
+@utils.requires_network
 def test_fetch_certificate_check(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def certificate_check(testrepo, certificate, valid, host):
@@ -165,7 +167,7 @@ def test_fetch_certificate_check(testrepo):
     #assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
 
 
-@utils.network
+@utils.requires_network
 def test_user_pass(testrepo):
     credentials = UserPass("libgit2", "libgit2")
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)

@@ -164,7 +164,7 @@ def test_remote_list(testrepo):
     remote = testrepo.remotes.create(name, url)
     assert remote.name in [x.name for x in testrepo.remotes]
 
-@utils.network
+@utils.requires_network
 def test_ls_remotes(testrepo):
     assert 1 == len(testrepo.remotes)
     remote = testrepo.remotes[0]

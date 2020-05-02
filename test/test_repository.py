@@ -421,7 +421,7 @@ def test_clone_repository_and_remote_callbacks(tmp_path):
     assert repo.remotes["custom_remote"] is not None
 
 
-@utils.network
+@utils.requires_network
 def test_clone_with_credentials(tmp_path):
     url = 'https://github.com/libgit2/TestGitRepository'
     credentials = pygit2.UserPass("libgit2", "libgit2")
@@ -430,7 +430,7 @@ def test_clone_with_credentials(tmp_path):
 
     assert not repo.is_empty
 
-@utils.network
+@utils.requires_network
 def test_clone_bad_credentials(tmp_path):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(self, url, username, allowed):

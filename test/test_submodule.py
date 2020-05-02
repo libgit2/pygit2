@@ -60,7 +60,7 @@ def test_listall_submodules(repo):
     assert len(submodules) == 1
     assert submodules[0] == SUBM_PATH
 
-@utils.network
+@utils.requires_network
 def test_submodule_open(repo):
     s = repo.lookup_submodule(SUBM_PATH)
     repo.init_submodules()
@@ -81,7 +81,7 @@ def test_url(repo):
     s = repo.lookup_submodule(SUBM_PATH)
     assert SUBM_URL == s.url
 
-@utils.network
+@utils.requires_network
 def test_init_and_update(repo):
     subrepo_file_path = os.path.join(repo.workdir, 'TestGitRepository', 'master.txt')
     assert not os.path.exists(subrepo_file_path)
@@ -89,7 +89,7 @@ def test_init_and_update(repo):
     repo.update_submodules()
     assert os.path.exists(subrepo_file_path)
 
-@utils.network
+@utils.requires_network
 def test_specified_update(repo):
     subrepo_file_path = os.path.join(repo.workdir, 'TestGitRepository', 'master.txt')
     assert not os.path.exists(subrepo_file_path)
@@ -97,14 +97,14 @@ def test_specified_update(repo):
     repo.update_submodules(submodules=['TestGitRepository'])
     assert os.path.exists(subrepo_file_path)
 
-@utils.network
+@utils.requires_network
 def test_oneshot_update(repo):
     subrepo_file_path = os.path.join(repo.workdir, 'TestGitRepository', 'master.txt')
     assert not os.path.exists(subrepo_file_path)
     repo.update_submodules(init=True)
     assert os.path.exists(subrepo_file_path)
 
-@utils.network
+@utils.requires_network
 def test_head_id(repo):
     s = repo.lookup_submodule(SUBM_PATH)
     assert str(s.head_id) == SUBM_HEAD_SHA
