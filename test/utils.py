@@ -51,7 +51,7 @@ requires_network = pytest.mark.skipif(
 
 
 requires_ssh = pytest.mark.skipif(
-    not (pygit2.features & pygit2.GIT_FEATURE_THREADS),
+    not (pygit2.features & pygit2.GIT_FEATURE_SSH),
     reason='Requires SSH'
 )
 
