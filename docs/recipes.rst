@@ -24,5 +24,6 @@ Main porcelain commands
    git-tag (Create, list, delete or verify a tag object signed with GPG.) <recipes/git-tag>
    git clone --mirror (Clone with a mirroring configuration) <recipes/git-clone-mirror>
    git clone username@hostname (Clone over ssh) <recipes/git-clone-ssh>
+   git-add / git-reset HEAD (Add file contents to the index / Unstage) <recipes/git-add-reset>
 
 .. _git man page: https://www.kernel.org/pub/software/scm/git/docs/git.html
