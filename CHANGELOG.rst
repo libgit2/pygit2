@@ -1,3 +1,13 @@
+1.2.2 (UNRELEASED)
+-------------------------
+
+- New unit tests
+  `#800 <https://github.com/libgit2/pygit2/issues/800>`_
+
+- Documentation
+  `#705 <https://github.com/libgit2/pygit2/pull/705>`_
+
+
 1.2.1 (2020-05-01)
 -------------------------
 

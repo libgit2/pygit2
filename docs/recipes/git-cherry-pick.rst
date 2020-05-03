@@ -8,9 +8,9 @@ working copy and on-disk index.
 
 .. code-block:: bash
 
-    $> cd /path/to/repo
-    $> git checkout basket
-    $> git cherry-pick 9e044d03c
+    $ cd /path/to/repo
+    $ git checkout basket
+    $ git cherry-pick 9e044d03c
 
 .. code-block:: python
 

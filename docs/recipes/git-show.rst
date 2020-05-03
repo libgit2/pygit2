@@ -8,7 +8,7 @@ Showing a commit
 
 .. code-block:: bash
 
-    $> git show d370f56
+    $ git show d370f56
 
 .. code-block:: python
 

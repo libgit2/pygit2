@@ -6,7 +6,7 @@ Example for cloning a git repository over ssh.
 
 .. code-block:: bash
 
-   $> git clone git@example.com
+   $ git clone git@example.com
 
 .. code-block:: python
 

@@ -10,7 +10,7 @@ We can add a new (untracked) file or a modified file to the index.
 
 .. code-block:: bash
 
-    $> git add foo.txt
+    $ git add foo.txt
 
 .. code-block:: python
 
@@ -24,19 +24,21 @@ Restore the entry in the index / Unstage
 
 .. code-block:: bash
 
-    $> git reset HEAD foo.txt
+    $ git reset HEAD src/tree.c
 
 .. code-block:: python
 
     >>> index = repo.index
+
+    # Remove path from the index
+    >>> path = 'src/tree.c'
     >>> index.remove(path)
-    >>> # Skip the following lines if the file is new, go to "Write index"
-    >>> ## Get the entry for this file in HEAD
-    >>> tree_entry = repo.revparse_single('HEAD').tree[path]
-    >>> ## Restore the entry in the index
-    >>> index_entry = pygit2.IndexEntry(tree_entry.name, tree_entry.oid, tree_entry.filemode)
-    >>> index.add(index_entry)
-    >>> # Write index
+
+    # Restore object from db
+    >>> obj = repo.revparse_single('HEAD').tree[path] # Get object from db
+    >>> index.add(pygit2.IndexEntry(path, obj.oid, obj.filemode)) # Add to index
+
+    # Write index
     >>> index.write()
 
 ----------------------------------------------------------------------
@@ -45,12 +47,12 @@ Query the index state / Is file staged ?
 
 .. code-block:: bash
 
-    $> git status foo.txt
+    $ git status foo.txt
 
 .. code-block:: python
 
-    >>> # Return True is the file was not updated in the index (same hash)
-    >>> index[path].oid == repo.revparse_single('HEAD').tree[path].oid
+    # Return True is the file is modified in the working tree
+    >>> repo.status_file(path) & pygit2.GIT_STATUS_WT_MODIFIED
 
 ----------------------------------------------------------------------
 References

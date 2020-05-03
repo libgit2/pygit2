@@ -8,7 +8,7 @@ Showing all tags
 
 .. code-block:: bash
 
-    $> git tag
+    $ git tag
 
 .. code-block:: python
 

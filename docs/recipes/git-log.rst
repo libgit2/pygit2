@@ -12,7 +12,7 @@ Show HEAD commit
 
 .. code-block:: bash
 
-    $> git log -1
+    $ git log -1
 
 .. code-block:: python
 
@@ -26,7 +26,7 @@ Traverse commit history
 
 .. code-block:: bash
 
-    $> git log
+    $ git log
 
 .. code-block:: python
 
