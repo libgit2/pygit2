@@ -559,32 +559,81 @@ class BaseRepository(_Repository):
     #
     # Merging
     #
+    _FAVOR_TO_ENUM = {
+        'normal': C.GIT_MERGE_FILE_FAVOR_NORMAL,
+        'ours': C.GIT_MERGE_FILE_FAVOR_OURS,
+        'theirs': C.GIT_MERGE_FILE_FAVOR_THEIRS,
+        'union': C.GIT_MERGE_FILE_FAVOR_UNION,
+    }
 
-    @staticmethod
-    def _merge_options(favor):
+    _MERGE_FLAG_TO_ENUM = {
+        'find_renames': C.GIT_MERGE_FIND_RENAMES,
+        'fail_on_conflict': C.GIT_MERGE_FAIL_ON_CONFLICT,
+        'skip_reuc': C.GIT_MERGE_SKIP_REUC,
+        'no_recursive': C.GIT_MERGE_NO_RECURSIVE,
+    }
+
+    _MERGE_FLAG_DEFAULTS = {
+        'find_renames': True,
+    }
+
+    _MERGE_FILE_FLAG_TO_ENUM = {
+        'standard_style': C.GIT_MERGE_FILE_STYLE_MERGE,
+        'diff3_style': C.GIT_MERGE_FILE_STYLE_DIFF3,
+        'simplify_alnum': C.GIT_MERGE_FILE_SIMPLIFY_ALNUM,
+        'ignore_whitespace': C.GIT_MERGE_FILE_IGNORE_WHITESPACE,
+        'ignore_whitespace_change': C.GIT_MERGE_FILE_IGNORE_WHITESPACE_CHANGE,
+        'ignore_whitespace_eol': C.GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL,
+        'patience': C.GIT_MERGE_FILE_DIFF_PATIENCE,
+        'minimal': C.GIT_MERGE_FILE_DIFF_MINIMAL,
+    }
+
+    _MERGE_FILE_FLAG_DEFAULTS = {}
+
+    @classmethod
+    def _flag_dict_to_bitmask(cls, flag_dict, flag_defaults, mapping, label):
+        """
+        Converts a dict eg {"find_renames": True, "skip_reuc": True} to
+        a bitmask eg C.GIT_MERGE_FIND_RENAMES | C.GIT_MERGE_SKIP_REUC.
+        """
+        merged_dict = {**flag_defaults, **flag_dict}
+        bitmask = 0
+        for k, v in merged_dict.items():
+            enum = mapping.get(k, None)
+            if enum is None:
+                raise ValueError("unknown %s: %s" % (label, k))
+            if v:
+                bitmask |= enum
+        return bitmask
+
+    @classmethod
+    def _merge_options(cls, favor='normal', flags={}, file_flags={}):
         """Return a 'git_merge_opts *'"""
 
-        def favor_to_enum(favor):
-            if favor == 'normal':
-                return C.GIT_MERGE_FILE_FAVOR_NORMAL
-            elif favor == 'ours':
-                return C.GIT_MERGE_FILE_FAVOR_OURS
-            elif favor == 'theirs':
-                return C.GIT_MERGE_FILE_FAVOR_THEIRS
-            elif favor == 'union':
-                return C.GIT_MERGE_FILE_FAVOR_UNION
-            else:
-                return None
-
-        favor_val = favor_to_enum(favor)
+        favor_val = cls._FAVOR_TO_ENUM.get(favor, None)
         if favor_val is None:
-            raise ValueError("unkown favor value %s" % favor)
+            raise ValueError("unknown favor: %s" % favor)
+
+        flags_bitmask = Repository._flag_dict_to_bitmask(
+            flags,
+            cls._MERGE_FLAG_DEFAULTS,
+            cls._MERGE_FLAG_TO_ENUM,
+            "merge flag"
+        )
+        file_flags_bitmask = cls._flag_dict_to_bitmask(
+            file_flags,
+            cls._MERGE_FILE_FLAG_DEFAULTS,
+            cls._MERGE_FILE_FLAG_TO_ENUM,
+            "merge file_flag"
+        )
 
         opts = ffi.new('git_merge_options *')
         err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
         check_error(err)
 
         opts.file_favor = favor_val
+        opts.flags = flags_bitmask
+        opts.file_flags = file_flags_bitmask
 
         return opts
 
@@ -621,7 +670,7 @@ class BaseRepository(_Repository):
 
         return ret
 
-    def merge_commits(self, ours, theirs, favor='normal'):
+    def merge_commits(self, ours, theirs, favor='normal', flags={}, file_flags={}):
         """
         Merge two arbitrary commits.
 
@@ -645,8 +694,34 @@ class BaseRepository(_Repository):
 
             For all but NORMAL, the index will not record a conflict.
 
-        Both "ours" and "theirs" can be any object which peels to a commit or the id
-        (string or Oid) of an object which peels to a commit.
+        flags
+            A dict of str: bool to turn on or off functionality while merging.
+            If a key is not present, the default will be used. The keys are:
+
+            * find_renames. Detect file renames. Defaults to True.
+            * fail_on_conflict. If a conflict occurs, exit immediately instead
+              of attempting to continue resolving conflicts.
+            * skip_reuc. Do not write the REUC extension on the generated index.
+            * no_recursive. If the commits being merged have multiple merge
+              bases, do not build a recursive merge base (by merging the
+              multiple merge bases), instead simply use the first base.
+
+        file_flags
+            A dict of str: bool to turn on or off functionality while merging.
+            If a key is not present, the default will be used. The keys are:
+
+            * standard_style. Create standard conflicted merge files.
+            * diff3_style. Create diff3-style file.
+            * simplify_alnum. Condense non-alphanumeric regions for simplified
+              diff file.
+            * ignore_whitespace. Ignore all whitespace.
+            * ignore_whitespace_change. Ignore changes in amount of whitespace.
+            * ignore_whitespace_eol. Ignore whitespace at end of line.
+            * patience. Use the "patience diff" algorithm
+            * minimal. Take extra time to find minimal diff
+
+        Both "ours" and "theirs" can be any object which peels to a commit or
+        the id (string or Oid) of an object which peels to a commit.
         """
 
         ours_ptr = ffi.new('git_commit **')
@@ -661,7 +736,7 @@ class BaseRepository(_Repository):
         ours = ours.peel(Commit)
         theirs = theirs.peel(Commit)
 
-        opts = self._merge_options(favor)
+        opts = self._merge_options(favor, flags, file_flags)
 
         ffi.buffer(ours_ptr)[:] = ours._pointer[:]
         ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
@@ -671,7 +746,7 @@ class BaseRepository(_Repository):
 
         return Index.from_c(self, cindex)
 
-    def merge_trees(self, ancestor, ours, theirs, favor='normal'):
+    def merge_trees(self, ancestor, ours, theirs, favor='normal', flags={}, file_flags={}):
         """
         Merge two trees.
 
@@ -697,6 +772,32 @@ class BaseRepository(_Repository):
             * union. Unique lines from each side will be used.
 
             For all but NORMAL, the index will not record a conflict.
+
+        flags
+            A dict of str: bool to turn on or off functionality while merging.
+            If a key is not present, the default will be used. The keys are:
+
+            * find_renames. Detect file renames. Defaults to True.
+            * fail_on_conflict. If a conflict occurs, exit immediately instead
+              of attempting to continue resolving conflicts.
+            * skip_reuc. Do not write the REUC extension on the generated index.
+            * no_recursive. If the commits being merged have multiple merge
+              bases, do not build a recursive merge base (by merging the
+              multiple merge bases), instead simply use the first base.
+
+        file_flags
+            A dict of str: bool to turn on or off functionality while merging.
+            If a key is not present, the default will be used. The keys are:
+
+            * standard_style. Create standard conflicted merge files.
+            * diff3_style. Create diff3-style file.
+            * simplify_alnum. Condense non-alphanumeric regions for simplified
+              diff file.
+            * ignore_whitespace. Ignore all whitespace.
+            * ignore_whitespace_change. Ignore changes in amount of whitespace.
+            * ignore_whitespace_eol. Ignore whitespace at end of line.
+            * patience. Use the "patience diff" algorithm
+            * minimal. Take extra time to find minimal diff
         """
 
         ancestor_ptr = ffi.new('git_tree **')
@@ -715,7 +816,7 @@ class BaseRepository(_Repository):
         ours = ours.peel(Tree)
         theirs = theirs.peel(Tree)
 
-        opts = self._merge_options(favor)
+        opts = self._merge_options(favor, flags, file_flags)
 
         ffi.buffer(ancestor_ptr)[:] = ancestor._pointer[:]
         ffi.buffer(ours_ptr)[:] = ours._pointer[:]
