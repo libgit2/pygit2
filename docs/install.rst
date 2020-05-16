@@ -48,7 +48,7 @@ Python requirements (these are specified in ``setup.py``):
 - cffi 1.4+
 - cached-property
 
-Libgit2 **v0.28.x**; binary wheels already include libgit2, so you only need to
+Libgit2 **v1.0.x**; binary wheels already include libgit2, so you only need to
 worry about this if you install the source package
 
 Optional libgit2 dependecies to support ssh and https:
@@ -117,9 +117,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.28.2.tar.gz
-   $ tar xzf v0.28.2.tar.gz
-   $ cd libgit2-0.28.2/
+   $ wget https://github.com/libgit2/libgit2/releases/download/v1.0.0/libgit2-1.0.0.tar.gz
+   $ tar xzf libgit2-1.0.0.tar.gz
+   $ cd libgit2-1.0.0/
    $ cmake .
    $ make
    $ sudo make install
@@ -201,9 +201,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/v0.28.2.tar.gz
-   $ tar xzf v0.28.2.tar.gz
-   $ cd libgit2-0.28.2/
+   $ wget https://github.com/libgit2/libgit2/releases/download/v1.0.0/libgit2-1.0.0.tar.gz
+   $ tar xzf libgit2-1.0.0.tar.gz
+   $ cd libgit2-1.0.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
