@@ -183,3 +183,40 @@ def test_merge_trees_favor(mergerepo):
 
     with pytest.raises(ValueError):
         mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex, favor='foo')
+
+
+def test_merge_options():
+    from pygit2.ffi import C
+
+    # Default
+    o = pygit2.Repository._merge_options()
+    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_NORMAL
+    assert o.flags == C.GIT_MERGE_FIND_RENAMES
+    assert o.file_flags == 0
+
+    o = pygit2.Repository._merge_options(
+        favor='ours', flags={'fail_on_conflict': True}, file_flags={'ignore_whitespace': True}
+    )
+    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_OURS
+    assert o.flags == C.GIT_MERGE_FIND_RENAMES | C.GIT_MERGE_FAIL_ON_CONFLICT
+    assert o.file_flags == C.GIT_MERGE_FILE_IGNORE_WHITESPACE
+
+    o = pygit2.Repository._merge_options(
+        favor='theirs', flags={'find_renames': False}, file_flags={'ignore_whitespace': False}
+    )
+    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_THEIRS
+    assert o.flags == 0
+    assert o.file_flags == 0
+
+    o = pygit2.Repository._merge_options(
+        favor='union',
+        flags={'find_renames': True, 'no_recursive': True},
+        file_flags={'diff3_style': True, 'ignore_whitespace': True, 'patience': True}
+    )
+    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_UNION
+    assert o.flags == C.GIT_MERGE_FIND_RENAMES | C.GIT_MERGE_NO_RECURSIVE
+    assert o.file_flags == (
+        C.GIT_MERGE_FILE_STYLE_DIFF3
+        | C.GIT_MERGE_FILE_IGNORE_WHITESPACE
+        | C.GIT_MERGE_FILE_DIFF_PATIENCE
+    )
