@@ -353,6 +353,22 @@ class IndexEntry:
         """The id of the referenced object as a hex string"""
         return self.id.hex
 
+    def __str__(self):
+        return "<path={} id={} mode={}>".format(self.path, self.hex, self.mode)
+
+    def __repr__(self):
+        t = type(self)
+        return "<{}.{} path={} id={} mode={}>".format(
+            t.__module__, t.__qualname__, self.path, self.hex, self.mode
+        )
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if not isinstance(other, IndexEntry):
+            return NotImplemented
+        return self.path == other.path and self.id == other.id and self.mode == other.mode
+
     def _to_c(self):
         """Convert this entry into the C structure
 
@@ -440,3 +456,6 @@ class ConflictIterator:
         theirs = IndexEntry._from_c(ctheirs[0])
 
         return ancestor, ours, theirs
+
+    def __iter__(self):
+        return self

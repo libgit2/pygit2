@@ -31,7 +31,7 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import Repository, Index
+from pygit2 import Repository, Index, Oid
 from . import utils
 
 
@@ -241,6 +241,28 @@ def test_create_entry_aspath(testrepo):
     entry = pygit2.IndexEntry(Path('README.md'), hello_entry.id, hello_entry.mode)
     index.add(entry)
     index.write_tree()
+
+def test_entry_eq(testrepo):
+    index = testrepo.index
+    hello_entry = index['hello.txt']
+    entry = pygit2.IndexEntry(hello_entry.path, hello_entry.id, hello_entry.mode)
+    assert hello_entry == entry
+
+    entry = pygit2.IndexEntry("README.md", hello_entry.id, hello_entry.mode)
+    assert hello_entry != entry
+    oid = Oid(hex='0907563af06c7464d62a70cdd135a6ba7d2b41d8')
+    entry = pygit2.IndexEntry(hello_entry.path, oid, hello_entry.mode)
+    assert hello_entry != entry
+    entry = pygit2.IndexEntry(hello_entry.path, hello_entry.id, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE)
+    assert hello_entry != entry
+
+def test_entry_repr(testrepo):
+    index = testrepo.index
+    hello_entry = index['hello.txt']
+    assert (repr(hello_entry) ==
+            "<pygit2.index.IndexEntry path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>")
+    assert (str(hello_entry) ==
+            "<path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>")
 
 
 def test_create_empty():
