@@ -108,3 +108,12 @@ def test_oneshot_update(repo):
 def test_head_id(repo):
     s = repo.lookup_submodule(SUBM_PATH)
     assert str(s.head_id) == SUBM_HEAD_SHA
+
+@utils.requires_network
+def test_add_submodule(repo):
+    sm_repo_path = "test/testrepo"
+    sm = repo.add_submodule(SUBM_URL, sm_repo_path)
+    sm_repo = sm.open()
+    assert sm_repo_path == sm.path
+    assert SUBM_URL == sm.url
+    assert not sm_repo.is_empty

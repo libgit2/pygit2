@@ -86,6 +86,48 @@ class BaseRepository(_Repository):
     def __iter__(self):
         return iter(self.odb)
 
+    def add_submodule(self, url, path, link=True, callbacks=None):
+        """Add a submodule to the index.
+
+        Returns: the submodule that was added.
+
+        Parameters:
+
+        url
+            The URL of the submdoule.
+
+        path
+            The path within the parent repository to add the submodule
+
+        link
+            Should workdir contain a gitlink to the repo in .git/modules vs. repo directly in workdir.
+"""
+        csub = ffi.new('git_submodule **')
+        curl = ffi.new('char[]', to_bytes(url))
+        cpath = ffi.new('char[]', to_bytes(path))
+        gitlink = 1 if link else 0
+
+        err = C.git_submodule_add_setup(csub, self._repo, curl, cpath, gitlink)
+        check_error(err)
+
+        submodule_instance = Submodule._from_c(self, csub[0])
+
+        # prepare options
+        opts = ffi.new('git_submodule_update_options *')
+        C.git_submodule_update_init_options(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+
+        with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
+            crepo = ffi.new('git_repository **')
+            err = C.git_submodule_clone(crepo, submodule_instance._subm, opts)
+            payload.check_error(err)
+
+        # clean-up the submodule repository
+        Repository._from_c(crepo[0], True)
+
+        err = C.git_submodule_add_finalize(submodule_instance._subm)
+        check_error(err)
+        return submodule_instance
+
     def lookup_submodule(self, path):
         csub = ffi.new('git_submodule **')
         cpath = ffi.new('char[]', to_bytes(path))

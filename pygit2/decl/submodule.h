@@ -10,6 +10,18 @@ typedef struct git_submodule_update_options {
 int git_submodule_update_init_options(
 	git_submodule_update_options *opts, unsigned int version);
 
+int git_submodule_add_setup(
+	git_submodule **out,
+	git_repository *repo,
+	const char *url,
+	const char *path,
+	int use_gitlink);
+int git_submodule_clone(
+	git_repository **out,
+	git_submodule *submodule,
+	const git_submodule_update_options *opts);
+int git_submodule_add_finalize(git_submodule *submodule);
+
 int git_submodule_update(git_submodule *submodule, int init, git_submodule_update_options *options);
 
 int git_submodule_lookup(
