@@ -48,6 +48,15 @@ typedef int (*git_transport_message_cb)(const char *str, int len, void *payload)
 typedef int (*git_transport_certificate_check_cb)(git_cert *cert, int valid, const char *host, void *payload);
 
 typedef enum {
+	GIT_SUBMODULE_UPDATE_CHECKOUT = 1,
+	GIT_SUBMODULE_UPDATE_REBASE   = 2,
+	GIT_SUBMODULE_UPDATE_MERGE    = 3,
+	GIT_SUBMODULE_UPDATE_NONE     = 4,
+
+	GIT_SUBMODULE_UPDATE_DEFAULT  = 0
+} git_submodule_update_t;
+
+typedef enum {
 	GIT_SUBMODULE_IGNORE_UNSPECIFIED  = -1,
 
 	GIT_SUBMODULE_IGNORE_NONE      = 1,
@@ -55,3 +64,9 @@ typedef enum {
 	GIT_SUBMODULE_IGNORE_DIRTY     = 3,
 	GIT_SUBMODULE_IGNORE_ALL       = 4,
 } git_submodule_ignore_t;
+
+typedef enum {
+	GIT_SUBMODULE_RECURSE_NO = 0,
+	GIT_SUBMODULE_RECURSE_YES = 1,
+	GIT_SUBMODULE_RECURSE_ONDEMAND = 2,
+} git_submodule_recurse_t;

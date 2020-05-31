@@ -94,14 +94,14 @@ class BaseRepository(_Repository):
         Parameters:
 
         url
-            The URL of the submdoule.
+            The URL of the submodule.
 
         path
             The path within the parent repository to add the submodule
 
         link
             Should workdir contain a gitlink to the repo in .git/modules vs. repo directly in workdir.
-"""
+        """
         csub = ffi.new('git_submodule **')
         curl = ffi.new('char[]', to_bytes(url))
         cpath = ffi.new('char[]', to_bytes(path))
@@ -140,16 +140,9 @@ class BaseRepository(_Repository):
         if submodules is None:
             submodules = self.listall_submodules()
 
-        # prepare options
-        opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_init_options(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
-
-        with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
-            i = 1 if init else 0
-            for submodule in submodules:
-                submodule_instance = self.lookup_submodule(submodule)
-                err = C.git_submodule_update(submodule_instance._subm, i, opts)
-                payload.check_error(err)
+        for submodule in submodules:
+            submodule_instance = self.lookup_submodule(submodule)
+            submodule_instance.update(init, callbacks)
 
         return None
 
