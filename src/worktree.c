@@ -55,7 +55,10 @@ PyDoc_STRVAR(Worktree_is_prunable__doc__,
 PyObject *
 Worktree_is_prunable__get__(Worktree *self, PyObject *args)
 {
-    return (git_worktree_is_prunable(self->worktree, 0) > 0) ? Py_True : Py_False;
+    if (git_worktree_is_prunable(self->worktree, 0) > 0)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(Worktree_prune__doc__,
