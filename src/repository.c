@@ -1206,9 +1206,12 @@ Repository_listall_submodules(Repository *self, PyObject *args)
         return NULL;
 
     err = git_submodule_foreach(self->repo, foreach_path_cb, list);
-    if (err != 0) {
+    if (err) {
         Py_DECREF(list);
-        return Py_None;
+        if (PyErr_Occurred()) {
+          return NULL;
+        }
+        return Error_set(err);
     }
 
     return list;
