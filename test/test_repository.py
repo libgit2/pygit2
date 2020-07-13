@@ -300,6 +300,28 @@ def test_diff_patch(testrepo):
 
     assert content == new_content
 
+def test_diff_applies(testrepo):
+    new_content = ['bye world', 'adiós', 'au revoir monde']
+    new_content = ''.join(x + os.linesep for x in new_content)
+
+    # create the patch
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'wb') as f:
+        f.write(new_content.encode('utf-8'))
+
+    patch = testrepo.diff().patch
+
+    # rollback all changes
+    testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
+
+    # apply the patch and compare
+    diff = pygit2.Diff.parse_diff(patch)
+    assert testrepo.applies(diff)
+
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'rb') as f:
+        content = f.read().decode('utf-8')
+
+    assert content != new_content
+
 
 
 def test_default_signature(testrepo):
