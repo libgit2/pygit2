@@ -1888,9 +1888,9 @@ out:
 }
 
 PyDoc_STRVAR(Repository_apply__doc__,
-  "apply(id)\n"
+  "apply(diff or patch)\n"
   "\n"
-  "Applies the given id into HEAD.\n"
+  "Applies the given patch into HEAD.\n"
   "\n"
   "Applies a diff into HEAD, writing the results into the\n"
   "working directory.");
@@ -1908,6 +1908,27 @@ Repository_apply(Repository *self, PyObject *py_diff)
         return Error_set(err);
 
     Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Repository_applies__doc__,
+  "applies(diff) -> bool\n"
+  "\n"
+  "Tests if the given patch will apply to HEAD, without writing it.");
+
+PyObject *
+Repository_applies(Repository *self, PyObject *py_diff)
+{
+    int err;
+    git_apply_location_t location = GIT_APPLY_LOCATION_INDEX;
+    git_apply_options options = GIT_APPLY_OPTIONS_INIT;
+    options.flags |= GIT_APPLY_CHECK;
+
+    err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
+
+    if (err < 0)
+        Py_RETURN_FALSE;
+
+    Py_RETURN_TRUE;
 }
 
 PyDoc_STRVAR(Repository_set_odb__doc__,
@@ -1957,6 +1978,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),
     METHOD(Repository, apply, METH_O),
+    METHOD(Repository, applies, METH_O),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
     METHOD(Repository, compress_references, METH_NOARGS),
