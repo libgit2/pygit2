@@ -366,6 +366,44 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 }
 
 
+PyDoc_STRVAR(Repository_revparse_ext__doc__,
+  "revparse_ext(revision) -> (Object, Reference)\n"
+  "\n"
+  "Find a single object and intermediate reference, as specified by a revision\n"
+  "string. See `man gitrevisions`, or the documentation for `git rev-parse`\n"
+  "for information on the syntax accepted.\n"
+  "\n"
+  "In some cases (@{<-n>} or <branchname>@{upstream}), the expression may\n"
+  "point to an intermediate reference, which is returned in the second element\n"
+  "of the result tuple.");
+
+PyObject *
+Repository_revparse_ext(Repository *self, PyObject *py_spec)
+{
+    /* Get the C revision spec */
+    const char *c_spec = pgit_borrow(py_spec);
+    if (c_spec == NULL)
+        return NULL;
+
+    /* Lookup */
+    git_object *c_obj = NULL;
+    git_reference *c_ref = NULL;
+    int err = git_revparse_ext(&c_obj, &c_ref, self->repo, c_spec);
+    if (err)
+        return Error_set_str(err, c_spec);
+
+    PyObject *py_obj = wrap_object(c_obj, self, NULL);
+    PyObject *py_ref = NULL;
+    if (c_ref != NULL) {
+        py_ref = wrap_reference(c_ref, self);
+    } else {
+        py_ref = Py_None;
+        Py_INCREF(Py_None);
+    }
+    return Py_BuildValue("NN", py_obj, py_ref);
+}
+
+
 PyDoc_STRVAR(Repository_revparse__doc__,
   "revparse(revspec) -> RevSpec\n"
   "\n"
@@ -2016,6 +2054,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, lookup_reference_dwim, METH_O),
     METHOD(Repository, revparse_single, METH_O),
+    METHOD(Repository, revparse_ext, METH_O),
     METHOD(Repository, revparse, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),

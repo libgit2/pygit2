@@ -43,6 +43,20 @@ def test_revparse_single(testrepo):
     assert o.hex == '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 
 
+def test_revparse_ext(testrepo):
+    o, r = testrepo.revparse_ext('master')
+    assert o.hex == HEAD_SHA
+    assert r == testrepo.references['refs/heads/master']
+
+    o, r = testrepo.revparse_ext('HEAD^')
+    assert o.hex == PARENT_SHA
+    assert r is None
+
+    o, r = testrepo.revparse_ext('i18n')
+    assert o.hex.startswith('5470a67')
+    assert r == testrepo.references['refs/heads/i18n']
+
+
 def test_revparse_1(testrepo):
     s = testrepo.revparse('master')
     assert s.from_object.hex == HEAD_SHA
