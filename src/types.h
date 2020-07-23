@@ -236,6 +236,13 @@ typedef struct {
     size_t size;
 } RefLogIter;
 
+/* git_revspec */
+typedef struct {
+    PyObject_HEAD
+    PyObject *from;
+    PyObject *to;
+    unsigned int flags;
+} RevSpec;
 
 /* git_signature */
 typedef struct {

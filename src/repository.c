@@ -30,6 +30,7 @@
 #include "error.h"
 #include "types.h"
 #include "reference.h"
+#include "revspec.h"
 #include "utils.h"
 #include "odb.h"
 #include "object.h"
@@ -57,6 +58,7 @@ extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
 extern PyTypeObject ReferenceType;
+extern PyTypeObject RevSpecType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
 
@@ -361,6 +363,31 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
         return Error_set_str(err, c_spec);
 
     return wrap_object(c_obj, self, NULL);
+}
+
+
+PyDoc_STRVAR(Repository_revparse__doc__,
+  "revparse(revspec) -> RevSpec\n"
+  "\n"
+  "Parse a revision string for from, to, and intent. See `man gitrevisions`,\n"
+  "or the documentation for `git rev-parse` for information on the syntax\n"
+  "accepted.");
+
+PyObject *
+Repository_revparse(Repository *self, PyObject *py_spec)
+{
+    /* Get the C revision spec */
+    const char *c_spec = pgit_borrow(py_spec);
+    if (c_spec == NULL)
+        return NULL;
+
+    /* Lookup */
+    git_revspec revspec;
+    int err = git_revparse(&revspec, self->repo, c_spec);
+    if (err) {
+        return Error_set_str(err, c_spec);
+    }
+    return wrap_revspec(&revspec, self);
 }
 
 
@@ -1989,6 +2016,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, lookup_reference_dwim, METH_O),
     METHOD(Repository, revparse_single, METH_O),
+    METHOD(Repository, revparse, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, notes, METH_VARARGS),

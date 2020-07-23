@@ -67,6 +67,7 @@ extern PyTypeObject RefdbType;
 extern PyTypeObject RefdbBackendType;
 extern PyTypeObject RefdbFsBackendType;
 extern PyTypeObject ReferenceType;
+extern PyTypeObject RevSpecType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
 extern PyTypeObject BranchType;
@@ -423,6 +424,14 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_REF_OID)
     ADD_CONSTANT_INT(m, GIT_REF_SYMBOLIC)
     ADD_CONSTANT_INT(m, GIT_REF_LISTALL)
+
+    /*
+     * RevSpec
+     */
+    INIT_TYPE(RevSpecType, NULL, NULL)
+    ADD_CONSTANT_INT(m, GIT_REVPARSE_SINGLE)
+    ADD_CONSTANT_INT(m, GIT_REVPARSE_RANGE)
+    ADD_CONSTANT_INT(m, GIT_REVPARSE_MERGE_BASE)
 
     /*
      * Worktree
