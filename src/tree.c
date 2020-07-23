@@ -455,7 +455,7 @@ PyTypeObject TreeType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)Object_repr,                     /* tp_repr           */
     &Tree_as_number,                           /* tp_as_number      */
     &Tree_as_sequence,                         /* tp_as_sequence    */
     &Tree_as_mapping,                          /* tp_as_mapping     */
