@@ -86,7 +86,7 @@ class StrArray:
             self.array = ffi.NULL
             return
 
-        if not isinstance(l, list):
+        if not isinstance(l, (list, tuple)):
             raise TypeError("Value must be a list")
 
         strings = [None] * len(l)
