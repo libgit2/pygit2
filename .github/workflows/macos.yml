@@ -24,6 +24,7 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
       CCACHE_COMPRESS: 1
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+      MACOSX_DEPLOYMENT_TARGET: "10.9"
     steps:
       - name: checkout pygit2
         uses: actions/checkout@v2
@@ -79,6 +80,7 @@ jobs:
           -DBUILD_CLAR=NO \
           -DUSE_SSH=NO
           cmake --build . --target install
+          otool -L "${{ github.workspace }}/libgit2/env/lib/libgit2.dylib"
           VERSION=$(PKG_CONFIG_PATH=$(pwd) pkg-config --modversion libgit2)
           echo "::set-output name=version::$VERSION"
 
