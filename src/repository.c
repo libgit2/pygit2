@@ -304,10 +304,11 @@ Repository_lookup_branch(Repository *self, PyObject *args)
 {
     git_reference *c_reference;
     const char *c_name;
+    Py_ssize_t c_name_len;
     git_branch_t branch_type = GIT_BRANCH_LOCAL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s|I", &c_name, &branch_type))
+    if (!PyArg_ParseTuple(args, "s#|I", &c_name, &c_name_len, &branch_type))
         return NULL;
 
     err = git_branch_lookup(&c_reference, self->repo, c_name, branch_type);
