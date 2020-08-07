@@ -261,12 +261,16 @@ def test_list_all_references(testrepo):
 
     # Without argument
     assert sorted(repo.listall_references()) == ['refs/heads/i18n', 'refs/heads/master']
+    assert sorted(repo.raw_listall_references()) == [b'refs/heads/i18n', b'refs/heads/master']
 
     # We add a symbolic reference
     repo.create_reference('refs/tags/version1', 'refs/heads/master')
     assert sorted(repo.listall_references()) == ['refs/heads/i18n',
                                                  'refs/heads/master',
                                                  'refs/tags/version1']
+    assert sorted(repo.raw_listall_references()) == [b'refs/heads/i18n',
+                                                     b'refs/heads/master',
+                                                     b'refs/tags/version1']
 
 def test_lookup_reference(testrepo):
     repo = testrepo
@@ -404,10 +408,12 @@ def test_delete(testrepo):
     # We add a tag as a new reference that points to "origin/master"
     reference = repo.create_reference('refs/tags/version1', LAST_COMMIT)
     assert 'refs/tags/version1' in repo.listall_references()
+    assert b'refs/tags/version1' in repo.raw_listall_references()
 
     # And we delete it
     reference.delete()
     assert 'refs/tags/version1' not in repo.listall_references()
+    assert b'refs/tags/version1' not in repo.raw_listall_references()
 
     # Access the deleted reference
     with pytest.raises(GitError): getattr(reference, 'name')
@@ -453,8 +459,8 @@ def test_create_reference(testrepo):
     # We add a tag as a new reference that points to "origin/master"
     reference = testrepo.create_reference('refs/tags/version1',
                                            LAST_COMMIT)
-    refs = testrepo.listall_references()
-    assert 'refs/tags/version1' in refs
+    assert 'refs/tags/version1' in testrepo.listall_references()
+    assert b'refs/tags/version1' in testrepo.raw_listall_references()
     reference = testrepo.lookup_reference('refs/tags/version1')
     assert reference.target.hex == LAST_COMMIT
 

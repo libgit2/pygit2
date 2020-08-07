@@ -440,6 +440,7 @@ def test_clone_repository_and_remote_callbacks(tmp_path):
     repo = clone_repository(url, repo_path, repository=create_repository, remote=create_remote)
     assert not repo.is_empty
     assert 'refs/remotes/custom_remote/master' in repo.listall_references()
+    assert b'refs/remotes/custom_remote/master' in repo.raw_listall_references()
     assert repo.remotes["custom_remote"] is not None
 
 

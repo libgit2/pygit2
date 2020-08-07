@@ -1096,13 +1096,13 @@ Repository_create_branch(Repository *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Repository_listall_references__doc__,
-  "listall_references() -> [str, ...]\n"
-  "\n"
-  "Return a list with all the references in the repository.");
+static PyObject *
+to_path_f(const char * x) {
+    return to_path(x);
+}
 
-PyObject *
-Repository_listall_references(Repository *self, PyObject *args)
+static PyObject *
+Repository_listall_references_impl(Repository *self, PyObject *args, PyObject *(*item_trans)(const char *))
 {
     git_strarray c_result;
     PyObject *py_result, *py_string;
@@ -1121,7 +1121,7 @@ Repository_listall_references(Repository *self, PyObject *args)
 
     /* Fill it */
     for (index=0; index < c_result.count; index++) {
-        py_string = to_path(c_result.strings[index]);
+        py_string = item_trans(c_result.strings[index]);
         if (py_string == NULL) {
             Py_CLEAR(py_result);
             goto out;
@@ -1132,6 +1132,28 @@ Repository_listall_references(Repository *self, PyObject *args)
 out:
     git_strarray_free(&c_result);
     return py_result;
+}
+
+PyDoc_STRVAR(Repository_listall_references__doc__,
+  "listall_references() -> [str, ...]\n"
+  "\n"
+  "Return a list with all the references in the repository.");
+
+PyObject *
+Repository_listall_references(Repository *self, PyObject *args)
+{
+    return Repository_listall_references_impl(self, args, to_path_f);
+}
+
+PyDoc_STRVAR(Repository_raw_listall_references__doc__,
+  "raw_listall_references() -> [bytes, ...]\n"
+  "\n"
+  "Return a list with all the references in the repository.");
+
+PyObject *
+Repository_raw_listall_references(Repository *self, PyObject *args)
+{
+    return Repository_listall_references_impl(self, args, PyBytes_FromString);
 }
 
 
@@ -1184,11 +1206,6 @@ error:
     return NULL;
 }
 
-
-static PyObject *
-to_path_f(const char * x) {
-    return to_path(x);
-}
 
 static PyObject *
 Repository_listall_branches_impl(Repository *self, PyObject *args, PyObject *(*item_trans)(const char *))
@@ -2077,6 +2094,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
     METHOD(Repository, compress_references, METH_NOARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
+    METHOD(Repository, raw_listall_references, METH_NOARGS),
     METHOD(Repository, listall_reference_objects, METH_NOARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
     METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
