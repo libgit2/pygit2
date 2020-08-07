@@ -56,6 +56,7 @@ def test_refs_list(testrepo):
 def test_head(testrepo):
     head = testrepo.head
     assert LAST_COMMIT == testrepo[head.target].hex
+    assert LAST_COMMIT == testrepo[head.raw_target].hex
 
 def test_refs_getitem(testrepo):
     refname = 'refs/foo'
@@ -92,12 +93,15 @@ def test_refs_get_type(testrepo):
 def test_refs_get_target(testrepo):
     reference = testrepo.references.get('HEAD')
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
 
 def test_refs_set_target(testrepo):
     reference = testrepo.references.get('HEAD')
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
     reference.set_target('refs/heads/i18n')
     assert reference.target == 'refs/heads/i18n'
+    assert reference.raw_target == b'refs/heads/i18n'
 
 def test_refs_get_shorthand(testrepo):
     reference = testrepo.references.get('refs/heads/master')
@@ -108,11 +112,13 @@ def test_refs_get_shorthand(testrepo):
 def test_refs_set_target_with_message(testrepo):
     reference = testrepo.references.get('HEAD')
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
     sig = Signature('foo', 'bar')
     testrepo.set_ident('foo', 'bar')
     msg = 'Hello log'
     reference.set_target('refs/heads/i18n', message=msg)
     assert reference.target == 'refs/heads/i18n'
+    assert reference.raw_target == b'refs/heads/i18n'
     first = list(reference.log())[0]
     assert first.message == msg
     assert first.committer == sig
@@ -188,6 +194,7 @@ def test_refs_create_symbolic(testrepo):
     reference = testrepo.references.create('refs/tags/beta', 'refs/heads/master')
     assert reference.type == GIT_REF_SYMBOLIC
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
 
     # try to create existing symbolic reference
     with pytest.raises(ValueError):
@@ -198,6 +205,7 @@ def test_refs_create_symbolic(testrepo):
                                            force=True)
     assert reference.type == GIT_REF_SYMBOLIC
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
 
 #def test_packall_references(testrepo):
 #    testrepo.packall_references()
@@ -206,6 +214,7 @@ def test_refs_create_symbolic(testrepo):
 def test_refs_peel(testrepo):
     ref = testrepo.references.get('refs/heads/master')
     assert testrepo[ref.target].id == ref.peel().id
+    assert testrepo[ref.raw_target].id == ref.peel().id
 
     commit = ref.peel(Commit)
     assert commit.tree.id == ref.peel(Tree).id
@@ -359,12 +368,15 @@ def test_reference_get_type(testrepo):
 def test_get_target(testrepo):
     reference = testrepo.lookup_reference('HEAD')
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
 
 def test_set_target(testrepo):
     reference = testrepo.lookup_reference('HEAD')
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
     reference.set_target('refs/heads/i18n')
     assert reference.target == 'refs/heads/i18n'
+    assert reference.raw_target == b'refs/heads/i18n'
 
 def test_get_shorthand(testrepo):
     reference = testrepo.lookup_reference('refs/heads/master')
@@ -375,11 +387,13 @@ def test_get_shorthand(testrepo):
 def test_set_target_with_message(testrepo):
     reference = testrepo.lookup_reference('HEAD')
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
     sig = Signature('foo', 'bar')
     testrepo.set_ident('foo', 'bar')
     msg = 'Hello log'
     reference.set_target('refs/heads/i18n', message=msg)
     assert reference.target == 'refs/heads/i18n'
+    assert reference.raw_target == b'refs/heads/i18n'
     first = list(reference.log())[0]
     assert first.message == msg
     assert first.committer == sig
@@ -465,6 +479,7 @@ def test_create_symbolic_reference(testrepo):
                                       'refs/heads/master')
     assert reference.type == GIT_REF_SYMBOLIC
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
 
     # try to create existing symbolic reference
     with pytest.raises(AlreadyExistsError) as error:
@@ -476,6 +491,7 @@ def test_create_symbolic_reference(testrepo):
                                       'refs/heads/master', force=True)
     assert reference.type == GIT_REF_SYMBOLIC
     assert reference.target == 'refs/heads/master'
+    assert reference.raw_target == b'refs/heads/master'
 
 def test_create_invalid_reference(testrepo):
     repo = testrepo
@@ -493,6 +509,7 @@ def test_peel(testrepo):
     repo = testrepo
     ref = repo.lookup_reference('refs/heads/master')
     assert repo[ref.target].id == ref.peel().id
+    assert repo[ref.raw_target].id == ref.peel().id
 
     commit = ref.peel(Commit)
     assert commit.tree.id == ref.peel(Tree).id

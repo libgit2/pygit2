@@ -263,6 +263,23 @@ Reference_resolve(Reference *self, PyObject *args)
 }
 
 
+static PyObject *
+Reference_target_impl(Reference *self, const char ** c_name)
+{
+    CHECK_REFERENCE(self);
+
+    /* Case 1: Direct */
+    if (GIT_REF_OID == git_reference_type(self->reference))
+        return git_oid_to_python(git_reference_target(self->reference));
+
+    /* Case 2: Symbolic */
+    *c_name = git_reference_symbolic_target(self->reference);
+    if (*c_name == NULL)
+        PyErr_SetString(PyExc_ValueError, "no target available");
+
+    return NULL;
+}
+
 PyDoc_STRVAR(Reference_target__doc__,
     "The reference target: If direct the value will be an Oid object, if it\n"
     "is symbolic it will be an string with the full name of the target\n"
@@ -271,21 +288,35 @@ PyDoc_STRVAR(Reference_target__doc__,
 PyObject *
 Reference_target__get__(Reference *self)
 {
-    const char * c_name;
+    const char * c_name = NULL;
+    PyObject * ret;
 
-    CHECK_REFERENCE(self);
+    ret = Reference_target_impl(self, &c_name);
+    if (ret != NULL)
+        return ret;
+    if (c_name != NULL)
+        return to_path(c_name);
+    return NULL;
+}
 
-    /* Case 1: Direct */
-    if (GIT_REF_OID == git_reference_type(self->reference))
-        return git_oid_to_python(git_reference_target(self->reference));
 
-    /* Case 2: Symbolic */
-    c_name = git_reference_symbolic_target(self->reference);
-    if (c_name == NULL) {
-        PyErr_SetString(PyExc_ValueError, "no target available");
-        return NULL;
-    }
-    return to_path(c_name);
+PyDoc_STRVAR(Reference_raw_target__doc__,
+    "The raw reference target: If direct the value will be an Oid object, if it\n"
+    "is symbolic it will be bytes with the full name of the target\n"
+    "reference.\n");
+
+PyObject *
+Reference_raw_target__get__(Reference *self)
+{
+    const char * c_name = NULL;
+    PyObject * ret;
+
+    ret = Reference_target_impl(self, &c_name);
+    if (ret != NULL)
+        return ret;
+    if (c_name != NULL)
+        return PyBytes_FromString(c_name);
+    return NULL;
 }
 
 PyDoc_STRVAR(Reference_set_target__doc__,
@@ -634,6 +665,7 @@ PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, shorthand),
     GETTER(Reference, raw_shorthand),
     GETTER(Reference, target),
+    GETTER(Reference, raw_target),
     GETTER(Reference, type),
     {NULL}
 };
