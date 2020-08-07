@@ -157,6 +157,9 @@ def test_listall_branches(testrepo):
     branches = sorted(testrepo.listall_branches())
     assert branches == ['i18n', 'master']
 
+    branches = sorted(testrepo.raw_listall_branches())
+    assert branches == [b'i18n', b'master']
+
 def test_create_branch(testrepo):
     commit = testrepo[LAST_COMMIT]
     reference = testrepo.create_branch('version1', commit)

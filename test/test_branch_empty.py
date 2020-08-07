@@ -91,6 +91,9 @@ def test_listall_branches(repo):
     branches = sorted(repo.listall_branches(pygit2.GIT_BRANCH_REMOTE))
     assert branches == ['origin/master']
 
+    branches = sorted(repo.raw_listall_branches(pygit2.GIT_BRANCH_REMOTE))
+    assert branches == [b'origin/master']
+
 def test_branch_remote_name(repo):
     branch = repo.lookup_branch('origin/master', pygit2.GIT_BRANCH_REMOTE)
     assert branch.remote_name == 'origin'

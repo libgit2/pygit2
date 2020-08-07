@@ -1185,19 +1185,13 @@ error:
 }
 
 
-PyDoc_STRVAR(Repository_listall_branches__doc__,
-  "listall_branches([flag]) -> [str, ...]\n"
-  "\n"
-  "Return a list with all the branches in the repository.\n"
-  "\n"
-  "The *flag* may be:\n"
-  "\n"
-  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
-  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
-  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
+static PyObject *
+to_path_f(const char * x) {
+    return to_path(x);
+}
 
-PyObject *
-Repository_listall_branches(Repository *self, PyObject *args)
+static PyObject *
+Repository_listall_branches_impl(Repository *self, PyObject *args, PyObject *(*item_trans)(const char *))
 {
     git_branch_t list_flags = GIT_BRANCH_LOCAL;
     git_branch_iterator *iter;
@@ -1218,7 +1212,7 @@ Repository_listall_branches(Repository *self, PyObject *args)
         return Error_set(err);
 
     while ((err = git_branch_next(&ref, &type, iter)) == 0) {
-        PyObject *py_branch_name = to_path(git_reference_shorthand(ref));
+        PyObject *py_branch_name = item_trans(git_reference_shorthand(ref));
         git_reference_free(ref);
 
         if (py_branch_name == NULL)
@@ -1246,6 +1240,40 @@ error:
     git_branch_iterator_free(iter);
     Py_CLEAR(list);
     return NULL;
+}
+
+PyDoc_STRVAR(Repository_listall_branches__doc__,
+  "listall_branches([flag]) -> [str, ...]\n"
+  "\n"
+  "Return a list with all the branches in the repository.\n"
+  "\n"
+  "The *flag* may be:\n"
+  "\n"
+  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
+  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
+  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
+
+PyObject *
+Repository_listall_branches(Repository *self, PyObject *args)
+{
+    return Repository_listall_branches_impl(self, args, to_path_f);
+}
+
+PyDoc_STRVAR(Repository_raw_listall_branches__doc__,
+  "raw_listall_branches([flag]) -> [bytes, ...]\n"
+  "\n"
+  "Return a list with all the branches in the repository.\n"
+  "\n"
+  "The *flag* may be:\n"
+  "\n"
+  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
+  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
+  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
+
+PyObject *
+Repository_raw_listall_branches(Repository *self, PyObject *args)
+{
+    return Repository_listall_branches_impl(self, args, PyBytes_FromString);
 }
 
 PyDoc_STRVAR(Repository_listall_submodules__doc__,
@@ -2066,6 +2094,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, lookup_branch, METH_VARARGS),
     METHOD(Repository, path_is_ignored, METH_VARARGS),
     METHOD(Repository, listall_branches, METH_VARARGS),
+    METHOD(Repository, raw_listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, reset, METH_VARARGS),
     METHOD(Repository, free, METH_NOARGS),
