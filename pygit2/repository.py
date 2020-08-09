@@ -411,7 +411,7 @@ class BaseRepository(_Repository):
             return None
 
         # If it's a string, then it has to be valid revspec
-        if isinstance(obj, str):
+        if isinstance(obj, str) or isinstance(obj, bytes):
             obj = self.revparse_single(obj)
         elif isinstance(obj, Oid):
             obj = self[obj]
