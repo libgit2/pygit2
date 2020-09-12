@@ -101,7 +101,7 @@ class BaseRepository(_Repository):
 
         link
             Should workdir contain a gitlink to the repo in .git/modules vs. repo directly in workdir.
-"""
+        """
         csub = ffi.new('git_submodule **')
         curl = ffi.new('char[]', to_bytes(url))
         cpath = ffi.new('char[]', to_bytes(path))
