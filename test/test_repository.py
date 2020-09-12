@@ -291,7 +291,11 @@ def test_diff_patch(testrepo):
     # rollback all changes
     testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
 
-    # apply the patch and compare
+    # Check apply type error
+    with pytest.raises(TypeError) as exc:
+        testrepo.apply('HEAD')
+
+    # Apply the patch and compare
     diff = pygit2.Diff.parse_diff(patch)
     testrepo.apply(diff)
 

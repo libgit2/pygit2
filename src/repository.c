@@ -2007,14 +2007,16 @@ PyDoc_STRVAR(Repository_apply__doc__,
   "working directory.");
 
 PyObject *
-Repository_apply(Repository *self, PyObject *py_diff)
+Repository_apply(Repository *self, PyObject *args)
 {
-    int err;
+    Diff *py_diff;
     git_apply_location_t location = GIT_APPLY_LOCATION_WORKDIR;
     git_apply_options options = GIT_APPLY_OPTIONS_INIT;
 
-    err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
+    if (!PyArg_ParseTuple(args, "O!", &DiffType, &py_diff))
+        return NULL;
 
+    int err = git_apply(self->repo, py_diff->diff, location, &options);
     if (err < 0)
         return Error_set(err);
 
@@ -2088,7 +2090,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, merge_analysis, METH_VARARGS),
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),
-    METHOD(Repository, apply, METH_O),
+    METHOD(Repository, apply, METH_VARARGS),
     METHOD(Repository, applies, METH_O),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
