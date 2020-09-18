@@ -1,4 +1,4 @@
-1.3.0 (UNRELEASED)
+1.3.0 (2020-09-18)
 -------------------------
 
 - New ``Repository.add_submodule(...)``
