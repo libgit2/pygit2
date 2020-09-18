@@ -41,10 +41,15 @@ The Index type
    :members:
 
 The IndexEntry type
---------------------
+====================
 
 .. autoclass:: pygit2.IndexEntry
    :members:
+
+   .. automethod:: __eq__
+   .. automethod:: __ne__
+   .. automethod:: __repr__
+   .. automethod:: __str__
 
 Status
 ====================

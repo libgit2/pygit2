@@ -429,6 +429,7 @@ PyInit__pygit2(void)
      * RevSpec
      */
     INIT_TYPE(RevSpecType, NULL, NULL)
+    ADD_TYPE(m, RevSpec)
     ADD_CONSTANT_INT(m, GIT_REVPARSE_SINGLE)
     ADD_CONSTANT_INT(m, GIT_REVPARSE_RANGE)
     ADD_CONSTANT_INT(m, GIT_REVPARSE_MERGE_BASE)

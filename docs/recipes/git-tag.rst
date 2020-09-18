@@ -12,8 +12,9 @@ Showing all tags
 
 .. code-block:: python
 
-    >>> regex = re.compile('^refs/tags')
-    >>> filter(lambda r: regex.match(r), repo.listall_references())
+   >>> import re
+   >>> regex = re.compile('^refs/tags/')
+   >>> [r for r in repo.references if regex.match(r)]
 
 ----------------------------------------------------------------------
 References

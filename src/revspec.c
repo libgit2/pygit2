@@ -84,7 +84,7 @@ RevSpec_to_object__get__(RevSpec *self)
 }
 
 PyDoc_STRVAR(RevSpec_flags__doc__,
-    "A combination of GIT_REVPARSE_ flags which indicate the\n"
+    "A combination of GIT_REVPARSE_* flags which indicate the\n"
     "intended behavior of the spec passed to Repository.revparse()");
 
 PyObject *

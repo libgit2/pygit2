@@ -129,6 +129,9 @@ class BaseRepository(_Repository):
         return submodule_instance
 
     def lookup_submodule(self, path):
+        """
+        Lookup submodule information by name or path.
+        """
         csub = ffi.new('git_submodule **')
         cpath = ffi.new('char[]', to_bytes(path))
 
@@ -137,6 +140,13 @@ class BaseRepository(_Repository):
         return Submodule._from_c(self, csub[0])
 
     def update_submodules(self, submodules=None, init=False, callbacks=None):
+        """
+        Update a submodule. This will clone a missing submodule and checkout
+        the subrepository to the commit specified in the index of the
+        containing repository. If the submodule repository doesn't contain the
+        target commit (e.g. because fetchRecurseSubmodules isn't set), then the
+        submodule is fetched using the fetch options supplied in options.
+        """
         if submodules is None:
             submodules = self.listall_submodules()
 

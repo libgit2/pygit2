@@ -53,7 +53,7 @@ the Checkout section.
 Below there are some general attributes and methods:
 
 .. autoclass:: pygit2.Repository
-   :members: ahead_behind, apply, create_reference, default_signature,
+   :members: ahead_behind, applies, apply, create_reference, default_signature,
              descendant_of, describe, free, is_bare, is_empty, odb, path,
              path_is_ignored, reset, revert_commit, state_cleanup, workdir,
              write_archive, set_odb, set_refdb

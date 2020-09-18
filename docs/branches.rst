@@ -2,7 +2,11 @@
 Branches
 **********************************************************************
 
-.. py:attribute:: Repository.branches
+.. autoclass:: pygit2.Repository
+   :members: lookup_branch, raw_listall_branches
+   :noindex:
+
+   .. attribute:: branches
 
 Branches inherit from References, and additionally provide specialized
 accessors for some unique features.

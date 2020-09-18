@@ -80,10 +80,7 @@ This is the common interface for all Git objects:
 
 .. autoclass:: pygit2.Object
    :members: id, type, type_str, short_id, read_raw, peel, name, filemode
-
-   .. automethod:: __eq__(other)
-   .. automethod:: __ne__(other)
-   .. automethod:: __hash__()
+   :special-members: __eq__, __ne__, __hash__, __repr__
 
 
 Blobs
