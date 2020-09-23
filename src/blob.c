@@ -145,7 +145,13 @@ static PyMethodDef Blob_methods[] = {
 };
 
 
-PyDoc_STRVAR(Blob_size__doc__, "Size.");
+PyDoc_STRVAR(Blob_size__doc__,
+    "Size in bytes.\n"
+    "\n"
+    "Example:\n"
+    "\n"
+    "    >>> print(blob.size)\n"
+    "    130\n");
 
 PyObject *
 Blob_size__get__(Blob *self)
@@ -169,8 +175,16 @@ Blob_is_binary__get__(Blob *self)
 
 
 PyDoc_STRVAR(Blob_data__doc__,
-  "The contents of the blob, a bytes string. This is the same as\n"
-  "Blob.read_raw()");
+    "The contents of the blob, a byte string. This is the same as\n"
+    "Blob.read_raw().\n"
+    "\n"
+    "Example, print the contents of the ``.gitignore`` file:\n"
+    "\n"
+    "    >>> blob = repo['d8022420bf6db02e906175f64f66676df539f2fd']\n"
+    "    >>> print(blob.data)\n"
+    "    MANIFEST\n"
+    "    build\n"
+    "    dist\n");
 
 PyGetSetDef Blob_getseters[] = {
     GETTER(Blob, size),
