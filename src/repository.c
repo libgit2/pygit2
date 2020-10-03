@@ -1999,11 +1999,9 @@ out:
 }
 
 PyDoc_STRVAR(Repository_apply__doc__,
-  "apply(diff or patch)\n"
+  "apply(diff)\n"
   "\n"
-  "Applies the given patch into HEAD.\n"
-  "\n"
-  "Applies a diff into HEAD, writing the results into the\n"
+  "Applies the given Diff object to HEAD, writing the results into the\n"
   "working directory.");
 
 PyObject *
