@@ -48,7 +48,7 @@ Python requirements (these are specified in ``setup.py``):
 - cffi 1.4+
 - cached-property
 
-Libgit2 **v1.0.x**; binary wheels already include libgit2, so you only need to
+Libgit2 **v1.1.x**; binary wheels already include libgit2, so you only need to
 worry about this if you install the source package
 
 Optional libgit2 dependecies to support ssh and https:
@@ -77,6 +77,8 @@ of Python and the required libgit2 version.
 
 +-----------+----------------+----------------+
 | pygit2    | Python         | libgit2        |
++-----------+----------------+----------------+
+| 1.4.x     | 3.6 - 3.9      | 1.1.x          |
 +-----------+----------------+----------------+
 | 1.3.x     | 3.6 - 3.8      | 1.0.x          |
 +-----------+----------------+----------------+
@@ -119,9 +121,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/releases/download/v1.0.0/libgit2-1.0.0.tar.gz
-   $ tar xzf libgit2-1.0.0.tar.gz
-   $ cd libgit2-1.0.0/
+   $ wget https://github.com/libgit2/libgit2/releases/download/v1.1.0/libgit2-1.1.0.tar.gz
+   $ tar xzf libgit2-1.1.0.tar.gz
+   $ cd libgit2-1.1.0/
    $ cmake .
    $ make
    $ sudo make install
@@ -203,9 +205,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/releases/download/v1.0.0/libgit2-1.0.0.tar.gz
-   $ tar xzf libgit2-1.0.0.tar.gz
-   $ cd libgit2-1.0.0/
+   $ wget https://github.com/libgit2/libgit2/releases/download/v1.1.0/libgit2-1.1.0.tar.gz
+   $ tar xzf libgit2-1.1.0.tar.gz
+   $ cd libgit2-1.1.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ make
    $ make install
@@ -249,8 +251,8 @@ everytime. Verify yourself if curious:
 Installing on Windows
 ===================================
 
-`pygit2` for Windows is packaged into wheels and can be easily
-installed with `pip`:
+`pygit2` for Windows is packaged into wheels and can be easily installed with
+`pip`:
 
 .. code-block:: console
 
@@ -263,14 +265,14 @@ variable.  The following recipe shows you how to do it from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ git clone --depth=1 -b maint/v0.26 https://github.com/libgit2/libgit2.git
+   $ git clone --depth=1 -b ethomson/v1.1 https://github.com/libgit2/libgit2.git
    $ cd libgit2
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 14 Win64"
    $ cmake --build . --config release --target install
    $ ctest -v
 
-At this point, you're ready to execute the generic `pygit2`
-installation steps described at the start of this page.
+At this point, you're ready to execute the generic `pygit2` installation steps
+described at the start of this page.
 
 
 Installing on OS X

@@ -154,7 +154,7 @@ popd
 >&2 echo
 git clone \
     --depth=1 \
-    -b "maint/v${LIBGIT2_VERSION}" \
+    -b "ethomson/v${LIBGIT2_VERSION}" \
     https://github.com/libgit2/libgit2.git \
     "${LIBGIT2_CLONE_DIR}"
 

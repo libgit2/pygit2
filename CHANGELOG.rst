@@ -1,3 +1,17 @@
+1.4.0 (UNRELEASED)
+-------------------------
+
+- Upgrade to libgit2 1.1, new ``GIT_BLAME_IGNORE_WHITESPACE`` constant
+  `#1040 <https://github.com/libgit2/pygit2/issues/1040>`_
+
+- Add wheels for Python 3.9
+  `#1038 <https://github.com/libgit2/pygit2/issues/1038>`_
+
+- Documentation
+  `#752 <https://github.com/libgit2/pygit2/issues/752>`_
+  `#1037 <https://github.com/libgit2/pygit2/issues/1037>`_
+
+
 1.3.0 (2020-09-18)
 -------------------------
 

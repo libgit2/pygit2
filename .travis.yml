@@ -14,7 +14,7 @@ env:
   global:
     LIBGIT2: ~/install/
     LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
-    LIBGIT2_VERSION: "1.0"
+    LIBGIT2_VERSION: "1.1"
 
 
 jobs:
