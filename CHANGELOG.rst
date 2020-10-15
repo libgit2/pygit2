@@ -7,6 +7,8 @@
 - Add wheels for Python 3.9
   `#1038 <https://github.com/libgit2/pygit2/issues/1038>`_
 
+- Drop support for PyPy3 7.2
+
 - Documentation
   `#752 <https://github.com/libgit2/pygit2/issues/752>`_
   `#1037 <https://github.com/libgit2/pygit2/issues/1037>`_

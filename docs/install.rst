@@ -41,7 +41,7 @@ Requirements
 Supported versions of Python:
 
 - Python 3.6+
-- PyPy3 7.2+
+- PyPy3 7.3+
 
 Python requirements (these are specified in ``setup.py``):
 
