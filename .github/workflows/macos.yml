@@ -16,9 +16,11 @@ jobs:
           - ver: '3.6'
             release: '3.6.8'  # last Python.org binary release
           - ver: '3.7'
-            release: '3.7.7'
+            release: '3.7.9'  # last Python.org binary release
           - ver: '3.8'
-            release: '3.8.2'
+            release: '3.8.6'
+          - ver: '3.9'
+            release: '3.9.0'
     env:
       HOMEBREW_CACHE: ${{ github.workspace }}/.cache/brew
       CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
