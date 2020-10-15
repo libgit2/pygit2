@@ -75,15 +75,15 @@ pgit_borrow_encoding(PyObject *value, const char *encoding, PyObject **tvalue)
     PyObject *py_value = NULL;
     PyObject *py_str = NULL;
 
-#if defined(HAS_FSPATH_SUPPORT)
+#if defined(PYPY_VERSION) && PYPY_VERSION_NUM < 0x07030000
+    py_value = value;
+    Py_INCREF(value);
+#else
     py_value = PyOS_FSPath(value);
     if (py_value == NULL) {
         Error_type_error("unexpected %.200s", value);
         return NULL;
     }
-#else
-    py_value = value;
-    Py_INCREF(value);
 #endif
 
     // Get new PyBytes reference from value
