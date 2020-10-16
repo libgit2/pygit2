@@ -97,7 +97,8 @@ discover_repository(PyObject *self, PyObject *args)
     PyObject *py_repo_path = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "O&|IO&", PyUnicode_FSConverter, &py_path, &across_fs, PyUnicode_FSConverter, &py_ceiling_dirs))
+    if (!PyArg_ParseTuple(args, "O&|IO&", PyUnicode_FSConverter, &py_path, &across_fs,
+                          PyUnicode_FSConverter, &py_ceiling_dirs))
         return NULL;
 
     if (py_path != NULL)

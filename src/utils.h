@@ -39,6 +39,10 @@
 #  define PYGIT2_FN_UNUSED
 #endif
 
+#if defined(PYPY_VERSION)
+#define Py_FileSystemDefaultEncodeErrors "surrogateescape"
+#endif
+
 #define to_path(x) to_unicode(x, Py_FileSystemDefaultEncoding, "strict")
 #define to_encoding(x) PyUnicode_DecodeASCII(x, strlen(x), "strict")
 

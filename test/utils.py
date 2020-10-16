@@ -58,20 +58,10 @@ requires_ssh = pytest.mark.skipif(
 
 is_pypy = '__pypy__' in sys.builtin_module_names
 
-if is_pypy:
-    has_fspath = sys.pypy_version_info >= (7, 3)
-else:
-    has_fspath = sys.version_info >= (3, 6)
+fspath = pytest.mark.skipif(is_pypy, reason=
+    "PyPy doesn't fully support fspath, see https://foss.heptapod.net/pypy/pypy/-/issues/3168")
 
-fspath = pytest.mark.skipif(
-    not has_fspath,
-    reason='Requires PEP-519 (FSPath) support')
-
-
-refcount = pytest.mark.skipif(
-    is_pypy,
-    reason='skip refcounts checks in pypy'
-)
+refcount = pytest.mark.skipif(is_pypy, reason='skip refcounts checks in pypy')
 
 
 def force_rm_handle(remove_path, path, excinfo):
