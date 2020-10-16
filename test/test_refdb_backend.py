@@ -94,7 +94,6 @@ def test_write(repo):
 def test_rename(repo):
     old_ref = repo.backend.lookup('refs/heads/i18n')
     target = repo.get(old_ref.target)
-    who = target.committer
     repo.backend.rename('refs/heads/i18n', 'refs/heads/intl',
             False, target.committer, target.message)
     assert repo.backend.lookup('refs/heads/intl').target == target.id

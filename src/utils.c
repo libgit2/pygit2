@@ -45,7 +45,7 @@ pgit_encode(PyObject *value, const char *encoding)
 {
     PyObject *tmp = NULL;
 
-    const char *borrowed = pgit_borrow_encoding(value, encoding, &tmp);
+    const char *borrowed = pgit_borrow_encoding(value, encoding, NULL, &tmp);
     if (!borrowed)
         return NULL;
 
@@ -70,7 +70,7 @@ pgit_encode_fsdefault(PyObject *value)
  * guaranteed by 'tvalue', decrease its refcount when done with the string.
  */
 const char*
-pgit_borrow_encoding(PyObject *value, const char *encoding, PyObject **tvalue)
+pgit_borrow_encoding(PyObject *value, const char *encoding, const char *errors, PyObject **tvalue)
 {
     PyObject *py_value = NULL;
     PyObject *py_str = NULL;
@@ -83,8 +83,12 @@ pgit_borrow_encoding(PyObject *value, const char *encoding, PyObject **tvalue)
 
     // Get new PyBytes reference from value
     if (PyUnicode_Check(py_value)) { // Text string
-        py_str = (encoding) ? PyUnicode_AsEncodedString(py_value, encoding, "strict")
-                            : PyUnicode_AsUTF8String(py_value);
+        py_str = PyUnicode_AsEncodedString(
+            py_value,
+            encoding ? encoding : "utf-8",
+            errors ? errors : "strict"
+        );
+
         Py_DECREF(py_value);
         if (py_str == NULL)
             return NULL;

@@ -806,21 +806,17 @@ PyDoc_STRVAR(Repository_create_blob_fromworkdir__doc__,
     "is raised.");
 
 PyObject *
-Repository_create_blob_fromworkdir(Repository *self, PyObject *args)
+Repository_create_blob_fromworkdir(Repository *self, PyObject *py_path)
 {
-    git_oid oid;
-    PyBytesObject *py_path = NULL;
-    const char* path = NULL;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path))
+    PyObject *tvalue;
+    const char *path = pgit_borrow_encoding(py_path, Py_FileSystemDefaultEncoding,
+                                            Py_FileSystemDefaultEncodeErrors, &tvalue);
+    if (path == NULL)
         return NULL;
 
-    if (py_path != NULL)
-        path = PyBytes_AS_STRING(py_path);
-
-    err = git_blob_create_fromworkdir(&oid, self->repo, path);
-    Py_XDECREF(py_path);
+    git_oid oid;
+    int err = git_blob_create_fromworkdir(&oid, self->repo, path);
+    Py_DECREF(tvalue);
     if (err < 0)
         return Error_set(err);
 
@@ -970,7 +966,7 @@ Repository_create_commit(Repository *self, PyObject *args)
         return NULL;
 
     PyObject *tmessage;
-    const char *message = pgit_borrow_encoding(py_message, encoding, &tmessage);
+    const char *message = pgit_borrow_encoding(py_message, encoding, NULL, &tmessage);
     if (message == NULL)
         return NULL;
 
@@ -2076,7 +2072,7 @@ Repository_set_refdb(Repository *self, Refdb *refdb)
 
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
-    METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
+    METHOD(Repository, create_blob_fromworkdir, METH_O),
     METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
     METHOD(Repository, create_blob_fromiobase, METH_O),
     METHOD(Repository, create_commit, METH_VARARGS),

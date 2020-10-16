@@ -66,7 +66,6 @@ def test_ssh_key():
     cred = Keypair(username, pubkey, privkey, passphrase)
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
-@utils.fspath
 def test_ssh_key_aspath():
     username = "git"
     pubkey = Path("id_rsa.pub")

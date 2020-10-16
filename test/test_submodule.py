@@ -50,7 +50,6 @@ def test_lookup_submodule(repo):
     s = repo.lookup_submodule(SUBM_PATH)
     assert s is not None
 
-@utils.fspath
 def test_lookup_submodule_aspath(repo):
     s = repo.lookup_submodule(Path(SUBM_PATH))
     assert s is not None

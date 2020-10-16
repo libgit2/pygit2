@@ -91,7 +91,6 @@ def test_add():
     assert 'something.other.here' in config
     assert not config.get_bool('something.other.here')
 
-@utils.fspath
 def test_add_aspath():
     config = Config()
 

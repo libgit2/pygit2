@@ -292,7 +292,7 @@ def test_diff_patch(testrepo):
     testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
 
     # Check apply type error
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError):
         testrepo.apply('HEAD')
 
     # Apply the patch and compare
@@ -351,7 +351,6 @@ def test_no_arg(tmp_path):
     repo = init_repository(tmp_path)
     assert not repo.is_bare
 
-@utils.fspath
 def test_no_arg_aspath(tmp_path):
     repo = init_repository(Path(tmp_path))
     assert not repo.is_bare
@@ -399,7 +398,6 @@ def test_unicode_string():
     repo_path = './test/data/testrepo.git/'
     pygit2.Repository(repo_path)
 
-@utils.fspath
 def test_aspath():
     repo_path = Path('./test/data/testrepo.git/')
     pygit2.Repository(repo_path)
@@ -411,7 +409,6 @@ def test_clone_repository(tmp_path):
     assert not repo.is_empty
     assert not repo.is_bare
 
-@utils.fspath
 def test_clone_repository_aspath(tmp_path):
     repo_path = Path("./test/data/testrepo.git/")
     repo = clone_repository(repo_path, Path(tmp_path))

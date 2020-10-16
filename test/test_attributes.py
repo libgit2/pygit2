@@ -27,9 +27,6 @@
 from os.path import join
 from pathlib import Path
 
-# pygit2
-from . import utils
-
 
 def test_no_attr(testrepo):
     assert testrepo.get_attr('file', 'foo') is None
@@ -44,7 +41,7 @@ def test_no_attr(testrepo):
     assert not testrepo.get_attr('file.jpg', 'text')
     assert "lf" == testrepo.get_attr('file.sh', 'eol')
 
-@utils.fspath
+
 def test_no_attr_aspath(testrepo):
     with open(join(testrepo.workdir, '.gitattributes'), 'w+') as f:
         print('*.py  text\n', file=f)
