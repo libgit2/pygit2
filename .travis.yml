@@ -9,12 +9,10 @@ python:
   - "3.7"
   - "3.8"
   - "3.9"
-  - "pypy3"
 
 arch:
   - amd64
   - arm64
-  - s390x
 
 env:
   global:
@@ -24,7 +22,13 @@ env:
 
 
 jobs:
+  allow_failures:
+  - arch: s390x
   include:
+  - python: pypy3
+    arch: amd64
+  - python: 3.6
+    arch: s390x
   - stage: &deploy_stage Publish to PyPI (runs only for tagged commits)
     name: >-
       OS-specific manylinux wheels
