@@ -600,3 +600,36 @@ def test_worktree_custom_ref(testrepo):
 
     # The branch still exists
     assert branch_name in testrepo.branches
+
+def test_open_extended(tmp_path):
+    with utils.TemporaryRepository('dirtyrepo.tar', tmp_path) as path:
+        orig_repo = pygit2.Repository(path)
+        assert not orig_repo.is_bare
+        assert orig_repo.path
+        assert orig_repo.workdir
+
+        # GIT_REPOSITORY_OPEN_NO_SEARCH
+        subdir_path = os.path.join(path, "subdir")
+        repo = pygit2.Repository(subdir_path)
+        assert not repo.is_bare
+        assert repo.path == orig_repo.path
+        assert repo.workdir == orig_repo.workdir
+
+        with pytest.raises(pygit2.GitError):
+            repo = pygit2.Repository(subdir_path, pygit2.GIT_REPOSITORY_OPEN_NO_SEARCH)
+
+        # GIT_REPOSITORY_OPEN_NO_DOTGIT
+        gitdir_path = join(path, ".git")
+        with pytest.raises(pygit2.GitError):
+            repo = pygit2.Repository(path, pygit2.GIT_REPOSITORY_OPEN_NO_DOTGIT)
+
+        repo = pygit2.Repository(gitdir_path, pygit2.GIT_REPOSITORY_OPEN_NO_DOTGIT)
+        assert not repo.is_bare
+        assert repo.path == orig_repo.path
+        assert repo.workdir == orig_repo.workdir
+
+        # GIT_REPOSITORY_OPEN_BARE
+        repo = pygit2.Repository(gitdir_path, pygit2.GIT_REPOSITORY_OPEN_BARE)
+        assert repo.is_bare
+        assert repo.path == orig_repo.path
+        assert not repo.workdir

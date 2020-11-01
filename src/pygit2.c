@@ -176,24 +176,27 @@ hash(PyObject *self, PyObject *args)
 
 
 PyDoc_STRVAR(init_file_backend__doc__,
-  "init_file_backend(path) -> object\n"
+  "init_file_backend(path[, flags]) -> object\n"
   "\n"
-  "open repo backend given path.");
+  "Open repo backend given path.");
 PyObject *
 init_file_backend(PyObject *self, PyObject *args)
 {
     PyBytesObject *py_path = NULL;
     const char* path = NULL;
+    unsigned int flags = 0;
     int err = GIT_OK;
     git_repository *repository = NULL;
-    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path)) {
+
+    if (!PyArg_ParseTuple(args, "O&|I", PyUnicode_FSConverter, &py_path, &flags))
         return NULL;
-    }
     if (py_path != NULL)
         path = PyBytes_AS_STRING(py_path);
 
-    err = git_repository_open(&repository, path);
+    err = git_repository_open_ext(&repository, path, flags, NULL);
+
     Py_XDECREF(py_path);
+
     if (err < 0) {
         Error_set_str(err, path);
         goto cleanup;

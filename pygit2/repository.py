@@ -1424,18 +1424,38 @@ class References:
 
 
 class Repository(BaseRepository):
-    def __init__(self, *args, **kwargs):
-        if len(args) != 0:
-            path = args[0]
-            args = args[1:]
+    def __init__(self, path=None, flags=0):
+        """
+        The Repository constructor will commonly be called with one argument, the path of the repository to open.
+
+        Alternatively, constructing a repository with no arguments will create a repository with no backends. You can
+        use this path to create repositories with custom backends. Note that most operations on the repository are
+        considered invalid and may lead to undefined behavior if attempted before providing an odb and refdb via set_odb
+        and set_refdb.
+
+        Parameters:
+
+        path : str
+        The path to open - if not provided, the repository will have no backend.
+
+        flags : int
+        Flags controlling how to open the repository can optionally be provided - any combination of:
+        -   GIT_REPOSITORY_OPEN_NO_SEARCH
+        -   GIT_REPOSITORY_OPEN_CROSS_FS
+        -   GIT_REPOSITORY_OPEN_BARE
+        -   GIT_REPOSITORY_OPEN_NO_DOTGIT
+        -   GIT_REPOSITORY_OPEN_FROM_ENV
+        """
+
+        if path is not None:
             if hasattr(path, "__fspath__"):
                 path = path.__fspath__()
             if not isinstance(path, str):
                 path = path.decode('utf-8')
-            path_backend = init_file_backend(path)
-            super().__init__(path_backend, *args, **kwargs)
+            path_backend = init_file_backend(path, flags)
+            super().__init__(path_backend)
         else:
-            super().__init__(*args, **kwargs)
+            super().__init__()
 
     @classmethod
     def _from_c(cls, ptr, owned):

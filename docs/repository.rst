@@ -58,12 +58,26 @@ Below there are some general attributes and methods:
              path_is_ignored, reset, revert_commit, state_cleanup, workdir,
              write_archive, set_odb, set_refdb
 
-   The Repository constructor only takes one argument, the path of the
-   repository to open. Alternatively, constructing a repository with no
-   arguments will create a repository with no backends. You can use this path
-   to create repositories with custom backends. Note that most operations on
-   the repository are considered invalid and may lead to undefined behavior if
-   attempted before providing an odb and refdb via set_odb and set_refdb.
+   The Repository constructor will most commonly be called with one argument, the path of the repository to open.
+
+   Alternatively, constructing a repository with no arguments will create a repository with no backends. You can
+   use this path to create repositories with custom backends. Note that most operations on the repository are
+   considered invalid and may lead to undefined behavior if attempted before providing an odb and refdb via set_odb
+   and set_refdb.
+
+   Parameters:
+
+   path
+       The path to open - if not provided, the repository will have no backend.
+
+   flags
+       Flags controlling how to open the repository can optionally be provided - any combination of:
+
+   * GIT_REPOSITORY_OPEN_NO_SEARCH
+   * GIT_REPOSITORY_OPEN_CROSS_FS
+   * GIT_REPOSITORY_OPEN_BARE
+   * GIT_REPOSITORY_OPEN_NO_DOTGIT
+   * GIT_REPOSITORY_OPEN_FROM_ENV
 
    Example::
 
