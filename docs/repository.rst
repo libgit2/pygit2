@@ -56,7 +56,7 @@ Below there are some general attributes and methods:
    :members: ahead_behind, applies, apply, create_reference, default_signature,
              descendant_of, describe, free, is_bare, is_empty, odb, path,
              path_is_ignored, reset, revert_commit, state_cleanup, workdir,
-             write_archive, set_odb, set_refdb
+             write, write_archive, set_odb, set_refdb
 
    The Repository constructor will most commonly be called with one argument, the path of the repository to open.
 
