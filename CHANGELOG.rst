@@ -10,12 +10,14 @@
 - Drop support for PyPy3 7.2
 
 - Documentation
+  `#509 <https://github.com/libgit2/pygit2/issues/509>`_
   `#752 <https://github.com/libgit2/pygit2/issues/752>`_
   `#1037 <https://github.com/libgit2/pygit2/issues/1037>`_
 
 - ``Repository.__init__(...)`` now takes flags eg ``GIT_REPOSITORY_OPEN_BARE``,
-   new ``GIT_REPOSITORY_OPEN_*`` constants
-   `#1044 <https://github.com/libgit2/pygit2/pull/1044>`_
+  new ``GIT_REPOSITORY_OPEN_*`` constants
+  `#1044 <https://github.com/libgit2/pygit2/pull/1044>`_
+
 
 1.3.0 (2020-09-18)
 -------------------------

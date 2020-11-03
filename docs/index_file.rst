@@ -54,16 +54,44 @@ The IndexEntry type
 Status
 ====================
 
-.. automethod:: pygit2.Repository.status
-.. automethod:: pygit2.Repository.status_file
+.. autoclass:: pygit2.Repository
+   :members: status_file
+   :noindex:
 
-Inspect the status of the repository::
+   .. automethod:: Repository.status
 
-    >>> from pygit2 import GIT_STATUS_CURRENT
-    >>> status = repo.status()
-    >>> for filepath, flags in status.items():
-    ...     if flags != GIT_STATUS_CURRENT:
-    ...         print("Filepath %s isn't clean" % filepath)
+      Example, inspect the status of the repository::
+
+        from pygit2 import GIT_STATUS_CURRENT
+        status = repo.status()
+        for filepath, flags in status.items():
+            if flags != GIT_STATUS_CURRENT:
+                print("Filepath %s isn't clean" % filepath)
+
+This is the list of status flags for a single file::
+
+    GIT_STATUS_CURRENT
+    GIT_STATUS_INDEX_NEW
+    GIT_STATUS_INDEX_MODIFIED
+    GIT_STATUS_INDEX_DELETED
+    GIT_STATUS_INDEX_RENAMED
+    GIT_STATUS_INDEX_TYPECHANGE
+    GIT_STATUS_WT_NEW
+    GIT_STATUS_WT_MODIFIED
+    GIT_STATUS_WT_DELETED
+    GIT_STATUS_WT_TYPECHANGE
+    GIT_STATUS_WT_RENAMED
+    GIT_STATUS_WT_UNREADABLE
+    GIT_STATUS_IGNORED
+    GIT_STATUS_CONFLICTED
+
+A combination of these values will be returned to indicate the status of a
+file.  Status compares the working directory, the index, and the current HEAD
+of the repository.  The `GIT_STATUS_INDEX` set of flags represents the status
+of file in the index relative to the HEAD, and the `GIT_STATUS_WT` set of flags
+represent the status of the file in the working directory relative to the
+index.
+
 
 
 Checkout
