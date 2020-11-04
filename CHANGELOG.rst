@@ -13,6 +13,7 @@
   `#509 <https://github.com/libgit2/pygit2/issues/509>`_
   `#752 <https://github.com/libgit2/pygit2/issues/752>`_
   `#1037 <https://github.com/libgit2/pygit2/issues/1037>`_
+  `#1045 <https://github.com/libgit2/pygit2/issues/1045>`_
 
 - ``Repository.__init__(...)`` now takes flags eg ``GIT_REPOSITORY_OPEN_BARE``,
   new ``GIT_REPOSITORY_OPEN_*`` constants
