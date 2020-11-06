@@ -40,6 +40,7 @@ Authors::
   Nicolas Dandrimont
   Raphael Medaer (Escaux)
   Anatoly Techtonik
+  Andrew Olsen
   Dan Sully
   David Versmisse
   Mikhail Yushkovskiy
@@ -50,7 +51,6 @@ Authors::
   Thom Wiggers
   Alexander Linne
   Alok Singhal
-  Andrew Olsen
   Assaf Nativ
   Bob Carroll
   Erik Johnson

@@ -1,4 +1,4 @@
-1.4.0 (UNRELEASED)
+1.4.0 (2020-11-06)
 -------------------------
 
 - Upgrade to libgit2 1.1, new ``GIT_BLAME_IGNORE_WHITESPACE`` constant
@@ -9,15 +9,15 @@
 
 - Drop support for PyPy3 7.2
 
+- New optional ``flags`` argument in ``Repository.__init__(...)``,
+  new ``GIT_REPOSITORY_OPEN_*`` constants
+  `#1044 <https://github.com/libgit2/pygit2/pull/1044>`_
+
 - Documentation
   `#509 <https://github.com/libgit2/pygit2/issues/509>`_
   `#752 <https://github.com/libgit2/pygit2/issues/752>`_
   `#1037 <https://github.com/libgit2/pygit2/issues/1037>`_
   `#1045 <https://github.com/libgit2/pygit2/issues/1045>`_
-
-- ``Repository.__init__(...)`` now takes flags eg ``GIT_REPOSITORY_OPEN_BARE``,
-  new ``GIT_REPOSITORY_OPEN_*`` constants
-  `#1044 <https://github.com/libgit2/pygit2/pull/1044>`_
 
 
 1.3.0 (2020-09-18)

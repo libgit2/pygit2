@@ -93,7 +93,6 @@ represent the status of the file in the working directory relative to the
 index.
 
 
-
 Checkout
 ====================
 
