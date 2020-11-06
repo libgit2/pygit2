@@ -21,7 +21,7 @@ then
     exit 1
 fi
 
-PYTHONS="cp36-cp36m cp37-cp37m cp38-cp38"
+PYTHONS="cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39"
 
 
 # Avoid creation of __pycache__/*.py[c|o]
