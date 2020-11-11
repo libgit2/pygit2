@@ -50,6 +50,14 @@ typedef struct {
     int owned;    /* _from_c() sometimes means we don't own the C pointer */
 } Repository;
 
+/* git_packbuilder */
+typedef struct {
+    PyObject_HEAD
+    git_packbuilder *packbuilder;
+    int owned;    /* _from_c() sometimes means we don't own the C pointer */
+    Repository *repo;
+} PackBuilder;
+
 
 typedef struct {
     PyObject_HEAD

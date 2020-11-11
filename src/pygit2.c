@@ -33,6 +33,7 @@
 #include "types.h"
 #include "utils.h"
 #include "repository.h"
+#include "packbuilder.h"
 #include "oid.h"
 #include "options.h"
 
@@ -41,6 +42,7 @@ PyObject *AlreadyExistsError;
 PyObject *InvalidSpecError;
 
 extern PyTypeObject RepositoryType;
+extern PyTypeObject PackBuilderType;
 extern PyTypeObject OdbType;
 extern PyTypeObject OdbBackendType;
 extern PyTypeObject OdbBackendPackType;
@@ -334,6 +336,10 @@ PyInit__pygit2(void)
     /* Repository */
     INIT_TYPE(RepositoryType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Repository)
+
+    /* PackBuilder */
+    INIT_TYPE(PackBuilderType, NULL, PyType_GenericNew)
+    ADD_TYPE(m, PackBuilder)
 
     /* Odb */
     INIT_TYPE(OdbType, NULL, PyType_GenericNew)

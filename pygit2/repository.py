@@ -49,6 +49,7 @@ from .remote import RemoteCollection
 from .blame import Blame
 from .utils import to_bytes, StrArray
 from .submodule import Submodule
+from .packbuilder import PackBuilder
 
 
 class BaseRepository(_Repository):
@@ -82,6 +83,39 @@ class BaseRepository(_Repository):
         type, the second one a buffer with data. Return the Oid of the created
         object."""
         return self.odb.write(*args, **kwargs)
+
+    def pack(self, path, pack_delegate=None, max_threads=None):
+        """Pack the objects in the odb chosen by the pack_delegate function
+        and write .pack and .idx files for them.
+
+        Returns: the number of objects written to the pack
+
+        Parameters:
+
+        path
+            The path to which the .pack and .idx files should be written.
+
+        pack_delegate
+            The method which will provide add the objects to the pack builder. Defaults to all objects.
+
+        max_threads
+            The maximum number of threads the PackBuilder will spawn.
+        """
+
+        def pack_all_objects(pack_builder):
+            for obj in self.odb:
+                pack_builder.add(obj)
+
+        pack_delegate = pack_delegate or pack_all_objects
+
+        builder = PackBuilder(self)
+        if max_threads:
+            builder.set_max_threads(max_threads)
+        pack_delegate(builder)
+        builder.write(path)
+
+        return builder.written_objects_count
+
 
     def __iter__(self):
         return iter(self.odb)
