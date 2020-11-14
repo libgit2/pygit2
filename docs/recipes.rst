@@ -1,5 +1,5 @@
 **********************************************************************
-pygit2 Recipes
+Recipes
 **********************************************************************
 
 A list of some standard git commands and their pygit2 equivalents. This

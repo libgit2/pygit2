@@ -1,3 +1,16 @@
+1.5.0 (UNRELEASED)
+-------------------------
+
+- Fix truncated diff when there are nulls
+  `#1047 <https://github.com/libgit2/pygit2/pull/1047>`_
+  `#1043 <https://github.com/libgit2/pygit2/issues/1043>`_
+
+Breaking changes:
+
+- Fix ``Index.add(...)`` raise ``TypeError`` instead of ``AttributeError`` when
+  arguments are of unexpected type
+
+
 1.4.0 (2020-11-06)
 -------------------------
 
