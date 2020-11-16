@@ -50,6 +50,7 @@ typedef struct {
     int owned;    /* _from_c() sometimes means we don't own the C pointer */
 } Repository;
 
+
 typedef struct {
     PyObject_HEAD
     git_oid oid;

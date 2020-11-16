@@ -63,7 +63,7 @@ class PackBuilder:
         err = C.git_packbuilder_insert(self._packbuilder, oid, ffi.NULL)
         check_error(err)
 
-    def add_recursive(self, git_object):
+    def add_recur(self, git_object):
         oid = self.convert_object_to_oid(git_object)
         err = C.git_packbuilder_insert_recur(self._packbuilder, oid, ffi.NULL)
         check_error(err)
