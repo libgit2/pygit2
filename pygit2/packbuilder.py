@@ -25,20 +25,42 @@
 
 
 # Import from pygit2
-from ._pygit2 import PackBuilder as _PackBuilder
 from .errors import check_error
 from .ffi import ffi, C
 from .utils import to_bytes
 
 
-class PackBuilder(_PackBuilder):
+class PackBuilder:
 
-    def __init__(self, *args, **kwargs):
-        self.repo = args[0]
-        super().__init__(args[0])
-        packbuilder_cptr = ffi.new('git_packbuilder **')
-        ffi.buffer(packbuilder_cptr)[:] = self._pointer[:]
-        self._packbuilder = packbuilder_cptr[0]
+    def __init__(self, repo):
+
+        cpackbuilder = ffi.new('git_packbuilder **')
+        err = C.git_packbuilder_new(cpackbuilder, repo._repo)
+        check_error(err)
+
+        self._repo = repo
+        self._packbuilder = cpackbuilder[0]
+        self._cpackbuilder = cpackbuilder
+
+
+    @classmethod
+    def _from_c(cls, repo, ptr):
+        packbuilder = cls.__new__(cls)
+        packbuilder._repo = repo
+        packbuilder._packbuilder = ptr[0]
+        packbuilder._cpackbuilder = ptr
+
+        return packbuilder
+
+    @property
+    def _pointer(self):
+        return bytes(ffi.buffer(self._packbuilder)[:])
+
+    def __del__(self):
+        C.git_packbuilder_free(self._packbuilder)
+
+    def __len__(self):
+        return C.git_packbuilder_object_count(self._packbuilder)
 
     @staticmethod
     def convert_object_to_oid(git_object):
@@ -56,9 +78,6 @@ class PackBuilder(_PackBuilder):
         err = C.git_packbuilder_insert_recur(self._packbuilder, oid, ffi.NULL)
         check_error(err)
 
-    def object_count(self):
-        return C.git_packbuilder_object_count(self._packbuilder)
-
     def set_max_threads(self, n_threads):
         return C.git_packbuilder_set_threads(self._packbuilder, n_threads)
 
@@ -69,12 +88,3 @@ class PackBuilder(_PackBuilder):
     @property
     def written_objects_count(self):
         return C.git_packbuilder_written(self._packbuilder)
-
-    @classmethod
-    def _from_c(cls, ptr, repo):
-        cptr = ffi.new('git_packbuilder **')
-        cptr[0] = ptr
-        packbuilder = cls.__new__(cls)
-        packbuilder.repo = repo
-        super(cls, packbuilder)._from_c(bytes(ffi.buffer(cptr)[:]), repo)
-        return packbuilder
