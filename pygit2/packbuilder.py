@@ -42,16 +42,6 @@ class PackBuilder:
         self._packbuilder = cpackbuilder[0]
         self._cpackbuilder = cpackbuilder
 
-
-    @classmethod
-    def _from_c(cls, repo, ptr):
-        packbuilder = cls.__new__(cls)
-        packbuilder._repo = repo
-        packbuilder._packbuilder = ptr[0]
-        packbuilder._cpackbuilder = ptr
-
-        return packbuilder
-
     @property
     def _pointer(self):
         return bytes(ffi.buffer(self._packbuilder)[:])
