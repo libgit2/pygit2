@@ -71,8 +71,9 @@ class PackBuilder:
     def set_max_threads(self, n_threads):
         return C.git_packbuilder_set_threads(self._packbuilder, n_threads)
 
-    def write(self, path):
-        err = C.git_packbuilder_write(self._packbuilder, to_bytes(path), 0, ffi.NULL, ffi.NULL)
+    def write(self, path=None):
+        path = ffi.NULL if path is None else to_bytes(path)
+        err = C.git_packbuilder_write(self._packbuilder, path, 0, ffi.NULL, ffi.NULL)
         check_error(err)
 
     @property
