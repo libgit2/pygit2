@@ -68,7 +68,7 @@ class PackBuilder:
         err = C.git_packbuilder_insert_recur(self._packbuilder, oid, ffi.NULL)
         check_error(err)
 
-    def set_max_threads(self, n_threads):
+    def set_threads(self, n_threads):
         return C.git_packbuilder_set_threads(self._packbuilder, n_threads)
 
     def write(self, path=None):
