@@ -84,7 +84,7 @@ class BaseRepository(_Repository):
         object."""
         return self.odb.write(*args, **kwargs)
 
-    def pack(self, path=None, pack_delegate=None, num_threads=None):
+    def pack(self, path=None, pack_delegate=None, n_threads=None):
         """Pack the objects in the odb chosen by the pack_delegate function
         and write .pack and .idx files for them.
 
@@ -98,7 +98,7 @@ class BaseRepository(_Repository):
         pack_delegate
             The method which will provide add the objects to the pack builder. Defaults to all objects.
 
-        num_threads
+        n_threads
             The number of threads the PackBuilder will spawn. If set to 0 libgit2 will autodetect the number of CPUs.
         """
 
@@ -109,8 +109,8 @@ class BaseRepository(_Repository):
         pack_delegate = pack_delegate or pack_all_objects
 
         builder = PackBuilder(self)
-        if num_threads is not None:
-            builder.set_threads(num_threads)
+        if n_threads is not None:
+            builder.set_threads(n_threads)
         pack_delegate(builder)
         builder.write(path=path)
 
