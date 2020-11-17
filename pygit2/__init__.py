@@ -40,6 +40,7 @@ from .ffi import ffi, C
 from .index import Index, IndexEntry
 from .remote import Remote
 from .repository import Repository
+from .packbuilder import PackBuilder
 from .settings import Settings
 from .submodule import Submodule
 from .utils import to_bytes, to_str

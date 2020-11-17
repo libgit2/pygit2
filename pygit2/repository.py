@@ -49,6 +49,7 @@ from .remote import RemoteCollection
 from .blame import Blame
 from .utils import to_bytes, StrArray
 from .submodule import Submodule
+from .packbuilder import PackBuilder
 
 
 class BaseRepository(_Repository):
@@ -82,6 +83,39 @@ class BaseRepository(_Repository):
         type, the second one a buffer with data. Return the Oid of the created
         object."""
         return self.odb.write(*args, **kwargs)
+
+    def pack(self, path=None, pack_delegate=None, n_threads=None):
+        """Pack the objects in the odb chosen by the pack_delegate function
+        and write .pack and .idx files for them.
+
+        Returns: the number of objects written to the pack
+
+        Parameters:
+
+        path
+            The path to which the .pack and .idx files should be written. None will write to the default location.
+
+        pack_delegate
+            The method which will provide add the objects to the pack builder. Defaults to all objects.
+
+        n_threads
+            The number of threads the PackBuilder will spawn. If set to 0 libgit2 will autodetect the number of CPUs.
+        """
+
+        def pack_all_objects(pack_builder):
+            for obj in self.odb:
+                pack_builder.add(obj)
+
+        pack_delegate = pack_delegate or pack_all_objects
+
+        builder = PackBuilder(self)
+        if n_threads is not None:
+            builder.set_threads(n_threads)
+        pack_delegate(builder)
+        builder.write(path=path)
+
+        return builder.written_objects_count
+
 
     def __iter__(self):
         return iter(self.odb)
