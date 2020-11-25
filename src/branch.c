@@ -168,7 +168,12 @@ Branch_raw_branch_name__get__(Branch *self)
 }
 
 PyDoc_STRVAR(Branch_remote_name__doc__,
-  "The name of the remote set to be the upstream of this branch.");
+    "Find the remote name of a remote-tracking branch.\n"
+    "\n"
+    "This will return the name of the remote whose fetch refspec is matching "
+    "the given branch. E.g. given a branch 'refs/remotes/test/master', it will "
+    "extract the 'test' part. If refspecs from multiple remotes match, the "
+    "function will raise ValueError.");
 
 PyObject *
 Branch_remote_name__get__(Branch *self)
@@ -185,7 +190,7 @@ Branch_remote_name__get__(Branch *self)
     if (err < GIT_OK)
         return Error_set(err);
 
-    py_name = to_unicode(name.ptr, NULL, NULL);
+    py_name = to_unicode_n(name.ptr, name.size, NULL, NULL);
     git_buf_dispose(&name);
 
     return py_name;
@@ -263,7 +268,7 @@ Branch_upstream_name__get__(Branch *self)
     if (err < GIT_OK)
         return Error_set(err);
 
-    py_name = to_unicode(name.ptr, NULL, NULL);
+    py_name = to_unicode_n(name.ptr, name.size, NULL, NULL);
     git_buf_dispose(&name);
 
     return py_name;

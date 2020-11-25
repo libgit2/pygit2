@@ -207,7 +207,7 @@ Patch_text__get__(Patch *self)
     if (err < 0)
         return Error_set(err);
 
-    text = to_unicode(buf.ptr, NULL, NULL);
+    text = to_unicode_n(buf.ptr, buf.size, NULL, NULL);
     git_buf_dispose(&buf);
     return text;
 }

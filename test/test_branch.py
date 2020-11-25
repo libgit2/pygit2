@@ -27,6 +27,7 @@
 
 import pygit2
 import pytest
+import os
 
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -139,15 +140,25 @@ def test_branches_with_commit(testrepo):
 def test_lookup_branch_local(testrepo):
     branch = testrepo.lookup_branch('master')
     assert branch.target.hex == LAST_COMMIT
+    branch = testrepo.lookup_branch(b'master')
+    assert branch.target.hex == LAST_COMMIT
 
     branch = testrepo.lookup_branch('i18n', pygit2.GIT_BRANCH_LOCAL)
     assert branch.target.hex == I18N_LAST_COMMIT
+    branch = testrepo.lookup_branch(b'i18n', pygit2.GIT_BRANCH_LOCAL)
+    assert branch.target.hex == I18N_LAST_COMMIT
 
     assert testrepo.lookup_branch('not-exists') is None
+    assert testrepo.lookup_branch(b'not-exists') is None
+    if os.name == 'posix':  # this call fails with an InvalidSpecError on NT
+        assert testrepo.lookup_branch(b'\xb1') is None
 
 def test_listall_branches(testrepo):
     branches = sorted(testrepo.listall_branches())
     assert branches == ['i18n', 'master']
+
+    branches = sorted(testrepo.raw_listall_branches())
+    assert branches == [b'i18n', b'master']
 
 def test_create_branch(testrepo):
     commit = testrepo[LAST_COMMIT]
@@ -155,6 +166,8 @@ def test_create_branch(testrepo):
     refs = testrepo.listall_branches()
     assert 'version1' in refs
     reference = testrepo.lookup_branch('version1')
+    assert reference.target.hex == LAST_COMMIT
+    reference = testrepo.lookup_branch(b'version1')
     assert reference.target.hex == LAST_COMMIT
 
     # try to create existing reference

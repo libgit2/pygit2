@@ -45,7 +45,7 @@ get_search_path(long level)
     if (err < 0)
         return Error_set(err);
 
-    py_path = to_unicode(buf.ptr, NULL, NULL);
+    py_path = to_unicode_n(buf.ptr, buf.size, NULL, NULL);
     git_buf_dispose(&buf);
 
     if (!py_path)

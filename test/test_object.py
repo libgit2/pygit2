@@ -128,3 +128,9 @@ def test_short_id(testrepo):
         test_obj(tree, "tree#"+tree.id.hex)
         for entry in tree:
             test_obj(testrepo[entry.hex], "entry="+entry.name+"#"+entry.hex)
+
+
+def test_repr(testrepo):
+    commit_id = testrepo.lookup_reference('refs/heads/master').target
+    commit_a = testrepo[commit_id]
+    assert repr(commit_a) == "<pygit2.Object{commit:%s}>" % commit_id

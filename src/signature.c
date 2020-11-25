@@ -50,7 +50,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
         return -1;
 
     PyObject *tname;
-    const char *name = pgit_borrow_encoding(py_name, encoding, &tname);
+    const char *name = pgit_borrow_encoding(py_name, encoding, NULL, &tname);
     if (name == NULL)
         return -1;
 

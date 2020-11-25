@@ -187,8 +187,8 @@ def test_diff_empty_tree(barerepo):
     diff = commit_a.tree.diff_to_tree()
 
     def get_context_for_lines(diff):
-        hunks = chain(*map(lambda x: x.hunks, [p for p in diff]))
-        lines = chain(*map(lambda x: x.lines, hunks))
+        hunks = chain.from_iterable(map(lambda x: x.hunks, diff))
+        lines = chain.from_iterable(map(lambda x: x.lines, hunks))
         return map(lambda x: x.origin, lines)
 
     entries = [p.delta.new_file.path for p in diff]

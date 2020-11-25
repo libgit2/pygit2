@@ -1,5 +1,5 @@
-version: 1.2.{build}
-image: Visual Studio 2015
+version: 1.4.{build}
+image: Visual Studio 2019
 configuration: Release
 environment:
   global:
@@ -19,6 +19,10 @@ environment:
     PYTHON: 'C:\Python38\python.exe'
   - GENERATOR: 'Visual Studio 14 Win64'
     PYTHON: 'C:\Python38-x64\python.exe'
+  - GENERATOR: 'Visual Studio 14'
+    PYTHON: 'C:\Python39\python.exe'
+  - GENERATOR: 'Visual Studio 14 Win64'
+    PYTHON: 'C:\Python39-x64\python.exe'
 
 matrix:
   fast_finish: true
@@ -32,7 +36,7 @@ build_script:
 # Clone, build and install libgit2
 - cmd: |
     set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\venv
-    git clone --depth=1 -b maint/v1.0 https://github.com/libgit2/libgit2.git libgit2
+    git clone --depth=1 -b ethomson/v1.1 https://github.com/libgit2/libgit2.git libgit2
     cd libgit2
     cmake . -DBUILD_CLAR=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="%LIBGIT2%" -G "%GENERATOR%"
     cmake --build . --target install

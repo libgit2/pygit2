@@ -67,6 +67,7 @@ extern PyTypeObject RefdbType;
 extern PyTypeObject RefdbBackendType;
 extern PyTypeObject RefdbFsBackendType;
 extern PyTypeObject ReferenceType;
+extern PyTypeObject RevSpecType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
 extern PyTypeObject BranchType;
@@ -96,7 +97,8 @@ discover_repository(PyObject *self, PyObject *args)
     PyObject *py_repo_path = NULL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "O&|IO&", PyUnicode_FSConverter, &py_path, &across_fs, PyUnicode_FSConverter, &py_ceiling_dirs))
+    if (!PyArg_ParseTuple(args, "O&|IO&", PyUnicode_FSConverter, &py_path, &across_fs,
+                          PyUnicode_FSConverter, &py_ceiling_dirs))
         return NULL;
 
     if (py_path != NULL)
@@ -174,24 +176,27 @@ hash(PyObject *self, PyObject *args)
 
 
 PyDoc_STRVAR(init_file_backend__doc__,
-  "init_file_backend(path) -> object\n"
+  "init_file_backend(path[, flags]) -> object\n"
   "\n"
-  "open repo backend given path.");
+  "Open repo backend given path.");
 PyObject *
 init_file_backend(PyObject *self, PyObject *args)
 {
     PyBytesObject *py_path = NULL;
     const char* path = NULL;
+    unsigned int flags = 0;
     int err = GIT_OK;
     git_repository *repository = NULL;
-    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path)) {
+
+    if (!PyArg_ParseTuple(args, "O&|I", PyUnicode_FSConverter, &py_path, &flags))
         return NULL;
-    }
     if (py_path != NULL)
         path = PyBytes_AS_STRING(py_path);
 
-    err = git_repository_open(&repository, path);
+    err = git_repository_open_ext(&repository, path, flags, NULL);
+
     Py_XDECREF(py_path);
+
     if (err < 0) {
         Error_set_str(err, path);
         goto cleanup;
@@ -425,6 +430,15 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_REF_LISTALL)
 
     /*
+     * RevSpec
+     */
+    INIT_TYPE(RevSpecType, NULL, NULL)
+    ADD_TYPE(m, RevSpec)
+    ADD_CONSTANT_INT(m, GIT_REVPARSE_SINGLE)
+    ADD_CONSTANT_INT(m, GIT_REVPARSE_RANGE)
+    ADD_CONSTANT_INT(m, GIT_REVPARSE_MERGE_BASE)
+
+    /*
      * Worktree
      */
     INIT_TYPE(WorktreeType, NULL, NULL)
@@ -578,6 +592,9 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES)
     ADD_CONSTANT_INT(m, GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES)
+    ADD_CONSTANT_INT(m, GIT_BLAME_FIRST_PARENT)
+    ADD_CONSTANT_INT(m, GIT_BLAME_USE_MAILMAP)
+    ADD_CONSTANT_INT(m, GIT_BLAME_IGNORE_WHITESPACE)
 
     /* Merge */
     ADD_CONSTANT_INT(m, GIT_MERGE_ANALYSIS_NONE)

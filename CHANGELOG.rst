@@ -1,8 +1,86 @@
-1.2.2 (UNRELEASED)
+1.5.0 (UNRELEASED)
 -------------------------
 
-- New unit tests
+- Fix truncated diff when there are nulls
+  `#1047 <https://github.com/libgit2/pygit2/pull/1047>`_
+  `#1043 <https://github.com/libgit2/pygit2/issues/1043>`_
+
+Breaking changes:
+
+- Fix ``Index.add(...)`` raise ``TypeError`` instead of ``AttributeError`` when
+  arguments are of unexpected type
+
+
+1.4.0 (2020-11-06)
+-------------------------
+
+- Upgrade to libgit2 1.1, new ``GIT_BLAME_IGNORE_WHITESPACE`` constant
+  `#1040 <https://github.com/libgit2/pygit2/issues/1040>`_
+
+- Add wheels for Python 3.9
+  `#1038 <https://github.com/libgit2/pygit2/issues/1038>`_
+
+- Drop support for PyPy3 7.2
+
+- New optional ``flags`` argument in ``Repository.__init__(...)``,
+  new ``GIT_REPOSITORY_OPEN_*`` constants
+  `#1044 <https://github.com/libgit2/pygit2/pull/1044>`_
+
+- Documentation
+  `#509 <https://github.com/libgit2/pygit2/issues/509>`_
+  `#752 <https://github.com/libgit2/pygit2/issues/752>`_
+  `#1037 <https://github.com/libgit2/pygit2/issues/1037>`_
+  `#1045 <https://github.com/libgit2/pygit2/issues/1045>`_
+
+
+1.3.0 (2020-09-18)
+-------------------------
+
+- New ``Repository.add_submodule(...)``
+  `#1011 <https://github.com/libgit2/pygit2/pull/1011>`_
+
+- New ``Repository.applies(...)``
+  `#1019 <https://github.com/libgit2/pygit2/pull/1019>`_
+
+- New ``Repository.revparse(...)`` and ``Repository.revparse_ext(...)``
+  `#1022 <https://github.com/libgit2/pygit2/pull/1022>`_
+
+- New optional ``flags`` and ``file_flags`` arguments in
+  ``Repository.merge_commits`` and ``Repository.merge_trees``
+  `#1008 <https://github.com/libgit2/pygit2/pull/1008>`_
+
+- New ``Reference.raw_target``, ``Repository.raw_listall_branches(...)`` and
+  ``Repository.raw_listall_references()``; allow bytes in
+  ``Repository.lookup_branch(...)`` and ``Repository.diff(...)``
+  `#1029 <https://github.com/libgit2/pygit2/pull/1029>`_
+
+- New ``GIT_BLAME_FIRST_PARENT`` and ``GIT_BLAME_USE_MAILMAP`` constants
+  `#1031 <https://github.com/libgit2/pygit2/pull/1031>`_
+
+- New ``IndexEntry`` supports ``repr()``, ``str()``, ``==`` and ``!=``
+  `#1009 <https://github.com/libgit2/pygit2/pull/1009>`_
+
+- New ``Object`` supports ``repr()``
+  `#1022 <https://github.com/libgit2/pygit2/pull/1022>`_
+
+- New accept tuples of strings (not only lists) in a number of places
+  `#1025 <https://github.com/libgit2/pygit2/pull/1025>`_
+
+- Fix compatibility with old macOS 10.9
+  `#1026 <https://github.com/libgit2/pygit2/issues/1026>`_
+  `#1027 <https://github.com/libgit2/pygit2/pull/1027>`_
+
+- Fix check argument type in ``Repository.apply(...)``
+  `#1033 <https://github.com/libgit2/pygit2/issues/1033>`_
+
+- Fix raise exception if error in ``Repository.listall_submodules()`` commit 32133974
+
+- Fix a couple of refcount errors in ``OdbBackend.refresh()`` and
+  ``Worktree_is_prunable`` commit fed0c19c
+
+- Unit tests
   `#800 <https://github.com/libgit2/pygit2/issues/800>`_
+  `#1015 <https://github.com/libgit2/pygit2/pull/1015>`_
 
 - Documentation
   `#705 <https://github.com/libgit2/pygit2/pull/705>`_

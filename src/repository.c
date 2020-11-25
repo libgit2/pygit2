@@ -30,6 +30,7 @@
 #include "error.h"
 #include "types.h"
 #include "reference.h"
+#include "revspec.h"
 #include "utils.h"
 #include "odb.h"
 #include "object.h"
@@ -57,6 +58,7 @@ extern PyTypeObject TreeBuilderType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject DiffType;
 extern PyTypeObject ReferenceType;
+extern PyTypeObject RevSpecType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
 
@@ -302,10 +304,11 @@ Repository_lookup_branch(Repository *self, PyObject *args)
 {
     git_reference *c_reference;
     const char *c_name;
+    Py_ssize_t c_name_len;
     git_branch_t branch_type = GIT_BRANCH_LOCAL;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s|I", &c_name, &branch_type))
+    if (!PyArg_ParseTuple(args, "s#|I", &c_name, &c_name_len, &branch_type))
         return NULL;
 
     err = git_branch_lookup(&c_reference, self->repo, c_name, branch_type);
@@ -361,6 +364,69 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
         return Error_set_str(err, c_spec);
 
     return wrap_object(c_obj, self, NULL);
+}
+
+
+PyDoc_STRVAR(Repository_revparse_ext__doc__,
+  "revparse_ext(revision) -> (Object, Reference)\n"
+  "\n"
+  "Find a single object and intermediate reference, as specified by a revision\n"
+  "string. See `man gitrevisions`, or the documentation for `git rev-parse`\n"
+  "for information on the syntax accepted.\n"
+  "\n"
+  "In some cases (@{<-n>} or <branchname>@{upstream}), the expression may\n"
+  "point to an intermediate reference, which is returned in the second element\n"
+  "of the result tuple.");
+
+PyObject *
+Repository_revparse_ext(Repository *self, PyObject *py_spec)
+{
+    /* Get the C revision spec */
+    const char *c_spec = pgit_borrow(py_spec);
+    if (c_spec == NULL)
+        return NULL;
+
+    /* Lookup */
+    git_object *c_obj = NULL;
+    git_reference *c_ref = NULL;
+    int err = git_revparse_ext(&c_obj, &c_ref, self->repo, c_spec);
+    if (err)
+        return Error_set_str(err, c_spec);
+
+    PyObject *py_obj = wrap_object(c_obj, self, NULL);
+    PyObject *py_ref = NULL;
+    if (c_ref != NULL) {
+        py_ref = wrap_reference(c_ref, self);
+    } else {
+        py_ref = Py_None;
+        Py_INCREF(Py_None);
+    }
+    return Py_BuildValue("NN", py_obj, py_ref);
+}
+
+
+PyDoc_STRVAR(Repository_revparse__doc__,
+  "revparse(revspec) -> RevSpec\n"
+  "\n"
+  "Parse a revision string for from, to, and intent. See `man gitrevisions`,\n"
+  "or the documentation for `git rev-parse` for information on the syntax\n"
+  "accepted.");
+
+PyObject *
+Repository_revparse(Repository *self, PyObject *py_spec)
+{
+    /* Get the C revision spec */
+    const char *c_spec = pgit_borrow(py_spec);
+    if (c_spec == NULL)
+        return NULL;
+
+    /* Lookup */
+    git_revspec revspec;
+    int err = git_revparse(&revspec, self->repo, c_spec);
+    if (err) {
+        return Error_set_str(err, c_spec);
+    }
+    return wrap_revspec(&revspec, self);
 }
 
 
@@ -740,21 +806,17 @@ PyDoc_STRVAR(Repository_create_blob_fromworkdir__doc__,
     "is raised.");
 
 PyObject *
-Repository_create_blob_fromworkdir(Repository *self, PyObject *args)
+Repository_create_blob_fromworkdir(Repository *self, PyObject *py_path)
 {
-    git_oid oid;
-    PyBytesObject *py_path = NULL;
-    const char* path = NULL;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path))
+    PyObject *tvalue;
+    const char *path = pgit_borrow_encoding(py_path, Py_FileSystemDefaultEncoding,
+                                            Py_FileSystemDefaultEncodeErrors, &tvalue);
+    if (path == NULL)
         return NULL;
 
-    if (py_path != NULL)
-        path = PyBytes_AS_STRING(py_path);
-
-    err = git_blob_create_fromworkdir(&oid, self->repo, path);
-    Py_XDECREF(py_path);
+    git_oid oid;
+    int err = git_blob_create_fromworkdir(&oid, self->repo, path);
+    Py_DECREF(tvalue);
     if (err < 0)
         return Error_set(err);
 
@@ -904,7 +966,7 @@ Repository_create_commit(Repository *self, PyObject *args)
         return NULL;
 
     PyObject *tmessage;
-    const char *message = pgit_borrow_encoding(py_message, encoding, &tmessage);
+    const char *message = pgit_borrow_encoding(py_message, encoding, NULL, &tmessage);
     if (message == NULL)
         return NULL;
 
@@ -1030,13 +1092,13 @@ Repository_create_branch(Repository *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Repository_listall_references__doc__,
-  "listall_references() -> [str, ...]\n"
-  "\n"
-  "Return a list with all the references in the repository.");
+static PyObject *
+to_path_f(const char * x) {
+    return to_path(x);
+}
 
-PyObject *
-Repository_listall_references(Repository *self, PyObject *args)
+static PyObject *
+Repository_listall_references_impl(Repository *self, PyObject *args, PyObject *(*item_trans)(const char *))
 {
     git_strarray c_result;
     PyObject *py_result, *py_string;
@@ -1055,7 +1117,7 @@ Repository_listall_references(Repository *self, PyObject *args)
 
     /* Fill it */
     for (index=0; index < c_result.count; index++) {
-        py_string = to_path(c_result.strings[index]);
+        py_string = item_trans(c_result.strings[index]);
         if (py_string == NULL) {
             Py_CLEAR(py_result);
             goto out;
@@ -1066,6 +1128,28 @@ Repository_listall_references(Repository *self, PyObject *args)
 out:
     git_strarray_free(&c_result);
     return py_result;
+}
+
+PyDoc_STRVAR(Repository_listall_references__doc__,
+  "listall_references() -> [str, ...]\n"
+  "\n"
+  "Return a list with all the references in the repository.");
+
+PyObject *
+Repository_listall_references(Repository *self, PyObject *args)
+{
+    return Repository_listall_references_impl(self, args, to_path_f);
+}
+
+PyDoc_STRVAR(Repository_raw_listall_references__doc__,
+  "raw_listall_references() -> [bytes, ...]\n"
+  "\n"
+  "Return a list with all the references in the repository.");
+
+PyObject *
+Repository_raw_listall_references(Repository *self, PyObject *args)
+{
+    return Repository_listall_references_impl(self, args, PyBytes_FromString);
 }
 
 
@@ -1119,19 +1203,8 @@ error:
 }
 
 
-PyDoc_STRVAR(Repository_listall_branches__doc__,
-  "listall_branches([flag]) -> [str, ...]\n"
-  "\n"
-  "Return a list with all the branches in the repository.\n"
-  "\n"
-  "The *flag* may be:\n"
-  "\n"
-  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
-  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
-  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
-
-PyObject *
-Repository_listall_branches(Repository *self, PyObject *args)
+static PyObject *
+Repository_listall_branches_impl(Repository *self, PyObject *args, PyObject *(*item_trans)(const char *))
 {
     git_branch_t list_flags = GIT_BRANCH_LOCAL;
     git_branch_iterator *iter;
@@ -1152,7 +1225,7 @@ Repository_listall_branches(Repository *self, PyObject *args)
         return Error_set(err);
 
     while ((err = git_branch_next(&ref, &type, iter)) == 0) {
-        PyObject *py_branch_name = to_path(git_reference_shorthand(ref));
+        PyObject *py_branch_name = item_trans(git_reference_shorthand(ref));
         git_reference_free(ref);
 
         if (py_branch_name == NULL)
@@ -1182,6 +1255,40 @@ error:
     return NULL;
 }
 
+PyDoc_STRVAR(Repository_listall_branches__doc__,
+  "listall_branches([flag]) -> [str, ...]\n"
+  "\n"
+  "Return a list with all the branches in the repository.\n"
+  "\n"
+  "The *flag* may be:\n"
+  "\n"
+  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
+  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
+  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
+
+PyObject *
+Repository_listall_branches(Repository *self, PyObject *args)
+{
+    return Repository_listall_branches_impl(self, args, to_path_f);
+}
+
+PyDoc_STRVAR(Repository_raw_listall_branches__doc__,
+  "raw_listall_branches([flag]) -> [bytes, ...]\n"
+  "\n"
+  "Return a list with all the branches in the repository.\n"
+  "\n"
+  "The *flag* may be:\n"
+  "\n"
+  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
+  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
+  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
+
+PyObject *
+Repository_raw_listall_branches(Repository *self, PyObject *args)
+{
+    return Repository_listall_branches_impl(self, args, PyBytes_FromString);
+}
+
 PyDoc_STRVAR(Repository_listall_submodules__doc__,
   "listall_submodules() -> [str, ...]\n"
   "\n"
@@ -1206,9 +1313,12 @@ Repository_listall_submodules(Repository *self, PyObject *args)
         return NULL;
 
     err = git_submodule_foreach(self->repo, foreach_path_cb, list);
-    if (err != 0) {
+    if (err) {
         Py_DECREF(list);
-        return Py_None;
+        if (PyErr_Occurred()) {
+          return NULL;
+        }
+        return Error_set(err);
     }
 
     return list;
@@ -1885,26 +1995,47 @@ out:
 }
 
 PyDoc_STRVAR(Repository_apply__doc__,
-  "apply(id)\n"
+  "apply(diff)\n"
   "\n"
-  "Applies the given id into HEAD.\n"
-  "\n"
-  "Applies a diff into HEAD, writing the results into the\n"
+  "Applies the given Diff object to HEAD, writing the results into the\n"
   "working directory.");
 
 PyObject *
-Repository_apply(Repository *self, PyObject *py_diff)
+Repository_apply(Repository *self, PyObject *args)
 {
-    int err;
+    Diff *py_diff;
     git_apply_location_t location = GIT_APPLY_LOCATION_WORKDIR;
     git_apply_options options = GIT_APPLY_OPTIONS_INIT;
 
-    err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
+    if (!PyArg_ParseTuple(args, "O!", &DiffType, &py_diff))
+        return NULL;
 
+    int err = git_apply(self->repo, py_diff->diff, location, &options);
     if (err < 0)
         return Error_set(err);
 
     Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Repository_applies__doc__,
+  "applies(diff) -> bool\n"
+  "\n"
+  "Tests if the given patch will apply to HEAD, without writing it.");
+
+PyObject *
+Repository_applies(Repository *self, PyObject *py_diff)
+{
+    int err;
+    git_apply_location_t location = GIT_APPLY_LOCATION_INDEX;
+    git_apply_options options = GIT_APPLY_OPTIONS_INIT;
+    options.flags |= GIT_APPLY_CHECK;
+
+    err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
+
+    if (err < 0)
+        Py_RETURN_FALSE;
+
+    Py_RETURN_TRUE;
 }
 
 PyDoc_STRVAR(Repository_set_odb__doc__,
@@ -1941,7 +2072,7 @@ Repository_set_refdb(Repository *self, Refdb *refdb)
 
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
-    METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
+    METHOD(Repository, create_blob_fromworkdir, METH_O),
     METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
     METHOD(Repository, create_blob_fromiobase, METH_O),
     METHOD(Repository, create_commit, METH_VARARGS),
@@ -1953,17 +2084,21 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, merge_analysis, METH_VARARGS),
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),
-    METHOD(Repository, apply, METH_O),
+    METHOD(Repository, apply, METH_VARARGS),
+    METHOD(Repository, applies, METH_O),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
     METHOD(Repository, compress_references, METH_NOARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
+    METHOD(Repository, raw_listall_references, METH_NOARGS),
     METHOD(Repository, listall_reference_objects, METH_NOARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
     METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, lookup_reference_dwim, METH_O),
     METHOD(Repository, revparse_single, METH_O),
+    METHOD(Repository, revparse_ext, METH_O),
+    METHOD(Repository, revparse, METH_O),
     METHOD(Repository, status, METH_NOARGS),
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, notes, METH_VARARGS),
@@ -1973,6 +2108,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, lookup_branch, METH_VARARGS),
     METHOD(Repository, path_is_ignored, METH_VARARGS),
     METHOD(Repository, listall_branches, METH_VARARGS),
+    METHOD(Repository, raw_listall_branches, METH_VARARGS),
     METHOD(Repository, create_branch, METH_VARARGS),
     METHOD(Repository, reset, METH_VARARGS),
     METHOD(Repository, free, METH_NOARGS),

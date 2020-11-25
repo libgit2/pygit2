@@ -11,19 +11,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        libgit2: ['maint/v1.0']
+        libgit2: ['ethomson/v1.1']
         py:
           - ver: '3.6'
             release: '3.6.8'  # last Python.org binary release
           - ver: '3.7'
-            release: '3.7.7'
+            release: '3.7.9'  # last Python.org binary release
           - ver: '3.8'
-            release: '3.8.2'
+            release: '3.8.6'
+          - ver: '3.9'
+            release: '3.9.0'
     env:
       HOMEBREW_CACHE: ${{ github.workspace }}/.cache/brew
       CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
       CCACHE_COMPRESS: 1
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+      MACOSX_DEPLOYMENT_TARGET: "10.9"
     steps:
       - name: checkout pygit2
         uses: actions/checkout@v2
@@ -79,6 +82,7 @@ jobs:
           -DBUILD_CLAR=NO \
           -DUSE_SSH=NO
           cmake --build . --target install
+          otool -L "${{ github.workspace }}/libgit2/env/lib/libgit2.dylib"
           VERSION=$(PKG_CONFIG_PATH=$(pwd) pkg-config --modversion libgit2)
           echo "::set-output name=version::$VERSION"
 

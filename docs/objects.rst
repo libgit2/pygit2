@@ -18,30 +18,33 @@ In the previous chapter we learnt about Object IDs. With an Oid we can ask the
 repository to get the associated object. To do that the ``Repository`` class
 implementes a subset of the mapping interface.
 
-.. automethod:: pygit2.Repository.get
+.. autoclass:: pygit2.Repository
+   :noindex:
 
-   Return the Git object for the given *id*, returns the *default* value if
-   there's no object in the repository with that id. The id can be an Oid
-   object, or an hexadecimal string.
+   .. automethod:: Repository.get
 
-   Example::
+      Return the Git object for the given *id*, returns the *default* value if
+      there's no object in the repository with that id. The id can be an Oid
+      object, or an hexadecimal string.
 
-     >>> from pygit2 import Repository
-     >>> repo = Repository('path/to/pygit2')
-     >>> obj = repo.get("101715bf37440d32291bde4f58c3142bcf7d8adb")
-     >>> obj
-     <_pygit2.Commit object at 0x7ff27a6b60f0>
+      Example::
 
-.. method:: Repository.__getitem__(id)
+        >>> from pygit2 import Repository
+        >>> repo = Repository('path/to/pygit2')
+        >>> obj = repo.get("101715bf37440d32291bde4f58c3142bcf7d8adb")
+        >>> obj
+        <_pygit2.Commit object at 0x7ff27a6b60f0>
 
-   Return the Git object for the given id, raise ``KeyError`` if there's no
-   object in the repository with that id. The id can be an Oid object, or
-   an hexadecimal string.
+   .. method:: Repository.__getitem__(id)
 
-.. method:: Repository.__contains__(id)
+      Return the Git object for the given id, raise ``KeyError`` if there's no
+      object in the repository with that id. The id can be an Oid object, or
+      an hexadecimal string.
 
-   Returns True if there is an object in the Repository with that id, False
-   if there is not.  The id can be an Oid object, or an hexadecimal string.
+   .. method:: Repository.__contains__(id)
+
+      Returns True if there is an object in the Repository with that id, False
+      if there is not.  The id can be an Oid object, or an hexadecimal string.
 
 
 The Object base type
@@ -80,10 +83,7 @@ This is the common interface for all Git objects:
 
 .. autoclass:: pygit2.Object
    :members: id, type, type_str, short_id, read_raw, peel, name, filemode
-
-   .. automethod:: __eq__(other)
-   .. automethod:: __ne__(other)
-   .. automethod:: __hash__()
+   :special-members: __eq__, __ne__, __hash__, __repr__
 
 
 Blobs
@@ -94,27 +94,8 @@ a filesytem.
 
 This is their API:
 
-.. autoattribute:: pygit2.Blob.data
-
-   Example, print the contents of the ``.gitignore`` file::
-
-     >>> blob = repo["d8022420bf6db02e906175f64f66676df539f2fd"]
-     >>> print(blob.data)
-     MANIFEST
-     build
-     dist
-
-.. autoattribute:: pygit2.Blob.size
-
-   Example::
-
-     >>> print(blob.size)
-     130
-
-.. autoattribute:: pygit2.Blob.is_binary
-
-.. automethod:: pygit2.Blob.diff
-.. automethod:: pygit2.Blob.diff_to_buffer
+.. autoclass:: pygit2.Blob
+   :members:
 
 
 Creating blobs
@@ -123,18 +104,18 @@ Creating blobs
 There are a number of methods in the repository to create new blobs, and add
 them to the Git object database:
 
-.. automethod:: pygit2.Repository.create_blob
+.. autoclass:: pygit2.Repository
+   :members: create_blob_fromworkdir, create_blob_fromdisk, create_blob_fromiobase
+   :noindex:
 
-   Example:
+   .. automethod:: Repository.create_blob
 
-     >>> id  = repo.create_blob('foo bar')   # Creates blob from bytes string
-     >>> blob = repo[id]
-     >>> blob.data
-     'foo bar'
+      Example:
 
-.. automethod:: pygit2.Repository.create_blob_fromworkdir
-.. automethod:: pygit2.Repository.create_blob_fromdisk
-.. automethod:: pygit2.Repository.create_blob_fromiobase
+        >>> id  = repo.create_blob('foo bar')   # Creates blob from a byte string
+        >>> blob = repo[id]
+        >>> blob.data
+        'foo bar'
 
 There are also some functions to calculate the id for a byte string without
 creating the blob object:
@@ -152,46 +133,45 @@ pygit2 accessing an entry directly returns the object.
 A tree can be iterated, and partially implements the sequence and mapping
 interfaces.
 
-.. method:: Tree.__getitem__(name)
+.. autoclass:: pygit2.Tree
+   :members: diff_to_tree, diff_to_workdir, diff_to_index
 
-   ``Tree[name]``
+   .. method:: Tree.__getitem__(name)
 
-   Return the Object subclass instance for the given *name*. Raise ``KeyError``
-   if there is not a tree entry with that name.
+      ``Tree[name]``
 
-.. method:: Tree.__truediv__(name)
+      Return the Object subclass instance for the given *name*. Raise ``KeyError``
+      if there is not a tree entry with that name.
 
-   ``Tree / name``
+   .. method:: Tree.__truediv__(name)
 
-   Return the Object subclass instance for the given *name*. Raise ``KeyError``
-   if there is not a tree entry with that name. This allows navigating the tree
-   similarly to Pathlib using the slash operator via.
+      ``Tree / name``
 
-   Example::
+      Return the Object subclass instance for the given *name*. Raise ``KeyError``
+      if there is not a tree entry with that name. This allows navigating the tree
+      similarly to Pathlib using the slash operator via.
 
-       >>> entry = tree / 'path' / 'deeper' / 'some.file'
+      Example::
 
-.. method:: Tree.__contains__(name)
+          >>> entry = tree / 'path' / 'deeper' / 'some.file'
 
-   ``name in Tree``
+   .. method:: Tree.__contains__(name)
 
-   Return True if there is a tree entry with the given name, False otherwise.
+      ``name in Tree``
 
-.. method:: Tree.__len__()
+      Return True if there is a tree entry with the given name, False otherwise.
 
-   ``len(Tree)``
+   .. method:: Tree.__len__()
 
-   Return the number of objects in the tree.
+      ``len(Tree)``
 
-.. method:: Tree.__iter__()
+      Return the number of objects in the tree.
 
-   ``for object in Tree``
+   .. method:: Tree.__iter__()
 
-   Return an iterator over the objects in the tree.
+      ``for object in Tree``
 
-.. automethod:: pygit2.Tree.diff_to_tree
-.. automethod:: pygit2.Tree.diff_to_workdir
-.. automethod:: pygit2.Tree.diff_to_index
+      Return an iterator over the objects in the tree.
 
 Example::
 
@@ -216,13 +196,12 @@ Example::
 Creating trees
 --------------------
 
-.. automethod:: pygit2.Repository.TreeBuilder
+.. autoclass:: pygit2.Repository
+   :members: TreeBuilder
+   :noindex:
 
-.. automethod:: pygit2.TreeBuilder.insert
-.. automethod:: pygit2.TreeBuilder.remove
-.. automethod:: pygit2.TreeBuilder.clear
-.. automethod:: pygit2.TreeBuilder.write
-.. automethod:: pygit2.TreeBuilder.get
+.. autoclass:: pygit2.TreeBuilder
+   :members:
 
 
 Commits
@@ -231,18 +210,8 @@ Commits
 A commit is a snapshot of the working dir with meta informations like author,
 committer and others.
 
-.. autoattribute:: pygit2.Commit.author
-.. autoattribute:: pygit2.Commit.committer
-.. autoattribute:: pygit2.Commit.message
-.. autoattribute:: pygit2.Commit.message_encoding
-.. autoattribute:: pygit2.Commit.raw_message
-.. autoattribute:: pygit2.Commit.tree
-.. autoattribute:: pygit2.Commit.tree_id
-.. autoattribute:: pygit2.Commit.parents
-.. autoattribute:: pygit2.Commit.parent_ids
-.. autoattribute:: pygit2.Commit.commit_time
-.. autoattribute:: pygit2.Commit.commit_time_offset
-.. autoattribute:: pygit2.Commit.gpg_signature
+.. autoclass:: pygit2.Commit
+   :members:
 
 
 Signatures
@@ -256,18 +225,16 @@ objects::
 
 Signatures can be compared for (in)equality.
 
-.. autoattribute:: pygit2.Signature.name
-.. autoattribute:: pygit2.Signature.raw_name
-.. autoattribute:: pygit2.Signature.email
-.. autoattribute:: pygit2.Signature.raw_email
-.. autoattribute:: pygit2.Signature.time
-.. autoattribute:: pygit2.Signature.offset
+.. autoclass:: pygit2.Signature
+   :members:
 
 
 Creating commits
 ----------------
 
-.. automethod:: pygit2.Repository.create_commit
+.. autoclass:: pygit2.Repository
+   :members: create_commit
+   :noindex:
 
 Commits can be created by calling the ``create_commit`` method of the
 repository with the following parameters::
@@ -289,17 +256,13 @@ Tags
 
 A tag is a static label for a commit. See references for more information.
 
-.. autoattribute:: pygit2.Tag.name
-.. autoattribute:: pygit2.Tag.raw_name
-.. autoattribute:: pygit2.Tag.target
-.. autoattribute:: pygit2.Tag.tagger
-.. autoattribute:: pygit2.Tag.message
-.. autoattribute:: pygit2.Tag.raw_message
-
-.. automethod:: pygit2.Tag.get_object
+.. autoclass:: pygit2.Tag
+   :members:
 
 
 Creating tags
 --------------------
 
-.. automethod:: pygit2.Repository.create_tag
+.. autoclass:: pygit2.Repository
+   :members: create_tag
+   :noindex:

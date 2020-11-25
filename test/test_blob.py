@@ -111,7 +111,6 @@ def test_create_blob(testrepo):
     with pytest.raises(TypeError): set_content()
 
 def test_create_blob_fromworkdir(testrepo):
-
     blob_oid = testrepo.create_blob_fromworkdir("bye.txt")
     blob = testrepo[blob_oid]
 
@@ -125,9 +124,7 @@ def test_create_blob_fromworkdir(testrepo):
     assert len(BLOB_FILE_CONTENT) == blob.size
     assert BLOB_FILE_CONTENT == blob.read_raw()
 
-@utils.fspath
 def test_create_blob_fromworkdir_aspath(testrepo):
-
     blob_oid = testrepo.create_blob_fromworkdir(Path("bye.txt"))
     blob = testrepo[blob_oid]
 

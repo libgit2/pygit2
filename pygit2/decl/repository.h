@@ -46,6 +46,20 @@ int git_repository_init_ext(
 	const char *repo_path,
 	git_repository_init_options *opts);
 
+typedef enum {
+	GIT_REPOSITORY_OPEN_NO_SEARCH = 1,
+	GIT_REPOSITORY_OPEN_CROSS_FS  = 2,
+	GIT_REPOSITORY_OPEN_BARE      = 4,
+	GIT_REPOSITORY_OPEN_NO_DOTGIT = 8,
+	GIT_REPOSITORY_OPEN_FROM_ENV  = 16,
+} git_repository_open_flag_t;
+
+int git_repository_open_ext(
+	git_repository **out,
+	const char *path,
+	unsigned int flags,
+	const char *ceiling_dirs);
+
 int git_repository_set_head(
 	git_repository* repo,
 	const char* refname);

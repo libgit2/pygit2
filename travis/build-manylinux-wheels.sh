@@ -21,7 +21,7 @@ then
     exit 1
 fi
 
-PYTHONS="cp36-cp36m cp37-cp37m cp38-cp38"
+PYTHONS="cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39"
 
 
 # Avoid creation of __pycache__/*.py[c|o]
@@ -154,7 +154,7 @@ popd
 >&2 echo
 git clone \
     --depth=1 \
-    -b "maint/v${LIBGIT2_VERSION}" \
+    -b "ethomson/v${LIBGIT2_VERSION}" \
     https://github.com/libgit2/libgit2.git \
     "${LIBGIT2_CLONE_DIR}"
 

@@ -34,11 +34,13 @@ Authors::
   Brodie Rao
   John Szakmeister
   Vlad Temian
+  наб
   Chad Dombrova
   Lukas Fleischer
   Nicolas Dandrimont
   Raphael Medaer (Escaux)
   Anatoly Techtonik
+  Andrew Olsen
   Dan Sully
   David Versmisse
   Mikhail Yushkovskiy
@@ -47,6 +49,7 @@ Authors::
   Santiago Perez De Rosso
   Sebastian Thiel
   Thom Wiggers
+  Alexander Linne
   Alok Singhal
   Assaf Nativ
   Bob Carroll
@@ -63,7 +66,6 @@ Authors::
   Robert Hölzl
   Ron Cohen
   Thomas Kluyver
-  Alexander Linne
   Alex Chamberlain
   Alexander Bayandin
   Amit Bakshi
@@ -131,6 +133,7 @@ Authors::
   Eric Davis
   Erik Meusel
   Erik van Zijst
+  Fabrice Salvaire
   Ferengee
   Frazer McLean
   Gustavo Di Pietro
@@ -142,6 +145,8 @@ Authors::
   Josh Bleecher Snyder
   Justin Clift
   Kyriakos Oikonomakos
+  Lance Eftink
+  Legorooj
   Lukas Berk
   Mathieu Bridon
   Mathieu Pillard
@@ -155,6 +160,7 @@ Authors::
   Paul Wagland
   Peter Dave Hello
   Philippe Ombredanne
+  Ram Rachum
   Remy Suen
   Ridge Kennedy
   Rodrigo Bistolfi

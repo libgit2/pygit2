@@ -1,4 +1,5 @@
-dist: bionic
+os: linux
+dist: focal
 language: python
 
 cache: pip
@@ -7,17 +8,27 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
-  - "pypy3"
+  - "3.9"
+
+arch:
+  - amd64
+  - arm64
 
 env:
   global:
     LIBGIT2: ~/install/
     LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
-    LIBGIT2_VERSION: "1.0"
+    LIBGIT2_VERSION: "1.1"
 
 
 jobs:
+  allow_failures:
+  - arch: s390x
   include:
+  - python: pypy3
+    arch: amd64
+  - python: 3.6
+    arch: s390x
   - stage: &deploy_stage Publish to PyPI (runs only for tagged commits)
     name: >-
       OS-specific manylinux wheels
@@ -35,15 +46,15 @@ jobs:
     - twine check dist/*
     deploy:
       provider: pypi
-      # `skip-cleanup: true` is required to preserve binary wheels, built
+      # `skip_cleanup: true` is required to preserve binary wheels, built
       # inside of manylinux docker container during `script` step above.
-      skip-cleanup: true
-      # `skip-existing: true` is required to skip uploading dists, already
+      skip_cleanup: true
+      # `skip_existing: true` is required to skip uploading dists, already
       # present in PYPI instead of failing the whole process.
       # This happens when other CI (AppVeyor etc.) has already uploaded
       # the very same dist (usually sdist).
-      skip-existing: true
-      user: jdavid
+      skip_existing: true
+      username: jdavid
       password:
         # Encrypted with `travis encrypt <password> -r libgit2/pygit2`
         secure: "j/4klKkq6sJuPEYwA1n5PD1Z02SbfTwt9Jj1omnOUOzVv3njJ73IHHELvIxtn18yj8uIKs8XpCUbpMKFGdWzc/WNj8xQPHVaRIlCrKVbZiUH/zfbuWOWlKlSEbNZ5+vVsnNbTN1FEwxDV9+CQKsibUG2Y1OzBqLx1gBSRpjq+ro="

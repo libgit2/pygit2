@@ -49,6 +49,7 @@ from .remote import RemoteCollection
 from .blame import Blame
 from .utils import to_bytes, StrArray
 from .submodule import Submodule
+from .packbuilder import PackBuilder
 
 
 class BaseRepository(_Repository):
@@ -82,6 +83,39 @@ class BaseRepository(_Repository):
         type, the second one a buffer with data. Return the Oid of the created
         object."""
         return self.odb.write(*args, **kwargs)
+
+    def pack(self, path=None, pack_delegate=None, n_threads=None):
+        """Pack the objects in the odb chosen by the pack_delegate function
+        and write .pack and .idx files for them.
+
+        Returns: the number of objects written to the pack
+
+        Parameters:
+
+        path
+            The path to which the .pack and .idx files should be written. None will write to the default location.
+
+        pack_delegate
+            The method which will provide add the objects to the pack builder. Defaults to all objects.
+
+        n_threads
+            The number of threads the PackBuilder will spawn. If set to 0 libgit2 will autodetect the number of CPUs.
+        """
+
+        def pack_all_objects(pack_builder):
+            for obj in self.odb:
+                pack_builder.add(obj)
+
+        pack_delegate = pack_delegate or pack_all_objects
+
+        builder = PackBuilder(self)
+        if n_threads is not None:
+            builder.set_threads(n_threads)
+        pack_delegate(builder)
+        builder.write(path=path)
+
+        return builder.written_objects_count
+
 
     def __iter__(self):
         return iter(self.odb)
@@ -129,6 +163,9 @@ class BaseRepository(_Repository):
         return submodule_instance
 
     def lookup_submodule(self, path):
+        """
+        Lookup submodule information by name or path.
+        """
         csub = ffi.new('git_submodule **')
         cpath = ffi.new('char[]', to_bytes(path))
 
@@ -137,6 +174,13 @@ class BaseRepository(_Repository):
         return Submodule._from_c(self, csub[0])
 
     def update_submodules(self, submodules=None, init=False, callbacks=None):
+        """
+        Update a submodule. This will clone a missing submodule and checkout
+        the subrepository to the commit specified in the index of the
+        containing repository. If the submodule repository doesn't contain the
+        target commit (e.g. because fetchRecurseSubmodules isn't set), then the
+        submodule is fetched using the fetch options supplied in options.
+        """
         if submodules is None:
             submodules = self.listall_submodules()
 
@@ -404,7 +448,7 @@ class BaseRepository(_Repository):
             return None
 
         # If it's a string, then it has to be valid revspec
-        if isinstance(obj, str):
+        if isinstance(obj, str) or isinstance(obj, bytes):
             obj = self.revparse_single(obj)
         elif isinstance(obj, Oid):
             obj = self[obj]
@@ -1407,18 +1451,38 @@ class References:
 
 
 class Repository(BaseRepository):
-    def __init__(self, *args, **kwargs):
-        if len(args) != 0:
-            path = args[0]
-            args = args[1:]
+    def __init__(self, path=None, flags=0):
+        """
+        The Repository constructor will commonly be called with one argument, the path of the repository to open.
+
+        Alternatively, constructing a repository with no arguments will create a repository with no backends. You can
+        use this path to create repositories with custom backends. Note that most operations on the repository are
+        considered invalid and may lead to undefined behavior if attempted before providing an odb and refdb via set_odb
+        and set_refdb.
+
+        Parameters:
+
+        path : str
+        The path to open - if not provided, the repository will have no backend.
+
+        flags : int
+        Flags controlling how to open the repository can optionally be provided - any combination of:
+        -   GIT_REPOSITORY_OPEN_NO_SEARCH
+        -   GIT_REPOSITORY_OPEN_CROSS_FS
+        -   GIT_REPOSITORY_OPEN_BARE
+        -   GIT_REPOSITORY_OPEN_NO_DOTGIT
+        -   GIT_REPOSITORY_OPEN_FROM_ENV
+        """
+
+        if path is not None:
             if hasattr(path, "__fspath__"):
                 path = path.__fspath__()
             if not isinstance(path, str):
                 path = path.decode('utf-8')
-            path_backend = init_file_backend(path)
-            super().__init__(path_backend, *args, **kwargs)
+            path_backend = init_file_backend(path, flags)
+            super().__init__(path_backend)
         else:
-            super().__init__(*args, **kwargs)
+            super().__init__()
 
     @classmethod
     def _from_c(cls, ptr, owned):

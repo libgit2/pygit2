@@ -627,7 +627,7 @@ OdbBackend_refresh(OdbBackend *self)
         return Py_NotImplemented;
     }
     self->odb_backend->refresh(self->odb_backend);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*

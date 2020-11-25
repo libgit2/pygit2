@@ -66,7 +66,6 @@ def test_add(testrepo):
     assert len(index) == 3
     assert index['bye.txt'].hex == sha
 
-@utils.fspath
 def test_add_aspath(testrepo):
     index = testrepo.index
 
@@ -107,7 +106,6 @@ def test_add_all(testrepo):
     assert index['bye.txt'].hex == sha_bye
     assert index['hello.txt'].hex == sha_hello
 
-@utils.fspath
 def test_add_all_aspath(testrepo):
     clear(testrepo)
 
@@ -191,14 +189,12 @@ def test_remove_all(testrepo):
 
     index.remove_all(['not-existing'])  # this doesn't error
 
-@utils.fspath
 def test_remove_aspath(testrepo):
     index = testrepo.index
     assert 'hello.txt' in index
     index.remove(Path('hello.txt'))
     assert 'hello.txt' not in index
 
-@utils.fspath
 def test_remove_all_aspath(testrepo):
     index = testrepo.index
     assert 'hello.txt' in index
@@ -234,7 +230,6 @@ def test_create_entry(testrepo):
     tree_id = index.write_tree()
     assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == str(tree_id)
 
-@utils.fspath
 def test_create_entry_aspath(testrepo):
     index = testrepo.index
     hello_entry = index[Path('hello.txt')]

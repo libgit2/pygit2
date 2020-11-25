@@ -3,10 +3,11 @@ References
 **********************************************************************
 
 .. autoclass:: pygit2.Repository
-   :members: lookup_reference, lookup_reference_dwim, resolve_refish
+   :members: lookup_reference, lookup_reference_dwim, raw_listall_references,
+             resolve_refish
    :noindex:
 
-   .. attribute:: Repository.references
+   .. attribute:: references
 
       Returns an instance of the References class (see below).
 
@@ -55,38 +56,27 @@ The Reference type
 ====================
 
 .. autoclass:: pygit2.Reference
+   :members:
+   :special-members: __eq__, __ne__
+   :exclude-members: log
 
-.. autoattribute:: pygit2.Reference.name
-.. autoattribute:: pygit2.Reference.raw_name
-.. autoattribute:: pygit2.Reference.shorthand
-.. autoattribute:: pygit2.Reference.raw_shorthand
-.. autoattribute:: pygit2.Reference.target
-.. autoattribute:: pygit2.Reference.type
+   .. automethod:: log
 
-.. automethod:: pygit2.Reference.__eq__(Reference)
-.. automethod:: pygit2.Reference.__ne__(Reference)
-.. automethod:: pygit2.Reference.set_target
-.. automethod:: pygit2.Reference.delete
-.. automethod:: pygit2.Reference.rename
-.. automethod:: pygit2.Reference.resolve
-.. automethod:: pygit2.Reference.peel
-.. automethod:: pygit2.Reference.log
+      Example::
 
-   Example::
+         >>> branch = repository.references["refs/heads/master"]
+         >>> branch.target = another_commit.id
+         >>> committer = Signature('Cecil Committer', 'cecil@committers.tld')
+         >>> branch.log_append(another_commit.id, committer,
+                               "changed branch target using pygit2")
 
-      >>> branch = repository.references["refs/heads/master"]
-      >>> branch.target = another_commit.id
-      >>> committer = Signature('Cecil Committer', 'cecil@committers.tld')
-      >>> branch.log_append(another_commit.id, committer,
-                            "changed branch target using pygit2")
+      This creates a reflog entry in ``git reflog master`` which looks like::
 
-   This creates a reflog entry in ``git reflog master`` which looks like::
+         7296b92 master@{10}: changed branch target using pygit2
 
-      7296b92 master@{10}: changed branch target using pygit2
-
-   In order to make an entry in ``git reflog``, ie. the reflog for ``HEAD``, you
-   have to get the Reference object for ``HEAD`` and call ``log_append`` on
-   that.
+      In order to make an entry in ``git reflog``, ie. the reflog for ``HEAD``, you
+      have to get the Reference object for ``HEAD`` and call ``log_append`` on
+      that.
 
 
 The HEAD

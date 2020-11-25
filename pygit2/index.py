@@ -199,7 +199,6 @@ class Index:
         If an IndexEntry is given, that entry will be added or update in the
         Index without checking for the existence of the path or id.
         """
-
         if isinstance(path_or_entry, IndexEntry):
             entry = path_or_entry
             centry, str_ref = entry._to_c()
@@ -208,7 +207,7 @@ class Index:
             path = path_or_entry
             err = C.git_index_add_bypath(self._index, to_bytes(path))
         else:
-            raise AttributeError('argument must be string or IndexEntry')
+            raise TypeError('argument must be string or IndexEntry')
 
         check_error(err, io=True)
 

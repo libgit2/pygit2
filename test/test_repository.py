@@ -291,7 +291,11 @@ def test_diff_patch(testrepo):
     # rollback all changes
     testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
 
-    # apply the patch and compare
+    # Check apply type error
+    with pytest.raises(TypeError):
+        testrepo.apply('HEAD')
+
+    # Apply the patch and compare
     diff = pygit2.Diff.parse_diff(patch)
     testrepo.apply(diff)
 
@@ -299,6 +303,28 @@ def test_diff_patch(testrepo):
         content = f.read().decode('utf-8')
 
     assert content == new_content
+
+def test_diff_applies(testrepo):
+    new_content = ['bye world', 'adiós', 'au revoir monde']
+    new_content = ''.join(x + os.linesep for x in new_content)
+
+    # create the patch
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'wb') as f:
+        f.write(new_content.encode('utf-8'))
+
+    patch = testrepo.diff().patch
+
+    # rollback all changes
+    testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
+
+    # apply the patch and compare
+    diff = pygit2.Diff.parse_diff(patch)
+    assert testrepo.applies(diff)
+
+    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'rb') as f:
+        content = f.read().decode('utf-8')
+
+    assert content != new_content
 
 
 
@@ -325,7 +351,6 @@ def test_no_arg(tmp_path):
     repo = init_repository(tmp_path)
     assert not repo.is_bare
 
-@utils.fspath
 def test_no_arg_aspath(tmp_path):
     repo = init_repository(Path(tmp_path))
     assert not repo.is_bare
@@ -373,7 +398,6 @@ def test_unicode_string():
     repo_path = './test/data/testrepo.git/'
     pygit2.Repository(repo_path)
 
-@utils.fspath
 def test_aspath():
     repo_path = Path('./test/data/testrepo.git/')
     pygit2.Repository(repo_path)
@@ -385,7 +409,6 @@ def test_clone_repository(tmp_path):
     assert not repo.is_empty
     assert not repo.is_bare
 
-@utils.fspath
 def test_clone_repository_aspath(tmp_path):
     repo_path = Path("./test/data/testrepo.git/")
     repo = clone_repository(repo_path, Path(tmp_path))
@@ -418,6 +441,7 @@ def test_clone_repository_and_remote_callbacks(tmp_path):
     repo = clone_repository(url, repo_path, repository=create_repository, remote=create_remote)
     assert not repo.is_empty
     assert 'refs/remotes/custom_remote/master' in repo.listall_references()
+    assert b'refs/remotes/custom_remote/master' in repo.raw_listall_references()
     assert repo.remotes["custom_remote"] is not None
 
 
@@ -576,3 +600,36 @@ def test_worktree_custom_ref(testrepo):
 
     # The branch still exists
     assert branch_name in testrepo.branches
+
+def test_open_extended(tmp_path):
+    with utils.TemporaryRepository('dirtyrepo.tar', tmp_path) as path:
+        orig_repo = pygit2.Repository(path)
+        assert not orig_repo.is_bare
+        assert orig_repo.path
+        assert orig_repo.workdir
+
+        # GIT_REPOSITORY_OPEN_NO_SEARCH
+        subdir_path = os.path.join(path, "subdir")
+        repo = pygit2.Repository(subdir_path)
+        assert not repo.is_bare
+        assert repo.path == orig_repo.path
+        assert repo.workdir == orig_repo.workdir
+
+        with pytest.raises(pygit2.GitError):
+            repo = pygit2.Repository(subdir_path, pygit2.GIT_REPOSITORY_OPEN_NO_SEARCH)
+
+        # GIT_REPOSITORY_OPEN_NO_DOTGIT
+        gitdir_path = join(path, ".git")
+        with pytest.raises(pygit2.GitError):
+            repo = pygit2.Repository(path, pygit2.GIT_REPOSITORY_OPEN_NO_DOTGIT)
+
+        repo = pygit2.Repository(gitdir_path, pygit2.GIT_REPOSITORY_OPEN_NO_DOTGIT)
+        assert not repo.is_bare
+        assert repo.path == orig_repo.path
+        assert repo.workdir == orig_repo.workdir
+
+        # GIT_REPOSITORY_OPEN_BARE
+        repo = pygit2.Repository(gitdir_path, pygit2.GIT_REPOSITORY_OPEN_BARE)
+        assert repo.is_bare
+        assert repo.path == orig_repo.path
+        assert not repo.workdir

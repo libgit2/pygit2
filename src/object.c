@@ -259,6 +259,14 @@ Object_hash(Object *self)
 }
 
 PyObject *
+Object_repr(Object *self)
+{
+    return PyUnicode_FromFormat("<pygit2.Object{%s:%S}>",
+        git_object_type2string(Object__type(self)),
+        Object_hex__get__(self));
+}
+
+PyObject *
 Object_richcompare(PyObject *o1, PyObject *o2, int op)
 {
     PyObject *res;
@@ -325,7 +333,7 @@ PyTypeObject ObjectType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)Object_repr,                     /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
