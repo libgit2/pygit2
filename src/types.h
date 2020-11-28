@@ -206,8 +206,6 @@ typedef struct {
 
 
 /* git_index */
-SIMPLE_TYPE(Index, git_index, index)
-
 typedef struct {
     PyObject_HEAD
     git_index_entry entry;

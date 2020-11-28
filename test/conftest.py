@@ -69,3 +69,9 @@ def testrepo(tmp_path):
 def testrepo_path(tmp_path):
     with utils.TemporaryRepository('testrepo.tar', tmp_path) as path:
         yield pygit2.Repository(path), path
+
+
+@pytest.fixture
+def testrepopacked(tmp_path):
+    with utils.TemporaryRepository('testrepopacked.tar', tmp_path) as path:
+        yield pygit2.Repository(path)

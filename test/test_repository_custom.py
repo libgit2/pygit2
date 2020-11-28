@@ -30,13 +30,17 @@ import pytest
 
 
 @pytest.fixture
-def repo(testrepo):
+def repo(testrepopacked):
+    testrepo = testrepopacked
+
     odb = pygit2.Odb()
     object_path = os.path.join(testrepo.path, 'objects')
-    odb.add_backend(pygit2.OdbBackendPack(os.path.join(object_path, 'pack')), 1)
+    odb.add_backend(pygit2.OdbBackendPack(object_path), 1)
     odb.add_backend(pygit2.OdbBackendLoose(object_path, 0, False), 1)
+
     refdb = pygit2.Refdb.new(testrepo)
     refdb.set_backend(pygit2.RefdbFsBackend(testrepo))
+
     repo = pygit2.Repository()
     repo.set_odb(odb)
     repo.set_refdb(refdb)
