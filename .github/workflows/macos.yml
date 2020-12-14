@@ -56,7 +56,7 @@ jobs:
           wget --no-verbose -P .cache/python -N "$URL"
           sudo installer -pkg ".cache/python/$PKG" -target /
           export PATH=/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin:$PATH
-          echo "::add-path::/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin"
+          echo "/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin" >> $GITHUB_PATH
           which python3
           python3 -VV
           test "$(python3 -V)" = "Python ${{ matrix.py.release }}"
@@ -66,7 +66,9 @@ jobs:
           mkdir -p .cache/brew/ .cache/ccache/
           brew install ccache pkg-config
           python3 -m venv venv/
-          echo "::add-path::${{ github.workspace }}/venv/bin:/usr/local/opt/ccache/libexec"
+          export PATH="${{ github.workspace }}/venv/bin:/usr/local/opt/ccache/libexec:$PATH"
+          echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/venv/bin" >> $GITHUB_PATH
           venv/bin/pip3 install delocate pytest
 
       - name: build libgit2
