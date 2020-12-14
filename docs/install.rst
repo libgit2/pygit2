@@ -265,7 +265,7 @@ variable.  The following recipe shows you how to do it from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ git clone --depth=1 -b ethomson/v1.1 https://github.com/libgit2/libgit2.git
+   $ git clone --depth=1 -b maint/v1.1 https://github.com/libgit2/libgit2.git
    $ cd libgit2
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 14 Win64"
    $ cmake --build . --config release --target install

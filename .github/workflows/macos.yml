@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        libgit2: ['ethomson/v1.1']
+        libgit2: ['maint/v1.1']
         py:
           - ver: '3.6'
             release: '3.6.8'  # last Python.org binary release
