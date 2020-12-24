@@ -185,6 +185,17 @@ class Config:
                                         to_bytes(regex), to_bytes(value))
         check_error(err)
 
+    def delete_multivar(self, name, regex):
+        """Delete a multivar ''name''. ''regexp'' is a regular expression to
+        indicate which values to delete.
+        """
+        assert_string(name, "name")
+        assert_string(regex, "regex")
+
+        err = C.git_config_delete_multivar(self._config, to_bytes(name),
+                                           to_bytes(regex))
+        check_error(err)
+
     def get_bool(self, key):
         """Look up *key* and parse its value as a boolean as per the git-config
         rules. Return a boolean value (True or False).

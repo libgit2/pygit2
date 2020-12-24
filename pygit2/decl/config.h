@@ -44,6 +44,7 @@ int git_config_next(git_config_entry **entry, git_config_iterator *iter);
 void git_config_iterator_free(git_config_iterator *iter);
 int git_config_multivar_iterator_new(git_config_iterator **out, const git_config *cfg, const char *name, const char *regexp);
 int git_config_set_multivar(git_config *cfg, const char *name, const char *regexp, const char *value);
+int git_config_delete_multivar(git_config *cfg, const char *name, const char *regexp);
 int git_config_new(git_config **out);
 int git_config_snapshot(git_config **out, git_config *config);
 int git_config_open_ondisk(git_config **out, const char *path);

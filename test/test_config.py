@@ -174,6 +174,14 @@ def test_write(config):
     for i in l:
         assert i == 'foo-123456'
 
+    config.delete_multivar('this.that', 'bar')
+    l = config.get_multivar('this.that', '')
+    assert 2 == len(list(l))
+
+    config.delete_multivar('this.that', r'foo-\d+')
+    l = config.get_multivar('this.that', '')
+    assert 0 == len(list(l))
+
 def test_iterator(config):
     lst = {}
     for entry in config:
