@@ -264,6 +264,19 @@ Repository_is_bare__get__(Repository *self)
 }
 
 
+PyDoc_STRVAR(Repository_is_shallow__doc__,
+  "Check if a repository is a shallow repository.");
+
+PyObject *
+Repository_is_shallow__get__(Repository *self)
+{
+    if (git_repository_is_shallow(self->repo) > 0)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+
 PyDoc_STRVAR(Repository_git_object_lookup_prefix__doc__,
   "git_object_lookup_prefix(oid) -> Object\n"
   "\n"
@@ -2130,6 +2143,7 @@ PyGetSetDef Repository_getseters[] = {
     GETTER(Repository, head_is_unborn),
     GETTER(Repository, is_empty),
     GETTER(Repository, is_bare),
+    GETTER(Repository, is_shallow),
     GETSET(Repository, workdir),
     GETTER(Repository, default_signature),
     GETTER(Repository, odb),

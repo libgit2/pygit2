@@ -633,3 +633,12 @@ def test_open_extended(tmp_path):
         assert repo.is_bare
         assert repo.path == orig_repo.path
         assert not repo.workdir
+
+def test_is_shallow(testrepo):
+    assert not testrepo.is_shallow
+
+    # create a dummy shallow file
+    with open(os.path.join(testrepo.path, 'shallow'), 'wt') as f:
+        f.write('abcdef0123456789abcdef0123456789abcdef00\n')
+
+    assert testrepo.is_shallow
