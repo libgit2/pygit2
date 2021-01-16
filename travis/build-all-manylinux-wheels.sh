@@ -14,8 +14,7 @@ then
     exit 1
 fi
 
-manylinux_image="quay.io/pypa/manylinux2010_x86_64"
-manylinux_image="pyca/cryptography-manylinux2010:x86_64"
+manylinux_image="ghcr.io/pyca/cryptography-manylinux2010:x86_64"
 
 echo Waiting for docker pull to complete downloading container...
 docker pull "${manylinux_image}" &
