@@ -14,7 +14,7 @@ then
     exit 1
 fi
 
-manylinux_image="ghcr.io/pyca/cryptography-manylinux2010:x86_64"
+manylinux_image="ghcr.io/pyca/cryptography-manylinux2014:x86_64"
 
 echo Waiting for docker pull to complete downloading container...
 docker pull "${manylinux_image}" &

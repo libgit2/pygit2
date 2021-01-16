@@ -30,7 +30,7 @@ export PYTHONDONTWRITEBYTECODE=1
 SRC_DIR=/io
 GIT_GLOBAL_ARGS="--git-dir=${SRC_DIR}/.git --work-tree=${SRC_DIR}"
 TESTS_SRC_DIR="${SRC_DIR}/test"
-BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux2010-build.XXXXXXXXXX"`
+BUILD_DIR=`mktemp -d "/tmp/${DIST_NAME}-manylinux2014-build.XXXXXXXXXX"`
 TESTS_DIR="${BUILD_DIR}/test"
 STATIC_DEPS_PREFIX="${BUILD_DIR}/static-deps"
 LIBGIT2_CLONE_DIR="${BUILD_DIR}/libgit2"
@@ -212,7 +212,7 @@ done
 >&2 echo
 for PY in $PYTHONS; do
     PIP_BIN="/opt/python/${PY}/bin/pip"
-    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux2010_${ARCH}.whl`
+    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux2014_${ARCH}.whl`
     cleanup_garbage
     >&2 echo Downloading ${WHEEL_FILE} deps using ${PIP_BIN}...
     ${PIP_BIN} download -d "${WHEEL_DEP_DIR}" "${WHEEL_FILE}"
@@ -262,11 +262,10 @@ cleanup_garbage
 >&2 echo
 for PY in $PYTHONS; do
     WHEEL_BIN="/opt/python/${PY}/bin/wheel"
-    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux2010_${ARCH}.whl`
+    WHEEL_FILE=`ls ${WHEELHOUSE_DIR}/${DIST_NAME}-*-${PY}-manylinux2014_${ARCH}.whl`
     >&2 echo Analysing ${WHEEL_FILE}...
     auditwheel show "${WHEEL_FILE}"
     ${WHEEL_BIN} unpack -d "${BUILD_DIR}/${PY}-${DIST_NAME}" "${WHEEL_FILE}"
-    ! ldd ${BUILD_DIR}/${PY}-${DIST_NAME}/${DIST_NAME}-*/${DIST_NAME}/.libs/lib* | grep '=> not found'
 done
 
 >&2 echo
