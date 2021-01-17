@@ -45,10 +45,8 @@ build_script:
 # Build and install pygit2
 # Rename pygit2 folder, so when testing it picks the installed one
 - cmd: |
-    "%PYTHON%" setup.py bdist_wheel
-    cd dist
-    "%PYTHON%" -m pip install --find-links=. pygit2
-    cd ..
+    "%PYTHON%" -m pip wheel --wheel-dir=dist .
+    "%PYTHON%" -m pip install --no-index --find-links=dist pygit2
     mv pygit2 pygit2.bak
 
 test_script:
@@ -62,7 +60,7 @@ test_script:
     $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path ".\testresults.xml"))
 
 artifacts:
-- path: dist\*.whl
+- path: dist\pygit2-*.whl
 
 deploy_script:
 - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload dist/* }
