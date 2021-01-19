@@ -1,9 +1,26 @@
 1.5.0 (UNRELEASED)
 -------------------------
 
+- New ``PackBuilder`` class and ``Repository.pack(...)``
+  `#1048 <https://github.com/libgit2/pygit2/pull/1048>`_
+
+- New ``Config.delete_multivar(...)``
+  `#1056 <https://github.com/libgit2/pygit2/pull/1056>`_
+
+- New ``Repository.is_shallow``
+  `#1058 <https://github.com/libgit2/pygit2/pull/1058>`_
+
+- New optional ``message`` argument for ``Repository.create_reference(...)``
+  `#1061 <https://github.com/libgit2/pygit2/pull/1061>`_
+  `#1043 <https://github.com/libgit2/pygit2/issues/1043>`_
+
 - Fix truncated diff when there are nulls
   `#1047 <https://github.com/libgit2/pygit2/pull/1047>`_
   `#1043 <https://github.com/libgit2/pygit2/issues/1043>`_
+
+- Unit tests & Continuous integration
+  `#1039 <https://github.com/libgit2/pygit2/issues/1039>`_
+  `#1052 <https://github.com/libgit2/pygit2/pull/1052>`_
 
 Breaking changes:
 
