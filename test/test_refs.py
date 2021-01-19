@@ -477,6 +477,17 @@ def test_create_reference(testrepo):
                                            LAST_COMMIT, force=True)
     assert reference.target.hex == LAST_COMMIT
 
+def test_create_reference_with_message(testrepo):
+    sig = Signature('foo', 'bar')
+    testrepo.set_ident('foo', 'bar')
+    msg = 'Hello log'
+    reference = testrepo.create_reference('refs/heads/feature',
+                                          LAST_COMMIT,
+                                          message=msg)
+    first = list(reference.log())[0]
+    assert first.message == msg
+    assert first.committer == sig
+
 def test_create_symbolic_reference(testrepo):
     repo = testrepo
     # We add a tag as a new symbolic reference that always points to
@@ -498,6 +509,18 @@ def test_create_symbolic_reference(testrepo):
     assert reference.type == GIT_REF_SYMBOLIC
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
+
+def test_create_symbolic_reference_with_message(testrepo):
+    sig = Signature('foo', 'bar')
+    testrepo.set_ident('foo', 'bar')
+    msg = 'Hello log'
+    reference = testrepo.create_reference('HEAD',
+                                          'refs/heads/i18n',
+                                          force=True,
+                                          message=msg)
+    first = list(reference.log())[0]
+    assert first.message == msg
+    assert first.committer == sig
 
 def test_create_invalid_reference(testrepo):
     repo = testrepo

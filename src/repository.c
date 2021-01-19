@@ -1459,7 +1459,7 @@ Repository_lookup_reference_dwim(Repository *self, PyObject *py_name)
 }
 
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
-  "create_reference_direct(name, target, force)\n"
+  "create_reference_direct(name, target, force, message=None)\n"
   "\n"
   "Create a new reference \"name\" which points to an object.\n"
   "\n"
@@ -1470,6 +1470,9 @@ PyDoc_STRVAR(Repository_create_reference_direct__doc__,
   "force\n"
   "    If True references will be overridden, otherwise (the default) an\n"
   "    exception is raised.\n"
+  "\n"
+  "message\n"
+  "    Optional message to use for the reflog.\n"
   "\n"
   "Examples::\n"
   "\n"
@@ -1484,15 +1487,18 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
     char *c_name;
     git_oid oid;
     int err, force;
+    const char *message = NULL;
+    char *keywords[] = {"name", "target", "force", "message", NULL};
 
-    if (!PyArg_ParseTuple(args, "sOi", &c_name, &py_obj, &force))
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "sOi|z", keywords,
+                                     &c_name, &py_obj, &force, &message))
         return NULL;
 
     err = py_oid_to_git_oid_expand(self->repo, py_obj, &oid);
     if (err < 0)
         return NULL;
 
-    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force, NULL);
+    err = git_reference_create(&c_reference, self->repo, c_name, &oid, force, message);
     if (err < 0)
         return Error_set(err);
 
@@ -1500,7 +1506,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
 }
 
 PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
-  "create_reference_symbolic(name, source, force)\n"
+  "create_reference_symbolic(name, source, force, message=None)\n"
   "\n"
   "Create a new reference \"name\" which points to another reference.\n"
   "\n"
@@ -1511,6 +1517,9 @@ PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
   "force\n"
   "    If True references will be overridden, otherwise (the default) an\n"
   "    exception is raised.\n"
+  "\n"
+  "message\n"
+  "    Optional message to use for the reflog.\n"
   "\n"
   "Examples::\n"
   "\n"
@@ -1523,12 +1532,15 @@ Repository_create_reference_symbolic(Repository *self,  PyObject *args,
     git_reference *c_reference;
     char *c_name, *c_target;
     int err, force;
+    const char *message = NULL;
+    char *keywords[] = {"name", "target", "force", "message", NULL};
 
-    if (!PyArg_ParseTuple(args, "ssi", &c_name, &c_target, &force))
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "ssi|z", keywords,
+                                     &c_name, &c_target, &force, &message))
         return NULL;
 
     err = git_reference_symbolic_create(&c_reference, self->repo, c_name,
-                                        c_target, force, NULL);
+                                        c_target, force, message);
     if (err < 0)
         return Error_set(err);
 
@@ -2099,8 +2111,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, cherrypick, METH_O),
     METHOD(Repository, apply, METH_VARARGS),
     METHOD(Repository, applies, METH_O),
-    METHOD(Repository, create_reference_direct, METH_VARARGS),
-    METHOD(Repository, create_reference_symbolic, METH_VARARGS),
+    METHOD(Repository, create_reference_direct, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Repository, create_reference_symbolic, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, compress_references, METH_NOARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, raw_listall_references, METH_NOARGS),

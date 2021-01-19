@@ -256,7 +256,7 @@ class BaseRepository(_Repository):
     #
     # References
     #
-    def create_reference(self, name, target, force=False):
+    def create_reference(self, name, target, force=False, message=None):
         """Create a new reference "name" which points to an object or to
         another reference.
 
@@ -265,9 +265,12 @@ class BaseRepository(_Repository):
 
         Keyword arguments:
 
-        force
+        force : bool
             If True references will be overridden, otherwise (the default) an
             exception is raised.
+
+        message : str
+            Optional message to use for the reflog.
 
         Examples::
 
@@ -282,9 +285,11 @@ class BaseRepository(_Repository):
                 and GIT_OID_MINPREFIXLEN <= len(target) <= GIT_OID_HEXSZ))
 
         if direct:
-            return self.create_reference_direct(name, target, force)
+            return self.create_reference_direct(name, target, force,
+                                                message=message)
 
-        return self.create_reference_symbolic(name, target, force)
+        return self.create_reference_symbolic(name, target, force,
+                                              message=message)
 
     def resolve_refish(self, refish):
         """Convert a reference-like short name "ref-ish" to a valid
