@@ -126,6 +126,11 @@ class Config:
         return True
 
     def __getitem__(self, key):
+        """
+        When using the mapping interface, the value is returned as a string. In
+        order to apply the git-config parsing rules, you can use
+        :meth:`Config.get_bool` or :meth:`Config.get_int`.
+        """
         entry = self._get_entry(key)
 
         return entry.value
@@ -151,6 +156,12 @@ class Config:
         check_error(err)
 
     def __iter__(self):
+        """
+        Iterate over configuration entries, returning a ``ConfigEntry``
+        objects. These contain the name, level, and value of each configuration
+        variable. Be aware that this may return multiple versions of each entry
+        if they are set multiple times in the configuration files.
+        """
         citer = ffi.new('git_config_iterator **')
         err = C.git_config_iterator_new(citer, self._config)
         check_error(err)

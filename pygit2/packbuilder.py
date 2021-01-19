@@ -53,18 +53,18 @@ class PackBuilder:
         return C.git_packbuilder_object_count(self._packbuilder)
 
     @staticmethod
-    def convert_object_to_oid(oid):
+    def __convert_object_to_oid(oid):
         git_oid = ffi.new('git_oid *')
         ffi.buffer(git_oid)[:] = oid.raw[:]
         return git_oid
 
     def add(self, oid):
-        git_oid = self.convert_object_to_oid(oid)
+        git_oid = self.__convert_object_to_oid(oid)
         err = C.git_packbuilder_insert(self._packbuilder, git_oid, ffi.NULL)
         check_error(err)
 
     def add_recur(self, oid):
-        git_oid = self.convert_object_to_oid(oid)
+        git_oid = self.__convert_object_to_oid(oid)
         err = C.git_packbuilder_insert_recur(self._packbuilder, git_oid, ffi.NULL)
         check_error(err)
 

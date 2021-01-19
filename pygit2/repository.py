@@ -265,11 +265,11 @@ class BaseRepository(_Repository):
 
         Keyword arguments:
 
-        force : bool
+        force: bool
             If True references will be overridden, otherwise (the default) an
             exception is raised.
 
-        message : str
+        message: str
             Optional message to use for the reflog.
 
         Examples::

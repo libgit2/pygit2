@@ -82,6 +82,7 @@ Table of Contents
    merge
    objects
    oid
+   packing
    references
    remotes
    repository
