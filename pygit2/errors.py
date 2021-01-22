@@ -43,7 +43,7 @@ def check_error(err, io=False):
     if giterr != ffi.NULL:
         message = ffi.string(giterr.message).decode('utf8')
     else:
-        message = "err %d (no message provided)" % err
+        message = f"err {err} (no message provided)"
 
     # Translate to Python errors
     if err in value_errors:

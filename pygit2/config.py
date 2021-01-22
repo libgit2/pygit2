@@ -176,10 +176,10 @@ class Config:
         to filter the variables we're interested in.
         """
         name = str_to_bytes(name, "name")
+        regex = to_bytes(regex or None)
 
         citer = ffi.new('git_config_iterator **')
-        err = C.git_config_multivar_iterator_new(citer, self._config, name,
-                                                 to_bytes(regex))
+        err = C.git_config_multivar_iterator_new(citer, self._config, name, regex)
         check_error(err)
 
         return ConfigMultivarIterator(self, citer[0])
