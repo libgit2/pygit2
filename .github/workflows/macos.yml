@@ -18,9 +18,9 @@ jobs:
           - ver: '3.7'
             release: '3.7.9'  # last Python.org binary release
           - ver: '3.8'
-            release: '3.8.6'
+            release: '3.8.7'
           - ver: '3.9'
-            release: '3.9.0'
+            release: '3.9.1'
     env:
       HOMEBREW_CACHE: ${{ github.workspace }}/.cache/brew
       CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
@@ -64,7 +64,7 @@ jobs:
       - name: setup
         run: |
           mkdir -p .cache/brew/ .cache/ccache/
-          brew install ccache pkg-config
+          brew install ccache
           python3 -m venv venv/
           export PATH="${{ github.workspace }}/venv/bin:/usr/local/opt/ccache/libexec:$PATH"
           echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
