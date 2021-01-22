@@ -31,9 +31,11 @@ from .ffi import ffi, C
 from .utils import to_bytes
 
 
-def assert_string(v, desc):
-    if not isinstance(v, str):
-        raise TypeError("%s must be a string" % desc)
+def str_to_bytes(value, name):
+    if not isinstance(value, str):
+        raise TypeError(f'{name} must be a string')
+
+    return to_bytes(value)
 
 
 class ConfigIterator:
@@ -78,8 +80,8 @@ class Config:
         if not path:
             err = C.git_config_new(cconfig)
         else:
-            assert_string(path, "path")
-            err = C.git_config_open_ondisk(cconfig, to_bytes(path))
+            path = str_to_bytes(path, "path")
+            err = C.git_config_open_ondisk(cconfig, path)
 
         check_error(err, io=True)
         self._config = cconfig[0]
@@ -99,10 +101,10 @@ class Config:
             pass
 
     def _get(self, key):
-        assert_string(key, "key")
+        key = str_to_bytes(key, "key")
 
         entry = ffi.new('git_config_entry **')
-        err = C.git_config_get_entry(entry, self._config, to_bytes(key))
+        err = C.git_config_get_entry(entry, self._config, key)
 
         return err, ConfigEntry._from_c(entry[0])
 
@@ -136,23 +138,22 @@ class Config:
         return entry.value
 
     def __setitem__(self, key, value):
-        assert_string(key, "key")
+        key = str_to_bytes(key, "key")
 
         err = 0
         if isinstance(value, bool):
-            err = C.git_config_set_bool(self._config, to_bytes(key), value)
+            err = C.git_config_set_bool(self._config, key, value)
         elif isinstance(value, int):
-            err = C.git_config_set_int64(self._config, to_bytes(key), value)
+            err = C.git_config_set_int64(self._config, key, value)
         else:
-            err = C.git_config_set_string(self._config, to_bytes(key),
-                                          to_bytes(value))
+            err = C.git_config_set_string(self._config, key, to_bytes(value))
 
         check_error(err)
 
     def __delitem__(self, key):
-        assert_string(key, "key")
+        key = str_to_bytes(key, "key")
 
-        err = C.git_config_delete_entry(self._config, to_bytes(key))
+        err = C.git_config_delete_entry(self._config, key)
         check_error(err)
 
     def __iter__(self):
@@ -174,11 +175,10 @@ class Config:
         The optional ''regex'' parameter is expected to be a regular expression
         to filter the variables we're interested in.
         """
-        assert_string(name, "name")
+        name = str_to_bytes(name, "name")
 
         citer = ffi.new('git_config_iterator **')
-        err = C.git_config_multivar_iterator_new(citer, self._config,
-                                                 to_bytes(name),
+        err = C.git_config_multivar_iterator_new(citer, self._config, name,
                                                  to_bytes(regex))
         check_error(err)
 
@@ -188,23 +188,21 @@ class Config:
         """Set a multivar ''name'' to ''value''. ''regexp'' is a regular
         expression to indicate which values to replace.
         """
-        assert_string(name, "name")
-        assert_string(regex, "regex")
-        assert_string(value, "value")
+        name = str_to_bytes(name, "name")
+        regex = str_to_bytes(regex, "regex")
+        value = str_to_bytes(value, "value")
 
-        err = C.git_config_set_multivar(self._config, to_bytes(name),
-                                        to_bytes(regex), to_bytes(value))
+        err = C.git_config_set_multivar(self._config, name, regex, value)
         check_error(err)
 
     def delete_multivar(self, name, regex):
         """Delete a multivar ''name''. ''regexp'' is a regular expression to
         indicate which values to delete.
         """
-        assert_string(name, "name")
-        assert_string(regex, "regex")
+        name = str_to_bytes(name, "name")
+        regex = str_to_bytes(regex, "regex")
 
-        err = C.git_config_delete_multivar(self._config, to_bytes(name),
-                                           to_bytes(regex))
+        err = C.git_config_delete_multivar(self._config, name, regex)
         check_error(err)
 
     def get_bool(self, key):

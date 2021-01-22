@@ -78,13 +78,11 @@ def test_new():
     assert config_read['core.editor'] == 'ed'
 
 def test_add():
+    with open(CONFIG_FILENAME, "w") as new_file:
+        new_file.write("[this]\n\tthat = true\n")
+        new_file.write("[something \"other\"]\n\there = false")
+
     config = Config()
-
-    new_file = open(CONFIG_FILENAME, "w")
-    new_file.write("[this]\n\tthat = true\n")
-    new_file.write("[something \"other\"]\n\there = false")
-    new_file.close()
-
     config.add_file(CONFIG_FILENAME, 0)
     assert 'this.that' in config
     assert config.get_bool('this.that')
@@ -92,12 +90,10 @@ def test_add():
     assert not config.get_bool('something.other.here')
 
 def test_add_aspath():
+    with open(CONFIG_FILENAME, "w") as new_file:
+        new_file.write("[this]\n\tthat = true\n")
+
     config = Config()
-
-    new_file = open(CONFIG_FILENAME, "w")
-    new_file.write("[this]\n\tthat = true\n")
-    new_file.close()
-
     config.add_file(Path(CONFIG_FILENAME), 0)
     assert 'this.that' in config
 
@@ -116,17 +112,6 @@ def test_read(config):
     assert 'core.repositoryformatversion' in config
     assert config.get_int('core.repositoryformatversion') == 0
 
-    new_file = open(CONFIG_FILENAME, "w")
-    new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
-    new_file.close()
-
-    config.add_file(CONFIG_FILENAME, 0)
-    assert 'this.that' in config
-
-    assert 2 == len(list(config.get_multivar('this.that')))
-    l = list(config.get_multivar('this.that', 'bar'))
-    assert 1 == len(l)
-    assert l[0] == 'foobar'
 
 def test_write(config):
     with pytest.raises(TypeError):
@@ -154,12 +139,19 @@ def test_write(config):
     del config['core.dummy3']
     assert 'core.dummy3' not in config
 
-    new_file = open(CONFIG_FILENAME, "w")
-    new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
-    new_file.close()
+def test_multivar():
+    with open(CONFIG_FILENAME, "w") as new_file:
+        new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
 
+    config = Config()
     config.add_file(CONFIG_FILENAME, 6)
     assert 'this.that' in config
+
+    assert 2 == len(list(config.get_multivar('this.that')))
+    l = list(config.get_multivar('this.that', 'bar'))
+    assert 1 == len(l)
+    assert l[0] == 'foobar'
+
     l = config.get_multivar('this.that', 'foo.*')
     assert 2 == len(list(l))
 
@@ -169,14 +161,12 @@ def test_write(config):
     assert l[0] == 'fool'
 
     config.set_multivar('this.that', 'foo.*', 'foo-123456')
-    l = config.get_multivar('this.that', 'foo.*')
-    assert 2 == len(list(l))
-    for i in l:
-        assert i == 'foo-123456'
+    l = list(config.get_multivar('this.that', 'foo.*'))
+    assert ['foo-123456', 'foo-123456'] == l
 
     config.delete_multivar('this.that', 'bar')
-    l = config.get_multivar('this.that', '')
-    assert 2 == len(list(l))
+    l = list(config.get_multivar('this.that', ''))
+    assert 2 == len(l)
 
     config.delete_multivar('this.that', r'foo-\d+')
     l = config.get_multivar('this.that', '')
