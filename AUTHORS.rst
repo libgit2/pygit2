@@ -4,8 +4,8 @@ Authors::
   Carlos Martín Nieto
   Nico von Geyso
   Sviatoslav Sydorenko
-  Matthias Bartelmeß
   Robert Coup
+  Matthias Bartelmeß
   W. Trevor King
   Drew DeVault
   Dave Borowitz
@@ -20,6 +20,7 @@ Authors::
   Jose Plana
   Matthew Duggan
   Matthew Gamble
+  Jeremy Westwood
   Martin Lenders
   Petr Hosek
   Sriram Raghu
@@ -119,6 +120,7 @@ Authors::
   Chris Jerdonek
   Chris Rebert
   Christopher Hunt
+  Craig de Stigter
   Cristian Hotea
   Cyril Jouve
   Dan Cecile
@@ -141,6 +143,7 @@ Authors::
   Hugh Cole-Baker
   Isabella Stephens
   Jasper Lievisse Adriaanse
+  Jiri Benc
   Jonathan Robson
   Josh Bleecher Snyder
   Justin Clift
@@ -159,6 +162,7 @@ Authors::
   Patrick Lühne
   Paul Wagland
   Peter Dave Hello
+  Peter Rowlands
   Philippe Ombredanne
   Ram Rachum
   Remy Suen
@@ -171,6 +175,7 @@ Authors::
   Sheeo
   Soasme
   Steven Winfield
+  Tad Hardesty
   Vladimir Rutsky
   Yu Jianjian
   buhl

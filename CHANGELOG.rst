@@ -1,4 +1,4 @@
-1.5.0 (UNRELEASED)
+1.5.0 (2021-01-23)
 -------------------------
 
 - New ``PackBuilder`` class and ``Repository.pack(...)``
@@ -10,7 +10,7 @@
 - New ``Repository.is_shallow``
   `#1058 <https://github.com/libgit2/pygit2/pull/1058>`_
 
-- New optional ``message`` argument for ``Repository.create_reference(...)``
+- New optional ``message`` argument in ``Repository.create_reference(...)``
   `#1061 <https://github.com/libgit2/pygit2/pull/1061>`_
   `#1043 <https://github.com/libgit2/pygit2/issues/1043>`_
 
