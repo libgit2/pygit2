@@ -1,0 +1,59 @@
+name: Linux
+
+on:
+  pull_request:
+  push:
+
+env:
+  PREFIX: "${{ github.workspace }}/../venv"
+  LIBGIT2_VERSION: 1.1.0
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9, pypy3]
+
+    steps:
+    - name: Build libssh2
+      run: |
+        wget https://www.libssh2.org/download/libssh2-1.9.0.tar.gz
+        tar xf libssh2-1.9.0.tar.gz
+        cd libssh2-1.9.0
+        ./configure --prefix=$PREFIX --disable-static
+        make
+        make install
+
+    - name: Build libgit2
+      env:
+        CMAKE_PREFIX_PATH: "${{ env.PREFIX }}"
+      run: |
+        wget https://github.com/libgit2/libgit2/releases/download/v$LIBGIT2_VERSION/libgit2-$LIBGIT2_VERSION.tar.gz
+        tar xf libgit2-$LIBGIT2_VERSION.tar.gz
+        cd libgit2-$LIBGIT2_VERSION
+        cmake . -DBUILD_CLAR=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX
+        cmake --build . --target install
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Checkout pygit2
+      uses: actions/checkout@v2
+
+    - name: Build pygit2
+      env:
+        LIBGIT2: "${{ env.PREFIX }}"
+      run: |
+        python setup.py egg_info
+        pip install -r pygit2.egg-info/requires.txt
+        pip install -r requirements-test.txt
+        python setup.py build_ext --inplace
+
+    - name: Test
+      env:
+        LD_LIBRARY_PATH: "${{ env.PREFIX }}/lib:$LD_LIBRARY_PATH"
+      run: |
+        pytest

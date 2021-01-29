@@ -211,14 +211,13 @@ Install libgit2 (see we define the installation prefix):
    $ tar xzf libgit2-1.1.0.tar.gz
    $ cd libgit2-1.1.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
-   $ make
-   $ make install
+   $ cmake --build . --target install
 
 Install pygit2:
 
 .. code-block:: sh
 
-   $ export LDFLAGS="-Wl,-rpath='$LIBGIT2/lib',--enable-new-dtags $LDFLAGS"
+   $ export LDFLAGS="-Wl,-rpath,'$LIBGIT2/lib',--enable-new-dtags $LDFLAGS"
    # on OSX: export LDFLAGS="-Wl,-rpath,'$LIBGIT2/lib' $LDFLAGS"
    $ pip install pygit2
    $ python -c 'import pygit2'

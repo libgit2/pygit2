@@ -1,8 +1,8 @@
----
 name: macOS
 
 on:
-  push: {}
+  pull_request:
+  push:
 
 jobs:
   build:
