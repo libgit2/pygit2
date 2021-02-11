@@ -91,12 +91,24 @@ class Remote:
 
         return maybe_string(C.git_remote_pushurl(self._remote))
 
-    def connect(self, callbacks=None, direction=C.GIT_DIRECTION_FETCH):
+    def connect(self, callbacks=None, direction=C.GIT_DIRECTION_FETCH, proxy=None):
         """Connect to the remote.
+
+        Parameters:
+
+        proxy : None or True or str
+            Proxy configuration. Can be one of:
+
+            * `None` (the default) to disable proxy usage
+            * `True` to enable automatic proxy detection
+            * an url to a proxy (`http://proxy.example.org:3128/`)
         """
+        proxy_opts = ffi.new('git_proxy_options *')
+        C.git_proxy_init_options(proxy_opts, C.GIT_PROXY_OPTIONS_VERSION)
+        Remote._set_proxy(proxy_opts, proxy)
         with git_remote_callbacks(callbacks) as payload:
             err = C.git_remote_connect(self._remote, direction,
-                                       payload.remote_callbacks, ffi.NULL,
+                                       payload.remote_callbacks, proxy_opts,
                                        ffi.NULL)
             payload.check_error(err)
 
@@ -106,7 +118,7 @@ class Remote:
         err = C.git_remote_save(self._remote)
         check_error(err)
 
-    def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED):
+    def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED, proxy=None):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
 
@@ -118,24 +130,38 @@ class Remote:
             repo, the second will remove any remote branch in the local
             repository that does not exist in the remote and the last will
             always keep the remote branches
+
+        proxy : None or True or str
+            Proxy configuration. Can be one of:
+
+            * `None` (the default) to disable proxy usage
+            * `True` to enable automatic proxy detection
+            * an url to a proxy (`http://proxy.example.org:3128/`)
         """
         message = to_bytes(message)
         with git_fetch_options(callbacks) as payload:
             opts = payload.fetch_options
             opts.prune = prune
+            Remote._set_proxy(opts.proxy_opts, proxy)
             with StrArray(refspecs) as arr:
                 err = C.git_remote_fetch(self._remote, arr, opts, to_bytes(message))
                 payload.check_error(err)
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
-    def ls_remotes(self, callbacks=None):
+    def ls_remotes(self, callbacks=None, proxy=None):
         """
         Return a list of dicts that maps to `git_remote_head` from a
         `ls_remotes` call.
+
+        Parameters:
+
+        callbacks : Passed to connect()
+
+        proxy : Passed to connect()
         """
 
-        self.connect(callbacks=callbacks)
+        self.connect(callbacks=callbacks, proxy=proxy)
 
         refs = ffi.new('git_remote_head ***')
         refs_len = ffi.new('size_t *')
@@ -201,7 +227,7 @@ class Remote:
 
         return strarray_to_strings(specs)
 
-    def push(self, specs, callbacks=None):
+    def push(self, specs, callbacks=None, proxy=None):
         """
         Push the given refspec to the remote. Raises ``GitError`` on protocol
         error or unpack failure.
@@ -216,12 +242,32 @@ class Remote:
 
         specs : [str]
             Push refspecs to use.
+
+        proxy : None or True or str
+            Proxy configuration. Can be one of:
+
+            * `None` (the default) to disable proxy usage
+            * `True` to enable automatic proxy detection
+            * an url to a proxy (`http://proxy.example.org:3128/`)
         """
         with git_push_options(callbacks) as payload:
             opts = payload.push_options
+            Remote._set_proxy(opts.proxy_opts, proxy)
             with StrArray(specs) as refspecs:
                 err = C.git_remote_push(self._remote, refspecs, opts)
                 payload.check_error(err)
+
+    @staticmethod
+    def _set_proxy(proxy_opts, proxy):
+        if proxy is None:
+            proxy_opts.type = C.GIT_PROXY_NONE
+        elif proxy is True:
+            proxy_opts.type = C.GIT_PROXY_AUTO
+        elif type(proxy) is str:
+            proxy_opts.type = C.GIT_PROXY_SPECIFIED
+            proxy_opts.url = to_bytes(proxy)
+        else:
+            raise TypeError("Proxy must be None, True, or a string")
 
 
 class RemoteCollection:
