@@ -15,7 +15,7 @@ arch:
 
 env:
   global:
-    LIBGIT2: ~/install/
+    LIBGIT2: ${TRAVIS_BUILD_DIR}/ci/install
     LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
     LIBGIT2_VERSION: "1.1"
 
@@ -71,7 +71,9 @@ jobs:
 
 before_install:
   - sudo apt-get -y install cmake
-  - ./.travis.sh "${LIBGIT2_VERSION}"
+  - cd ci
+  - /bin/sh build.sh
+  - cd ..
 
 install:
   - python setup.py egg_info
