@@ -23,6 +23,9 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+# Import setuptools before distutils to avoid user warning
+from setuptools import setup, Extension
+
 # Import from the Standard Library
 import codecs
 from distutils.command.build import build
@@ -31,7 +34,6 @@ from distutils import log
 import os
 from os import getenv, listdir, pathsep
 from os.path import abspath, isfile
-from setuptools import setup, Extension
 from subprocess import Popen, PIPE
 import sys
 

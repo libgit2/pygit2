@@ -71,18 +71,9 @@ jobs:
 
 before_install:
   - sudo apt-get -y install cmake
-  - cd ci
-  - /bin/sh build.sh
-  - cd ..
-
-install:
-  - python setup.py egg_info
-  - pip install -r pygit2.egg-info/requires.txt
-  - pip install -r requirements-test.txt
-  - python setup.py build_ext --inplace
 
 script:
-  - pytest --cov=pygit2
+  - /bin/sh ci.sh
 
 stages:
 - test

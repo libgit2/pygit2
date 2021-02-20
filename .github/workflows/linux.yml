@@ -9,34 +9,26 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9, pypy3]
+        os: [ubuntu-20.04, macos-latest]
+        python-version: [3.6, 3.9, pypy3]
+        exclude:
+        - os: macos-latest
+          python-version: 3.9
+        - os: macos-latest
+          python-version: pypy3
 
     steps:
     - name: Checkout pygit2
       uses: actions/checkout@v2
-
-    - name: Build libraries
-      working-directory: ci
-      run: |
-        /bin/sh build.sh
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Build pygit2
+    - name: Build & Test
       run: |
-        python setup.py egg_info
-        pip install -r pygit2.egg-info/requires.txt
-        pip install -r requirements-test.txt
-        python setup.py build_ext --inplace
-
-    - name: Test
-      env:
-        LD_LIBRARY_PATH: "${{ env.LIBGIT2 }}/lib:$LD_LIBRARY_PATH"
-      run: |
-        pytest
+        /bin/sh ci.sh
