@@ -17,7 +17,6 @@ env:
   global:
     LIBGIT2: ${TRAVIS_BUILD_DIR}/ci/install
     LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
-    LIBGIT2_VERSION: "1.1"
 
 
 jobs:
@@ -35,7 +34,7 @@ jobs:
     before_install: []
     install: skip
     script: &docker-script
-    - travis/build-all-manylinux-wheels.sh "${LIBGIT2_VERSION}"
+    - travis/build-all-manylinux-wheels.sh 1.1
     - ls -alh dist
     before_deploy:
     - ls dist

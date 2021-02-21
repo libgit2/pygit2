@@ -4,9 +4,6 @@ on:
   pull_request:
   push:
 
-env:
-  LIBGIT2: "${{ github.workspace }}/ci/install"
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -29,6 +26,13 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Build & Test
+    - name: Linux
+      if: runner.os == 'Linux'
       run: |
+        LIBSSH2_VERSION=1.9.0 /bin/sh ci.sh
+
+    - name: macOS
+      if: runner.os == 'macOS'
+      run: |
+        brew install libssh2
         /bin/sh ci.sh
