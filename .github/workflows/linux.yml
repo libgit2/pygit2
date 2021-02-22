@@ -29,10 +29,12 @@ jobs:
     - name: Linux
       if: runner.os == 'Linux'
       run: |
-        LIBSSH2_VERSION=1.9.0 /bin/sh ci.sh
+        LIBSSH2_VERSION=1.9.0 LIBGIT2_VERSION=1.1.0 /bin/sh ci.sh
 
     - name: macOS
       if: runner.os == 'macOS'
       run: |
-        brew install libssh2
+        export OPENSSL_PREFIX=`brew --prefix openssl@1.1`
+        export LIBSSH2_PREFIX=`brew --prefix libssh2`
+        export LIBGIT2_VERSION=1.1.0
         /bin/sh ci.sh
