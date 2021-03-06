@@ -110,7 +110,7 @@ if [ $WHAT = "wheel" ]; then
 else
     # Install Python requirements & build inplace
     $PREFIX/bin/python setup.py egg_info
-    $PREFIX/bin/pip install -r pygit2.egg-info/requires.txt
+    $PREFIX/bin/pip install .
     $PREFIX/bin/python setup.py build_ext --inplace
 fi
 
