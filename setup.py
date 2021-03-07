@@ -133,6 +133,10 @@ ext_modules = [
     Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)
 ]
 
+install_requires = ['cffi>=1.4.0']
+if sys.version_info < (3, 8):
+    install_requires.append('cached-property')
+
 setup(name='pygit2',
       description='Python bindings for libgit2.',
       keywords='git',
@@ -146,7 +150,7 @@ setup(name='pygit2',
       packages=['pygit2'],
       package_data={'pygit2': ['decl/*.h']},
       setup_requires=['cffi>=1.4.0'],
-      install_requires=['cffi>=1.4.0', 'cached-property;python_version<"3.8"'],
+      install_requires=install_requires,
       zip_safe=False,
       cmdclass=cmdclass,
       cffi_modules=['pygit2/_run.py:ffi'],
