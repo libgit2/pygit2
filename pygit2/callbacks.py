@@ -182,7 +182,7 @@ class RemoteCallbacks(Payload):
 
     def update_tips(self, refname, old, new):
         """
-        Update tips callabck. Override with your own function to report
+        Update tips callback. Override with your own function to report
         reference updates.
 
         Parameters:
