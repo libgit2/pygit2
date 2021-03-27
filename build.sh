@@ -51,25 +51,13 @@ set -e # Fail fast
 
 # Variables
 ARCH=`uname -m`
-BUILD_STATIC=${BUILD_STATIC:-''}
+KERNEL=`uname -s`
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 PYTHON=${PYTHON:-python3}
 
 PYTHON_TAG=$($PYTHON build_tag.py)
 PREFIX="${PREFIX:-$(pwd)/ci/$PYTHON_TAG}"
 export LDFLAGS="-Wl,-rpath,$PREFIX/lib"
-
-# Linux or macOS
-case "$(uname -s)" in
-    Darwin*)
-        LDD="otool -L"
-        SOEXT="dylib"
-        ;;
-    *) # LINUX
-        LDD="ldd"
-        SOEXT="so"
-        ;;
-esac
 
 # Create a virtual environment
 $PYTHON -m venv $PREFIX
@@ -82,7 +70,7 @@ if [ -n "$ZLIB_VERSION" ]; then
     wget https://www.zlib.net/$FILENAME.tar.gz -N
     tar xf $FILENAME.tar.gz
     cd $FILENAME
-    ./configure --prefix=$PREFIX $([ $BUILD_STATIC ] && echo "--static" || echo "")
+    ./configure --prefix=$PREFIX
     make
     make install
     cd ..
@@ -96,9 +84,9 @@ if [ -n "$LIBSSH2_VERSION" ]; then
     cd $FILENAME
     cmake . \
             -DCMAKE_INSTALL_PREFIX=$PREFIX \
+            -DBUILD_SHARED_LIBS=ON \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_TESTING=OFF \
-            -DBUILD_SHARED_LIBS=$([ $BUILD_STATIC ] && echo "OFF" || echo "ON")
+            -DBUILD_TESTING=OFF
     cmake --build . --target install
     cd ..
     LIBSSH2_PREFIX=$PREFIX
@@ -112,12 +100,11 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     cd $FILENAME
     CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
             -DCMAKE_INSTALL_PREFIX=$PREFIX \
+            -DBUILD_SHARED_LIBS=ON \
             -DBUILD_CLAR=OFF \
-            -DBUILD_SHARED_LIBS=$([ $BUILD_STATIC ] && echo "OFF" || echo "ON") \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE
     cmake --build . --target install
     cd ..
-    $LDD $PREFIX/lib/libgit2.$SOEXT
     export LIBGIT2=$PREFIX
 fi
 
@@ -139,10 +126,20 @@ fi
 # Bundle libraries
 if [ "$1" = "bundle" ]; then
     shift
-    $PREFIX/bin/pip install auditwheel
-    $PREFIX/bin/auditwheel repair dist/pygit2*-$PYTHON_TAG-*_$ARCH.whl
-    $PREFIX/bin/auditwheel show wheelhouse/pygit2*-$PYTHON_TAG-*_$ARCH.whl
     WHEELDIR=wheelhouse
+    case "${KERNEL}" in
+        Darwin*)
+            $PREFIX/bin/pip install delocate
+            $PREFIX/bin/delocate-listdeps dist/pygit2-*macosx*.whl
+            $PREFIX/bin/delocate-wheel -v -w $WHEELDIR dist/pygit2-*macosx*.whl
+            $PREFIX/bin/delocate-listdeps $WHEELDIR/pygit2-*macosx*.whl
+            ;;
+        *) # LINUX
+            $PREFIX/bin/pip install auditwheel
+            $PREFIX/bin/auditwheel repair dist/pygit2*-$PYTHON_TAG-*_$ARCH.whl
+            $PREFIX/bin/auditwheel show $WHEELDIR/pygit2*-$PYTHON_TAG-*_$ARCH.whl
+            ;;
+    esac
 fi
 
 # Tests

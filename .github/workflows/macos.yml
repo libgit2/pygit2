@@ -44,22 +44,10 @@ jobs:
 
       - name: Build
         run: |
-          /bin/sh build.sh wheel
-          pip3 install delocate
-          delocate-listdeps dist/pygit2-*macosx*.whl
-          delocate-wheel -v -w dist/fixed-wheels/ dist/pygit2-*macosx*.whl
-          WHEEL=$(basename dist/fixed-wheels/*.whl)
-          echo "::set-output name=wheel::$WHEEL"
-          delocate-listdeps dist/fixed-wheels/$WHEEL
-
-      - name: Tests
-        run: |
-          pip3 install pytest
-          pip3 install dist/fixed-wheels/pygit2-*.whl
-          pytest
+          /bin/sh build.sh wheel bundle test
 
       - name: Save wheel
         uses: actions/upload-artifact@v1
         with:
           name: "macOS-wheel-py_${{ matrix.py.ver }}-libgit2_${{ env.LIBGIT2_VERSION }}"
-          path: dist/fixed-wheels/
+          path: wheelhouse
