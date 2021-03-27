@@ -22,3 +22,12 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
+
+# Move the current directory to the end of the list of import paths. This way
+# we avoid the "ModuleNotFoundError: No module named 'pygit2._pygit2'" error
+# when running the test suite in Continuous Integration.
+import os
+import sys
+cwd = os.getcwd()
+sys.path.remove(cwd)
+sys.path.append(cwd)

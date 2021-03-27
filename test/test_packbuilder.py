@@ -32,7 +32,6 @@ import pytest
 import pygit2
 from pygit2 import PackBuilder
 from . import utils
-from .utils import rmtree
 
 
 def test_create_packbuilder(testrepo):
@@ -92,7 +91,7 @@ def confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate):
     pack_repo = setup_second_repo(tmp_path)
 
     objects_dir = os.path.join(pack_repo.path, 'objects')
-    rmtree(objects_dir)
+    utils.rmtree(objects_dir)
     pack_path = os.path.join(pack_repo.path, 'objects', 'pack')
     os.makedirs(pack_path)
 

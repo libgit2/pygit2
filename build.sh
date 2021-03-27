@@ -47,15 +47,16 @@
 #
 
 set -x # Print every command and variable
-set -e # Exit script on any command failure
-
-# Arguments
-WHAT=${1:-inplace}
+set -e # Fail fast
 
 # Variables
+ARCH=`uname -m`
+BUILD_STATIC=${BUILD_STATIC:-''}
+BUILD_TYPE=${BUILD_TYPE:-Debug}
 PYTHON=${PYTHON:-python3}
-PYTHON_VERSION=$($PYTHON -c "import platform; print(f'{platform.python_implementation()}-{platform.python_version()}')")
-PREFIX="${PREFIX:-$(pwd)/ci/$PYTHON_VERSION}"
+
+PYTHON_TAG=$($PYTHON build_tag.py)
+PREFIX="${PREFIX:-$(pwd)/ci/$PYTHON_TAG}"
 export LDFLAGS="-Wl,-rpath,$PREFIX/lib"
 
 # Linux or macOS
@@ -74,17 +75,32 @@ esac
 $PYTHON -m venv $PREFIX
 cd ci
 
+# Install zlib
+# XXX Build libgit2 with USE_BUNDLED_ZLIB instead?
+if [ -n "$ZLIB_VERSION" ]; then
+    FILENAME=zlib-$ZLIB_VERSION
+    wget https://www.zlib.net/$FILENAME.tar.gz -N
+    tar xf $FILENAME.tar.gz
+    cd $FILENAME
+    ./configure --prefix=$PREFIX $([ $BUILD_STATIC ] && echo "--static" || echo "")
+    make
+    make install
+    cd ..
+fi
+
 # Install libssh2
 if [ -n "$LIBSSH2_VERSION" ]; then
     FILENAME=libssh2-$LIBSSH2_VERSION
     wget https://www.libssh2.org/download/$FILENAME.tar.gz -N
     tar xf $FILENAME.tar.gz
     cd $FILENAME
-    ./configure --prefix=$PREFIX --disable-static
-    make
-    make install
+    cmake . \
+            -DCMAKE_INSTALL_PREFIX=$PREFIX \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_TESTING=OFF \
+            -DBUILD_SHARED_LIBS=$([ $BUILD_STATIC ] && echo "OFF" || echo "ON")
+    cmake --build . --target install
     cd ..
-    $LDD $PREFIX/lib/libssh2.$SOEXT
     LIBSSH2_PREFIX=$PREFIX
 fi
 
@@ -94,7 +110,11 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     wget https://github.com/libgit2/libgit2/releases/download/v$LIBGIT2_VERSION/$FILENAME.tar.gz -N
     tar xf $FILENAME.tar.gz
     cd $FILENAME
-    CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . -DBUILD_CLAR=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX
+    CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
+            -DCMAKE_INSTALL_PREFIX=$PREFIX \
+            -DBUILD_CLAR=OFF \
+            -DBUILD_SHARED_LIBS=$([ $BUILD_STATIC ] && echo "OFF" || echo "ON") \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE
     cmake --build . --target install
     cd ..
     $LDD $PREFIX/lib/libgit2.$SOEXT
@@ -104,9 +124,11 @@ fi
 # Build pygit2
 cd ..
 $PREFIX/bin/pip install -U pip
-if [ $WHAT = "wheel" ]; then
+if [ "$1" = "wheel" ]; then
+    shift
     $PREFIX/bin/pip install wheel
     $PREFIX/bin/python setup.py bdist_wheel
+    WHEELDIR=dist
 else
     # Install Python requirements & build inplace
     $PREFIX/bin/python setup.py egg_info
@@ -114,8 +136,20 @@ else
     $PREFIX/bin/python setup.py build_ext --inplace
 fi
 
+# Bundle libraries
+if [ "$1" = "bundle" ]; then
+    shift
+    $PREFIX/bin/pip install auditwheel
+    $PREFIX/bin/auditwheel repair dist/pygit2*-$PYTHON_TAG-*_$ARCH.whl
+    $PREFIX/bin/auditwheel show wheelhouse/pygit2*-$PYTHON_TAG-*_$ARCH.whl
+    WHEELDIR=wheelhouse
+fi
+
 # Tests
-if [ $WHAT = "test" ]; then
+if [ "$1" = "test" ]; then
+    if [ -n "$WHEELDIR" ]; then
+        $PREFIX/bin/pip install $WHEELDIR/pygit2*-$PYTHON_TAG-*_$ARCH.whl
+    fi
     $PREFIX/bin/pip install -r requirements-test.txt
     $PREFIX/bin/pytest --cov=pygit2
 fi

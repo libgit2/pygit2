@@ -34,7 +34,7 @@ jobs:
     before_install: []
     install: skip
     script: &docker-script
-    - travis/build-all-manylinux-wheels.sh 1.1
+    - travis/build-all-manylinux-wheels.sh
     - ls -alh dist
     before_deploy:
     - ls dist

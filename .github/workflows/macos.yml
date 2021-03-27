@@ -55,7 +55,6 @@ jobs:
       - name: Tests
         run: |
           pip3 install pytest
-          mv pygit2 pygit2~
           pip3 install dist/fixed-wheels/pygit2-*.whl
           pytest
 
