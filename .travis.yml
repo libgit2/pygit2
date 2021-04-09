@@ -18,63 +18,15 @@ env:
     LIBGIT2: ${TRAVIS_BUILD_DIR}/ci/install
     LD_LIBRARY_PATH: ${LIBGIT2}/lib:${LD_LIBRARY_PATH}
 
-
 jobs:
   allow_failures:
   - arch: s390x
   include:
   - python: 3.6
     arch: s390x
-  - stage: &deploy_stage Publish to PyPI (runs only for tagged commits)
-    name: >-
-      OS-specific manylinux wheels
-    python: "3.7"
-    services:
-    - docker
-    before_install: []
-    install: skip
-    script: &docker-script
-    - travis/build-all-manylinux-wheels.sh
-    - ls -alh dist
-    before_deploy:
-    - ls dist
-    - pip install twine
-    - twine check dist/*
-    deploy:
-      provider: pypi
-      # `skip_cleanup: true` is required to preserve binary wheels, built
-      # inside of manylinux docker container during `script` step above.
-      skip_cleanup: true
-      # `skip_existing: true` is required to skip uploading dists, already
-      # present in PYPI instead of failing the whole process.
-      # This happens when other CI (AppVeyor etc.) has already uploaded
-      # the very same dist (usually sdist).
-      skip_existing: true
-      username: jdavid
-      password:
-        # Encrypted with `travis encrypt <password> -r libgit2/pygit2`
-        secure: "j/4klKkq6sJuPEYwA1n5PD1Z02SbfTwt9Jj1omnOUOzVv3njJ73IHHELvIxtn18yj8uIKs8XpCUbpMKFGdWzc/WNj8xQPHVaRIlCrKVbZiUH/zfbuWOWlKlSEbNZ5+vVsnNbTN1FEwxDV9+CQKsibUG2Y1OzBqLx1gBSRpjq+ro="
-      # Although Travis CI instructs `setup.py` to build source distribution,
-      # which is default value for distribution option (`distribution: sdist`),
-      # it will also upload all wheels we've previously built in manylinux
-      # docker container using `twine upload -r pypi dist/*` command.
-      # Also since commit https://github.com/travis-ci/dpl/commit/90b5e39
-      # it is default that Travis PYPI provider has `skip_upload_docs: true`
-      # set by default.
-      # Besides above, we don't do cleanup of `dist/*`, because it's being done
-      # by Travis CI PYPI deployment provider after upload, unconditionally.
-      on:
-        tags: true
-        all_branches: true
-
 
 before_install:
   - sudo apt-get -y install cmake
 
 script:
   - LIBSSH2_VERSION=1.9.0 LIBGIT2_VERSION=1.1.0 /bin/sh build.sh test
-
-stages:
-- test
-- name: *deploy_stage
-  if: tag IS present OR type IN (cron, api)

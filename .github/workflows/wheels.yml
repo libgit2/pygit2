@@ -22,8 +22,8 @@ jobs:
     - name: Save wheels
       uses: actions/upload-artifact@v2
       with:
-        name: linux-wheels
-        path: dist
+        name: wheels
+        path: dist/*.whl
 
   macos:
     name: macos-${{ matrix.py.ver }}
@@ -44,27 +44,46 @@ jobs:
           - ver: '3.9'
             release: '3.9.1'
     steps:
-      - name: Checkout pygit2
-        uses: actions/checkout@v2
+    - name: Checkout pygit2
+      uses: actions/checkout@v2
 
-      - name: Setup python
-        run: |
-          PKG="python-${{ matrix.py.release }}-macosx10.9.pkg"
-          URL="https://www.python.org/ftp/python/${{ matrix.py.release }}/$PKG"
-          wget --no-verbose -N "$URL"
-          sudo installer -pkg $PKG -target /
-          export PATH=/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin:$PATH
-          echo "/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin" >> $GITHUB_PATH
-          which python3
-          python3 -VV
-          test "$(python3 -V)" = "Python ${{ matrix.py.release }}"
+    - name: Setup python
+      run: |
+        PKG="python-${{ matrix.py.release }}-macosx10.9.pkg"
+        URL="https://www.python.org/ftp/python/${{ matrix.py.release }}/$PKG"
+        wget --no-verbose -N "$URL"
+        sudo installer -pkg $PKG -target /
+        export PATH=/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin:$PATH
+        echo "/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin" >> $GITHUB_PATH
+        which python3
+        python3 -VV
+        test "$(python3 -V)" = "Python ${{ matrix.py.release }}"
 
-      - name: Build
-        run: |
-          /bin/sh build.sh wheel bundle test
+    - name: Build
+      run: |
+        /bin/sh build.sh wheel bundle test
 
-      - name: Save wheel
-        uses: actions/upload-artifact@v1
-        with:
-          name: "macOS-wheel-py_${{ matrix.py.ver }}-libgit2_${{ env.LIBGIT2_VERSION }}"
-          path: wheelhouse
+    - name: Save wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: wheelhouse/*.whl
+
+  pypi:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    needs: [linux, macos]
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: wheels
+        path: dist
+
+    - name: Display structure of downloaded files
+      run: ls -lh dist
+
+    - uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
