@@ -63,6 +63,6 @@ artifacts:
 - path: dist\pygit2-*.whl
 
 deploy_script:
-- ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload dist/* }
+- ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload dist/pygit2-*.whl }
 
 deploy: on
