@@ -41,7 +41,6 @@ class ProxyRefdbBackend(pygit2.RefdbBackend):
         testrepo.source = source
 
     def exists(testrepo, ref):
-        print(testrepo, testrepo.source, ref)
         return testrepo.source.exists(ref)
 
     def lookup(testrepo, ref):

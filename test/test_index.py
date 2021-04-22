@@ -182,7 +182,6 @@ def test_remove(testrepo):
 
 def test_remove_all(testrepo):
     index = testrepo.index
-    print([i.path for i in index])
     assert 'hello.txt' in index
     index.remove_all(['*.txt'])
     assert 'hello.txt' not in index

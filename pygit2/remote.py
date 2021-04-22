@@ -65,7 +65,6 @@ class Remote:
     def __init__(self, repo, ptr):
         """The constructor is for internal use only.
         """
-
         self._repo = repo
         self._remote = ptr
         self._stored_exception = None
@@ -105,7 +104,7 @@ class Remote:
         """
         proxy_opts = ffi.new('git_proxy_options *')
         C.git_proxy_init_options(proxy_opts, C.GIT_PROXY_OPTIONS_VERSION)
-        Remote._set_proxy(proxy_opts, proxy)
+        self.__set_proxy(proxy_opts, proxy)
         with git_remote_callbacks(callbacks) as payload:
             err = C.git_remote_connect(self._remote, direction,
                                        payload.remote_callbacks, proxy_opts,
@@ -142,7 +141,7 @@ class Remote:
         with git_fetch_options(callbacks) as payload:
             opts = payload.fetch_options
             opts.prune = prune
-            Remote._set_proxy(opts.proxy_opts, proxy)
+            self.__set_proxy(opts.proxy_opts, proxy)
             with StrArray(refspecs) as arr:
                 err = C.git_remote_fetch(self._remote, arr, opts, to_bytes(message))
                 payload.check_error(err)
@@ -252,20 +251,21 @@ class Remote:
         """
         with git_push_options(callbacks) as payload:
             opts = payload.push_options
-            Remote._set_proxy(opts.proxy_opts, proxy)
+            self.__set_proxy(opts.proxy_opts, proxy)
             with StrArray(specs) as refspecs:
                 err = C.git_remote_push(self._remote, refspecs, opts)
                 payload.check_error(err)
 
-    @staticmethod
-    def _set_proxy(proxy_opts, proxy):
+    def __set_proxy(self, proxy_opts, proxy):
         if proxy is None:
             proxy_opts.type = C.GIT_PROXY_NONE
         elif proxy is True:
             proxy_opts.type = C.GIT_PROXY_AUTO
         elif type(proxy) is str:
             proxy_opts.type = C.GIT_PROXY_SPECIFIED
-            proxy_opts.url = to_bytes(proxy)
+            # Keep url in memory, otherwise memory is freed and bad things happen
+            self.__url = ffi.new('char[]', to_bytes(proxy))
+            proxy_opts.url = self.__url
         else:
             raise TypeError("Proxy must be None, True, or a string")
 

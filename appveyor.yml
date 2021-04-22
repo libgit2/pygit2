@@ -29,8 +29,7 @@ matrix:
 
 init:
 - cmd: |
-    "%PYTHON%" -m pip install -U pip
-    "%PYTHON%" -m pip install -U wheel pytest
+    "%PYTHON%" -m pip install -U pip wheel
 
 build_script:
 # Clone, build and install libgit2
@@ -45,6 +44,7 @@ build_script:
 # Build and install pygit2
 # Rename pygit2 folder, so when testing it picks the installed one
 - cmd: |
+    "%PYTHON%" -m pip install -r requirements-test.txt
     "%PYTHON%" -m pip wheel --wheel-dir=dist .
     "%PYTHON%" -m pip install --no-index --find-links=dist pygit2
     mv pygit2 pygit2.bak
