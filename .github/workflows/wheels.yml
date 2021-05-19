@@ -12,12 +12,19 @@ jobs:
   linux:
     name: Linux
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
     steps:
     - name: Checkout pygit2
       uses: actions/checkout@v2
 
+    - name: Set up QEMU
+      if: ${{ matrix.arch == 'aarch64' }}
+      uses: docker/setup-qemu-action@v1
+
     - run: |
-        /bin/sh travis/build-all-manylinux-wheels.sh
+        /bin/sh travis/build-all-manylinux-wheels.sh ${{ matrix.arch }}
 
     - name: Save wheels
       uses: actions/upload-artifact@v2
