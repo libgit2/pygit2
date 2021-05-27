@@ -212,22 +212,6 @@ Patch_text__get__(Patch *self)
     return text;
 }
 
-PyDoc_STRVAR(Patch_patch__doc__,
-    "Patch diff string (deprecated -- use Patch.text instead).\n"
-    "Can be None in some cases, such as empty commits. "
-    "Note that this decodes the content to Unicode assuming UTF-8 encoding. "
-    "For non-UTF-8 content that can lead be a lossy, non-reversible process. "
-    "To access the raw, un-decoded patch, use `patch.data`.");
-
-PyObject *
-Patch_patch__get__(Patch *self)
-{
-    PyErr_WarnEx(PyExc_DeprecationWarning,
-                 "Patch.patch is deprecated, use Patch.text instead",
-                 1);
-    return Patch_text__get__(self);
-}
-
 PyDoc_STRVAR(Patch_hunks__doc__, "hunks");
 
 PyObject *
@@ -262,7 +246,6 @@ PyGetSetDef Patch_getsetters[] = {
     GETTER(Patch, line_stats),
     GETTER(Patch, data),
     GETTER(Patch, text),
-    GETTER(Patch, patch),
     GETTER(Patch, hunks),
     {NULL}
 };
