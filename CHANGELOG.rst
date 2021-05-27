@@ -1,3 +1,35 @@
+1.6.0 (UNRELEASED)
+-------------------------
+
+- New optional ``proxy`` argument in ``Remote`` methods
+  `#642 <https://github.com/libgit2/pygit2/issues/642>`_
+  `#1063 <https://github.com/libgit2/pygit2/pull/1063>`_
+  `#1069 <https://github.com/libgit2/pygit2/issues/1069>`_
+
+- New GIT_MERGE_PREFERENCE constants
+  `#1071 <https://github.com/libgit2/pygit2/pull/1071>`_
+
+- Don't require cached-property with Python 3.8 or later
+  `#1066 <https://github.com/libgit2/pygit2/pull/1066>`_
+
+- Add wheels for aarch64
+  `#1077 <https://github.com/libgit2/pygit2/issues/1077>`_
+  `#1078 <https://github.com/libgit2/pygit2/pull/1078>`_
+
+- Documentation fixes
+  `#1068 <https://github.com/libgit2/pygit2/pull/1068>`_
+  `#1072 <https://github.com/libgit2/pygit2/pull/1072>`_
+
+- Refactored build and CI, new ``build.sh`` script
+
+Breaking changes:
+
+- Remove deprecated ``GIT_CREDTYPE_XXX`` contants, use ``GIT_CREDENTIAL_XXX``
+  instead.
+
+- Remove deprecated ``Patch.patch`` getter, use ``Patch.text`` instead.
+
+
 1.5.0 (2021-01-23)
 -------------------------
 
@@ -11,8 +43,8 @@
   `#1058 <https://github.com/libgit2/pygit2/pull/1058>`_
 
 - New optional ``message`` argument in ``Repository.create_reference(...)``
-  `#1061 <https://github.com/libgit2/pygit2/pull/1061>`_
-  `#1043 <https://github.com/libgit2/pygit2/issues/1043>`_
+  `#1061 <https://github.com/libgit2/pygit2/issues/1061>`_
+  `#1062 <https://github.com/libgit2/pygit2/pull/1062>`_
 
 - Fix truncated diff when there are nulls
   `#1047 <https://github.com/libgit2/pygit2/pull/1047>`_
