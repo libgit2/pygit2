@@ -1,4 +1,4 @@
-1.6.0 (UNRELEASED)
+1.6.0 (2021-06-01)
 -------------------------
 
 - New optional ``proxy`` argument in ``Remote`` methods

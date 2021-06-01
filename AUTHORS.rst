@@ -34,8 +34,8 @@ Authors::
   Bernardo Heynemann
   Brodie Rao
   John Szakmeister
+  Nabijacz Leweli
   Vlad Temian
-  наб
   Chad Dombrova
   Lukas Fleischer
   Nicolas Dandrimont
@@ -98,6 +98,7 @@ Authors::
   Michael Sondergaard
   Natanael Arndt
   Ondřej Nový
+  Peter Rowlands
   Sarath Lakshman
   Szucs Krisztian
   Vicent Marti
@@ -120,6 +121,7 @@ Authors::
   Chris Jerdonek
   Chris Rebert
   Christopher Hunt
+  Claudio Jolowicz
   Craig de Stigter
   Cristian Hotea
   Cyril Jouve
@@ -152,8 +154,10 @@ Authors::
   Legorooj
   Lukas Berk
   Mathieu Bridon
+  Mathieu Parent
   Mathieu Pillard
   Matthaus Woolard
+  Michał Górny
   Nicolás Sanguinetti
   Nikita Kartashov
   Nikolai Zujev
@@ -162,7 +166,7 @@ Authors::
   Patrick Lühne
   Paul Wagland
   Peter Dave Hello
-  Peter Rowlands
+  Phil Schleihauf
   Philippe Ombredanne
   Ram Rachum
   Remy Suen
@@ -181,3 +185,4 @@ Authors::
   buhl
   chengyuhang
   earl
+  odidev

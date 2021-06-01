@@ -29,9 +29,7 @@ Links
 Sponsors
 =====================================
 
-- `SourceHut <https://sourcehut.org>`_
-
-Add your name to the list, `become a sponsor <https://github.com/sponsors/jdavid>`_.
+Add your name and link here, `become a sponsor <https://github.com/sponsors/jdavid>`_.
 
 
 License: GPLv2 with linking exception
