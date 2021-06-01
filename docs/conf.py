@@ -4,8 +4,7 @@
 # list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
-import os, platform, sys
-from string import digits
+import os, sys
 
 # -- Path setup --------------------------------------------------------------
 
@@ -13,8 +12,7 @@ from string import digits
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-version_string = sys.platform.rstrip(digits) + "-" + os.uname()[4] + "-" + ".".join(platform.python_version_tuple()[0:2])
-sys.path.insert(0, os.path.abspath('../build/lib.' + version_string))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
