@@ -223,20 +223,25 @@ wrap_note(Repository* repo, git_oid* note_id, git_oid* annotated_id, const char*
         PyErr_NoMemory();
         return NULL;
     }
+
+    Py_INCREF(repo);
+    py_note->repo = repo;
+    py_note->ref = ref;
+    py_note->annotated_id = git_oid_to_python(annotated_id);
+    py_note->id = NULL;
+    py_note->note = NULL;
+
     /* If the note has been provided, defer the git_note_read() call */
     if (note_id != NULL) {
         py_note->id = git_oid_to_python(note_id);
-        py_note->note = NULL;
     } else {
         err = git_note_read(&py_note->note, repo->repo, ref, annotated_id);
-        if (err < 0)
+        if (err < 0) {
+            Py_DECREF(py_note);
             return Error_set(err);
+        }
         py_note->id = git_oid_to_python(git_note_id(py_note->note));
     }
-    py_note->repo = repo;
-    Py_INCREF(repo);
-    py_note->annotated_id = git_oid_to_python(annotated_id);
-    py_note->ref = ref;
 
     return (PyObject*) py_note;
 }
