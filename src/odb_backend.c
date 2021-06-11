@@ -407,6 +407,8 @@ OdbBackend_build_as_iter(const git_oid *oid, void *accum)
         return GIT_EUSER;
 
     err = PyList_Append((PyObject*)accum, py_oid);
+    Py_DECREF(py_oid);
+
     if (err < 0)
         return GIT_EUSER;
 
@@ -416,24 +418,23 @@ OdbBackend_build_as_iter(const git_oid *oid, void *accum)
 PyObject *
 OdbBackend_as_iter(OdbBackend *self)
 {
-    int err;
     PyObject *accum = PyList_New(0);
-    PyObject *ret = NULL;
+    PyObject *iter = NULL;
 
-    err = self->odb_backend->foreach(self->odb_backend,
-            OdbBackend_build_as_iter, (void*)accum);
+    int err = self->odb_backend->foreach(self->odb_backend, OdbBackend_build_as_iter, (void*)accum);
     if (err == GIT_EUSER)
         goto exit;
+
     if (err < 0) {
-        ret = Error_set(err);
+        Error_set(err);
         goto exit;
     }
 
-    ret = PyObject_GetIter(accum);
+    iter = PyObject_GetIter(accum);
 
 exit:
     Py_DECREF(accum);
-    return ret;
+    return iter;
 }
 
 PyDoc_STRVAR(OdbBackend_read__doc__,
