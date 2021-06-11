@@ -261,9 +261,10 @@ Object_hash(Object *self)
 PyObject *
 Object_repr(Object *self)
 {
-    char hex[GIT_OID_HEXSZ];
+    char hex[GIT_OID_HEXSZ + 1];
 
     git_oid_fmt(hex, Object__id(self));
+    hex[GIT_OID_HEXSZ] = '\0';
 
     return PyUnicode_FromFormat("<pygit2.Object{%s:%s}>",
         git_object_type2string(Object__type(self)),
