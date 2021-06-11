@@ -269,7 +269,7 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
     git_index *index;
     char *buffer;
     Py_ssize_t length;
-    PyObject *py_idx, *py_idx_ptr;
+    PyObject *py_idx;
     int err;
 
     if (!PyArg_ParseTuple(args, "O|IHH", &py_idx, &opts.flags,
@@ -277,38 +277,46 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
                                         &opts.interhunk_lines))
         return NULL;
 
-    /*
-     * This is a hack to check whether we're passed an index, as I
-     * haven't found a good way to grab a type object for
-     * pygit2.index.Index.
-     */
-    if (!PyObject_GetAttrString(py_idx, "_index")) {
+    /* Check whether the first argument is an index.
+     * FIXME Uses duck typing. This would be easy and correct if we had
+     * _pygit2.Index. */
+    PyObject *pygit2_index = PyObject_GetAttrString(py_idx, "_index");
+    if (!pygit2_index) {
         PyErr_SetString(PyExc_TypeError, "argument must be an Index");
         return NULL;
     }
-    py_idx_ptr = PyObject_GetAttrString(py_idx, "_pointer");
+    Py_DECREF(pygit2_index);
+
+    /* Get git_index from cffi's pointer */
+    PyObject *py_idx_ptr = PyObject_GetAttrString(py_idx, "_pointer");
     if (!py_idx_ptr)
         return NULL;
 
     /* Here we need to do the opposite conversion from the _pointer getters */
     if (PyBytes_AsStringAndSize(py_idx_ptr, &buffer, &length))
-        return NULL;
+        goto error;
 
     if (length != sizeof(git_index *)) {
         PyErr_SetString(PyExc_TypeError, "passed value is not a pointer");
-        return NULL;
+        goto error;
     }
 
-    /* the "buffer" contains the pointer */
-    index = *((git_index **) buffer);
+    index = *((git_index **) buffer); /* the "buffer" contains the pointer */
 
+    /* Call git_diff_tree_to_index */
     if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
 
     err = git_diff_tree_to_index(&diff, self->repo->repo, self->tree, index, &opts);
+    Py_DECREF(py_idx_ptr);
+
     if (err < 0)
         return Error_set(err);
 
     return wrap_diff(diff, self->repo);
+
+error:
+    Py_DECREF(py_idx_ptr);
+    return NULL;
 }
 
 

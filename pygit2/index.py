@@ -34,6 +34,10 @@ from .utils import GenericIterator, StrArray
 
 
 class Index:
+    # XXX Implement the basic features in C (_pygit2.Index) and make
+    # pygit2.Index to inherit from _pygit2.Index? This would allow for
+    # a proper implementation in some places: e.g. checking the index type
+    # from C code (see Tree_diff_to_index)
 
     def __init__(self, path=None):
         """Create a new Index
