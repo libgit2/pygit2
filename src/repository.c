@@ -1770,26 +1770,26 @@ PyDoc_STRVAR(Repository_notes__doc__, "");
 PyObject *
 Repository_notes(Repository *self, PyObject *args)
 {
-    NoteIter *iter = NULL;
     char *ref = "refs/notes/commits";
-    int err = GIT_ERROR;
-
     if (!PyArg_ParseTuple(args, "|s", &ref))
         return NULL;
 
-    iter = PyObject_New(NoteIter, &NoteIterType);
-    if (iter != NULL) {
-        iter->repo = self;
-        iter->ref = ref;
+    NoteIter *iter = PyObject_New(NoteIter, &NoteIterType);
+    if (iter == NULL)
+        return NULL;
 
-        err = git_note_iterator_new(&iter->iter, self->repo, iter->ref);
-        if (err == GIT_OK) {
-            Py_INCREF(self);
-            return (PyObject*)iter;
-        }
+    Py_INCREF(self);
+    iter->repo = self;
+    iter->ref = ref;
+    iter->iter = NULL;
+
+    int err = git_note_iterator_new(&iter->iter, self->repo, iter->ref);
+    if (err != GIT_OK) {
+        Py_DECREF(iter);
+        return Error_set(err);
     }
 
-    return Error_set(err);
+    return (PyObject*)iter;
 }
 
 
