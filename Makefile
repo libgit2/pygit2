@@ -1,7 +1,7 @@
 .PHONY: build html
 
 build:
-	python setup.py build_ext --inplace -g
+	LIBGIT2_VERSION=1.1.0 sh build.sh
 
 html:
 	cd docs && find . -name "*rst" | entr make html
