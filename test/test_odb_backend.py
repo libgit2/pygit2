@@ -33,14 +33,13 @@ import os
 import pytest
 
 # pygit2
-from pygit2 import OdbBackend, OdbBackendPack, OdbBackendLoose, Oid
-from pygit2 import GIT_OBJ_BLOB
+import pygit2
 from . import utils
 
 
 BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
-BLOB_OID = Oid(raw=BLOB_RAW)
+BLOB_OID = pygit2.Oid(raw=BLOB_RAW)
 
 
 @pytest.fixture
@@ -48,13 +47,14 @@ def odb(barerepo):
     odb = barerepo.odb
     path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
     yield odb, path
-    del odb
-    gc.collect()
+#   del odb
+#   gc.collect()
+
 
 def test_pack(odb):
     odb, path = odb
 
-    pack = OdbBackendPack(path)
+    pack = pygit2.OdbBackendPack(path)
     assert len(list(pack)) > 0
     for obj in pack:
         assert obj in odb
@@ -62,13 +62,13 @@ def test_pack(odb):
 def test_loose(odb):
     odb, path = odb
 
-    pack = OdbBackendLoose(path, 5, False)
+    pack = pygit2.OdbBackendLoose(path, 5, False)
     assert len(list(pack)) > 0
     for obj in pack:
         assert obj in odb
 
 
-class ProxyBackend(OdbBackend):
+class ProxyBackend(pygit2.OdbBackend):
     def __init__(self, source):
         super().__init__()
         self.source = source
@@ -89,14 +89,22 @@ class ProxyBackend(OdbBackend):
     def exists_prefix(self, oid):
         return self.source.exists_prefix(oid)
 
+    def refresh(self):
+        self.source.refresh()
+
     def __iter__(self):
         return iter(self.source)
 
 
+#
+# Test a custom object backend alone (without adding it to an ODB)
+# This doesn't make much sense, but it's possible.
+#
+
 @pytest.fixture
 def proxy(barerepo):
     path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
-    yield ProxyBackend(OdbBackendPack(path))
+    yield ProxyBackend(pygit2.OdbBackendPack(path))
 
 
 def test_iterable(proxy):
@@ -110,12 +118,12 @@ def test_read(proxy):
     ab = proxy.read(BLOB_OID)
     a = proxy.read(BLOB_HEX)
     assert ab == a
-    assert (GIT_OBJ_BLOB, b'a contents\n') == a
+    assert (pygit2.GIT_OBJ_BLOB, b'a contents\n') == a
 
 def test_read_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
     a3 = proxy.read_prefix(a_hex_prefix)
-    assert (GIT_OBJ_BLOB, b'a contents\n', BLOB_OID) == a3
+    assert (pygit2.GIT_OBJ_BLOB, b'a contents\n', BLOB_OID) == a3
 
 def test_exists(proxy):
     with pytest.raises(TypeError):

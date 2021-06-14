@@ -23,6 +23,14 @@
  * along with this program; see the file COPYING.  If not, write to
  * the Free Software Foundation, 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
+ *
+ *
+ * TODO This still needs much work to make it usable, and maintanable!
+ * The read/refresh etc. functions now serve 2 different purposes:
+ *  - Wrap the equivalent backend functions (for C backends such as Pack and Loose)
+ *  - Implement the feature for custom Python backends (i.e. callbacks)
+ * This has to be separated. TODO For the callback purpose, rename read to
+ * read_cb, refresh to refresh_cb, and so on.
  */
 
 #define PY_SSIZE_T_CLEAN

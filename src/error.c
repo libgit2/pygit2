@@ -138,16 +138,24 @@ Error_type_error(const char *format, PyObject *value)
 int
 git_error_for_exc(void)
 {
-    PyObject *err;
-    if ((err = PyErr_Occurred()) != NULL) {
+    PyObject *err = PyErr_Occurred();
+    if (err) {
+        // FIXME Here we're masking exception, if the Python implementation has
+        // a genuine Key or Value error. We should have an explicit way for the
+        // Python callbacks to signal ENOTFOUND (and EAMBIGUOUS?)
+
+        // Not found is an expected condition (the ODB will try with the next
+        // backend), so we clear the exception.
         if (PyErr_GivenExceptionMatches(err, PyExc_KeyError)) {
+            PyErr_Clear();
             return GIT_ENOTFOUND;
         }
-        if (PyErr_GivenExceptionMatches(err, PyExc_ValueError)) {
+
+        if (PyErr_GivenExceptionMatches(err, PyExc_ValueError))
             return GIT_EAMBIGUOUS;
-        }
-        /* TODO: others? */
+
         return GIT_EUSER;
     }
+
     return 0;
 }
