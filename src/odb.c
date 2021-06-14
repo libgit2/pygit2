@@ -277,15 +277,15 @@ Odb_add_backend(Odb *self, PyObject *args)
         return NULL;
 
     if (!PyObject_IsInstance((PyObject *)backend, (PyObject *)&OdbBackendType)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "add_backend expects an object of type "
-                        "pygit2.OdbBackend");
+        PyErr_SetString(PyExc_TypeError, "add_backend expects an instance of pygit2.OdbBackend");
         return NULL;
     }
 
     err = git_odb_add_backend(self->odb, backend->odb_backend, priority);
     if (err != 0)
         return Error_set(err);
+
+    Py_INCREF(backend);
 
     Py_RETURN_NONE;
 }

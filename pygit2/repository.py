@@ -1465,12 +1465,14 @@ class References:
 class Repository(BaseRepository):
     def __init__(self, path=None, flags=0):
         """
-        The Repository constructor will commonly be called with one argument, the path of the repository to open.
+        The Repository constructor will commonly be called with one argument,
+        the path of the repository to open.
 
-        Alternatively, constructing a repository with no arguments will create a repository with no backends. You can
-        use this path to create repositories with custom backends. Note that most operations on the repository are
-        considered invalid and may lead to undefined behavior if attempted before providing an odb and refdb via set_odb
-        and set_refdb.
+        Alternatively, constructing a repository with no arguments will create
+        a repository with no backends. You can use this path to create
+        repositories with custom backends. Note that most operations on the
+        repository are considered invalid and may lead to undefined behavior if
+        attempted before providing an odb and refdb via set_odb and set_refdb.
 
         Parameters:
 
