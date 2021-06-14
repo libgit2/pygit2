@@ -308,17 +308,16 @@ PyObject *
 Odb_backends__get__(Odb *self)
 {
     int err;
-    size_t i, nbackends;
     git_odb_backend *backend;
-    PyObject *accum = PyList_New(0);
     PyObject *ret = NULL;
     PyObject *py_backend;
 
+    PyObject *accum = PyList_New(0);
     if (accum == NULL)
         return NULL;
 
-    nbackends = git_odb_num_backends(self->odb);
-    for (i = 0; i < nbackends; ++i) {
+    size_t nbackends = git_odb_num_backends(self->odb);
+    for (size_t i = 0; i < nbackends; ++i) {
         err = git_odb_get_backend(&backend, self->odb, i);
         if (err != 0) {
             ret = Error_set(err);

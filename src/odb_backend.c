@@ -47,18 +47,7 @@
 struct pygit2_odb_backend
 {
     git_odb_backend backend;
-    PyObject *OdbBackend;
-    PyObject *read,
-             *read_prefix,
-             *read_header,
-             *write,
-             *writestream,
-             *readstream,
-             *exists,
-             *exists_prefix,
-             *refresh,
-             *writepack,
-             *freshen;
+    PyObject *py_backend;
 };
 
 static int
@@ -71,10 +60,7 @@ pygit2_odb_backend_read(void **ptr, size_t *sz,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *args = Py_BuildValue("(N)", py_oid);
-    PyObject *result = PyObject_CallObject(be->read, args);
-    Py_DECREF(args);
-
+    PyObject *result = PyObject_CallMethod(be->py_backend, "read", "O", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -107,10 +93,7 @@ pygit2_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *args = Py_BuildValue("(N)", py_oid);
-    PyObject *result = PyObject_CallObject(be->read_prefix, args);
-    Py_DECREF(args);
-
+    PyObject *result = PyObject_CallMethod(be->py_backend, "read_prefix", "O", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -143,10 +126,7 @@ pygit2_odb_backend_read_header(size_t *len, git_object_t *type,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *args = Py_BuildValue("(N)", py_oid);
-    PyObject *result = PyObject_CallObject(be->read_header, args);
-    Py_DECREF(args);
-
+    PyObject *result = PyObject_CallMethod(be->py_backend, "read_header", "O", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -169,10 +149,7 @@ pygit2_odb_backend_write(git_odb_backend *_be, const git_oid *oid,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *args = Py_BuildValue("(Ny#n)", py_oid, data, sz, typ);
-    PyObject *result = PyObject_CallObject(be->write, args);
-    Py_DECREF(args);
-
+    PyObject *result = PyObject_CallMethod(be->py_backend, "write", "Ny#n", py_oid, data, sz, typ);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -189,10 +166,7 @@ pygit2_odb_backend_exists(git_odb_backend *_be, const git_oid *oid)
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *args = Py_BuildValue("(N)", py_oid);
-    PyObject *result = PyObject_CallObject(be->exists, args);
-    Py_DECREF(args);
-
+    PyObject *result = PyObject_CallMethod(be->py_backend, "exists", "N", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -212,10 +186,7 @@ pygit2_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *args = Py_BuildValue("(N)", py_oid);
-    PyObject *result = PyObject_CallObject(be->exists_prefix, args);
-    Py_DECREF(args);
-
+    PyObject *result = PyObject_CallMethod(be->py_backend, "exists_prefix", "N", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -239,7 +210,7 @@ static int
 pygit2_odb_backend_refresh(git_odb_backend *_be)
 {
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
-    PyObject_CallObject(be->refresh, NULL);
+    PyObject_CallMethod(be->py_backend, "refresh", NULL);
     return git_error_for_exc();
 }
 
@@ -250,7 +221,7 @@ pygit2_odb_backend_foreach(git_odb_backend *_be,
     PyObject *item;
     git_oid oid;
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
-    PyObject *iterator = PyObject_GetIter((PyObject *)be->OdbBackend);
+    PyObject *iterator = PyObject_GetIter((PyObject *)be->py_backend);
     assert(iterator);
 
     while ((item = PyIter_Next(iterator))) {
@@ -266,7 +237,7 @@ static void
 pygit2_odb_backend_free(git_odb_backend *_be)
 {
     struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)_be;
-    Py_DECREF(be->OdbBackend);
+    Py_DECREF(be->py_backend);
 }
 
 int
@@ -284,70 +255,25 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
 
     struct pygit2_odb_backend *be = calloc(1, sizeof(struct pygit2_odb_backend));
     be->backend.version = GIT_ODB_BACKEND_VERSION;
-    be->OdbBackend = (PyObject *)self;
+    be->py_backend = (PyObject *)self;
 
-    if (PyObject_HasAttrString((PyObject *)self, "read")) {
-        be->read = PyObject_GetAttrString((PyObject *)self, "read");
-        be->backend.read = pygit2_odb_backend_read;
-    }
+    be->backend.read = pygit2_odb_backend_read;
+    be->backend.read_prefix = pygit2_odb_backend_read_prefix;
+    be->backend.read_header = pygit2_odb_backend_read_header;
+    be->backend.write = pygit2_odb_backend_write;
 
-    if (PyObject_HasAttrString((PyObject *)self, "read_prefix")) {
-        be->read_prefix = PyObject_GetAttrString((PyObject *)self, "read_prefix");
-        be->backend.read_prefix = pygit2_odb_backend_read_prefix;
-    }
+//  be->backend.writestream = pygit2_odb_backend_writestream;
+//  be->backend.readstream = pygit2_odb_backend_readstream;
 
-    if (PyObject_HasAttrString((PyObject *)self, "read_header")) {
-        be->read_header = PyObject_GetAttrString((PyObject *)self, "read_header");
-        be->backend.read_header = pygit2_odb_backend_read_header;
-    }
+    be->backend.exists = pygit2_odb_backend_exists;
+    be->backend.exists_prefix = pygit2_odb_backend_exists_prefix;
+    be->backend.refresh = pygit2_odb_backend_refresh;
 
-    if (PyObject_HasAttrString((PyObject *)self, "write")) {
-        be->write = PyObject_GetAttrString((PyObject *)self, "write");
-        be->backend.write = pygit2_odb_backend_write;
-    }
-
-    /* TODO: Stream-based read/write
-    if (PyObject_HasAttrString((PyObject *)self, "writestream")) {
-        be->writestream = PyObject_GetAttrString((PyObject *)self, "writestream");
-        be->backend.writestream = pygit2_odb_backend_writestream;
-    }
-
-    if (PyObject_HasAttrString((PyObject *)self, "readstream")) {
-        be->readstream = PyObject_GetAttrString((PyObject *)self, "readstream");
-        be->backend.readstream = pygit2_odb_backend_readstream;
-    }
-    */
-
-    if (PyObject_HasAttrString((PyObject *)self, "exists")) {
-        be->exists = PyObject_GetAttrString((PyObject *)self, "exists");
-        be->backend.exists = pygit2_odb_backend_exists;
-    }
-
-    if (PyObject_HasAttrString((PyObject *)self, "exists_prefix")) {
-        be->exists_prefix = PyObject_GetAttrString((PyObject *)self, "exists_prefix");
-        be->backend.exists_prefix = pygit2_odb_backend_exists_prefix;
-    }
-
-    if (PyObject_HasAttrString((PyObject *)self, "refresh")) {
-        be->refresh = PyObject_GetAttrString((PyObject *)self, "refresh");
-        be->backend.refresh = pygit2_odb_backend_refresh;
-    }
-
-    if (PyIter_Check((PyObject *)self)) {
+    if (PyIter_Check((PyObject *)self))
         be->backend.foreach = pygit2_odb_backend_foreach;
-    }
 
-    /* TODO:
-    if (PyObject_HasAttrString((PyObject *)self, "writepack")) {
-        be->writepack = PyObject_GetAttrString((PyObject *)self, "writepack");
-        be->backend.writepack = pygit2_odb_backend_writepack;
-    }
-
-    if (PyObject_HasAttrString((PyObject *)self, "freshen")) {
-        be->freshen = PyObject_GetAttrString((PyObject *)self, "freshen");
-        be->backend.freshen = pygit2_odb_backend_freshen;
-    }
-    */
+//  be->backend.writepack = pygit2_odb_backend_writepack;
+//  be->backend.freshen = pygit2_odb_backend_freshen;
 
     Py_INCREF((PyObject *)self);
     be->backend.free = pygit2_odb_backend_free;
@@ -361,17 +287,6 @@ OdbBackend_dealloc(OdbBackend *self)
 {
     if (self->odb_backend && self->odb_backend->read == pygit2_odb_backend_read) {
         struct pygit2_odb_backend *be = (struct pygit2_odb_backend *)self->odb_backend;
-        Py_CLEAR(be->read);
-        Py_CLEAR(be->read_prefix);
-        Py_CLEAR(be->read_header);
-        Py_CLEAR(be->write);
-        Py_CLEAR(be->writestream);
-        Py_CLEAR(be->readstream);
-        Py_CLEAR(be->exists);
-        Py_CLEAR(be->exists_prefix);
-        Py_CLEAR(be->refresh);
-        Py_CLEAR(be->writepack);
-        Py_CLEAR(be->freshen);
         free(be);
     }
 
