@@ -27,7 +27,6 @@
 
 # Standard Library
 import binascii
-import gc
 import os
 
 import pytest
@@ -47,8 +46,6 @@ def odb(barerepo):
     odb = barerepo.odb
     path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
     yield odb, path
-#   del odb
-#   gc.collect()
 
 
 def test_pack(odb):
@@ -73,23 +70,23 @@ class ProxyBackend(pygit2.OdbBackend):
         super().__init__()
         self.source = source
 
-    def read(self, oid):
+    def read_cb(self, oid):
         return self.source.read(oid)
 
-    def read_prefix(self, oid):
+    def read_prefix_cb(self, oid):
         return self.source.read_prefix(oid)
 
-    def read_header(self, oid):
+    def read_header_cb(self, oid):
         typ, data = self.source.read(oid)
         return typ, len(data)
 
-    def exists(self, oid):
+    def exists_cb(self, oid):
         return self.source.exists(oid)
 
-    def exists_prefix(self, oid):
+    def exists_prefix_cb(self, oid):
         return self.source.exists_prefix(oid)
 
-    def refresh(self):
+    def refresh_cb(self):
         self.source.refresh()
 
     def __iter__(self):
@@ -136,3 +133,32 @@ def test_exists_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
     a3 = proxy.exists_prefix(a_hex_prefix)
     assert BLOB_HEX == a3.hex
+
+
+#
+# Test a custom object backend, through a Repository.
+#
+
+@pytest.fixture
+def repo(barerepo):
+    odb = pygit2.Odb()
+
+    path = os.path.join(barerepo.path, 'objects')
+    backend = pygit2.OdbBackendPack(path)
+    backend = ProxyBackend(backend)
+    odb.add_backend(backend, 1)
+
+    repo = pygit2.Repository()
+    repo.set_odb(odb)
+    yield repo
+
+
+def test_repo_read(repo):
+    with pytest.raises(TypeError):
+        repo[123]
+
+    utils.assertRaisesWithArg(KeyError, '1' * 40, repo.__getitem__, '1' * 40)
+
+    ab = repo[BLOB_OID]
+    a = repo[BLOB_HEX]
+    assert ab == a

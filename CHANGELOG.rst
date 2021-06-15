@@ -1,3 +1,10 @@
+1.6.1 (UNRELEASED)
+-------------------------
+
+- Fix a number of reference leaks
+- Review custom object backends
+
+
 1.6.0 (2021-06-01)
 -------------------------
 

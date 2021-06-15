@@ -26,11 +26,10 @@
  *
  *
  * TODO This still needs much work to make it usable, and maintanable!
- * The read/refresh etc. functions now serve 2 different purposes:
- *  - Wrap the equivalent backend functions (for C backends such as Pack and Loose)
- *  - Implement the feature for custom Python backends (i.e. callbacks)
- * This has to be separated. TODO For the callback purpose, rename read to
- * read_cb, refresh to refresh_cb, and so on.
+ * - Create OdbBackendCustomType that inherits from OdbBackendType.
+ *   OdbBackendType should not be subclassed, instead subclass
+ *   OdbBackendCustomType to develop custom backends in Python.
+ *   Implement this new type in src/odb_backend_custom.c
  */
 
 #define PY_SSIZE_T_CLEAN
@@ -58,8 +57,8 @@ typedef struct {
 } pgit_odb_backend;
 
 static int
-pgit_odb_backend_read(void **ptr, size_t *sz,
-        git_object_t *type, git_odb_backend *_be, const git_oid *oid)
+pgit_odb_backend_read(void **ptr, size_t *sz, git_object_t *type,
+                      git_odb_backend *_be, const git_oid *oid)
 {
     pgit_odb_backend *be = (pgit_odb_backend *)_be;
 
@@ -67,7 +66,7 @@ pgit_odb_backend_read(void **ptr, size_t *sz,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *result = PyObject_CallMethod(be->py_backend, "read", "O", py_oid);
+    PyObject *result = PyObject_CallMethod(be->py_backend, "read_cb", "N", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -89,27 +88,26 @@ pgit_odb_backend_read(void **ptr, size_t *sz,
 }
 
 static int
-pgit_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz,
-        git_object_t *type, git_odb_backend *_be,
-        const git_oid *short_oid, size_t len)
+pgit_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz, git_object_t *type,
+                             git_odb_backend *_be, const git_oid *short_id, size_t len)
 {
-    PyObject *py_oid_out;
+    // short_id to hex
+    char short_id_hex[len];
+    git_oid_nfmt(short_id_hex, len, short_id);
+
+    // Call callback
     pgit_odb_backend *be = (pgit_odb_backend *)_be;
-
-    PyObject *py_oid = git_oid_to_python(short_oid);
-    if (py_oid == NULL)
-        return GIT_EUSER;
-
-    PyObject *result = PyObject_CallMethod(be->py_backend, "read_prefix", "O", py_oid);
+    PyObject *result = PyObject_CallMethod(be->py_backend, "read_prefix_cb", "s#", short_id_hex, len);
     if (result == NULL)
         return git_error_for_exc();
 
+    // Parse output from calback
+    PyObject *py_oid_out;
     const char *bytes;
-    if (!PyArg_ParseTuple(result, "Ony#", &py_oid_out, type, &bytes, sz) || !bytes) {
+    if (!PyArg_ParseTuple(result, "ny#O", type, &bytes, sz, &py_oid_out) || !bytes) {
         Py_DECREF(result);
         return GIT_EUSER;
     }
-
 
     *ptr = git_odb_backend_data_alloc(_be, *sz);
     if (!*ptr) {
@@ -125,7 +123,7 @@ pgit_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz,
 
 static int
 pgit_odb_backend_read_header(size_t *len, git_object_t *type,
-        git_odb_backend *_be, const git_oid *oid)
+                             git_odb_backend *_be, const git_oid *oid)
 {
     pgit_odb_backend *be = (pgit_odb_backend *)_be;
 
@@ -133,7 +131,7 @@ pgit_odb_backend_read_header(size_t *len, git_object_t *type,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *result = PyObject_CallMethod(be->py_backend, "read_header", "O", py_oid);
+    PyObject *result = PyObject_CallMethod(be->py_backend, "read_header_cb", "N", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -156,7 +154,7 @@ pgit_odb_backend_write(git_odb_backend *_be, const git_oid *oid,
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *result = PyObject_CallMethod(be->py_backend, "write", "Ny#n", py_oid, data, sz, typ);
+    PyObject *result = PyObject_CallMethod(be->py_backend, "write_cb", "Ny#n", py_oid, data, sz, typ);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -173,7 +171,7 @@ pgit_odb_backend_exists(git_odb_backend *_be, const git_oid *oid)
     if (py_oid == NULL)
         return GIT_EUSER;
 
-    PyObject *result = PyObject_CallMethod(be->py_backend, "exists", "N", py_oid);
+    PyObject *result = PyObject_CallMethod(be->py_backend, "exists_cb", "N", py_oid);
     if (result == NULL)
         return git_error_for_exc();
 
@@ -184,31 +182,20 @@ pgit_odb_backend_exists(git_odb_backend *_be, const git_oid *oid)
 
 static int
 pgit_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
-        const git_oid *partial, size_t len)
+                               const git_oid *short_id, size_t len)
 {
-    PyObject *py_oid_out;
+    // short_id to hex
+    char short_id_hex[len];
+    git_oid_nfmt(short_id_hex, len, short_id);
+
+    // Call callback
     pgit_odb_backend *be = (pgit_odb_backend *)_be;
-
-    PyObject *py_oid = git_oid_to_python(partial);
+    PyObject *py_oid = PyObject_CallMethod(be->py_backend, "exists_prefix_cb", "s#", short_id_hex, len);
     if (py_oid == NULL)
-        return GIT_EUSER;
-
-    PyObject *result = PyObject_CallMethod(be->py_backend, "exists_prefix", "N", py_oid);
-    if (result == NULL)
         return git_error_for_exc();
 
-    if (!PyArg_ParseTuple(result, "O", &py_oid_out)) {
-        Py_DECREF(result);
-        return GIT_EUSER;
-    }
-
-    Py_DECREF(result);
-
-    if (py_oid_out == Py_None)
-        return GIT_ENOTFOUND;
-
-    py_oid_to_git_oid(py_oid_out, out);
-    Py_DECREF(py_oid_out);
+    py_oid_to_git_oid(py_oid, out);
+    Py_DECREF(py_oid);
     return 0;
 }
 
@@ -216,7 +203,7 @@ static int
 pgit_odb_backend_refresh(git_odb_backend *_be)
 {
     pgit_odb_backend *be = (pgit_odb_backend *)_be;
-    PyObject_CallMethod(be->py_backend, "refresh", NULL);
+    PyObject_CallMethod(be->py_backend, "refresh_cb", NULL);
     return git_error_for_exc();
 }
 
@@ -349,7 +336,7 @@ OdbBackend_read(OdbBackend *self, PyObject *py_hex)
     int err;
     git_oid oid;
     git_object_t type;
-    size_t len, sz;
+    size_t len, size;
     void *data;
 
     if (self->odb_backend->read == NULL)
@@ -359,13 +346,13 @@ OdbBackend_read(OdbBackend *self, PyObject *py_hex)
     if (len == 0)
         return NULL;
 
-    err = self->odb_backend->read(&data, &sz, &type, self->odb_backend, &oid);
+    err = self->odb_backend->read(&data, &size, &type, self->odb_backend, &oid);
     if (err != 0) {
         Error_set_oid(err, &oid, len);
         return NULL;
     }
 
-    PyObject *tuple = Py_BuildValue("(ny#)", type, data, sz);
+    PyObject *tuple = Py_BuildValue("(ny#)", type, data, size);
 
     git_odb_backend_data_free(self->odb_backend, data);
 
@@ -383,7 +370,7 @@ OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
     int err;
     git_oid oid, oid_out;
     git_object_t type;
-    size_t len, sz;
+    size_t len, size;
     void *data;
 
     if (self->odb_backend->read_prefix == NULL)
@@ -393,7 +380,7 @@ OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
     if (len == 0)
         return NULL;
 
-    err = self->odb_backend->read_prefix(&oid_out, &data, &sz, &type, self->odb_backend, &oid, len);
+    err = self->odb_backend->read_prefix(&oid_out, &data, &size, &type, self->odb_backend, &oid, len);
     if (err != 0) {
         Error_set_oid(err, &oid, len);
         return NULL;
@@ -403,7 +390,7 @@ OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
     if (py_oid_out == NULL)
         return Error_set_exc(PyExc_MemoryError);
 
-    PyObject *tuple = Py_BuildValue("(ny#N)", type, data, sz, py_oid_out);
+    PyObject *tuple = Py_BuildValue("(ny#N)", type, data, size, py_oid_out);
 
     git_odb_backend_data_free(self->odb_backend, data);
 

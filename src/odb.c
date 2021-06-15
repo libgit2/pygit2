@@ -324,9 +324,12 @@ Odb_backends__get__(Odb *self)
             goto exit;
         }
 
+        // XXX This won't return the correct class for custom backends (add a
+        // test and fix)
         py_backend = wrap_odb_backend(backend);
         if (py_backend == NULL)
             goto exit;
+
         err = PyList_Append(accum, py_backend);
         if (err != 0)
             goto exit;

@@ -27,7 +27,6 @@
 
 # Standard Library
 import binascii
-import gc
 import os
 
 import pytest
@@ -57,8 +56,6 @@ def test_emptyodb():
 def odb(barerepo):
     odb = barerepo.odb
     yield odb
-    del odb
-    gc.collect()
 
 def test_iterable(odb):
     assert BLOB_HEX in [str(o) for o in odb]
