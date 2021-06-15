@@ -92,7 +92,7 @@ pgit_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz, git_objec
                              git_odb_backend *_be, const git_oid *short_id, size_t len)
 {
     // short_id to hex
-    char short_id_hex[len];
+    char short_id_hex[GIT_OID_HEXSZ];
     git_oid_nfmt(short_id_hex, len, short_id);
 
     // Call callback
@@ -185,7 +185,7 @@ pgit_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
                                const git_oid *short_id, size_t len)
 {
     // short_id to hex
-    char short_id_hex[len];
+    char short_id_hex[GIT_OID_HEXSZ];
     git_oid_nfmt(short_id_hex, len, short_id);
 
     // Call callback

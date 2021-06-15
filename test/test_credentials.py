@@ -113,8 +113,11 @@ def test_keypair_from_memory(tmp_path, pygit2_empty_key):
         pygit2.clone_repository(url, tmp_path)
 
     prv, pub, secret = pygit2_empty_key
-    prv_mem = open(prv).read()
-    pub_mem = open(pub).read()
+    with open(prv) as f:
+        prv_mem = f.read()
+
+    with open(pub) as f:
+        pub_mem = f.read()
 
     keypair = pygit2.KeypairFromMemory("git", pub_mem, prv_mem, secret)
     callbacks = pygit2.RemoteCallbacks(credentials=keypair)

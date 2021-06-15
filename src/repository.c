@@ -1314,25 +1314,24 @@ static int foreach_path_cb(git_submodule *submodule, const char *name, void *pay
     PyObject *list = (PyObject *)payload;
     PyObject *path = to_unicode(git_submodule_path(submodule), NULL, NULL);
 
-    return PyList_Append(list, path);
+    int err = PyList_Append(list, path);
+    Py_DECREF(path);
+    return err;
 }
 
 PyObject *
 Repository_listall_submodules(Repository *self, PyObject *args)
 {
-    int err;
-    PyObject *list;
-
-    list = PyList_New(0);
+    PyObject *list = PyList_New(0);
     if (list == NULL)
         return NULL;
 
-    err = git_submodule_foreach(self->repo, foreach_path_cb, list);
+    int err = git_submodule_foreach(self->repo, foreach_path_cb, list);
     if (err) {
         Py_DECREF(list);
-        if (PyErr_Occurred()) {
-          return NULL;
-        }
+        if (PyErr_Occurred())
+            return NULL;
+
         return Error_set(err);
     }
 
@@ -1359,7 +1358,6 @@ Repository_init_submodules(Repository* self, PyObject *args, PyObject *kwds)
     PyObject *oflag = Py_False;
     char *kwlist[] = {"submodules", "overwrite", NULL};
     int err;
-    PyObject *iter, *next;
     const char *c_subpath;
     git_submodule *submodule;
 
@@ -1378,32 +1376,42 @@ Repository_init_submodules(Repository* self, PyObject *args, PyObject *kwds)
         Py_RETURN_NONE;
     }
 
-    iter = PyObject_GetIter(list);
+    PyObject *iter = PyObject_GetIter(list);
     if (!iter)
         return NULL;
 
+    PyObject *next = NULL;
     while (1) {
+        Py_XDECREF(next); // Decref from the previous iteration
         next = PyIter_Next(iter);
-        if (!next)
+        if (next == NULL) // List exhausted
             break;
 
         c_subpath = pgit_borrow(next);
         if (c_subpath == NULL)
-            return NULL;
+            goto error;
 
         err = git_submodule_lookup(&submodule, self->repo, c_subpath);
         if (!submodule) {
             PyErr_SetString(PyExc_KeyError, "Submodule does not exist");
-            return NULL;
+            goto error;
         }
 
         err = git_submodule_init(submodule, fflag);
         if (err) {
-            return Error_set(err);
+            Error_set(err);
+            goto error;
         }
     }
 
+    // Success
+    Py_DECREF(iter);
     Py_RETURN_NONE;
+
+error:
+    Py_DECREF(iter);
+    Py_XDECREF(next);
+    return NULL;
 }
 
 PyDoc_STRVAR(Repository_lookup_reference__doc__,
