@@ -1,4 +1,4 @@
-# Copyright 2020 The pygit2 contributors
+# Copyright 2020-2021 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,

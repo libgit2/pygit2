@@ -1,4 +1,4 @@
-# Copyright 2010-2020 The pygit2 contributors
+# Copyright 2010-2021 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -35,7 +35,7 @@ from os import getenv
 #
 # The version number of pygit2
 #
-__version__ = '1.6.0'
+__version__ = '1.6.1'
 
 
 #

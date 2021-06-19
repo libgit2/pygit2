@@ -1,8 +1,13 @@
-1.6.1 (UNRELEASED)
+1.6.1 (2021-06-19)
 -------------------------
 
 - Fix a number of reference leaks
 - Review custom object backends
+
+Breaking changes:
+
+- In custom backends the callbacks have been renamed from ``read`` to
+  ``read_cb``, ``write`` to ``write_cb``, and so on.
 
 
 1.6.0 (2021-06-01)
