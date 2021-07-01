@@ -614,6 +614,8 @@ class BaseRepository(_Repository):
 
         options = ffi.new('git_blame_options *')
         C.git_blame_init_options(options, C.GIT_BLAME_OPTIONS_VERSION)
+        if flags:
+            options.flags = flags
         if min_match_characters:
             options.min_match_characters = min_match_characters
         if newest_commit:
