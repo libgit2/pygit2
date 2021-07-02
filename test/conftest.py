@@ -37,6 +37,12 @@ def barerepo_path(tmp_path):
 
 
 @pytest.fixture
+def blameflagsrepo(tmp_path):
+    with utils.TemporaryRepository('blameflagsrepo.tar', tmp_path) as path:
+        yield pygit2.Repository(path)
+
+
+@pytest.fixture
 def dirtyrepo(tmp_path):
     with utils.TemporaryRepository('dirtyrepo.tar', tmp_path) as path:
         yield pygit2.Repository(path)

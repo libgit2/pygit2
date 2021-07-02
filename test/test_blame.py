@@ -27,10 +27,22 @@
 
 import pytest
 
-from pygit2 import Signature, Oid
+from pygit2 import Signature, Oid, GIT_BLAME_IGNORE_WHITESPACE
 
 
 PATH = 'hello.txt'
+
+# HUNKS = [
+#     (Oid(hex='eaddae1752f876d0de669f2bcfd3087f4e2256f4'), 1,
+#      Signature('Sebastian Böhm', 'boehmseb@cs.uni-saarland.de',
+#                1625212598, 120, encoding='utf-8'), False),
+#     (Oid(hex='6aaa262e655dd54252e5813c8e5acd7780ed097d'), 2,
+#      Signature('J. David Ibañez', 'jdavid@itaapy.com',
+#                1297696877, 60, encoding='utf-8'), False),
+#     (Oid(hex='4ec4389a8068641da2d6578db0419484972284c8'), 3,
+#      Signature('J. David Ibañez', 'jdavid@itaapy.com',
+#                1297696908, 60, encoding='utf-8'), False)
+# ]
 
 HUNKS = [
     (Oid(hex='acecd5ea2924a4b900e7e149496e1f4b57976e51'), 1,
@@ -60,6 +72,24 @@ def test_blame_index(testrepo):
         assert HUNKS[i][1] == hunk.orig_start_line_number
         assert HUNKS[i][2] == hunk.orig_committer
         assert HUNKS[i][3] == hunk.boundary
+
+
+def test_blame_flags(blameflagsrepo):
+    blame = blameflagsrepo.blame(PATH, flags=GIT_BLAME_IGNORE_WHITESPACE)
+
+    assert len(blame) == 3
+
+    for i, hunk in enumerate(blame):
+        assert hunk.lines_in_hunk == 1
+        assert HUNKS[i][0] == hunk.final_commit_id
+        assert HUNKS[i][1] == hunk.final_start_line_number
+        assert HUNKS[i][2] == hunk.final_committer
+        assert HUNKS[i][0] == hunk.orig_commit_id
+        assert hunk.orig_path == PATH
+        assert HUNKS[i][1] == hunk.orig_start_line_number
+        assert HUNKS[i][2] == hunk.orig_committer
+        assert HUNKS[i][3] == hunk.boundary
+
 
 def test_blame_with_invalid_index(testrepo):
     blame = testrepo.blame(PATH)
