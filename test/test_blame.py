@@ -32,18 +32,6 @@ from pygit2 import Signature, Oid, GIT_BLAME_IGNORE_WHITESPACE
 
 PATH = 'hello.txt'
 
-# HUNKS = [
-#     (Oid(hex='eaddae1752f876d0de669f2bcfd3087f4e2256f4'), 1,
-#      Signature('Sebastian Böhm', 'boehmseb@cs.uni-saarland.de',
-#                1625212598, 120, encoding='utf-8'), False),
-#     (Oid(hex='6aaa262e655dd54252e5813c8e5acd7780ed097d'), 2,
-#      Signature('J. David Ibañez', 'jdavid@itaapy.com',
-#                1297696877, 60, encoding='utf-8'), False),
-#     (Oid(hex='4ec4389a8068641da2d6578db0419484972284c8'), 3,
-#      Signature('J. David Ibañez', 'jdavid@itaapy.com',
-#                1297696908, 60, encoding='utf-8'), False)
-# ]
-
 HUNKS = [
     (Oid(hex='acecd5ea2924a4b900e7e149496e1f4b57976e51'), 1,
      Signature('J. David Ibañez', 'jdavid@itaapy.com',
