@@ -23,19 +23,19 @@
 #
 #   sh build.sh
 #
-# Build libgit2 1.1.0 (will use libssh2 if available), then build pygit2
+# Build libgit2 1.2.0 (will use libssh2 if available), then build pygit2
 # inplace:
 #
-#   LIBGIT2_VERSION=1.1.0 sh build.sh
+#   LIBGIT2_VERSION=1.2.0 sh build.sh
 #
-# Build libssh2 1.9.0 and libgit2 1.1.0, then build pygit2 inplace:
+# Build libssh2 1.9.0 and libgit2 1.2.0, then build pygit2 inplace:
 #
-#   LIBSSH2_VERSION=1.9.0 LIBGIT2_VERSION=1.1.0 sh build.sh
+#   LIBSSH2_VERSION=1.9.0 LIBGIT2_VERSION=1.2.0 sh build.sh
 #
-# Tell where libssh2 is installed, build libgit2 1.1.0, then build pygit2
+# Tell where libssh2 is installed, build libgit2 1.2.0, then build pygit2
 # inplace:
 #
-#   LIBSSH2_PREFIX=/usr/local LIBGIT2_VERSION=1.1.0 sh build.sh
+#   LIBSSH2_PREFIX=/usr/local LIBGIT2_VERSION=1.2.0 sh build.sh
 #
 # Build inplace and run the tests:
 #
@@ -95,7 +95,7 @@ fi
 # Install libgit2
 if [ -n "$LIBGIT2_VERSION" ]; then
     FILENAME=libgit2-$LIBGIT2_VERSION
-    wget https://github.com/libgit2/libgit2/releases/download/v$LIBGIT2_VERSION/$FILENAME.tar.gz -N
+    wget https://github.com/libgit2/libgit2/archive/refs/tags/v$LIBGIT2_VERSION.tar.gz -N -O $FILENAME.tar.gz
     tar xf $FILENAME.tar.gz
     cd $FILENAME
     CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \

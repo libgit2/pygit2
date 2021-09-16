@@ -30,12 +30,12 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt install tinyproxy
-        LIBSSH2_VERSION=1.9.0 LIBGIT2_VERSION=1.1.0 /bin/sh build.sh test
+        LIBSSH2_VERSION=1.9.0 LIBGIT2_VERSION=1.2.0 /bin/sh build.sh test
 
     - name: macOS
       if: runner.os == 'macOS'
       run: |
         export OPENSSL_PREFIX=`brew --prefix openssl@1.1`
         export LIBSSH2_PREFIX=`brew --prefix libssh2`
-        export LIBGIT2_VERSION=1.1.0
+        export LIBGIT2_VERSION=1.2.0
         /bin/sh build.sh test

@@ -29,7 +29,7 @@ pushd $TMP_DIR
 export OPENSSL_PREFIX=/opt/pyca/cryptography/openssl
 export ZLIB_VERSION=1.2.11
 export LIBSSH2_VERSION=1.9.0
-export LIBGIT2_VERSION=1.1.0
+export LIBGIT2_VERSION=1.2.0
 export BUILD_TYPE=Release
 for PY in $PYTHONS; do
     PYTHON=/opt/python/${PY}/bin/python sh build.sh wheel bundle test

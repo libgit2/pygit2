@@ -23,6 +23,7 @@ typedef struct {
 
 typedef int (*git_push_negotiation)(const git_push_update **updates, size_t len, void *payload);
 typedef int (*git_push_update_reference_cb)(const char *refname, const char *status, void *data);
+typedef int (*git_remote_ready_cb)(git_remote *remote, int direction, void *payload);
 typedef int (*git_url_resolve_cb)(git_buf *url_resolved, const char *url, int direction, void *payload);
 
 struct git_remote_callbacks {
@@ -38,6 +39,7 @@ struct git_remote_callbacks {
 	git_push_update_reference_cb push_update_reference;
 	git_push_negotiation push_negotiation;
 	git_transport_cb transport;
+	git_remote_ready_cb remote_ready;
 	void *payload;
 	git_url_resolve_cb resolve_url;
 };
