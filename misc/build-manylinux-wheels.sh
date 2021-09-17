@@ -40,4 +40,4 @@ popd
 ls -l $TMP_DIR/wheelhouse
 mkdir -p $SRC_DIR/dist
 cp $TMP_DIR/wheelhouse/pygit2-*_$ARCH.whl $SRC_DIR/dist
-chown -R --reference="${SRC_DIR}/.travis.yml" ${SRC_DIR}/dist
+chown -R --reference="${SRC_DIR}/setup.py" ${SRC_DIR}/dist

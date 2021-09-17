@@ -5,8 +5,8 @@ The development version
 Unit tests
 ==========
 
-.. image:: https://travis-ci.org/libgit2/pygit2.svg?branch=master
-   :target: http://travis-ci.org/libgit2/pygit2
+.. image:: https://github.com/libgit2/pygit2/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/libgit2/pygit2/actions/workflows/tests.yml
 
 .. image:: https://ci.appveyor.com/api/projects/status/edmwc0dctk5nacx0/branch/master?svg=true
    :target: https://ci.appveyor.com/project/jdavid/pygit2/branch/master

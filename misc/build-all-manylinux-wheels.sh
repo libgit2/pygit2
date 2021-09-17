@@ -15,5 +15,5 @@ docker pull "${manylinux_image}" &
 wait
 
 # Build wheels
-docker run --rm -v `pwd`:/io/src "${manylinux_image}" /io/src/travis/build-manylinux-wheels.sh &
+docker run --rm -v `pwd`:/io/src "${manylinux_image}" /io/src/misc/build-manylinux-wheels.sh &
 wait

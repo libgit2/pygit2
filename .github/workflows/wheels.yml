@@ -24,7 +24,7 @@ jobs:
       uses: docker/setup-qemu-action@v1
 
     - run: |
-        /bin/sh travis/build-all-manylinux-wheels.sh ${{ matrix.arch }}
+        /bin/sh misc/build-all-manylinux-wheels.sh ${{ matrix.arch }}
 
     - name: Save wheels
       uses: actions/upload-artifact@v2
