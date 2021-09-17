@@ -28,7 +28,7 @@ cp -a $SRC_DIR $TMP_DIR
 pushd $TMP_DIR
 export OPENSSL_PREFIX=/opt/pyca/cryptography/openssl
 export ZLIB_VERSION=1.2.11
-export LIBSSH2_VERSION=1.9.0
+export LIBSSH2_VERSION=1.10.0
 export LIBGIT2_VERSION=1.2.0
 export BUILD_TYPE=Release
 for PY in $PYTHONS; do

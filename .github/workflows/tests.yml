@@ -30,7 +30,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt install tinyproxy
-        LIBSSH2_VERSION=1.9.0 LIBGIT2_VERSION=1.2.0 /bin/sh build.sh test
+        LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.2.0 /bin/sh build.sh test
 
     - name: macOS
       if: runner.os == 'macOS'
