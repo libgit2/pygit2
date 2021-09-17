@@ -5,17 +5,19 @@ on:
   push:
 
 jobs:
-  build:
+  x86_64:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest]
-        python-version: [3.6, 3.9, pypy3]
-        exclude:
-        - os: macos-latest
+        include:
+        - os: ubuntu-20.04
+          python-version: 3.6
+        - os: ubuntu-20.04
           python-version: 3.9
-        - os: macos-latest
+        - os: ubuntu-20.04
           python-version: pypy3
+        - os: macos-latest
+          python-version: 3.6
 
     steps:
     - name: Checkout pygit2
@@ -39,3 +41,36 @@ jobs:
         export LIBSSH2_PREFIX=`brew --prefix libssh2`
         export LIBGIT2_VERSION=1.2.0
         /bin/sh build.sh test
+
+  aarch64:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout pygit2
+      uses: actions/checkout@v2
+    - name: Build & test
+      uses: uraimo/run-on-arch-action@v2.1.1
+      with:
+        arch: aarch64
+        distro: ubuntu20.04
+        install: |
+          apt-get update -q -y
+          apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
+        run: |
+          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.2.0 /bin/sh build.sh test
+
+  s390x:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout pygit2
+      uses: actions/checkout@v2
+    - name: Build & test
+      uses: uraimo/run-on-arch-action@v2.1.1
+      with:
+        arch: s390x
+        distro: ubuntu20.04
+        install: |
+          apt-get update -q -y
+          apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
+        run: |
+          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.2.0 /bin/sh build.sh test
+      continue-on-error: true # Tests are expected to fail, see issue #812
