@@ -40,7 +40,7 @@ import pygit2
 
 
 requires_future_libgit2 = pytest.mark.skipif(
-    pygit2.LIBGIT2_VER < (1, 2, 0),
+    pygit2.LIBGIT2_VER < (1, 2, 1),
     reason='This test may work with a future version of libgit2')
 
 try:
