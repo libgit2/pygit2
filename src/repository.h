@@ -72,7 +72,7 @@ PyObject* Repository_blame(Repository *self, PyObject *args, PyObject *kwds);
 
 PyObject* Repository_merge(Repository *self, PyObject *py_oid);
 PyObject* Repository_cherrypick(Repository *self, PyObject *py_oid);
-PyObject* Repository_apply(Repository *self, PyObject *py_diff);
+PyObject* Repository_apply(Repository *self, PyObject *py_diff, PyObject *kwds);
 PyObject* Repository_merge_analysis(Repository *self, PyObject *args);
 
 #endif
