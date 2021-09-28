@@ -2030,44 +2030,73 @@ out:
 }
 
 PyDoc_STRVAR(Repository_apply__doc__,
-  "apply(diff)\n"
+  "apply(diff, location=GIT_APPLY_LOCATION_WORKDIR)\n"
   "\n"
   "Applies the given Diff object to HEAD, writing the results into the\n"
-  "working directory.");
+  "working directory, the index, or both.\n"
+  "\n"
+  "Parameters:\n"
+  "\n"
+  "diff\n"
+  "    The Diff to apply.\n"
+  "\n"
+  "location\n"
+  "    The location to apply: GIT_APPLY_LOCATION_WORKDIR (default),\n"
+  "    GIT_APPLY_LOCATION_INDEX, or GIT_APPLY_LOCATION_BOTH.\n"
+  );
 
 PyObject *
-Repository_apply(Repository *self, PyObject *args)
+Repository_apply(Repository *self, PyObject *args, PyObject *kwds)
 {
     Diff *py_diff;
-    git_apply_location_t location = GIT_APPLY_LOCATION_WORKDIR;
+    int location = GIT_APPLY_LOCATION_WORKDIR;
     git_apply_options options = GIT_APPLY_OPTIONS_INIT;
 
-    if (!PyArg_ParseTuple(args, "O!", &DiffType, &py_diff))
+    char* keywords[] = {"diff", "location", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|i", keywords,
+                                     &DiffType, &py_diff,
+                                     &location))
         return NULL;
 
     int err = git_apply(self->repo, py_diff->diff, location, &options);
-    if (err < 0)
+    if (err != 0)
         return Error_set(err);
 
     Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(Repository_applies__doc__,
-  "applies(diff) -> bool\n"
+  "applies(diff, location=GIT_APPLY_LOCATION_INDEX) -> bool\n"
   "\n"
-  "Tests if the given patch will apply to HEAD, without writing it.");
+  "Tests if the given patch will apply to HEAD, without writing it.\n"
+  "\n"
+  "Parameters:\n"
+  "diff\n"
+  "    The Diff to apply.\n"
+  "\n"
+  "location\n"
+  "    The location to apply: GIT_APPLY_LOCATION_WORKDIR,\n"
+  "    GIT_APPLY_LOCATION_INDEX (default), or GIT_APPLY_LOCATION_BOTH.\n"
+  );
 
 PyObject *
-Repository_applies(Repository *self, PyObject *py_diff)
+Repository_applies(Repository *self, PyObject *args, PyObject *kwds)
 {
-    int err;
-    git_apply_location_t location = GIT_APPLY_LOCATION_INDEX;
+    Diff *py_diff;
+    int location = GIT_APPLY_LOCATION_INDEX;
     git_apply_options options = GIT_APPLY_OPTIONS_INIT;
     options.flags |= GIT_APPLY_CHECK;
 
-    err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
+    char* keywords[] = {"diff", "location", NULL};
 
-    if (err < 0)
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|i", keywords,
+                                     &DiffType, &py_diff,
+                                     &location))
+        return NULL;
+
+    int err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
+    if (err != 0)
         Py_RETURN_FALSE;
 
     Py_RETURN_TRUE;
@@ -2119,8 +2148,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, merge_analysis, METH_VARARGS),
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),
-    METHOD(Repository, apply, METH_VARARGS),
-    METHOD(Repository, applies, METH_O),
+    METHOD(Repository, apply, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Repository, applies, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, create_reference_direct, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, compress_references, METH_NOARGS),
