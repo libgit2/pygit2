@@ -1,7 +1,7 @@
 1.7.0 (UNRELEASED)
 -------------------------
 
-- Upgrade to libgit2 1.2.0
+- Upgrade to libgit2 1.3.0
   `#1089 <https://github.com/libgit2/pygit2/pull/1089>`_
 
 - Linux wheels now bundled with libssh2 1.10.0 (instead of 1.9.0)
@@ -9,8 +9,14 @@
 - New `pygit2.GIT_CHECKOUT_SKIP_LOCKED_DIRECTORIES`
   `#1087 <https://github.com/libgit2/pygit2/pull/1087>`_
 
+- New optional argument ``location`` in ``Repository.applies(..)`` and
+  ``Repository.apply(..)``
+  `#1091 <https://github.com/libgit2/pygit2/pull/1091>`_
+
 - Fix: Now the `flags` argument in `Repository.blame()` is passed through
   `#1083 <https://github.com/libgit2/pygit2/pull/1083>`_
+
+- CI: Stop using Travis, move to GitHub actions
 
 
 1.6.1 (2021-06-19)

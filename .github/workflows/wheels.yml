@@ -6,7 +6,7 @@ on:
     - master
 
 env:
-  LIBGIT2_VERSION: 1.2.0
+  LIBGIT2_VERSION: 1.3.0
 
 jobs:
   linux:
@@ -40,7 +40,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        libgit2: ['maint/v1.2']
         py:
           - ver: '3.6'
             release: '3.6.8'  # last Python.org binary release
