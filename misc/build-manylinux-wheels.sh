@@ -3,7 +3,7 @@
 set -xe
 
 ARCH=`uname -m`
-PYTHONS="cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39"
+PYTHONS="cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310"
 export PYCA_OPENSSL_PATH=/opt/pyca/cryptography/openssl
 export OPENSSL_PATH=/opt/openssl
 export CFLAGS="-fPIC"
