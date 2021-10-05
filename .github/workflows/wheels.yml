@@ -49,6 +49,8 @@ jobs:
             release: '3.8.7'
           - ver: '3.9'
             release: '3.9.1'
+          - ver: '3.10'
+            release: '3.10.0'
     steps:
     - name: Checkout pygit2
       uses: actions/checkout@v2
