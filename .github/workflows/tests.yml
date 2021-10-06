@@ -15,6 +15,8 @@ jobs:
         - os: ubuntu-20.04
           python-version: 3.9
         - os: ubuntu-20.04
+          python-version: '3.10'
+        - os: ubuntu-20.04
           python-version: pypy3
         - os: macos-latest
           python-version: 3.6

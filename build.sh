@@ -110,7 +110,7 @@ fi
 
 # Build pygit2
 cd ..
-$PREFIX/bin/pip install -U pip
+$PREFIX/bin/pip install -U pip wheel
 if [ "$1" = "wheel" ]; then
     shift
     $PREFIX/bin/pip install wheel
