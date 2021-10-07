@@ -79,7 +79,7 @@ fi
 # Install libssh2
 if [ -n "$LIBSSH2_VERSION" ]; then
     FILENAME=libssh2-$LIBSSH2_VERSION
-    wget https://www.libssh2.org/download/$FILENAME.tar.gz -N
+    wget https://www.libssh2.org/download/$FILENAME.tar.gz -N --no-check-certificate
     tar xf $FILENAME.tar.gz
     cd $FILENAME
     cmake . \
