@@ -18,7 +18,7 @@ Install pygit2:
 .. code-block:: sh
 
    $ pip --version
-   pip 19.3.1 from /usr/lib64/python3.6/site-packages/pip (python 3.6)
+   pip 21.2.4 from /usr/lib/python3.9/site-packages/pip (python 3.9)
    $ pip install pygit2
 
 The line above will install binary wheels if available in your platform.
@@ -40,7 +40,7 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.6+
+- Python 3.7+
 - PyPy3 7.3+
 
 Python requirements (these are specified in ``setup.py``):
@@ -78,7 +78,7 @@ of Python and the required libgit2 version.
 +-----------+----------------+----------------+
 | pygit2    | Python         | libgit2        |
 +-----------+----------------+----------------+
-| 1.7       | 3.6 - 3.9      | 1.3.x          |
+| 1.7       | 3.7 - 3.10     | 1.3.x          |
 +-----------+----------------+----------------+
 | 1.4 - 1.6 | 3.6 - 3.9      | 1.1.x          |
 +-----------+----------------+----------------+

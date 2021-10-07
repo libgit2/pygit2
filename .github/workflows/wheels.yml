@@ -41,8 +41,6 @@ jobs:
       fail-fast: false
       matrix:
         py:
-          - ver: '3.6'
-            release: '3.6.8'  # last Python.org binary release
           - ver: '3.7'
             release: '3.7.9'  # last Python.org binary release
           - ver: '3.8'

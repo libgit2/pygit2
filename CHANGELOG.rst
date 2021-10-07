@@ -10,6 +10,8 @@
   `#1092 <https://github.com/libgit2/pygit2/pull/1092>`_
   `#1093 <https://github.com/libgit2/pygit2/pull/1093>`_
 
+- Drop support for Python 3.6
+
 - New `pygit2.GIT_CHECKOUT_SKIP_LOCKED_DIRECTORIES`
   `#1087 <https://github.com/libgit2/pygit2/pull/1087>`_
 
@@ -776,7 +778,7 @@ Other changes:
 0.25.1 (2017-04-25)
 -------------------------
 
-- Add suport for Python 3.6
+- Add support for Python 3.6
 
 - New support for stash: repository methods ``stash``, ``stash_apply``,
   ``stash_drop`` and ``stash_pop``
