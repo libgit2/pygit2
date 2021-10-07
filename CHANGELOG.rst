@@ -6,6 +6,10 @@
 
 - Linux wheels now bundled with libssh2 1.10.0 (instead of 1.9.0)
 
+- Add support for Python 3.10
+  `#1092 <https://github.com/libgit2/pygit2/pull/1092>`_
+  `#1093 <https://github.com/libgit2/pygit2/pull/1093>`_
+
 - New `pygit2.GIT_CHECKOUT_SKIP_LOCKED_DIRECTORIES`
   `#1087 <https://github.com/libgit2/pygit2/pull/1087>`_
 

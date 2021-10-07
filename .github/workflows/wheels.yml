@@ -46,9 +46,9 @@ jobs:
           - ver: '3.7'
             release: '3.7.9'  # last Python.org binary release
           - ver: '3.8'
-            release: '3.8.7'
+            release: '3.8.10' # last Python.org binary release
           - ver: '3.9'
-            release: '3.9.1'
+            release: '3.9.7'
           - ver: '3.10'
             release: '3.10.0'
     steps:

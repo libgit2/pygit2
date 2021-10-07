@@ -145,7 +145,7 @@ fi
 # Tests
 if [ "$1" = "test" ]; then
     if [ -n "$WHEELDIR" ]; then
-        $PREFIX/bin/pip install $WHEELDIR/pygit2*-$PYTHON_TAG-*_$ARCH.whl
+        $PREFIX/bin/pip install $WHEELDIR/pygit2*-$PYTHON_TAG-*.whl
     fi
     $PREFIX/bin/pip install -r requirements-test.txt
     $PREFIX/bin/pytest --cov=pygit2
