@@ -2072,6 +2072,7 @@ PyDoc_STRVAR(Repository_applies__doc__,
   "Tests if the given patch will apply to HEAD, without writing it.\n"
   "\n"
   "Parameters:\n"
+  "\n"
   "diff\n"
   "    The Diff to apply.\n"
   "\n"
