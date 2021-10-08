@@ -62,10 +62,12 @@ Authors::
   Leonardo Rhodes
   Mark Adams
   Nika Layzell
+  Peter Rowlands
   Peter-Yi Zhang
   Petr Viktorin
   Robert Hölzl
   Ron Cohen
+  Sebastian Böhm
   Thomas Kluyver
   Alex Chamberlain
   Alexander Bayandin
@@ -98,8 +100,8 @@ Authors::
   Michael Sondergaard
   Natanael Arndt
   Ondřej Nový
-  Peter Rowlands
   Sarath Lakshman
+  Saugat Pachhai
   Szucs Krisztian
   Vicent Marti
   Zoran Zaric
@@ -143,6 +145,7 @@ Authors::
   Gustavo Di Pietro
   Holger Frey
   Hugh Cole-Baker
+  Iliyas Jorio
   Isabella Stephens
   Jasper Lievisse Adriaanse
   Jiri Benc

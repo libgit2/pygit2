@@ -25,8 +25,8 @@ The line above will install binary wheels if available in your platform.
 
 .. warning::
 
-   pip 18.1 is known not to pick the binary wheel. Please verify that you have
-   pip 19.0 or later.
+   Use pip 19.3 or later, otherwise the source package will be installed
+   instead of the binary wheel.
 
 To install the source package:
 
@@ -59,7 +59,6 @@ Optional libgit2 dependecies to support ssh and https:
 To run the tests:
 
 - pytest
-- tox (optional)
 
 Version numbers
 ===============

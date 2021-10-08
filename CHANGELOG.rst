@@ -1,10 +1,12 @@
-1.7.0 (UNRELEASED)
+1.7.0 (2021-10-08)
 -------------------------
 
 - Upgrade to libgit2 1.3.0
   `#1089 <https://github.com/libgit2/pygit2/pull/1089>`_
 
 - Linux wheels now bundled with libssh2 1.10.0 (instead of 1.9.0)
+
+- macOS wheels now include libssh2
 
 - Add support for Python 3.10
   `#1092 <https://github.com/libgit2/pygit2/pull/1092>`_
@@ -23,6 +25,10 @@
   `#1083 <https://github.com/libgit2/pygit2/pull/1083>`_
 
 - CI: Stop using Travis, move to GitHub actions
+
+Caveats:
+
+- Windows wheels for Python 3.10 not yet available.
 
 
 1.6.1 (2021-06-19)
