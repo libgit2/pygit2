@@ -37,7 +37,7 @@ from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_
 from ._pygit2 import GIT_FILEMODE_LINK
 from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
 from ._pygit2 import GIT_REF_SYMBOLIC
-from ._pygit2 import Reference, Tree, Commit, Blob
+from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
 from .callbacks import git_fetch_options
@@ -1363,6 +1363,119 @@ class BaseRepository(_Repository):
         check_error(err)
 
         return Index.from_c(self, cindex)
+
+    #
+    # Amend commit
+    #
+    def amend_commit(self, commit, refname, author=None,
+                     committer=None, message=None, tree=None,
+                     encoding='UTF-8'):
+        """
+        Amend an existing commit by replacing only explicitly passed values,
+        return the rewritten commit's oid.
+
+        This creates a new commit that is exactly the same as the old commit,
+        except that any explicitly passed values will be updated. The new
+        commit has the same parents as the old commit.
+
+        You may omit the `author`, `committer`, `message`, `tree`, and
+        `encoding` parameters, in which case this will use the values
+        from the original `commit`.
+
+        Parameters:
+
+        commit : Commit, Oid, or str
+            The commit to amend.
+
+        refname : Reference or str
+            If not `None`, name of the reference that will be updated to point
+            to the newly rewritten commit. Use "HEAD" to update the HEAD of the
+            current branch and make it point to the rewritten commit.
+            If you want to amend a commit that is not currently the tip of the
+            branch and then rewrite the following commits to reach a ref, pass
+            this as `None` and update the rest of the commit chain and ref
+            separately.
+
+        author : Signature
+            If not None, replace the old commit's author signature with this
+            one.
+
+        committer : Signature
+            If not None, replace the old commit's committer signature with this
+            one.
+
+        message : str
+            If not None, replace the old commit's message with this one.
+
+        tree : Tree, Oid, or str
+            If not None, replace the old commit's tree with this one.
+
+        encoding : str
+            Optional encoding for `message`.
+        """
+
+        # Initialize parameters to pass on to C function git_commit_amend.
+        # Note: the pointers are all initialized to NULL by default.
+        coid = ffi.new('git_oid *')
+        commit_cptr = ffi.new('git_commit **')
+        refname_cstr = ffi.NULL
+        author_cptr = ffi.new('git_signature **')
+        committer_cptr = ffi.new('git_signature **')
+        message_cstr = ffi.NULL
+        encoding_cstr = ffi.NULL
+        tree_cptr = ffi.new('git_tree **')
+
+        # Get commit as pointer to git_commit.
+        if isinstance(commit, (str, Oid)):
+            commit = self[commit]
+        elif isinstance(commit, Commit):
+            pass
+        elif commit is None:
+            raise ValueError("the commit to amend cannot be None")
+        else:
+            raise TypeError("the commit to amend must be a Commit, str, or Oid")
+        commit = commit.peel(Commit)
+        ffi.buffer(commit_cptr)[:] = commit._pointer[:]
+
+        # Get refname as C string.
+        if isinstance(refname, Reference):
+            refname_cstr = ffi.new('char[]', to_bytes(refname.name))
+        elif type(refname) is str:
+            refname_cstr = ffi.new('char[]', to_bytes(refname))
+        elif refname is not None:
+            raise TypeError("refname must be a str or Reference")
+
+        # Get author as pointer to git_signature.
+        if isinstance(author, Signature):
+            ffi.buffer(author_cptr)[:] = author._pointer[:]
+        elif author is not None:
+            raise TypeError("author must be a Signature")
+
+        # Get committer as pointer to git_signature.
+        if isinstance(committer, Signature):
+            ffi.buffer(committer_cptr)[:] = committer._pointer[:]
+        elif committer is not None:
+            raise TypeError("committer must be a Signature")
+
+        # Get message and encoding as C strings.
+        if message is not None:
+            message_cstr = ffi.new('char[]', to_bytes(message, encoding))
+            encoding_cstr = ffi.new('char[]', to_bytes(encoding))
+
+        # Get tree as pointer to git_tree.
+        if tree is not None:
+            if isinstance(tree, (str, Oid)):
+                tree = self[tree]
+            tree = tree.peel(Tree)
+            ffi.buffer(tree_cptr)[:] = tree._pointer[:]
+
+        # Amend the commit.
+        err = C.git_commit_amend(coid, commit_cptr[0], refname_cstr,
+                                 author_cptr[0], committer_cptr[0],
+                                 encoding_cstr, message_cstr, tree_cptr[0])
+        check_error(err)
+
+        return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
 
 class Branches:

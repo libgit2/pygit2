@@ -29,11 +29,12 @@ import sys
 
 import pytest
 
-from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
+from pygit2 import GIT_OBJ_COMMIT, Signature, Oid, GitError
 from . import utils
 
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
+COMMIT_SHA_TO_AMEND = '784855caf26449a1914d2cf62d12b9374d76ae78'  # tip of the master branch
 
 
 @utils.refcount
@@ -133,3 +134,116 @@ def test_modify_commit(barerepo):
     with pytest.raises(AttributeError): setattr(commit, 'author', author)
     with pytest.raises(AttributeError): setattr(commit, 'tree', None)
     with pytest.raises(AttributeError): setattr(commit, 'parents', None)
+
+def test_amend_commit_metadata(barerepo):
+    repo = barerepo
+    commit = repo[COMMIT_SHA_TO_AMEND]
+    assert commit.oid == repo.head.target
+
+    encoding = 'iso-8859-1'
+    amended_message = "Amended commit message.\n\nMessage with non-ascii chars: ééé.\n"
+    amended_author = Signature('Jane Author', 'jane@example.com', 12345, 0)
+    amended_committer = Signature('John Committer', 'john@example.com', 12346, 0)
+
+    amended_oid = repo.amend_commit(
+        commit, 'HEAD', message=amended_message, author=amended_author,
+        committer=amended_committer, encoding=encoding)
+    amended_commit = repo[amended_oid]
+
+    assert repo.head.target == amended_oid
+    assert GIT_OBJ_COMMIT == amended_commit.type
+    assert amended_committer == amended_commit.committer
+    assert amended_author == amended_commit.author
+    assert amended_message.encode(encoding) == amended_commit.raw_message
+    assert commit.author != amended_commit.author
+    assert commit.committer != amended_commit.committer
+    assert commit.tree == amended_commit.tree  # we didn't touch the tree
+
+def test_amend_commit_tree(barerepo):
+    repo = barerepo
+    commit = repo[COMMIT_SHA_TO_AMEND]
+    assert commit.oid == repo.head.target
+
+    tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+    tree_prefix = tree[:5]
+
+    amended_oid = repo.amend_commit(commit, 'HEAD', tree=tree_prefix)
+    amended_commit = repo[amended_oid]
+
+    assert repo.head.target == amended_oid
+    assert GIT_OBJ_COMMIT == amended_commit.type
+    assert commit.message == amended_commit.message
+    assert commit.author == amended_commit.author
+    assert commit.committer == amended_commit.committer
+    assert commit.tree_id != amended_commit.tree_id
+    assert Oid(hex=tree) == amended_commit.tree_id
+
+def test_amend_commit_not_tip_of_branch(barerepo):
+    repo = barerepo
+
+    # This commit isn't at the tip of the branch.
+    commit = repo['5fe808e8953c12735680c257f56600cb0de44b10']
+    assert commit.oid != repo.head.target
+
+    # Can't update HEAD to the rewritten commit because it's not the tip of the branch.
+    with pytest.raises(GitError):
+        repo.amend_commit(commit, 'HEAD', message="this won't work!")
+
+    # We can still amend the commit if we don't try to update a ref.
+    repo.amend_commit(commit, None, message="this will work")
+
+def test_amend_commit_no_op(barerepo):
+    repo = barerepo
+    commit = repo[COMMIT_SHA_TO_AMEND]
+    assert commit.oid == repo.head.target
+
+    amended_oid = repo.amend_commit(commit, None)
+    assert amended_oid == commit.oid
+
+def test_amend_commit_argument_types(barerepo):
+    repo = barerepo
+
+    some_tree = repo['967fce8df97cc71722d3c2a5930ef3e6f1d27b12']
+    commit = repo[COMMIT_SHA_TO_AMEND]
+    alt_commit1 = Oid(hex=COMMIT_SHA_TO_AMEND)
+    alt_commit2 = COMMIT_SHA_TO_AMEND
+    alt_tree = some_tree
+    alt_refname = repo.head  # try this one last, because it'll change the commit at the tip
+
+    # Pass bad values/types for the commit
+    with pytest.raises(ValueError): repo.amend_commit(None, None)
+    with pytest.raises(TypeError): repo.amend_commit(some_tree, None)
+
+    # Pass bad types for signatures
+    with pytest.raises(TypeError): repo.amend_commit(commit, None, author="Toto")
+    with pytest.raises(TypeError): repo.amend_commit(commit, None, committer="Toto")
+
+    # Pass bad refnames
+    with pytest.raises(ValueError): repo.amend_commit(commit, "this-ref-doesnt-exist")
+    with pytest.raises(TypeError): repo.amend_commit(commit, repo)
+
+    # Pass bad trees
+    with pytest.raises(ValueError): repo.amend_commit(commit, None, tree="can't parse this")
+    with pytest.raises(KeyError): repo.amend_commit(commit, None, tree="baaaaad")
+
+    # Pass an Oid for the commit
+    amended_oid = repo.amend_commit(alt_commit1, None, message="Hello")
+    amended_commit = repo[amended_oid]
+    assert GIT_OBJ_COMMIT == amended_commit.type
+    assert str(amended_oid) != COMMIT_SHA_TO_AMEND
+
+    # Pass a str for the commit
+    amended_oid = repo.amend_commit(alt_commit2, None, message="Hello", tree=alt_tree)
+    amended_commit = repo[amended_oid]
+    assert GIT_OBJ_COMMIT == amended_commit.type
+    assert str(amended_oid) != COMMIT_SHA_TO_AMEND
+    assert repo[COMMIT_SHA_TO_AMEND].tree != amended_commit.tree
+    assert alt_tree.oid == amended_commit.tree_id
+
+    # Pass an actual reference object for refname
+    # (Warning: the tip of the branch will be altered after this test!)
+    amended_oid = repo.amend_commit(alt_commit2, alt_refname, message="Hello")
+    amended_commit = repo[amended_oid]
+    assert GIT_OBJ_COMMIT == amended_commit.type
+    assert str(amended_oid) != COMMIT_SHA_TO_AMEND
+    assert repo.head.target == amended_oid
