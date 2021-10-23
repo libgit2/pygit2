@@ -319,9 +319,7 @@ def test_deltas(barerepo):
         assert delta.nfiles == patch_delta.nfiles
         assert delta.old_file.id == patch_delta.old_file.id
         assert delta.new_file.id == patch_delta.new_file.id
-
-        # As explained in the libgit2 documentation, flags are not set
-        #assert delta.flags == patch_delta.flags
+        assert delta.flags == patch_delta.flags
 
 def test_diff_parse(barerepo):
     diff = pygit2.Diff.parse_diff(PATCH)
