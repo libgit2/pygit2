@@ -247,15 +247,22 @@ DiffDelta_status_char(DiffDelta *self)
     return Py_BuildValue("C", status);
 }
 
-PyDoc_STRVAR(DiffDelta_is_binary__doc__, "True if binary data, False if not.");
+PyDoc_STRVAR(DiffDelta_is_binary__doc__,
+    "True if binary data, False if text, None if not (yet) known."
+);
 
 PyObject *
 DiffDelta_is_binary__get__(DiffDelta *self)
 {
-    if (!(self->flags & GIT_DIFF_FLAG_NOT_BINARY) &&
-            (self->flags & GIT_DIFF_FLAG_BINARY))
+    if (self->flags & GIT_DIFF_FLAG_BINARY)
         Py_RETURN_TRUE;
-    Py_RETURN_FALSE;
+
+    if (self->flags & GIT_DIFF_FLAG_NOT_BINARY)
+        Py_RETURN_FALSE;
+
+    // This means the file has not been loaded, so we don't know whether it's
+    // binary or text
+    Py_RETURN_NONE;
 }
 
 static void
