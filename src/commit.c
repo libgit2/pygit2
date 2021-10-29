@@ -98,6 +98,46 @@ Commit_gpg_signature__get__(Commit *self)
 }
 
 
+PyDoc_STRVAR(Commit_message_trailers__doc__,
+    "Returns commit message trailers (e.g., Bug: 1234) as a dictionary."
+);
+
+PyObject *
+Commit_message_trailers__get__(Commit *self)
+{
+    git_message_trailer_array gmt_arr;
+    int i, trailer_count, err;
+    PyObject *dict;
+    PyObject *py_val;
+    const char *message = git_commit_message(self->commit);
+    const char *encoding = git_commit_message_encoding(self->commit);
+
+    err = git_message_trailers(&gmt_arr, message);
+    if (err < 0)
+        return Error_set(err);
+
+    dict = PyDict_New();
+    if (dict == NULL)
+        return NULL;
+
+    trailer_count = gmt_arr.count;
+    for (i=0; i < trailer_count; i++) {
+        py_val = to_unicode(gmt_arr.trailers[i].value, encoding, NULL);
+        err = PyDict_SetItemString(dict, gmt_arr.trailers[i].key, py_val);
+        if (err < 0)
+            goto error;
+
+    }
+
+    git_message_trailer_array_free(&gmt_arr);
+    return dict;
+
+error:
+    git_message_trailer_array_free(&gmt_arr);
+    Py_CLEAR(dict);
+    return NULL;
+}
+
 PyDoc_STRVAR(Commit_raw_message__doc__, "Message (bytes).");
 
 PyObject *
@@ -270,6 +310,7 @@ PyGetSetDef Commit_getseters[] = {
     GETTER(Commit, tree_id),
     GETTER(Commit, parents),
     GETTER(Commit, parent_ids),
+    GETTER(Commit, message_trailers),
     {NULL}
 };
 

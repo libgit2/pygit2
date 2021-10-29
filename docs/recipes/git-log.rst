@@ -34,6 +34,21 @@ Traverse commit history
     >>> for commit in repo.walk(last.id, pygit2.GIT_SORT_TIME):
     >>>     print(commit.message) # or some other operation
 
+======================================================================
+Show trailers from the last commit
+======================================================================
+
+.. code-block:: bash
+
+    $ git log --format='%(trailers:key=Bug)'
+
+.. code-block:: python
+
+    >>> last = repo[repo.head.target]
+    >>> for commit in repo.walk(last.id, pygit2.GIT_SORT_TIME):
+    >>>     print(commit.message_trailers.get('Bug'))
+
+
 ----------------------------------------------------------------------
 References
 ----------------------------------------------------------------------
