@@ -124,6 +124,7 @@ Commit_message_trailers__get__(Commit *self)
     for (i=0; i < trailer_count; i++) {
         py_val = to_unicode(gmt_arr.trailers[i].value, encoding, NULL);
         err = PyDict_SetItemString(dict, gmt_arr.trailers[i].key, py_val);
+        Py_DECREF(py_val);
         if (err < 0)
             goto error;
 
