@@ -118,7 +118,7 @@ Commit_message_trailers__get__(Commit *self)
 
     dict = PyDict_New();
     if (dict == NULL)
-        return NULL;
+        goto error;
 
     trailer_count = gmt_arr.count;
     for (i=0; i < trailer_count; i++) {
