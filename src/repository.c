@@ -1596,13 +1596,13 @@ Repository_status(Repository *self)
     size_t len, i;
     git_status_list *list;
 
-    dict = PyDict_New();
-    if (dict == NULL)
-        return NULL;
-
     err = git_status_list_new(&list, self->repo, NULL);
     if (err < 0)
         return Error_set(err);
+
+    dict = PyDict_New();
+    if (dict == NULL)
+        goto error;
 
     len = git_status_list_entrycount(list);
     for (i = 0; i < len; i++) {
