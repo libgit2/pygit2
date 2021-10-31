@@ -35,6 +35,7 @@
 PyObject* Commit_get_message_encoding(Commit *commit);
 PyObject* Commit_get_message(Commit *commit);
 PyObject* Commit_get_raw_message(Commit *commit);
+PyObject* Commit_get_message_trailers(Commit *commit);
 PyObject* Commit_get_commit_time(Commit *commit);
 PyObject* Commit_get_commit_time_offset(Commit *commit);
 PyObject* Commit_get_committer(Commit *self);
