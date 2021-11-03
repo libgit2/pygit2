@@ -43,22 +43,24 @@ jobs:
         py:
           - ver: '3.7'
             release: '3.7.9'  # last Python.org binary release
+            url: https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg
           - ver: '3.8'
             release: '3.8.10' # last Python.org binary release
+            url: https://www.python.org/ftp/python/3.8.10/python-3.8.10-macosx10.9.pkg
           - ver: '3.9'
             release: '3.9.7'
+            url: https://www.python.org/ftp/python/3.9.7/python-3.9.7-macosx10.9.pkg
           - ver: '3.10'
             release: '3.10.0'
+            url: https://www.python.org/ftp/python/3.10.0/python-3.10.0post2-macos11.pkg
     steps:
     - name: Checkout pygit2
       uses: actions/checkout@v2
 
     - name: Setup python
       run: |
-        [[ ${{ matrix.py.ver }} == "3.10" ]] && MACOS_VERSION="macos11" || MACOS_VERSION="macosx10.9"
-        PKG="python-${{ matrix.py.release }}-$MACOS_VERSION.pkg"
-        URL="https://www.python.org/ftp/python/${{ matrix.py.release }}/$PKG"
-        wget --no-verbose -N "$URL"
+        PKG=$(basename "${{ matrix.py.url }}")
+        wget --no-verbose -N "${{ matrix.py.url }}"
         sudo installer -pkg $PKG -target /
         export PATH=/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin:$PATH
         echo "/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin" >> $GITHUB_PATH
