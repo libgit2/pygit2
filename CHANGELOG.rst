@@ -1,3 +1,22 @@
+1.7.1 (UNRELEASED)
+-------------------------
+
+- New ``Repository.amend_commit(...)``
+  `#1098 <https://github.com/libgit2/pygit2/pull/1098>`_
+
+- New ``Commit.message_trailers``
+  `#1101 <https://github.com/libgit2/pygit2/pull/1101>`_
+
+- Windows wheels for Python 3.10
+  `#1103 <https://github.com/libgit2/pygit2/pull/1103>`_
+
+- Changed: now ``DiffDelta.is_binary`` returns ``None`` if the file data has
+  not yet been loaded, cf. `#962 <https://github.com/libgit2/pygit2/issues/962>`_
+
+- Documentation: update theme and add missing functions
+  `#1017 <https://github.com/libgit2/pygit2/issues/1017>`_
+
+
 1.7.0 (2021-10-08)
 -------------------------
 
