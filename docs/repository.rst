@@ -53,10 +53,11 @@ the Checkout section.
 Below there are some general attributes and methods:
 
 .. autoclass:: pygit2.Repository
-   :members: ahead_behind, applies, apply, create_reference, default_signature,
-             descendant_of, describe, free, is_bare, is_empty, is_shallow, odb,
-             path, path_is_ignored, reset, revert_commit, state_cleanup,
-             workdir, write, write_archive, set_odb, set_refdb
+   :members: ahead_behind, amend_commit, applies, apply, create_reference,
+             default_signature, descendant_of, describe, free, get_attr,
+             is_bare, is_empty, is_shallow, odb, path, path_is_ignored, reset,
+             revert_commit, state_cleanup, workdir, write, write_archive,
+             set_odb, set_refdb
 
    The Repository constructor will most commonly be called with one argument, the path of the repository to open.
 
