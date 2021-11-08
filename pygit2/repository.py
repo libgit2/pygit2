@@ -86,20 +86,20 @@ class BaseRepository(_Repository):
 
     def pack(self, path=None, pack_delegate=None, n_threads=None):
         """Pack the objects in the odb chosen by the pack_delegate function
-        and write .pack and .idx files for them.
+        and write `.pack` and `.idx` files for them.
 
         Returns: the number of objects written to the pack
 
         Parameters:
 
         path
-            The path to which the .pack and .idx files should be written. None will write to the default location.
+            The path to which the `.pack` and `.idx` files should be written. `None` will write to the default location.
 
         pack_delegate
             The method which will provide add the objects to the pack builder. Defaults to all objects.
 
         n_threads
-            The number of threads the PackBuilder will spawn. If set to 0 libgit2 will autodetect the number of CPUs.
+            The number of threads the `PackBuilder` will spawn. If set to 0, libgit2 will autodetect the number of CPUs.
         """
 
         def pack_all_objects(pack_builder):
@@ -134,7 +134,7 @@ class BaseRepository(_Repository):
             The path within the parent repository to add the submodule
 
         link
-            Should workdir contain a gitlink to the repo in .git/modules vs. repo directly in workdir.
+            Should workdir contain a gitlink to the repo in `.git/modules` vs. repo directly in workdir.
         """
         csub = ffi.new('git_submodule **')
         curl = ffi.new('char[]', to_bytes(url))
@@ -164,7 +164,7 @@ class BaseRepository(_Repository):
 
     def lookup_submodule(self, path):
         """
-        Lookup submodule information by name or path.
+        Look up submodule information by name or path.
         """
         csub = ffi.new('git_submodule **')
         cpath = ffi.new('char[]', to_bytes(path))
@@ -1233,8 +1233,8 @@ class BaseRepository(_Repository):
         Calculate how many different commits are in the non-common parts of the
         history between the two given ids.
 
-        Ahead is how many commits are in the ancestry of the 'local' commit
-        which are not in the 'upstream' commit. Behind is the opposite.
+        Ahead is how many commits are in the ancestry of the `local` commit
+        which are not in the `upstream` commit. Behind is the opposite.
 
         Returns: a tuple of two integers with the number of commits ahead and
         behind respectively.
@@ -1270,7 +1270,7 @@ class BaseRepository(_Repository):
         """
         Retrieve an attribute for a file by path.
 
-        Returns: a boolean, None if the value is unspecified, or string with
+        Returns: a boolean, `None` if the value is unspecified, or string with
         the value of the attribute.
 
         Parameters:
@@ -1283,7 +1283,7 @@ class BaseRepository(_Repository):
             The name of the attribute to look up.
 
         flags
-            A combination of GIT_ATTR_CHECK_ flags which determine the
+            A combination of `GIT_ATTR_CHECK_` flags which determine the
             lookup order.
         """
 
@@ -1318,7 +1318,7 @@ class BaseRepository(_Repository):
         return (ffi.string(cname).decode('utf-8'), ffi.string(cemail).decode('utf-8'))
 
     def set_ident(self, name, email):
-        """Set the identity to be used for reference operations
+        """Set the identity to be used for reference operations.
 
         Updates to some references also append data to their
         reflog. You can use this method to set what identity will be
@@ -1330,7 +1330,7 @@ class BaseRepository(_Repository):
 
     def revert_commit(self, revert_commit, our_commit, mainline=0):
         """
-        Reverts the given Commit against the given "our" Commit, producing an
+        Revert the given Commit against the given "our" Commit, producing an
         Index that reflects the result of the revert.
 
         Returns: an Index with the result of the revert.

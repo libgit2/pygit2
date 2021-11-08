@@ -63,16 +63,16 @@ Below there are some general attributes and methods:
 
    Alternatively, constructing a repository with no arguments will create a repository with no backends. You can
    use this path to create repositories with custom backends. Note that most operations on the repository are
-   considered invalid and may lead to undefined behavior if attempted before providing an odb and refdb via set_odb
-   and set_refdb.
+   considered invalid and may lead to undefined behavior if attempted before providing an odb and refdb via
+   :py:meth:`set_odb` and :py:meth:`set_refdb`.
 
    Parameters:
 
    path
-       The path to open - if not provided, the repository will have no backend.
+       The path to open — if not provided, the repository will have no backend.
 
    flags
-       Flags controlling how to open the repository can optionally be provided - any combination of:
+       Flags controlling how to open the repository can optionally be provided — any combination of:
 
    * GIT_REPOSITORY_OPEN_NO_SEARCH
    * GIT_REPOSITORY_OPEN_CROSS_FS
