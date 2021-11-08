@@ -1285,6 +1285,15 @@ class BaseRepository(_Repository):
         flags
             A combination of `GIT_ATTR_CHECK_` flags which determine the
             lookup order.
+
+        Examples::
+
+        >>> print(repo.get_attr('splash.bmp', 'binary'))
+        True
+        >>> print(repo.get_attr('splash.bmp', 'unknown-attr'))
+        None
+        >>> repo.get_attr('test.h', 'whitespace')
+        'tab-in-indent,trailing-space'
         """
 
         cvalue = ffi.new('char **')
