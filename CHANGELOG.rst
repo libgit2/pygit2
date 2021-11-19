@@ -1,4 +1,4 @@
-1.7.1 (UNRELEASED)
+1.7.1 (2021-11-19)
 -------------------------
 
 - New ``Repository.amend_commit(...)``
@@ -13,8 +13,9 @@
 - Changed: now ``DiffDelta.is_binary`` returns ``None`` if the file data has
   not yet been loaded, cf. `#962 <https://github.com/libgit2/pygit2/issues/962>`_
 
-- Documentation: update theme and add missing functions
+- Document ``Repository.get_attr(...)`` and update theme
   `#1017 <https://github.com/libgit2/pygit2/issues/1017>`_
+  `#1105 <https://github.com/libgit2/pygit2/pull/1105>`_
 
 
 1.7.0 (2021-10-08)

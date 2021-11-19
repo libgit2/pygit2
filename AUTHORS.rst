@@ -48,6 +48,7 @@ Authors::
   Robin Stocker
   Rémi Duraffort
   Santiago Perez De Rosso
+  Saugat Pachhai
   Sebastian Thiel
   Thom Wiggers
   Alexander Linne
@@ -69,6 +70,7 @@ Authors::
   Ron Cohen
   Sebastian Böhm
   Thomas Kluyver
+  Tyler Cipriani
   Alex Chamberlain
   Alexander Bayandin
   Amit Bakshi
@@ -85,6 +87,7 @@ Authors::
   Huang Huang
   Ian P. McCullough
   Igor Gnatenko
+  Iliyas Jorio
   Insomnia
   Jack O'Connor
   Jared Flatow
@@ -101,9 +104,9 @@ Authors::
   Natanael Arndt
   Ondřej Nový
   Sarath Lakshman
-  Saugat Pachhai
   Szucs Krisztian
   Vicent Marti
+  Zbigniew Jędrzejewski-Szmek
   Zoran Zaric
   Adam Spiers
   Andrew Chin
@@ -145,7 +148,6 @@ Authors::
   Gustavo Di Pietro
   Holger Frey
   Hugh Cole-Baker
-  Iliyas Jorio
   Isabella Stephens
   Jasper Lievisse Adriaanse
   Jiri Benc
