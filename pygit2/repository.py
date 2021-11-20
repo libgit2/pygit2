@@ -1288,12 +1288,12 @@ class BaseRepository(_Repository):
 
         Examples::
 
-        >>> print(repo.get_attr('splash.bmp', 'binary'))
-        True
-        >>> print(repo.get_attr('splash.bmp', 'unknown-attr'))
-        None
-        >>> repo.get_attr('test.h', 'whitespace')
-        'tab-in-indent,trailing-space'
+            >>> print(repo.get_attr('splash.bmp', 'binary'))
+            True
+            >>> print(repo.get_attr('splash.bmp', 'unknown-attr'))
+            None
+            >>> repo.get_attr('test.h', 'whitespace')
+            'tab-in-indent,trailing-space'
         """
 
         cvalue = ffi.new('char **')
