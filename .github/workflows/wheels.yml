@@ -4,85 +4,40 @@ on:
   push:
     branches:
     - master
+    - cibuildwheel
     tags:
     - 'v*'
 
-env:
-  LIBGIT2_VERSION: 1.3.0
-
 jobs:
-  linux:
-    name: Linux
-    runs-on: ubuntu-20.04
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch: [x86_64, aarch64]
+        os: [ubuntu-20.04, macOS-11]
+
     steps:
-    - name: Checkout pygit2
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up QEMU
-      if: ${{ matrix.arch == 'aarch64' }}
-      uses: docker/setup-qemu-action@v1
+      - uses: actions/setup-python@v2
 
-    - run: |
-        /bin/sh misc/build-all-manylinux-wheels.sh ${{ matrix.arch }}
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.2.2
+        env:
+          CIBW_BEFORE_ALL_LINUX: sh install-deps.sh
+          CIBW_BEFORE_ALL_MACOS: sh install-deps-mac.sh
+          CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.3.0 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib
+          CIBW_SKIP: "*-musllinux*"
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "DYLD_LIBRARY_PATH=/usr/local/lib delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=/usr/local/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
+          CIBW_ARCHS_MACOS: x86_64 universal2
 
-    - name: Save wheels
-      uses: actions/upload-artifact@v2
-      with:
-        name: wheels
-        path: dist/*.whl
-
-  macos:
-    name: macos-${{ matrix.py.ver }}
-    runs-on: macos-latest
-    env:
-      MACOSX_DEPLOYMENT_TARGET: "10.9"
-    strategy:
-      fail-fast: false
-      matrix:
-        py:
-          - ver: '3.7'
-            release: '3.7.9'  # last Python.org binary release
-            url: https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg
-          - ver: '3.8'
-            release: '3.8.10' # last Python.org binary release
-            url: https://www.python.org/ftp/python/3.8.10/python-3.8.10-macosx10.9.pkg
-          - ver: '3.9'
-            release: '3.9.7'
-            url: https://www.python.org/ftp/python/3.9.7/python-3.9.7-macosx10.9.pkg
-          - ver: '3.10'
-            release: '3.10.0'
-            url: https://www.python.org/ftp/python/3.10.0/python-3.10.0post2-macos11.pkg
-    steps:
-    - name: Checkout pygit2
-      uses: actions/checkout@v2
-
-    - name: Setup python
-      run: |
-        PKG=$(basename "${{ matrix.py.url }}")
-        wget --no-verbose -N "${{ matrix.py.url }}"
-        sudo installer -pkg $PKG -target /
-        export PATH=/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin:$PATH
-        echo "/Library/Frameworks/Python.framework/Versions/${{ matrix.py.ver }}/bin" >> $GITHUB_PATH
-        which python3
-        python3 -VV
-        test "$(python3 -V)" = "Python ${{ matrix.py.release }}"
-
-    - name: Build
-      run: |
-        /bin/sh build.sh wheel bundle test
-
-    - name: Save wheel
-      uses: actions/upload-artifact@v2
-      with:
-        name: wheels
-        path: wheelhouse/*.whl
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
 
   pypi:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [linux, macos]
+    needs: [build_wheels]
     runs-on: ubuntu-20.04
 
     steps:
