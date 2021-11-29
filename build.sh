@@ -12,7 +12,9 @@
 #   LIBSSH2_OPENSSL           - Where to find openssl
 #   LIBSSH2_PREFIX            - Where to find libssh2
 #   LIBSSH2_VERSION=<Version> - Build the given version of libssh2
-#   LIBGIT2_VERSION=<Versoin> - Build the given version of libgit2
+#   LIBGIT2_VERSION=<Version> - Build the given version of libgit2
+#   OPENSSL_VERSION=<Version> - Build the given version of OpenSSL
+#                               (only needed for Mac universal on CI)
 #
 # Either use LIBSSH2_PREFIX, or LIBSSH2_VERSION, or none (if libssh2 is already
 # in the path, or if you don't want to use it).
@@ -55,13 +57,24 @@ KERNEL=`uname -s`
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 PYTHON=${PYTHON:-python3}
 
-PYTHON_TAG=$($PYTHON build_tag.py)
+if [ "$CIBUILDWHEEL" != "1" ]; then
+    PYTHON_TAG=$($PYTHON build_tag.py)
+fi
+
 PREFIX="${PREFIX:-$(pwd)/ci/$PYTHON_TAG}"
 export LDFLAGS="-Wl,-rpath,$PREFIX/lib"
 
-# Create a virtual environment
-$PYTHON -m venv $PREFIX
-cd ci
+if [ "$CIBUILDWHEEL" = "1" ]; then
+    rm -rf ci
+    mkdir ci || true
+    cd ci
+    if [ "$KERNEL" = "Linux" ]; then
+        yum install wget openssl-devel libssh2-devel zlib-devel -y
+    fi
+else
+    # Create a virtual environment
+    $PYTHON -m venv $PREFIX
+fi
 
 # Install zlib
 # XXX Build libgit2 with USE_BUNDLED_ZLIB instead?
@@ -76,17 +89,67 @@ if [ -n "$ZLIB_VERSION" ]; then
     cd ..
 fi
 
+# Install openssl
+if [ -n "$OPENSSL_VERSION" ]; then
+    if [ "$CIBUILDWHEEL" != "1" ] || [ "$KERNEL" != "Darwin" ]; then
+        echo "OPENSSL_VERSION should only be set when building"
+        echo "macOS universal2 wheels on GitHub!"
+        echo "Please unset and try again"
+        exit 1
+    fi
+    FILENAME=openssl-$OPENSSL_VERSION
+    wget https://www.openssl.org/source/$FILENAME.tar.gz -N --no-check-certificate
+
+    tar xf $FILENAME.tar.gz
+    mv $FILENAME openssl-x86
+
+    tar xf $FILENAME.tar.gz
+    mv $FILENAME openssl-arm
+
+    cd openssl-x86
+    ./Configure darwin64-x86_64-cc shared
+    make
+    cd ../openssl-arm
+    ./Configure enable-rc5 zlib darwin64-arm64-cc no-asm
+    make
+    cd ..
+
+    mkdir openssl-universal
+
+    LIBSSL=$(basename openssl-x86/libssl.*.dylib)
+    lipo -create openssl-x86/libssl.*.dylib openssl-arm/libssl.*.dylib -output openssl-universal/$LIBSSL
+    LIBCRYPTO=$(basename openssl-x86/libcrypto.*.dylib)
+    lipo -create openssl-x86/libcrypto.*.dylib openssl-arm/libcrypto.*.dylib -output openssl-universal/$LIBCRYPTO
+    cd openssl-universal
+    install_name_tool -id "@rpath/$LIBSSL" $LIBSSL
+    install_name_tool -id "@rpath/$LIBCRYPTO" $LIBCRYPTO
+    OPENSSL_PREFIX=$(pwd)
+    cd ..
+fi
+
 # Install libssh2
 if [ -n "$LIBSSH2_VERSION" ]; then
     FILENAME=libssh2-$LIBSSH2_VERSION
     wget https://www.libssh2.org/download/$FILENAME.tar.gz -N --no-check-certificate
     tar xf $FILENAME.tar.gz
     cd $FILENAME
-    cmake . \
-            -DCMAKE_INSTALL_PREFIX=$PREFIX \
-            -DBUILD_SHARED_LIBS=ON \
-            -DBUILD_EXAMPLES=OFF \
-            -DBUILD_TESTING=OFF
+    if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
+        cmake . \
+                -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_EXAMPLES=OFF \
+                -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+                -DOPENSSL_CRYPTO_LIBRARY="../openssl-universal/$LIBCRYPTO" \
+                -DOPENSSL_SSL_LIBRARY="../openssl-universal/$LIBSSL" \
+                -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
+                -DBUILD_TESTING=OFF
+    else
+        cmake . \
+                -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_EXAMPLES=OFF \
+                -DBUILD_TESTING=OFF
+    fi
     cmake --build . --target install
     cd ..
     LIBSSH2_PREFIX=$PREFIX
@@ -98,18 +161,43 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     wget https://github.com/libgit2/libgit2/archive/refs/tags/v$LIBGIT2_VERSION.tar.gz -N -O $FILENAME.tar.gz
     tar xf $FILENAME.tar.gz
     cd $FILENAME
-    CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
-            -DCMAKE_INSTALL_PREFIX=$PREFIX \
-            -DBUILD_SHARED_LIBS=ON \
-            -DBUILD_CLAR=OFF \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+    if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
+        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_CLAR=OFF \
+                -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+                -DOPENSSL_CRYPTO_LIBRARY="../openssl-universal/$LIBCRYPTO" \
+                -DOPENSSL_SSL_LIBRARY="../openssl-universal/$LIBSSL" \
+                -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
+                -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+    else
+        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
+                -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_CLAR=OFF \
+                -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+    fi
     cmake --build . --target install
     cd ..
     export LIBGIT2=$PREFIX
 fi
 
+if [ "$CIBUILDWHEEL" = "1" ]; then
+    # This is gross. auditwheel/delocate-wheel are not so good
+    # at finding libraries in random places, so we have to
+    # put them in the loader path.
+    if [ "$KERNEL" = "Darwin" ]; then
+        cp -r $OPENSSL_PREFIX/*.dylib /usr/local/lib
+        cp -r $LIBSSH2_PREFIX/lib/*.dylib /usr/local/lib
+        cp -r $FILENAME/*.dylib /usr/local/lib
+    else
+        cp -r $PREFIX/lib64/*.so* /usr/local/lib
+    fi
+    # we're done building dependencies, cibuildwheel action will take over
+    exit 0
+fi
+
 # Build pygit2
-cd ..
 $PREFIX/bin/pip install -U pip wheel
 if [ "$1" = "wheel" ]; then
     shift
