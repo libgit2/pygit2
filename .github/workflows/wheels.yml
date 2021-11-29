@@ -29,9 +29,9 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.2.2
         env:
-          CIBW_BEFORE_ALL_LINUX: sh install-deps.sh
-          CIBW_BEFORE_ALL_MACOS: sh install-deps-mac.sh
-          CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.3.0 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib
+          CIBW_BEFORE_ALL: sh install-deps.sh
+          CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.3.0 LIBSSH2_VERSION=1.10.0
+          CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.3.0 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib OPENSSL_VERSION=3.0.0
           CIBW_SKIP: "*-musllinux*"
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "DYLD_LIBRARY_PATH=/usr/local/lib delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=/usr/local/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
           CIBW_ARCHS_MACOS: x86_64 universal2
