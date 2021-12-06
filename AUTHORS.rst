@@ -35,6 +35,7 @@ Authors::
   Brodie Rao
   John Szakmeister
   Nabijacz Leweli
+  Simon Cozens
   Vlad Temian
   Chad Dombrova
   Lukas Fleischer
