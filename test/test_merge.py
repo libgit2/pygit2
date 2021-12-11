@@ -220,3 +220,37 @@ def test_merge_options():
         | C.GIT_MERGE_FILE_IGNORE_WHITESPACE
         | C.GIT_MERGE_FILE_DIFF_PATIENCE
     )
+
+
+def test_merge_many(mergerepo):
+    branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
+    branch_id = mergerepo.get(branch_head_hex).id
+    ancestor_id = mergerepo.merge_base_many([mergerepo.head.target, branch_id])
+
+    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex)
+    assert merge_index.conflicts is None
+    merge_commits_tree = merge_index.write_tree(mergerepo)
+
+    mergerepo.merge(branch_id)
+    index = mergerepo.index
+    assert index.conflicts is None
+    merge_tree = index.write_tree()
+
+    assert merge_tree == merge_commits_tree
+
+
+def test_merge_octopus(mergerepo):
+    branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
+    branch_id = mergerepo.get(branch_head_hex).id
+    ancestor_id = mergerepo.merge_base_octopus([mergerepo.head.target, branch_id])
+
+    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex)
+    assert merge_index.conflicts is None
+    merge_commits_tree = merge_index.write_tree(mergerepo)
+
+    mergerepo.merge(branch_id)
+    index = mergerepo.index
+    assert index.conflicts is None
+    merge_tree = index.write_tree()
+
+    assert merge_tree == merge_commits_tree

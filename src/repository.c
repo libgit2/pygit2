@@ -565,6 +565,96 @@ Repository_merge_base(Repository *self, PyObject *args)
     return git_oid_to_python(&oid);
 }
 
+PyDoc_STRVAR(Repository_merge_base_many__doc__,
+  "merge_base_many(oids) -> Oid\n"
+  "\n"
+  "Find as good common ancestors as possible for an n-way merge.\n"
+  "Returns None if there is no merge base between the commits");
+
+PyObject *
+Repository_merge_base_many(Repository *self, PyObject *args)
+{
+    PyObject *py_commit;
+    PyObject *py_commits;
+    git_oid oid;
+    int commit_count;
+    git_oid *commits = NULL;
+    int i = 0;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "O!", &PyList_Type, &py_commits))
+        return NULL;
+
+    commit_count = (int)PyList_Size(py_commits);
+    commits = malloc(commit_count * sizeof(git_oid));
+    if (commits == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return NULL;
+    }
+
+    for (; i < commit_count; i++) {
+        py_commit = PyList_GET_ITEM(py_commits, i);
+        err = py_oid_to_git_oid_expand(self->repo, py_commit, &commits[i]);
+        if (err < 0)
+            return NULL;
+    }
+
+    err = git_merge_base_many(&oid, self->repo, commit_count, (const git_oid*)commits);
+
+    if (err == GIT_ENOTFOUND)
+        Py_RETURN_NONE;
+
+    if (err < 0)
+        return Error_set(err);
+
+    return git_oid_to_python(&oid);
+}
+
+PyDoc_STRVAR(Repository_merge_base_octopus__doc__,
+  "merge_base_octopus(oids) -> Oid\n"
+  "\n"
+  "Find as good common ancestors as possible for an n-way octopus merge.\n"
+  "Returns None if there is no merge base between the commits");
+
+PyObject *
+Repository_merge_base_octopus(Repository *self, PyObject *args)
+{
+    PyObject *py_commit;
+    PyObject *py_commits;
+    git_oid oid;
+    int commit_count;
+    git_oid *commits = NULL;
+    int i = 0;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "O!", &PyList_Type, &py_commits))
+        return NULL;
+
+    commit_count = (int)PyList_Size(py_commits);
+    commits = malloc(commit_count * sizeof(git_oid));
+    if (commits == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        return NULL;
+    }
+
+    for (; i < commit_count; i++) {
+        py_commit = PyList_GET_ITEM(py_commits, i);
+        err = py_oid_to_git_oid_expand(self->repo, py_commit, &commits[i]);
+        if (err < 0)
+            return NULL;
+    }
+
+    err = git_merge_base_octopus(&oid, self->repo, commit_count, (const git_oid*)commits);
+
+    if (err == GIT_ENOTFOUND)
+        Py_RETURN_NONE;
+
+    if (err < 0)
+        return Error_set(err);
+
+    return git_oid_to_python(&oid);
+}
+
 PyDoc_STRVAR(Repository_merge_analysis__doc__,
   "merge_analysis(their_head, our_ref='HEAD') -> (Integer, Integer)\n"
   "\n"
@@ -2146,6 +2236,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, walk, METH_VARARGS),
     METHOD(Repository, descendant_of, METH_VARARGS),
     METHOD(Repository, merge_base, METH_VARARGS),
+    METHOD(Repository, merge_base_many, METH_VARARGS),
+    METHOD(Repository, merge_base_octopus, METH_VARARGS),
     METHOD(Repository, merge_analysis, METH_VARARGS),
     METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),

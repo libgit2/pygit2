@@ -192,3 +192,4 @@ Authors::
   chengyuhang
   earl
   odidev
+  Filip Rindler
