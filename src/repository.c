@@ -598,8 +598,11 @@ merge_base_xxx(Repository *self, PyObject *args, git_merge_base_xxx_t git_merge_
 
     err = (*git_merge_base_xxx)(&oid, self->repo, commit_oid_count, (const git_oid*)commit_oids);
 
-    if (err == GIT_ENOTFOUND)
+    if (err == GIT_ENOTFOUND) {
+        Py_INCREF(Py_None);
+        py_result = Py_None;
         goto out;
+    }
 
     if (err < 0) {
         py_result = Error_set(err);
