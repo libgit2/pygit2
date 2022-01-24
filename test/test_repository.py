@@ -251,16 +251,37 @@ def test_reset_mixed(testrepo):
     assert "bonjour le monde\n" in diff.patch
 
 def test_stash(testrepo):
+    stash_hash = "6aab5192f88018cb98a7ede99c242f43add5a2fd"
+    stash_message = "custom stash message"
+    sig = pygit2.Signature(
+            name='Stasher',
+            email='stasher@example.com',
+            time=1641000000,  # fixed time so the oid is stable
+            offset=0)
+
+    # make sure we're starting with no stashes
+    assert [] == testrepo.listall_stashes()
+
     # some changes to working dir
     with open(os.path.join(testrepo.workdir, 'hello.txt'), 'w') as f:
         f.write('new content')
 
-    sig = pygit2.Signature('Stasher', 'stasher@example.com')
-    testrepo.stash(sig, include_untracked=True)
+    testrepo.stash(sig, include_untracked=True, message=stash_message)
     assert 'hello.txt' not in testrepo.status()
+
+    repo_stashes = testrepo.listall_stashes()
+    assert 1 == len(repo_stashes)
+    assert repr(repo_stashes[0]) == f"<pygit2.Stash{{{stash_hash}}}>"
+    assert repo_stashes[0].commit_id.hex == stash_hash
+    assert repo_stashes[0].message == "On master: " + stash_message
+
     testrepo.stash_apply()
     assert 'hello.txt' in testrepo.status()
+    assert repo_stashes == testrepo.listall_stashes()  # still the same stashes
+
     testrepo.stash_drop()
+    assert [] == testrepo.listall_stashes()
+
     with pytest.raises(KeyError): testrepo.stash_pop()
 
 def test_revert(testrepo):

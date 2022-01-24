@@ -256,4 +256,10 @@ typedef struct {
     git_mailmap *mailmap;
 } Mailmap;
 
+typedef struct {
+    PyObject_HEAD
+    PyObject *commit_id;
+    char *message;
+} Stash;
+
 #endif

@@ -61,6 +61,7 @@ extern PyTypeObject ReferenceType;
 extern PyTypeObject RevSpecType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
+extern PyTypeObject StashType;
 
 /* forward-declaration for Repsository._from_c() */
 PyTypeObject RepositoryType;
@@ -2211,6 +2212,63 @@ Repository_set_refdb(Repository *self, Refdb *refdb)
     Py_RETURN_NONE;
 }
 
+static int foreach_stash_cb(size_t index, const char *message, const git_oid *stash_id, void *payload)
+{
+    int err;
+    Stash *py_stash;
+
+    py_stash = PyObject_New(Stash, &StashType);
+    if (py_stash == NULL)
+        return GIT_EUSER;
+
+    assert(message != NULL);
+    assert(stash_id != NULL);
+
+    py_stash->commit_id = git_oid_to_python(stash_id);
+    if (py_stash->commit_id == NULL)
+        return GIT_EUSER;
+
+    py_stash->message = strdup(message);
+    if (py_stash->message == NULL) {
+        PyErr_NoMemory();
+        return GIT_EUSER;
+    }
+
+    PyObject* list = (PyObject*) payload;
+    err = PyList_Append(list, (PyObject*) py_stash);
+    Py_DECREF(py_stash);
+    if (err < 0)
+        return GIT_EUSER;
+
+    return 0;
+}
+
+PyDoc_STRVAR(Repository_listall_stashes__doc__,
+  "listall_stashes() -> [Stash, ...]\n"
+  "\n"
+  "Return a list with all stashed commits in the repository.\n");
+
+PyObject *
+Repository_listall_stashes(Repository *self, PyObject *args)
+{
+    int err;
+
+    PyObject *list = PyList_New(0);
+    if (list == NULL)
+        return NULL;
+
+    err = git_stash_foreach(self->repo, foreach_stash_cb, (void*)list);
+
+    if (err == 0) {
+        return list;
+    } else {
+        Py_CLEAR(list);
+        if (PyErr_Occurred())
+            return NULL;
+        return Error_set(err);
+    }
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_O),
@@ -2263,6 +2321,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, _disown, METH_NOARGS),
     METHOD(Repository, set_odb, METH_O),
     METHOD(Repository, set_refdb, METH_O),
+    METHOD(Repository, listall_stashes, METH_NOARGS),
     {NULL}
 };
 

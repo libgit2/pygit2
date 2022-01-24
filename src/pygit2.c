@@ -78,6 +78,7 @@ extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
 extern PyTypeObject WorktreeType;
 extern PyTypeObject MailmapType;
+extern PyTypeObject StashType;
 
 
 PyDoc_STRVAR(discover_repository__doc__,
@@ -628,6 +629,10 @@ PyInit__pygit2(void)
     /* Mailmap */
     INIT_TYPE(MailmapType, NULL, PyType_GenericNew)
     ADD_TYPE(m, Mailmap)
+
+    /* Stash */
+    INIT_TYPE(StashType, NULL, NULL)
+    ADD_TYPE(m, Stash)
 
     /* Global initialization of libgit2 */
     git_libgit2_init();
