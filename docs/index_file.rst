@@ -51,6 +51,12 @@ The IndexEntry type
    .. automethod:: __repr__
    .. automethod:: __str__
 
+The Stash type
+====================
+
+.. autoclass:: pygit2.Stash
+   :members: commit_id, message
+
 Status
 ====================
 
@@ -111,3 +117,4 @@ Stash
 .. automethod:: pygit2.Repository.stash_apply
 .. automethod:: pygit2.Repository.stash_drop
 .. automethod:: pygit2.Repository.stash_pop
+.. automethod:: pygit2.Repository.listall_stashes
