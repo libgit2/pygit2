@@ -36,9 +36,6 @@
 
 git_object* Object__load(Object *self);
 const git_oid* Object__id(Object *self);
-PyObject* Object_get_oid(Object *self);
-PyObject* Object_get_hex(Object *self);
-PyObject* Object_get_type(Object *self);
 PyObject* Object_read_raw(Object *self);
 PyObject* Object_repr(Object *self);
 PyObject* wrap_object(git_object *c_object, Repository *repo, const git_tree_entry *entry);

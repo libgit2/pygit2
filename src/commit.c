@@ -30,7 +30,6 @@
 #include "error.h"
 #include "utils.h"
 #include "signature.h"
-#include "commit.h"
 #include "object.h"
 #include "oid.h"
 

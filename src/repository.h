@@ -39,15 +39,9 @@ int  Repository_init(Repository *self, PyObject *args, PyObject *kwds);
 int  Repository_traverse(Repository *self, visitproc visit, void *arg);
 int  Repository_clear(Repository *self);
 
-PyObject* Repository_head(Repository *self);
-PyObject* Repository_getitem(Repository *self, PyObject *value);
-PyObject* Repository_get_index(Repository *self, void *closure);
-PyObject* Repository_get_path(Repository *self, void *closure);
-PyObject* Repository_get_workdir(Repository *self, void *closure);
-PyObject* Repository_get_config(Repository *self, void *closure);
 PyObject* Repository_walk(Repository *self, PyObject *args);
 PyObject* Repository_create_blob(Repository *self, PyObject *args);
-PyObject* Repository_create_blob_fromfile(Repository *self, PyObject *args);
+PyObject* Repository_create_blob_fromdisk(Repository *self, PyObject *args);
 PyObject* Repository_create_commit(Repository *self, PyObject *args);
 PyObject* Repository_create_tag(Repository *self, PyObject *args);
 PyObject* Repository_create_branch(Repository *self, PyObject *args);
@@ -60,15 +54,13 @@ PyObject* Repository_add_worktree(Repository *self, PyObject *args);
 PyObject* Repository_lookup_worktree(Repository *self, PyObject *py_name);
 PyObject* Repository_list_worktrees(Repository *self, PyObject *args);
 
-PyObject*
-Repository_create_reference(Repository *self, PyObject *args, PyObject* kw);
+PyObject* Repository_create_reference_direct(Repository *self, PyObject *args, PyObject* kw);
+PyObject* Repository_create_reference_symbolic(Repository *self, PyObject *args, PyObject* kw);
 
-PyObject* Repository_packall_references(Repository *self,  PyObject *args);
+PyObject* Repository_compress_references(Repository *self);
 PyObject* Repository_status(Repository *self);
 PyObject* Repository_status_file(Repository *self, PyObject *value);
 PyObject* Repository_TreeBuilder(Repository *self, PyObject *args);
-
-PyObject* Repository_blame(Repository *self, PyObject *args, PyObject *kwds);
 
 PyObject* Repository_merge(Repository *self, PyObject *py_oid);
 PyObject* Repository_cherrypick(Repository *self, PyObject *py_oid);

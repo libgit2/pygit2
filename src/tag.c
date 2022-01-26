@@ -33,7 +33,6 @@
 #include "utils.h"
 #include "signature.h"
 #include "oid.h"
-#include "tag.h"
 
 
 PyDoc_STRVAR(Tag_target__doc__, "Tagged object.");

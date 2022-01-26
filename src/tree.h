@@ -33,7 +33,6 @@
 #include <git2.h>
 #include "types.h"
 
-PyObject* Tree_diff_tree(Tree *self, PyObject *args);
 PyObject* treeentry_to_object(const git_tree_entry *entry, Repository *repo);
 
 
