@@ -170,18 +170,19 @@ class Remote:
 
         results = []
         for i in range(int(refs_len[0])):
-            local = bool(refs[0][i].local)
+            ref = refs[0][i]
+            local = bool(ref.local)
             if local:
-                loid = Oid(raw=bytes(ffi.buffer(refs[0][i].loid.id)[:]))
+                loid = Oid(raw=bytes(ffi.buffer(ref.loid.id)[:]))
             else:
                 loid = None
 
             remote = {
                 "local": local,
                 "loid": loid,
-                "name": maybe_string(refs[0][i].name),
-                "symref_target": maybe_string(refs[0][i].symref_target),
-                "oid": Oid(raw=bytes(ffi.buffer(refs[0][i].oid.id)[:])),
+                "name": maybe_string(ref.name),
+                "symref_target": maybe_string(ref.symref_target),
+                "oid": Oid(raw=bytes(ffi.buffer(ref.oid.id)[:])),
             }
 
             results.append(remote)

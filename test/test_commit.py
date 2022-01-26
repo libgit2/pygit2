@@ -138,7 +138,7 @@ def test_modify_commit(barerepo):
 def test_amend_commit_metadata(barerepo):
     repo = barerepo
     commit = repo[COMMIT_SHA_TO_AMEND]
-    assert commit.oid == repo.head.target
+    assert commit.id == repo.head.target
 
     encoding = 'iso-8859-1'
     amended_message = "Amended commit message.\n\nMessage with non-ascii chars: ééé.\n"
@@ -162,7 +162,7 @@ def test_amend_commit_metadata(barerepo):
 def test_amend_commit_tree(barerepo):
     repo = barerepo
     commit = repo[COMMIT_SHA_TO_AMEND]
-    assert commit.oid == repo.head.target
+    assert commit.id == repo.head.target
 
     tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
     tree_prefix = tree[:5]
@@ -183,7 +183,7 @@ def test_amend_commit_not_tip_of_branch(barerepo):
 
     # This commit isn't at the tip of the branch.
     commit = repo['5fe808e8953c12735680c257f56600cb0de44b10']
-    assert commit.oid != repo.head.target
+    assert commit.id != repo.head.target
 
     # Can't update HEAD to the rewritten commit because it's not the tip of the branch.
     with pytest.raises(GitError):
@@ -195,10 +195,10 @@ def test_amend_commit_not_tip_of_branch(barerepo):
 def test_amend_commit_no_op(barerepo):
     repo = barerepo
     commit = repo[COMMIT_SHA_TO_AMEND]
-    assert commit.oid == repo.head.target
+    assert commit.id == repo.head.target
 
     amended_oid = repo.amend_commit(commit, None)
-    assert amended_oid == commit.oid
+    assert amended_oid == commit.id
 
 def test_amend_commit_argument_types(barerepo):
     repo = barerepo
@@ -238,7 +238,7 @@ def test_amend_commit_argument_types(barerepo):
     assert GIT_OBJ_COMMIT == amended_commit.type
     assert str(amended_oid) != COMMIT_SHA_TO_AMEND
     assert repo[COMMIT_SHA_TO_AMEND].tree != amended_commit.tree
-    assert alt_tree.oid == amended_commit.tree_id
+    assert alt_tree.id == amended_commit.tree_id
 
     # Pass an actual reference object for refname
     # (Warning: the tip of the branch will be altered after this test!)

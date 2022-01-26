@@ -36,7 +36,7 @@ Restore the entry in the index / Unstage
 
     # Restore object from db
     >>> obj = repo.revparse_single('HEAD').tree[path] # Get object from db
-    >>> index.add(pygit2.IndexEntry(path, obj.oid, obj.filemode)) # Add to index
+    >>> index.add(pygit2.IndexEntry(path, obj.id, obj.filemode)) # Add to index
 
     # Write index
     >>> index.write()

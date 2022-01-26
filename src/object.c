@@ -102,7 +102,7 @@ Object_oid__get__(Object *self)
 
 PyDoc_STRVAR(Object_hex__doc__,
     "Hexadecimal representation of the object id. This is a shortcut for\n"
-    "Object.oid.hex\n"
+    "Object.id.hex\n"
     "This attribute is deprecated, please use 'id'\n");
 
 PyObject *
