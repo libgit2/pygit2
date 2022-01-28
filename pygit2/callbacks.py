@@ -414,12 +414,12 @@ def _repository_create_cb(repo_out, path, bare, data):
 
 @libgit2_callback
 def _sideband_progress_cb(string, length, data):
-    progress = getattr(data, 'progress', None)
-    if not progress:
+    sideband_progress = getattr(data, 'sideband_progress', None)
+    if not sideband_progress:
         return 0
 
     s = ffi.string(string, length).decode('utf-8')
-    progress(s)
+    sideband_progress(s)
     return 0
 
 
