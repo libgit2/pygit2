@@ -236,9 +236,19 @@ fi
 
 # Tests
 if [ "$1" = "test" ]; then
+    shift
     if [ -n "$WHEELDIR" ]; then
         $PREFIX/bin/pip install $WHEELDIR/pygit2*-$PYTHON_TAG-*.whl
     fi
     $PREFIX/bin/pip install -r requirements-test.txt
     $PREFIX/bin/pytest --cov=pygit2
 fi
+
+# Test .pyi stub file
+if [ "$1" = "stubtest" ]; then
+    shift
+    $PREFIX/bin/pip install mypy
+    PYTHONPATH=. $PREFIX/bin/stubtest --mypy-config-file mypy-stubtest.ini pygit2._pygit2
+    [ $? == 0 ] && echo "stubtest OK"
+fi
+
