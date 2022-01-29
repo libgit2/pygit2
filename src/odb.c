@@ -128,6 +128,8 @@ exit:
 
 
 PyDoc_STRVAR(Odb_add_disk_alternate__doc__,
+  "add_disk_alternate(path: str)\n"
+  "\n"
   "Adds a path on disk as an alternate backend for objects.\n"
   "Alternate backends are checked for objects only *after* the main backends\n"
   "are checked. Writing is disabled on alternate backends.\n");
@@ -194,7 +196,7 @@ Odb_read(Odb *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(Odb_write__doc__,
-    "write(type, data) -> Oid\n"
+    "write(type: int, data: bytes) -> Oid\n"
     "\n"
     "Write raw object data into the object db. First arg is the object\n"
     "type, the second one a buffer with data. Return the Oid of the created\n"
@@ -237,7 +239,7 @@ Odb_write(Odb *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Odb_exists__doc__,
-    "exists(oid) -> bool\n"
+    "exists(oid: Oid) -> bool\n"
     "\n"
     "Returns true if the given oid can be found in this odb.");
 
@@ -263,7 +265,7 @@ Odb_exists(Odb *self, PyObject *py_hex)
 
 
 PyDoc_STRVAR(Odb_add_backend__doc__,
-    "add_backend(backend, priority)\n"
+    "add_backend(backend: OdbBackend, priority: int)\n"
     "\n"
     "Adds an OdbBackend to the list of backends for this object database.\n");
 

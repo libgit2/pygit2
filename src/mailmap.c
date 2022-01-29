@@ -108,7 +108,7 @@ Mailmap_from_buffer(Mailmap *dummy, PyObject *args)
 }
 
 PyDoc_STRVAR(Mailmap_add_entry__doc__,
-    "add_entry(real_name=None, real_email=None, replace_name=None, replace_email)\n"
+    "add_entry(real_name: str = ..., real_email: str = ..., replace_name: str = ..., replace_email: str = ...)\n"
     "\n"
     "Add a new entry to the mailmap, overriding existing entries.");
 PyObject *
@@ -139,7 +139,7 @@ Mailmap_add_entry(Mailmap *self, PyObject *args, PyObject *kwargs)
 }
 
 PyDoc_STRVAR(Mailmap_resolve__doc__,
-    "resolve(name: str, email: str) -> (str, str)\n"
+    "resolve(name: str, email: str) -> tuple[str, str]\n"
     "\n"
     "Resolve name & email to a real name and email.");
 PyObject *

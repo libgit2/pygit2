@@ -80,7 +80,7 @@ Patch_delta__get__(Patch *self)
 }
 
 PyDoc_STRVAR(Patch_line_stats__doc__,
-    "Get line counts of each type in a patch.");
+    "Get line counts of each type in a patch (context, additions, deletions).");
 
 PyObject *
 Patch_line_stats__get__(Patch *self)

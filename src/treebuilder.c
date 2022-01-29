@@ -45,7 +45,7 @@ TreeBuilder_dealloc(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_insert__doc__,
-    "insert(name, oid, attr)\n"
+    "insert(name: str, oid: Oid, attr: int)\n"
     "\n"
     "Insert or replace an entry in the treebuilder.\n"
     "\n"
@@ -100,7 +100,7 @@ TreeBuilder_write(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_get__doc__,
-    "get(name) -> Object\n"
+    "get(name: str) -> Object\n"
     "\n"
     "Return the Object for the given name, or None if there is not.");
 
@@ -127,7 +127,7 @@ TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
 
 
 PyDoc_STRVAR(TreeBuilder_remove__doc__,
-    "remove(name)\n"
+    "remove(name: str)\n"
     "\n"
     "Remove an entry from the builder.");
 

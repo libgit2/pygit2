@@ -61,7 +61,7 @@ Branch_delete(Branch *self, PyObject *args)
 
 
 PyDoc_STRVAR(Branch_is_head__doc__,
-  "is_head()\n"
+  "is_head() -> bool\n"
   "\n"
   "True if HEAD points at the branch, False otherwise.");
 
@@ -82,7 +82,7 @@ Branch_is_head(Branch *self)
 }
 
 PyDoc_STRVAR(Branch_is_checked_out__doc__,
-  "is_checked_out()\n"
+  "is_checked_out() -> bool\n"
   "\n"
   "True if branch is checked out by any repo connected to the current one, "
   " False otherwise.");
@@ -105,7 +105,7 @@ Branch_is_checked_out(Branch *self)
 
 
 PyDoc_STRVAR(Branch_rename__doc__,
-  "rename(name, force=False)\n"
+  "rename(name: str, force: bool = False)\n"
   "\n"
   "Move/rename an existing local branch reference. The new branch name will be "
   "checked for validity.\n"

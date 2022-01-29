@@ -501,7 +501,7 @@ RefdbBackend_dealloc(RefdbBackend *self)
 }
 
 PyDoc_STRVAR(RefdbBackend_exists__doc__,
-    "exists(refname: str)\n"
+    "exists(refname: str) -> bool\n"
     "\n"
     "Returns True if a ref by this name exists, or False otherwise.");
 
@@ -567,8 +567,7 @@ RefdbBackend_lookup(RefdbBackend *self, PyObject *py_str)
 }
 
 PyDoc_STRVAR(RefdbBackend_write__doc__,
-    "write(ref: Reference, force: bool, who: Signature, message: str, "
-    "old: oid, old_target: str)\n"
+    "write(ref: Reference, force: bool, who: Signature, message: str, old: Oid, old_target: str)\n"
     "\n"
     "Writes a new reference to the reference database.");
 // TODO: Better docs? libgit2 is scant on documentation for this, too.
@@ -616,8 +615,7 @@ RefdbBackend_write(RefdbBackend *self, PyObject *args)
 }
 
 PyDoc_STRVAR(RefdbBackend_rename__doc__,
-    "rename(old_name: str, new_name: str, force: bool, who: Signature, message: str)\n"
-    "   -> Reference\n"
+    "rename(old_name: str, new_name: str, force: bool, who: Signature, message: str) -> Reference\n"
     "\n"
     "Renames a reference.");
 
@@ -707,7 +705,7 @@ RefdbBackend_compress(RefdbBackend *self)
 }
 
 PyDoc_STRVAR(RefdbBackend_has_log__doc__,
-    "has_log(ref_name: str)\n"
+    "has_log(ref_name: str) -> bool\n"
     "\n"
     "Returns True if a ref log is available for this reference.\n"
     "It may be empty even if it exists.");
@@ -742,7 +740,7 @@ RefdbBackend_has_log(RefdbBackend *self, PyObject *_ref_name)
 }
 
 PyDoc_STRVAR(RefdbBackend_ensure_log__doc__,
-    "ensure_log(ref_name: str)\n"
+    "ensure_log(ref_name: str) -> bool\n"
     "\n"
     "Ensure that a particular reference will have a reflog which will be\n"
     "appended to on writes.");

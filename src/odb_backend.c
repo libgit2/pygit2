@@ -366,7 +366,7 @@ OdbBackend_read(OdbBackend *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(OdbBackend_read_prefix__doc__,
-    "read_prefix(oid) -> (oid, type, data)\n"
+    "read_prefix(oid) -> (type, data, oid)\n"
     "\n"
     "Read raw object data from this odb backend based on an oid prefix.\n");
 
@@ -433,7 +433,7 @@ OdbBackend_read_header(OdbBackend *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(OdbBackend_exists__doc__,
-    "exists(oid) -> bool\n"
+    "exists(oid: str | Oid) -> bool\n"
     "\n"
     "Returns true if the given oid can be found in this odb.");
 
@@ -461,7 +461,7 @@ OdbBackend_exists(OdbBackend *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(OdbBackend_exists_prefix__doc__,
-    "exists_prefix(partial oid) -> complete oid\n"
+    "exists_prefix(partial_id: str | Oid) -> Oid\n"
     "\n"
     "Given a partial oid, returns the full oid. Raises KeyError if not found,\n"
     "or ValueError if ambiguous.");

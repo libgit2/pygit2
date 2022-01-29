@@ -207,7 +207,7 @@ Reference_delete(Reference *self, PyObject *args)
 
 
 PyDoc_STRVAR(Reference_rename__doc__,
-  "rename(new_name)\n"
+  "rename(new_name: str)\n"
   "\n"
   "Rename the reference.");
 
@@ -320,7 +320,7 @@ Reference_raw_target__get__(Reference *self)
 }
 
 PyDoc_STRVAR(Reference_set_target__doc__,
-    "set_target(target, [message])\n"
+    "set_target(target, message: str = ...)\n"
     "\n"
     "Set the target of this reference.\n"
     "\n"
@@ -468,7 +468,7 @@ Reference_log(Reference *self)
 }
 
 PyDoc_STRVAR(Reference_peel__doc__,
-  "peel(type=None) -> object\n"
+  "peel(type=None) -> Object\n"
   "\n"
   "Retrieve an object of the given type by recursive peeling.\n"
   "\n"

@@ -82,7 +82,7 @@ extern PyTypeObject StashType;
 
 
 PyDoc_STRVAR(discover_repository__doc__,
-  "discover_repository(path[, across_fs[, ceiling_dirs]]) -> str\n"
+  "discover_repository(path: str, across_fs: bool = ..., ceiling_dirs: str = ...) -> str\n"
   "\n"
   "Look for a git repository and return its path. If not found returns None.");
 
@@ -125,7 +125,7 @@ discover_repository(PyObject *self, PyObject *args)
 };
 
 PyDoc_STRVAR(hashfile__doc__,
-    "hashfile(path) -> Oid\n"
+    "hashfile(path: str) -> Oid\n"
     "\n"
     "Returns the oid of a new blob from a file path without actually writing\n"
     "to the odb.");
@@ -152,7 +152,7 @@ hashfile(PyObject *self, PyObject *args)
 }
 
 PyDoc_STRVAR(hash__doc__,
-    "hash(data) -> Oid\n"
+    "hash(data: bytes) -> Oid\n"
     "\n"
     "Returns the oid of a new blob from a string without actually writing to\n"
     "the odb.");
@@ -177,7 +177,7 @@ hash(PyObject *self, PyObject *args)
 
 
 PyDoc_STRVAR(init_file_backend__doc__,
-  "init_file_backend(path[, flags]) -> object\n"
+  "init_file_backend(path: str, flags: int = ...) -> object\n"
   "\n"
   "Open repo backend given path.");
 PyObject *
@@ -219,7 +219,7 @@ cleanup:
 
 
 PyDoc_STRVAR(reference_is_valid_name__doc__,
-    "reference_is_valid_name(refname) -> bool\n"
+    "reference_is_valid_name(refname: str) -> bool\n"
     "\n"
     "Check if the passed string is a valid reference name.");
 PyObject *
@@ -235,7 +235,7 @@ reference_is_valid_name(PyObject *self, PyObject *py_refname)
 
 
 PyDoc_STRVAR(tree_entry_cmp__doc__,
-    "tree_entry_obj(a, b) -> int\n"
+    "tree_entry_cmp(a: Object, b: Object) -> int\n"
     "\n"
     "Rich comparison for objects, only available when the objects have been\n"
     "obtained through a tree. The sort criteria is the one Git uses to sort\n"

@@ -194,7 +194,7 @@ Object_filemode__get__(Object *self)
 
 
 PyDoc_STRVAR(Object_read_raw__doc__,
-  "read_raw()\n"
+  "read_raw() -> bytes\n"
   "\n"
   "Returns the byte string with the raw contents of the object.");
 

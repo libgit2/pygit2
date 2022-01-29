@@ -235,7 +235,7 @@ PyTypeObject DiffFileType = {
 
 
 PyDoc_STRVAR(DiffDelta_status_char__doc__,
-  "status_char()\n"
+  "status_char() -> str\n"
   "\n"
   "Return the single character abbreviation for a delta status code."
 );
@@ -784,7 +784,7 @@ DiffStats_files_changed__get__(DiffStats *self)
 }
 
 PyDoc_STRVAR(DiffStats_format__doc__,
-    "format(format, width)\n"
+    "format(format: int, width: int) -> str\n"
     "\n"
     "Format the stats as a string.\n"
     "\n"
@@ -916,7 +916,7 @@ Diff_from_c(Diff *dummy, PyObject *args)
 }
 
 PyDoc_STRVAR(Diff_merge__doc__,
-  "merge(diff)\n"
+  "merge(diff: Diff)\n"
   "\n"
   "Merge one diff into another.");
 
@@ -938,7 +938,7 @@ Diff_merge(Diff *self, PyObject *args)
 
 
 PyDoc_STRVAR(Diff_find_similar__doc__,
-  "find_similar([flags, rename_threshold, copy_threshold, rename_from_rewrite_threshold, break_rewrite_threshold, rename_limit])\n"
+  "find_similar(flags: int = ..., rename_threshold: int = ..., copy_threshold: int = ..., rename_from_rewrite_threshold: int = ..., break_rewrite_threshold: int = ..., rename_limit: int = ...)\n"
   "\n"
   "Transform a diff marking file renames, copies, etc.\n"
   "\n"

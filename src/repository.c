@@ -279,7 +279,7 @@ Repository_is_shallow__get__(Repository *self)
 
 
 PyDoc_STRVAR(Repository_git_object_lookup_prefix__doc__,
-  "git_object_lookup_prefix(oid) -> Object\n"
+  "git_object_lookup_prefix(oid: Oid) -> Object\n"
   "\n"
   "Returns the Git object with the given oid.");
 
@@ -307,7 +307,7 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
 
 
 PyDoc_STRVAR(Repository_lookup_branch__doc__,
-  "lookup_branch(branch_name, [branch_type]) -> Branch\n"
+  "lookup_branch(branch_name: str, branch_type: int = ...) -> Branch\n"
   "\n"
   "Returns the Git reference for the given branch name (local or remote).\n"
   "If branch_type is GIT_BRANCH_REMOTE, you must include the remote name\n"
@@ -337,6 +337,8 @@ Repository_lookup_branch(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_path_is_ignored__doc__,
+  "path_is_ignored(path: str) -> bool\n"
+  "\n"
   "Check if a path is ignored in the repository.");
 
 PyObject *
@@ -357,7 +359,7 @@ Repository_path_is_ignored(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_revparse_single__doc__,
-  "revparse_single(revision) -> Object\n"
+  "revparse_single(revision: str) -> Object\n"
   "\n"
   "Find an object, as specified by a revision string. See\n"
   "`man gitrevisions`, or the documentation for `git rev-parse` for\n"
@@ -382,7 +384,7 @@ Repository_revparse_single(Repository *self, PyObject *py_spec)
 
 
 PyDoc_STRVAR(Repository_revparse_ext__doc__,
-  "revparse_ext(revision) -> (Object, Reference)\n"
+  "revparse_ext(revision: str) -> tuple[Object, Reference]\n"
   "\n"
   "Find a single object and intermediate reference, as specified by a revision\n"
   "string. See `man gitrevisions`, or the documentation for `git rev-parse`\n"
@@ -420,7 +422,7 @@ Repository_revparse_ext(Repository *self, PyObject *py_spec)
 
 
 PyDoc_STRVAR(Repository_revparse__doc__,
-  "revparse(revspec) -> RevSpec\n"
+  "revparse(revspec: str) -> RevSpec\n"
   "\n"
   "Parse a revision string for from, to, and intent. See `man gitrevisions`,\n"
   "or the documentation for `git rev-parse` for information on the syntax\n"
@@ -495,7 +497,7 @@ Repository_workdir__set__(Repository *self, PyObject *py_workdir)
 }
 
 PyDoc_STRVAR(Repository_descendant_of__doc__,
-  "descendant_of(oid, oid) -> bool\n"
+  "descendant_of(oid1: Oid, oid2: Oid) -> bool\n"
   "\n"
   "Determine if the first commit is a descendant of the second commit.\n"
   "Note that a commit is not considered a descendant of itself.");
@@ -529,7 +531,7 @@ Repository_descendant_of(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_merge_base__doc__,
-  "merge_base(oid, oid) -> Oid\n"
+  "merge_base(oid1: Oid, oid2: Oid) -> Oid\n"
   "\n"
   "Find as good common ancestors as possible for a merge.\n"
   "Returns None if there is no merge base between the commits");
@@ -619,7 +621,7 @@ out:
 
 
 PyDoc_STRVAR(Repository_merge_base_many__doc__,
-  "merge_base_many(oids) -> Oid\n"
+  "merge_base_many(oids: list[Oid]) -> Oid\n"
   "\n"
   "Find as good common ancestors as possible for an n-way merge.\n"
   "Returns None if there is no merge base between the commits");
@@ -631,7 +633,7 @@ Repository_merge_base_many(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_merge_base_octopus__doc__,
-  "merge_base_octopus(oids) -> Oid\n"
+  "merge_base_octopus(oids: list[Oid]) -> Oid\n"
   "\n"
   "Find as good common ancestors as possible for an n-way octopus merge.\n"
   "Returns None if there is no merge base between the commits");
@@ -643,7 +645,7 @@ Repository_merge_base_octopus(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_merge_analysis__doc__,
-  "merge_analysis(their_head, our_ref='HEAD') -> (Integer, Integer)\n"
+  "merge_analysis(their_head: Oid, our_ref: str = \"HEAD\") -> tuple[int, int]\n"
   "\n"
   "Analyzes the given branch and determines the opportunities for\n"
   "merging it into a reference (defaults to HEAD).\n"
@@ -709,7 +711,7 @@ out:
 }
 
 PyDoc_STRVAR(Repository_merge__doc__,
-  "merge(id)\n"
+  "merge(id: Oid)\n"
   "\n"
   "Merges the given id into HEAD.\n"
   "\n"
@@ -750,7 +752,7 @@ Repository_merge(Repository *self, PyObject *py_oid)
 }
 
 PyDoc_STRVAR(Repository_cherrypick__doc__,
-  "cherrypick(id)\n"
+  "cherrypick(id: Oid)\n"
   "\n"
   "Cherry-pick the given oid, producing changes in the index and working directory.\n"
   "\n"
@@ -790,9 +792,9 @@ Repository_cherrypick(Repository *self, PyObject *py_oid)
 }
 
 PyDoc_STRVAR(Repository_walk__doc__,
-    "walk(oid[, sort_mode]) -> iterator\n"
+    "walk(oid: Oid | None, sort_mode: int = ...) -> Walker\n"
     "\n"
-    "Generator that traverses the history starting from the given commit.\n"
+    "Start traversing the history from the given commit.\n"
     "The following types of sorting could be used to control traversing\n"
     "direction:\n"
     "\n"
@@ -866,7 +868,7 @@ error:
 
 
 PyDoc_STRVAR(Repository_create_blob__doc__,
-    "create_blob(data) -> Oid\n"
+    "create_blob(data: bytes) -> Oid\n"
     "\n"
     "Create a new blob from a bytes string. The blob is added to the Git\n"
     "object database. Returns the oid of the blob.");
@@ -891,7 +893,7 @@ Repository_create_blob(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_blob_fromworkdir__doc__,
-    "create_blob_fromworkdir(path) -> Oid\n"
+    "create_blob_fromworkdir(path: str) -> Oid\n"
     "\n"
     "Create a new blob from a file within the working directory. The given\n"
     "path must be relative to the working directory, if it is not an error\n"
@@ -917,7 +919,7 @@ Repository_create_blob_fromworkdir(Repository *self, PyObject *py_path)
 
 
 PyDoc_STRVAR(Repository_create_blob_fromdisk__doc__,
-    "create_blob_fromdisk(path) -> Oid\n"
+    "create_blob_fromdisk(path: str) -> Oid\n"
     "\n"
     "Create a new blob from a file anywhere (no working directory check).");
 
@@ -1025,7 +1027,7 @@ cleanup:
 
 
 PyDoc_STRVAR(Repository_create_commit__doc__,
-  "create_commit(reference_name, author, committer, message, tree, parents[, encoding]) -> Oid\n"
+  "create_commit(reference_name: str, author: Signature, committer: Signature, message: str, tree: Oid, parents: list[Oid], encoding: str = ...) -> Oid\n"
   "\n"
   "Create a new commit object, return its oid.");
 
@@ -1110,7 +1112,7 @@ out:
 
 
 PyDoc_STRVAR(Repository_create_tag__doc__,
-  "create_tag(name, oid, type, tagger, message) -> Oid\n"
+  "create_tag(name: str, oid: Oid, type: int, tagger: Signature, message: str) -> Oid\n"
   "\n"
   "Create a new tag object, return its oid.");
 
@@ -1149,7 +1151,7 @@ Repository_create_tag(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_branch__doc__,
-  "create_branch(name, commit, force=False)\n"
+  "create_branch(name: str, commit: Commit, force=False) -> Branch\n"
   "\n"
   "Create a new branch \"name\" which points to a commit.\n"
   "\n"
@@ -1223,7 +1225,7 @@ out:
 }
 
 PyDoc_STRVAR(Repository_listall_references__doc__,
-  "listall_references() -> [str, ...]\n"
+  "listall_references() -> list[str]\n"
   "\n"
   "Return a list with all the references in the repository.");
 
@@ -1234,7 +1236,7 @@ Repository_listall_references(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_raw_listall_references__doc__,
-  "raw_listall_references() -> [bytes, ...]\n"
+  "raw_listall_references() -> list[bytes]\n"
   "\n"
   "Return a list with all the references in the repository.");
 
@@ -1246,7 +1248,7 @@ Repository_raw_listall_references(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_listall_reference_objects__doc__,
-  "listall_reference_objects() -> [Reference, ...]\n"
+  "listall_reference_objects() -> list[Reference]\n"
   "\n"
   "Return a list with all the reference objects in the repository.");
 
@@ -1348,7 +1350,7 @@ error:
 }
 
 PyDoc_STRVAR(Repository_listall_branches__doc__,
-  "listall_branches([flag]) -> [str, ...]\n"
+  "listall_branches(flag: int = ...) -> list[str]\n"
   "\n"
   "Return a list with all the branches in the repository.\n"
   "\n"
@@ -1365,7 +1367,7 @@ Repository_listall_branches(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_raw_listall_branches__doc__,
-  "raw_listall_branches([flag]) -> [bytes, ...]\n"
+  "raw_listall_branches(flag: int = ...) -> list[bytes]\n"
   "\n"
   "Return a list with all the branches in the repository.\n"
   "\n"
@@ -1382,7 +1384,7 @@ Repository_raw_listall_branches(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_listall_submodules__doc__,
-  "listall_submodules() -> [str, ...]\n"
+  "listall_submodules() -> list[str]\n"
   "\n"
   "Return a list with all submodule paths in the repository.\n");
 
@@ -1417,7 +1419,7 @@ Repository_listall_submodules(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_init_submodules__doc__,
-    "init_submodule(submodules=None, overwrite=False)\n"
+    "init_submodules(submodules: list[pygit2.Submodule] = ..., overwrite=False)\n"
     "\n"
     "Initialize all submodules in repository.\n"
     "submodules: List of submodules to initialize. Default argument initializes all submodules.\n"
@@ -1492,7 +1494,7 @@ error:
 }
 
 PyDoc_STRVAR(Repository_lookup_reference__doc__,
-  "lookup_reference(name) -> Reference\n"
+  "lookup_reference(name: str) -> Reference\n"
   "\n"
   "Lookup a reference by its name in a repository.");
 
@@ -1519,7 +1521,7 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
 }
 
 PyDoc_STRVAR(Repository_lookup_reference_dwim__doc__,
-  "lookup_reference_dwim(name) -> Reference\n"
+  "lookup_reference_dwim(name: str) -> Reference\n"
   "\n"
   "Lookup a reference by doing-what-i-mean'ing its short name.");
 
@@ -1546,7 +1548,7 @@ Repository_lookup_reference_dwim(Repository *self, PyObject *py_name)
 }
 
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
-  "create_reference_direct(name, target, force, message=None)\n"
+  "create_reference_direct(name: str, target, force=False, message: str = ...) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to an object.\n"
   "\n"
@@ -1593,7 +1595,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
 }
 
 PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
-  "create_reference_symbolic(name, source, force, message=None)\n"
+  "create_reference_symbolic(name, source, force, message=None) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to another reference.\n"
   "\n"
@@ -1660,7 +1662,7 @@ Repository_compress_references(Repository *self)
 }
 
 PyDoc_STRVAR(Repository_status__doc__,
-  "status() -> {str: int}\n"
+  "status() -> dict[str, int]\n"
   "\n"
   "Reads the status of the repository and returns a dictionary with file\n"
   "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.");
@@ -1717,7 +1719,7 @@ error:
 
 
 PyDoc_STRVAR(Repository_status_file__doc__,
-  "status_file(path) -> int\n"
+  "status_file(path: str) -> int\n"
   "\n"
   "Returns the status of the given file path.");
 
@@ -1742,7 +1744,7 @@ Repository_status_file(Repository *self, PyObject *value)
 
 
 PyDoc_STRVAR(Repository_TreeBuilder__doc__,
-  "TreeBuilder([tree]) -> TreeBuilder\n"
+  "TreeBuilder(src: Tree | Oid = ...) -> TreeBuilder\n"
   "\n"
   "Create a TreeBuilder object for this repository.");
 
@@ -1879,7 +1881,7 @@ Repository_notes(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_note__doc__,
-  "create_note(message, author, committer, annotated_id [,ref, force]) -> Oid\n"
+  "create_note(message: str, author: Signature, committer: Signature, annotated_id: str, ref: str = ..., force: bool = ...) -> Oid\n"
   "\n"
   "Create a new note for an object, return its SHA-ID."
   "If no ref is given 'refs/notes/commits' will be used.");
@@ -1915,7 +1917,7 @@ Repository_create_note(Repository *self, PyObject* args)
 
 
 PyDoc_STRVAR(Repository_lookup_note__doc__,
-  "lookup_note(annotated_id [, ref]) -> Note\n"
+  "lookup_note(annotated_id: str, ref: str = ...) -> Note\n"
   "\n"
   "Lookup a note for an annotated object in a repository.");
 
@@ -1937,7 +1939,7 @@ Repository_lookup_note(Repository *self, PyObject* args)
 }
 
 PyDoc_STRVAR(Repository_reset__doc__,
-    "reset(oid, reset_type)\n"
+    "reset(oid: Oid, reset_type: int)\n"
     "\n"
     "Resets the current head.\n"
     "\n"
@@ -1997,7 +1999,7 @@ Repository_free(Repository *self)
 }
 
 PyDoc_STRVAR(Repository_expand_id__doc__,
-    "expand_id(hex) -> Oid\n"
+    "expand_id(hex: str) -> Oid\n"
     "\n"
     "Expand a string into a full Oid according to the objects in this repsitory.\n");
 
@@ -2015,7 +2017,7 @@ Repository_expand_id(Repository *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(Repository_add_worktree__doc__,
-    "add_worktree(name, path, [ref])\n"
+    "add_worktree(name: str, path: str, ref: Reference = ...) -> Worktree\n"
     "\n"
     "Create a new worktree for this repository. If ref is specified, no new \
     branch will be created and the provided ref will be checked out instead.");
@@ -2049,7 +2051,7 @@ Repository_add_worktree(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_lookup_worktree__doc__,
-    "lookup_worktree(name) -> Worktree\n"
+    "lookup_worktree(name: str) -> Worktree\n"
     "\n"
     "Lookup a worktree from its name.");
 PyObject *
@@ -2070,7 +2072,7 @@ Repository_lookup_worktree(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_list_worktrees__doc__,
-    "list_worktrees() -> [str, ...]\n"
+    "list_worktrees() -> list[str]\n"
     "\n"
     "Return a list with all the worktrees of this repository.");
 PyObject *
@@ -2107,7 +2109,7 @@ out:
 }
 
 PyDoc_STRVAR(Repository_apply__doc__,
-  "apply(diff, location=GIT_APPLY_LOCATION_WORKDIR)\n"
+  "apply(diff: Diff, location: int = ...)\n"
   "\n"
   "Applies the given Diff object to HEAD, writing the results into the\n"
   "working directory, the index, or both.\n"
@@ -2144,7 +2146,7 @@ Repository_apply(Repository *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(Repository_applies__doc__,
-  "applies(diff, location=GIT_APPLY_LOCATION_INDEX) -> bool\n"
+  "applies(diff: Diff, location: int = ...) -> bool\n"
   "\n"
   "Tests if the given patch will apply to HEAD, without writing it.\n"
   "\n"
@@ -2244,7 +2246,7 @@ static int foreach_stash_cb(size_t index, const char *message, const git_oid *st
 }
 
 PyDoc_STRVAR(Repository_listall_stashes__doc__,
-  "listall_stashes() -> [Stash, ...]\n"
+  "listall_stashes() -> list[Stash]\n"
   "\n"
   "Return a list with all stashed commits in the repository.\n");
 
