@@ -307,7 +307,7 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
 
 
 PyDoc_STRVAR(Repository_lookup_branch__doc__,
-  "lookup_branch(branch_name: str, branch_type: int = ...) -> Branch\n"
+  "lookup_branch(branch_name: str, branch_type: int = GIT_BRANCH_LOCAL) -> Branch\n"
   "\n"
   "Returns the Git reference for the given branch name (local or remote).\n"
   "If branch_type is GIT_BRANCH_REMOTE, you must include the remote name\n"
@@ -792,7 +792,7 @@ Repository_cherrypick(Repository *self, PyObject *py_oid)
 }
 
 PyDoc_STRVAR(Repository_walk__doc__,
-    "walk(oid: Oid | None, sort_mode: int = ...) -> Walker\n"
+    "walk(oid: Oid | None, sort_mode: int = GIT_SORT_NONE) -> Walker\n"
     "\n"
     "Start traversing the history from the given commit.\n"
     "The following types of sorting could be used to control traversing\n"
@@ -1350,7 +1350,7 @@ error:
 }
 
 PyDoc_STRVAR(Repository_listall_branches__doc__,
-  "listall_branches(flag: int = ...) -> list[str]\n"
+  "listall_branches(flag: int = GIT_BRANCH_LOCAL) -> list[str]\n"
   "\n"
   "Return a list with all the branches in the repository.\n"
   "\n"
@@ -1367,7 +1367,7 @@ Repository_listall_branches(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_raw_listall_branches__doc__,
-  "raw_listall_branches(flag: int = ...) -> list[bytes]\n"
+  "raw_listall_branches(flag: int = GIT_BRANCH_LOCAL) -> list[bytes]\n"
   "\n"
   "Return a list with all the branches in the repository.\n"
   "\n"
@@ -1881,7 +1881,7 @@ Repository_notes(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_note__doc__,
-  "create_note(message: str, author: Signature, committer: Signature, annotated_id: str, ref: str = ..., force: bool = ...) -> Oid\n"
+  "create_note(message: str, author: Signature, committer: Signature, annotated_id: str, ref: str = \"refs/notes/commits\", force: bool = False) -> Oid\n"
   "\n"
   "Create a new note for an object, return its SHA-ID."
   "If no ref is given 'refs/notes/commits' will be used.");
@@ -1917,7 +1917,7 @@ Repository_create_note(Repository *self, PyObject* args)
 
 
 PyDoc_STRVAR(Repository_lookup_note__doc__,
-  "lookup_note(annotated_id: str, ref: str = ...) -> Note\n"
+  "lookup_note(annotated_id: str, ref: str = \"refs/notes/commits\") -> Note\n"
   "\n"
   "Lookup a note for an annotated object in a repository.");
 
@@ -2109,7 +2109,7 @@ out:
 }
 
 PyDoc_STRVAR(Repository_apply__doc__,
-  "apply(diff: Diff, location: int = ...)\n"
+  "apply(diff: Diff, location: int = GIT_APPLY_LOCATION_WORKDIR)\n"
   "\n"
   "Applies the given Diff object to HEAD, writing the results into the\n"
   "working directory, the index, or both.\n"
@@ -2146,7 +2146,7 @@ Repository_apply(Repository *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(Repository_applies__doc__,
-  "applies(diff: Diff, location: int = ...) -> bool\n"
+  "applies(diff: Diff, location: int = GIT_APPLY_LOCATION_INDEX) -> bool\n"
   "\n"
   "Tests if the given patch will apply to HEAD, without writing it.\n"
   "\n"

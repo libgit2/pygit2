@@ -1009,7 +1009,7 @@ Diff_stats__get__(Diff *self)
 }
 
 PyDoc_STRVAR(Diff_parse_diff__doc__,
-    "parse_diff(git_diff: str) -> Diff\n"
+    "parse_diff(git_diff: str | bytes) -> Diff\n"
     "\n"
     "Parses a git unified diff into a diff object without a repository");
 

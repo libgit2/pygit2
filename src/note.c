@@ -37,7 +37,7 @@
 extern PyTypeObject SignatureType;
 
 PyDoc_STRVAR(Note_remove__doc__,
-    "remove(author: Signature, committer: Signature, ref: str = ...)\n"
+    "remove(author: Signature, committer: Signature, ref: str = \"refs/notes/commits\")\n"
     "\n"
     "Removes a note for an annotated object");
 

@@ -82,7 +82,7 @@ extern PyTypeObject StashType;
 
 
 PyDoc_STRVAR(discover_repository__doc__,
-  "discover_repository(path: str, across_fs: bool = ..., ceiling_dirs: str = ...) -> str\n"
+  "discover_repository(path: str, across_fs: bool = False, ceiling_dirs: str = ...) -> str\n"
   "\n"
   "Look for a git repository and return its path. If not found returns None.");
 
@@ -177,7 +177,7 @@ hash(PyObject *self, PyObject *args)
 
 
 PyDoc_STRVAR(init_file_backend__doc__,
-  "init_file_backend(path: str, flags: int = ...) -> object\n"
+  "init_file_backend(path: str, flags: int = 0) -> object\n"
   "\n"
   "Open repo backend given path.");
 PyObject *
