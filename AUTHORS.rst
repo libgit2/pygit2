@@ -33,6 +33,7 @@ Authors::
   Michael Jones
   Bernardo Heynemann
   Brodie Rao
+  Iliyas Jorio
   John Szakmeister
   Nabijacz Leweli
   Simon Cozens
@@ -57,6 +58,7 @@ Authors::
   Assaf Nativ
   Bob Carroll
   Erik Johnson
+  Filip Rindler
   Fraser Tweedale
   Grégoire ROCHER
   Han-Wen Nienhuys
@@ -88,7 +90,6 @@ Authors::
   Huang Huang
   Ian P. McCullough
   Igor Gnatenko
-  Iliyas Jorio
   Insomnia
   Jack O'Connor
   Jared Flatow
@@ -192,4 +193,3 @@ Authors::
   chengyuhang
   earl
   odidev
-  Filip Rindler

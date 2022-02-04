@@ -1,13 +1,13 @@
-1.8.0 (UNRELEASED)
+1.8.0 (2022-02-04)
 -------------------------
 
-- Rename ``RemoteCallbacks.progress`` callback to ``.sideband_progress``
+- Rename ``RemoteCallbacks.progress(...)`` callback to ``.sideband_progress(...)``
   `#1120 <https://github.com/libgit2/pygit2/pull/1120>`_
 
-- New ``Repository.merge_base_many`` and ``Repository.merge_base_octopus``
+- New ``Repository.merge_base_many(...)`` and ``Repository.merge_base_octopus(...)``
   `#1112 <https://github.com/libgit2/pygit2/pull/1112>`_
 
-- New ``Repository.listall_stashes``
+- New ``Repository.listall_stashes()``
   `#1117 <https://github.com/libgit2/pygit2/pull/1117>`_
 
 - Code cleanup
@@ -15,9 +15,9 @@
 
 Backward incompatible changes:
 
-- The ``RemoteCallbacks.progress`` callback has been renamed to
-  ``RemoteCallbacks.sideband_progress``. This matches the documentation, but
-  may break existing code that still uses the old name.
+- The ``RemoteCallbacks.progress(...)`` callback has been renamed to
+  ``RemoteCallbacks.sideband_progress(...)``. This matches the documentation,
+  but may break existing code that still uses the old name.
 
 
 1.7.2 (2021-12-06)

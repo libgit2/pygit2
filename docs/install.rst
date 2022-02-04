@@ -67,8 +67,8 @@ The version number of pygit2 is composed of three numbers separated by dots
 |lq| *major.medium.minor* |rq|:
 
 - *major* will always be 1 (until we release 2.0 in a far undefined future)
-- *medium* will increase whenever we make breaking changes, or add new features, or
-  upgrade to new versions of libgit2.
+- *medium* will increase whenever we make breaking changes, or upgrade to new
+  versions of libgit2.
 - *minor* will increase for bug fixes.
 
 The table below summarizes the latest pygit2 versions with the supported versions
@@ -77,7 +77,7 @@ of Python and the required libgit2 version.
 +-----------+----------------+----------------+
 | pygit2    | Python         | libgit2        |
 +-----------+----------------+----------------+
-| 1.7       | 3.7 - 3.10     | 1.3.x          |
+| 1.7 - 1.8 | 3.7 - 3.10     | 1.3.x          |
 +-----------+----------------+----------------+
 | 1.4 - 1.6 | 3.6 - 3.9      | 1.1.x          |
 +-----------+----------------+----------------+

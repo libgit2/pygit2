@@ -22,7 +22,7 @@ copyright = '2010-2021 The pygit2 contributors'
 #author = ''
 
 # The full version, including alpha/beta/rc tags
-release = '1.7.2'
+release = '1.8.0'
 
 
 # -- General configuration ---------------------------------------------------
