@@ -41,6 +41,8 @@ reference to be updated by the commit, and you should name parents:
 
 The rest is the same:
 
+.. code-block:: python
+
     >>> index = repo.index
     >>> index.add_all()
     >>> index.write()
