@@ -2,6 +2,12 @@
 #define GIT_PUSH_OPTIONS_VERSION ...
 #define GIT_REMOTE_CALLBACKS_VERSION ...
 
+typedef enum {
+	GIT_REMOTE_REDIRECT_NONE,
+	GIT_REMOTE_REDIRECT_INITIAL,
+	GIT_REMOTE_REDIRECT_ALL
+} git_remote_redirect_t;
+
 typedef enum git_remote_completion_t {
 	GIT_REMOTE_COMPLETION_DOWNLOAD,
 	GIT_REMOTE_COMPLETION_INDEXING,
@@ -49,6 +55,7 @@ typedef struct {
 	unsigned int pb_parallelism;
 	git_remote_callbacks callbacks;
 	git_proxy_options proxy_opts;
+	git_remote_redirect_t follow_redirects;
 	git_strarray custom_headers;
 } git_push_options;
 
@@ -76,6 +83,7 @@ typedef struct {
 	int update_fetchhead;
 	git_remote_autotag_option_t download_tags;
 	git_proxy_options proxy_opts;
+	git_remote_redirect_t follow_redirects;
 	git_strarray custom_headers;
 } git_fetch_options;
 
