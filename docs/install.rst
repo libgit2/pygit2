@@ -17,22 +17,20 @@ Install pygit2:
 
 .. code-block:: sh
 
-   $ pip --version
-   pip 21.2.4 from /usr/lib/python3.9/site-packages/pip (python 3.9)
    $ pip install pygit2
 
 The line above will install binary wheels if available in your platform.
 
-.. warning::
+Caveats:
 
-   Use pip 19.3 or later, otherwise the source package will be installed
-   instead of the binary wheel.
+- This requires pip 20.3 or later, otherwise pip will try to install the source
+  distribution, and likely fail to find a matching version of libgit2.
 
-To install the source package:
+- When there's a new release it takes a while to upload the wheels, so pip may
+  fail to find a wheel for your system. It's recommended to specify the pygit2
+  version in your requirements file.
 
-.. code-block:: sh
-
-   $ pip install pygit2 --no-binary
+- Binary wheels for Windows are available, but they don't have support for ssh.
 
 
 Requirements
@@ -45,11 +43,11 @@ Supported versions of Python:
 
 Python requirements (these are specified in ``setup.py``):
 
-- cffi 1.4+
+- cffi 1.9.1+
 - cached-property
 
 Libgit2 **v1.4.x**; binary wheels already include libgit2, so you only need to
-worry about this if you install the source package
+worry about this if you install the source package.
 
 Optional libgit2 dependecies to support ssh and https:
 
