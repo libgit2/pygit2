@@ -617,35 +617,16 @@ PyDoc_STRVAR(Diff_patch__doc__,
 PyObject *
 Diff_patch__get__(Diff *self)
 {
-    git_patch* patch;
     git_buf buf = {NULL};
-    int err = GIT_ERROR;
-    size_t i, num;
-    PyObject *py_patch = NULL;
 
-    num = git_diff_num_deltas(self->diff);
-    if (num == 0)
-        Py_RETURN_NONE;
+    int err = git_diff_to_buf(&buf, self->diff, GIT_DIFF_FORMAT_PATCH);
+    if (err < 0)
+        return Error_set(err);
 
-    for (i = 0; i < num ; ++i) {
-        err = git_patch_from_diff(&patch, self->diff, i);
-        if (err < 0)
-            goto cleanup;
+    PyObject *py_patch = to_unicode_n(buf.ptr, buf.size, NULL, NULL);
 
-        /* This appends to the current buf, so we can simply keep passing it */
-        err = git_patch_to_buf(&buf, patch);
-        if (err < 0)
-            goto cleanup;
-
-        git_patch_free(patch);
-    }
-
-    py_patch = to_unicode_n(buf.ptr, buf.size, NULL, NULL);
     git_buf_dispose(&buf);
-
-cleanup:
-    git_buf_dispose(&buf);
-    return (err < 0) ? Error_set(err) : py_patch;
+    return py_patch;
 }
 
 
