@@ -153,6 +153,9 @@ if [ -n "$LIBSSH2_VERSION" ]; then
     cmake --build . --target install
     cd ..
     LIBSSH2_PREFIX=$PREFIX
+    USE_SSH=ON
+else
+    USE_SSH=OFF
 fi
 
 # Install libgit2
@@ -163,19 +166,21 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     cd $FILENAME
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
         CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
-                -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_CLAR=OFF \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
                 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
                 -DOPENSSL_CRYPTO_LIBRARY="../openssl-universal/$LIBCRYPTO" \
                 -DOPENSSL_SSL_LIBRARY="../openssl-universal/$LIBSSL" \
                 -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
-                -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+                -DUSE_SSH=$USE_SSH
     else
         CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
-                -DCMAKE_INSTALL_PREFIX=$PREFIX \
-                -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_CLAR=OFF \
-                -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+                -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                -DUSE_SSH=$USE_SSH
     fi
     cmake --build . --target install
     cd ..
