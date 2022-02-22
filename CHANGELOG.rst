@@ -1,7 +1,7 @@
-1.9.0 (UNRELEASED)
+1.9.0 (2022-02-22)
 -------------------------
 
-- Upgrade to libgit2 v1.4.0
+- Upgrade to libgit2 v1.4
 
 - Documentation, new recipes for committing and cloning
   `#1125 <https://github.com/libgit2/pygit2/pull/1125>`_

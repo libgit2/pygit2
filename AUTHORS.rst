@@ -106,6 +106,7 @@ Authors::
   Natanael Arndt
   Ondřej Nový
   Sarath Lakshman
+  Steve Kieffer
   Szucs Krisztian
   Vicent Marti
   Zbigniew Jędrzejewski-Szmek
