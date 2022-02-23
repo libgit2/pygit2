@@ -133,9 +133,8 @@ ext_modules = [
     Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)
 ]
 
-install_requires = ['cffi>=1.9.1']
-if sys.version_info < (3, 8):
-    install_requires.append('cached-property')
+with open('requirements.txt') as f:
+    install_requires = f.read().splitlines()
 
 setup(
     name='pygit2',
