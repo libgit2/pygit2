@@ -71,10 +71,12 @@ pgit_odb_backend_read(void **ptr, size_t *sz, git_object_t *type,
         return git_error_for_exc();
 
     const char *bytes;
-    if (!PyArg_ParseTuple(result, "ny#", type, &bytes, sz) || !bytes) {
+    Py_ssize_t type_value;
+    if (!PyArg_ParseTuple(result, "ny#", &type_value, &bytes, sz) || !bytes) {
         Py_DECREF(result);
         return GIT_EUSER;
     }
+    *type = (git_object_t)type_value;
 
     *ptr = git_odb_backend_data_alloc(_be, *sz);
     if (!*ptr) {
@@ -103,11 +105,13 @@ pgit_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz, git_objec
 
     // Parse output from calback
     PyObject *py_oid_out;
+    Py_ssize_t type_value;
     const char *bytes;
-    if (!PyArg_ParseTuple(result, "ny#O", type, &bytes, sz, &py_oid_out) || !bytes) {
+    if (!PyArg_ParseTuple(result, "ny#O", &type_value, &bytes, sz, &py_oid_out) || !bytes) {
         Py_DECREF(result);
         return GIT_EUSER;
     }
+    *type = (git_object_t)type_value;
 
     *ptr = git_odb_backend_data_alloc(_be, *sz);
     if (!*ptr) {
@@ -135,10 +139,12 @@ pgit_odb_backend_read_header(size_t *len, git_object_t *type,
     if (result == NULL)
         return git_error_for_exc();
 
-    if (!PyArg_ParseTuple(result, "nn", type, len)) {
+    Py_ssize_t type_value;
+    if (!PyArg_ParseTuple(result, "nn", &type_value, len)) {
         Py_DECREF(result);
         return GIT_EUSER;
     }
+    *type = (git_object_t)type_value;
 
     Py_DECREF(result);
     return 0;
