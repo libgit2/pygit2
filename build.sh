@@ -166,8 +166,8 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     cd $FILENAME
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
         CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
-                -DBUILD_CLAR=OFF \
                 -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
                 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
                 -DOPENSSL_CRYPTO_LIBRARY="../openssl-universal/$LIBCRYPTO" \
@@ -176,8 +176,8 @@ if [ -n "$LIBGIT2_VERSION" ]; then
                 -DUSE_SSH=$USE_SSH
     else
         CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
-                -DBUILD_CLAR=OFF \
                 -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
                 -DCMAKE_INSTALL_PREFIX=$PREFIX \
                 -DUSE_SSH=$USE_SSH
