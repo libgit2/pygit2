@@ -938,7 +938,7 @@ Diff_merge(Diff *self, PyObject *args)
 
 
 PyDoc_STRVAR(Diff_find_similar__doc__,
-  "find_similar(flags: int = ..., rename_threshold: int = ..., copy_threshold: int = ..., rename_from_rewrite_threshold: int = ..., break_rewrite_threshold: int = ..., rename_limit: int = ...)\n"
+  "find_similar(flags: int = GIT_DIFF_FIND_BY_CONFIG, rename_threshold: int = 50, copy_threshold: int = 50, rename_from_rewrite_threshold: int = 50, break_rewrite_threshold: int = 60, rename_limit: int = 1000)\n"
   "\n"
   "Transform a diff marking file renames, copies, etc.\n"
   "\n"

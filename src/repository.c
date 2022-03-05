@@ -1027,7 +1027,7 @@ cleanup:
 
 
 PyDoc_STRVAR(Repository_create_commit__doc__,
-  "create_commit(reference_name: str, author: Signature, committer: Signature, message: str, tree: Oid, parents: list[Oid], encoding: str = ...) -> Oid\n"
+  "create_commit(reference_name: str, author: Signature, committer: Signature, message: bytes | str, tree: Oid, parents: list[Oid][, encoding: str]) -> Oid\n"
   "\n"
   "Create a new commit object, return its oid.");
 
@@ -1112,7 +1112,7 @@ out:
 
 
 PyDoc_STRVAR(Repository_create_tag__doc__,
-  "create_tag(name: str, oid: Oid, type: int, tagger: Signature, message: str) -> Oid\n"
+  "create_tag(name: str, oid: Oid, type: int, tagger: Signature[, message: str]) -> Oid\n"
   "\n"
   "Create a new tag object, return its oid.");
 
@@ -1151,7 +1151,7 @@ Repository_create_tag(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_create_branch__doc__,
-  "create_branch(name: str, commit: Commit, force=False) -> Branch\n"
+  "create_branch(name: str, commit: Commit, force: bool = False) -> Branch\n"
   "\n"
   "Create a new branch \"name\" which points to a commit.\n"
   "\n"
@@ -1419,7 +1419,7 @@ Repository_listall_submodules(Repository *self, PyObject *args)
 
 
 PyDoc_STRVAR(Repository_init_submodules__doc__,
-    "init_submodules(submodules: list[pygit2.Submodule] = ..., overwrite=False)\n"
+    "init_submodules(submodules: list[Submodule] = None, overwrite=False)\n"
     "\n"
     "Initialize all submodules in repository.\n"
     "submodules: List of submodules to initialize. Default argument initializes all submodules.\n"
@@ -1548,7 +1548,7 @@ Repository_lookup_reference_dwim(Repository *self, PyObject *py_name)
 }
 
 PyDoc_STRVAR(Repository_create_reference_direct__doc__,
-  "create_reference_direct(name: str, target, force=False, message: str = ...) -> Reference\n"
+  "create_reference_direct(name: str, target: Oid, force: bool, message=None) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to an object.\n"
   "\n"
@@ -1595,7 +1595,7 @@ Repository_create_reference_direct(Repository *self,  PyObject *args,
 }
 
 PyDoc_STRVAR(Repository_create_reference_symbolic__doc__,
-  "create_reference_symbolic(name, source, force, message=None) -> Reference\n"
+  "create_reference_symbolic(name: str, target: str, force: bool, message: str = None) -> Reference\n"
   "\n"
   "Create a new reference \"name\" which points to another reference.\n"
   "\n"
@@ -1744,7 +1744,7 @@ Repository_status_file(Repository *self, PyObject *value)
 
 
 PyDoc_STRVAR(Repository_TreeBuilder__doc__,
-  "TreeBuilder(src: Tree | Oid = ...) -> TreeBuilder\n"
+  "TreeBuilder([tree]) -> TreeBuilder\n"
   "\n"
   "Create a TreeBuilder object for this repository.");
 
@@ -2017,7 +2017,7 @@ Repository_expand_id(Repository *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(Repository_add_worktree__doc__,
-    "add_worktree(name: str, path: str, ref: Reference = ...) -> Worktree\n"
+    "add_worktree(name: str, path: str | bytes[, ref: Reference]) -> Worktree\n"
     "\n"
     "Create a new worktree for this repository. If ref is specified, no new \
     branch will be created and the provided ref will be checked out instead.");

@@ -120,7 +120,7 @@ PyTypeObject RefLogIterType = {
 PyDoc_STRVAR(Reference__doc__,
         "Reference(name: str, target: str): create a symbolic reference\n"
         "\n"
-        "Reference(name: str, oid: oid, peel: oid): create a direct reference\n"
+        "Reference(name: str, oid: Oid, peel: Oid): create a direct reference\n"
         "\n"
         "'peel' is the first non-tag object's OID, or None.\n"
         "\n"
@@ -320,7 +320,7 @@ Reference_raw_target__get__(Reference *self)
 }
 
 PyDoc_STRVAR(Reference_set_target__doc__,
-    "set_target(target, message: str = ...)\n"
+    "set_target(target[, message: str])\n"
     "\n"
     "Set the target of this reference.\n"
     "\n"

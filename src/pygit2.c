@@ -82,7 +82,7 @@ extern PyTypeObject StashType;
 
 
 PyDoc_STRVAR(discover_repository__doc__,
-  "discover_repository(path: str, across_fs: bool = False, ceiling_dirs: str = ...) -> str\n"
+  "discover_repository(path: str, across_fs: bool = False[, ceiling_dirs: str]) -> str\n"
   "\n"
   "Look for a git repository and return its path. If not found returns None.");
 

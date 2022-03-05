@@ -108,7 +108,7 @@ Mailmap_from_buffer(Mailmap *dummy, PyObject *args)
 }
 
 PyDoc_STRVAR(Mailmap_add_entry__doc__,
-    "add_entry(real_name: str = ..., real_email: str = ..., replace_name: str = ..., replace_email: str = ...)\n"
+    "add_entry(real_name: str = None, real_email: str = None, replace_name: str = None, replace_email: str)\n"
     "\n"
     "Add a new entry to the mailmap, overriding existing entries.");
 PyObject *

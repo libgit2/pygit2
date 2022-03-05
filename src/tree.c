@@ -202,7 +202,7 @@ Tree_divide(Tree *self, PyObject *value)
 
 
 PyDoc_STRVAR(Tree_diff_to_workdir__doc__,
-  "diff_to_workdir(flags: int = ..., context_lines: int = ..., interhunk_lines: int = ...) -> Diff\n"
+  "diff_to_workdir(flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff\n"
   "\n"
   "Show the changes between the :py:class:`~pygit2.Tree` and the workdir.\n"
   "\n"
@@ -241,14 +241,14 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
 
 
 PyDoc_STRVAR(Tree_diff_to_index__doc__,
-  "diff_to_index(index: Index, flags: int = ..., context_lines: int = ..., interhunk_lines: int = ...) -> Diff\n"
+  "diff_to_index(index: Index, flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff\n"
   "\n"
   "Show the changes between the index and a given :py:class:`~pygit2.Tree`.\n"
   "\n"
   "Parameters:\n"
   "\n"
-  "tree : :py:class:`~pygit2.Tree`\n"
-  "    The tree to diff.\n"
+  "index : :py:class:`~pygit2.Index`\n"
+  "    The index to diff.\n"
   "\n"
   "flag\n"
   "    A GIT_DIFF_* constant.\n"
@@ -321,7 +321,7 @@ error:
 
 
 PyDoc_STRVAR(Tree_diff_to_tree__doc__,
-  "diff_to_tree(tree: Tree = ..., flags: int = ..., context_lines: int = ..., interhunk_lines: int = ..., swap: bool = ...) -> Diff\n"
+  "diff_to_tree([tree: Tree, flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0, swap: bool = False]) -> Diff\n"
   "\n"
   "Show the changes between two trees.\n"
   "\n"
