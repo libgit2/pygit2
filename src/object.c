@@ -226,7 +226,12 @@ Object_read_raw(Object *self)
 PyDoc_STRVAR(Object_peel__doc__,
   "peel(target_type) -> Object\n"
   "\n"
-  "Peel the current object and returns the first object of the given type\n");
+  "Peel the current object and returns the first object of the given type.\n"
+  "\n"
+  "If you pass None as the target type, then the object will be peeled\n"
+  "until the type changes. A tag will be peeled until the referenced object\n"
+  "is no longer a tag, and a commit will be peeled to a tree. Any other\n"
+  "object type will raise InvalidSpecError.\n");
 
 PyObject *
 Object_peel(Object *self, PyObject *py_type)
