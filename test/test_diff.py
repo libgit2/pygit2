@@ -334,11 +334,11 @@ def test_diff_parse(barerepo):
     deltas = list(diff.deltas)
     assert 2 == len(deltas)
 
-def test_parse_diff_null(barerepo):
-    with pytest.raises(Exception):
-        barerepo.parse_diff(None)
+def test_parse_diff_null():
+    with pytest.raises(TypeError):
+        pygit2.Diff.parse_diff(None)
 
-def test_parse_diff_bad(barerepo):
+def test_parse_diff_bad():
     diff = textwrap.dedent(
     """
     diff --git a/file1 b/file1
@@ -347,5 +347,5 @@ def test_parse_diff_bad(barerepo):
     @@ -1,1 +1,1 @@
     -Hi!
     """)
-    with pytest.raises(Exception):
-        barerepo.parse_diff(diff)
+    with pytest.raises(pygit2.GitError):
+        pygit2.Diff.parse_diff(diff)
