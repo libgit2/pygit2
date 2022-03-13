@@ -1489,7 +1489,7 @@ class BaseRepository(_Repository):
 
 class Branches:
 
-    def __init__(self, repository, flag=GIT_BRANCH_ALL, commit=None):
+    def __init__(self, repository: BaseRepository, flag: int = GIT_BRANCH_ALL, commit=None):
         self._repository = repository
         self._flag = flag
         if commit is not None:
@@ -1503,7 +1503,7 @@ class Branches:
             self.local = Branches(repository, flag=GIT_BRANCH_LOCAL, commit=commit)
             self.remote = Branches(repository, flag=GIT_BRANCH_REMOTE, commit=commit)
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str):
         branch = None
         if self._flag & GIT_BRANCH_LOCAL:
             branch = self._repository.lookup_branch(name, GIT_BRANCH_LOCAL)
@@ -1516,7 +1516,7 @@ class Branches:
 
         return branch
 
-    def get(self, key):
+    def get(self, key: str):
         try:
             return self[key]
         except KeyError:
@@ -1527,10 +1527,10 @@ class Branches:
             if self._commit is None or self.get(branch_name) is not None:
                 yield branch_name
 
-    def create(self, name, commit, force=False):
+    def create(self, name: str, commit, force=False):
         return self._repository.create_branch(name, commit, force)
 
-    def delete(self, name):
+    def delete(self, name: str):
         self[name].delete()
 
     def _valid(self, branch):
@@ -1553,13 +1553,13 @@ class Branches:
 
 class References:
 
-    def __init__(self, repository):
+    def __init__(self, repository: BaseRepository):
         self._repository = repository
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str):
         return self._repository.lookup_reference(name)
 
-    def get(self, key):
+    def get(self, key: str):
         try:
             return self[key]
         except KeyError:
@@ -1572,10 +1572,10 @@ class References:
     def create(self, name, target, force=False):
         return self._repository.create_reference(name, target, force)
 
-    def delete(self, name):
+    def delete(self, name: str):
         self[name].delete()
 
-    def __contains__(self, name):
+    def __contains__(self, name: str):
         return self.get(name) is not None
 
     @property
