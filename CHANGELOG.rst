@@ -1,3 +1,25 @@
+1.9.1 (UNRELEASED)
+-------------------------
+
+- Type hints: added to C code and Branches/References
+  `#1121 <https://github.com/libgit2/pygit2/pull/1121>`_
+  `#1132 <https://github.com/libgit2/pygit2/pull/1132>`_
+
+- Fix ODB backend's read in big endian architectures
+  `#1130 <https://github.com/libgit2/pygit2/pull/1130>`_
+
+- Fix install with poetry
+  `#1129 <https://github.com/libgit2/pygit2/pull/1129>`_
+  `#1128 <https://github.com/libgit2/pygit2/issues/1128>`_
+
+- Wheels: update to libgit2 v1.4.2
+
+- Tests: fix testing ``parse_diff``
+  `#1131 <https://github.com/libgit2/pygit2/pull/1131>`_
+
+- CI: various fixes after migration to libgit2 v1.4
+
+
 1.9.0 (2022-02-22)
 -------------------------
 
