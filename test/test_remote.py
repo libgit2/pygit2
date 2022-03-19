@@ -35,7 +35,7 @@ from . import utils
 
 
 REMOTE_NAME = 'origin'
-REMOTE_URL = 'git://github.com/libgit2/pygit2.git'
+REMOTE_URL = 'https://github.com/libgit2/pygit2.git'
 REMOTE_FETCHSPEC_SRC = 'refs/heads/*'
 REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
 REMOTE_REPO_OBJECTS = 30
@@ -45,7 +45,7 @@ ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
 def test_remote_create(testrepo):
     name = 'upstream'
-    url = 'git://github.com/libgit2/pygit2.git'
+    url = 'https://github.com/libgit2/pygit2.git'
 
     remote = testrepo.remotes.create(name, url)
 
@@ -58,7 +58,7 @@ def test_remote_create(testrepo):
 
 def test_remote_create_with_refspec(testrepo):
     name = 'upstream'
-    url = 'git://github.com/libgit2/pygit2.git'
+    url = 'https://github.com/libgit2/pygit2.git'
     fetch = "+refs/*:refs/*"
 
     remote = testrepo.remotes.create(name, url, fetch)
@@ -71,7 +71,7 @@ def test_remote_create_with_refspec(testrepo):
 
 def test_remote_delete(testrepo):
     name = 'upstream'
-    url = 'git://github.com/libgit2/pygit2.git'
+    url = 'https://github.com/libgit2/pygit2.git'
 
     testrepo.remotes.create(name, url)
     assert 2 == len(testrepo.remotes)
@@ -97,7 +97,7 @@ def test_remote_set_url(testrepo):
     remote = testrepo.remotes["origin"]
     assert REMOTE_URL == remote.url
 
-    new_url = 'git://github.com/cholin/pygit2.git'
+    new_url = 'https://github.com/cholin/pygit2.git'
     testrepo.remotes.set_url("origin", new_url)
     remote = testrepo.remotes["origin"]
     assert new_url == remote.url
@@ -160,7 +160,7 @@ def test_remote_list(testrepo):
     assert REMOTE_URL == remote.url
 
     name = 'upstream'
-    url = 'git://github.com/libgit2/pygit2.git'
+    url = 'https://github.com/libgit2/pygit2.git'
     remote = testrepo.remotes.create(name, url)
     assert remote.name in [x.name for x in testrepo.remotes]
 
@@ -185,7 +185,7 @@ def test_remote_collection(testrepo):
         testrepo.remotes['upstream']
 
     name = 'upstream'
-    url = 'git://github.com/libgit2/pygit2.git'
+    url = 'https://github.com/libgit2/pygit2.git'
     remote = testrepo.remotes.create(name, url)
     assert remote.name in [x.name for x in testrepo.remotes]
 
