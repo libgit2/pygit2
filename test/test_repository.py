@@ -343,7 +343,7 @@ def test_discover_repo(tmp_path):
     repo = init_repository(tmp_path, False)
     subdir = tmp_path / "test1" / "test2"
     subdir.mkdir(parents=True)
-    assert repo.path == discover_repository(subdir)
+    assert repo.path == discover_repository(str(subdir))
 
 @utils.fspath
 def test_discover_repo_aspath(tmp_path):
@@ -499,7 +499,7 @@ def test_worktree(testrepo):
     # We should have zero worktrees
     assert testrepo.list_worktrees() == []
     # Add a worktree
-    worktree = testrepo.add_worktree(worktree_name, worktree_dir)
+    worktree = testrepo.add_worktree(worktree_name, str(worktree_dir))
     # Check that the worktree was added properly
     _check_worktree(worktree)
     # We should have one worktree now
@@ -543,7 +543,7 @@ def test_worktree_custom_ref(testrepo):
     worktree_dir.rmdir()
 
     # Add a worktree for the given ref
-    worktree = testrepo.add_worktree(worktree_name, worktree_dir, worktree_ref)
+    worktree = testrepo.add_worktree(worktree_name, str(worktree_dir), worktree_ref)
     # We should have one worktree now
     assert testrepo.list_worktrees() == [worktree_name]
     # We should not have a branch of the same name
