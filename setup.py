@@ -109,7 +109,7 @@ class BuildWithDLLs(build):
         for dll in libgit2_dlls:
             for look in look_dirs:
                 f = Path(look) / dll
-                if f.isfile():
+                if f.is_file():
                     ret.append((f, target))
                     break
             else:

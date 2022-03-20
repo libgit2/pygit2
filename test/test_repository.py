@@ -490,7 +490,7 @@ def test_worktree(testrepo):
         # Confirm the name attribute matches the specified name
         assert worktree.name == worktree_name
         # Confirm the path attribute points to the correct path
-        assert Path(worktree.path).resolve() == worktree_dir
+        assert Path(worktree.path).resolve() == worktree_dir.resolve()
         # The "gitdir" in a worktree should be a file with a reference to
         # the actual gitdir. Let's make sure that the path exists and is a
         # file.
