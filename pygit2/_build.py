@@ -60,15 +60,16 @@ def get_libgit2_paths():
     # Library dirs
     libgit2_lib = os.getenv('LIBGIT2_LIB')
     if libgit2_lib is None:
-        libgit2_lib = [path / 'lib', path / 'lib64']
+        library_dirs = [path / 'lib', path / 'lib64']
     else:
-        libgit2_lib = [libgit2_lib]
+        library_dirs = [libgit2_lib]
 
+    include_dirs = [path / 'include']
     return (
         path / 'bin',
         {
             'libraries': ['git2'],
-            'include_dirs': [path / 'include'],
-            'library_dirs': libgit2_lib,
+            'include_dirs': [str(x) for x in include_dirs],
+            'library_dirs': [str(x) for x in library_dirs],
         }
     )
