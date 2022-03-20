@@ -27,7 +27,7 @@
 
 # Standard Library
 import binascii
-import os
+from pathlib import Path
 
 import pytest
 
@@ -47,7 +47,7 @@ def test_emptyodb():
 
     assert len([str(o) for o in odb]) == 0
     assert BLOB_HEX not in odb
-    path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
+    path = Path(__file__).parent / 'data' / 'testrepo.git' / 'objects'
     odb.add_disk_alternate(path)
     assert BLOB_HEX in odb
 

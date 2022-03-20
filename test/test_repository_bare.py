@@ -26,6 +26,7 @@
 # Standard Library
 import binascii
 import os
+from pathlib import Path
 import sys
 import tempfile
 
@@ -154,9 +155,8 @@ def test_lookup_commit_refcount(barerepo):
 def test_get_path(barerepo_path):
     barerepo, path = barerepo_path
 
-    directory = os.path.realpath(barerepo.path)
-    expected = os.path.realpath(path)
-    assert directory == expected
+    directory = Path(barerepo.path).resolve()
+    assert directory == path.resolve()
 
 def test_get_workdir(barerepo):
     assert barerepo.workdir is None
@@ -177,7 +177,7 @@ def test_hashfile(barerepo):
     with os.fdopen(handle, 'w') as fh:
         fh.write(data)
     hashed_sha1 = pygit2.hashfile(tempfile_path)
-    os.unlink(tempfile_path)
+    Path(tempfile_path).unlink()
     written_sha1 = barerepo.create_blob(data)
     assert hashed_sha1 == written_sha1
 

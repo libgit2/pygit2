@@ -25,7 +25,7 @@
 
 """Tests for merging and information about it."""
 
-import os
+from pathlib import Path
 
 import pygit2
 import pytest
@@ -41,7 +41,7 @@ def test_cherrypick_invalid_hex(mergerepo):
 def test_cherrypick_already_something_in_index(mergerepo):
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
     branch_oid = mergerepo.get(branch_head_hex).id
-    with open(os.path.join(mergerepo.workdir, 'inindex.txt'), 'w') as f:
+    with (Path(mergerepo.workdir) / 'inindex.txt').open('w') as f:
         f.write('new content')
     mergerepo.index.add('inindex.txt')
     with pytest.raises(pygit2.GitError): mergerepo.cherrypick(branch_oid)

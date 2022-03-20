@@ -24,14 +24,13 @@
 # Boston, MA 02110-1301, USA.
 
 # Standard Library
-from os.path import join
 from pathlib import Path
 
 
 def test_no_attr(testrepo):
     assert testrepo.get_attr('file', 'foo') is None
 
-    with open(join(testrepo.workdir, '.gitattributes'), 'w+') as f:
+    with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
         print('*.py  text\n', file=f)
         print('*.jpg -text\n', file=f)
         print('*.sh  eol=lf\n', file=f)
@@ -43,7 +42,7 @@ def test_no_attr(testrepo):
 
 
 def test_no_attr_aspath(testrepo):
-    with open(join(testrepo.workdir, '.gitattributes'), 'w+') as f:
+    with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
         print('*.py  text\n', file=f)
 
     assert testrepo.get_attr(Path('file.py'), 'text')

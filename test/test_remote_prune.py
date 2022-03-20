@@ -23,15 +23,13 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import os.path
-
 import pygit2
 import pytest
 
 
 @pytest.fixture
 def clonerepo(testrepo, tmp_path):
-    cloned_repo_path = os.path.join(tmp_path, 'test_remote_prune')
+    cloned_repo_path = tmp_path / 'test_remote_prune'
 
     pygit2.clone_repository(testrepo.workdir, cloned_repo_path)
     clonerepo = pygit2.Repository(cloned_repo_path)

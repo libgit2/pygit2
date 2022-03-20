@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import os
+from pathlib import Path
 
 import pygit2
 import pytest
@@ -34,7 +34,7 @@ def repo(testrepopacked):
     testrepo = testrepopacked
 
     odb = pygit2.Odb()
-    object_path = os.path.join(testrepo.path, 'objects')
+    object_path = Path(testrepo.path) / 'objects'
     odb.add_backend(pygit2.OdbBackendPack(object_path), 1)
     odb.add_backend(pygit2.OdbBackendLoose(object_path, 0, False), 1)
 

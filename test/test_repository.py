@@ -28,10 +28,7 @@
 # Standard Library
 import shutil
 import tempfile
-import os
-from os.path import join, realpath
 from pathlib import Path
-from urllib.request import pathname2url
 
 import pytest
 
@@ -50,18 +47,16 @@ def test_is_bare(testrepo):
 
 def test_get_path(testrepo_path):
     testrepo, path = testrepo_path
-    expected = realpath(join(path, '.git'))
-    assert realpath(testrepo.path) == expected
+    assert Path(testrepo.path).resolve() == (path / '.git').resolve()
 
 def test_get_workdir(testrepo_path):
     testrepo, path = testrepo_path
-    expected = realpath(path)
-    assert realpath(testrepo.workdir) == expected
+    assert Path(testrepo.workdir).resolve() == path.resolve()
 
 def test_set_workdir(testrepo):
     directory = tempfile.mkdtemp()
     testrepo.workdir = directory
-    assert realpath(testrepo.workdir) == realpath(directory)
+    assert Path(testrepo.workdir).resolve() == Path(directory).resolve()
 
 def test_checkout_ref(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
@@ -103,7 +98,7 @@ def test_checkout_branch(testrepo):
 
 def test_checkout_index(testrepo):
     # some changes to working dir
-    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'w') as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
         f.write('new content')
 
     # checkout index
@@ -113,7 +108,7 @@ def test_checkout_index(testrepo):
 
 def test_checkout_head(testrepo):
     # some changes to the index
-    with open(os.path.join(testrepo.workdir, 'bye.txt'), 'w') as f:
+    with (Path(testrepo.workdir) / 'bye.txt').open('w') as f:
         f.write('new content')
     testrepo.index.add('bye.txt')
 
@@ -128,11 +123,11 @@ def test_checkout_head(testrepo):
 
 def test_checkout_alternative_dir(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
-    extra_dir = os.path.join(testrepo.workdir, 'extra-dir')
-    os.mkdir(extra_dir)
-    assert len(os.listdir(extra_dir)) == 0
+    extra_dir = Path(testrepo.workdir) / 'extra-dir'
+    extra_dir.mkdir()
+    assert len(list(extra_dir.iterdir())) == 0
     testrepo.checkout(ref_i18n, directory=extra_dir)
-    assert not len(os.listdir(extra_dir)) == 0
+    assert not len(list(extra_dir.iterdir())) == 0
 
 def test_checkout_paths(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
@@ -189,7 +184,7 @@ def test_ahead_behind(testrepo):
 
 def test_reset_hard(testrepo):
     ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+    with (Path(testrepo.workdir) / "hello.txt").open() as f:
         lines = f.readlines()
     assert "hola mundo\n" in lines
     assert "bonjour le monde\n" in lines
@@ -199,7 +194,7 @@ def test_reset_hard(testrepo):
         pygit2.GIT_RESET_HARD)
     assert testrepo.head.target.hex == ref
 
-    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+    with (Path(testrepo.workdir) / "hello.txt").open() as f:
         lines = f.readlines()
     #Hard reset will reset the working copy too
     assert "hola mundo\n" not in lines
@@ -207,7 +202,7 @@ def test_reset_hard(testrepo):
 
 def test_reset_soft(testrepo):
     ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+    with (Path(testrepo.workdir) / "hello.txt").open() as f:
         lines = f.readlines()
     assert "hola mundo\n" in lines
     assert "bonjour le monde\n" in lines
@@ -216,7 +211,7 @@ def test_reset_soft(testrepo):
         ref,
         pygit2.GIT_RESET_SOFT)
     assert testrepo.head.target.hex == ref
-    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+    with (Path(testrepo.workdir) / "hello.txt").open() as f:
         lines = f.readlines()
     #Soft reset will not reset the working copy
     assert "hola mundo\n" in lines
@@ -228,7 +223,7 @@ def test_reset_soft(testrepo):
 
 def test_reset_mixed(testrepo):
     ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+    with (Path(testrepo.workdir) / "hello.txt").open() as f:
         lines = f.readlines()
     assert "hola mundo\n" in lines
     assert "bonjour le monde\n" in lines
@@ -239,7 +234,7 @@ def test_reset_mixed(testrepo):
 
     assert testrepo.head.target.hex == ref
 
-    with open(os.path.join(testrepo.workdir, "hello.txt")) as f:
+    with (Path(testrepo.workdir) / "hello.txt").open() as f:
         lines = f.readlines()
     #mixed reset will not reset the working copy
     assert "hola mundo\n" in lines
@@ -263,7 +258,7 @@ def test_stash(testrepo):
     assert [] == testrepo.listall_stashes()
 
     # some changes to working dir
-    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'w') as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
         f.write('new content')
 
     testrepo.stash(sig, include_untracked=True, message=stash_message)
@@ -316,7 +311,7 @@ def test_new_repo(tmp_path):
     oid = repo.write(pygit2.GIT_OBJ_BLOB, "Test")
     assert type(oid) == Oid
 
-    assert os.path.exists(os.path.join(tmp_path, '.git'))
+    assert (tmp_path / '.git').exists()
 
 
 def test_no_arg(tmp_path):
@@ -346,15 +341,15 @@ def test_keyword_arg_true(tmp_path):
 
 def test_discover_repo(tmp_path):
     repo = init_repository(tmp_path, False)
-    subdir = os.path.join(tmp_path, "test1", "test2")
-    os.makedirs(subdir)
+    subdir = tmp_path / "test1" / "test2"
+    subdir.mkdir(parents=True)
     assert repo.path == discover_repository(subdir)
 
 @utils.fspath
 def test_discover_repo_aspath(tmp_path):
     repo = init_repository(Path(tmp_path), False)
     subdir = Path(tmp_path) / "test1" / "test2"
-    os.makedirs(subdir)
+    subdir.mkdir(parents=True)
     assert repo.path == discover_repository(subdir)
 
 def test_discover_repo_not_found():
@@ -394,14 +389,9 @@ def test_clone_bare_repository(tmp_path):
     assert repo.is_bare
 
 def test_clone_repository_and_remote_callbacks(tmp_path):
-    src_repo_relpath = "./test/data/testrepo.git/"
-    repo_path = os.path.join(tmp_path, "clone-into")
-    url = pathname2url(os.path.realpath(src_repo_relpath))
-
-    if url.startswith('///'):
-        url = 'file:' + url
-    else:
-        url = 'file://' + url
+    src_repo_relpath = Path('./test/data/testrepo.git/').resolve()
+    repo_path = tmp_path / 'clone-into'
+    url = src_repo_relpath.as_uri()
 
     def create_repository(path, bare):
         return init_repository(path, bare)
@@ -440,11 +430,11 @@ def test_clone_bad_credentials(tmp_path):
 def test_clone_with_checkout_branch(tmp_path):
     # create a test case which isolates the remote
     test_repo = clone_repository('./test/data/testrepo.git',
-                                 os.path.join(tmp_path, 'testrepo-orig.git'),
+                                 tmp_path / 'testrepo-orig.git',
                                  bare=True)
     test_repo.create_branch('test', test_repo[test_repo.head.target])
     repo = clone_repository(test_repo.path,
-                            os.path.join(tmp_path, 'testrepo.git'),
+                            tmp_path / 'testrepo.git',
                             checkout_branch='test', bare=True)
     assert repo.lookup_reference('HEAD').target == 'refs/heads/test'
 
@@ -491,20 +481,20 @@ def test_clone_with_checkout_branch(tmp_path):
 
 def test_worktree(testrepo):
     worktree_name = 'foo'
-    worktree_dir = tempfile.mkdtemp()
+    worktree_dir = Path(tempfile.mkdtemp())
     # Delete temp path so that it's not present when we attempt to add the
     # worktree later
-    os.rmdir(worktree_dir)
+    worktree_dir.rmdir()
 
     def _check_worktree(worktree):
         # Confirm the name attribute matches the specified name
         assert worktree.name == worktree_name
         # Confirm the path attribute points to the correct path
-        assert os.path.realpath(worktree.path) == os.path.realpath(worktree_dir)
+        assert Path(worktree.path).resolve() == worktree_dir
         # The "gitdir" in a worktree should be a file with a reference to
         # the actual gitdir. Let's make sure that the path exists and is a
         # file.
-        assert os.path.isfile(os.path.join(worktree_dir, '.git'))
+        assert (worktree_dir / '.git').is_file()
 
     # We should have zero worktrees
     assert testrepo.list_worktrees() == []
@@ -536,13 +526,13 @@ def test_worktree_aspath(testrepo):
     worktree_dir = Path(tempfile.mkdtemp())
     # Delete temp path so that it's not present when we attempt to add the
     # worktree later
-    os.rmdir(worktree_dir)
+    worktree_dir.rmdir()
     testrepo.add_worktree(worktree_name, worktree_dir)
     assert testrepo.list_worktrees() == [worktree_name]
 
 def test_worktree_custom_ref(testrepo):
     worktree_name = 'foo'
-    worktree_dir = tempfile.mkdtemp()
+    worktree_dir = Path(tempfile.mkdtemp())
     branch_name = 'version1'
 
     # New branch based on head
@@ -550,7 +540,7 @@ def test_worktree_custom_ref(testrepo):
     worktree_ref = testrepo.branches.create(branch_name, tip)
     # Delete temp path so that it's not present when we attempt to add the
     # worktree later
-    os.rmdir(worktree_dir)
+    worktree_dir.rmdir()
 
     # Add a worktree for the given ref
     worktree = testrepo.add_worktree(worktree_name, worktree_dir, worktree_ref)
@@ -581,7 +571,7 @@ def test_open_extended(tmp_path):
         assert orig_repo.workdir
 
         # GIT_REPOSITORY_OPEN_NO_SEARCH
-        subdir_path = os.path.join(path, "subdir")
+        subdir_path = path / "subdir"
         repo = pygit2.Repository(subdir_path)
         assert not repo.is_bare
         assert repo.path == orig_repo.path
@@ -591,7 +581,7 @@ def test_open_extended(tmp_path):
             repo = pygit2.Repository(subdir_path, pygit2.GIT_REPOSITORY_OPEN_NO_SEARCH)
 
         # GIT_REPOSITORY_OPEN_NO_DOTGIT
-        gitdir_path = join(path, ".git")
+        gitdir_path = path / '.git'
         with pytest.raises(pygit2.GitError):
             repo = pygit2.Repository(path, pygit2.GIT_REPOSITORY_OPEN_NO_DOTGIT)
 
@@ -610,7 +600,7 @@ def test_is_shallow(testrepo):
     assert not testrepo.is_shallow
 
     # create a dummy shallow file
-    with open(os.path.join(testrepo.path, 'shallow'), 'wt') as f:
+    with (Path(testrepo.path) / 'shallow').open('wt') as f:
         f.write('abcdef0123456789abcdef0123456789abcdef00\n')
 
     assert testrepo.is_shallow

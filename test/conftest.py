@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import pytest
 import pygit2
@@ -20,7 +20,7 @@ def disable_global_git_config():
 
 @pytest.fixture
 def pygit2_empty_key():
-    path = os.path.join(os.path.dirname(__file__), 'keys', 'pygit2_empty')
+    path = Path(__file__).parent / 'keys' / 'pygit2_empty'
     return path, f'{path}.pub', 'empty'
 
 

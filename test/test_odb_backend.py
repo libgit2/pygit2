@@ -27,7 +27,7 @@
 
 # Standard Library
 import binascii
-import os
+from pathlib import Path
 
 import pytest
 
@@ -43,9 +43,7 @@ BLOB_OID = pygit2.Oid(raw=BLOB_RAW)
 
 @pytest.fixture
 def odb(barerepo):
-    odb = barerepo.odb
-    path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
-    yield odb, path
+    yield barerepo.odb, Path(__file__).parent / 'data' / 'testrepo.git' / 'objects'
 
 
 def test_pack(odb):
@@ -100,7 +98,7 @@ class ProxyBackend(pygit2.OdbBackend):
 
 @pytest.fixture
 def proxy(barerepo):
-    path = os.path.join(os.path.dirname(__file__), 'data', 'testrepo.git', 'objects')
+    path = Path(__file__).parent / 'data' / 'testrepo.git' / 'objects'
     yield ProxyBackend(pygit2.OdbBackendPack(path))
 
 
@@ -143,7 +141,7 @@ def test_exists_prefix(proxy):
 def repo(barerepo):
     odb = pygit2.Odb()
 
-    path = os.path.join(barerepo.path, 'objects')
+    path = Path(barerepo.path) / 'objects'
     backend = pygit2.OdbBackendPack(path)
     backend = ProxyBackend(backend)
     odb.add_backend(backend, 1)

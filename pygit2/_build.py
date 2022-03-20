@@ -30,7 +30,7 @@ But also used by pygit2 at run time.
 
 # Import from the Standard Library
 import os
-from os import getenv
+from pathlib import Path
 
 #
 # The version number of pygit2
@@ -43,14 +43,14 @@ __version__ = '1.9.0'
 #
 def _get_libgit2_path():
     # LIBGIT2 environment variable takes precedence
-    libgit2_path = getenv("LIBGIT2")
+    libgit2_path = os.getenv('LIBGIT2')
     if libgit2_path is not None:
-        return libgit2_path
+        return Path(libgit2_path)
 
     # Default
     if os.name == 'nt':
-        return r'%s\libgit2' % getenv("ProgramFiles")
-    return '/usr/local'
+        return Path(r'%s\libgit2' % os.getenv('ProgramFiles'))
+    return Path('/usr/local')
 
 
 def get_libgit2_paths():
@@ -58,17 +58,17 @@ def get_libgit2_paths():
     path = _get_libgit2_path()
 
     # Library dirs
-    libgit2_lib = getenv('LIBGIT2_LIB')
+    libgit2_lib = os.getenv('LIBGIT2_LIB')
     if libgit2_lib is None:
-        libgit2_lib = [os.path.join(path, 'lib'), os.path.join(path, 'lib64')]
+        libgit2_lib = [path / 'lib', path / 'lib64']
     else:
         libgit2_lib = [libgit2_lib]
 
     return (
-        os.path.join(path, 'bin'),
+        path / 'bin',
         {
             'libraries': ['git2'],
-            'include_dirs': [os.path.join(path, 'include')],
+            'include_dirs': [path / 'include'],
             'library_dirs': libgit2_lib,
         }
     )

@@ -32,8 +32,7 @@ from distutils.command.build import build
 from distutils.command.sdist import sdist
 from distutils import log
 import os
-from os import getenv, listdir, pathsep
-from os.path import abspath, isfile
+from pathlib import Path
 from subprocess import Popen, PIPE
 import sys
 
@@ -44,9 +43,6 @@ del sys.path[0]
 
 
 libgit2_bin, libgit2_kw = get_libgit2_paths()
-
-pygit2_exts = [os.path.join('src', name) for name in sorted(listdir('src'))
-               if name.endswith('.c')]
 
 
 class sdist_files_from_git(sdist):
@@ -107,17 +103,18 @@ class BuildWithDLLs(build):
             libgit2_dlls.append('git2.dll')
         elif compiler_type == 'mingw32':
             libgit2_dlls.append('libgit2.dll')
-        look_dirs = [libgit2_bin] + getenv("PATH", "").split(pathsep)
-        target = abspath(os.path.join(self.build_lib, "pygit2"))
-        for bin in libgit2_dlls:
+        look_dirs = [libgit2_bin] + os.getenv("PATH", "").split(os.pathsep)
+
+        target = Path(self.build_lib).absolute() / 'pygit2'
+        for dll in libgit2_dlls:
             for look in look_dirs:
-                f = os.path.join(look, bin)
-                if isfile(f):
+                f = Path(look) / dll
+                if f.isfile():
                     ret.append((f, target))
                     break
             else:
-                log.warn("Could not find required DLL %r to include", bin)
-                log.debug("(looked in %s)", look_dirs)
+                log.warn('"Could not find required DLL {dll} to include')
+                log.debug(f'(looked in {look_dirs})')
         return ret
 
     def run(self):
@@ -129,6 +126,8 @@ class BuildWithDLLs(build):
 if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
+src = Path('src')
+pygit2_exts = [str(path) for path in sorted(src.iterdir()) if path.suffix == '.c']
 ext_modules = [
     Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)
 ]

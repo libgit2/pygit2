@@ -25,7 +25,7 @@
 
 """Tests for Refdb objects."""
 
-import os
+from pathlib import Path
 
 import pygit2
 import pytest
@@ -104,10 +104,10 @@ def test_delete(repo):
 
 def test_compress(repo):
     repo = repo
-    packed_refs_file = os.path.join(repo.path, 'packed-refs')
-    assert not os.path.exists(packed_refs_file)
+    packed_refs_file = Path(repo.path) / 'packed-refs'
+    assert not packed_refs_file.exists()
     repo.backend.compress()
-    assert os.path.exists(packed_refs_file)
+    assert packed_refs_file.exists()
 
 def test_has_log(repo):
     assert repo.backend.has_log('refs/heads/master')

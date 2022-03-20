@@ -25,9 +25,7 @@
 
 """Tests for Index files."""
 
-import os
-
-import pytest
+from pathlib import Path
 
 import pygit2
 from pygit2 import PackBuilder
@@ -81,7 +79,7 @@ def test_pack_with_delegate(testrepo, tmp_path):
 
 def setup_second_repo(tmp_path):
     # helper method to set up a second repo for comparison
-    tmp_path_2 = os.path.join(tmp_path, 'test_repo2')
+    tmp_path_2 = tmp_path / 'test_repo2'
     with utils.TemporaryRepository('testrepo.tar', tmp_path_2) as path:
         testrepo = pygit2.Repository(path)
     return testrepo
@@ -89,11 +87,12 @@ def setup_second_repo(tmp_path):
 def confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate):
     # Helper method to confirm the contents of two repos before and after packing
     pack_repo = setup_second_repo(tmp_path)
+    pack_repo_path = Path(pack_repo.path)
 
-    objects_dir = os.path.join(pack_repo.path, 'objects')
+    objects_dir = pack_repo_path / 'objects'
     utils.rmtree(objects_dir)
-    pack_path = os.path.join(pack_repo.path, 'objects', 'pack')
-    os.makedirs(pack_path)
+    pack_path = objects_dir / 'pack'
+    pack_path.mkdir(parents=True)
 
     # assert that the number of written objects is the same as the number of objects in the repo
     written_objects = testrepo.pack(pack_path, pack_delegate=pack_delegate)

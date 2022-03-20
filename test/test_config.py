@@ -23,7 +23,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import os
 from pathlib import Path
 
 import pytest
@@ -39,7 +38,7 @@ CONFIG_FILENAME = "test_config"
 def config(testrepo):
     yield testrepo.config
     try:
-        os.remove(CONFIG_FILENAME)
+        Path(CONFIG_FILENAME).unlink()
     except OSError:
         pass
 

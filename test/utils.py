@@ -25,7 +25,7 @@
 
 # Standard library
 import hashlib
-import os
+from pathlib import Path
 import shutil
 import socket
 import stat
@@ -77,10 +77,8 @@ refcount = pytest.mark.skipif(
 
 
 def force_rm_handle(remove_path, path, excinfo):
-    os.chmod(
-        path,
-        os.stat(path).st_mode | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
-    )
+    path = Path(path)
+    path.chmod(path.stat().st_mode | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
     remove_path(path)
 
 
@@ -96,7 +94,7 @@ def rmtree(path):
     """In Windows a read-only file cannot be removed, and shutil.rmtree fails.
     So we implement our own version of rmtree to address this issue.
     """
-    if os.path.exists(path):
+    if Path(path).exists():
         onerror = lambda func, path, e: force_rm_handle(func, path, e)
         shutil.rmtree(path, onerror=onerror)
 
@@ -108,20 +106,16 @@ class TemporaryRepository:
         self.tmp_path = tmp_path
 
     def __enter__(self):
-        name = self.name
-        basename, extension = os.path.splitext(name)
-        path = os.path.join(os.path.dirname(__file__), 'data', name)
-
-        temp_repo_path = os.path.join(self.tmp_path, basename)
-
-        if extension == '.tar':
+        path = Path(__file__).parent / 'data' / self.name
+        temp_repo_path = Path(self.tmp_path) / path.stem
+        if path.suffix == '.tar':
             tar = tarfile.open(path)
             tar.extractall(self.tmp_path)
             tar.close()
-        elif extension == '.git':
+        elif path.suffix == '.git':
             shutil.copytree(path, temp_repo_path)
         else:
-            raise ValueError(f'Unexpected {extension} extension')
+            raise ValueError(f'Unexpected {path.suffix} extension')
 
         return temp_repo_path
 

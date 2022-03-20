@@ -27,12 +27,11 @@ import pygit2
 import pytest
 
 import os
-
-from . import utils
+from pathlib import Path
 
 
 def read_content(testrepo):
-    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'rb') as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open('rb') as f:
         return f.read().decode('utf-8')
 
 @pytest.fixture
@@ -43,13 +42,13 @@ def new_content():
 
 @pytest.fixture
 def old_content(testrepo):
-    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'rb') as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open('rb') as f:
         return f.read().decode('utf-8')
 
 @pytest.fixture
 def patch_diff(testrepo, new_content):
     # Create the patch
-    with open(os.path.join(testrepo.workdir, 'hello.txt'), 'wb') as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open('wb') as f:
         f.write(new_content.encode('utf-8'))
 
     patch = testrepo.diff().patch

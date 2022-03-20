@@ -25,7 +25,6 @@
 
 """Tests for Index files."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -169,7 +168,7 @@ def test_mode(testrepo):
     assert hello_mode == 33188
 
 def test_bare_index(testrepo):
-    index = pygit2.Index(os.path.join(testrepo.path, 'index'))
+    index = pygit2.Index(Path(testrepo.path) / 'index')
     assert [x.hex for x in index] == [x.hex for x in testrepo.index]
 
     with pytest.raises(pygit2.GitError): index.add('bye.txt')

@@ -25,7 +25,7 @@
 
 """Tests for reference objects."""
 
-import os
+from pathlib import Path
 
 import pytest
 
@@ -232,13 +232,13 @@ def test_refs_equality(testrepo):
     assert not ref1 == ref3
 
 def test_refs_compress(testrepo):
-    packed_refs_file = os.path.join(testrepo.path, 'packed-refs')
-    assert not os.path.exists(packed_refs_file)
+    packed_refs_file = Path(testrepo.path) / 'packed-refs'
+    assert not packed_refs_file.exists()
     old_refs = [(ref.name, ref.target.hex)
                 for ref in testrepo.references.objects]
 
     testrepo.references.compress()
-    assert os.path.exists(packed_refs_file)
+    assert packed_refs_file.exists()
     new_refs = [(ref.name, ref.target.hex) for ref in testrepo.references.objects]
     assert old_refs == new_refs
 

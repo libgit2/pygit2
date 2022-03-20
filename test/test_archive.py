@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import os
+from pathlib import Path
 import tarfile
 
 from pygit2 import Index, Oid, Tree, Object
@@ -49,8 +49,9 @@ def check_writing(repo, treeish, timestamp=None):
         assert timestamp == fileinfo.mtime
 
     archive.close()
-    assert os.path.isfile('foo.tar')
-    os.remove('foo.tar')
+    path = Path('foo.tar')
+    assert path.is_file()
+    path.unlink()
 
 def test_write_tree(testrepo):
     check_writing(testrepo, TREE_HASH)

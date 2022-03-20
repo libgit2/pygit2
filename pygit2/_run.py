@@ -29,8 +29,7 @@ This is an special module, it provides stuff used by by pygit2 at run-time.
 
 # Import from the Standard Library
 import codecs
-import os
-from os.path import abspath, dirname
+from pathlib import Path
 import sys
 
 # Import from cffi
@@ -45,11 +44,12 @@ except ImportError:
 
 # C_HEADER_SRC
 if getattr(sys, 'frozen', False):
-    dir_path = getattr(sys, '_MEIPASS', None)
-    if dir_path is None:
-        dir_path = dirname(abspath(sys.executable))
+    if hasattr(sys, '_MEIPASS'):
+        dir_path = Path(sys._MEIPASS)
+    else:
+        dir_path = Path(sys.executable).parent
 else:
-    dir_path = dirname(abspath(__file__))
+    dir_path = Path(__file__).parent.absolute()
 
 # Order matters
 h_files = [
@@ -85,7 +85,7 @@ h_files = [
 ]
 h_source = []
 for h_file in h_files:
-    h_file = os.path.join(dir_path, 'decl', h_file)
+    h_file = dir_path / 'decl' / h_file
     with codecs.open(h_file, 'r', 'utf-8') as f:
         h_source.append(f.read())
 
