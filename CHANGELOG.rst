@@ -19,7 +19,7 @@
 
 - CI: various fixes after migration to libgit2 v1.4
 
-- New ``Signature`` supports ``str()``
+- New ``Signature`` supports ``str()`` and ``repr()``
   `#1135 <https://github.com/libgit2/pygit2/pull/1135>`_
 
 

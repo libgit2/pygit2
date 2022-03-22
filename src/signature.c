@@ -233,6 +233,26 @@ Signature__str__(Signature *self)
     return str;
 }
 
+PyObject *
+Signature__repr__(Signature *self)
+{
+    PyObject *name, *email, *encoding, *str;
+    name = to_unicode(self->signature->name, self->encoding, NULL);
+    email = to_unicode(self->signature->email, self->encoding, NULL);
+    encoding = to_unicode(self->encoding, self->encoding, NULL);
+    str = PyUnicode_FromFormat(
+        "pygit2.Signature(%R, %R, %lld, %ld, %R)",
+        name,
+        email,
+        self->signature->when.time,
+        self->signature->when.offset,
+        encoding);
+    Py_DECREF(name);
+    Py_DECREF(email);
+    Py_DECREF(encoding);
+    return str;
+}
+
 
 PyDoc_STRVAR(Signature__doc__, "Signature.");
 
@@ -246,7 +266,7 @@ PyTypeObject SignatureType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    Signature__repr__,                         /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */

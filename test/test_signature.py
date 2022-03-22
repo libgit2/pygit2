@@ -68,3 +68,10 @@ def test_now():
 def test_str():
     signature = Signature('Foo Ibáñez', 'foo@example.com', encoding='utf-8')
     assert str(signature) == 'Foo Ibáñez <foo@example.com>'
+
+def test_repr():
+    signature = Signature(
+        'Foo Ibáñez', 'foo@bar.com', 1322174594, 60, encoding='utf-8')
+    expected_signature = \
+        "pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, 'utf-8')"
+    assert repr(signature) == expected_signature

@@ -221,7 +221,7 @@ The author and committer attributes of commit objects are ``Signature``
 objects::
 
     >>> commit.author
-    <pygit2.Signature object at 0x7f75e9b1f5f8>
+    pygit2.Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60, 'utf-8')
 
 Signatures can be compared for (in)equality.
 
