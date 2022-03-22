@@ -64,3 +64,7 @@ def test_now():
     assert signature.email == signature.raw_email.decode(encoding)
     assert signature.email.encode(encoding) == signature.raw_email
     assert abs(signature.time - time.time()) < 5
+
+def test_str():
+    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding='utf-8')
+    assert str(signature) == 'Foo Ibáñez <foo@example.com>'

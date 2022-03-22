@@ -19,6 +19,9 @@
 
 - CI: various fixes after migration to libgit2 v1.4
 
+- New ``Signature`` supports ``str()``
+  `#1135 <https://github.com/libgit2/pygit2/pull/1135>`_
+
 
 1.9.0 (2022-02-22)
 -------------------------

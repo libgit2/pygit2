@@ -221,6 +221,18 @@ Signature_richcompare(PyObject *a, PyObject *b, int op)
 
 }
 
+PyObject *
+Signature__str__(Signature *self)
+{
+    PyObject *name, *email, *str;
+    name = to_unicode(self->signature->name, self->encoding, NULL);
+    email = to_unicode(self->signature->email, self->encoding, NULL);
+    str = PyUnicode_FromFormat("%U <%U>", name, email);
+    Py_DECREF(name);
+    Py_DECREF(email);
+    return str;
+}
+
 
 PyDoc_STRVAR(Signature__doc__, "Signature.");
 
@@ -240,7 +252,7 @@ PyTypeObject SignatureType = {
     0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
     0,                                         /* tp_call           */
-    0,                                         /* tp_str            */
+    Signature__str__,                          /* tp_str            */
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
