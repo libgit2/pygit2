@@ -11,6 +11,7 @@ Authors::
   Dave Borowitz
   Brandon Milton
   Daniel Rodríguez Troitiño
+  Iliyas Jorio
   Richo Healey
   Christian Boos
   Julien Miotte
@@ -33,7 +34,6 @@ Authors::
   Michael Jones
   Bernardo Heynemann
   Brodie Rao
-  Iliyas Jorio
   John Szakmeister
   Nabijacz Leweli
   Simon Cozens
@@ -87,6 +87,7 @@ Authors::
   Gregory Herrero
   Guillermo Pérez
   Hervé Cauwelier
+  Hong Minhee
   Huang Huang
   Ian P. McCullough
   Igor Gnatenko
@@ -157,6 +158,7 @@ Authors::
   Jonathan Robson
   Josh Bleecher Snyder
   Justin Clift
+  Konstantinos Smanis
   Kyriakos Oikonomakos
   Lance Eftink
   Legorooj
@@ -188,6 +190,7 @@ Authors::
   Soasme
   Steven Winfield
   Tad Hardesty
+  Timo Röhling
   Vladimir Rutsky
   Yu Jianjian
   buhl

@@ -1,9 +1,12 @@
-1.9.1 (UNRELEASED)
+1.9.1 (2022-03-22)
 -------------------------
 
 - Type hints: added to C code and Branches/References
   `#1121 <https://github.com/libgit2/pygit2/pull/1121>`_
   `#1132 <https://github.com/libgit2/pygit2/pull/1132>`_
+
+- New ``Signature`` supports ``str()`` and ``repr()``
+  `#1135 <https://github.com/libgit2/pygit2/pull/1135>`_
 
 - Fix ODB backend's read in big endian architectures
   `#1130 <https://github.com/libgit2/pygit2/pull/1130>`_
@@ -18,9 +21,6 @@
   `#1131 <https://github.com/libgit2/pygit2/pull/1131>`_
 
 - CI: various fixes after migration to libgit2 v1.4
-
-- New ``Signature`` supports ``str()`` and ``repr()``
-  `#1135 <https://github.com/libgit2/pygit2/pull/1135>`_
 
 
 1.9.0 (2022-02-22)
