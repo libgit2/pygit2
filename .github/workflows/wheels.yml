@@ -28,7 +28,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2.4.0
         env:
           CIBW_BEFORE_ALL: sh build.sh
           CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.4.2 LIBSSH2_VERSION=1.10.0 LIBGIT2=/project/ci
