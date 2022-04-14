@@ -17,18 +17,30 @@ Install pygit2:
 
 .. code-block:: sh
 
+   $ pip install -U pip
    $ pip install pygit2
 
 The line above will install binary wheels if available in your platform.
 
+.. note::
+
+   It is recommended to first update the version of pip, as it will increase
+   the chances for it to install a binary wheel instead of the source
+   distribution. At least version 19.3 of pip is required.
+
+If you get the error::
+
+    fatal error: git2.h: No such file or directory
+
+It means that pip did not find a binary wheel for your platform, so it tried to
+build from source, but it failed because it could not find the libgit2 headers.
+Then:
+
+- Verify pip is updated
+- Verify there is a binary wheel of pygit2 for your platform
+- Otherwise install from the source distribution
+
 Caveats:
-
-- This requires pip 20.3 or later, otherwise pip will try to install the source
-  distribution, and likely fail to find a matching version of libgit2.
-
-- When there's a new release it takes a while to upload the wheels, so pip may
-  fail to find a wheel for your system. It's recommended to specify the pygit2
-  version in your requirements file.
 
 - Binary wheels for Windows are available, but they don't have support for ssh.
 
