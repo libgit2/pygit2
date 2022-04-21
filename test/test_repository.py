@@ -564,7 +564,7 @@ def test_worktree_custom_ref(testrepo):
     assert branch_name in testrepo.branches
 
 def test_open_extended(tmp_path):
-    with utils.TemporaryRepository('dirtyrepo.tar', tmp_path) as path:
+    with utils.TemporaryRepository('dirtyrepo.zip', tmp_path) as path:
         orig_repo = pygit2.Repository(path)
         assert not orig_repo.is_bare
         assert orig_repo.path

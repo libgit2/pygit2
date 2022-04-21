@@ -31,6 +31,7 @@ import socket
 import stat
 import sys
 import tarfile
+import zipfile
 
 # Requirements
 import pytest
@@ -108,10 +109,12 @@ class TemporaryRepository:
     def __enter__(self):
         path = Path(__file__).parent / 'data' / self.name
         temp_repo_path = Path(self.tmp_path) / path.stem
-        if path.suffix == '.tar':
-            tar = tarfile.open(path)
-            tar.extractall(self.tmp_path)
-            tar.close()
+        if path.suffix == '.zip':
+            with zipfile.ZipFile(path) as zipf:
+                zipf.extractall(self.tmp_path)
+        elif path.suffix == '.tar':
+            with tarfile.open(path) as tar:
+                tar.extractall(self.tmp_path)
         elif path.suffix == '.git':
             shutil.copytree(path, temp_repo_path)
         else:

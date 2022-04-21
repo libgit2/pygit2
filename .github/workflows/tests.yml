@@ -50,7 +50,7 @@ jobs:
     - name: Checkout pygit2
       uses: actions/checkout@v2
     - name: Build & test
-      uses: uraimo/run-on-arch-action@v2.1.1
+      uses: uraimo/run-on-arch-action@v2.2.0
       with:
         arch: aarch64
         distro: ubuntu20.04
@@ -66,7 +66,7 @@ jobs:
     - name: Checkout pygit2
       uses: actions/checkout@v2
     - name: Build & test
-      uses: uraimo/run-on-arch-action@v2.1.1
+      uses: uraimo/run-on-arch-action@v2.2.0
       with:
         arch: s390x
         distro: ubuntu20.04

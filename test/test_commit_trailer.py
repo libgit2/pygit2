@@ -31,7 +31,7 @@ from . import utils
 
 @pytest.fixture
 def repo(tmp_path):
-    with utils.TemporaryRepository('trailerrepo.tar', tmp_path) as path:
+    with utils.TemporaryRepository('trailerrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 

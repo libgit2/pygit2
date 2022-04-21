@@ -80,7 +80,7 @@ def test_pack_with_delegate(testrepo, tmp_path):
 def setup_second_repo(tmp_path):
     # helper method to set up a second repo for comparison
     tmp_path_2 = tmp_path / 'test_repo2'
-    with utils.TemporaryRepository('testrepo.tar', tmp_path_2) as path:
+    with utils.TemporaryRepository('testrepo.zip', tmp_path_2) as path:
         testrepo = pygit2.Repository(path)
     return testrepo
 

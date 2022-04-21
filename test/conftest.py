@@ -38,46 +38,46 @@ def barerepo_path(tmp_path):
 
 @pytest.fixture
 def blameflagsrepo(tmp_path):
-    with utils.TemporaryRepository('blameflagsrepo.tar', tmp_path) as path:
+    with utils.TemporaryRepository('blameflagsrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
 def dirtyrepo(tmp_path):
-    with utils.TemporaryRepository('dirtyrepo.tar', tmp_path) as path:
+    with utils.TemporaryRepository('dirtyrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
 def emptyrepo(tmp_path):
-    with utils.TemporaryRepository('emptyrepo.tar', tmp_path) as path:
+    with utils.TemporaryRepository('emptyrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 @pytest.fixture
 def encodingrepo(tmp_path):
-    with utils.TemporaryRepository('encoding.tar', tmp_path) as path:
+    with utils.TemporaryRepository('encoding.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
 def mergerepo(tmp_path):
-    with utils.TemporaryRepository('testrepoformerging.tar', tmp_path) as path:
+    with utils.TemporaryRepository('testrepoformerging.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
 def testrepo(tmp_path):
-    with utils.TemporaryRepository('testrepo.tar', tmp_path) as path:
+    with utils.TemporaryRepository('testrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
 def testrepo_path(tmp_path):
-    with utils.TemporaryRepository('testrepo.tar', tmp_path) as path:
+    with utils.TemporaryRepository('testrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path), path
 
 
 @pytest.fixture
 def testrepopacked(tmp_path):
-    with utils.TemporaryRepository('testrepopacked.tar', tmp_path) as path:
+    with utils.TemporaryRepository('testrepopacked.zip', tmp_path) as path:
         yield pygit2.Repository(path)
