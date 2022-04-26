@@ -137,7 +137,6 @@ class Remote:
             * `True` to enable automatic proxy detection
             * an url to a proxy (`http://proxy.example.org:3128/`)
         """
-        message = to_bytes(message)
         with git_fetch_options(callbacks) as payload:
             opts = payload.fetch_options
             opts.prune = prune
