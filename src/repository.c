@@ -1110,6 +1110,115 @@ out:
     return py_result;
 }
 
+PyDoc_STRVAR(Repository_create_commit_string__doc__,
+  "create_commit_string(author: Signature, committer: Signature, message: bytes | str, tree: Oid, parents: list[Oid][, encoding: str]) -> str\n"
+  "\n"
+  "Create a new commit but return it as a string.");
+
+PyObject *
+Repository_create_commit_string(Repository *self, PyObject *args)
+{
+    Signature *py_author, *py_committer;
+    PyObject *py_oid, *py_message, *py_parents, *py_parent;
+    PyObject *str;
+    char *encoding = NULL;
+    git_oid oid;
+    git_tree *tree = NULL;
+    int parent_count;
+    git_commit **parents = NULL;
+    git_buf buf = { 0 };
+    int i = 0;
+
+    if (!PyArg_ParseTuple(args, "O!O!OOO!|s",
+                          &SignatureType, &py_author,
+                          &SignatureType, &py_committer,
+                          &py_message,
+                          &py_oid,
+                          &PyList_Type, &py_parents,
+                          &encoding))
+        return NULL;
+
+    size_t len = py_oid_to_git_oid(py_oid, &oid);
+    if (len == 0)
+        return NULL;
+
+    PyObject *tmessage;
+    const char *message = pgit_borrow_encoding(py_message, encoding, NULL, &tmessage);
+    if (message == NULL)
+        return NULL;
+
+    int err = git_tree_lookup_prefix(&tree, self->repo, &oid, len);
+    if (err < 0) {
+        Error_set(err);
+        goto out;
+    }
+
+    parent_count = (int)PyList_Size(py_parents);
+    parents = malloc(parent_count * sizeof(git_commit*));
+    if (parents == NULL) {
+        PyErr_SetNone(PyExc_MemoryError);
+        goto out;
+    }
+    for (; i < parent_count; i++) {
+        py_parent = PyList_GET_ITEM(py_parents, i);
+        len = py_oid_to_git_oid(py_parent, &oid);
+        if (len == 0)
+            goto out;
+        err = git_commit_lookup_prefix(&parents[i], self->repo, &oid, len);
+        if (err < 0) {
+            Error_set(err);
+            goto out;
+        }
+    }
+
+    err = git_commit_create_buffer(&buf, self->repo,
+                                   py_author->signature, py_committer->signature,
+                                   encoding, message, tree, parent_count,
+                                   (const git_commit**)parents);
+    if (err < 0) {
+        Error_set(err);
+        goto out;
+    }
+
+    str = to_unicode_n(buf.ptr, buf.size, NULL, NULL);
+    git_buf_dispose(&buf);
+
+out:
+    Py_DECREF(tmessage);
+    git_tree_free(tree);
+    while (i > 0) {
+        i--;
+        git_commit_free(parents[i]);
+    }
+    free(parents);
+    return str;
+}
+
+PyDoc_STRVAR(Repository_create_commit_with_signature__doc__,
+  "create_commit_with_signature(content: str, signature: str, field_name: str) -> Oid\n"
+  "\n"
+  "Create a new signed commit object, return its oid.");
+
+PyObject *
+Repository_create_commit_with_signature(Repository *self, PyObject *args)
+{
+    git_oid oid;
+    char *content, *signature;
+    char *signature_field = NULL;
+
+    if (!PyArg_ParseTuple(args, "ss|s", &content, &signature, &signature_field))
+        return NULL;
+
+    int err = git_commit_create_with_signature(&oid, self->repo, content,
+                                               signature, signature_field);
+
+    if (err < 0) {
+        Error_set(err);
+        return NULL;
+    }
+
+    return git_oid_to_python(&oid);
+}
 
 PyDoc_STRVAR(Repository_create_tag__doc__,
   "create_tag(name: str, oid: Oid, type: int, tagger: Signature[, message: str]) -> Oid\n"
@@ -2277,6 +2386,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
     METHOD(Repository, create_blob_fromiobase, METH_O),
     METHOD(Repository, create_commit, METH_VARARGS),
+    METHOD(Repository, create_commit_string, METH_VARARGS),
+    METHOD(Repository, create_commit_with_signature, METH_VARARGS),
     METHOD(Repository, create_tag, METH_VARARGS),
     METHOD(Repository, TreeBuilder, METH_VARARGS),
     METHOD(Repository, walk, METH_VARARGS),

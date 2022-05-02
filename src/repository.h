@@ -43,6 +43,8 @@ PyObject* Repository_walk(Repository *self, PyObject *args);
 PyObject* Repository_create_blob(Repository *self, PyObject *args);
 PyObject* Repository_create_blob_fromdisk(Repository *self, PyObject *args);
 PyObject* Repository_create_commit(Repository *self, PyObject *args);
+PyObject* Repository_create_commit_string(Repository *self, PyObject *args);
+PyObject* Repository_create_commit_with_signature(Repository *self, PyObject *args);
 PyObject* Repository_create_tag(Repository *self, PyObject *args);
 PyObject* Repository_create_branch(Repository *self, PyObject *args);
 PyObject* Repository_listall_references(Repository *self, PyObject *args);
