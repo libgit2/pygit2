@@ -53,6 +53,7 @@ def emptyrepo(tmp_path):
     with utils.TemporaryRepository('emptyrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
+
 @pytest.fixture
 def encodingrepo(tmp_path):
     with utils.TemporaryRepository('encoding.zip', tmp_path) as path:
@@ -80,4 +81,10 @@ def testrepo_path(tmp_path):
 @pytest.fixture
 def testrepopacked(tmp_path):
     with utils.TemporaryRepository('testrepopacked.zip', tmp_path) as path:
+        yield pygit2.Repository(path)
+
+
+@pytest.fixture
+def gpgsigned(tmp_path):
+    with utils.TemporaryRepository('gpgsigned.zip', tmp_path) as path:
         yield pygit2.Repository(path)
