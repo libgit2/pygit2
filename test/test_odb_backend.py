@@ -43,7 +43,7 @@ BLOB_OID = pygit2.Oid(raw=BLOB_RAW)
 
 @pytest.fixture
 def odb(barerepo):
-    yield barerepo.odb, Path(__file__).parent / 'data' / 'testrepo.git' / 'objects'
+    yield barerepo.odb, Path(barerepo.path) / 'objects'
 
 
 def test_pack(odb):
@@ -98,7 +98,7 @@ class ProxyBackend(pygit2.OdbBackend):
 
 @pytest.fixture
 def proxy(barerepo):
-    path = Path(__file__).parent / 'data' / 'testrepo.git' / 'objects'
+    path = Path(barerepo.path) / 'objects'
     yield ProxyBackend(pygit2.OdbBackendPack(path))
 
 

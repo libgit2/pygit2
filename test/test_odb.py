@@ -42,12 +42,12 @@ BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
 BLOB_OID = Oid(raw=BLOB_RAW)
 
 
-def test_emptyodb():
+def test_emptyodb(barerepo):
     odb = Odb()
 
     assert len([str(o) for o in odb]) == 0
     assert BLOB_HEX not in odb
-    path = Path(__file__).parent / 'data' / 'testrepo.git' / 'objects'
+    path = Path(barerepo.path) / 'objects'
     odb.add_disk_alternate(path)
     assert BLOB_HEX in odb
 

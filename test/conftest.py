@@ -26,13 +26,13 @@ def pygit2_empty_key():
 
 @pytest.fixture
 def barerepo(tmp_path):
-    with utils.TemporaryRepository('testrepo.git', tmp_path) as path:
+    with utils.TemporaryRepository('barerepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
 def barerepo_path(tmp_path):
-    with utils.TemporaryRepository('testrepo.git', tmp_path) as path:
+    with utils.TemporaryRepository('barerepo.zip', tmp_path) as path:
         yield pygit2.Repository(path), path
 
 
@@ -49,9 +49,11 @@ def dirtyrepo(tmp_path):
 
 
 @pytest.fixture
-def emptyrepo(tmp_path):
+def emptyrepo(barerepo, tmp_path):
     with utils.TemporaryRepository('emptyrepo.zip', tmp_path) as path:
-        yield pygit2.Repository(path)
+        repo = pygit2.Repository(path)
+        repo.remotes.create('origin', barerepo.path)
+        yield repo
 
 @pytest.fixture
 def encodingrepo(tmp_path):

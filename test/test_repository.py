@@ -356,42 +356,30 @@ def test_discover_repo_not_found():
     assert discover_repository(tempfile.tempdir) is None
 
 
-def test_bytes_string():
-    repo_path = b'./test/data/testrepo.git/'
-    pygit2.Repository(repo_path)
+def test_repository_init(barerepo_path):
+    barerepo, path = barerepo_path
+    assert isinstance(path, Path)
+    pygit2.Repository(path)
+    pygit2.Repository(str(path))
+    pygit2.Repository(bytes(path))
 
-def test_unicode_string():
-    # String is unicode because of unicode_literals
-    repo_path = './test/data/testrepo.git/'
-    pygit2.Repository(repo_path)
-
-def test_aspath():
-    repo_path = Path('./test/data/testrepo.git/')
-    pygit2.Repository(repo_path)
-
-
-def test_clone_repository(tmp_path):
-    repo_path = "./test/data/testrepo.git/"
-    repo = clone_repository(repo_path, tmp_path)
+def test_clone_repository(barerepo, tmp_path):
+    assert barerepo.is_bare
+    repo = clone_repository(Path(barerepo.path), tmp_path / 'clonepath')
+    assert not repo.is_empty
+    assert not repo.is_bare
+    repo = clone_repository(str(barerepo.path), str(tmp_path / 'clonestr'))
     assert not repo.is_empty
     assert not repo.is_bare
 
-def test_clone_repository_aspath(tmp_path):
-    repo_path = Path("./test/data/testrepo.git/")
-    repo = clone_repository(repo_path, Path(tmp_path))
-    assert not repo.is_empty
-    assert not repo.is_bare
-
-def test_clone_bare_repository(tmp_path):
-    repo_path = "./test/data/testrepo.git/"
-    repo = clone_repository(repo_path, tmp_path, bare=True)
+def test_clone_bare_repository(barerepo, tmp_path):
+    repo = clone_repository(barerepo.path, tmp_path / 'clone', bare=True)
     assert not repo.is_empty
     assert repo.is_bare
 
-def test_clone_repository_and_remote_callbacks(tmp_path):
-    src_repo_relpath = Path('./test/data/testrepo.git/').resolve()
+def test_clone_repository_and_remote_callbacks(barerepo, tmp_path):
+    url = Path(barerepo.path).resolve().as_uri()
     repo_path = tmp_path / 'clone-into'
-    url = src_repo_relpath.as_uri()
 
     def create_repository(path, bare):
         return init_repository(path, bare)
@@ -427,14 +415,11 @@ def test_clone_bad_credentials(tmp_path):
         clone_repository(url, tmp_path, callbacks=MyCallbacks())
     assert str(exc.value) == 'Unexpected error'
 
-def test_clone_with_checkout_branch(tmp_path):
+def test_clone_with_checkout_branch(barerepo, tmp_path):
     # create a test case which isolates the remote
-    test_repo = clone_repository('./test/data/testrepo.git',
-                                 tmp_path / 'testrepo-orig.git',
-                                 bare=True)
+    test_repo = clone_repository(barerepo.path, tmp_path / 'testrepo-orig.git', bare=True)
     test_repo.create_branch('test', test_repo[test_repo.head.target])
-    repo = clone_repository(test_repo.path,
-                            tmp_path / 'testrepo.git',
+    repo = clone_repository(test_repo.path, tmp_path / 'testrepo.git',
                             checkout_branch='test', bare=True)
     assert repo.lookup_reference('HEAD').target == 'refs/heads/test'
 
