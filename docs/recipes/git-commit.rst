@@ -81,6 +81,7 @@ Add everything, and commit with a GPG signature:
 The ``commit_string`` can then be signed by a third party library:
 
 .. code-block:: python
+
     >>> gpg = YourGPGToolHere()
     >>> signed_commit = gpg.sign(
     >>>     commit_string,
@@ -92,6 +93,7 @@ The ``commit_string`` can then be signed by a third party library:
     The commit signature should resemble:
 
     .. code-block:: none
+
         >>> -----BEGIN PGP SIGNATURE-----
         >>>
         >>> < base64 encoded hash here >
