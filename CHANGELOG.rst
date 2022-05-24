@@ -1,7 +1,14 @@
-1.9.2 (UNRELEASED)
+1.9.2 (2022-05-24)
 -------------------------
 
-- Wheels: update to libgit2 v1.4.3
+- New ``Repository.create_commit_string(...)`` and
+  ``Repository.create_commit_with_signature(...)``
+  `#1142 <https://github.com/libgit2/pygit2/pull/1142>`_
+
+- Linux and macOS wheels updated to libgit2 v1.4.3
+
+- Remove redundant line
+  `#1139 <https://github.com/libgit2/pygit2/pull/1139>`_
 
 
 1.9.1 (2022-03-22)

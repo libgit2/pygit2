@@ -95,6 +95,7 @@ Authors::
   Jack O'Connor
   Jared Flatow
   Jeremy Heiner
+  Jesse P. Johnson
   Jiunn Haur Lim
   Jorge C. Leitao
   Jun Omae
@@ -113,6 +114,7 @@ Authors::
   Zbigniew Jędrzejewski-Szmek
   Zoran Zaric
   Adam Spiers
+  Alexandru Fikl
   Andrew Chin
   Andrey Trubachev
   András Veres-Szentkirályi
