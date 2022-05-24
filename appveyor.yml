@@ -35,7 +35,7 @@ build_script:
 # Clone, build and install libgit2
 - cmd: |
     set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\venv
-    git clone --depth=1 -b v1.4.3 https://github.com/libgit2/libgit2.git libgit2
+    git clone --depth=1 -b v1.4.2 https://github.com/libgit2/libgit2.git libgit2
     cd libgit2
     cmake . -DBUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="%LIBGIT2%" -G "%GENERATOR%"
     cmake --build . --target install
