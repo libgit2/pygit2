@@ -17,16 +17,18 @@ jobs:
         - os: ubuntu-20.04
           python-version: '3.10'
         - os: ubuntu-20.04
-          python-version: pypy3
+          python-version: pypy3.7
         - os: macos-latest
+          python-version: 3.7
+        - os: windows-2019
           python-version: 3.7
 
     steps:
     - name: Checkout pygit2
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -44,35 +46,61 @@ jobs:
         export LIBGIT2_VERSION=1.4.3
         /bin/sh build.sh test
 
-  aarch64:
-    runs-on: ubuntu-20.04
-    steps:
-    - name: Checkout pygit2
-      uses: actions/checkout@v2
-    - name: Build & test
-      uses: uraimo/run-on-arch-action@v2.2.0
-      with:
-        arch: aarch64
-        distro: ubuntu20.04
-        install: |
-          apt-get update -q -y
-          apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
-        run: |
-          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.4.3 /bin/sh build.sh test
+    - name: Windows
+      if: runner.os == 'Windows'
+      shell: bash
+      env:
+        ARCH: amd64
+        CMAKE_GENERATOR: Visual Studio 16 2019
+        CMAKE_OPTIONS: -A x64 -DWIN32_LEAKCHECK=ON -DDEPRECATE_HARD=ON
+        SKIP_SSH_TESTS: true
+        SKIP_NEGOTIATE_TESTS: true
+      run: |
+        pwd
+        export LIBGIT2=`realpath venv`
+        git clone --depth=1 -b v1.4.2 https://github.com/libgit2/libgit2.git libgit2
+        cd libgit2
+        cmake . -DBUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 16 2019"
+        cmake --build . --target install
+        cd ..
+        pip install wheel
+        pip install pytest
+        python setup.py build_ext --inplace
+        ls -ltr pygit2
+        python --version
+        file /d/a/pygit2/pygit2/pygit2/_pygit2.cp37-win_amd64.pyd
+        PYTHONPATH=. pytest
 
-  s390x:
-    runs-on: ubuntu-20.04
-    steps:
-    - name: Checkout pygit2
-      uses: actions/checkout@v2
-    - name: Build & test
-      uses: uraimo/run-on-arch-action@v2.2.0
-      with:
-        arch: s390x
-        distro: ubuntu20.04
-        install: |
-          apt-get update -q -y
-          apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
-        run: |
-          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.4.3 /bin/sh build.sh test
-      continue-on-error: true # Tests are expected to fail, see issue #812
+
+# aarch64:
+#   runs-on: ubuntu-20.04
+#   steps:
+#   - name: Checkout pygit2
+#     uses: actions/checkout@v2
+#   - name: Build & test
+#     uses: uraimo/run-on-arch-action@v2.2.0
+#     with:
+#       arch: aarch64
+#       distro: ubuntu20.04
+#       install: |
+#         apt-get update -q -y
+#         apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
+#       run: |
+#         LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.4.3 /bin/sh build.sh test
+
+# s390x:
+#   runs-on: ubuntu-20.04
+#   steps:
+#   - name: Checkout pygit2
+#     uses: actions/checkout@v2
+#   - name: Build & test
+#     uses: uraimo/run-on-arch-action@v2.2.0
+#     with:
+#       arch: s390x
+#       distro: ubuntu20.04
+#       install: |
+#         apt-get update -q -y
+#         apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
+#       run: |
+#         LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.4.3 /bin/sh build.sh test
+#     continue-on-error: true # Tests are expected to fail, see issue #812
