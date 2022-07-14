@@ -60,7 +60,7 @@ PyObject* Repository_create_reference_direct(Repository *self, PyObject *args, P
 PyObject* Repository_create_reference_symbolic(Repository *self, PyObject *args, PyObject* kw);
 
 PyObject* Repository_compress_references(Repository *self);
-PyObject* Repository_status(Repository *self);
+PyObject* Repository_status(Repository *self, PyObject *args, PyObject *kw);
 PyObject* Repository_status_file(Repository *self, PyObject *value);
 PyObject* Repository_TreeBuilder(Repository *self, PyObject *args);
 

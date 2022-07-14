@@ -22,6 +22,8 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
+import pygit2
+import pytest
 
 
 def test_status(dirtyrepo):
@@ -32,3 +34,49 @@ def test_status(dirtyrepo):
     for filepath, status in git_status.items():
         assert filepath in git_status
         assert status == git_status[filepath]
+
+
+def test_status_untracked_no(dirtyrepo):
+    git_status = dirtyrepo.status(untracked_files="no")
+    not any(status & pygit2.GIT_STATUS_WT_NEW for status in git_status.values())
+
+
+@pytest.mark.parametrize(
+    "untracked_files,expected",
+    [
+        ("no", set()),
+        (
+            "normal",
+            {
+                "untracked_dir/",
+                "staged_delete_file_modified",
+                "subdir/new_file",
+                "new_file",
+            },
+        ),
+        (
+            "all",
+            {
+                "new_file",
+                "subdir/new_file",
+                "staged_delete_file_modified",
+                "untracked_dir/untracked_file",
+            },
+        ),
+    ],
+)
+def test_status_untracked_normal(dirtyrepo, untracked_files, expected):
+    git_status = dirtyrepo.status(untracked_files=untracked_files)
+    assert {
+        file for file, status in git_status.items() if status & pygit2.GIT_STATUS_WT_NEW
+    } == expected
+
+
+@pytest.mark.parametrize("ignored,expected", [(True, {"ignored"}), (False, set())])
+def test_status_ignored(dirtyrepo, ignored, expected):
+    git_status = dirtyrepo.status(ignored=ignored)
+    assert {
+        file
+        for file, status in git_status.items()
+        if status & pygit2.GIT_STATUS_IGNORED
+    } == expected

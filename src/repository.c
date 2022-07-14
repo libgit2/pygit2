@@ -25,6 +25,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <git2/status.h>
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "error.h"
@@ -1771,20 +1772,62 @@ Repository_compress_references(Repository *self)
 }
 
 PyDoc_STRVAR(Repository_status__doc__,
-  "status() -> dict[str, int]\n"
+  "status(untracked_files: str = \"all\", ignored: bool = False) -> dict[str, int]\n"
   "\n"
   "Reads the status of the repository and returns a dictionary with file\n"
-  "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.");
+  "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.\n"
+  "\n"
+  "Parameters:\n"
+  "\n"
+  "untracked_files\n"
+  "    How to handle untracked files, defaults to \"all\"\n"
+  "        \"no\": do not return untracked files\n"
+  "        \"normal\": include untracked files/directories but no dot recurse subdirectories\n"
+  "        \"all\": include all files in untracked directories\n"
+  "     Using `untracked_files=\"no\"` or \"normal\"can be faster than \"all\" when the worktree\n"
+  "ignored\n"
+  "    Whether to show ignored files with untracked files. Ignored when untracked_files == \"no\"\n"
+  "    Defaults to False.\n"
+  "contains many untracked files/directories.");
 
 PyObject *
-Repository_status(Repository *self)
+Repository_status(Repository *self, PyObject *args, PyObject *kw)
 {
     PyObject *dict;
     int err;
     size_t len, i;
     git_status_list *list;
 
-    err = git_status_list_new(&list, self->repo, NULL);
+    char *untracked_files = "all";
+    static char *kwlist[] = {"untracked_files", "ignored", NULL};
+
+    PyObject* ignored = Py_False;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|sO", kwlist,
+                                     &untracked_files, &ignored))
+        goto error;
+
+    git_status_options opts = GIT_STATUS_OPTIONS_INIT;
+    opts.flags = GIT_STATUS_OPT_DEFAULTS;
+
+    if (!strcmp(untracked_files, "no")) {
+       opts.flags &= ~(GIT_STATUS_OPT_INCLUDE_UNTRACKED | GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS);
+    } else if (!strcmp(untracked_files, "normal")){
+       opts.flags &= ~GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
+    } else if (strcmp(untracked_files, "all") ){
+        return PyErr_Format(
+          PyExc_ValueError,
+          "untracked_files must be one of \"all\", \"normal\" or \"one\"");
+    };
+
+    if (!PyBool_Check(ignored)) {
+        return PyErr_Format(PyExc_TypeError, "ignored must be True or False");
+    }
+    if (!PyObject_IsTrue(ignored)) {
+        opts.flags &= ~GIT_STATUS_OPT_INCLUDE_IGNORED;
+    }
+
+    err = git_status_list_new(&list, self->repo, &opts);
     if (err < 0)
         return Error_set(err);
 
@@ -2413,7 +2456,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, revparse_single, METH_O),
     METHOD(Repository, revparse_ext, METH_O),
     METHOD(Repository, revparse, METH_O),
-    METHOD(Repository, status, METH_NOARGS),
+    METHOD(Repository, status, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, status_file, METH_O),
     METHOD(Repository, notes, METH_VARARGS),
     METHOD(Repository, create_note, METH_VARARGS),

@@ -64,6 +64,7 @@ index 297efb8..0000000
 PATCHID = 'f31412498a17e6c3fbc635f2c5f9aa3ef4c1a9b7'
 
 DIFF_HEAD_TO_INDEX_EXPECTED = [
+    '.gitignore',
     'staged_changes',
     'staged_changes_file_deleted',
     'staged_changes_file_modified',
@@ -87,6 +88,7 @@ DIFF_HEAD_TO_WORKDIR_EXPECTED = [
 ]
 
 DIFF_INDEX_TO_WORK_EXPECTED = [
+    '.gitignore',
     'file_deleted',
     'modified_file',
     'staged_changes_file_deleted',
