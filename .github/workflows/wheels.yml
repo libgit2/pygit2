@@ -31,8 +31,8 @@ jobs:
         uses: pypa/cibuildwheel@v2.4.0
         env:
           CIBW_BEFORE_ALL: sh build.sh
-          CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.4.3 LIBSSH2_VERSION=1.10.0 LIBGIT2=/project/ci
-          CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.4.3 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib OPENSSL_VERSION=3.0.2
+          CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.5.0 LIBSSH2_VERSION=1.10.0 LIBGIT2=/project/ci
+          CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.5.0 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib OPENSSL_VERSION=3.0.2
           CIBW_SKIP: "*-musllinux*"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "DYLD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "DYLD_LIBRARY_PATH=/usr/local/lib delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=/usr/local/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
