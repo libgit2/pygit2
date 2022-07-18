@@ -51,6 +51,12 @@ PyDoc_STRVAR(option__doc__,
   "\n"
   "GIT_OPT_SET_MWINDOW_SIZE, size\n"
   "    Set the maximum mmap window size.\n"
+  "\n"
+  "GIT_OPT_GET_OWNER_VALIDATION\n"
+  "    Get the owner validation setting.\n"
+  "\n"
+  "GIT_OPT_SET_OWNER_VALIDATION, integer\n"
+  "    Set the owner validation setting.\n"
   );
 
 

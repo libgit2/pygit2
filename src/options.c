@@ -298,6 +298,7 @@ option(PyObject *self, PyObject *args)
         case GIT_OPT_ENABLE_STRICT_HASH_VERIFICATION:
         case GIT_OPT_ENABLE_UNSAVED_INDEX_SAFETY:
         case GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS:
+        case GIT_OPT_SET_OWNER_VALIDATION:
         {
             PyObject *py_enabled;
             int enabled;
@@ -315,6 +316,18 @@ option(PyObject *self, PyObject *args)
                 return Error_set(error);
 
             Py_RETURN_NONE;
+        }
+
+        // int enabled getter
+        case GIT_OPT_GET_OWNER_VALIDATION:
+        {
+            int enabled;
+
+            error = git_libgit2_opts(option, &enabled);
+            if (error < 0)
+                return Error_set(error);
+
+            return PyLong_FromLong(enabled);
         }
 
         // Not implemented

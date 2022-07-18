@@ -111,3 +111,7 @@ def test_search_path_proxy():
     for level, path in paths:
         pygit2.settings.search_path[level] = path
         assert path == pygit2.settings.search_path[level]
+
+def test_owner_validation():
+    __option(pygit2.GIT_OPT_GET_OWNER_VALIDATION,
+             pygit2.GIT_OPT_SET_OWNER_VALIDATION, 0)
