@@ -58,7 +58,7 @@ Python requirements (these are specified in ``setup.py``):
 - cffi 1.9.1+
 - cached-property
 
-Libgit2 **v1.4.x**; binary wheels already include libgit2, so you only need to
+Libgit2 **v1.4.3+**; binary wheels already include libgit2, so you only need to
 worry about this if you install the source package.
 
 Optional libgit2 dependecies to support ssh and https:
