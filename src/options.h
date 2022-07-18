@@ -53,10 +53,11 @@ PyDoc_STRVAR(option__doc__,
   "    Set the maximum mmap window size.\n"
   "\n"
   "GIT_OPT_GET_OWNER_VALIDATION\n"
-  "    Get the owner validation setting.\n"
+  "    Gets the owner validation setting for repository directories.\n"
   "\n"
-  "GIT_OPT_SET_OWNER_VALIDATION, integer\n"
-  "    Set the owner validation setting.\n"
+  "GIT_OPT_SET_OWNER_VALIDATION, enabled\n"
+  "    Set that repository directories should be owned by the current user.\n"
+  "    The default is to validate ownership.\n"
   );
 
 
