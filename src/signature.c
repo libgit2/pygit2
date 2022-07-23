@@ -221,7 +221,7 @@ Signature_richcompare(PyObject *a, PyObject *b, int op)
 
 }
 
-PyObject *
+static PyObject *
 Signature__str__(Signature *self)
 {
     PyObject *name, *email, *str;
@@ -233,7 +233,7 @@ Signature__str__(Signature *self)
     return str;
 }
 
-PyObject *
+static PyObject *
 Signature__repr__(Signature *self)
 {
     PyObject *name, *email, *encoding, *str;
@@ -266,13 +266,13 @@ PyTypeObject SignatureType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    Signature__repr__,                         /* tp_repr           */
+    (reprfunc)Signature__repr__,               /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
     0,                                         /* tp_hash           */
     0,                                         /* tp_call           */
-    Signature__str__,                          /* tp_str            */
+    (reprfunc)Signature__str__,                /* tp_str            */
     0,                                         /* tp_getattro       */
     0,                                         /* tp_setattro       */
     0,                                         /* tp_as_buffer      */
