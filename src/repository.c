@@ -1784,11 +1784,13 @@ PyDoc_STRVAR(Repository_status__doc__,
   "        \"no\": do not return untracked files\n"
   "        \"normal\": include untracked files/directories but no dot recurse subdirectories\n"
   "        \"all\": include all files in untracked directories\n"
-  "     Using `untracked_files=\"no\"` or \"normal\"can be faster than \"all\" when the worktree\n"
+  "\n"
+  "    Using `untracked_files=\"no\"` or \"normal\"can be faster than \"all\" when the worktree\n"
+  "    contains many untracked files/directories.\n"
+  "\n"
   "ignored\n"
   "    Whether to show ignored files with untracked files. Ignored when untracked_files == \"no\"\n"
-  "    Defaults to False.\n"
-  "contains many untracked files/directories.");
+  "    Defaults to False.\n");
 
 PyObject *
 Repository_status(Repository *self, PyObject *args, PyObject *kw)
