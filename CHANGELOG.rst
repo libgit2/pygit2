@@ -1,7 +1,15 @@
-1.10.0 (UNRELEASED)
+1.10.0 (2022-07-24)
 -------------------------
 
-- Add support for libgit2 1.5
+- Upgrade to libgit2 1.5
+
+- Add support for ``GIT_OPT_GET_OWNER_VALIDATION`` and
+  ``GIT_OPT_SET_OWNER_VALIDATION``
+  `#1150 <https://github.com/libgit2/pygit2/pull/1150>`_
+
+- New ``untracked_files`` and ``ignored`` optional arguments for
+  ``Repository.status(...)``
+  `#1151 <https://github.com/libgit2/pygit2/pull/1151>`_
 
 
 1.9.2 (2022-05-24)

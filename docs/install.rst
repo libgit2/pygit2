@@ -58,7 +58,7 @@ Python requirements (these are specified in ``setup.py``):
 - cffi 1.9.1+
 - cached-property
 
-Libgit2 **v1.4.3+**; binary wheels already include libgit2, so you only need to
+Libgit2 **v1.5.x**; binary wheels already include libgit2, so you only need to
 worry about this if you install the source package.
 
 Optional libgit2 dependecies to support ssh and https:
@@ -87,7 +87,7 @@ of Python and the required libgit2 version.
 +-----------+----------------+------------+
 | pygit2    | Python         | libgit2    |
 +-----------+----------------+------------+
-| 1.10      | 3.7 - 3.10     | 1.4 - 1.5  |
+| 1.10      | 3.7 - 3.10     | 1.5        |
 +-----------+----------------+------------+
 | 1.9       | 3.7 - 3.10     | 1.4        |
 +-----------+----------------+------------+
@@ -134,9 +134,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.4.1.tar.gz -O libgit2-1.4.1.tar.gz
-   $ tar xzf libgit2-1.4.1.tar.gz
-   $ cd libgit2-1.4.1/
+   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.5.0.tar.gz -O libgit2-1.5.0.tar.gz
+   $ tar xzf libgit2-1.5.0.tar.gz
+   $ cd libgit2-1.5.0/
    $ cmake .
    $ make
    $ sudo make install
@@ -218,9 +218,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.4.1.tar.gz -O libgit2-1.4.1.tar.gz
-   $ tar xzf libgit2-1.4.1.tar.gz
-   $ cd libgit2-1.4.1/
+   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.5.0.tar.gz -O libgit2-1.5.0.tar.gz
+   $ tar xzf libgit2-1.5.0.tar.gz
+   $ cd libgit2-1.5.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ cmake --build . --target install
 
@@ -277,7 +277,7 @@ variable.  The following recipe shows you how to do it from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ git clone --depth=1 -b v1.4.1 https://github.com/libgit2/libgit2.git
+   $ git clone --depth=1 -b v1.5.0 https://github.com/libgit2/libgit2.git
    $ cd libgit2
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 14 Win64"
    $ cmake --build . --config release --target install

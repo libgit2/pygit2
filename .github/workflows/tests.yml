@@ -62,6 +62,7 @@ jobs:
 
   s390x:
     runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/master'
     steps:
     - name: Checkout pygit2
       uses: actions/checkout@v2

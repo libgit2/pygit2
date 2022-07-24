@@ -57,6 +57,7 @@ Authors::
   Alok Singhal
   Assaf Nativ
   Bob Carroll
+  Christian Häggström
   Erik Johnson
   Filip Rindler
   Fraser Tweedale
@@ -139,6 +140,7 @@ Authors::
   Dan Cecile
   Daniel Bruce
   Daniele Esposti
+  Daniele Trifirò
   David Black
   David Fischer
   David Sanders
