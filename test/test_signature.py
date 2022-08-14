@@ -54,6 +54,14 @@ def test_latin1():
     assert signature.email == signature.raw_email.decode(encoding)
     assert signature.email.encode(encoding) == signature.raw_email
 
+def test_none():
+    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding=None)
+    assert signature._encoding is None
+    assert signature.name == signature.raw_name.decode('utf-8')
+    assert signature.name.encode('utf-8') == signature.raw_name
+    assert signature.email == signature.raw_email.decode('utf-8')
+    assert signature.email.encode('utf-8') == signature.raw_email
+
 def test_now():
     encoding = 'utf-8'
     signature = Signature(
@@ -75,3 +83,15 @@ def test_repr():
     expected_signature = \
         "pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, 'utf-8')"
     assert repr(signature) == expected_signature
+
+def test_repr_from_commit(barerepo):
+    repo = barerepo
+    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding=None)
+    tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
+    parents = ['5fe808e8953c12735680c257f56600cb0de44b10']
+    sha = repo.create_commit(
+        None, signature, signature, 'New commit.', tree, parents)
+    commit = repo[sha]
+
+    assert repr(signature) == repr(commit.author)
+    assert repr(signature) == repr(commit.committer)
