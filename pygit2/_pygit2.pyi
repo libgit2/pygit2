@@ -506,7 +506,7 @@ class RevSpec:
     to_object: Object
 
 class Signature:
-    _encoding: str
+    _encoding: str | None
     _pointer: bytes
     email: str
     name: str
@@ -514,7 +514,7 @@ class Signature:
     raw_email: bytes
     raw_name: bytes
     time: int
-    def __init__(self, name: str, email: str, time: int, offset: int, encoding: str) -> None: ...
+    def __init__(self, name: str, email: str, time: int, offset: int, encoding: str | None) -> None: ...
     def __eq__(self, other) -> bool: ...
     def __ge__(self, other) -> bool: ...
     def __gt__(self, other) -> bool: ...

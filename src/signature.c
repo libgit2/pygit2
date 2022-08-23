@@ -45,12 +45,13 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
     int offset = 0;
 
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwds, "Os|Lis", keywords,
+            args, kwds, "Os|Liz", keywords,
             &py_name, &email, &time, &offset, &encoding))
         return -1;
 
     PyObject *tname;
-    const char *name = pgit_borrow_encoding(py_name, encoding, NULL, &tname);
+    const char *name = pgit_borrow_encoding(
+        py_name, value_or_default(encoding, "utf-8"), NULL, &tname);
     if (name == NULL)
         return -1;
 
@@ -104,13 +105,10 @@ PyDoc_STRVAR(Signature__encoding__doc__, "Encoding.");
 PyObject *
 Signature__encoding__get__(Signature *self)
 {
-    const char *encoding;
+    if (self->encoding)
+        return to_encoding(self->encoding);
 
-    encoding = self->encoding;
-    if (encoding == NULL)
-        encoding = "utf-8";
-
-    return to_encoding(encoding);
+    Py_RETURN_NONE;
 }
 
 
@@ -199,7 +197,9 @@ Signature_richcompare(PyObject *a, PyObject *b, int op)
         strcmp(sa->signature->email, sb->signature->email) == 0 &&
         sa->signature->when.time == sb->signature->when.time &&
         sa->signature->when.offset == sb->signature->when.offset &&
-        sa->signature->when.sign == sb->signature->when.sign);
+        sa->signature->when.sign == sb->signature->when.sign &&
+        strcmp(value_or_default(sa->encoding, "utf-8"),
+               value_or_default(sb->encoding, "utf-8")) == 0);
 
     switch (op) {
         case Py_EQ:
@@ -239,7 +239,13 @@ Signature__repr__(Signature *self)
     PyObject *name, *email, *encoding, *str;
     name = to_unicode(self->signature->name, self->encoding, NULL);
     email = to_unicode(self->signature->email, self->encoding, NULL);
-    encoding = to_unicode(self->encoding, self->encoding, NULL);
+
+    if (self->encoding) {
+        encoding = to_unicode(self->encoding, self->encoding, NULL);
+    } else {
+        encoding = Py_None;
+    }
+
     str = PyUnicode_FromFormat(
         "pygit2.Signature(%R, %R, %lld, %ld, %R)",
         name,

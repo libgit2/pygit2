@@ -142,8 +142,10 @@ def test_amend_commit_metadata(barerepo):
 
     encoding = 'iso-8859-1'
     amended_message = "Amended commit message.\n\nMessage with non-ascii chars: ééé.\n"
-    amended_author = Signature('Jane Author', 'jane@example.com', 12345, 0)
-    amended_committer = Signature('John Committer', 'john@example.com', 12346, 0)
+    amended_author = Signature(
+        'Jane Author', 'jane@example.com', 12345, 0, encoding=encoding)
+    amended_committer = Signature(
+        'John Committer', 'john@example.com', 12346, 0, encoding=encoding)
 
     amended_oid = repo.amend_commit(
         commit, 'HEAD', message=amended_message, author=amended_author,
