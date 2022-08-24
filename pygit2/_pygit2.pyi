@@ -260,7 +260,7 @@ class Commit(Object):
     committer: Signature
     gpg_signature: tuple[bytes, bytes]
     message: str
-    message_encoding: str | None
+    message_encoding: str
     message_trailers: dict[str, str]
     parent_ids: list[Oid]
     parents: list[Commit]

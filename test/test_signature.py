@@ -30,67 +30,41 @@ import pytest
 from pygit2 import Signature
 
 
-def test_default():
-    signature = Signature(
-        'Foo Ibáñez', 'foo@example.com', 1322174594, 60)
-    encoding = signature._encoding
-    assert encoding == 'utf-8'
+def __assert(signature, encoding):
+    encoding = encoding or 'utf-8'
+    assert signature._encoding == encoding
     assert signature.name == signature.raw_name.decode(encoding)
     assert signature.name.encode(encoding) == signature.raw_name
     assert signature.email == signature.raw_email.decode(encoding)
     assert signature.email.encode(encoding) == signature.raw_email
+
+@pytest.mark.parametrize('encoding', [None, 'utf-8', 'iso-8859-1'])
+def test_encoding(encoding):
+    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding=encoding)
+    __assert(signature, encoding)
+    assert abs(signature.time - time.time()) < 5
+    assert str(signature) == 'Foo Ibáñez <foo@example.com>'
+
+def test_default_encoding():
+    signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60)
+    __assert(signature, 'utf-8')
 
 def test_ascii():
     with pytest.raises(UnicodeEncodeError):
         Signature('Foo Ibáñez', 'foo@example.com', encoding='ascii')
 
-def test_latin1():
-    encoding = 'iso-8859-1'
-    signature = Signature(
-        'Foo Ibáñez', 'foo@example.com', encoding=encoding)
-    assert encoding == signature._encoding
-    assert signature.name == signature.raw_name.decode(encoding)
-    assert signature.name.encode(encoding) == signature.raw_name
-    assert signature.email == signature.raw_email.decode(encoding)
-    assert signature.email.encode(encoding) == signature.raw_email
-
-def test_none():
-    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding=None)
-    assert signature._encoding is None
-    assert signature.name == signature.raw_name.decode('utf-8')
-    assert signature.name.encode('utf-8') == signature.raw_name
-    assert signature.email == signature.raw_email.decode('utf-8')
-    assert signature.email.encode('utf-8') == signature.raw_email
-
-def test_now():
-    encoding = 'utf-8'
-    signature = Signature(
-        'Foo Ibáñez', 'foo@example.com', encoding=encoding)
-    assert encoding == signature._encoding
-    assert signature.name == signature.raw_name.decode(encoding)
-    assert signature.name.encode(encoding) == signature.raw_name
-    assert signature.email == signature.raw_email.decode(encoding)
-    assert signature.email.encode(encoding) == signature.raw_email
-    assert abs(signature.time - time.time()) < 5
-
-def test_str():
-    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding='utf-8')
-    assert str(signature) == 'Foo Ibáñez <foo@example.com>'
-
 def test_repr():
-    signature = Signature(
-        'Foo Ibáñez', 'foo@bar.com', 1322174594, 60, encoding='utf-8')
-    expected_signature = \
-        "pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, 'utf-8')"
-    assert repr(signature) == expected_signature
+    encoding = 'utf-8'
+    signature = Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, encoding=encoding)
+    expected = f"pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, '{encoding}')"
+    assert repr(signature) == expected
 
 def test_repr_from_commit(barerepo):
     repo = barerepo
     signature = Signature('Foo Ibáñez', 'foo@example.com', encoding=None)
     tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
     parents = ['5fe808e8953c12735680c257f56600cb0de44b10']
-    sha = repo.create_commit(
-        None, signature, signature, 'New commit.', tree, parents)
+    sha = repo.create_commit(None, signature, signature, 'New commit.', tree, parents)
     commit = repo[sha]
 
     assert repr(signature) == repr(commit.author)

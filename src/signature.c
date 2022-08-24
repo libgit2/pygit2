@@ -40,7 +40,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 {
     char *keywords[] = {"name", "email", "time", "offset", "encoding", NULL};
     PyObject *py_name;
-    char *email, *encoding = "utf-8";
+    char *email, *encoding = NULL;
     long long time = -1;
     int offset = 0;
 
@@ -105,10 +105,12 @@ PyDoc_STRVAR(Signature__encoding__doc__, "Encoding.");
 PyObject *
 Signature__encoding__get__(Signature *self)
 {
-    if (self->encoding)
-        return to_encoding(self->encoding);
+    const char *encoding = self->encoding;
+    if (encoding == NULL) {
+        encoding = "utf-8";
+    }
 
-    Py_RETURN_NONE;
+    return to_encoding(encoding);
 }
 
 
