@@ -69,7 +69,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
     mkdir ci || true
     cd ci
     if [ "$KERNEL" = "Linux" ]; then
-        yum install wget openssl-devel libssh2-devel zlib-devel -y
+        yum install wget openssl-devel zlib-devel -y
     fi
 else
     # Create a virtual environment
