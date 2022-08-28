@@ -42,6 +42,7 @@ Authors::
   Lukas Fleischer
   Nicolas Dandrimont
   Raphael Medaer (Escaux)
+  Saugat Pachhai
   Anatoly Techtonik
   Andrew Olsen
   Dan Sully
@@ -50,7 +51,6 @@ Authors::
   Robin Stocker
   Rémi Duraffort
   Santiago Perez De Rosso
-  Saugat Pachhai
   Sebastian Thiel
   Thom Wiggers
   Alexander Linne
@@ -157,6 +157,7 @@ Authors::
   Holger Frey
   Hugh Cole-Baker
   Isabella Stephens
+  Jacob Swanson
   Jasper Lievisse Adriaanse
   Jiri Benc
   Jonathan Robson

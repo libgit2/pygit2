@@ -1,7 +1,7 @@
-1.10.1 (UNRELEASED)
+1.10.1 (2022-08-28)
 -------------------------
 
-- Fix segfault in Signature repr
+- Fix segfault in ``Signature`` repr
   `#1155 <https://github.com/libgit2/pygit2/pull/1155>`_
 
 - Linux and macOS wheels for Python 3.11
