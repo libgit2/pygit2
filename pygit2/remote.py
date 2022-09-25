@@ -295,20 +295,12 @@ class RemoteCollection:
             C.git_strarray_free(names)
 
     def __iter__(self):
-        names = ffi.new('git_strarray *')
-
-        try:
-            err = C.git_remote_list(names, self._repo._repo)
+        cremote = ffi.new('git_remote **')
+        for name in self._ffi_names():
+            err = C.git_remote_lookup(cremote, self._repo._repo, name)
             check_error(err)
 
-            cremote = ffi.new('git_remote **')
-            for i in range(names.count):
-                err = C.git_remote_lookup(cremote, self._repo._repo, names.strings[i])
-                check_error(err)
-
-                yield Remote(self._repo, cremote[0])
-        finally:
-            C.git_strarray_free(names)
+            yield Remote(self._repo, cremote[0])
 
     def __getitem__(self, name):
         if isinstance(name, int):
@@ -319,6 +311,23 @@ class RemoteCollection:
         check_error(err)
 
         return Remote(self._repo, cremote[0])
+
+    def _ffi_names(self):
+        names = ffi.new('git_strarray *')
+
+        try:
+            err = C.git_remote_list(names, self._repo._repo)
+            check_error(err)
+
+            for i in range(names.count):
+                yield names.strings[i]
+        finally:
+            C.git_strarray_free(names)
+    
+    def names(self):
+        """An iterator over the names of the available remotes."""
+        for name in self._ffi_names():
+            yield maybe_string(name)
 
     def create(self, name, url, fetch=None):
         """Create a new remote with the given name and url. Returns a <Remote>
