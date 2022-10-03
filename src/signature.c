@@ -246,6 +246,7 @@ Signature__repr__(Signature *self)
         encoding = to_unicode(self->encoding, self->encoding, NULL);
     } else {
         encoding = Py_None;
+        Py_INCREF(Py_None);
     }
 
     str = PyUnicode_FromFormat(
