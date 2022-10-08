@@ -2301,7 +2301,7 @@ Repository_apply(Repository *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(Repository_applies__doc__,
-  "applies(diff: Diff, location: int = GIT_APPLY_LOCATION_INDEX) -> bool\n"
+  "applies(diff: Diff, location: int = GIT_APPLY_LOCATION_INDEX, raise_error: bool = False) -> bool\n"
   "\n"
   "Tests if the given patch will apply to HEAD, without writing it.\n"
   "\n"
@@ -2313,6 +2313,10 @@ PyDoc_STRVAR(Repository_applies__doc__,
   "location\n"
   "    The location to apply: GIT_APPLY_LOCATION_WORKDIR,\n"
   "    GIT_APPLY_LOCATION_INDEX (default), or GIT_APPLY_LOCATION_BOTH.\n"
+  "\n"
+  "raise_error\n"
+  "    If the patch doesn't apply, raise an exception containing more details\n"
+  "    about the failure instead of returning False.\n"
   );
 
 PyObject *
@@ -2320,19 +2324,24 @@ Repository_applies(Repository *self, PyObject *args, PyObject *kwds)
 {
     Diff *py_diff;
     int location = GIT_APPLY_LOCATION_INDEX;
+    int raise_error = 0;
     git_apply_options options = GIT_APPLY_OPTIONS_INIT;
     options.flags |= GIT_APPLY_CHECK;
 
-    char* keywords[] = {"diff", "location", NULL};
+    char* keywords[] = {"diff", "location", "raise_error", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|i", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|ii", keywords,
                                      &DiffType, &py_diff,
-                                     &location))
+                                     &location, &raise_error))
         return NULL;
 
     int err = git_apply(self->repo, ((Diff*)py_diff)->diff, location, &options);
-    if (err != 0)
-        Py_RETURN_FALSE;
+    if (err != 0) {
+        if (raise_error)
+            return Error_set(err);
+        else
+            Py_RETURN_FALSE;
+    }
 
     Py_RETURN_TRUE;
 }

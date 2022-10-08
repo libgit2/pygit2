@@ -59,6 +59,18 @@ def patch_diff(testrepo, new_content):
     # Return the diff
     return pygit2.Diff.parse_diff(patch)
 
+@pytest.fixture
+def foreign_patch_diff():
+    patch_contents = """diff --git a/this_file_does_not_exist b/this_file_does_not_exist
+index 7f129fd..af431f2 100644
+--- a/this_file_does_not_exist
++++ b/this_file_does_not_exist
+@@ -1 +1 @@
+-a contents 2
++a contents
+"""
+    return pygit2.Diff.parse_diff(patch_contents)
+
 
 def test_apply_type_error(testrepo):
     # Check apply type error
@@ -127,3 +139,15 @@ def test_diff_applies_to_both(testrepo, old_content, patch_diff):
     assert not testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_WORKDIR)
     assert not testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_INDEX)
 
+def test_applies_error(testrepo, old_content, patch_diff, foreign_patch_diff):
+    # Try to apply a "foreign" patch that affects files that aren't in the repo;
+    # ensure we get OSError about the missing file (due to raise_error)
+    with pytest.raises(OSError):
+        testrepo.applies(foreign_patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH, raise_error=True)
+
+    # Apply a valid patch
+    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH)
+
+    # Ensure it can't be applied again and we get an exception about it (due to raise_error)
+    with pytest.raises(pygit2.GitError):
+        testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH, raise_error=True)
