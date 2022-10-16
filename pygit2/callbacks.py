@@ -334,7 +334,7 @@ def libgit2_callback(f):
             # then libgit2 will behave as if there was no callback set in the
             # first place.
             return C.GIT_PASSTHROUGH
-        except Exception as e:
+        except BaseException as e:
             # Keep the exception to be re-raised later, and inform libgit2 that
             # the user defined callback has failed.
             data._stored_exception = e
