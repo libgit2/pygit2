@@ -43,3 +43,25 @@ extern "Python" int _update_tips_cb(
 	const git_oid *a,
 	const git_oid *b,
 	void *data);
+
+/* Checkout */
+
+extern "Python" int _checkout_notify_cb(
+    git_checkout_notify_t why,
+    const char *path,
+    const git_diff_file *baseline,
+    const git_diff_file *target,
+    const git_diff_file *workdir,
+    void *payload);
+
+extern "Python" void _checkout_progress_cb(
+    const char *path,
+    size_t completed_steps,
+    size_t total_steps,
+    void *payload);
+
+/* Stash */
+
+extern "Python" int _stash_apply_progress_cb(
+    git_stash_apply_progress_t progress,
+    void *payload);

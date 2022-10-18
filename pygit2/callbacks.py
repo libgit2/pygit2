@@ -65,12 +65,13 @@ API.
 # Standard Library
 from contextlib import contextmanager
 from functools import wraps
+from typing import Optional
 
 # pygit2
-from ._pygit2 import Oid
+from ._pygit2 import Oid, DiffFile, GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
-from .utils import maybe_string, to_bytes
+from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
 
 
 #
@@ -88,6 +89,10 @@ class Payload:
     def check_error(self, error_code):
         if error_code == C.GIT_EUSER:
             assert self._stored_exception is not None
+            raise self._stored_exception
+        elif self._stored_exception is not None:
+            # A callback mapped to a C function returning void
+            # might still have raised an exception.
             raise self._stored_exception
 
         check_error(error_code)
@@ -208,6 +213,78 @@ class RemoteCallbacks(Payload):
         message : str
             Rejection message from the remote. If None, the update was accepted.
         """
+
+
+class CheckoutCallbacks(Payload):
+    """Base class for pygit2 checkout callbacks.
+
+    Inherit from this class and override the callbacks that you want to use
+    in your class, which you can then pass to checkout operations.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def checkout_notify_flags(self) -> int:
+        """
+        Returns a bit mask of the notifications to receive from a checkout
+        (GIT_CHECKOUT_NOTIFY values combined with bitwise OR).
+
+        By default, if you override `checkout_notify`, all notifications will
+        be enabled. You can fine tune the notification types to enable by
+        overriding `checkout_notify_flags`.
+
+        Please note that the flags are only sampled once when checkout begins.
+        You cannot change the flags while a checkout is in progress.
+        """
+        if type(self).checkout_notify == CheckoutCallbacks.checkout_notify:
+            # If the user hasn't overridden the notify function,
+            # filter out all notifications.
+            return C.GIT_CHECKOUT_NOTIFY_NONE
+        else:
+            # If the user provides their own notify function,
+            # enable all notifications by default.
+            return C.GIT_CHECKOUT_NOTIFY_ALL
+
+    def checkout_notify(self, why: int, path: str, baseline: Optional[DiffFile], target: Optional[DiffFile], workdir: Optional[DiffFile]):
+        """
+        Checkout will invoke an optional notification callback for
+        certain cases - you pick which ones via `checkout_notify_flags`.
+        
+        Raising an exception from this callback will cancel the checkout.
+        The exception will be propagated back and raised by the
+        Repository.checkout_... call.
+        
+        Notification callbacks are made prior to modifying any files on disk,
+        so canceling on any notification will still happen prior to any files
+        being modified.
+        """
+        pass
+
+    def checkout_progress(self, path: str, completed_steps: int, total_steps: int):
+        """
+        Optional callback to notify the consumer of checkout progress.
+        """
+        pass
+
+
+class StashApplyCallbacks(CheckoutCallbacks):
+    """Base class for pygit2 stash apply callbacks.
+
+    Inherit from this class and override the callbacks that you want to use
+    in your class, which you can then pass to stash apply or pop operations.
+    """
+
+    def stash_apply_progress(self, progress: int):
+        """
+        Stash application progress notification function.
+
+        `progress` is a GIT_STASH_APPLY_PROGRESS constant.
+
+        Raising an exception from this callback will abort the stash
+        application.
+        """
+        pass
 
 
 #
@@ -339,6 +416,26 @@ def libgit2_callback(f):
             # the user defined callback has failed.
             data._stored_exception = e
             return C.GIT_EUSER
+
+    return ffi.def_extern()(wrapper)
+
+
+def libgit2_callback_void(f):
+    @wraps(f)
+    def wrapper(*args):
+        data = ffi.from_handle(args[-1])
+        args = args[:-1] + (data,)
+        try:
+            f(*args)
+        except Passthrough:
+            # A user defined callback can raise Passthrough to decline to act;
+            # then libgit2 will behave as if there was no callback set in the
+            # first place.
+            pass  # Function returns void
+        except BaseException as e:
+            # Keep the exception to be re-raised later
+            data._stored_exception = e
+            pass  # Function returns void, so we can't do much here.
 
     return ffi.def_extern()(wrapper)
 
@@ -503,3 +600,137 @@ def get_credentials(fn, url, username, allowed):
     check_error(err)
 
     return ccred
+
+
+#
+# Checkout callbacks
+#
+
+@libgit2_callback
+def _checkout_notify_cb(why, path_cstr, baseline, target, workdir, data: CheckoutCallbacks):
+    pypath = maybe_string(path_cstr)
+    pybaseline = DiffFile.from_c(ptr_to_bytes(baseline))
+    pytarget = DiffFile.from_c(ptr_to_bytes(target))
+    pyworkdir = DiffFile.from_c(ptr_to_bytes(workdir))
+
+    try:
+        data.checkout_notify(why, pypath, pybaseline, pytarget, pyworkdir)
+    except Passthrough:
+        # Unlike most other operations with optional callbacks, checkout
+        # doesn't support the GIT_PASSTHROUGH return code, so we must bypass
+        # libgit2_callback's error handling and return 0 explicitly here.
+        pass
+
+    # If the user's callback has raised any other exception type,
+    # it's caught by the libgit2_callback decorator by now.
+    # So, return success code to libgit2.
+    return 0
+
+
+@libgit2_callback_void
+def _checkout_progress_cb(path, completed_steps, total_steps, data: CheckoutCallbacks):
+    data.checkout_progress(maybe_string(path), completed_steps, total_steps)
+
+
+def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=None):
+    if callbacks is None:
+        payload = CheckoutCallbacks()
+    else:
+        payload = callbacks
+
+    # Get handle to payload
+    handle = ffi.new_handle(payload)
+
+    # Create the options struct to pass
+    opts = ffi.new('git_checkout_options *')
+    check_error(C.git_checkout_init_options(opts, 1))
+
+    # References we need to keep to strings and so forth
+    refs = [handle]
+
+    # pygit2's default is SAFE | RECREATE_MISSING
+    opts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING
+    # and go through the arguments to see what the user wanted
+    if strategy:
+        opts.checkout_strategy = strategy
+
+    if directory:
+        target_dir = ffi.new('char[]', to_bytes(directory))
+        refs.append(target_dir)
+        opts.target_directory = target_dir
+
+    if paths:
+        strarray = StrArray(paths)
+        refs.append(strarray)
+        opts.paths = strarray.array[0]
+
+    # If we want to receive any notifications, set up notify_cb in the options
+    notify_flags = payload.checkout_notify_flags()
+    if notify_flags != C.GIT_CHECKOUT_NOTIFY_NONE:
+        opts.notify_cb = C._checkout_notify_cb
+        opts.notify_flags = notify_flags
+        opts.notify_payload = handle
+
+    # Set up progress callback if the user has provided their own
+    if type(payload).checkout_progress != CheckoutCallbacks.checkout_progress:
+        opts.progress_cb = C._checkout_progress_cb
+        opts.progress_payload = handle
+
+    # Give back control
+    payload.checkout_options = opts
+    payload._ffi_handle = handle
+    payload._refs = refs
+    payload._stored_exception = None
+    return payload
+
+
+@contextmanager
+def git_checkout_options(callbacks=None, strategy=None, directory=None, paths=None):
+    yield _git_checkout_options(callbacks=callbacks, strategy=strategy, directory=directory, paths=paths)
+
+
+#
+# Stash callbacks
+#
+
+@libgit2_callback
+def _stash_apply_progress_cb(progress: int, data: StashApplyCallbacks):
+    try:
+        data.stash_apply_progress(progress)
+    except Passthrough:
+        # Unlike most other operations with optional callbacks, stash apply
+        # doesn't support the GIT_PASSTHROUGH return code, so we must bypass
+        # libgit2_callback's error handling and return 0 explicitly here.
+        pass
+
+    # If the user's callback has raised any other exception type,
+    # it's caught by the libgit2_callback decorator by now.
+    # So, return success code to libgit2.
+    return 0
+
+
+@contextmanager
+def git_stash_apply_options(callbacks=None, reinstate_index=False, strategy=None, directory=None, paths=None):
+    if callbacks is None:
+        callbacks = StashApplyCallbacks()
+
+    # First, set up checkout_options
+    payload = _git_checkout_options(callbacks=callbacks, strategy=strategy, directory=directory, paths=paths)
+    assert payload == callbacks
+
+    # Now set up the rest of stash options
+    # TODO: git_stash_apply_init_options is deprecated (along with a bunch of other git_XXX_init_options functions)
+    stash_options = ffi.new('git_stash_apply_options *')
+    check_error(C.git_stash_apply_init_options(stash_options, 1))
+
+    flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
+    stash_options.flags = flags
+
+    # Set up stash progress callback if the user has provided their own
+    if type(callbacks).stash_apply_progress != StashApplyCallbacks.stash_apply_progress:
+        stash_options.progress_cb = C._stash_apply_progress_cb
+        stash_options.progress_payload = payload._ffi_handle
+
+    # Give back control
+    payload.stash_options = stash_options
+    yield payload

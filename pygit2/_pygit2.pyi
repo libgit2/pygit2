@@ -300,6 +300,8 @@ class DiffFile:
     path: str
     raw_path: bytes
     size: int
+    @staticmethod
+    def from_c(bytes) -> DiffFile: ...
 
 class DiffHunk:
     header: str

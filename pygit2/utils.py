@@ -62,6 +62,16 @@ def to_str(s):
     raise TypeError('unexpected type "%s"' % repr(s))
 
 
+def ptr_to_bytes(ptr_cdata):
+    """
+    Convert a pointer coming from C code (<cdata 'some_type *'>)
+    to a byte buffer containing the address that the pointer refers to.
+    """
+
+    pp = ffi.new('void **', ptr_cdata)
+    return bytes(ffi.buffer(pp)[:])
+
+
 def strarray_to_strings(arr):
     l = [None] * arr.count
     for i in range(arr.count):

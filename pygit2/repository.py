@@ -40,7 +40,7 @@ from ._pygit2 import GIT_REF_SYMBOLIC
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
-from .callbacks import git_fetch_options
+from .callbacks import git_checkout_options, git_fetch_options, git_stash_apply_options
 from .config import Config
 from .errors import check_error
 from .ffi import ffi, C
@@ -318,59 +318,35 @@ class BaseRepository(_Repository):
     #
     # Checkout
     #
-    @staticmethod
-    def _checkout_args_to_options(strategy=None, directory=None, paths=None):
-        # Create the options struct to pass
-        copts = ffi.new('git_checkout_options *')
-        check_error(C.git_checkout_init_options(copts, 1))
-
-        # References we need to keep to strings and so forth
-        refs = []
-
-        # pygit2's default is SAFE | RECREATE_MISSING
-        copts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING
-        # and go through the arguments to see what the user wanted
-        if strategy:
-            copts.checkout_strategy = strategy
-
-        if directory:
-            target_dir = ffi.new('char[]', to_bytes(directory))
-            refs.append(target_dir)
-            copts.target_directory = target_dir
-
-        if paths:
-            strarray = StrArray(paths)
-            refs.append(strarray)
-            copts.paths = strarray.array[0]
-
-        return copts, refs
 
     def checkout_head(self, **kwargs):
         """Checkout HEAD
 
         For arguments, see Repository.checkout().
         """
-        copts, refs = Repository._checkout_args_to_options(**kwargs)
-        check_error(C.git_checkout_head(self._repo, copts))
+        with git_checkout_options(**kwargs) as payload:
+            err = C.git_checkout_head(self._repo, payload.checkout_options)
+            payload.check_error(err)
 
     def checkout_index(self, index=None, **kwargs):
         """Checkout the given index or the repository's index
 
         For arguments, see Repository.checkout().
         """
-        copts, refs = Repository._checkout_args_to_options(**kwargs)
-        check_error(C.git_checkout_index(self._repo, index._index if index else ffi.NULL, copts))
+        with git_checkout_options(**kwargs) as payload:
+            err = C.git_checkout_index(self._repo, index._index if index else ffi.NULL, payload.checkout_options)
+            payload.check_error(err)
 
     def checkout_tree(self, treeish, **kwargs):
         """Checkout the given treeish
 
         For arguments, see Repository.checkout().
         """
-        copts, refs = Repository._checkout_args_to_options(**kwargs)
-        cptr = ffi.new('git_object **')
-        ffi.buffer(cptr)[:] = treeish._pointer[:]
-
-        check_error(C.git_checkout_tree(self._repo, cptr[0], copts))
+        with git_checkout_options(**kwargs) as payload:
+            cptr = ffi.new('git_object **')
+            ffi.buffer(cptr)[:] = treeish._pointer[:]
+            err = C.git_checkout_tree(self._repo, cptr[0], payload.checkout_options)
+            payload.check_error(err)
 
     def checkout(self, refname=None, **kwargs):
         """
@@ -396,6 +372,15 @@ class BaseRepository(_Repository):
         paths : list[str]
             A list of files to checkout from the given reference.
             If paths is provided, HEAD will not be set to the reference.
+
+        callbacks : CheckoutCallbacks
+            Optional. Supply a `callbacks` object to get information about
+            conflicted files, updated files, etc. as the checkout is being
+            performed. The callbacks can also abort the checkout prematurely.
+
+            The callbacks should be an object which inherits from
+            `pyclass:CheckoutCallbacks`. It should implement the callbacks
+            as overridden methods.
 
         Examples:
 
@@ -1092,19 +1077,6 @@ class BaseRepository(_Repository):
 
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
-    @staticmethod
-    def _stash_args_to_options(reinstate_index=False, **kwargs):
-        stash_opts = ffi.new('git_stash_apply_options *')
-        check_error(C.git_stash_apply_init_options(stash_opts, 1))
-
-        flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
-        stash_opts.flags = flags
-
-        copts, refs = Repository._checkout_args_to_options(**kwargs)
-        stash_opts.checkout_options = copts[0]
-
-        return stash_opts
-
     def stash_apply(self, index=0, **kwargs):
         """
         Apply a stashed state in the stash list to the working directory.
@@ -1118,6 +1090,18 @@ class BaseRepository(_Repository):
         reinstate_index : bool
             Try to reinstate stashed changes to the index.
 
+        callbacks : StashApplyCallbacks
+            Optional. Supply a `callbacks` object to get information about
+            the progress of the stash application as it is being performed.
+
+            The callbacks should be an object which inherits from
+            `pyclass:StashApplyCallbacks`. It should implement the callbacks
+            as overridden methods.
+
+            Note that this class inherits from CheckoutCallbacks, so you can
+            also get information from the checkout part of the unstashing
+            process via the callbacks.
+
         The checkout options may be customized using the same arguments taken by
         Repository.checkout().
 
@@ -1127,8 +1111,9 @@ class BaseRepository(_Repository):
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
             >>> repo.stash_apply(strategy=GIT_CHECKOUT_ALLOW_CONFLICTS)
         """
-        stash_opts = Repository._stash_args_to_options(**kwargs)
-        check_error(C.git_stash_apply(self._repo, index, stash_opts))
+        with git_stash_apply_options(**kwargs) as payload:
+            err = C.git_stash_apply(self._repo, index, payload.stash_options)
+            payload.check_error(err)
 
     def stash_drop(self, index=0):
         """
@@ -1147,8 +1132,9 @@ class BaseRepository(_Repository):
 
         For arguments, see Repository.stash_apply().
         """
-        stash_opts = Repository._stash_args_to_options(**kwargs)
-        check_error(C.git_stash_pop(self._repo, index, stash_opts))
+        with git_stash_apply_options(**kwargs) as payload:
+            err = C.git_stash_pop(self._repo, index, payload.stash_options)
+            payload.check_error(err)
 
     #
     # Utility for writing a tree into an archive

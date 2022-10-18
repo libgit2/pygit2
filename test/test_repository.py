@@ -77,6 +77,75 @@ def test_checkout_ref(testrepo):
     assert 'new' in head.tree
     assert 'bye.txt' not in testrepo.status()
 
+def test_checkout_callbacks(testrepo):
+    ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
+
+    class MyCheckoutCallbacks(pygit2.CheckoutCallbacks):
+        def __init__(self):
+            super().__init__()
+            self.conflicting_paths = set()
+            self.updated_paths = set()
+
+        def checkout_notify_flags(self) -> int:
+            return pygit2.GIT_CHECKOUT_NOTIFY_CONFLICT | pygit2.GIT_CHECKOUT_NOTIFY_UPDATED
+
+        def checkout_notify(self, why, path, baseline, target, workdir):
+            if why == pygit2.GIT_CHECKOUT_NOTIFY_CONFLICT:
+                self.conflicting_paths.add(path)
+            elif why == pygit2.GIT_CHECKOUT_NOTIFY_UPDATED:
+                self.updated_paths.add(path)
+
+    # checkout i18n with conflicts and default strategy should not be possible
+    callbacks = MyCheckoutCallbacks()
+    with pytest.raises(pygit2.GitError): testrepo.checkout(ref_i18n, callbacks=callbacks)
+    # make sure the callbacks caught that
+    assert {'bye.txt'} == callbacks.conflicting_paths
+
+    # checkout i18n with GIT_CHECKOUT_FORCE
+    head = testrepo.head
+    head = testrepo[head.target]
+    assert 'new' not in head.tree
+    callbacks = MyCheckoutCallbacks()
+    testrepo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE, callbacks=callbacks)
+    # make sure the callbacks caught the files affected by the checkout
+    assert set() == callbacks.conflicting_paths
+    assert {'bye.txt', 'new'} == callbacks.updated_paths
+
+def test_checkout_aborted_from_callbacks(testrepo):
+    ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
+
+    def read_bye_txt():
+        return testrepo[testrepo.create_blob_fromworkdir("bye.txt")].data
+
+    s = testrepo.status()
+    assert s == {'bye.txt': pygit2.GIT_STATUS_WT_NEW}
+
+    class MyCheckoutCallbacks(pygit2.CheckoutCallbacks):
+        def __init__(self):
+            super().__init__()
+            self.invoked_times = 0
+
+        def checkout_notify(self, why, path, baseline, target, workdir):
+            self.invoked_times += 1
+            # skip one file so we're certain that NO files are affected,
+            # even if aborting the checkout from the second file
+            if self.invoked_times == 2:  
+                raise InterruptedError("Stop the checkout!")
+
+    head = testrepo.head
+    head = testrepo[head.target]
+    assert 'new' not in head.tree
+    assert b'bye world\n' == read_bye_txt()
+    callbacks = MyCheckoutCallbacks()
+
+    # checkout i18n with GIT_CHECKOUT_FORCE - callbacks should prevent checkout from completing
+    with pytest.raises(InterruptedError):
+        testrepo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE, callbacks=callbacks)
+    
+    assert callbacks.invoked_times == 2
+    assert 'new' not in head.tree
+    assert b'bye world\n' == read_bye_txt()
+
 def test_checkout_branch(testrepo):
     branch_i18n = testrepo.lookup_branch('i18n')
 
@@ -278,6 +347,73 @@ def test_stash(testrepo):
     assert [] == testrepo.listall_stashes()
 
     with pytest.raises(KeyError): testrepo.stash_pop()
+
+def test_stash_progress_callback(testrepo):
+    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+
+    # some changes to working dir
+    with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
+        f.write('new content')
+
+    # create the stash
+    testrepo.stash(sig, include_untracked=True, message="custom stash message")
+
+    progress_sequence = []
+
+    class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
+        def stash_apply_progress(self, progress: int):
+            progress_sequence.append(progress)
+
+    # apply the stash
+    testrepo.stash_apply(callbacks=MyStashApplyCallbacks())
+
+    # make sure the callbacks were notified of all the steps
+    assert progress_sequence == [
+        pygit2.GIT_STASH_APPLY_PROGRESS_LOADING_STASH,
+        pygit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX,
+        pygit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED,
+        pygit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED,
+        pygit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED,
+        pygit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED,
+        pygit2.GIT_STASH_APPLY_PROGRESS_DONE,
+    ]
+
+def test_stash_aborted_from_callbacks(testrepo):
+    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+
+    # some changes to working dir
+    with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
+        f.write('new content')
+    with (Path(testrepo.workdir) / 'untracked.txt').open('w') as f:
+        f.write('yo')
+
+    # create the stash
+    testrepo.stash(sig, include_untracked=True, message="custom stash message")
+
+    # define callbacks that will abort the unstash process
+    # just as libgit2 is ready to write the files to disk
+    class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
+        def stash_apply_progress(self, progress: int):
+            if progress == pygit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED:
+                raise InterruptedError("Stop applying the stash!")
+
+    # attempt to apply and delete the stash; the callbacks will interrupt that
+    with pytest.raises(InterruptedError):
+        testrepo.stash_pop(callbacks=MyStashApplyCallbacks())
+
+    # we interrupted right before the checkout part of the unstashing process,
+    # so the untracked file shouldn't be here
+    assert not (Path(testrepo.workdir) / 'untracked.txt').exists()
+
+    # and hello.txt should be as it is on master
+    with (Path(testrepo.workdir) / 'hello.txt').open('r') as f:
+        assert f.read() == 'hello world\nhola mundo\nbonjour le monde\n'
+
+    # and since we didn't let stash_pop run to completion, the stash itself should still be here
+    repo_stashes = testrepo.listall_stashes()
+    assert 1 == len(repo_stashes)
+    assert repo_stashes[0].message == "On master: custom stash message"
+
 
 def test_revert(testrepo):
     master = testrepo.head.peel()

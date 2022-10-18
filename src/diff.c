@@ -179,6 +179,31 @@ DiffFile_dealloc(DiffFile *self)
     PyObject_Del(self);
 }
 
+PyDoc_STRVAR(DiffFile_from_c__doc__, "Method exposed for _checkout_notify_cb to hook into");
+
+/* Expose wrap_diff_file to python so we can call it in callbacks.py. */
+PyObject *
+DiffFile_from_c(DiffFile *dummy, PyObject *py_diff_file_ptr)
+{
+    const git_diff_file *diff_file;
+    char *buffer;
+    Py_ssize_t length;
+
+    /* Here we need to do the opposite conversion from the _pointer getters */
+    if (PyBytes_AsStringAndSize(py_diff_file_ptr, &buffer, &length))
+        return NULL;
+
+    if (length != sizeof(git_diff_file *)) {
+        PyErr_SetString(PyExc_TypeError, "passed value is not a pointer");
+        return NULL;
+    }
+
+    /* the "buffer" contains the pointer */
+    diff_file = *((const git_diff_file **) buffer);
+
+    return wrap_diff_file(diff_file);
+}
+
 PyMemberDef DiffFile_members[] = {
     MEMBER(DiffFile, id, T_OBJECT, "Oid of the item."),
     MEMBER(DiffFile, path, T_STRING, "Path to the entry."),
@@ -189,6 +214,10 @@ PyMemberDef DiffFile_members[] = {
     {NULL}
 };
 
+PyMethodDef DiffFile_methods[] = {
+    METHOD(DiffFile, from_c, METH_STATIC | METH_O),
+    {NULL},
+};
 
 PyDoc_STRVAR(DiffFile__doc__, "DiffFile object.");
 
@@ -220,7 +249,7 @@ PyTypeObject DiffFileType = {
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    DiffFile_methods,                          /* tp_methods        */
     DiffFile_members,                          /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */
