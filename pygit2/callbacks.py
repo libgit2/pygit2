@@ -481,7 +481,7 @@ def _push_update_reference_cb(ref, msg, data):
     if not push_update_reference:
         return 0
 
-    refname = ffi.string(ref)
+    refname = maybe_string(ref)
     message = maybe_string(msg)
     push_update_reference(refname, message)
     return 0
