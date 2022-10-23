@@ -70,10 +70,10 @@ documentation.
 
 Step 2. Build Python to be used with valgrind, e.g.::
 
-  $ ./configure --prefix=~/Python-3.7.4 --without-pymalloc --with-pydebug --with-valgrind
+  $ ./configure --prefix=~/Python-3.8.15 --without-pymalloc --with-pydebug --with-valgrind
   $ make
   $ make install
-  $ export PYTHONBIN=~/Python-3.7.4/bin
+  $ export PYTHONBIN=~/Python-3.8.15/bin
 
 Step 3. Build pygit2 with debug symbols::
 

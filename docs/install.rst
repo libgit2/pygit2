@@ -50,13 +50,12 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.7+
+- Python 3.8+
 - PyPy3 7.3+
 
 Python requirements (these are specified in ``setup.py``):
 
 - cffi 1.9.1+
-- cached-property
 
 Libgit2 **v1.5.x**; binary wheels already include libgit2, so you only need to
 worry about this if you install the source package.
@@ -86,6 +85,8 @@ of Python and the required libgit2 version.
 
 +-----------+----------------+------------+
 | pygit2    | Python         | libgit2    |
++-----------+----------------+------------+
+| 1.11      | 3.8 - 3.11     | 1.5        |
 +-----------+----------------+------------+
 | 1.10      | 3.7 - 3.10     | 1.5        |
 +-----------+----------------+------------+

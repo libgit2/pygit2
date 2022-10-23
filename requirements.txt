@@ -1,2 +1,1 @@
-cached-property; python_version < "3.8"
 cffi>=1.9.1

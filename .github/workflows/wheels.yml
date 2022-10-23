@@ -31,7 +31,7 @@ jobs:
           CIBW_BEFORE_ALL: sh build.sh
           CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.5.0 LIBSSH2_VERSION=1.10.0 LIBGIT2=/project/ci
           CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.5.0 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib OPENSSL_VERSION=3.0.2
-          CIBW_SKIP: "*-musllinux*"
+          CIBW_SKIP: "*-musllinux* *37*"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "DYLD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
