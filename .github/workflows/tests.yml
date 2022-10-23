@@ -47,8 +47,8 @@ jobs:
   aarch64:
     runs-on: ubuntu-20.04
     steps:
-    - name: Checkout pygit2
-      uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v3
 
     - name: Build & test
       uses: uraimo/run-on-arch-action@v2
@@ -65,8 +65,9 @@ jobs:
     runs-on: ubuntu-20.04
     if: github.ref == 'refs/heads/master'
     steps:
-    - name: Checkout pygit2
-      uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v3
+
     - name: Build & test
       uses: uraimo/run-on-arch-action@v2
       with:

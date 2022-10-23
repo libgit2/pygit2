@@ -1,3 +1,28 @@
+1.11.0 (UNRELEASED)
+-------------------------
+
+- Drop support for Python 3.7
+
+- Update Linux wheels to manylinux 2_28
+  `#1136 <https://github.com/libgit2/pygit2/issues/1136>`_
+
+- Fix crash in signature representation
+  `#1162 <https://github.com/libgit2/pygit2/pull/1162>`_
+
+- Add missing newline at end of `pygit2/decl/pack.h`
+  `#1163 <https://github.com/libgit2/pygit2/pull/1163>`_
+
+- New optional argument `raise_error` in `Repository.applies(...)`
+  `#1166 <https://github.com/libgit2/pygit2/pull/1166>`_
+
+- New notify/progress callbacks for checkout and stash
+  `#1167 <https://github.com/libgit2/pygit2/pull/1167>`_
+
+- Now `refname` argument in `RemoteCallbacks.push_update_reference` is a
+  string, not bytes
+  `#1168 <https://github.com/libgit2/pygit2/pull/1168>`_
+
+
 1.10.1 (2022-08-28)
 -------------------------
 
