@@ -18,16 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v3
 
-      - name: Set up QEMU
+      - uses: docker/setup-qemu-action@v2
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v1
         with:
           platforms: all
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.9.0
+        uses: pypa/cibuildwheel@v2
         env:
           CIBW_BEFORE_ALL: sh build.sh
           CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.5.0 LIBSSH2_VERSION=1.10.0 LIBGIT2=/project/ci
@@ -40,7 +39,7 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: wheels
           path: ./wheelhouse/*.whl
@@ -51,7 +50,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: wheels
         path: dist
