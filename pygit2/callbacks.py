@@ -632,7 +632,7 @@ def _checkout_progress_cb(path, completed_steps, total_steps, data: CheckoutCall
     data.checkout_progress(maybe_string(path), completed_steps, total_steps)
 
 
-def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=None):
+def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=None, c_checkout_options_ptr=None):
     if callbacks is None:
         payload = CheckoutCallbacks()
     else:
@@ -642,7 +642,10 @@ def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=N
     handle = ffi.new_handle(payload)
 
     # Create the options struct to pass
-    opts = ffi.new('git_checkout_options *')
+    if not c_checkout_options_ptr:
+        opts = ffi.new('git_checkout_options *')
+    else:
+        opts = c_checkout_options_ptr
     check_error(C.git_checkout_init_options(opts, 1))
 
     # References we need to keep to strings and so forth
@@ -714,23 +717,25 @@ def git_stash_apply_options(callbacks=None, reinstate_index=False, strategy=None
     if callbacks is None:
         callbacks = StashApplyCallbacks()
 
-    # First, set up checkout_options
-    payload = _git_checkout_options(callbacks=callbacks, strategy=strategy, directory=directory, paths=paths)
-    assert payload == callbacks
-
-    # Now set up the rest of stash options
+    # Set up stash options
     # TODO: git_stash_apply_init_options is deprecated (along with a bunch of other git_XXX_init_options functions)
-    stash_options = ffi.new('git_stash_apply_options *')
-    check_error(C.git_stash_apply_init_options(stash_options, 1))
+    stash_apply_options = ffi.new('git_stash_apply_options *')
+    check_error(C.git_stash_apply_init_options(stash_apply_options, 1))
 
     flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
-    stash_options.flags = flags
+    stash_apply_options.flags = flags
+
+    # Now set up checkout options
+    c_checkout_options_ptr = ffi.addressof(stash_apply_options.checkout_options)
+    payload = _git_checkout_options(callbacks=callbacks, strategy=strategy, directory=directory, paths=paths, c_checkout_options_ptr=c_checkout_options_ptr)
+    assert payload == callbacks
+    assert payload.checkout_options == c_checkout_options_ptr
 
     # Set up stash progress callback if the user has provided their own
     if type(callbacks).stash_apply_progress != StashApplyCallbacks.stash_apply_progress:
-        stash_options.progress_cb = C._stash_apply_progress_cb
-        stash_options.progress_payload = payload._ffi_handle
+        stash_apply_options.progress_cb = C._stash_apply_progress_cb
+        stash_apply_options.progress_payload = payload._ffi_handle
 
     # Give back control
-    payload.stash_options = stash_options
+    payload.stash_apply_options = stash_apply_options
     yield payload

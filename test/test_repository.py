@@ -414,6 +414,40 @@ def test_stash_aborted_from_callbacks(testrepo):
     assert 1 == len(repo_stashes)
     assert repo_stashes[0].message == "On master: custom stash message"
 
+def test_stash_apply_checkout_options(testrepo):
+    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+
+    hello_txt = Path(testrepo.workdir) / 'hello.txt'
+
+    # some changes to working dir
+    with hello_txt.open('w') as f:
+        f.write('stashed content')
+
+    # create the stash
+    testrepo.stash(sig, include_untracked=True, message="custom stash message")
+
+    # define callbacks that raise an InterruptedError when checkout detects a conflict
+    class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
+        def checkout_notify(self, why, path, baseline, target, workdir):
+            if why == pygit2.GIT_CHECKOUT_NOTIFY_CONFLICT:
+                raise InterruptedError("Applying the stash would create a conflict")
+
+    # overwrite hello.txt so that applying the stash would create a conflict
+    with hello_txt.open('w') as f:
+        f.write('conflicting content')
+
+    # apply the stash with the default (safe) strategy;
+    # the callbacks should detect a conflict on checkout
+    with pytest.raises(InterruptedError):
+        testrepo.stash_apply(strategy=pygit2.GIT_CHECKOUT_SAFE, callbacks=MyStashApplyCallbacks())
+    
+    # hello.txt should be intact
+    with hello_txt.open('r') as f: assert f.read() == 'conflicting content'
+
+    # force apply the stash; this should work
+    testrepo.stash_apply(strategy=pygit2.GIT_CHECKOUT_FORCE, callbacks=MyStashApplyCallbacks())
+    with hello_txt.open('r') as f: assert f.read() == 'stashed content'
+
 
 def test_revert(testrepo):
     master = testrepo.head.peel()

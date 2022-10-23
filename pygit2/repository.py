@@ -1112,7 +1112,7 @@ class BaseRepository(_Repository):
             >>> repo.stash_apply(strategy=GIT_CHECKOUT_ALLOW_CONFLICTS)
         """
         with git_stash_apply_options(**kwargs) as payload:
-            err = C.git_stash_apply(self._repo, index, payload.stash_options)
+            err = C.git_stash_apply(self._repo, index, payload.stash_apply_options)
             payload.check_error(err)
 
     def stash_drop(self, index=0):
@@ -1133,7 +1133,7 @@ class BaseRepository(_Repository):
         For arguments, see Repository.stash_apply().
         """
         with git_stash_apply_options(**kwargs) as payload:
-            err = C.git_stash_pop(self._repo, index, payload.stash_options)
+            err = C.git_stash_pop(self._repo, index, payload.stash_apply_options)
             payload.check_error(err)
 
     #
