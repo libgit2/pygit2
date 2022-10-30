@@ -162,6 +162,7 @@ def test_remote_list(testrepo):
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'
     remote = testrepo.remotes.create(name, url)
+    assert remote.name in testrepo.remotes.names()
     assert remote.name in [x.name for x in testrepo.remotes]
 
 @utils.requires_network
@@ -170,7 +171,6 @@ def test_ls_remotes(testrepo):
     remote = testrepo.remotes[0]
 
     refs = remote.ls_remotes()
-
     assert refs
 
     # Check that a known ref is returned.
@@ -187,6 +187,7 @@ def test_remote_collection(testrepo):
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'
     remote = testrepo.remotes.create(name, url)
+    assert remote.name in testrepo.remotes.names()
     assert remote.name in [x.name for x in testrepo.remotes]
 
 @utils.refcount
