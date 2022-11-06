@@ -323,7 +323,7 @@ class RemoteCollection:
                 yield names.strings[i]
         finally:
             C.git_strarray_free(names)
-    
+
     def names(self):
         """An iterator over the names of the available remotes."""
         for name in self._ffi_names():

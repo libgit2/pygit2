@@ -20,7 +20,7 @@ option for push in the remote.
         repo.config[mirror_var] = True
         # Return the remote, which pygit2 will use to perform the clone
         return remote
-    
+
     print("Cloning pygit2 as mirror")
     pygit2.clone_repository("https://github.com/libgit2/pygit2", "pygit2.git", bare=True,
                             remote=init_remote)

@@ -246,15 +246,21 @@ class CheckoutCallbacks(Payload):
             # enable all notifications by default.
             return C.GIT_CHECKOUT_NOTIFY_ALL
 
-    def checkout_notify(self, why: int, path: str, baseline: Optional[DiffFile], target: Optional[DiffFile], workdir: Optional[DiffFile]):
+    def checkout_notify(self,
+        why: int,
+        path: str,
+        baseline: Optional[DiffFile],
+        target: Optional[DiffFile],
+        workdir: Optional[DiffFile]
+    ):
         """
         Checkout will invoke an optional notification callback for
         certain cases - you pick which ones via `checkout_notify_flags`.
-        
+
         Raising an exception from this callback will cancel the checkout.
         The exception will be propagated back and raised by the
         Repository.checkout_... call.
-        
+
         Notification callbacks are made prior to modifying any files on disk,
         so canceling on any notification will still happen prior to any files
         being modified.
@@ -727,7 +733,13 @@ def git_stash_apply_options(callbacks=None, reinstate_index=False, strategy=None
 
     # Now set up checkout options
     c_checkout_options_ptr = ffi.addressof(stash_apply_options.checkout_options)
-    payload = _git_checkout_options(callbacks=callbacks, strategy=strategy, directory=directory, paths=paths, c_checkout_options_ptr=c_checkout_options_ptr)
+    payload = _git_checkout_options(
+        callbacks=callbacks,
+        strategy=strategy,
+        directory=directory,
+        paths=paths,
+        c_checkout_options_ptr=c_checkout_options_ptr,
+    )
     assert payload == callbacks
     assert payload.checkout_options == c_checkout_options_ptr
 

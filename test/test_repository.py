@@ -129,7 +129,7 @@ def test_checkout_aborted_from_callbacks(testrepo):
             self.invoked_times += 1
             # skip one file so we're certain that NO files are affected,
             # even if aborting the checkout from the second file
-            if self.invoked_times == 2:  
+            if self.invoked_times == 2:
                 raise InterruptedError("Stop the checkout!")
 
     head = testrepo.head
@@ -141,7 +141,7 @@ def test_checkout_aborted_from_callbacks(testrepo):
     # checkout i18n with GIT_CHECKOUT_FORCE - callbacks should prevent checkout from completing
     with pytest.raises(InterruptedError):
         testrepo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE, callbacks=callbacks)
-    
+
     assert callbacks.invoked_times == 2
     assert 'new' not in head.tree
     assert b'bye world\n' == read_bye_txt()
@@ -440,7 +440,7 @@ def test_stash_apply_checkout_options(testrepo):
     # the callbacks should detect a conflict on checkout
     with pytest.raises(InterruptedError):
         testrepo.stash_apply(strategy=pygit2.GIT_CHECKOUT_SAFE, callbacks=MyStashApplyCallbacks())
-    
+
     # hello.txt should be intact
     with hello_txt.open('r') as f: assert f.read() == 'conflicting content'
 

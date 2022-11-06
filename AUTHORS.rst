@@ -9,9 +9,9 @@ Authors::
   W. Trevor King
   Drew DeVault
   Dave Borowitz
+  Iliyas Jorio
   Brandon Milton
   Daniel Rodríguez Troitiño
-  Iliyas Jorio
   Richo Healey
   Christian Boos
   Julien Miotte
@@ -114,6 +114,7 @@ Authors::
   Vicent Marti
   Zbigniew Jędrzejewski-Szmek
   Zoran Zaric
+  Adam Gausmann
   Adam Spiers
   Alexandru Fikl
   Andrew Chin
@@ -168,6 +169,7 @@ Authors::
   Lance Eftink
   Legorooj
   Lukas Berk
+  Martin von Zweigbergk
   Mathieu Bridon
   Mathieu Parent
   Mathieu Pillard
@@ -192,6 +194,7 @@ Authors::
   Saul Pwanson
   Shane Turner
   Sheeo
+  Simone Mosciatti
   Soasme
   Steven Winfield
   Tad Hardesty
@@ -202,4 +205,3 @@ Authors::
   chengyuhang
   earl
   odidev
-  siscia
