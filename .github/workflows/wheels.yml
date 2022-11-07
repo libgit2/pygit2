@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, macOS-11]
+        os: [ubuntu-22.04, macOS-11]
 
     steps:
       - uses: actions/checkout@v3
@@ -25,16 +25,19 @@ jobs:
         with:
           platforms: all
 
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.11.2
+
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.1
+        run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BEFORE_ALL: sh build.sh
           CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.5.0 LIBSSH2_VERSION=1.10.0 LIBGIT2=/project/ci
           CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.5.0 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib OPENSSL_VERSION=3.0.2
-          CIBW_SKIP: "*-musllinux* *37*"
-          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "DYLD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_SKIP: "*-musllinux*"
+          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_24"
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_24"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "LD_LIBRARY_PATH=/project/ci/lib auditwheel repair -w {dest_dir} {wheel}"
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "DYLD_LIBRARY_PATH=/usr/local/lib delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=/usr/local/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64

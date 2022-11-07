@@ -68,7 +68,10 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
     rm -rf ci
     mkdir ci || true
     cd ci
-    if [ "$KERNEL" = "Linux" ]; then
+    if [ -f /usr/bin/apt-get ]; then
+        apt-get update
+        apt-get install libssl-dev wget -y
+    elif [ -f /usr/bin/yum ]; then
         yum install wget openssl-devel zlib-devel -y
     fi
 else
@@ -188,15 +191,13 @@ if [ -n "$LIBGIT2_VERSION" ]; then
 fi
 
 if [ "$CIBUILDWHEEL" = "1" ]; then
-    # This is gross. auditwheel/delocate-wheel are not so good
-    # at finding libraries in random places, so we have to
-    # put them in the loader path.
     if [ "$KERNEL" = "Darwin" ]; then
+        # Copy libraries where delocate-wheel can find them.
+        # In Linux we use LD_LIBRARY_PATH to avoid this, maybe
+        # DYLD_LIBRARY_PATH would work for macOS.
         cp -r $OPENSSL_PREFIX/*.dylib /usr/local/lib
         cp -r $LIBSSH2_PREFIX/lib/*.dylib /usr/local/lib
         cp -r $FILENAME/*.dylib /usr/local/lib
-    else
-        cp -r $PREFIX/lib64/*.so* /usr/local/lib
     fi
     # we're done building dependencies, cibuildwheel action will take over
     exit 0
