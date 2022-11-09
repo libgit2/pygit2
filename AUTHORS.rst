@@ -32,6 +32,7 @@ Authors::
   Tamir Bahar
   Valentin Haenel
   Michael Jones
+  Saugat Pachhai
   Bernardo Heynemann
   Brodie Rao
   John Szakmeister
@@ -42,7 +43,6 @@ Authors::
   Lukas Fleischer
   Nicolas Dandrimont
   Raphael Medaer (Escaux)
-  Saugat Pachhai
   Anatoly Techtonik
   Andrew Olsen
   Dan Sully

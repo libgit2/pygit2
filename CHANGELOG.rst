@@ -1,3 +1,16 @@
+1.11.1 (2022-11-09)
+-------------------------
+
+- Fix Linux wheels, downgrade to manylinux 2_24
+  `#1176 <https://github.com/libgit2/pygit2/issues/1176>`_
+
+- Windows wheels for Python 3.11
+  `#1177 <https://github.com/libgit2/pygit2/pull/1177>`_
+
+- CI: Use 3.11 final release for testing
+  `#1178 <https://github.com/libgit2/pygit2/pull/1178>`_
+
+
 1.11.0 (2022-11-06)
 -------------------------
 
