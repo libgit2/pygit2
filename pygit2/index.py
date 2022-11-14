@@ -427,6 +427,19 @@ class ConflictCollection:
     def __iter__(self):
         return ConflictIterator(self._index)
 
+    def __contains__(self, path):
+        cancestor = ffi.new('git_index_entry **')
+        cours = ffi.new('git_index_entry **')
+        ctheirs = ffi.new('git_index_entry **')
+
+        err = C.git_index_conflict_get(cancestor, cours, ctheirs,
+                                       self._index._index, to_bytes(path))
+        if err == C.GIT_ENOTFOUND:
+            return False
+
+        check_error(err)
+        return True
+
 
 class ConflictIterator:
 

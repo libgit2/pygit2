@@ -100,6 +100,8 @@ def test_merge_no_fastforward_conflicts(mergerepo):
     assert mergerepo.index.conflicts is not None
     with pytest.raises(KeyError):
         mergerepo.index.conflicts.__getitem__('some-file')
+    assert 'some-file' not in mergerepo.index.conflicts
+    assert '.gitignore' in mergerepo.index.conflicts
 
     status = pygit2.GIT_STATUS_CONFLICTED
     # Asking twice to assure the reference counting is correct
@@ -126,12 +128,14 @@ def test_merge_remove_conflicts(mergerepo):
     idx = mergerepo.index
     conflicts = idx.conflicts
     assert conflicts is not None
+    assert '.gitignore' in conflicts
     try:
         conflicts['.gitignore']
     except KeyError:
         mergerepo.fail("conflicts['.gitignore'] raised KeyError unexpectedly")
     del idx.conflicts['.gitignore']
     with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
+    assert '.gitignore' not in conflicts
     assert idx.conflicts is None
 
 
