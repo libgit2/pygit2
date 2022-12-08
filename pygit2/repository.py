@@ -1208,7 +1208,7 @@ class BaseRepository(_Repository):
                 info.size = 0
                 archive.addfile(info)
             else:
-                info.mode = tree[entry.path].filemode
+                info.mode = entry.mode
                 archive.addfile(info, BytesIO(content))
 
     #
