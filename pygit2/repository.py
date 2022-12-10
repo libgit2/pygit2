@@ -1166,17 +1166,16 @@ class BaseRepository(_Repository):
         Example::
 
             >>> import tarfile, pygit2
-            >>>> with tarfile.open('foo.tar', 'w') as archive:
-            >>>>     repo = pygit2.Repository('.')
-            >>>>     repo.write_archive(repo.head.target, archive)
+            >>> with tarfile.open('foo.tar', 'w') as archive:
+            >>>     repo = pygit2.Repository('.')
+            >>>     repo.write_archive(repo.head.target, archive)
         """
 
         # Try to get a tree form whatever we got
-        if isinstance(treeish, Tree):
-            tree = treeish
-
         if isinstance(treeish, (str, Oid)):
             treeish = self[treeish]
+
+        tree = treeish.peel(Tree)
 
         # if we don't have a timestamp, try to get it from a commit
         if not timestamp:
@@ -1189,8 +1188,6 @@ class BaseRepository(_Repository):
         # as a last resort, use the current timestamp
         if not timestamp:
             timestamp = int(time())
-
-        tree = treeish.peel(Tree)
 
         index = Index()
         index.read_tree(tree)
