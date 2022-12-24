@@ -65,18 +65,25 @@ PREFIX="${PREFIX:-$(pwd)/ci/$PYTHON_TAG}"
 export LDFLAGS="-Wl,-rpath,$PREFIX/lib"
 
 if [ "$CIBUILDWHEEL" = "1" ]; then
+    if [ -f /usr/bin/apt-get ]; then
+        apt-get update
+        apt-get install wget -y
+        if [ -z "$OPENSSL_VERSION" ]; then
+            apt-get install libssl-dev -y
+        fi
+    elif [ -f /usr/bin/yum ]; then
+        yum install wget zlib-devel -y
+        if [ -z "$OPENSSL_VERSION" ]; then
+            yum install openssl-devel -y
+        fi
+    fi
     rm -rf ci
     mkdir ci || true
     cd ci
-    if [ -f /usr/bin/apt-get ]; then
-        apt-get update
-        apt-get install libssl-dev wget -y
-    elif [ -f /usr/bin/yum ]; then
-        yum install wget openssl-devel zlib-devel -y
-    fi
 else
     # Create a virtual environment
     $PYTHON -m venv $PREFIX
+    cd ci
 fi
 
 # Install zlib
@@ -94,40 +101,45 @@ fi
 
 # Install openssl
 if [ -n "$OPENSSL_VERSION" ]; then
-    if [ "$CIBUILDWHEEL" != "1" ] || [ "$KERNEL" != "Darwin" ]; then
-        echo "OPENSSL_VERSION should only be set when building"
-        echo "macOS universal2 wheels on GitHub!"
-        echo "Please unset and try again"
-        exit 1
-    fi
     FILENAME=openssl-$OPENSSL_VERSION
     wget https://www.openssl.org/source/$FILENAME.tar.gz -N --no-check-certificate
 
-    tar xf $FILENAME.tar.gz
-    mv $FILENAME openssl-x86
+    if [ "$KERNEL" = "Darwin" ]; then
+        tar xf $FILENAME.tar.gz
+        mv $FILENAME openssl-x86
 
-    tar xf $FILENAME.tar.gz
-    mv $FILENAME openssl-arm
+        tar xf $FILENAME.tar.gz
+        mv $FILENAME openssl-arm
 
-    cd openssl-x86
-    ./Configure darwin64-x86_64-cc shared
-    make
-    cd ../openssl-arm
-    ./Configure enable-rc5 zlib darwin64-arm64-cc no-asm
-    make
-    cd ..
+        cd openssl-x86
+        ./Configure darwin64-x86_64-cc shared
+        make
+        cd ../openssl-arm
+        ./Configure enable-rc5 zlib darwin64-arm64-cc no-asm
+        make
+        cd ..
 
-    mkdir openssl-universal
+        mkdir openssl-universal
 
-    LIBSSL=$(basename openssl-x86/libssl.*.dylib)
-    lipo -create openssl-x86/libssl.*.dylib openssl-arm/libssl.*.dylib -output openssl-universal/$LIBSSL
-    LIBCRYPTO=$(basename openssl-x86/libcrypto.*.dylib)
-    lipo -create openssl-x86/libcrypto.*.dylib openssl-arm/libcrypto.*.dylib -output openssl-universal/$LIBCRYPTO
-    cd openssl-universal
-    install_name_tool -id "@rpath/$LIBSSL" $LIBSSL
-    install_name_tool -id "@rpath/$LIBCRYPTO" $LIBCRYPTO
-    OPENSSL_PREFIX=$(pwd)
-    cd ..
+        LIBSSL=$(basename openssl-x86/libssl.*.dylib)
+        lipo -create openssl-x86/libssl.*.dylib openssl-arm/libssl.*.dylib -output openssl-universal/$LIBSSL
+        LIBCRYPTO=$(basename openssl-x86/libcrypto.*.dylib)
+        lipo -create openssl-x86/libcrypto.*.dylib openssl-arm/libcrypto.*.dylib -output openssl-universal/$LIBCRYPTO
+        cd openssl-universal
+        install_name_tool -id "@rpath/$LIBSSL" $LIBSSL
+        install_name_tool -id "@rpath/$LIBCRYPTO" $LIBCRYPTO
+        OPENSSL_PREFIX=$(pwd)
+        cd ..
+    else
+        # Linux
+        tar xf $FILENAME.tar.gz
+        cd $FILENAME
+        ./Configure shared --prefix=$PREFIX --libdir=$PREFIX/lib
+        make
+        make install
+        OPENSSL_PREFIX=$(pwd)
+        cd ..
+    fi
 fi
 
 # Install libssh2
@@ -178,6 +190,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
                 -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
                 -DUSE_SSH=$USE_SSH
     else
+        export CFLAGS=-I$PREFIX/include
         CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_TESTS=OFF \
@@ -204,6 +217,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
 fi
 
 # Build pygit2
+cd ..
 $PREFIX/bin/pip install -U pip wheel
 if [ "$1" = "wheel" ]; then
     shift
