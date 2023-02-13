@@ -2438,7 +2438,15 @@ Repository_listall_stashes(Repository *self, PyObject *args)
 PyDoc_STRVAR(Repository_hashfile__doc__,
   "hashfile(path: str) -> Oid\n"
   "\n"
-  "Calculate hash of file using repository filtering rules.");
+  "Calculate hash of file using repository filtering rules.\n"
+  "\n"
+  "If you simply want to calculate the hash of a file on disk with no filters, "
+  "you can just use the ``pygit2.hashfile`` API. However, if you want to hash "
+  "a file in the repository and you want to apply filtering rules (e.g. crlf "
+  "filters) before generating the SHA, then use this function.\n"
+  "\n"
+  "Note: if the repository has ``core.safecrlf`` set to fail and the filtering "
+  "triggers that failure, then this function will raise ``GitError``.");
 
 PyObject *
 Repository_hashfile(Repository *self, PyObject *args)
