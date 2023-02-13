@@ -760,17 +760,53 @@ def test_is_shallow(testrepo):
 
     assert testrepo.is_shallow
 
-def test_repo_hashfile(testrepo):
+def test_repo_hashfile_same_hash(testrepo):
+    data = 'Some multi-\nline text\n'
+    with (Path(testrepo.workdir) / 'untracked.txt').open('w') as f:
+        f.write(data)
+
+    hashed_file_sha1 = testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked.txt'))
+    hashed_data_sha1 = pygit2.hash(data)
+    assert hashed_file_sha1 == hashed_data_sha1
+
+def test_repo_hashfile_crlf_normalization(testrepo):
     with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
         print('*.txt  eol=lf\n', file=f)
+
     data = 'Some multi-\nline text\n'
     with (Path(testrepo.workdir) / 'untracked_lf.txt').open('w') as f:
         f.write(data)
     with (Path(testrepo.workdir) / 'untracked_crlf.txt').open('w') as f:
         f.write(data.replace('\n','\r\n'))
+
     hashed_lf_sha1 = testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked_lf.txt'))
     hashed_crlf_sha1 = testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked_crlf.txt'))
     assert hashed_lf_sha1 == hashed_crlf_sha1
 
-    hashed_sha1 = pygit2.hash(data)
-    assert hashed_lf_sha1 == hashed_sha1
+def test_repo_hashfile_no_normalization(testrepo):
+    with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
+        print('*.txt  -text\n', file=f)
+
+    data = 'Some multi-\nline text\n'
+    with (Path(testrepo.workdir) / 'untracked_lf.txt').open('w') as f:
+        f.write(data)
+    with (Path(testrepo.workdir) / 'untracked_crlf.txt').open('w') as f:
+        f.write(data.replace('\n','\r\n'))
+
+    hashed_lf_sha1 = testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked_lf.txt'))
+    hashed_crlf_sha1 = testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked_crlf.txt'))
+    assert hashed_lf_sha1 != hashed_crlf_sha1
+
+def test_repo_hashfile_crlf_normalization_error(testrepo):
+    testrepo.config['core.safecrlf'] = True
+    with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
+        print('*.txt  eol=lf\n', file=f)
+    with (Path(testrepo.workdir) / 'untracked_crlf.txt').open('w') as f:
+        f.write('Some multi-\r\nline text\r\n')
+
+    with pytest.raises(pygit2.GitError) as exc:
+        testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked_crlf.txt'))
+
+    assert "CRLF would be replaced by LF" in str(exc.value)
+
+
