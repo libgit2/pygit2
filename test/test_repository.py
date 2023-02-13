@@ -759,3 +759,18 @@ def test_is_shallow(testrepo):
         f.write('abcdef0123456789abcdef0123456789abcdef00\n')
 
     assert testrepo.is_shallow
+
+def test_repo_hashfile(testrepo):
+    with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
+        print('*.txt  eol=lf\n', file=f)
+    data = 'Some multi-\nline text\n'
+    with (Path(testrepo.workdir) / 'untracked_lf.txt').open('w') as f:
+        f.write(data)
+    with (Path(testrepo.workdir) / 'untracked_crlf.txt').open('w') as f:
+        f.write(data.replace('\n','\r\n'))
+    hashed_lf_sha1 = testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked_lf.txt'))
+    hashed_crlf_sha1 = testrepo.hashfile(str(Path(testrepo.workdir) / 'untracked_crlf.txt'))
+    assert hashed_lf_sha1 == hashed_crlf_sha1
+
+    hashed_sha1 = pygit2.hash(data)
+    assert hashed_lf_sha1 == hashed_sha1

@@ -69,4 +69,6 @@ PyObject* Repository_cherrypick(Repository *self, PyObject *py_oid);
 PyObject* Repository_apply(Repository *self, PyObject *py_diff, PyObject *kwds);
 PyObject* Repository_merge_analysis(Repository *self, PyObject *args);
 
+PyObject* Repository_hashfile(Repository *self, PyObject *args);
+
 #endif

@@ -2435,6 +2435,33 @@ Repository_listall_stashes(Repository *self, PyObject *args)
     }
 }
 
+PyDoc_STRVAR(Repository_hashfile__doc__,
+  "hashfile(path: str) -> Oid\n"
+  "\n"
+  "Calculate hash of file using repository filtering rules.");
+
+PyObject *
+Repository_hashfile(Repository *self, PyObject *args)
+{
+    git_oid oid;
+    PyBytesObject *py_path = NULL;
+    const char* path = NULL;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path))
+        return NULL;
+
+    if (py_path != NULL)
+        path = PyBytes_AS_STRING(py_path);
+
+    err = git_repository_hashfile(&oid, self->repo, path, GIT_OBJ_BLOB, NULL);
+    Py_XDECREF(py_path);
+    if (err < 0)
+        return Error_set(err);
+
+    return git_oid_to_python(&oid);
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_O),
@@ -2490,6 +2517,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, set_odb, METH_O),
     METHOD(Repository, set_refdb, METH_O),
     METHOD(Repository, listall_stashes, METH_NOARGS),
+    METHOD(Repository, hashfile, METH_VARARGS),
     {NULL}
 };
 
