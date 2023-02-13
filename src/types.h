@@ -88,6 +88,10 @@ typedef struct {
     RefdbBackend super;
 } RefdbFsBackend;
 
+typedef struct {
+    PyObject_HEAD;
+    git_reference_iterator *iterator;
+} RefsIterator;
 
 #define SIMPLE_TYPE(_name, _ptr_type, _ptr_name) \
         typedef struct {\

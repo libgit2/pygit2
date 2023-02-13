@@ -63,6 +63,7 @@ extern PyTypeObject RevSpecType;
 extern PyTypeObject NoteType;
 extern PyTypeObject NoteIterType;
 extern PyTypeObject StashType;
+extern PyTypeObject RefsIteratorType;
 
 /* forward-declaration for Repsository._from_c() */
 PyTypeObject RepositoryType;
@@ -1406,6 +1407,100 @@ error:
     return NULL;
 }
 
+PyObject * 
+wrap_references_iterator(git_reference_iterator *iter) {
+    RefsIterator *py_refs_iter = PyObject_New(RefsIterator , &ReferenceType);
+    if (py_refs_iter)
+        py_refs_iter->iterator = iter;
+
+    return (PyObject *)py_refs_iter;
+}
+
+void
+References_iterator_dealloc(RefsIterator *iter)
+{
+    git_reference_iterator_free(iter->iterator);
+    Py_TYPE(iter)->tp_free((PyObject *)iter);
+}
+
+PyDoc_STRVAR(Repository_references_iterator_init__doc__,
+  "references_iterator_init() -> git_reference_iterator\n"
+  "\n"
+  "Creates and returns an iterator for references.");
+
+PyObject *
+Repository_references_iterator_init(Repository *self, PyObject *args)
+{
+    int err;
+    git_reference_iterator *iter;
+    RefsIterator *refs_iter;
+
+    refs_iter = PyObject_New(RefsIterator, &RefsIteratorType);
+
+    if ((err = git_reference_iterator_new(&iter, self->repo)) < 0)
+        return Error_set(err);
+
+    refs_iter->iterator = iter;
+    return (PyObject*)refs_iter;
+}
+
+static PyObject *
+wrap_and_check_reference(Repository *self, git_reference *ref) {
+    PyObject *py_ref = wrap_reference(ref, self);
+    if (py_ref == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    return py_ref;
+}
+
+PyDoc_STRVAR(Repository_references_iterator_next__doc__,
+  "references_iterator_next(git_reference_iterator iter,\n"
+  "references_return_type int = GIT_REFERENCES_ALL) -> Reference\n"
+  "\n"
+  "Returns next reference object for repository. Optionally, can filter \n"
+  "based on value of references_return_type.\n"
+  "Acceptable values of references_return_type:\n"
+  "0 -> returns all refs, this is the default\n"
+  "1 -> returns all branches\n"
+  "2 -> returns all tags\n"
+  "all other values -> will return a Py_None object");
+
+PyObject *
+Repository_references_iterator_next(Repository *self, PyObject *args) 
+{
+    git_reference *ref;
+    git_reference_iterator *git_iter;
+    PyObject *iter;
+    int references_return_type = GIT_REFERENCES_ALL;
+
+    if (!PyArg_ParseTuple(args, "O|i", &iter, &references_return_type))
+        return NULL; 
+    git_iter = ((RefsIterator *) iter)->iterator;
+
+    int err;
+    while (0 == (err = git_reference_next(&ref, git_iter))) {
+        switch(references_return_type) {
+            case GIT_REFERENCES_ALL:
+                return wrap_and_check_reference(self, ref);
+            case GIT_REFERENCES_BRANCHES:
+                if (git_reference_is_branch(ref)) {
+                    return wrap_and_check_reference(self, ref);
+                }
+                break;
+            case GIT_REFERENCES_TAGS:
+                if (git_reference_is_tag(ref)) {
+                    return wrap_and_check_reference(self, ref);
+                }
+                break;
+        }
+    }
+    if (err == GIT_ITEROVER) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    } 
+    return Error_set(err);
+}
 
 static PyObject *
 Repository_listall_branches_impl(Repository *self, PyObject *args, PyObject *(*item_trans)(const char *))
@@ -2496,6 +2591,8 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, raw_listall_references, METH_NOARGS),
     METHOD(Repository, listall_reference_objects, METH_NOARGS),
+    METHOD(Repository, references_iterator_init, METH_NOARGS),
+    METHOD(Repository, references_iterator_next, METH_VARARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
     METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, lookup_reference, METH_O),
@@ -2592,4 +2689,36 @@ PyTypeObject RepositoryType = {
     (initproc)Repository_init,                 /* tp_init           */
     0,                                         /* tp_alloc          */
     0,                                         /* tp_new            */
+};
+
+PyDoc_STRVAR(RefsIterator__doc__, "References iterator.");
+
+PyTypeObject RefsIteratorType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.RefsIterator",                    /* tp_name           */
+    sizeof(Repository),                        /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)References_iterator_dealloc,   /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags          */
+    RefsIterator__doc__,                       /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    PyObject_SelfIter,                         /* tp_iter           */
+    (iternextfunc)Repository_references_iterator_next, /* tp_iternext */
 };
