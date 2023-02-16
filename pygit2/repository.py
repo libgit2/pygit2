@@ -291,33 +291,6 @@ class BaseRepository(_Repository):
         return self.create_reference_symbolic(name, target, force,
                                               message=message)
 
-    def refs_iterator(self, references_return_type = 0):
-        """ Creates a new iterator and fetches references for a given repository.
-
-        Can also filter and pass all refs or only branches or only tags.
-
-        Parameters:
-
-        references_return_type: int
-            Optional specifier to filter references. By default, all references are
-            returned.
-
-            The following values are accepted:
-            0 -> fetches all refs, this is the default
-            1 -> fetches only branches
-            2 -> fetches only tags
-        """
-
-        if references_return_type > 2 or references_return_type < 0:
-            raise ValueError("Parameter references_return_type is invalid") 
-        iter = self.references_iterator_init()
-        while True:
-            ref = self.references_iterator_next(iter, references_return_type)
-            if ref:
-                yield ref
-            else:
-                return
-
     def resolve_refish(self, refish):
         """Convert a reference-like short name "ref-ish" to a valid
         (commit, reference) pair.
@@ -1578,6 +1551,33 @@ class References:
     def __iter__(self):
         for ref_name in self._repository.listall_references():
             yield ref_name
+
+    def iterator(self, references_return_type = 0):
+        """ Creates a new iterator and fetches references for a given repository.
+
+        Can also filter and pass all refs or only branches or only tags.
+
+        Parameters:
+
+        references_return_type: int
+            Optional specifier to filter references. By default, all references are
+            returned.
+
+            The following values are accepted:
+            0 -> fetches all refs, this is the default
+            1 -> fetches only branches
+            2 -> fetches only tags
+        """
+
+        if references_return_type > 2 or references_return_type < 0:
+            raise ValueError("Parameter references_return_type is invalid")
+        iter = self._repository.references_iterator_init()
+        while True:
+            ref = self._repository.references_iterator_next(iter, references_return_type)
+            if ref:
+                yield ref
+            else:
+                return
 
     def create(self, name, target, force=False):
         return self._repository.create_reference(name, target, force)

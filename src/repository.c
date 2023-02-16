@@ -1407,7 +1407,7 @@ error:
     return NULL;
 }
 
-PyObject * 
+PyObject *
 wrap_references_iterator(git_reference_iterator *iter) {
     RefsIterator *py_refs_iter = PyObject_New(RefsIterator , &ReferenceType);
     if (py_refs_iter)
@@ -1436,6 +1436,9 @@ Repository_references_iterator_init(Repository *self, PyObject *args)
     RefsIterator *refs_iter;
 
     refs_iter = PyObject_New(RefsIterator, &RefsIteratorType);
+    if (refs_iter == NULL) {
+        return NULL;
+    }
 
     if ((err = git_reference_iterator_new(&iter, self->repo)) < 0)
         return Error_set(err);
@@ -1467,7 +1470,7 @@ PyDoc_STRVAR(Repository_references_iterator_next__doc__,
   "all other values -> will return a Py_None object");
 
 PyObject *
-Repository_references_iterator_next(Repository *self, PyObject *args) 
+Repository_references_iterator_next(Repository *self, PyObject *args)
 {
     git_reference *ref;
     git_reference_iterator *git_iter;
@@ -1475,7 +1478,7 @@ Repository_references_iterator_next(Repository *self, PyObject *args)
     int references_return_type = GIT_REFERENCES_ALL;
 
     if (!PyArg_ParseTuple(args, "O|i", &iter, &references_return_type))
-        return NULL; 
+        return NULL;
     git_iter = ((RefsIterator *) iter)->iterator;
 
     int err;
@@ -1496,9 +1499,8 @@ Repository_references_iterator_next(Repository *self, PyObject *args)
         }
     }
     if (err == GIT_ITEROVER) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    } 
+        Py_RETURN_NONE;
+    }
     return Error_set(err);
 }
 

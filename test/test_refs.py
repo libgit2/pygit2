@@ -324,7 +324,7 @@ def test_references_iterator_next_python(testrepo):
     repo.create_reference('refs/tags/version2', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
     
     refs = []
-    for ref in repo.refs_iterator():
+    for ref in repo.references.iterator():
         refs.append((ref.name, ref.target.hex))
 
     assert sorted(refs) == [
@@ -334,7 +334,7 @@ def test_references_iterator_next_python(testrepo):
         ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
 
     branches = []
-    for branch in repo.refs_iterator(1):
+    for branch in repo.references.iterator(1):
         branches.append((branch.name, branch.target.hex))
 
     assert sorted(branches) == [
@@ -342,7 +342,7 @@ def test_references_iterator_next_python(testrepo):
         ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
 
     tags = []
-    for tag in repo.refs_iterator(2):
+    for tag in repo.references.iterator(2):
         tags.append((tag.name, tag.target.hex))
 
     assert sorted(tags) == [
@@ -365,8 +365,8 @@ def test_references_iterator_invalid_filter_python(testrepo):
     repo = testrepo
     refs = []
     with pytest.raises(ValueError):
-        for ref in repo.refs_iterator(5):
-            refs.append((ref.name, ref.target.hex))                                                     
+        for ref in repo.references.iterator(5):
+            refs.append((ref.name, ref.target.hex))
 
 def test_lookup_reference(testrepo):
     repo = testrepo
