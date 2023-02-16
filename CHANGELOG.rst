@@ -1,3 +1,20 @@
+1.11.2 (UNRELEASED)
+-------------------------
+
+- Update wheels to libgit2 v1.5.1
+
+- Update Linux wheels to bundle OpenSSL 3.0.7
+
+- New ``ConflictCollection.__contains__``
+  `#1181 <https://github.com/libgit2/pygit2/pull/1181>`_
+
+- New ``Repository.hash_file(path)``
+  `#1190 <https://github.com/libgit2/pygit2/pull/1190>`_
+
+- Improve ``Repository.write_archive(...)`` performance
+  `#1183 <https://github.com/libgit2/pygit2/pull/1183>`_
+
+
 1.11.1 (2022-11-09)
 -------------------------
 
