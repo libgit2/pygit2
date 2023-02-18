@@ -37,6 +37,7 @@ from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_
 from ._pygit2 import GIT_FILEMODE_LINK
 from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
 from ._pygit2 import GIT_REF_SYMBOLIC
+from ._pygit2 import GIT_REFERENCES_ALL, GIT_REFERENCES_BRANCHES, GIT_REFERENCES_TAGS
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
@@ -1549,10 +1550,15 @@ class References:
             return None
 
     def __iter__(self):
-        for ref_name in self._repository.listall_references():
-            yield ref_name
+        iter = self._repository.references_iterator_init()
+        while True:
+            ref = self._repository.references_iterator_next(iter)
+            if ref:
+                yield ref.name
+            else:
+                return
 
-    def iterator(self, references_return_type = 0):
+    def iterator(self, references_return_type:int = GIT_REFERENCES_ALL):
         """ Creates a new iterator and fetches references for a given repository.
 
         Can also filter and pass all refs or only branches or only tags.
@@ -1564,12 +1570,14 @@ class References:
             returned.
 
             The following values are accepted:
-            0 -> fetches all refs, this is the default
-            1 -> fetches only branches
-            2 -> fetches only tags
+            0 -> GIT_REFERENCES_ALL, fetches all refs, this is the default
+            1 -> GIT_REFERENCES_BRANCHES, fetches only branches
+            2 -> GIT_REFERENCES_TAGS, fetches only tags
+
+        TODO: Add support for filtering by reference types notes and remotes.
         """
 
-        if references_return_type > 2 or references_return_type < 0:
+        if references_return_type not in (GIT_REFERENCES_ALL, GIT_REFERENCES_BRANCHES, GIT_REFERENCES_TAGS):
             raise ValueError("Parameter references_return_type is invalid")
         iter = self._repository.references_iterator_init()
         while True:

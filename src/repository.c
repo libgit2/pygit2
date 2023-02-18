@@ -1447,16 +1447,6 @@ Repository_references_iterator_init(Repository *self, PyObject *args)
     return (PyObject*)refs_iter;
 }
 
-static PyObject *
-wrap_and_check_reference(Repository *self, git_reference *ref) {
-    PyObject *py_ref = wrap_reference(ref, self);
-    if (py_ref == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    return py_ref;
-}
-
 PyDoc_STRVAR(Repository_references_iterator_next__doc__,
   "references_iterator_next(git_reference_iterator iter,\n"
   "references_return_type int = GIT_REFERENCES_ALL) -> Reference\n"
@@ -1485,15 +1475,15 @@ Repository_references_iterator_next(Repository *self, PyObject *args)
     while (0 == (err = git_reference_next(&ref, git_iter))) {
         switch(references_return_type) {
             case GIT_REFERENCES_ALL:
-                return wrap_and_check_reference(self, ref);
+                return wrap_reference(ref, self);
             case GIT_REFERENCES_BRANCHES:
                 if (git_reference_is_branch(ref)) {
-                    return wrap_and_check_reference(self, ref);
+                    return wrap_reference(ref, self);
                 }
                 break;
             case GIT_REFERENCES_TAGS:
                 if (git_reference_is_tag(ref)) {
-                    return wrap_and_check_reference(self, ref);
+                    return wrap_reference(ref, self);
                 }
                 break;
         }
