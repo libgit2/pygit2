@@ -69,7 +69,6 @@ PyObject* Repository_status(Repository *self, PyObject *args, PyObject *kw);
 PyObject* Repository_status_file(Repository *self, PyObject *value);
 PyObject* Repository_TreeBuilder(Repository *self, PyObject *args);
 
-PyObject* Repository_merge(Repository *self, PyObject *py_oid);
 PyObject* Repository_cherrypick(Repository *self, PyObject *py_oid);
 PyObject* Repository_apply(Repository *self, PyObject *py_diff, PyObject *kwds);
 PyObject* Repository_merge_analysis(Repository *self, PyObject *args);

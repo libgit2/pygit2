@@ -1,4 +1,5 @@
 typedef struct git_commit git_commit;
+typedef struct git_annotated_commit git_annotated_commit;
 typedef struct git_config git_config;
 typedef struct git_index git_index;
 typedef struct git_index_conflict_iterator git_index_conflict_iterator;

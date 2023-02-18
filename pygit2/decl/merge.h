@@ -83,4 +83,11 @@ int git_merge_file_from_index(
 	const git_index_entry *theirs,
 	const git_merge_file_options *opts);
 
+int git_merge(
+	git_repository *repo, 
+	const git_annotated_commit **their_heads, 
+	size_t their_heads_len, 
+	const git_merge_options *merge_opts, 
+	const git_checkout_options *checkout_opts);
+
 void git_merge_file_result_free(git_merge_file_result *result);

@@ -34,8 +34,9 @@ from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD
 import pygit2
 
 
-def test_merge_none(mergerepo):
-    with pytest.raises(TypeError): mergerepo.merge(None)
+@pytest.mark.parametrize("id", [None, 42])
+def test_merge_invalid_type(mergerepo, id):
+    with pytest.raises(TypeError): mergerepo.merge(id)
 
 def test_merge_analysis_uptodate(mergerepo):
     branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'

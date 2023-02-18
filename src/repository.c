@@ -712,47 +712,6 @@ out:
     return py_result;
 }
 
-PyDoc_STRVAR(Repository_merge__doc__,
-  "merge(id: Oid)\n"
-  "\n"
-  "Merges the given id into HEAD.\n"
-  "\n"
-  "Merges the given commit(s) into HEAD, writing the results into the\n"
-  "working directory. Any changes are staged for commit and any conflicts\n"
-  "are written to the index. Callers should inspect the repository's\n"
-  "index after this completes, resolve any conflicts and prepare a\n"
-  "commit.");
-
-PyObject *
-Repository_merge(Repository *self, PyObject *py_oid)
-{
-    git_annotated_commit *commit;
-    git_oid oid;
-    int err;
-    size_t len;
-    git_merge_options merge_opts = GIT_MERGE_OPTIONS_INIT;
-    git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
-
-    len = py_oid_to_git_oid(py_oid, &oid);
-    if (len == 0)
-        return NULL;
-
-    err = git_annotated_commit_lookup(&commit, self->repo, &oid);
-    if (err < 0)
-        return Error_set(err);
-
-    checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING;
-    err = git_merge(self->repo,
-                    (const git_annotated_commit **)&commit, 1,
-                    &merge_opts, &checkout_opts);
-
-    git_annotated_commit_free(commit);
-    if (err < 0)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
 PyDoc_STRVAR(Repository_cherrypick__doc__,
   "cherrypick(id: Oid)\n"
   "\n"
@@ -2505,7 +2464,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, merge_base_many, METH_VARARGS),
     METHOD(Repository, merge_base_octopus, METH_VARARGS),
     METHOD(Repository, merge_analysis, METH_VARARGS),
-    METHOD(Repository, merge, METH_O),
     METHOD(Repository, cherrypick, METH_O),
     METHOD(Repository, apply, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, applies, METH_VARARGS | METH_KEYWORDS),

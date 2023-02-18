@@ -17,13 +17,12 @@ It gets an Oid object as a parameter.
 As its name says, it only does the merge, does not commit nor update the
 branch reference in the case of a fastforward.
 
-For the moment, the merge does not support options, it will perform the
-merge with the default ones defined in GIT_MERGE_OPTS_INIT libgit2 constant.
-
 Example::
 
     >>> other_branch_tip = '5ebeeebb320790caf276b9fc8b24546d63316533'
     >>> repo.merge(other_branch_tip)
+    >>> repo.merge(other_branch_tip, favor='ours')
+    >>> repo.merge(other_branch_tip, flags={'find_renames': False})
 
 You can now inspect the index file for conflicts and get back to the
 user to resolve if there are. Once there are no conflicts left, you
