@@ -282,7 +282,7 @@ def test_references_iterator_next(testrepo):
     repo = testrepo
     repo.create_reference('refs/tags/version1', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
     repo.create_reference('refs/tags/version2', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
-    
+
     iter_all = repo.references_iterator_init()
     all_refs = []
     for _ in range(4):
@@ -295,7 +295,7 @@ def test_references_iterator_next(testrepo):
         ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
         ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
         ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
-    
+
     iter_branches = repo.references_iterator_init()
     all_branches = []
     for _ in range(4):
@@ -322,7 +322,7 @@ def test_references_iterator_next_python(testrepo):
     repo = testrepo
     repo.create_reference('refs/tags/version1', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
     repo.create_reference('refs/tags/version2', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
-    
+
     refs = []
     for ref in repo.references.iterator():
         refs.append((ref.name, ref.target.hex))

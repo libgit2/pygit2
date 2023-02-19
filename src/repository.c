@@ -1302,8 +1302,13 @@ to_path_f(const char * x) {
     return to_path(x);
 }
 
+PyDoc_STRVAR(Repository_raw_listall_references__doc__,
+  "raw_listall_references() -> list[bytes]\n"
+  "\n"
+  "Return a list with all the references in the repository.");
+
 static PyObject *
-Repository_listall_references_impl(Repository *self, PyObject *args, PyObject *(*item_trans)(const char *))
+Repository_raw_listall_references(Repository *self, PyObject *args)
 {
     git_strarray c_result;
     PyObject *py_result, *py_string;
@@ -1322,7 +1327,7 @@ Repository_listall_references_impl(Repository *self, PyObject *args, PyObject *(
 
     /* Fill it */
     for (index=0; index < c_result.count; index++) {
-        py_string = item_trans(c_result.strings[index]);
+        py_string = PyBytes_FromString(c_result.strings[index]);
         if (py_string == NULL) {
             Py_CLEAR(py_result);
             goto out;
@@ -1335,77 +1340,6 @@ out:
     return py_result;
 }
 
-PyDoc_STRVAR(Repository_listall_references__doc__,
-  "listall_references() -> list[str]\n"
-  "\n"
-  "Return a list with all the references in the repository.");
-
-PyObject *
-Repository_listall_references(Repository *self, PyObject *args)
-{
-    return Repository_listall_references_impl(self, args, to_path_f);
-}
-
-PyDoc_STRVAR(Repository_raw_listall_references__doc__,
-  "raw_listall_references() -> list[bytes]\n"
-  "\n"
-  "Return a list with all the references in the repository.");
-
-PyObject *
-Repository_raw_listall_references(Repository *self, PyObject *args)
-{
-    return Repository_listall_references_impl(self, args, PyBytes_FromString);
-}
-
-
-PyDoc_STRVAR(Repository_listall_reference_objects__doc__,
-  "listall_reference_objects() -> list[Reference]\n"
-  "\n"
-  "Return a list with all the reference objects in the repository.");
-
-PyObject *
-Repository_listall_reference_objects(Repository *self, PyObject *args)
-{
-    git_reference_iterator *iter;
-    git_reference *ref = NULL;
-    int err;
-    PyObject *list;
-
-    list = PyList_New(0);
-    if (list == NULL)
-        return NULL;
-
-    if ((err = git_reference_iterator_new(&iter, self->repo)) < 0)
-        return Error_set(err);
-
-    while ((err = git_reference_next(&ref, iter)) == 0) {
-        PyObject *py_ref = wrap_reference(ref, self);
-        if (py_ref == NULL)
-            goto error;
-
-        err = PyList_Append(list, py_ref);
-        Py_DECREF(py_ref);
-
-        if (err < 0)
-            goto error;
-    }
-
-    git_reference_iterator_free(iter);
-    if (err == GIT_ITEROVER)
-        err = 0;
-
-    if (err < 0) {
-        Py_CLEAR(list);
-        return Error_set(err);
-    }
-
-    return list;
-
-error:
-    git_reference_iterator_free(iter);
-    Py_CLEAR(list);
-    return NULL;
-}
 
 PyObject *
 wrap_references_iterator(git_reference_iterator *iter) {
@@ -2580,9 +2514,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_reference_direct, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, compress_references, METH_NOARGS),
-    METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, raw_listall_references, METH_NOARGS),
-    METHOD(Repository, listall_reference_objects, METH_NOARGS),
     METHOD(Repository, references_iterator_init, METH_NOARGS),
     METHOD(Repository, references_iterator_next, METH_VARARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),

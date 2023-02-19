@@ -33,7 +33,7 @@ import warnings
 # Import from pygit2
 from ._pygit2 import Repository as _Repository, init_file_backend
 from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING, GIT_DIFF_NORMAL
+from ._pygit2 import GIT_DIFF_NORMAL
 from ._pygit2 import GIT_FILEMODE_LINK
 from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
 from ._pygit2 import GIT_REF_SYMBOLIC
@@ -48,7 +48,7 @@ from .ffi import ffi, C
 from .index import Index
 from .remote import RemoteCollection
 from .blame import Blame
-from .utils import to_bytes, StrArray
+from .utils import to_bytes
 from .submodule import Submodule
 from .packbuilder import PackBuilder
 
@@ -291,6 +291,16 @@ class BaseRepository(_Repository):
 
         return self.create_reference_symbolic(name, target, force,
                                               message=message)
+
+    def listall_references(self) -> list[str]:
+        """Return a list with all the references in the repository.
+        """
+        return list(x.name for x in self.references.iterator())
+
+    def listall_reference_objects(self) -> list[Reference]:
+        """Return a list with all the reference objects in the repository.
+        """
+        return list(x for x in self.references.iterator())
 
     def resolve_refish(self, refish):
         """Convert a reference-like short name "ref-ish" to a valid
