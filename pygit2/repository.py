@@ -28,6 +28,7 @@ from io import BytesIO
 from string import hexdigits
 import tarfile
 from time import time
+import typing
 import warnings
 
 # Import from pygit2
@@ -292,12 +293,12 @@ class BaseRepository(_Repository):
         return self.create_reference_symbolic(name, target, force,
                                               message=message)
 
-    def listall_references(self) -> list[str]:
+    def listall_references(self) -> typing.List[str]:
         """Return a list with all the references in the repository.
         """
         return list(x.name for x in self.references.iterator())
 
-    def listall_reference_objects(self) -> list[Reference]:
+    def listall_reference_objects(self) -> typing.List[Reference]:
         """Return a list with all the reference objects in the repository.
         """
         return list(x for x in self.references.iterator())
