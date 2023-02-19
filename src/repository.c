@@ -1122,7 +1122,7 @@ Repository_create_commit_string(Repository *self, PyObject *args)
 {
     Signature *py_author, *py_committer;
     PyObject *py_oid, *py_message, *py_parents, *py_parent;
-    PyObject *str;
+    PyObject *str = NULL;
     char *encoding = NULL;
     git_oid oid;
     git_tree *tree = NULL;
@@ -1817,7 +1817,6 @@ PyDoc_STRVAR(Repository_status__doc__,
 PyObject *
 Repository_status(Repository *self, PyObject *args, PyObject *kw)
 {
-    PyObject *dict;
     int err;
     size_t len, i;
     git_status_list *list;
@@ -1827,9 +1826,8 @@ Repository_status(Repository *self, PyObject *args, PyObject *kw)
 
     PyObject* ignored = Py_False;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|sO", kwlist,
-                                     &untracked_files, &ignored))
-        goto error;
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|sO", kwlist, &untracked_files, &ignored))
+        return NULL;
 
     git_status_options opts = GIT_STATUS_OPTIONS_INIT;
     opts.flags = GIT_STATUS_OPT_DEFAULTS;
@@ -1855,7 +1853,7 @@ Repository_status(Repository *self, PyObject *args, PyObject *kw)
     if (err < 0)
         return Error_set(err);
 
-    dict = PyDict_New();
+    PyObject *dict = PyDict_New();
     if (dict == NULL)
         goto error;
 
