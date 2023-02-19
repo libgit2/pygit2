@@ -33,6 +33,12 @@
 #include <git2.h>
 #include "types.h"
 
+typedef enum {
+	GIT_REFERENCES_ALL = 0,
+	GIT_REFERENCES_BRANCHES = 1,
+	GIT_REFERENCES_TAGS = 2,
+} git_reference_iterator_return_t;
+
 PyObject *wrap_repository(git_repository *c_repo);
 
 int  Repository_init(Repository *self, PyObject *args, PyObject *kwds);
@@ -48,6 +54,8 @@ PyObject* Repository_create_commit_with_signature(Repository *self, PyObject *ar
 PyObject* Repository_create_tag(Repository *self, PyObject *args);
 PyObject* Repository_create_branch(Repository *self, PyObject *args);
 PyObject* Repository_listall_references(Repository *self, PyObject *args);
+PyObject* Repository_references_iterator_init(Repository *self, PyObject *args);
+PyObject* Repository_references_iterator_next(Repository *self, PyObject *args);
 PyObject* Repository_listall_reference_objects(Repository *self,
                                                PyObject *args);
 PyObject* Repository_listall_branches(Repository *self, PyObject *args);

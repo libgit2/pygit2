@@ -272,6 +272,102 @@ def test_list_all_references(testrepo):
                                                      b'refs/heads/master',
                                                      b'refs/tags/version1']
 
+def test_references_iterator_init(testrepo):
+    repo = testrepo
+    iter = repo.references_iterator_init()
+
+    assert iter.__class__.__name__ ==  'RefsIterator'
+
+def test_references_iterator_next(testrepo):
+    repo = testrepo
+    repo.create_reference('refs/tags/version1', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
+    repo.create_reference('refs/tags/version2', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
+    
+    iter_all = repo.references_iterator_init()
+    all_refs = []
+    for _ in range(4):
+        curr_ref = repo.references_iterator_next(iter_all)
+        if curr_ref:
+            all_refs.append((curr_ref.name, curr_ref.target.hex))
+
+    assert sorted(all_refs) == [
+        ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+        ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
+        ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
+        ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+    
+    iter_branches = repo.references_iterator_init()
+    all_branches = []
+    for _ in range(4):
+        curr_ref = repo.references_iterator_next(iter_branches, 1)
+        if curr_ref:
+            all_branches.append((curr_ref.name, curr_ref.target.hex))
+
+    assert sorted(all_branches) == [
+        ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+        ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+
+    iter_tags = repo.references_iterator_init()
+    all_tags = []
+    for _ in range(4):
+        curr_ref = repo.references_iterator_next(iter_tags, 2)
+        if curr_ref:
+            all_tags.append((curr_ref.name, curr_ref.target.hex))
+
+    assert sorted(all_tags) == [
+        ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
+        ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+
+def test_references_iterator_next_python(testrepo):
+    repo = testrepo
+    repo.create_reference('refs/tags/version1', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
+    repo.create_reference('refs/tags/version2', "2be5719152d4f82c7302b1c0932d8e5f0a4a0e98")
+    
+    refs = []
+    for ref in repo.references.iterator():
+        refs.append((ref.name, ref.target.hex))
+
+    assert sorted(refs) == [
+        ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+        ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
+        ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
+        ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+
+    branches = []
+    for branch in repo.references.iterator(1):
+        branches.append((branch.name, branch.target.hex))
+
+    assert sorted(branches) == [
+        ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
+        ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+
+    tags = []
+    for tag in repo.references.iterator(2):
+        tags.append((tag.name, tag.target.hex))
+
+    assert sorted(tags) == [
+        ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
+        ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+
+def test_references_iterator_invalid_filter(testrepo):
+    repo = testrepo
+    iter_all = repo.references_iterator_init()
+
+    all_refs = []
+    for _ in range(4):
+        curr_ref = repo.references_iterator_next(iter_all, 5)
+        if curr_ref:
+            all_refs.append((curr_ref.name, curr_ref.target.hex))
+
+    assert all_refs == []
+
+def test_references_iterator_invalid_filter_python(testrepo):
+    repo = testrepo
+    refs = []
+    with pytest.raises(ValueError):
+        for ref in repo.references.iterator(5):
+            refs.append((ref.name, ref.target.hex))
+
 def test_lookup_reference(testrepo):
     repo = testrepo
 

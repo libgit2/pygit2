@@ -79,6 +79,7 @@ extern PyTypeObject NoteIterType;
 extern PyTypeObject WorktreeType;
 extern PyTypeObject MailmapType;
 extern PyTypeObject StashType;
+extern PyTypeObject RefsIteratorType;
 
 
 PyDoc_STRVAR(discover_repository__doc__,
@@ -371,6 +372,7 @@ PyInit__pygit2(void)
     INIT_TYPE(TreeBuilderType, NULL, NULL)
     INIT_TYPE(BlobType, &ObjectType, NULL)
     INIT_TYPE(TagType, &ObjectType, NULL)
+    INIT_TYPE(RefsIteratorType, NULL, NULL)
     ADD_TYPE(m, Object)
     ADD_TYPE(m, Commit)
     ADD_TYPE(m, Signature)
@@ -431,6 +433,9 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_REF_OID)
     ADD_CONSTANT_INT(m, GIT_REF_SYMBOLIC)
     ADD_CONSTANT_INT(m, GIT_REF_LISTALL)
+    ADD_CONSTANT_INT(m, GIT_REFERENCES_ALL)
+    ADD_CONSTANT_INT(m, GIT_REFERENCES_BRANCHES)
+    ADD_CONSTANT_INT(m, GIT_REFERENCES_TAGS)
 
     /*
      * RevSpec
