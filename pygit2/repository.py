@@ -39,6 +39,7 @@ from ._pygit2 import GIT_FILEMODE_LINK
 from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
 from ._pygit2 import GIT_REF_SYMBOLIC
 from ._pygit2 import GIT_REFERENCES_ALL, GIT_REFERENCES_BRANCHES, GIT_REFERENCES_TAGS
+from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
