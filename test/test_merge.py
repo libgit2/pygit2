@@ -145,7 +145,7 @@ def test_merge_remove_conflicts(mergerepo):
     'theirs',
     'union',
 ])
-def test_merge_with_favor(mergerepo, favor):
+def test_merge_favor(mergerepo, favor):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     mergerepo.merge(branch_head_hex, favor=favor)
 
