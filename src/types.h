@@ -89,7 +89,7 @@ typedef struct {
 } RefdbFsBackend;
 
 typedef struct {
-    PyObject_HEAD;
+    PyObject_HEAD
     git_reference_iterator *iterator;
 } RefsIterator;
 
