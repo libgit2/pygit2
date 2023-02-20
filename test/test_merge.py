@@ -140,6 +140,22 @@ def test_merge_remove_conflicts(mergerepo):
     assert idx.conflicts is None
 
 
+@pytest.mark.parametrize("favor", [
+    'ours',
+    'theirs',
+    'union',
+])
+def test_merge_with_favor(mergerepo, favor):
+    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    mergerepo.merge(branch_head_hex, favor=favor)
+
+    assert mergerepo.index.conflicts is None
+
+def test_merge_fail_on_conflict(mergerepo):
+    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    with pytest.raises(pygit2.GitError):
+        mergerepo.merge(branch_head_hex, flags={'fail_on_conflict': True})
+
 def test_merge_commits(mergerepo):
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
     branch_id = mergerepo.get(branch_head_hex).id
