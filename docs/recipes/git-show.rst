@@ -51,9 +51,9 @@ Then you can make your message:
     >>>
     >>> dt      = datetime.fromtimestamp(float(commit.author.time), tzinfo)
     >>> timestr = dt.strftime('%c %z')
-    >>> msg     = '\n'.join(['commit {}'.format(commit.tree_id.hex),
-    ...                      'Author: {} <{}>'.format(commit.author.name, commit.author.email),
-    ...                      'Date:   {}'.format(timestr),
+    >>> msg     = '\n'.join([f'commit {commit.tree_id.hex}',
+    ...                      f'Author: {commit.author.name} <{commit.author.email}>',
+    ...                      f'Date:   {timestr}',
     ...                      '',
     ...                      commit.message])
 

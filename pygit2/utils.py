@@ -59,7 +59,7 @@ def to_str(s):
     if type(s) is bytes:
         return s.decode()
 
-    raise TypeError('unexpected type "%s"' % repr(s))
+    raise TypeError(f'unexpected type "{repr(s)}"')
 
 
 def ptr_to_bytes(ptr_cdata):

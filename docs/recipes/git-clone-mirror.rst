@@ -16,7 +16,7 @@ option for push in the remote.
         # Create the remote with a mirroring url
         remote = repo.remotes.create(name, url, "+refs/*:refs/*")
         # And set the configuration option to true for the push command
-        mirror_var = "remote.{}.mirror".format(name.decode())
+        mirror_var = f"remote.{name.decode()}.mirror"
         repo.config[mirror_var] = True
         # Return the remote, which pygit2 will use to perform the clone
         return remote

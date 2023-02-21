@@ -90,7 +90,7 @@ class Index:
             else:
                 raise ValueError(key)
         else:
-            raise TypeError('Expected str or int, got %s' % type(key))
+            raise TypeError(f'Expected str or int, got {type(key)}')
 
         if centry == ffi.NULL:
             raise KeyError(key)
@@ -183,12 +183,13 @@ class Index:
             err = C.git_index_remove_all(self._index, arr, ffi.NULL, ffi.NULL)
             check_error(err, io=True)
 
-    def add_all(self, pathspecs=[]):
+    def add_all(self, pathspecs=None):
         """Add or update index entries matching files in the working directory.
 
         If pathspecs are specified, only files matching those pathspecs will
         be added.
         """
+        pathspecs = pathspecs or []
         with StrArray(pathspecs) as arr:
             err = C.git_index_add_all(self._index, arr, 0, ffi.NULL, ffi.NULL)
             check_error(err, io=True)
@@ -357,13 +358,11 @@ class IndexEntry:
         return self.id.hex
 
     def __str__(self):
-        return "<path={} id={} mode={}>".format(self.path, self.hex, self.mode)
+        return f'<path={self.path} id={self.hex} mode={self.mode}>'
 
     def __repr__(self):
         t = type(self)
-        return "<{}.{} path={} id={} mode={}>".format(
-            t.__module__, t.__qualname__, self.path, self.hex, self.mode
-        )
+        return f"<{t.__module__}.{t.__qualname__} path={self.path} id={self.hex} mode={self.mode}>"
 
     def __eq__(self, other):
         if self is other:

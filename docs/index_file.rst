@@ -72,7 +72,7 @@ Status
         status = repo.status()
         for filepath, flags in status.items():
             if flags != GIT_STATUS_CURRENT:
-                print("Filepath %s isn't clean" % filepath)
+                print(f"Filepath {filepath} isn't clean")
 
 This is the list of status flags for a single file::
 

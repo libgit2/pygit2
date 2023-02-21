@@ -85,7 +85,7 @@ def force_rm_handle(remove_path, path, excinfo):
 def gen_blob_sha1(data):
     # http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
     m = hashlib.sha1()
-    m.update(('blob %d\0' % len(data)).encode())
+    m.update(f'blob {len(data)}\0'.encode())
     m.update(data)
     return m.hexdigest()
 

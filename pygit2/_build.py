@@ -28,7 +28,6 @@ This is an special module, it provides stuff used by setup.py at build time.
 But also used by pygit2 at run time.
 """
 
-# Import from the Standard Library
 import os
 from pathlib import Path
 

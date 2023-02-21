@@ -274,7 +274,7 @@ def test_hunk_content(barerepo):
     commit_b = barerepo[COMMIT_SHA1_2]
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
     hunk = patch.hunks[0]
-    lines = ('{0} {1}'.format(x.origin, x.content) for x in hunk.lines)
+    lines = (f'{x.origin} {x.content}' for x in hunk.lines)
     assert HUNK_EXPECTED == ''.join(lines)
     for line in hunk.lines:
         assert line.content == line.raw_content.decode()

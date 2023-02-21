@@ -217,7 +217,7 @@ class BaseRepository(_Repository):
         return self.git_object_lookup_prefix(key) is not None
 
     def __repr__(self):
-        return "pygit2.Repository(%r)" % self.path
+        return f"pygit2.Repository({repr(self.path)})"
 
     #
     # Remotes
@@ -472,7 +472,7 @@ class BaseRepository(_Repository):
             try:
                 obj = obj.peel(Tree)
             except Exception:
-                raise TypeError('unexpected "%s"' % type(obj))
+                raise TypeError(f'unexpected "{type(obj)}"')
 
         return obj
 
@@ -692,18 +692,21 @@ class BaseRepository(_Repository):
         for k, v in merged_dict.items():
             enum = mapping.get(k, None)
             if enum is None:
-                raise ValueError("unknown %s: %s" % (label, k))
+                raise ValueError(f"unknown {label}: {k}")
             if v:
                 bitmask |= enum
         return bitmask
 
     @classmethod
-    def _merge_options(cls, favor='normal', flags={}, file_flags={}):
-        """Return a 'git_merge_opts *'"""
+    def _merge_options(cls, favor='normal', flags=None, file_flags=None):
+        """Return a 'git_merge_opts *'
+        """
+        flags = flags or {}
+        file_flags = file_flags or {}
 
         favor_val = cls._FAVOR_TO_ENUM.get(favor, None)
         if favor_val is None:
-            raise ValueError("unknown favor: %s" % favor)
+            raise ValueError(f"unknown favor: {favor}")
 
         flags_bitmask = Repository._flag_dict_to_bitmask(
             flags,
@@ -761,7 +764,7 @@ class BaseRepository(_Repository):
 
         return ret
 
-    def merge_commits(self, ours, theirs, favor='normal', flags={}, file_flags={}):
+    def merge_commits(self, ours, theirs, favor='normal', flags=None, file_flags=None):
         """
         Merge two arbitrary commits.
 
@@ -814,6 +817,8 @@ class BaseRepository(_Repository):
         Both "ours" and "theirs" can be any object which peels to a commit or
         the id (string or Oid) of an object which peels to a commit.
         """
+        flags = flags or {}
+        file_flags = file_flags or {}
 
         ours_ptr = ffi.new('git_commit **')
         theirs_ptr = ffi.new('git_commit **')
@@ -837,7 +842,7 @@ class BaseRepository(_Repository):
 
         return Index.from_c(self, cindex)
 
-    def merge_trees(self, ancestor, ours, theirs, favor='normal', flags={}, file_flags={}):
+    def merge_trees(self, ancestor, ours, theirs, favor='normal', flags=None, file_flags=None):
         """
         Merge two trees.
 
@@ -890,6 +895,8 @@ class BaseRepository(_Repository):
             * patience. Use the "patience diff" algorithm
             * minimal. Take extra time to find minimal diff
         """
+        flags = flags or {}
+        file_flags = file_flags or {}
 
         ancestor_ptr = ffi.new('git_tree **')
         ours_ptr = ffi.new('git_tree **')
@@ -922,9 +929,9 @@ class BaseRepository(_Repository):
         """
         Merges the given id into HEAD.
 
-        Merges the given commit(s) into HEAD, writing the results into the working directory. 
-        Any changes are staged for commit and any conflicts are written to the index. 
-        Callers should inspect the repository's index after this completes, 
+        Merges the given commit(s) into HEAD, writing the results into the working directory.
+        Any changes are staged for commit and any conflicts are written to the index.
+        Callers should inspect the repository's index after this completes,
         resolve any conflicts and prepare a commit.
 
         Parameters:
@@ -1579,7 +1586,7 @@ class Branches:
             branch = self._repository.lookup_branch(name, GIT_BRANCH_REMOTE)
 
         if branch is None or not self._valid(branch):
-            raise KeyError('Branch not found: {}'.format(name))
+            raise KeyError(f'Branch not found: {name}')
 
         return branch
 

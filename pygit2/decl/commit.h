@@ -9,8 +9,8 @@ int git_commit_amend(
     const git_tree *tree);
 
 int git_annotated_commit_lookup(
-	git_annotated_commit **out, 
-	git_repository *repo, 
+	git_annotated_commit **out,
+	git_repository *repo,
 	const git_oid *id);
 
 void git_annotated_commit_free(git_annotated_commit *commit);
