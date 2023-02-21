@@ -11,6 +11,13 @@
 - New ``Repository.hash_file(path)``
   `#1190 <https://github.com/libgit2/pygit2/pull/1190>`_
 
+- New ``Repository.references.iterator(...)``
+  `#1191 <https://github.com/libgit2/pygit2/pull/1191>`_
+
+- New ``favor``, ``flags`` and ``file_flags`` optional arguments for
+  ``Repository.merge(...)``
+  `#1192 <https://github.com/libgit2/pygit2/pull/1192>`_
+
 - Improve ``Repository.write_archive(...)`` performance
   `#1183 <https://github.com/libgit2/pygit2/pull/1183>`_
 
