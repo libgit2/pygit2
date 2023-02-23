@@ -26,7 +26,7 @@ jobs:
           platforms: all
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.11.2
+        run: python -m pip install cibuildwheel==2.12.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -34,10 +34,10 @@ jobs:
           CIBW_BEFORE_ALL: sh build.sh
           CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.6.3 LIBSSH2_VERSION=1.10.0 OPENSSL_VERSION=3.0.8 LIBGIT2=/project/ci
           CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.6.3 LIBSSH2_VERSION=1.10.0 DYLD_LIBRARY_PATH=/usr/local/lib OPENSSL_VERSION=3.0.8
-          CIBW_SKIP: "*-musllinux*"
-          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_24"
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_24"
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "LD_LIBRARY_PATH=/project/ci/lib auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_SKIP: "*-musllinux* *pypy*"
+          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux2014"
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "LD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "DYLD_LIBRARY_PATH=/usr/local/lib delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=/usr/local/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64

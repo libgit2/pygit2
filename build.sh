@@ -75,6 +75,8 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         yum install wget zlib-devel -y
         if [ -z "$OPENSSL_VERSION" ]; then
             yum install openssl-devel -y
+        else
+            yum install perl-IPC-Cmd -y
         fi
     fi
     rm -rf ci
@@ -213,7 +215,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         # DYLD_LIBRARY_PATH would work for macOS.
         cp -r $OPENSSL_PREFIX/*.dylib /usr/local/lib
         cp -r $LIBSSH2_PREFIX/lib/*.dylib /usr/local/lib
-        cp -r $FILENAME/*.dylib /usr/local/lib
+        cp -r $FILENAME/build/*.dylib /usr/local/lib
     fi
     # we're done building dependencies, cibuildwheel action will take over
     exit 0
@@ -269,4 +271,3 @@ if [ "$1" = "stubtest" ]; then
     PYTHONPATH=. $PREFIX/bin/stubtest --mypy-config-file mypy-stubtest.ini pygit2._pygit2
     [ $? == 0 ] && echo "stubtest OK"
 fi
-
