@@ -1,14 +1,14 @@
-1.11.2 (UNRELEASED)
+1.11.2 (2023-02-24)
 -------------------------
 
 - Update wheels to libgit2 v1.5.1
 
-- Update Linux wheels to bundle OpenSSL 3.0.7
+- Update Linux wheels to bundle OpenSSL 3.0.8
 
 - New ``ConflictCollection.__contains__``
   `#1181 <https://github.com/libgit2/pygit2/pull/1181>`_
 
-- New ``Repository.hash_file(path)``
+- New ``Repository.hashfile(path)``
   `#1190 <https://github.com/libgit2/pygit2/pull/1190>`_
 
 - New ``Repository.references.iterator(...)``

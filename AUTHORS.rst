@@ -47,8 +47,10 @@ Authors::
   Andrew Olsen
   Dan Sully
   David Versmisse
+  Mathias Leppich
   Mikhail Yushkovskiy
   Robin Stocker
+  Rohit Sanjay
   Rémi Duraffort
   Santiago Perez De Rosso
   Sebastian Thiel
@@ -73,6 +75,7 @@ Authors::
   Robert Hölzl
   Ron Cohen
   Sebastian Böhm
+  Sukhman Bhuller
   Thomas Kluyver
   Tyler Cipriani
   Alex Chamberlain
@@ -116,6 +119,7 @@ Authors::
   Zoran Zaric
   Adam Gausmann
   Adam Spiers
+  Albin Söderström
   Alexandru Fikl
   Andrew Chin
   Andrey Trubachev
