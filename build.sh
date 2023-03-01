@@ -25,19 +25,19 @@
 #
 #   sh build.sh
 #
-# Build libgit2 1.5.1 (will use libssh2 if available), then build pygit2
+# Build libgit2 1.6.3 (will use libssh2 if available), then build pygit2
 # inplace:
 #
-#   LIBGIT2_VERSION=1.5.1 sh build.sh
+#   LIBGIT2_VERSION=1.6.3 sh build.sh
 #
-# Build libssh2 1.10.0 and libgit2 1.5.1, then build pygit2 inplace:
+# Build libssh2 1.10.0 and libgit2 1.6.3, then build pygit2 inplace:
 #
-#   LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.5.1 sh build.sh
+#   LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.3 sh build.sh
 #
-# Tell where libssh2 is installed, build libgit2 1.5.1, then build pygit2
+# Tell where libssh2 is installed, build libgit2 1.6.3, then build pygit2
 # inplace:
 #
-#   LIBSSH2_PREFIX=/usr/local LIBGIT2_VERSION=1.5.1 sh build.sh
+#   LIBSSH2_PREFIX=/usr/local LIBGIT2_VERSION=1.6.3 sh build.sh
 #
 # Build inplace and run the tests:
 #
@@ -179,8 +179,10 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     wget https://github.com/libgit2/libgit2/archive/refs/tags/v$LIBGIT2_VERSION.tar.gz -N -O $FILENAME.tar.gz
     tar xf $FILENAME.tar.gz
     cd $FILENAME
+    mkdir build
+    cd build
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
-        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
+        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake .. \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -191,7 +193,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
                 -DUSE_SSH=$USE_SSH
     else
         export CFLAGS=-I$PREFIX/include
-        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake . \
+        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake .. \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -199,6 +201,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
                 -DUSE_SSH=$USE_SSH
     fi
     cmake --build . --target install
+    cd ..
     cd ..
     export LIBGIT2=$PREFIX
 fi

@@ -1,7 +1,7 @@
-1.11.2 (UNRELEASED)
+1.12.0 (UNRELEASED)
 -------------------------
 
-- Update wheels to libgit2 v1.5.1
+- Upgrade to libgit2 v1.6.3
 
 - Update Linux wheels to bundle OpenSSL 3.0.8
 
