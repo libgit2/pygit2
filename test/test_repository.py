@@ -758,6 +758,7 @@ def test_is_shallow(testrepo):
 
     assert testrepo.is_shallow
 
+@utils.fspath
 def test_repo_hashfile_same_hash(testrepo):
     workdir = Path(testrepo.workdir)
     data = 'Some multi-\nline text\n'
@@ -768,6 +769,7 @@ def test_repo_hashfile_same_hash(testrepo):
     data = data.replace('\n', os.linesep)
     assert hashed_file_sha1 == pygit2.hash(data)
 
+@utils.fspath
 def test_repo_hashfile_crlf_normalization(testrepo):
     workdir = Path(testrepo.workdir)
     with (workdir / '.gitattributes').open('w+') as f:
@@ -783,6 +785,7 @@ def test_repo_hashfile_crlf_normalization(testrepo):
     hashed_crlf_sha1 = testrepo.hashfile(str(workdir / 'untracked_crlf.txt'))
     assert hashed_lf_sha1 == hashed_crlf_sha1
 
+@utils.fspath
 def test_repo_hashfile_no_normalization(testrepo):
     workdir = Path(testrepo.workdir)
     with (workdir / '.gitattributes').open('w+') as f:
@@ -798,6 +801,7 @@ def test_repo_hashfile_no_normalization(testrepo):
     hashed_crlf_sha1 = testrepo.hashfile(str(workdir / 'untracked_crlf.txt'))
     assert hashed_lf_sha1 != hashed_crlf_sha1
 
+@utils.fspath
 def test_repo_hashfile_crlf_normalization_error(testrepo):
     workdir = Path(testrepo.workdir)
     testrepo.config['core.safecrlf'] = True
