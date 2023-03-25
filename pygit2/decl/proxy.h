@@ -15,4 +15,4 @@ typedef struct {
 	void *payload;
 } git_proxy_options;
 
-int git_proxy_init_options(git_proxy_options *opts, unsigned int version);
+int git_proxy_options_init(git_proxy_options *opts, unsigned int version);

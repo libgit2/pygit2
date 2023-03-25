@@ -48,7 +48,7 @@ int git_stash_save(
 	const char *message,
 	uint32_t flags);
 
-int git_stash_apply_init_options(
+int git_stash_apply_options_init(
 	git_stash_apply_options *opts, unsigned int version);
 
 int git_stash_apply(

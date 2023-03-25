@@ -59,7 +59,7 @@ typedef struct {
 	git_strarray custom_headers;
 } git_push_options;
 
-int git_push_init_options(
+int git_push_options_init(
 	git_push_options *opts,
 	unsigned int version);
 
@@ -87,7 +87,7 @@ typedef struct {
 	git_strarray custom_headers;
 } git_fetch_options;
 
-int git_fetch_init_options(
+int git_fetch_options_init(
 	git_fetch_options *opts,
 	unsigned int version);
 

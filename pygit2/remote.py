@@ -103,7 +103,7 @@ class Remote:
             * an url to a proxy (`http://proxy.example.org:3128/`)
         """
         proxy_opts = ffi.new('git_proxy_options *')
-        C.git_proxy_init_options(proxy_opts, C.GIT_PROXY_OPTIONS_VERSION)
+        C.git_proxy_options_init(proxy_opts, C.GIT_PROXY_OPTIONS_VERSION)
         self.__set_proxy(proxy_opts, proxy)
         with git_remote_callbacks(callbacks) as payload:
             err = C.git_remote_connect(self._remote, direction,

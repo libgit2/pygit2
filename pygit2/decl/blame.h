@@ -27,7 +27,7 @@ typedef struct git_blame_hunk {
 	char boundary;
 } git_blame_hunk;
 
-int git_blame_init_options(
+int git_blame_options_init(
 	git_blame_options *opts,
 	unsigned int version);
 

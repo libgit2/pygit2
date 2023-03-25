@@ -7,7 +7,7 @@ typedef struct git_submodule_update_options {
 	int allow_fetch;
 } git_submodule_update_options;
 
-int git_submodule_update_init_options(
+int git_submodule_update_options_init(
 	git_submodule_update_options *opts, unsigned int version);
 
 int git_submodule_add_setup(

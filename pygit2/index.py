@@ -239,7 +239,7 @@ class Index:
             raise ValueError('diff needs an associated repository')
 
         copts = ffi.new('git_diff_options *')
-        err = C.git_diff_init_options(copts, 1)
+        err = C.git_diff_options_init(copts, 1)
         check_error(err)
 
         copts.flags = flags
@@ -282,7 +282,7 @@ class Index:
             raise TypeError('tree must be a Tree')
 
         copts = ffi.new('git_diff_options *')
-        err = C.git_diff_init_options(copts, 1)
+        err = C.git_diff_options_init(copts, 1)
         check_error(err)
 
         copts.flags = flags

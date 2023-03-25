@@ -56,7 +56,7 @@ typedef struct {
 	unsigned short marker_size;
 } git_merge_file_options;
 
-int git_merge_init_options(
+int git_merge_options_init(
 	git_merge_options *opts,
 	unsigned int version);
 

@@ -60,7 +60,7 @@ typedef struct {
 	const char *new_prefix;
 } git_diff_options;
 
-int git_diff_init_options(
+int git_diff_options_init(
 	git_diff_options *opts,
 	unsigned int version);
 

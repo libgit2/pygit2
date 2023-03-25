@@ -15,7 +15,7 @@ typedef struct git_describe_options {
 
 #define GIT_DESCRIBE_OPTIONS_VERSION 1
 
-int git_describe_init_options(git_describe_options *opts, unsigned int version);
+int git_describe_options_init(git_describe_options *opts, unsigned int version);
 
 typedef struct {
 	unsigned int version;

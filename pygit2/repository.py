@@ -151,7 +151,7 @@ class BaseRepository(_Repository):
 
         # prepare options
         opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_init_options(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
 
         with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
             crepo = ffi.new('git_repository **')
@@ -189,7 +189,7 @@ class BaseRepository(_Repository):
 
         # prepare options
         opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_init_options(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
 
         with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
             i = 1 if init else 0
@@ -611,7 +611,7 @@ class BaseRepository(_Repository):
         """
 
         options = ffi.new('git_blame_options *')
-        C.git_blame_init_options(options, C.GIT_BLAME_OPTIONS_VERSION)
+        C.git_blame_options_init(options, C.GIT_BLAME_OPTIONS_VERSION)
         if flags:
             options.flags = flags
         if min_match_characters:
@@ -722,7 +722,7 @@ class BaseRepository(_Repository):
         )
 
         opts = ffi.new('git_merge_options *')
-        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
+        err = C.git_merge_options_init(opts, C.GIT_MERGE_OPTIONS_VERSION)
         check_error(err)
 
         opts.file_favor = favor_val
@@ -985,7 +985,7 @@ class BaseRepository(_Repository):
         merge_opts = self._merge_options(favor, flags=flags or {}, file_flags=file_flags or {})
 
         checkout_opts = ffi.new("git_checkout_options *")
-        C.git_checkout_init_options(checkout_opts, 1)
+        C.git_checkout_options_init(checkout_opts, 1)
         checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING
 
         commit_ptr = ffi.new("git_annotated_commit **")
@@ -1059,7 +1059,7 @@ class BaseRepository(_Repository):
         """
 
         options = ffi.new('git_describe_options *')
-        C.git_describe_init_options(options, C.GIT_DESCRIBE_OPTIONS_VERSION)
+        C.git_describe_options_init(options, C.GIT_DESCRIBE_OPTIONS_VERSION)
 
         if max_candidates_tags is not None:
             options.max_candidates_tags = max_candidates_tags
@@ -1437,7 +1437,7 @@ class BaseRepository(_Repository):
         ffi.buffer(our_commit_ptr)[:] = our_commit._pointer[:]
 
         opts = ffi.new('git_merge_options *')
-        err = C.git_merge_init_options(opts, C.GIT_MERGE_OPTIONS_VERSION)
+        err = C.git_merge_options_init(opts, C.GIT_MERGE_OPTIONS_VERSION)
         check_error(err)
 
         err = C.git_revert_commit(

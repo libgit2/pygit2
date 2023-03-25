@@ -32,7 +32,7 @@ typedef struct {
 	const char *origin_url;
 } git_repository_init_options;
 
-int git_repository_init_init_options(
+int git_repository_init_options_init(
 	git_repository_init_options *opts,
 	unsigned int version);
 

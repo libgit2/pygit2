@@ -328,7 +328,7 @@ def git_fetch_options(payload, opts=None):
 
     if opts is None:
         opts = ffi.new('git_fetch_options *')
-        C.git_fetch_init_options(opts, C.GIT_FETCH_OPTIONS_VERSION)
+        C.git_fetch_options_init(opts, C.GIT_FETCH_OPTIONS_VERSION)
 
     # Plug callbacks
     opts.callbacks.sideband_progress = C._sideband_progress_cb
@@ -352,7 +352,7 @@ def git_push_options(payload, opts=None):
         payload = RemoteCallbacks()
 
     opts = ffi.new('git_push_options *')
-    C.git_push_init_options(opts, C.GIT_PUSH_OPTIONS_VERSION)
+    C.git_push_options_init(opts, C.GIT_PUSH_OPTIONS_VERSION)
 
     # Plug callbacks
     opts.callbacks.sideband_progress = C._sideband_progress_cb
@@ -652,7 +652,7 @@ def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=N
         opts = ffi.new('git_checkout_options *')
     else:
         opts = c_checkout_options_ptr
-    check_error(C.git_checkout_init_options(opts, 1))
+    check_error(C.git_checkout_options_init(opts, 1))
 
     # References we need to keep to strings and so forth
     refs = [handle]
@@ -724,9 +724,8 @@ def git_stash_apply_options(callbacks=None, reinstate_index=False, strategy=None
         callbacks = StashApplyCallbacks()
 
     # Set up stash options
-    # TODO: git_stash_apply_init_options is deprecated (along with a bunch of other git_XXX_init_options functions)
     stash_apply_options = ffi.new('git_stash_apply_options *')
-    check_error(C.git_stash_apply_init_options(stash_apply_options, 1))
+    check_error(C.git_stash_apply_options_init(stash_apply_options, 1))
 
     flags = reinstate_index * C.GIT_STASH_APPLY_REINSTATE_INDEX
     stash_apply_options.flags = flags

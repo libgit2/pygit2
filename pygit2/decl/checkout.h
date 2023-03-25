@@ -67,7 +67,7 @@ typedef struct git_checkout_options {
 } git_checkout_options;
 
 
-int git_checkout_init_options(
+int git_checkout_options_init(
 	git_checkout_options *opts,
 	unsigned int version);
 

@@ -147,7 +147,7 @@ def init_repository(path, bare=False,
 
     # Options
     options = ffi.new('git_repository_init_options *')
-    C.git_repository_init_init_options(options,
+    C.git_repository_init_options_init(options,
                                        GIT_REPOSITORY_INIT_OPTIONS_VERSION)
     options.flags = flags
     options.mode = mode
