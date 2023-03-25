@@ -346,6 +346,39 @@ def test_stash(testrepo):
 
     with pytest.raises(KeyError): testrepo.stash_pop()
 
+def test_stash_partial(testrepo):
+    stash_message = "custom stash message"
+    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+
+    # make sure we're starting with no stashes
+    assert [] == testrepo.listall_stashes()
+
+    # some changes to working dir
+    with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
+        f.write('stash me')
+    with (Path(testrepo.workdir) / 'untracked2.txt').open('w') as f:
+        f.write('do not stash me')
+
+    assert testrepo.status()['hello.txt'] == pygit2.GIT_STATUS_WT_MODIFIED
+    assert testrepo.status()['bye.txt'] == pygit2.GIT_STATUS_WT_NEW
+    assert testrepo.status()['untracked2.txt'] == pygit2.GIT_STATUS_WT_NEW
+
+    def stash_pathspecs(paths):
+        stash_id = testrepo.stash(sig, message=stash_message, keep_all=True, paths=paths)
+        stash_commit = testrepo[stash_id].peel(pygit2.Commit)
+        stash_diff = testrepo.diff(stash_commit.parents[0], stash_commit)
+        stash_files = set(patch.delta.new_file.path for patch in stash_diff)
+        return stash_files == set(paths)
+
+    # Stash a modified file
+    assert stash_pathspecs(['hello.txt'])
+
+    # Stash one of several untracked files
+    assert stash_pathspecs(['bye.txt'])
+
+    # Stash a modified file and an untracked file
+    assert stash_pathspecs(['hello.txt', 'bye.txt'])
+
 def test_stash_progress_callback(testrepo):
     sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
 

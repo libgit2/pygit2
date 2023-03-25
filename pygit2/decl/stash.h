@@ -1,4 +1,5 @@
 #define GIT_STASH_APPLY_OPTIONS_VERSION 1
+#define GIT_STASH_SAVE_OPTIONS_VERSION ...
 
 typedef int (*git_stash_cb)(
 	size_t index,
@@ -26,6 +27,7 @@ typedef enum {
 	GIT_STASH_KEEP_INDEX = 1,
 	GIT_STASH_INCLUDE_UNTRACKED = 2,
 	GIT_STASH_INCLUDE_IGNORED = 4,
+	GIT_STASH_KEEP_ALL = 8,
 } git_stash_flags;
 
 typedef enum {
@@ -55,6 +57,23 @@ int git_stash_apply(
 	git_repository *repo,
 	size_t index,
 	const git_stash_apply_options *options);
+
+typedef struct git_stash_save_options {
+	unsigned int version;
+	uint32_t flags;
+	const git_signature *stasher;
+	const char *message;
+	git_strarray paths;
+} git_stash_save_options;
+
+int git_stash_save_options_init(
+	git_stash_save_options *opts,
+	unsigned int version);
+
+int git_stash_save_with_opts(
+	git_oid *out,
+	git_repository *repo,
+	const git_stash_save_options *opts);
 
 int git_stash_foreach(
 	git_repository *repo,

@@ -50,7 +50,7 @@ from .ffi import ffi, C
 from .index import Index
 from .remote import RemoteCollection
 from .blame import Blame
-from .utils import to_bytes
+from .utils import to_bytes, StrArray
 from .submodule import Submodule
 from .packbuilder import PackBuilder
 
@@ -1119,8 +1119,15 @@ class BaseRepository(_Repository):
     #
     # Stash
     #
-    def stash(self, stasher, message=None, keep_index=False,
-              include_untracked=False, include_ignored=False):
+    def stash(
+            self,
+            stasher: Signature,
+            message: typing.Optional[str] = None,
+            keep_index: bool = False,
+            include_untracked: bool = False,
+            include_ignored: bool = False,
+            keep_all: bool = False,
+            paths: typing.Optional[typing.List[str]] = None):
         """
         Save changes to the working directory to the stash.
 
@@ -1143,27 +1150,43 @@ class BaseRepository(_Repository):
         include_ignored : bool
             Also stash ignored files.
 
+        keep_all : bool
+            All changes in the index and working directory are left intact.
+
+        paths : list[str]
+            An optional list of paths that control which files are stashed.
+
         Example::
 
             >>> repo = pygit2.Repository('.')
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
         """
 
-        if message:
-            stash_msg = ffi.new('char[]', to_bytes(message))
-        else:
-            stash_msg = ffi.NULL
+        opts = ffi.new('git_stash_save_options *')
+        C.git_stash_save_options_init(opts, C.GIT_STASH_SAVE_OPTIONS_VERSION)
 
         flags = 0
         flags |= keep_index * C.GIT_STASH_KEEP_INDEX
+        flags |= keep_all * C.GIT_STASH_KEEP_ALL
         flags |= include_untracked * C.GIT_STASH_INCLUDE_UNTRACKED
         flags |= include_ignored * C.GIT_STASH_INCLUDE_IGNORED
+        opts.flags = flags
 
         stasher_cptr = ffi.new('git_signature **')
         ffi.buffer(stasher_cptr)[:] = stasher._pointer[:]
+        opts.stasher = stasher_cptr[0]
+
+        if message:
+            message_ref = ffi.new('char[]', to_bytes(message))
+            opts.message = message_ref
+
+        if paths:
+            arr = StrArray(paths)
+            opts.paths = arr.array[0]
 
         coid = ffi.new('git_oid *')
-        err = C.git_stash_save(coid, self._repo, stasher_cptr[0], stash_msg, flags)
+        err = C.git_stash_save_with_opts(coid, self._repo, opts)
+
         check_error(err)
 
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
