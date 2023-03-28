@@ -1156,7 +1156,7 @@ out:
 }
 
 PyDoc_STRVAR(Repository_create_commit_with_signature__doc__,
-  "create_commit_with_signature(content: str, signature: str, field_name: str) -> Oid\n"
+  "create_commit_with_signature(content: str, signature: str[, field_name: str]) -> Oid\n"
   "\n"
   "Create a new signed commit object, return its oid.");
 
