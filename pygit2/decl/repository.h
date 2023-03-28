@@ -21,6 +21,21 @@ typedef enum {
 	GIT_REPOSITORY_INIT_SHARED_ALL   = 0002777,
 } git_repository_init_mode_t;
 
+typedef enum {
+	GIT_REPOSITORY_STATE_NONE,
+	GIT_REPOSITORY_STATE_MERGE,
+	GIT_REPOSITORY_STATE_REVERT,
+	GIT_REPOSITORY_STATE_REVERT_SEQUENCE,
+	GIT_REPOSITORY_STATE_CHERRYPICK,
+	GIT_REPOSITORY_STATE_CHERRYPICK_SEQUENCE,
+	GIT_REPOSITORY_STATE_BISECT,
+	GIT_REPOSITORY_STATE_REBASE,
+	GIT_REPOSITORY_STATE_REBASE_INTERACTIVE,
+	GIT_REPOSITORY_STATE_REBASE_MERGE,
+	GIT_REPOSITORY_STATE_APPLY_MAILBOX,
+	GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE
+} git_repository_state_t;
+
 typedef struct {
 	unsigned int version;
 	uint32_t    flags;
@@ -71,3 +86,4 @@ int git_repository_set_head_detached(
 int git_repository_ident(const char **name, const char **email, const git_repository *repo);
 int git_repository_set_ident(git_repository *repo, const char *name, const char *email);
 int git_repository_index(git_index **out, git_repository *repo);
+git_repository_state_t git_repository_state(git_repository *repo);

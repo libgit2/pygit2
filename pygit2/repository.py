@@ -565,6 +565,14 @@ class BaseRepository(_Repository):
 
         raise ValueError("Only blobs and treeish can be diffed")
 
+    def state(self) -> int:
+        """Determines the state of a git repository - ie, whether an operation
+        (merge, cherry-pick, etc) is in progress.
+        
+        Returns a GIT_REPOSITORY_STATE_* constant.
+        """
+        return C.git_repository_state(self._repo)
+
     def state_cleanup(self):
         """Remove all the metadata associated with an ongoing command like
         merge, revert, cherry-pick, etc. For example: MERGE_HEAD, MERGE_MSG,
