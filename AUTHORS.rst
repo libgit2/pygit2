@@ -7,9 +7,9 @@ Authors::
   Robert Coup
   Matthias Bartelmeß
   W. Trevor King
+  Iliyas Jorio
   Drew DeVault
   Dave Borowitz
-  Iliyas Jorio
   Brandon Milton
   Daniel Rodríguez Troitiño
   Richo Healey
@@ -41,13 +41,13 @@ Authors::
   Vlad Temian
   Chad Dombrova
   Lukas Fleischer
+  Mathias Leppich
   Nicolas Dandrimont
   Raphael Medaer (Escaux)
   Anatoly Techtonik
   Andrew Olsen
   Dan Sully
   David Versmisse
-  Mathias Leppich
   Mikhail Yushkovskiy
   Robin Stocker
   Rohit Sanjay

@@ -1,15 +1,14 @@
-1.12.0 (UNRELEASED)
+1.12.0 (2023-04-01)
 -------------------------
 
 - Upgrade to libgit2 v1.6.3
 
 - Update Linux wheels to bundle OpenSSL 3.0.8
 
+- Downgrade Linux wheels to manylinux2014
+
 - New ``ConflictCollection.__contains__``
   `#1181 <https://github.com/libgit2/pygit2/pull/1181>`_
-
-- New ``Repository.hashfile(path)``
-  `#1190 <https://github.com/libgit2/pygit2/pull/1190>`_
 
 - New ``Repository.references.iterator(...)``
   `#1191 <https://github.com/libgit2/pygit2/pull/1191>`_
@@ -18,8 +17,17 @@
   ``Repository.merge(...)``
   `#1192 <https://github.com/libgit2/pygit2/pull/1192>`_
 
+- New ``keep_all`` and ``paths`` optional arguments for ``Repository.stash(...)``
+  `#1202 <https://github.com/libgit2/pygit2/pull/1202>`_
+
+- New ``Respository.state()``
+  `#1204 <https://github.com/libgit2/pygit2/pull/1204>`_
+
 - Improve ``Repository.write_archive(...)`` performance
   `#1183 <https://github.com/libgit2/pygit2/pull/1183>`_
+
+- Sync type annotations
+  `#1203 <https://github.com/libgit2/pygit2/pull/1203>`_
 
 
 1.11.1 (2022-11-09)
