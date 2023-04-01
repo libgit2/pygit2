@@ -23,6 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import re
 import time
 
 import pytest
@@ -69,3 +70,13 @@ def test_repr_from_commit(barerepo):
 
     assert repr(signature) == repr(commit.author)
     assert repr(signature) == repr(commit.committer)
+
+def test_incorrect_encoding():
+    gbk_bytes = 'Café'.encode('GBK')
+
+    # deliberately specifying a mismatching encoding (mojibake)
+    signature = Signature(gbk_bytes, "foo@example.com", 999, 0, encoding="utf-8")
+
+    # repr() and str() may display junk, but they must not crash
+    assert re.match(r"pygit2.Signature\('Caf.+', 'foo@example.com', 999, 0, 'utf-8'\)", repr(signature))
+    assert re.match(r"Caf.+ <foo@example.com>", str(signature))

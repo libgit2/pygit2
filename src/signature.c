@@ -229,8 +229,10 @@ static PyObject *
 Signature__str__(Signature *self)
 {
     PyObject *name, *email, *str;
-    name = to_unicode(self->signature->name, self->encoding, NULL);
-    email = to_unicode(self->signature->email, self->encoding, NULL);
+    name = to_unicode(self->signature->name, self->encoding, "replace");
+    email = to_unicode(self->signature->email, self->encoding, "replace");
+    assert(name);
+    assert(email);
     str = PyUnicode_FromFormat("%U <%U>", name, email);
     Py_DECREF(name);
     Py_DECREF(email);
@@ -241,8 +243,8 @@ static PyObject *
 Signature__repr__(Signature *self)
 {
     PyObject *name, *email, *encoding, *str;
-    name = to_unicode(self->signature->name, self->encoding, NULL);
-    email = to_unicode(self->signature->email, self->encoding, NULL);
+    name = to_unicode(self->signature->name, self->encoding, "replace");
+    email = to_unicode(self->signature->email, self->encoding, "replace");
 
     if (self->encoding) {
         encoding = to_unicode(self->encoding, self->encoding, NULL);
@@ -250,6 +252,10 @@ Signature__repr__(Signature *self)
         encoding = Py_None;
         Py_INCREF(Py_None);
     }
+
+    assert(name);
+    assert(email);
+    assert(encoding);
 
     str = PyUnicode_FromFormat(
         "pygit2.Signature(%R, %R, %lld, %ld, %R)",
