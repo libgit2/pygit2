@@ -80,3 +80,10 @@ def test_incorrect_encoding():
     # repr() and str() may display junk, but they must not crash
     assert re.match(r"pygit2.Signature\('Caf.+', 'foo@example.com', 999, 0, 'utf-8'\)", repr(signature))
     assert re.match(r"Caf.+ <foo@example.com>", str(signature))
+
+    # deliberately specifying an unsupported encoding
+    signature = Signature(gbk_bytes, "foo@example.com", 999, 0, encoding="this-encoding-does-not-exist")
+
+    # repr() and str() may display junk, but they must not crash
+    assert "pygit2.Signature('(error)', '(error)', 999, 0, '(error)')" == repr(signature)
+    assert "(error) <(error)>" == str(signature)

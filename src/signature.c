@@ -229,10 +229,11 @@ static PyObject *
 Signature__str__(Signature *self)
 {
     PyObject *name, *email, *str;
-    name = to_unicode(self->signature->name, self->encoding, "replace");
-    email = to_unicode(self->signature->email, self->encoding, "replace");
+    name = to_unicode_safe(self->signature->name, self->encoding);
+    email = to_unicode_safe(self->signature->email, self->encoding);
     assert(name);
     assert(email);
+
     str = PyUnicode_FromFormat("%U <%U>", name, email);
     Py_DECREF(name);
     Py_DECREF(email);
@@ -243,16 +244,9 @@ static PyObject *
 Signature__repr__(Signature *self)
 {
     PyObject *name, *email, *encoding, *str;
-    name = to_unicode(self->signature->name, self->encoding, "replace");
-    email = to_unicode(self->signature->email, self->encoding, "replace");
-
-    if (self->encoding) {
-        encoding = to_unicode(self->encoding, self->encoding, NULL);
-    } else {
-        encoding = Py_None;
-        Py_INCREF(Py_None);
-    }
-
+    name = to_unicode_safe(self->signature->name, self->encoding);
+    email = to_unicode_safe(self->signature->email, self->encoding);
+    encoding = to_unicode_safe(self->encoding, self->encoding);
     assert(name);
     assert(email);
     assert(encoding);

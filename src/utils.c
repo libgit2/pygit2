@@ -37,6 +37,33 @@ extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
 
 /**
+ * Attempt to convert a C string to a Python string with the given encoding.
+ * If the conversion fails, return a fallback string.
+ */
+PyObject *
+to_unicode_safe(const char *value, const char *encoding)
+{
+    PyObject *py_str;
+
+    if (!value) {
+        py_str = PyUnicode_FromString("None");
+    } else {
+        py_str = to_unicode(value, encoding, "replace");
+
+        if (!py_str) {
+            assert(PyErr_Occurred());
+            py_str = PyUnicode_FromString("(error)");
+            PyErr_Clear();
+        }
+    }
+
+    assert(!PyErr_Occurred());
+    assert(py_str);
+
+    return py_str;
+}
+
+/**
  * Return a *newly allocated* C string holding the string contained in the
  * 'value' argument.
  */
