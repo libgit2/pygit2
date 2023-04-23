@@ -55,7 +55,7 @@ Below there are some general attributes and methods:
 .. autoclass:: pygit2.Repository
    :members: ahead_behind, amend_commit, applies, apply, create_reference,
              default_signature, descendant_of, describe, free, get_attr,
-             hashfile, is_bare, is_empty, is_shallow, odb, path,
+             is_bare, is_empty, is_shallow, odb, path,
              path_is_ignored, reset, revert_commit, state_cleanup, workdir,
              write, write_archive, set_odb, set_refdb
 

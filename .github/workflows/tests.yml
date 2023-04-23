@@ -34,14 +34,14 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt install tinyproxy
-        LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.3 /bin/sh build.sh test
+        LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.4 /bin/sh build.sh test
 
     - name: macOS
       if: runner.os == 'macOS'
       run: |
         export OPENSSL_PREFIX=`brew --prefix openssl@1.1`
         export LIBSSH2_PREFIX=`brew --prefix libssh2`
-        export LIBGIT2_VERSION=1.6.3
+        export LIBGIT2_VERSION=1.6.4
         /bin/sh build.sh test
 
   aarch64:
@@ -59,7 +59,7 @@ jobs:
           apt-get update -q -y
           apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
         run: |
-          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.3 /bin/sh build.sh test
+          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.4 /bin/sh build.sh test
 
   s390x:
     runs-on: ubuntu-20.04
@@ -77,5 +77,5 @@ jobs:
           apt-get update -q -y
           apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
         run: |
-          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.3 /bin/sh build.sh test
+          LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.4 /bin/sh build.sh test
       continue-on-error: true # Tests are expected to fail, see issue #812
