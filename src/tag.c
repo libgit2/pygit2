@@ -49,7 +49,7 @@ Tag_target__get__(Tag *self)
 
 
 PyDoc_STRVAR(Tag_get_object__doc__,
-  "get_object() -> object\n"
+  "get_object() -> Object\n"
   "\n"
   "Retrieves the object the current tag is pointing to.");
 
