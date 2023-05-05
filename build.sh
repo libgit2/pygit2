@@ -9,6 +9,7 @@
 #
 # Environment variables:
 #
+#   AUDITWHEEL_PLAT           - Linux platform for auditwheel repair
 #   LIBSSH2_OPENSSL           - Where to find openssl
 #   LIBSSH2_PREFIX            - Where to find libssh2
 #   LIBSSH2_VERSION=<Version> - Build the given version of libssh2
@@ -181,7 +182,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     wget https://github.com/libgit2/libgit2/archive/refs/tags/v$LIBGIT2_VERSION.tar.gz -N -O $FILENAME.tar.gz
     tar xf $FILENAME.tar.gz
     cd $FILENAME
-    mkdir build
+    mkdir build -p
     cd build
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
         CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake .. \
