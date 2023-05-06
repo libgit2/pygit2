@@ -246,7 +246,14 @@ Signature__repr__(Signature *self)
     PyObject *name, *email, *encoding, *str;
     name = to_unicode_safe(self->signature->name, self->encoding);
     email = to_unicode_safe(self->signature->email, self->encoding);
-    encoding = to_unicode_safe(self->encoding, self->encoding);
+
+    if (self->encoding) {
+        encoding = to_unicode(self->encoding, self->encoding, NULL);
+    } else {
+        encoding = Py_None;
+        Py_INCREF(Py_None);
+    }
+
     assert(name);
     assert(email);
     assert(encoding);
