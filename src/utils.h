@@ -63,6 +63,8 @@
 /* Utilities */
 #define to_unicode(x, encoding, errors) to_unicode_n(x, strlen(x), encoding, errors)
 
+PyObject *to_unicode_safe(const char *value, const char *encoding);
+
 PYGIT2_FN_UNUSED
 Py_LOCAL_INLINE(PyObject*)
 to_unicode_n(const char *value, size_t len, const char *encoding,
