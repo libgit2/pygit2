@@ -248,7 +248,7 @@ Signature__repr__(Signature *self)
     email = to_unicode_safe(self->signature->email, self->encoding);
 
     if (self->encoding) {
-        encoding = to_unicode(self->encoding, self->encoding, NULL);
+        encoding = to_unicode_safe(self->encoding, self->encoding);
     } else {
         encoding = Py_None;
         Py_INCREF(Py_None);
