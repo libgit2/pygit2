@@ -28,7 +28,7 @@ import time
 
 import pytest
 
-from pygit2 import Signature
+import pygit2
 
 
 def __assert(signature, encoding):
@@ -41,28 +41,29 @@ def __assert(signature, encoding):
 
 @pytest.mark.parametrize('encoding', [None, 'utf-8', 'iso-8859-1'])
 def test_encoding(encoding):
-    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding=encoding)
+    signature = pygit2.Signature('Foo Ibáñez', 'foo@example.com', encoding=encoding)
     __assert(signature, encoding)
     assert abs(signature.time - time.time()) < 5
     assert str(signature) == 'Foo Ibáñez <foo@example.com>'
 
 def test_default_encoding():
-    signature = Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60)
+    signature = pygit2.Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60)
     __assert(signature, 'utf-8')
 
 def test_ascii():
     with pytest.raises(UnicodeEncodeError):
-        Signature('Foo Ibáñez', 'foo@example.com', encoding='ascii')
+        pygit2.Signature('Foo Ibáñez', 'foo@example.com', encoding='ascii')
 
-def test_repr():
-    encoding = 'utf-8'
-    signature = Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, encoding=encoding)
-    expected = f"pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, '{encoding}')"
+@pytest.mark.parametrize('encoding', [None, 'utf-8', 'iso-8859-1'])
+def test_repr(encoding):
+    signature = pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, encoding=encoding)
+    expected = f"pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, {repr(encoding)})"
     assert repr(signature) == expected
+    assert signature == eval(expected)
 
 def test_repr_from_commit(barerepo):
     repo = barerepo
-    signature = Signature('Foo Ibáñez', 'foo@example.com', encoding=None)
+    signature = pygit2.Signature('Foo Ibáñez', 'foo@example.com', encoding=None)
     tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
     parents = ['5fe808e8953c12735680c257f56600cb0de44b10']
     sha = repo.create_commit(None, signature, signature, 'New commit.', tree, parents)
@@ -75,14 +76,15 @@ def test_incorrect_encoding():
     gbk_bytes = 'Café'.encode('GBK')
 
     # deliberately specifying a mismatching encoding (mojibake)
-    signature = Signature(gbk_bytes, "foo@example.com", 999, 0, encoding="utf-8")
+    signature = pygit2.Signature(gbk_bytes, "foo@example.com", 999, 0, encoding="utf-8")
 
     # repr() and str() may display junk, but they must not crash
     assert re.match(r"pygit2.Signature\('Caf.+', 'foo@example.com', 999, 0, 'utf-8'\)", repr(signature))
     assert re.match(r"Caf.+ <foo@example.com>", str(signature))
 
     # deliberately specifying an unsupported encoding
-    signature = Signature(gbk_bytes, "foo@example.com", 999, 0, encoding="this-encoding-does-not-exist")
+    signature = pygit2.Signature(gbk_bytes, "foo@example.com", 999, 0,
+                                 encoding="this-encoding-does-not-exist")
 
     # repr() and str() may display junk, but they must not crash
     assert "pygit2.Signature('(error)', '(error)', 999, 0, '(error)')" == repr(signature)
