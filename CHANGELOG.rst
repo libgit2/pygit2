@@ -1,3 +1,16 @@
+1.12.1 (2023-05-07)
+-------------------------
+
+- Fix segfault in signature when encoding is incorrect
+  `#1210 <https://github.com/libgit2/pygit2/pull/1210>`_
+
+- Typing improvements
+  `#1212 <https://github.com/libgit2/pygit2/pull/1212>`_
+  `#1214 <https://github.com/libgit2/pygit2/pull/1214>`_
+
+- Update wheels to libgit2 v1.6.4
+
+
 1.12.0 (2023-04-01)
 -------------------------
 

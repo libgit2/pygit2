@@ -78,6 +78,7 @@ Authors::
   Sukhman Bhuller
   Thomas Kluyver
   Tyler Cipriani
+  William Manley
   Alex Chamberlain
   Alexander Bayandin
   Amit Bakshi
