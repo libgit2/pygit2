@@ -31,9 +31,9 @@
 #
 #   LIBGIT2_VERSION=1.6.4 sh build.sh
 #
-# Build libssh2 1.10.0 and libgit2 1.6.4, then build pygit2 inplace:
+# Build libssh2 1.11.0 and libgit2 1.6.4, then build pygit2 inplace:
 #
-#   LIBSSH2_VERSION=1.10.0 LIBGIT2_VERSION=1.6.4 sh build.sh
+#   LIBSSH2_VERSION=1.11.0 LIBGIT2_VERSION=1.6.4 sh build.sh
 #
 # Tell where libssh2 is installed, build libgit2 1.6.4, then build pygit2
 # inplace:
