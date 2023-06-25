@@ -111,12 +111,6 @@ class Remote:
                                        ffi.NULL)
             payload.check_error(err)
 
-    def save(self):
-        """Save a remote to its repository's configuration.
-        """
-        err = C.git_remote_save(self._remote)
-        check_error(err)
-
     def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED, proxy=None):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
