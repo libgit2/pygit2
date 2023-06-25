@@ -1,3 +1,12 @@
+1.12.2 (2023-06-25)
+-------------------------
+
+- Update wheels to bundle libssh2 1.11.0 and OpenSSL 3.0.9
+
+- Remove obsolete ``Remote.save()``
+  `#1219 <https://github.com/libgit2/pygit2/issues/1219>`_
+
+
 1.12.1 (2023-05-07)
 -------------------------
 

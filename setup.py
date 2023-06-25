@@ -26,7 +26,6 @@
 # Import setuptools before distutils to avoid user warning
 from setuptools import setup, Extension
 
-# Import from the Standard Library
 import codecs
 from distutils.command.build import build
 from distutils.command.sdist import sdist
@@ -113,7 +112,7 @@ class BuildWithDLLs(build):
                     ret.append((f, target))
                     break
             else:
-                log.warn('"Could not find required DLL {dll} to include')
+                log.warn(f'Could not find required DLL {dll} to include')
                 log.debug(f'(looked in {look_dirs})')
         return ret
 
