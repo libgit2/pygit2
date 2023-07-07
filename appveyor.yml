@@ -2,10 +2,10 @@ version: 1.12.{build}
 image: Visual Studio 2019
 configuration: Release
 environment:
-# global:
-#   TWINE_USERNAME: jdavid
-#   TWINE_PASSWORD:
-#     secure: m6oBGys2nmQTRn7vDv8/FA==
+  global:
+    TWINE_USERNAME: __token__
+    TWINE_PASSWORD:
+      secure: 7YD82RnQJ9rnJE/josiQ/V6VWh+tlhmJpWVM/u5jGdl8XqyhsLEKF5MNMYd4ZYxA/MGaYBCQ525d4m9RSDk9RB+uIFMZJLnl1eOjHQVyJ+ZZmJb65tqd/fR5hybhWtVhn+0wANiI4uqrojFFVy1HjfBYSrvyk+7LLDxfSVTqkhMEhbZbWBpGP/3VET1gPy+qdlWcL7quwhSBPSbKpyMi/cqvp5/yFLAM615RRABgQUDpRyXxtBTReRgWSxi9kUXXqR18ZvQlvMLnAsEnGFRenA==
   matrix:
   - GENERATOR: 'Visual Studio 14'
     PYTHON: 'C:\Python38\python.exe'
@@ -62,7 +62,7 @@ test_script:
 artifacts:
 - path: dist\pygit2-*.whl
 
-#deploy_script:
-#- ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload dist/pygit2-*.whl }
-#
-#deploy: on
+deploy_script:
+- ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload dist/pygit2-*.whl }
+
+deploy: on
