@@ -1100,7 +1100,7 @@ Other changes:
 
 - Support Python 3.5
 
-- New dependency, `six <https://pypi.python.org/pypi/six/>`_
+- New dependency, `six <https://pypi.org/project/six/>`_
 
 - New ``Repository.path_is_ignored(path)``
   `#589 <https://github.com/libgit2/pygit2/pull/589>`_
@@ -1114,7 +1114,7 @@ Other changes:
   `#597 <https://github.com/libgit2/pygit2/issues/597>`_
   `#599 <https://github.com/libgit2/pygit2/pull/599>`_
 
-- Allow testing with `tox <https://pypi.python.org/pypi/tox/>`_
+- Allow testing with `tox <https://pypi.org/project/tox/>`_
   `#600 <https://github.com/libgit2/pygit2/pull/600>`_
 
 

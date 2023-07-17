@@ -8,9 +8,9 @@ Supports Python 3.8+ and PyPy3 7.3+
 Links
 =====================================
 
-- Documentation - http://www.pygit2.org/
-- Install - http://www.pygit2.org/install.html
-- Download - https://pypi.python.org/pypi/pygit2
+- Documentation - https://www.pygit2.org/
+- Install - https://www.pygit2.org/install.html
+- Download - https://pypi.org/project/pygit2/
 - Source code and issue tracker - https://github.com/libgit2/pygit2
 - Changelog - https://github.com/libgit2/pygit2/blob/master/CHANGELOG.rst
 - Authors - https://github.com/libgit2/pygit2/blob/master/AUTHORS.rst
