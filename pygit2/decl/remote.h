@@ -83,6 +83,7 @@ typedef struct {
 	int update_fetchhead;
 	git_remote_autotag_option_t download_tags;
 	git_proxy_options proxy_opts;
+	int depth;
 	git_remote_redirect_t follow_redirects;
 	git_strarray custom_headers;
 } git_fetch_options;

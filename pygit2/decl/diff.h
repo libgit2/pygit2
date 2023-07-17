@@ -54,6 +54,7 @@ typedef struct {
 	void                *payload;
 	uint32_t    context_lines;
 	uint32_t    interhunk_lines;
+	git_oid_t   oid_type;
 	uint16_t    id_abbrev;
 	git_off_t   max_size;
 	const char *old_prefix;

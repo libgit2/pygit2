@@ -1,3 +1,7 @@
+typedef enum {
+	GIT_OID_SHA1 = 1,  /**< SHA1 */
+} git_oid_t;
+
 typedef struct git_oid {
 	unsigned char id[20];
 } git_oid;

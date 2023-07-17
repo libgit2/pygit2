@@ -1,3 +1,12 @@
+1.13.0 (UNRELEASED)
+-------------------------
+
+- Upgrade to libgit2 v1.7.0
+
+- docs: update links to pypy, pygit2.org
+  `#1228 <https://github.com/libgit2/pygit2/pull/1228>`_
+
+
 1.12.2 (2023-06-25)
 -------------------------
 
