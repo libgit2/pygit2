@@ -105,6 +105,10 @@ int git_remote_create_with_fetchspec(
 		const char *name,
 		const char *url,
 		const char *fetch);
+int git_remote_create_anonymous(
+        git_remote **out,
+        git_repository *repo,
+        const char *url);
 int git_remote_delete(git_repository *repo, const char *name);
 const char * git_remote_name(const git_remote *remote);
 int git_remote_rename(

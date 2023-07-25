@@ -69,6 +69,16 @@ def test_remote_create_with_refspec(testrepo):
     assert [fetch] == remote.fetch_refspecs
     assert remote.push_url is None
 
+def test_remote_create_anonymous(testrepo):
+    url = 'https://github.com/libgit2/pygit2.git'
+
+    remote = testrepo.remotes.create_anonymous(url)
+    assert remote.name is None
+    assert url == remote.url
+    assert remote.push_url is None
+    assert [] == remote.fetch_refspecs
+    assert [] == remote.push_refspecs
+
 def test_remote_delete(testrepo):
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'

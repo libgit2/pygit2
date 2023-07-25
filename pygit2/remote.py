@@ -344,6 +344,16 @@ class RemoteCollection:
 
         return Remote(self._repo, cremote[0])
 
+    def create_anonymous(self, url):
+        """Create a new anonymous (in-memory only) remote with the given URL.
+        Returns a <Remote> object.
+        """
+        cremote = ffi.new('git_remote **')
+        url = to_bytes(url)
+        err = C.git_remote_create_anonymous(cremote, self._repo._repo, url)
+        check_error(err)
+        return Remote(self._repo, cremote[0])
+
     def rename(self, name, new_name):
         """Rename a remote in the configuration. The refspecs in standard
         format will be renamed.
