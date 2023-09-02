@@ -70,7 +70,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         apt-get update
         apt-get install wget -y
         if [ -z "$OPENSSL_VERSION" ]; then
-            apt-get install libssl-dev -y
+            apt-get install libffi libssl-dev -y
         fi
     elif [ -f /usr/bin/yum ]; then
         yum install wget zlib-devel -y
