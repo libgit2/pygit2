@@ -32,14 +32,14 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BEFORE_ALL: sh build.sh
-          CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.7.1 LIBSSH2_VERSION=1.11.0 OPENSSL_VERSION=3.0.9 LIBGIT2=/project/ci
-          CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.7.1 LIBSSH2_VERSION=1.11.0 OPENSSL_VERSION=3.0.9 DYLD_LIBRARY_PATH=/usr/local/lib
-          CIBW_SKIP: "*-musllinux* *pypy*"
+          CIBW_ENVIRONMENT: LIBGIT2_VERSION=1.7.1 LIBSSH2_VERSION=1.11.0 OPENSSL_VERSION=3.1.2 LIBGIT2=/project/ci
+          CIBW_ENVIRONMENT_MACOS: LIBGIT2_VERSION=1.7.1 LIBSSH2_VERSION=1.11.0 OPENSSL_VERSION=3.1.2 LIBGIT2=/Users/runner/work/pygit2/pygit2/ci
+          CIBW_SKIP: "*musl* pp3* cp312*"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux2014"
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "LD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "DYLD_LIBRARY_PATH=/usr/local/lib delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=/usr/local/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
-          CIBW_ARCHS_MACOS: x86_64 universal2
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "DYLD_LIBRARY_PATH=/Users/runner/work/pygit2/pygit2/ci/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
+          CIBW_ARCHS_MACOS: universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64
 
       - uses: actions/upload-artifact@v3

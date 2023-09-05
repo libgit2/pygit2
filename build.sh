@@ -11,14 +11,10 @@
 #
 #   AUDITWHEEL_PLAT           - Linux platform for auditwheel repair
 #   LIBSSH2_OPENSSL           - Where to find openssl
-#   LIBSSH2_PREFIX            - Where to find libssh2
 #   LIBSSH2_VERSION=<Version> - Build the given version of libssh2
 #   LIBGIT2_VERSION=<Version> - Build the given version of libgit2
 #   OPENSSL_VERSION=<Version> - Build the given version of OpenSSL
 #                               (only needed for Mac universal on CI)
-#
-# Either use LIBSSH2_PREFIX, or LIBSSH2_VERSION, or none (if libssh2 is already
-# in the path, or if you don't want to use it).
 #
 # Examples.
 #
@@ -34,11 +30,6 @@
 # Build libssh2 1.11.0 and libgit2 1.7.1, then build pygit2 inplace:
 #
 #   LIBSSH2_VERSION=1.11.0 LIBGIT2_VERSION=1.7.1 sh build.sh
-#
-# Tell where libssh2 is installed, build libgit2 1.7.1, then build pygit2
-# inplace:
-#
-#   LIBSSH2_PREFIX=/usr/local LIBGIT2_VERSION=1.7.1 sh build.sh
 #
 # Build inplace and run the tests:
 #
@@ -170,7 +161,6 @@ if [ -n "$LIBSSH2_VERSION" ]; then
     fi
     cmake --build . --target install
     cd ..
-    LIBSSH2_PREFIX=$PREFIX
     USE_SSH=ON
 else
     USE_SSH=OFF
@@ -185,7 +175,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     mkdir build -p
     cd build
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
-        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake .. \
+        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$PREFIX cmake .. \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -193,10 +183,11 @@ if [ -n "$LIBGIT2_VERSION" ]; then
                 -DOPENSSL_CRYPTO_LIBRARY="../openssl-universal/$LIBCRYPTO" \
                 -DOPENSSL_SSL_LIBRARY="../openssl-universal/$LIBSSL" \
                 -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
+                -DCMAKE_INSTALL_PREFIX=$PREFIX \
                 -DUSE_SSH=$USE_SSH
     else
         export CFLAGS=-I$PREFIX/include
-        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$LIBSSH2_PREFIX cmake .. \
+        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$PREFIX cmake .. \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -211,12 +202,12 @@ fi
 
 if [ "$CIBUILDWHEEL" = "1" ]; then
     if [ "$KERNEL" = "Darwin" ]; then
-        # Copy libraries where delocate-wheel can find them.
-        # In Linux we use LD_LIBRARY_PATH to avoid this, maybe
-        # DYLD_LIBRARY_PATH would work for macOS.
-        cp -r $OPENSSL_PREFIX/*.dylib /usr/local/lib
-        cp -r $LIBSSH2_PREFIX/lib/*.dylib /usr/local/lib
-        cp -r $FILENAME/build/*.dylib /usr/local/lib
+        cp $OPENSSL_PREFIX/*.dylib $PREFIX/lib/
+        cp $OPENSSL_PREFIX/*.dylib $PREFIX/lib/
+        echo "PREFIX        " $PREFIX
+        echo "OPENSSL_PREFIX" $OPENSSL_PREFIX
+        ls -l /Users/runner/work/pygit2/pygit2/ci/
+        ls -l $PREFIX/lib
     fi
     # we're done building dependencies, cibuildwheel action will take over
     exit 0
