@@ -3,8 +3,16 @@
 
 - Upgrade to libgit2 v1.7.1
 
-- docs: update links to pypy, pygit2.org
+- Don't distribute wheels for pypy, only universal wheels for macOS
+
+- New `Repository.remotes.create_anonymous(url)`
+  `#1229 <https://github.com/libgit2/pygit2/pull/1229>`_
+
+- docs: update links to pypi, pygit2.org
   `#1228 <https://github.com/libgit2/pygit2/pull/1228>`_
+
+- Prep work for Python 3.12 (not yet supported)
+  `#1223 <https://github.com/libgit2/pygit2/pull/1223>`_
 
 
 1.12.2 (2023-06-25)

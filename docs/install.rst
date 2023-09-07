@@ -50,7 +50,7 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.8+
+- Python 3.8 to 3.11
 - PyPy3 7.3+
 
 Python requirements (these are specified in ``setup.py``):
