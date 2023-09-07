@@ -1,11 +1,11 @@
-1.13.0 (UNRELEASED)
+1.13.0 (2023-09-07)
 -------------------------
 
 - Upgrade to libgit2 v1.7.1
 
 - Don't distribute wheels for pypy, only universal wheels for macOS
 
-- New `Repository.remotes.create_anonymous(url)`
+- New ``Repository.remotes.create_anonymous(url)``
   `#1229 <https://github.com/libgit2/pygit2/pull/1229>`_
 
 - docs: update links to pypi, pygit2.org

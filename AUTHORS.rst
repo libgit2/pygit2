@@ -49,6 +49,7 @@ Authors::
   Dan Sully
   David Versmisse
   Mikhail Yushkovskiy
+  Peter Rowlands
   Robin Stocker
   Rohit Sanjay
   Rémi Duraffort
@@ -69,7 +70,6 @@ Authors::
   Leonardo Rhodes
   Mark Adams
   Nika Layzell
-  Peter Rowlands
   Peter-Yi Zhang
   Petr Viktorin
   Robert Hölzl
@@ -86,6 +86,7 @@ Authors::
   Arno van Lumig
   Ben Davis
   Colin Watson
+  Dan Yeaw
   Dustin Raimondi
   Eric Schrijver
   Greg Fitzgerald
@@ -196,6 +197,7 @@ Authors::
   Rodrigo Bistolfi
   Ross Nicoll
   Rui Abreu Ferreira
+  Sandro Jäckel
   Saul Pwanson
   Shane Turner
   Sheeo
