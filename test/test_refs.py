@@ -142,11 +142,16 @@ def test_refs_delete(testrepo):
 
 def test_refs_rename(testrepo):
     # We add a tag as a new reference that points to "origin/master"
-    reference = testrepo.references.create('refs/tags/version1',
-                                            LAST_COMMIT)
+    reference = testrepo.references.create('refs/tags/version1', LAST_COMMIT)
     assert reference.name == 'refs/tags/version1'
     reference.rename('refs/tags/version2')
     assert reference.name == 'refs/tags/version2'
+
+    with pytest.raises(AlreadyExistsError):
+        reference.rename('refs/tags/version2')
+
+    with pytest.raises(InvalidSpecError):
+        reference.rename('b1')
 
 #def test_reload(testrepo):
 #    name = 'refs/tags/version1'

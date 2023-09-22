@@ -216,21 +216,22 @@ Reference_rename(Reference *self, PyObject *py_name)
 {
     CHECK_REFERENCE(self);
 
-    /* Get the C name */
+    // Get the C name
     char *c_name = pgit_encode_fsdefault(py_name);
     if (c_name == NULL)
         return NULL;
 
-    /* Rename */
+    // Rename
     git_reference *new_reference;
     int err = git_reference_rename(&new_reference, self->reference, c_name, 0, NULL);
     free(c_name);
-
-    git_reference_free(self->reference);
     if (err)
         return Error_set(err);
 
+    // Upadate reference
+    git_reference_free(self->reference);
     self->reference = new_reference;
+
     Py_RETURN_NONE;
 }
 
