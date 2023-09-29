@@ -78,6 +78,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Version Control"]
@@ -152,7 +153,7 @@ setup(
     ext_modules=ext_modules,
     # Requirements
     python_requires='>=3.8',
-    setup_requires=['cffi>=1.9.1'],
+    setup_requires=['cffi>=1.16.0'],
     install_requires=install_requires,
     # URLs
     url='https://github.com/libgit2/pygit2',

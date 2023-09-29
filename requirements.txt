@@ -1,2 +1,2 @@
-cffi>=1.9.1
+cffi>=1.16.0
 setuptools ; python_version >= "3.12"

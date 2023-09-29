@@ -4,10 +4,10 @@
 #define GIT_ATTR_CHECK_NO_SYSTEM		4
 
 typedef enum {
-	GIT_ATTR_UNSPECIFIED_T = 0,
-	GIT_ATTR_TRUE_T,
-	GIT_ATTR_FALSE_T,
-	GIT_ATTR_VALUE_T,
+	GIT_ATTR_VALUE_UNSPECIFIED = 0, /**< The attribute has been left unspecified */
+	GIT_ATTR_VALUE_TRUE,   /**< The attribute has been set */
+	GIT_ATTR_VALUE_FALSE,  /**< The attribute has been unset */
+	GIT_ATTR_VALUE_STRING  /**< This attribute has a value */
 } git_attr_value_t;
 
 int git_attr_get(

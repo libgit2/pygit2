@@ -1407,13 +1407,13 @@ class BaseRepository(_Repository):
 
         # Now let's see if we can figure out what the value is
         attr_kind = C.git_attr_value(cvalue[0])
-        if attr_kind == C.GIT_ATTR_UNSPECIFIED_T:
+        if attr_kind == C.GIT_ATTR_VALUE_UNSPECIFIED:
             return None
-        elif attr_kind == C.GIT_ATTR_TRUE_T:
+        elif attr_kind == C.GIT_ATTR_VALUE_TRUE:
             return True
-        elif attr_kind == C.GIT_ATTR_FALSE_T:
+        elif attr_kind == C.GIT_ATTR_VALUE_FALSE:
             return False
-        elif attr_kind == C.GIT_ATTR_VALUE_T:
+        elif attr_kind == C.GIT_ATTR_VALUE_STRING:
             return ffi.string(cvalue[0]).decode('utf-8')
 
         assert False, "the attribute value from libgit2 is invalid"
