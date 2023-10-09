@@ -31,6 +31,7 @@ from ._pygit2 import *
 
 # High level API
 from .blame import Blame, BlameHunk
+from .blob import BlobIO
 from .callbacks import git_clone_options, git_fetch_options, get_credentials
 from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCallbacks
 from .config import Config

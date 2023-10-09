@@ -27,6 +27,7 @@
 
 import io
 from pathlib import Path
+from queue import Queue
 
 import pytest
 
@@ -192,3 +193,36 @@ def test_blob_from_repo(testrepo):
     patch_two = blob.diff_to_buffer(None)
 
     assert patch_one.text == patch_two.text
+
+def test_blob_write_to_queue(testrepo):
+    queue = Queue()
+    blob = testrepo[BLOB_SHA]
+    blob._write_to_queue(queue)
+    chunks = []
+    while not queue.empty():
+        chunks.append(queue.get())
+    assert BLOB_CONTENT == b''.join(chunks)
+
+def test_blob_write_to_queue_filtered(testrepo):
+    queue = Queue()
+    blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
+    blob = testrepo[blob_oid]
+    blob._write_to_queue(queue, as_path='bye.txt')
+    chunks = []
+    while not queue.empty():
+        chunks.append(queue.get())
+    assert b'bye world\n' == b''.join(chunks)
+
+def test_blobio(testrepo):
+    blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
+    blob = testrepo[blob_oid]
+    with pygit2.BlobIO(blob) as reader:
+        assert b'bye world\n' == reader.read()
+    assert not reader.raw._thread.is_alive()
+
+def test_blobio_filtered(testrepo):
+    blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
+    blob = testrepo[blob_oid]
+    with pygit2.BlobIO(blob, as_path='bye.txt') as reader:
+        assert b'bye world\n' == reader.read()
+    assert not reader.raw._thread.is_alive()

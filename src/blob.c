@@ -27,9 +27,11 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <git2.h>
 #include "diff.h"
 #include "error.h"
 #include "object.h"
+#include "oid.h"
 #include "patch.h"
 #include "utils.h"
 
@@ -137,9 +139,187 @@ Blob_diff_to_buffer(Blob *self, PyObject *args, PyObject *kwds)
     return wrap_patch(patch, self, NULL);
 }
 
+
+struct blob_filter_stream {
+    git_writestream stream;
+    PyObject *py_queue;
+    Py_ssize_t chunk_size;
+};
+
+static int blob_filter_stream_write(
+    git_writestream *s, const char *buffer, size_t len)
+{
+    struct blob_filter_stream *stream = (struct blob_filter_stream *)s;
+    const char *pos = buffer;
+    const char *endpos = buffer + len;
+    Py_ssize_t chunk_size;
+    PyObject *result;
+    PyGILState_STATE gil = PyGILState_Ensure();
+    int err = 0;
+
+    while (pos < endpos)
+    {
+        chunk_size = endpos - pos;
+        if (stream->chunk_size < chunk_size)
+            chunk_size = stream->chunk_size;
+        result = PyObject_CallMethod(stream->py_queue, "put", "y#", pos, chunk_size);
+        if (result == NULL)
+        {
+            PyErr_Clear();
+            git_error_set(GIT_ERROR_OS, "failed to put chunk to queue");
+            err = GIT_ERROR;
+            goto done;
+        }
+        Py_DECREF(result);
+        pos += chunk_size;
+    }
+
+done:
+    PyGILState_Release(gil);
+    return err;
+}
+
+static int blob_filter_stream_close(git_writestream *s)
+{
+    return 0;
+}
+
+static void blob_filter_stream_free(git_writestream *s)
+{
+    struct blob_filter_stream *stream = (struct blob_filter_stream *)s;
+    PyGILState_STATE gil = PyGILState_Ensure();
+
+    Py_DECREF(stream->py_queue);
+    stream->py_queue = NULL;
+    PyGILState_Release(gil);
+}
+
+
+#define STREAM_CHUNK_SIZE (8 * 1024)
+
+
+PyDoc_STRVAR(Blob__write_to_queue__doc__,
+  "_write_to_queue(queue: queue.Queue, chunk_size: int = io.DEFAULT_BUFFER_SIZE, [as_path: str = None, flags: int = GIT_BLOB_FILTER_CHECK_FOR_BINARY, commit_id: oid = None]) -> None\n"
+  "\n"
+  "Write the contents of the blob in chunks to `queue`.\n"
+  "If `as_path` is None, the raw contents of blob will be written to the queue,\n"
+  "otherwise the contents of the blob will be filtered.\n"
+  "\n"
+  "In most cases, the higher level `BlobIO` wrapper should be used when\n"
+  "streaming blob content instead of calling this method directly.\n"
+  "\n"
+  "Note that this method will block the current thread until all chunks have\n"
+  "been written to the queue. The GIL will be released while running\n"
+  "libgit2 filtering.\n"
+  "\n"
+  "Returns: The filtered content.\n"
+  "\n"
+  "Parameters:\n"
+  "\n"
+  "queue: queue.Queue\n"
+  "    Destination queue.\n"
+  "\n"
+  "chunk_size : int\n"
+  "    Maximum size of chunks to be written to `queue`.\n"
+  "\n"
+  "as_path : str\n"
+  "    When set, the blob contents will be filtered as if it had this\n"
+  "    filename (used for attribute lookups).\n"
+  "\n"
+  "flags : int\n"
+  "    GIT_BLOB_FILTER_* bitflags (only applicable when `as_path` is set).\n"
+  "\n"
+  "commit_id : oid\n"
+  "    Commit to load attributes from when\n"
+  "    GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT is specified in `flags`\n"
+  "    (only applicable when `as_path` is set).\n");
+
+PyObject *
+Blob__write_to_queue(Blob *self, PyObject *args, PyObject *kwds)
+{
+    PyObject *py_queue = NULL;
+    Py_ssize_t chunk_size = STREAM_CHUNK_SIZE;
+    char *as_path = NULL;
+    PyObject *py_oid = NULL;
+    int err;
+    char *keywords[] = {"queue", "chunk_size", "as_path", "flags", "commit_id", NULL};
+    git_blob_filter_options opts = GIT_BLOB_FILTER_OPTIONS_INIT;
+    git_filter_options filter_opts = GIT_FILTER_OPTIONS_INIT;
+    git_filter_list *fl = NULL;
+    git_blob *blob = NULL;
+    const git_oid *blob_oid;
+    struct blob_filter_stream writer;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|nzIO", keywords,
+                                     &py_queue, &chunk_size, &as_path,
+                                     &opts.flags, &py_oid))
+        return NULL;
+
+    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+
+    /* we load our own copy of this blob since libgit2 objects are not
+     * thread-safe */
+    blob_oid = Object__id((Object*)self);
+    err = git_blob_lookup(&blob, git_blob_owner(self->blob), blob_oid);
+    if (err < 0)
+        return Error_set(err);
+
+    if (as_path != NULL &&
+        !((opts.flags & GIT_BLOB_FILTER_CHECK_FOR_BINARY) != 0 &&
+          git_blob_is_binary(blob)))
+    {
+        if (py_oid != NULL && py_oid != Py_None)
+        {
+            err = py_oid_to_git_oid(py_oid, &opts.attr_commit_id);
+            if (err < 0)
+                return Error_set(err);
+        }
+
+        if ((opts.flags & GIT_BLOB_FILTER_NO_SYSTEM_ATTRIBUTES) != 0)
+            filter_opts.flags |= GIT_FILTER_NO_SYSTEM_ATTRIBUTES;
+        if ((opts.flags & GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD) != 0)
+            filter_opts.flags |= GIT_FILTER_ATTRIBUTES_FROM_HEAD;
+        if ((opts.flags & GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT) != 0)
+            filter_opts.flags |= GIT_FILTER_ATTRIBUTES_FROM_COMMIT;
+        git_oid_cpy(&filter_opts.attr_commit_id, &opts.attr_commit_id);
+
+        err = git_filter_list_load_ext(&fl, git_blob_owner(blob), blob,
+                                       as_path, GIT_FILTER_TO_WORKTREE,
+                                       &filter_opts);
+        if (err < 0)
+        {
+            if (blob != NULL)
+                git_blob_free(blob);
+            return Error_set(err);
+        }
+    }
+
+    memset(&writer, 0, sizeof(struct blob_filter_stream));
+    writer.stream.write = blob_filter_stream_write;
+    writer.stream.close = blob_filter_stream_close;
+    writer.stream.free = blob_filter_stream_free;
+    writer.py_queue = py_queue;
+    writer.chunk_size = chunk_size;
+    Py_INCREF(writer.py_queue);
+
+    Py_BEGIN_ALLOW_THREADS;
+    err = git_filter_list_stream_blob(fl, blob, &writer.stream);
+    Py_END_ALLOW_THREADS;
+    git_filter_list_free(fl);
+    if (writer.py_queue != NULL)
+        Py_DECREF(writer.py_queue);
+    if (blob != NULL)
+        git_blob_free(blob);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef Blob_methods[] = {
     METHOD(Blob, diff, METH_VARARGS | METH_KEYWORDS),
     METHOD(Blob, diff_to_buffer, METH_VARARGS | METH_KEYWORDS),
+    METHOD(Blob, _write_to_queue, METH_VARARGS | METH_KEYWORDS),
     {NULL}
 };
 

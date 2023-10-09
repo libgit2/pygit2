@@ -642,6 +642,12 @@ PyInit__pygit2(void)
     INIT_TYPE(StashType, NULL, NULL)
     ADD_TYPE(m, Stash)
 
+    /* Blob filter */
+    ADD_CONSTANT_INT(m, GIT_BLOB_FILTER_CHECK_FOR_BINARY);
+    ADD_CONSTANT_INT(m, GIT_BLOB_FILTER_NO_SYSTEM_ATTRIBUTES);
+    ADD_CONSTANT_INT(m, GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD);
+    ADD_CONSTANT_INT(m, GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT);
+
     /* Global initialization of libgit2 */
     git_libgit2_init();
 
