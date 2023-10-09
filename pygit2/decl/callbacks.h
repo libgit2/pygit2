@@ -65,3 +65,31 @@ extern "Python" void _checkout_progress_cb(
 extern "Python" int _stash_apply_progress_cb(
     git_stash_apply_progress_t progress,
     void *payload);
+
+extern "Python" void _filter_shutdown_cb(git_filter *self);
+
+extern "Python" int _filter_check_cb(
+    git_filter *self,
+    void **payload,
+    const git_filter_source *src,
+    const char **attr_values);
+
+extern "Python" int _filter_stream_cb(
+    git_writestream **out,
+    git_filter *self,
+    void **payload,
+    const git_filter_source *src,
+    git_writestream *next);
+
+extern "Python" void _filter_cleanup_cb(
+    git_filter *self,
+    void *payload);
+
+extern "Python" int _writestream_write_cb(
+    git_writestream *stream,
+    const char *buffer,
+    size_t len);
+
+extern "Python" int _writestream_close_cb(git_writestream *stream);
+
+extern "Python" void _writestream_free_cb(git_writestream *stream);
