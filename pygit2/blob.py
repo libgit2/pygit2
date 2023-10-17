@@ -55,38 +55,44 @@ class _BlobIO(io.RawIOBase):
         return False
 
     def readinto(self, b, /):
-        while self._chunk is None:
-            if self._queue.empty():
-                if self._thread.is_alive():
-                    time.sleep(0)
-                    continue
-                else:
-                    # EOF
-                    return 0
-            chunk = self._queue.get()
-            if chunk:
-                self._chunk = chunk
+        try:
+            while self._chunk is None:
+                if self._queue.empty():
+                    if self._thread.is_alive():
+                        time.sleep(0)
+                        continue
+                    else:
+                        # EOF
+                        return 0
+                chunk = self._queue.get()
+                if chunk:
+                    self._chunk = chunk
 
-        if len(self._chunk) <= len(b):
-            bytes_written = len(self._chunk)
-            b[:bytes_written] = self._chunk
-            self._chunk = None
+            if len(self._chunk) <= len(b):
+                bytes_written = len(self._chunk)
+                b[:bytes_written] = self._chunk
+                self._chunk = None
+                return bytes_written
+            bytes_written = len(b)
+            b[:] = self._chunk[:bytes_written]
+            self._chunk = self._chunk[bytes_written:]
             return bytes_written
-        bytes_written = len(b)
-        b[:] = self._chunk[:bytes_written]
-        self._chunk = self._chunk[bytes_written:]
-        return bytes_written
+        except KeyboardInterrupt:
+            return 0
 
     def close(self):
-        while True:
-            if self._queue.empty():
-                if self._thread.is_alive():
-                    time.sleep(0)
+        try:
+            while True:
+                if self._queue.empty():
+                    if self._thread.is_alive():
+                        time.sleep(0)
+                    else:
+                        break
                 else:
-                    break
-            else:
-                self._queue.get()
-        self._thread.join()
+                    self._queue.get()
+            self._thread.join()
+        except KeyboardInterrupt:
+            pass
 
 
 class BlobIO(io.BufferedReader, AbstractContextManager):
