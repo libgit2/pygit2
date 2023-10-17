@@ -32,6 +32,7 @@ from ._pygit2 import Oid
 from .callbacks import Payload
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
+from .repository import Repository
 from .utils import maybe_string, to_bytes
 
 
@@ -48,6 +49,7 @@ class FilterSource:
             be None.
         flags: GIT_FILTER_* flags to be applied for this blob.
     """
+    repo: Repository
     path: str
     filemode: int
     oid: Optional[Oid]
@@ -56,6 +58,7 @@ class FilterSource:
     @classmethod
     def _from_c(cls, ptr):
         src = cls.__new__(cls)
+        src.repo = Repository._from_c(C.git_filter_source_repo(ptr), owned=False)
         src.path = maybe_string(C.git_filter_source_path(ptr))
         src.filemode = C.git_filter_source_filemode(ptr)
         try:

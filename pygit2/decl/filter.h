@@ -60,6 +60,7 @@ int git_filter_init(git_filter *filter, unsigned int version);
 int git_filter_register(
 	const char *name, git_filter *filter, int priority);
 int git_filter_unregister(const char *name);
+git_repository *git_filter_source_repo(const git_filter_source *src);
 const char *git_filter_source_path(const git_filter_source *src);
 uint16_t git_filter_source_filemode(const git_filter_source *src);
 const git_oid *git_filter_source_id(const git_filter_source *src);
