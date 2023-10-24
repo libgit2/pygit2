@@ -62,23 +62,6 @@ The Reference type
 
    .. automethod:: log
 
-      Example::
-
-         >>> branch = repository.references["refs/heads/master"]
-         >>> branch.target = another_commit.id
-         >>> committer = Signature('Cecil Committer', 'cecil@committers.tld')
-         >>> branch.log_append(another_commit.id, committer,
-                               "changed branch target using pygit2")
-
-      This creates a reflog entry in ``git reflog master`` which looks like::
-
-         7296b92 master@{10}: changed branch target using pygit2
-
-      In order to make an entry in ``git reflog``, ie. the reflog for ``HEAD``, you
-      have to get the Reference object for ``HEAD`` and call ``log_append`` on
-      that.
-
-
 The HEAD
 ====================
 
