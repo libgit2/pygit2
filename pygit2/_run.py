@@ -81,7 +81,6 @@ h_files = [
     'revert.h',
     'stash.h',
     'submodule.h',
-    'filter.h',
     'callbacks.h', # Bridge from libgit2 to Python
 ]
 h_source = []
@@ -97,7 +96,7 @@ _, libgit2_kw = get_libgit2_paths()
 ffi = FFI()
 ffi.set_source(
     "pygit2._libgit2",
-    "#include <git2.h>\n#include <git2/sys/filter.h>", # preamble
+    "#include <git2.h>", # preamble
     **libgit2_kw
 )
 ffi.cdef(C_HEADER_SRC)

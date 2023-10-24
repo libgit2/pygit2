@@ -12,13 +12,6 @@ typedef struct git_submodule git_submodule;
 typedef struct git_transport git_transport;
 typedef struct git_tree git_tree;
 typedef struct git_packbuilder git_packbuilder;
-typedef struct git_writestream git_writestream;
-
-struct git_writestream {
-	int (*write)(git_writestream *stream, const char *buffer, size_t len);
-	int (*close)(git_writestream *stream);
-	void (*free)(git_writestream *stream);
-};
 
 typedef int64_t git_off_t;
 typedef int64_t git_time_t;

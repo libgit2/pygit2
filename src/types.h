@@ -31,6 +31,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
+#include <git2/sys/filter.h>
 
 #if !(LIBGIT2_VER_MAJOR == 1 && LIBGIT2_VER_MINOR == 7)
 #error You need a compatible libgit2 version (1.7.x)
@@ -265,5 +266,10 @@ typedef struct {
     PyObject *commit_id;
     char *message;
 } Stash;
+
+typedef struct {
+    PyObject_HEAD
+    const git_filter_source *src;
+} FilterSource;
 
 #endif

@@ -29,12 +29,14 @@
 #include <Python.h>
 
 #include <git2.h>
+#include <git2/sys/filter.h>
 #include "error.h"
 #include "types.h"
 #include "utils.h"
 #include "repository.h"
 #include "oid.h"
 #include "options.h"
+#include "filter.h"
 
 PyObject *GitError;
 PyObject *AlreadyExistsError;
@@ -80,6 +82,7 @@ extern PyTypeObject WorktreeType;
 extern PyTypeObject MailmapType;
 extern PyTypeObject StashType;
 extern PyTypeObject RefsIteratorType;
+extern PyTypeObject FilterSourceType;
 
 
 PyDoc_STRVAR(discover_repository__doc__,
@@ -263,6 +266,100 @@ tree_entry_cmp(PyObject *self, PyObject *args)
     return PyLong_FromLong(cmp);
 }
 
+PyDoc_STRVAR(filter_register__doc__,
+    "filter_register(name: str, filter_cls: Type[Filter], [priority: int = C.GIT_FILTER_DRIVER_PRIORITY]) -> None\n"
+    "\n"
+    "Register a filter under the given name.\n"
+    "\n"
+    "Filters will be run in order of `priority` on smudge (to workdir) and in\n"
+    "reverse order of priority on clean (to odb).\n"
+    "\n"
+    "Two filters are preregistered with libgit2:\n"
+    "    - GIT_FILTER_CRLF with priority 0\n"
+    "    - GIT_FILTER_IDENT with priority 100\n"
+    "\n"
+    "`priority` defaults to GIT_FILTER_DRIVER_PRIORITY which imitates a core\n"
+    "Git filter driver that will be run last on checkout (smudge) and first \n"
+    "on checkin (clean).\n"
+    "\n"
+    "Note that the filter registry is not thread safe. Any registering or\n"
+    "deregistering of filters should be done outside of any possible usage\n"
+    "of the filters.\n");
+
+PyObject *
+filter_register(PyObject *self, PyObject *args, PyObject *kwds)
+{
+    const char *name;
+    Py_ssize_t size;
+    PyObject *py_filter_cls;
+    int priority = GIT_FILTER_DRIVER_PRIORITY;
+    char *keywords[] = {"name", "filter_cls", "priority", NULL};
+    pygit2_filter *filter;
+    PyObject *py_attrs;
+    PyObject *result = Py_None;
+    int err;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s#O|i", keywords,
+                                     &name, &size, &py_filter_cls, &priority))
+        return NULL;
+
+    py_attrs = PyObject_GetAttrString(py_filter_cls, "attributes");
+    if (py_attrs == NULL)
+        return NULL;
+
+    filter = malloc(sizeof(pygit2_filter));
+    if (filter == NULL)
+    {
+        return PyExc_MemoryError;
+    }
+    memset(filter, 0, sizeof(pygit2_filter));
+    git_filter_init(&filter->filter, GIT_FILTER_VERSION);
+
+    filter->filter.attributes = PyUnicode_AsUTF8(py_attrs);
+    filter->filter.shutdown = pygit2_filter_shutdown;
+    filter->filter.check = pygit2_filter_check;
+    filter->filter.stream = pygit2_filter_stream;
+    filter->filter.cleanup = pygit2_filter_cleanup;
+    filter->py_filter_cls = py_filter_cls;
+    Py_INCREF(py_filter_cls);
+
+    if ((err = git_filter_register(name, &filter->filter, priority)) < 0)
+        goto error;
+
+    goto done;
+
+error:
+    Py_DECREF(py_filter_cls);
+    free(filter);
+done:
+    Py_DECREF(py_attrs);
+    return result;
+}
+
+PyDoc_STRVAR(filter_unregister__doc__,
+    "filter_unregister(name: str) -> None\n"
+    "\n"
+    "Unregister the given filter.\n"
+    "\n"
+    "Note that the filter registry is not thread safe. Any registering or\n"
+    "deregistering of filters should be done outside of any possible usage\n"
+    "of the filters.\n");
+
+PyObject *
+filter_unregister(PyObject *self, PyObject *args)
+{
+    const char *name;
+    Py_ssize_t size;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "s#", &name, &size))
+        return NULL;
+    if ((err = git_filter_unregister(name)) < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
 
 PyMethodDef module_methods[] = {
     {"discover_repository", discover_repository, METH_VARARGS, discover_repository__doc__},
@@ -272,6 +369,8 @@ PyMethodDef module_methods[] = {
     {"option", option, METH_VARARGS, option__doc__},
     {"reference_is_valid_name", reference_is_valid_name, METH_O, reference_is_valid_name__doc__},
     {"tree_entry_cmp", tree_entry_cmp, METH_VARARGS, tree_entry_cmp__doc__},
+    {"filter_register", filter_register, METH_VARARGS | METH_KEYWORDS, filter_register__doc__},
+    {"filter_unregister", filter_unregister, METH_VARARGS, filter_unregister__doc__},
     {NULL}
 };
 
@@ -647,6 +746,19 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_BLOB_FILTER_NO_SYSTEM_ATTRIBUTES);
     ADD_CONSTANT_INT(m, GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD);
     ADD_CONSTANT_INT(m, GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT);
+    ADD_CONSTANT_INT(m, GIT_FILTER_DRIVER_PRIORITY);
+    ADD_CONSTANT_INT(m, GIT_FILTER_TO_WORKTREE);
+    ADD_CONSTANT_INT(m, GIT_FILTER_SMUDGE);
+    ADD_CONSTANT_INT(m, GIT_FILTER_TO_ODB);
+    ADD_CONSTANT_INT(m, GIT_FILTER_CLEAN);
+    ADD_CONSTANT_INT(m, GIT_FILTER_DEFAULT);
+    ADD_CONSTANT_INT(m, GIT_FILTER_ALLOW_UNSAFE);
+    ADD_CONSTANT_INT(m, GIT_FILTER_NO_SYSTEM_ATTRIBUTES);
+    ADD_CONSTANT_INT(m, GIT_FILTER_ATTRIBUTES_FROM_HEAD);
+    ADD_CONSTANT_INT(m, GIT_FILTER_ATTRIBUTES_FROM_COMMIT);
+
+    INIT_TYPE(FilterSourceType, NULL, NULL);
+    ADD_TYPE(m, FilterSource);
 
     /* Global initialization of libgit2 */
     git_libgit2_init();
