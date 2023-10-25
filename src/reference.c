@@ -323,11 +323,7 @@ Reference_raw_target__get__(Reference *self)
 PyDoc_STRVAR(Reference_set_target__doc__,
     "set_target(target[, message: str])\n"
     "\n"
-    "Set the target of this reference.\n"
-    "\n"
-    "Update the reference using the given signature and message.\n"
-    "These will be used to fill the reflog entry which will be created\n"
-    "as a result of this update.\n"
+    "Set the target of this reference. Creates a new entry in the reflog.\n"
     "\n"
     "Parameters:\n"
     "\n"
