@@ -26,10 +26,12 @@ class _BlobIO(io.RawIOBase):
         super().__init__()
         self._blob = blob
         self._queue = Queue(maxsize=1)
+        self._ready = threading.Event()
+        self._writer_closed = threading.Event()
         self._chunk: Optional[bytes] = None
         self._thread = threading.Thread(
             target=self._blob._write_to_queue,
-            args=(self._queue,),
+            args=(self._queue, self._ready, self._writer_closed),
             kwargs={
                 "as_path": as_path,
                 "flags": flags,
@@ -57,13 +59,14 @@ class _BlobIO(io.RawIOBase):
     def readinto(self, b, /):
         try:
             while self._chunk is None:
+                self._ready.wait()
                 if self._queue.empty():
-                    if self._thread.is_alive():
-                        time.sleep(0)
-                        continue
-                    else:
+                    if self._writer_closed.is_set():
                         # EOF
                         return 0
+                    self._ready.clear()
+                    time.sleep(0)
+                    continue
                 chunk = self._queue.get()
                 if chunk:
                     self._chunk = chunk
@@ -82,17 +85,14 @@ class _BlobIO(io.RawIOBase):
 
     def close(self):
         try:
-            while True:
-                if self._queue.empty():
-                    if self._thread.is_alive():
-                        time.sleep(0)
-                    else:
-                        break
-                else:
-                    self._queue.get()
+            self._ready.wait()
+            self._writer_closed.wait()
+            while not self._queue.empty():
+                self._queue.get()
             self._thread.join()
         except KeyboardInterrupt:
             pass
+        self._queue = None
 
 
 class BlobIO(io.BufferedReader, AbstractContextManager):

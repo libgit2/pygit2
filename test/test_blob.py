@@ -27,6 +27,7 @@
 
 import io
 from pathlib import Path
+from threading import Event
 from queue import Queue
 
 import pytest
@@ -196,8 +197,12 @@ def test_blob_from_repo(testrepo):
 
 def test_blob_write_to_queue(testrepo):
     queue = Queue()
+    ready = Event()
+    done = Event()
     blob = testrepo[BLOB_SHA]
-    blob._write_to_queue(queue)
+    blob._write_to_queue(queue, ready, done)
+    assert ready.wait()
+    assert done.wait()
     chunks = []
     while not queue.empty():
         chunks.append(queue.get())
@@ -205,9 +210,13 @@ def test_blob_write_to_queue(testrepo):
 
 def test_blob_write_to_queue_filtered(testrepo):
     queue = Queue()
+    ready = Event()
+    done = Event()
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
-    blob._write_to_queue(queue, as_path='bye.txt')
+    blob._write_to_queue(queue, ready, done, as_path='bye.txt')
+    assert ready.wait()
+    assert done.wait()
     chunks = []
     while not queue.empty():
         chunks.append(queue.get())
