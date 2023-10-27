@@ -87,7 +87,7 @@ class _BlobIO(io.RawIOBase):
         try:
             self._ready.wait()
             self._writer_closed.wait()
-            while not self._queue.empty():
+            while self._queue is not None and not self._queue.empty():
                 self._queue.get()
             self._thread.join()
         except KeyboardInterrupt:
