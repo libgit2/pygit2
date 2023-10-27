@@ -1371,7 +1371,7 @@ class BaseRepository(_Repository):
     #
     # Git attributes
     #
-    def get_attr(self, path, name, flags=0):
+    def get_attr(self, path, name, flags=0, commit=None):
         """
         Retrieve an attribute for a file by path.
 
@@ -1391,6 +1391,10 @@ class BaseRepository(_Repository):
             A combination of `GIT_ATTR_CHECK_` flags which determine the
             lookup order.
 
+        commit
+            Optional id of commit to load attributes from when
+            `GIT_ATTR_CHECK_INCLUDE_COMMIT` is specified.
+
         Examples::
 
             >>> print(repo.get_attr('splash.bmp', 'binary'))
@@ -1401,8 +1405,16 @@ class BaseRepository(_Repository):
             'tab-in-indent,trailing-space'
         """
 
+        copts = ffi.new('git_attr_options *')
+        copts.version = C.GIT_ATTR_OPTIONS_VERSION
+        copts.flags = flags
+        if commit is not None:
+            if not isinstance(commit, Oid):
+                commit = Oid(hex=commit)
+            ffi.buffer(ffi.addressof(copts, 'attr_commit_id'))[:] = commit.raw
+
         cvalue = ffi.new('char **')
-        err = C.git_attr_get(cvalue, self._repo, flags, to_bytes(path), to_bytes(name))
+        err = C.git_attr_get_ext(cvalue, self._repo, copts, to_bytes(path), to_bytes(name))
         check_error(err)
 
         # Now let's see if we can figure out what the value is

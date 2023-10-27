@@ -54,8 +54,8 @@ else:
 # Order matters
 h_files = [
     'types.h',
-    'attr.h',
     'oid.h',
+    'attr.h',
     'blame.h',
     'buffer.h',
     'strarray.h',
