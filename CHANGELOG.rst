@@ -1,7 +1,10 @@
-1.13.2 (UNRELEASED)
+1.13.2 (2023-10-30)
 -------------------------
 
 - Support Python 3.12
+
+- Documentation updates
+  `#1242 <https://github.com/libgit2/pygit2/pull/1242>`_
 
 
 1.13.1 (2023-09-24)

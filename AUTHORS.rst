@@ -169,6 +169,7 @@ Authors::
   Jiri Benc
   Jonathan Robson
   Josh Bleecher Snyder
+  Julia Evans
   Justin Clift
   Konstantinos Smanis
   Kyriakos Oikonomakos
