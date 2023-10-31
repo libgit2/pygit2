@@ -68,6 +68,7 @@ Table of Contents
    config
    diff
    features
+   filters
    index_file
    mailmap
    merge

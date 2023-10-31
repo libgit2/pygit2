@@ -123,6 +123,20 @@ creating the blob object:
 .. autofunction:: pygit2.hash
 .. autofunction:: pygit2.hashfile
 
+Streaming blob content
+----------------------
+
+`pygit2.Blob.data` and `pygit2.Blob.read_raw()` read the full contents of the
+blob into memory and return Python ``bytes``. They also return the raw contents
+of the blob, and do not apply any filters which would be applied upon checkout
+to the working directory.
+
+Raw and filtered blob data can be accessed as a Python Binary I/O stream
+(i.e. a file-like object):
+
+.. autoclass:: pygit2.BlobIO
+   :members:
+
 
 Trees
 =================

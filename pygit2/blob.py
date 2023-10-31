@@ -100,6 +100,27 @@ class BlobIO(io.BufferedReader, AbstractContextManager):
 
     Supports reading both raw and filtered blob content.
     Implements io.BufferedReader.
+
+    Example:
+
+        >>> with BlobIO(blob) as f:
+        ...     while True:
+        ...         # Read blob data in 1KB chunks until EOF is reached
+        ...         chunk = f.read(1024)
+        ...         if not chunk:
+        ...             break
+
+    By default, `BlobIO` will stream the raw contents of the blob, but it
+    can also be used to stream filtered content (i.e. to read the content
+    after applying filters which would be used when checking out the blob
+    to the working directory).
+
+    Example:
+
+        >>> with BlobIO(blob, as_path='my_file.ext') as f:
+        ...     # Read the filtered content which would be returned upon
+        ...     # running 'git checkout -- my_file.txt'
+        ...     filtered_data = f.read()
     """
 
     def __init__(
