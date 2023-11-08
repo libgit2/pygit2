@@ -1,5 +1,36 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+build-backend = 'mesonpy'
+requires = ['meson-python']
+
+[project]
+name = 'pygit2'
+version = '1.13.3'
+description = 'Python bindings for libgit2.'
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Topic :: Software Development :: Version Control',
+]
+dependencies = ['cffi>=1.16.0']
+keywords = ['git']
+license = {text = 'GPLv2 with linking exception'}
+maintainers = [{name = 'J. David Ibáñez', email = 'jdavid.ibp@gmail.com'}]
+readme = 'README.rst'
+requires-python = '>=3.9'
+
+[project.urls]
+Homepage = 'https://github.com/libgit2/pygit2'
+Documentation = 'https://www.pygit2.org/'
+Changelog = 'https://github.com/libgit2/pygit2/blob/master/CHANGELOG.rst'
+Funding = 'https://github.com/sponsors/jdavid'
 
 [tool.cibuildwheel]
 enable = ["pypy"]

@@ -5,3 +5,16 @@ build:
 
 html: build
 	make -C docs html
+
+meson:
+	rm builddir -rf
+	meson setup builddir
+	cd builddir && meson compile
+
+meson_build:
+	python -m build
+
+meson_install:
+	python -m venv venv
+	./venv/bin/pip install -U pip
+	./venv/bin/pip install build
