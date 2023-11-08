@@ -97,7 +97,7 @@ char* pgit_encode_fsdefault(PyObject *value);
 //PyObject * get_pylist_from_git_strarray(git_strarray *strarray);
 //int get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist);
 
-int py_object_to_otype(PyObject *py_type);
+git_otype py_object_to_otype(PyObject *py_type);
 
 /* Helpers to make shorter PyMethodDef and PyGetSetDef blocks */
 #define METHOD(type, name, args)\

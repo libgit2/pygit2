@@ -286,7 +286,6 @@ Blob__write_to_queue(Blob *self, PyObject *args, PyObject *kwds)
     git_blob *blob = NULL;
     const git_oid *blob_oid;
     struct blob_filter_stream writer;
-    PyObject *result = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|nzIO", keywords,
                                      &py_queue, &py_ready, &py_closed,

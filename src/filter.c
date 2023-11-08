@@ -200,7 +200,7 @@ done:
 
 static PyMethodDef filter__write_next_method = {
     "_write_next",
-    filter__write_next,
+    (PyCFunction)filter__write_next,
     METH_VARARGS | METH_KEYWORDS,
     filter__write_next__doc__
 };
@@ -209,7 +209,7 @@ struct pygit2_filter_stream {
     git_writestream stream;
     git_writestream *next;
     PyObject *py_filter;
-    PyObject *py_src;
+    FilterSource *py_src;
     PyObject *py_write_next;
 };
 
@@ -313,10 +313,11 @@ done:
     if (stream->py_write_next != NULL)
         Py_DECREF(stream->py_write_next);
     PyGILState_Release(gil);
-    if (stream->next != NULL)
+    if (stream->next != NULL) {
         nexterr = stream->next->close(stream->next);
         if (err == 0)
             err = nexterr;
+    }
     return err;
 }
 
@@ -325,7 +326,7 @@ static void pygit2_filter_stream_free(git_writestream *s)
 }
 
 static int pygit2_filter_stream_init(
-    struct pygit2_filter_stream *stream, git_writestream *next, PyObject *py_filter, PyObject *py_src)
+    struct pygit2_filter_stream *stream, git_writestream *next, PyObject *py_filter, FilterSource *py_src)
 {
     int err = 0;
     PyObject *py_next = NULL;
@@ -539,7 +540,6 @@ done:
 
 void pygit2_filter_cleanup(git_filter *self, void *payload)
 {
-    pygit2_filter *filter = (pygit2_filter *)self;
     struct pygit2_filter_payload *pl = (struct pygit2_filter_payload *)payload;
 
     pygit2_filter_payload_free(pl);

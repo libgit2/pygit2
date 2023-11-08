@@ -369,7 +369,7 @@ PyMethodDef module_methods[] = {
     {"option", option, METH_VARARGS, option__doc__},
     {"reference_is_valid_name", reference_is_valid_name, METH_O, reference_is_valid_name__doc__},
     {"tree_entry_cmp", tree_entry_cmp, METH_VARARGS, tree_entry_cmp__doc__},
-    {"filter_register", filter_register, METH_VARARGS | METH_KEYWORDS, filter_register__doc__},
+    {"filter_register", (PyCFunction)filter_register, METH_VARARGS | METH_KEYWORDS, filter_register__doc__},
     {"filter_unregister", filter_unregister, METH_VARARGS, filter_unregister__doc__},
     {NULL}
 };
