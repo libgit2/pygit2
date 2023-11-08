@@ -36,6 +36,8 @@ class _BufferedFilter(pygit2.Filter):
 class _PassthroughFilter(_Rot13Filter):
 
     def check(self, src, attr_values):
+        assert attr_values == [None]
+        assert src.repo
         raise Passthrough
 
 

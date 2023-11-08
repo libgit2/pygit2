@@ -48,14 +48,21 @@ PyDoc_STRVAR(FilterSource_repo__doc__,
 PyObject *
 FilterSource_repo__get__(FilterSource *self)
 {
-    Repository *repo = PyObject_New(Repository, &RepositoryType);
+    git_repository *repo = git_filter_source_repo(self->src);
+    Repository *py_repo;
+
     if (repo == NULL)
+        Py_RETURN_NONE;
+
+    py_repo = PyObject_New(Repository, &RepositoryType);
+    if (py_repo == NULL)
         return NULL;
-    repo->repo = git_filter_source_repo(self->src);
-    repo->config = NULL;
-    repo->index = NULL;
-    repo->owned = 1;
-    return (PyObject *)repo;
+    py_repo->repo = repo;
+    py_repo->config = NULL;
+    py_repo->index = NULL;
+    py_repo->owned = 0;
+    Py_INCREF(py_repo);
+    return (PyObject *)py_repo;
 }
 
 PyDoc_STRVAR(FilterSource_path__doc__,
@@ -88,6 +95,15 @@ FilterSource_oid__get__(FilterSource *self)
     return git_oid_to_python(oid);
 }
 
+PyDoc_STRVAR(FilterSource_mode__doc__,
+    "Filter mode (either GIT_FILTER_CLEAN or GIT_FILTER_SMUDGE).\n");
+
+PyObject *
+FilterSource_mode__get__(FilterSource *self)
+{
+    return PyLong_FromUnsignedLong(git_filter_source_mode(self->src));
+}
+
 PyDoc_STRVAR(FilterSource_flags__doc__,
     "GIT_FILTER_* flags to be applied to the data.\n");
 
@@ -102,6 +118,7 @@ PyGetSetDef FilterSource_getseters[] = {
     GETTER(FilterSource, path),
     GETTER(FilterSource, filemode),
     GETTER(FilterSource, oid),
+    GETTER(FilterSource, mode),
     GETTER(FilterSource, flags),
     {NULL}
 };
@@ -431,7 +448,16 @@ int pygit2_filter_check(
     }
     for (i = 0; i < nattrs; ++i)
     {
-        if (PyList_Append(py_attrs, to_unicode_safe(attr_values[i], NULL)) < 0)
+        if (attr_values[i] == NULL)
+        {
+            if (PyList_SetItem(py_attrs, i, Py_None) < 0)
+            {
+                PyErr_Clear();
+                err = GIT_ERROR;
+                goto error;
+            }
+        }
+        else if (PyList_SetItem(py_attrs, i, to_unicode_safe(attr_values[i], NULL)) < 0)
         {
             PyErr_Clear();
             err = GIT_ERROR;
