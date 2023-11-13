@@ -40,6 +40,9 @@ REMOTE_FETCHSPEC_SRC = 'refs/heads/*'
 REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
 REMOTE_REPO_OBJECTS = 30
 REMOTE_REPO_BYTES = 2758
+REMOTE_FETCHTEST_FETCHSPECS = ["refs/tags/v1.13.2"]
+REMOTE_REPO_FETCH_ALL_OBJECTS = 13276
+REMOTE_REPO_FETCH_HEAD_COMMIT_OBJECTS = 238
 
 ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
@@ -215,6 +218,18 @@ def test_fetch(emptyrepo):
     assert stats.received_bytes == REMOTE_REPO_BYTES
     assert stats.indexed_objects == REMOTE_REPO_OBJECTS
     assert stats.received_objects == REMOTE_REPO_OBJECTS
+
+def test_fetch_depth_zero(testrepo):
+    remote = testrepo.remotes[0]
+    stats = remote.fetch(REMOTE_FETCHTEST_FETCHSPECS, depth=0)
+    assert stats.indexed_objects == REMOTE_REPO_FETCH_ALL_OBJECTS
+    assert stats.received_objects == REMOTE_REPO_FETCH_ALL_OBJECTS
+
+def test_fetch_depth_one(testrepo):
+    remote = testrepo.remotes[0]
+    stats = remote.fetch(REMOTE_FETCHTEST_FETCHSPECS, depth=1)
+    assert stats.indexed_objects == REMOTE_REPO_FETCH_HEAD_COMMIT_OBJECTS
+    assert stats.received_objects == REMOTE_REPO_FETCH_HEAD_COMMIT_OBJECTS
 
 def test_transfer_progress(emptyrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
