@@ -201,7 +201,7 @@ def init_repository(path, bare=False,
 
 def clone_repository(
         url, path, bare=False, repository=None, remote=None,
-        checkout_branch=None, callbacks=None):
+        checkout_branch=None, callbacks=None, depth=0):
     """
     Clones a new Git repository from *url* in the given *path*.
 
@@ -235,6 +235,12 @@ def clone_repository(
 
         The callbacks should be an object which inherits from
         `pyclass:RemoteCallbacks`.
+    depth : int
+        Number of commits to clone.
+
+        If greater than 0, creates a shallow clone with a history truncated to
+        the specified number of commits.
+        The default is 0 (full commit history).
     """
 
     if callbacks is None:
@@ -248,6 +254,7 @@ def clone_repository(
     with git_clone_options(payload):
         opts = payload.clone_options
         opts.bare = bare
+        opts.fetch_opts.depth = depth
 
         if checkout_branch:
             checkout_branch_ref = ffi.new('char []', to_bytes(checkout_branch))

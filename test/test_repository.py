@@ -578,6 +578,15 @@ def test_clone_bare_repository(barerepo, tmp_path):
     assert not repo.is_empty
     assert repo.is_bare
 
+@utils.requires_network
+def test_clone_shallow_repository(tmp_path):
+    # shallow cloning currently only works with remote repositories
+    url = 'https://github.com/libgit2/TestGitRepository'
+    repo = clone_repository(url, tmp_path / 'clone-shallow', depth=1)
+    assert not repo.is_empty
+    assert repo.is_shallow
+
+
 def test_clone_repository_and_remote_callbacks(barerepo, tmp_path):
     url = Path(barerepo.path).resolve().as_uri()
     repo_path = tmp_path / 'clone-into'
