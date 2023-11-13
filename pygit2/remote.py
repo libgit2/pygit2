@@ -111,7 +111,7 @@ class Remote:
                                        ffi.NULL)
             payload.check_error(err)
 
-    def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED, proxy=None):
+    def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED, proxy=None, depth=0):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
 
@@ -130,10 +130,18 @@ class Remote:
             * `None` (the default) to disable proxy usage
             * `True` to enable automatic proxy detection
             * an url to a proxy (`http://proxy.example.org:3128/`)
+        
+        depth : int
+            Number of commits from the tip of each remote branch history to fetch.
+        
+            If non-zero, the number of commits from the tip of each remote
+            branch history to fetch. If zero, all history is fetched.
+            The default is 0 (all history is fetched).
         """
         with git_fetch_options(callbacks) as payload:
             opts = payload.fetch_options
             opts.prune = prune
+            opts.depth = depth
             self.__set_proxy(opts.proxy_opts, proxy)
             with StrArray(refspecs) as arr:
                 err = C.git_remote_fetch(self._remote, arr, opts, to_bytes(message))
