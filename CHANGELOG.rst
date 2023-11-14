@@ -1,3 +1,16 @@
+1.13.3 (UNRELEASED)
+-------------------------
+
+- New API for filters in Python
+  `#1237 <https://github.com/libgit2/pygit2/pull/1237>`_
+  `#1244 <https://github.com/libgit2/pygit2/pull/1244>`_
+
+- Shallow repositories: New ``depth`` optional argument for
+  ``clone_repository(...)`` and ``Remote.fetch(...)``
+  `#1245 <https://github.com/libgit2/pygit2/pull/1245>`_
+  `#1246 <https://github.com/libgit2/pygit2/pull/1246>`_
+
+
 1.13.2 (2023-10-30)
 -------------------------
 
