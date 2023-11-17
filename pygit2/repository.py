@@ -43,7 +43,7 @@ from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
-from .callbacks import git_checkout_options, git_fetch_options, git_stash_apply_options
+from .callbacks import git_checkout_options, git_fetch_options, git_stash_apply_options, RemoteCallbacks
 from .config import Config
 from .errors import check_error
 from .ffi import ffi, C
@@ -123,8 +123,20 @@ class BaseRepository(_Repository):
     def __iter__(self):
         return iter(self.odb)
 
-    def add_submodule(self, url, path, link=True, callbacks=None):
-        """Add a submodule to the index.
+    #
+    # Submodules
+    #
+
+    def add_submodule(
+            self,
+            url: str,
+            path: str,
+            link: bool = True,
+            callbacks: typing.Optional[RemoteCallbacks] = None
+    ) -> Submodule:
+        """
+        Add a submodule to the index.
+        The submodule is automatically cloned.
 
         Returns: the submodule that was added.
 
@@ -138,6 +150,9 @@ class BaseRepository(_Repository):
 
         link
             Should workdir contain a gitlink to the repo in `.git/modules` vs. repo directly in workdir.
+
+        callbacks
+            Optional RemoteCallbacks to clone the submodule.
         """
         csub = ffi.new('git_submodule **')
         curl = ffi.new('char[]', to_bytes(url))
@@ -165,7 +180,7 @@ class BaseRepository(_Repository):
         check_error(err)
         return submodule_instance
 
-    def lookup_submodule(self, path):
+    def lookup_submodule(self, path: str) -> Submodule:
         """
         Look up submodule information by name or path.
         """
@@ -176,13 +191,32 @@ class BaseRepository(_Repository):
         check_error(err)
         return Submodule._from_c(self, csub[0])
 
-    def update_submodules(self, submodules=None, init=False, callbacks=None):
+    def update_submodules(
+            self,
+            submodules: typing.Optional[typing.Iterable[str]] = None,
+            init: bool = False,
+            callbacks: typing.Optional[RemoteCallbacks] = None):
         """
-        Update a submodule. This will clone a missing submodule and checkout
+        Update submodules. This will clone a missing submodule and checkout
         the subrepository to the commit specified in the index of the
         containing repository. If the submodule repository doesn't contain the
         target commit (e.g. because fetchRecurseSubmodules isn't set), then the
         submodule is fetched using the fetch options supplied in options.
+
+        Parameters:
+
+        submodules
+            Optional list of submodule paths or names (the submodule is ultimately
+            resolved with Repository.lookup_submodule()). If you omit this parameter
+            or pass None, all submodules will be updated.
+
+        init
+            If the submodule is not initialized, setting this flag to True will
+            initialize the submodule before updating. Otherwise, this will raise
+            an error if attempting to update an uninitialized repository.
+
+        callbacks
+            Optional RemoteCallbacks to clone or fetch the submodule.
         """
         if submodules is None:
             submodules = self.listall_submodules()
