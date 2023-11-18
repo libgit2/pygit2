@@ -91,6 +91,21 @@ class Submodule:
             err = C.git_submodule_update(self._subm, int(init), opts)
             payload.check_error(err)
 
+    def reload(self, force: bool = False):
+        """
+        Reread submodule info from config, index, and HEAD.
+
+        Call this to reread cached submodule information for this submodule if
+        you have reason to believe that it has changed.
+
+        Parameters:
+
+        force
+            Force reload even if the data doesn't seem out of date
+        """
+        err = C.git_submodule_reload(self._subm, int(force))
+        check_error(err)
+
     @property
     def name(self):
         """Name of the submodule."""

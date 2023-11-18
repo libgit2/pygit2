@@ -146,3 +146,21 @@ def test_submodule_cache(repo):
     sm4 = repo.lookup_submodule(SUBM_NAME)
     assert sm1._subm != sm3._subm
     assert sm3._subm != sm4._subm
+
+def test_submodule_reload(repo):
+    sm = repo.lookup_submodule(SUBM_NAME)
+    assert sm.url == "https://github.com/libgit2/TestGitRepository"
+
+    # Doctor the config file outside of libgit2
+    with open(Path(repo.workdir, ".gitmodules"), "wt") as f:
+        f.write('[submodule "TestGitRepository"]\n')
+        f.write('\tpath = TestGitRepository\n')
+        f.write('\turl = https://github.com/libgit2/pygit2\n')
+
+    # Submodule object is oblivious to the change
+    assert sm.url == "https://github.com/libgit2/TestGitRepository"
+
+    # Tell it to refresh its cache
+    sm.reload()
+    assert sm.url == "https://github.com/libgit2/pygit2"
+
