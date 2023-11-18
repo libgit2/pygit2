@@ -46,6 +46,7 @@ from ._pygit2 import InvalidSpecError
 from .callbacks import git_checkout_options, git_fetch_options, git_stash_apply_options, RemoteCallbacks
 from .config import Config
 from .errors import check_error
+from .enums import SubmoduleIgnore, SubmoduleStatus
 from .ffi import ffi, C
 from .index import Index
 from .remote import RemoteCollection
@@ -251,6 +252,25 @@ class BaseRepository(_Repository):
 
         for submodule in instances:
             submodule.update(init, callbacks)
+
+    def submodule_status(self, name: str, ignore: SubmoduleIgnore = SubmoduleIgnore.UNSPECIFIED) -> SubmoduleStatus:
+        """
+        Get the status of a submodule.
+
+        Returns: A combination of SubmoduleStatus flags.
+
+        Parameters:
+
+        name
+            Submodule name or path (the submodule is ultimately resolved with lookup_submodule()).
+
+        ignore
+            A SubmoduleIgnore value indicating how deeply to examine the working directory.
+        """
+        cstatus = ffi.new('unsigned int *')
+        err = C.git_submodule_status(cstatus, self._repo, to_bytes(name), ignore)
+        check_error(err)
+        return SubmoduleStatus(cstatus[0])
 
     def submodule_cache_all(self):
         """

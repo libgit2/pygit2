@@ -37,6 +37,7 @@ from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCa
 from .config import Config
 from .credentials import *
 from .errors import check_error, Passthrough
+from .enums import SubmoduleIgnore, SubmoduleStatus
 from .ffi import ffi, C
 from .filter import Filter
 from .index import Index, IndexEntry

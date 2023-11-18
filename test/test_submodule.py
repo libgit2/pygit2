@@ -31,6 +31,7 @@ import pygit2
 import pytest
 
 from . import utils
+from pygit2 import SubmoduleIgnore as SI, SubmoduleStatus as SS
 
 
 SUBM_NAME = 'TestGitRepository'
@@ -83,9 +84,17 @@ def test_url(repo):
 def test_init_and_update(repo):
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
+
+    status = repo.submodule_status(SUBM_NAME)
+    assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.WD_UNINITIALIZED)
+
     repo.init_submodules()
     repo.update_submodules()
+
     assert subrepo_file_path.exists()
+
+    status = repo.submodule_status(SUBM_NAME)
+    assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD)
 
 @utils.requires_network
 def test_specified_update(repo):
@@ -106,10 +115,16 @@ def test_update_instance(repo):
 
 @utils.requires_network
 def test_oneshot_update(repo):
+    status = repo.submodule_status(SUBM_NAME)
+    assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.WD_UNINITIALIZED)
+
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     repo.update_submodules(init=True)
     assert subrepo_file_path.exists()
+
+    status = repo.submodule_status(SUBM_NAME)
+    assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD)
 
 @utils.requires_network
 def test_oneshot_update_instance(repo):
@@ -128,10 +143,55 @@ def test_head_id(repo):
 def test_add_submodule(repo):
     sm_repo_path = "test/testrepo"
     sm = repo.add_submodule(SUBM_URL, sm_repo_path)
+
+    status = repo.submodule_status(sm_repo_path)
+    assert status == (SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD | SS.INDEX_ADDED)
+
     sm_repo = sm.open()
     assert sm_repo_path == sm.path
     assert SUBM_URL == sm.url
     assert not sm_repo.is_empty
+
+@utils.requires_network
+def test_submodule_status(repo):
+    common_status = SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG
+
+    # Submodule needs initializing
+    assert repo.submodule_status(SUBM_PATH) == common_status | SS.WD_UNINITIALIZED
+
+    # If ignoring ALL, don't look at WD
+    assert repo.submodule_status(SUBM_PATH, ignore=SI.ALL) == common_status
+
+    # Update the submodule
+    repo.update_submodules(init=True)
+
+    # It's in our WD now
+    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD
+
+    # Open submodule repo
+    sm_repo: pygit2.Repository = repo.lookup_submodule(SUBM_PATH).open()
+
+    # Move HEAD in the submodule (WD_MODIFIED)
+    sm_repo.checkout('refs/tags/annotated_tag')
+    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_MODIFIED
+
+    # Move HEAD back to master
+    sm_repo.checkout('refs/heads/master')
+
+    # Touch some file in the submodule's workdir (WD_WD_MODIFIED)
+    with open(Path(repo.workdir, SUBM_PATH, 'master.txt'), 'wt') as f:
+        f.write("modifying master.txt")
+    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED
+
+    # Add an untracked file in the submodule's workdir (WD_UNTRACKED)
+    with open(Path(repo.workdir, SUBM_PATH, 'some_untracked_file.txt'), 'wt') as f:
+        f.write("hi")
+    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED | SS.WD_UNTRACKED
+
+    # Add modified files to the submodule's index (WD_INDEX_MODIFIED)
+    sm_repo.index.add_all()
+    sm_repo.index.write()
+    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_INDEX_MODIFIED
 
 def test_submodule_cache(repo):
     # When the cache is turned on, looking up the same submodule twice must return the same git_submodule object
