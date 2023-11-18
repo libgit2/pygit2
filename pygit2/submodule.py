@@ -24,6 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 from ._pygit2 import Oid
+from .callbacks import git_fetch_options, RemoteCallbacks
 from .errors import check_error
 from .ffi import ffi, C
 
@@ -49,6 +50,46 @@ class Submodule:
         check_error(err)
 
         return self._repo._from_c(crepo[0], True)
+
+    def init(self, overwrite: bool = False):
+        """
+        Just like "git submodule init", this copies information about the submodule
+        into ".git/config".
+
+        Parameters:
+
+        overwrite
+            By default, existing submodule entries will not be overwritten,
+            but setting this to True forces them to be updated.
+        """
+        err = C.git_submodule_init(self._subm, int(overwrite))
+        check_error(err)
+
+    def update(self, init: bool = False, callbacks: RemoteCallbacks = None):
+        """
+        Update a submodule. This will clone a missing submodule and checkout
+        the subrepository to the commit specified in the index of the
+        containing repository. If the submodule repository doesn't contain the
+        target commit (e.g. because fetchRecurseSubmodules isn't set), then the
+        submodule is fetched using the fetch options supplied in options.
+
+        Parameters:
+
+        init
+            If the submodule is not initialized, setting this flag to True will
+            initialize the submodule before updating. Otherwise, this will raise
+            an error if attempting to update an uninitialized repository.
+
+        callbacks
+            Optional RemoteCallbacks to clone or fetch the submodule.
+        """
+
+        opts = ffi.new('git_submodule_update_options *')
+        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+
+        with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
+            err = C.git_submodule_update(self._subm, int(init), opts)
+            payload.check_error(err)
 
     @property
     def name(self):

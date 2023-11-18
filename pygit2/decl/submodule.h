@@ -30,9 +30,8 @@ int git_submodule_lookup(
 	const char *name);
 
 void git_submodule_free(git_submodule *submodule);
-int git_submodule_open(
-	git_repository **repo,
-	git_submodule *submodule);
+int git_submodule_open(git_repository **repo, git_submodule *submodule);
+int git_submodule_init(git_submodule *submodule, int overwrite);
 
 const char * git_submodule_name(git_submodule *submodule);
 const char * git_submodule_path(git_submodule *submodule);

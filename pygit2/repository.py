@@ -191,6 +191,32 @@ class BaseRepository(_Repository):
         check_error(err)
         return Submodule._from_c(self, csub[0])
 
+    def init_submodules(
+            self,
+            submodules: typing.Optional[typing.Iterable[str]] = None,
+            overwrite: bool = False):
+        """
+        Initialize submodules in the repository. Just like "git submodule init",
+        this copies information about the submodules into ".git/config".
+
+        Parameters:
+
+        submodules
+            Optional list of submodule paths or names to initialize
+            (the submodule is ultimately resolved with Repository.lookup_submodule()).
+            Default argument initializes all submodules.
+
+        overwrite
+            Flag indicating if initialization should overwrite submodule entries.
+        """
+        if submodules is None:
+            submodules = self.listall_submodules()
+
+        instances = [self.lookup_submodule(s) for s in submodules]
+
+        for submodule in instances:
+            submodule.init(overwrite)
+
     def update_submodules(
             self,
             submodules: typing.Optional[typing.Iterable[str]] = None,
@@ -221,18 +247,10 @@ class BaseRepository(_Repository):
         if submodules is None:
             submodules = self.listall_submodules()
 
-        # prepare options
-        opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+        instances = [self.lookup_submodule(s) for s in submodules]
 
-        with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
-            i = 1 if init else 0
-            for submodule in submodules:
-                submodule_instance = self.lookup_submodule(submodule)
-                err = C.git_submodule_update(submodule_instance._subm, i, opts)
-                payload.check_error(err)
-
-        return None
+        for submodule in instances:
+            submodule.update(init, callbacks)
 
     #
     # Mapping interface

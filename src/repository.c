@@ -1508,81 +1508,6 @@ Repository_listall_submodules(Repository *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(Repository_init_submodules__doc__,
-    "init_submodules(submodules: list[Submodule] = None, overwrite=False)\n"
-    "\n"
-    "Initialize all submodules in repository.\n"
-    "submodules: List of submodules to initialize. Default argument initializes all submodules.\n"
-    "overwrite: Flag indicating if initialization should overwrite submodule entries.\n");
-
-static int foreach_sub_init_cb(git_submodule *submodule, const char *name, void *payload)
-{
-    return git_submodule_init(submodule, *(int*)payload);
-}
-
-PyObject *
-Repository_init_submodules(Repository* self, PyObject *args, PyObject *kwds)
-{
-    PyObject *list = Py_None;
-    PyObject *oflag = Py_False;
-    char *kwlist[] = {"submodules", "overwrite", NULL};
-    int err;
-    const char *c_subpath;
-    git_submodule *submodule;
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OO", kwlist, &list, &oflag))
-        return NULL;
-
-    int fflag = PyObject_IsTrue(oflag);
-    if (fflag != 0 && fflag != 1)
-        fflag = 0;
-
-    //Init all submodules listed in repository
-    if (list == Py_None) {
-        err = git_submodule_foreach(self->repo, foreach_sub_init_cb, &fflag);
-        if (err != 0)
-            return Error_set(err);
-        Py_RETURN_NONE;
-    }
-
-    PyObject *iter = PyObject_GetIter(list);
-    if (!iter)
-        return NULL;
-
-    PyObject *next = NULL;
-    while (1) {
-        Py_XDECREF(next); // Decref from the previous iteration
-        next = PyIter_Next(iter);
-        if (next == NULL) // List exhausted
-            break;
-
-        c_subpath = pgit_borrow(next);
-        if (c_subpath == NULL)
-            goto error;
-
-        err = git_submodule_lookup(&submodule, self->repo, c_subpath);
-        if (!submodule) {
-            PyErr_SetString(PyExc_KeyError, "Submodule does not exist");
-            goto error;
-        }
-
-        err = git_submodule_init(submodule, fflag);
-        if (err) {
-            Error_set(err);
-            goto error;
-        }
-    }
-
-    // Success
-    Py_DECREF(iter);
-    Py_RETURN_NONE;
-
-error:
-    Py_DECREF(iter);
-    Py_XDECREF(next);
-    return NULL;
-}
-
 PyDoc_STRVAR(Repository_lookup_reference__doc__,
   "lookup_reference(name: str) -> Reference\n"
   "\n"
@@ -2439,7 +2364,6 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, references_iterator_init, METH_NOARGS),
     METHOD(Repository, references_iterator_next, METH_VARARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
-    METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, lookup_reference_dwim, METH_O),
     METHOD(Repository, revparse_single, METH_O),

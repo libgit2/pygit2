@@ -81,7 +81,7 @@ def test_url(repo):
 
 @utils.requires_network
 def test_init_and_update(repo):
-    subrepo_file_path = Path(repo.workdir) / 'TestGitRepository' / 'master.txt'
+    subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     repo.init_submodules()
     repo.update_submodules()
@@ -89,17 +89,34 @@ def test_init_and_update(repo):
 
 @utils.requires_network
 def test_specified_update(repo):
-    subrepo_file_path = Path(repo.workdir) / 'TestGitRepository' / 'master.txt'
+    subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     repo.init_submodules(submodules=['TestGitRepository'])
     repo.update_submodules(submodules=['TestGitRepository'])
     assert subrepo_file_path.exists()
 
 @utils.requires_network
+def test_update_instance(repo):
+    subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
+    assert not subrepo_file_path.exists()
+    sm = repo.lookup_submodule('TestGitRepository')
+    sm.init()
+    sm.update()
+    assert subrepo_file_path.exists()
+
+@utils.requires_network
 def test_oneshot_update(repo):
-    subrepo_file_path = Path(repo.workdir) / 'TestGitRepository' / 'master.txt'
+    subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     repo.update_submodules(init=True)
+    assert subrepo_file_path.exists()
+
+@utils.requires_network
+def test_oneshot_update_instance(repo):
+    subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
+    assert not subrepo_file_path.exists()
+    sm = repo.lookup_submodule(SUBM_NAME)
+    sm.update(init=True)
     assert subrepo_file_path.exists()
 
 @utils.requires_network
