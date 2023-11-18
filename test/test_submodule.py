@@ -132,3 +132,17 @@ def test_add_submodule(repo):
     assert sm_repo_path == sm.path
     assert SUBM_URL == sm.url
     assert not sm_repo.is_empty
+
+def test_submodule_cache(repo):
+    # When the cache is turned on, looking up the same submodule twice must return the same git_submodule object
+    repo.submodule_cache_all()
+    sm1 = repo.lookup_submodule(SUBM_NAME)
+    sm2 = repo.lookup_submodule(SUBM_NAME)
+    assert sm1._subm == sm2._subm
+
+    # After turning off the cache, each lookup must return a new git_submodule object
+    repo.submodule_cache_clear()
+    sm3 = repo.lookup_submodule(SUBM_NAME)
+    sm4 = repo.lookup_submodule(SUBM_NAME)
+    assert sm1._subm != sm3._subm
+    assert sm3._subm != sm4._subm

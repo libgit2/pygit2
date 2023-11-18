@@ -252,6 +252,31 @@ class BaseRepository(_Repository):
         for submodule in instances:
             submodule.update(init, callbacks)
 
+    def submodule_cache_all(self):
+        """
+        Load and cache all submodules in the repository.
+
+        Because the `.gitmodules` file is unstructured, loading submodules is an
+        O(N) operation.  Any operation that requires accessing all submodules is O(N^2)
+        in the number of submodules, if it has to look each one up individually.
+        This function loads all submodules and caches them so that subsequent calls to
+        `lookup_submodule` are O(1).
+        """
+        err = C.git_repository_submodule_cache_all(self._repo)
+        check_error(err)
+
+    def submodule_cache_clear(self):
+        """
+        Clear the submodule cache populated by `submodule_cache_all`.
+        If there is no cache, do nothing.
+
+        The cache incorporates data from the repository's configuration, as well
+        as the state of the working tree, the index, and HEAD. So any time any
+        of these has changed, the cache might become invalid.
+        """
+        err = C.git_repository_submodule_cache_clear(self._repo)
+        check_error(err)
+
     #
     # Mapping interface
     #

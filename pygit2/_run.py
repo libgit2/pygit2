@@ -91,14 +91,15 @@ for h_file in h_files:
 
 C_HEADER_SRC = '\n'.join(h_source)
 
+C_PREAMBLE = """\
+#include <git2.h>
+#include <git2/sys/repository.h>
+"""
+
 # ffi
 _, libgit2_kw = get_libgit2_paths()
 ffi = FFI()
-ffi.set_source(
-    "pygit2._libgit2",
-    "#include <git2.h>", # preamble
-    **libgit2_kw
-)
+ffi.set_source("pygit2._libgit2", C_PREAMBLE, **libgit2_kw)
 ffi.cdef(C_HEADER_SRC)
 
 
