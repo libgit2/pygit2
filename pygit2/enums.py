@@ -331,6 +331,23 @@ class Feature(IntFlag):
     NSEC = C.GIT_FEATURE_NSEC
 
 
+class ReferenceFilter(IntEnum):
+    """ Filters for References.iterator(). """
+
+    ALL = _pygit2.GIT_REFERENCES_ALL
+    BRANCHES = _pygit2.GIT_REFERENCES_BRANCHES
+    TAGS = _pygit2.GIT_REFERENCES_TAGS
+
+
+class ReferenceType(IntFlag):
+    """ Basic type of any Git reference. """
+
+    INVALID = _pygit2.GIT_REF_INVALID
+    OID = _pygit2.GIT_REF_OID
+    SYMBOLIC = _pygit2.GIT_REF_SYMBOLIC
+    LISTALL = _pygit2.GIT_REF_LISTALL
+
+
 class RepositoryInitFlag(IntFlag):
     """
     Option flags for pygit2.init_repository().

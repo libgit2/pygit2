@@ -2,6 +2,7 @@ from typing import Iterator, Literal, Optional, overload
 from io import IOBase
 from . import Index, Submodule
 from .enums import DiffOption
+from .enums import ReferenceFilter
 
 GIT_APPLY_LOCATION_BOTH: int
 GIT_APPLY_LOCATION_INDEX: int
@@ -112,13 +113,6 @@ GIT_OPT_SET_SSL_CIPHERS: int
 GIT_OPT_SET_TEMPLATE_PATH: int
 GIT_OPT_SET_USER_AGENT: int
 GIT_OPT_SET_WINDOWS_SHAREMODE: int
-GIT_REF_INVALID: int
-GIT_REF_LISTALL: int
-GIT_REF_OID: int
-GIT_REF_SYMBOLIC: int
-GIT_REFERENCES_ALL: int
-GIT_REFERENCES_BRANCHES: int
-GIT_REFERENCES_TAGS: int
 GIT_RESET_HARD: int
 GIT_RESET_MIXED: int
 GIT_RESET_SOFT: int
@@ -472,7 +466,7 @@ class Repository:
     def raw_listall_branches(self, flag: int = GIT_BRANCH_LOCAL) -> list[bytes]: ...
     def raw_listall_references(self) -> list[bytes]: ...
     def references_iterator_init(self) -> Iterator[Reference]: ...
-    def references_iterator_next(self, iter: Iterator, references_return_type: int) -> Reference: ...
+    def references_iterator_next(self, iter: Iterator, references_return_type: ReferenceFilter = ReferenceFilter.ALL) -> Reference: ...
     def reset(self, oid: _OidArg, reset_type: int) -> None: ...
     def revparse(self, revspec: str) -> RevSpec: ...
     def revparse_ext(self, revision: str) -> tuple[Object,Reference]: ...

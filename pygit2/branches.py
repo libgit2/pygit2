@@ -26,8 +26,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from .enums import ReferenceType
 from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
-from ._pygit2 import GIT_REF_SYMBOLIC
 from ._pygit2 import Commit, Oid
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
@@ -82,7 +82,7 @@ class Branches:
         self[name].delete()
 
     def _valid(self, branch):
-        if branch.type == GIT_REF_SYMBOLIC:
+        if branch.type == ReferenceType.SYMBOLIC:
             branch = branch.resolve()
 
         return (

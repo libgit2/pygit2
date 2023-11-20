@@ -1341,16 +1341,15 @@ Repository_references_iterator_init(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_references_iterator_next__doc__,
-  "references_iterator_next(git_reference_iterator iter,\n"
-  "references_return_type int = GIT_REFERENCES_ALL) -> Reference\n"
+  "references_iterator_next(iter: Iterator[Reference], references_return_type: ReferenceFilter = ReferenceFilter.ALL) -> Reference\n"
   "\n"
   "Returns next reference object for repository. Optionally, can filter \n"
   "based on value of references_return_type.\n"
   "Acceptable values of references_return_type:\n"
-  "0 -> returns all refs, this is the default\n"
-  "1 -> returns all branches\n"
-  "2 -> returns all tags\n"
-  "all other values -> will return a Py_None object");
+  "ReferenceFilter.ALL -> returns all refs, this is the default\n"
+  "ReferenceFilter.BRANCHES -> returns all branches\n"
+  "ReferenceFilter.TAGS -> returns all tags\n"
+  "all other values -> will return None");
 
 PyObject *
 Repository_references_iterator_next(Repository *self, PyObject *args)

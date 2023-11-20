@@ -29,7 +29,8 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import GIT_REF_OID, GIT_REF_SYMBOLIC, Signature
+from pygit2 import ReferenceType
+from pygit2 import Signature
 from pygit2 import Commit, Tree, reference_is_valid_name
 from pygit2 import AlreadyExistsError, GitError, InvalidSpecError
 
@@ -88,7 +89,7 @@ def test_refs_set_sha_prefix(testrepo):
 
 def test_refs_get_type(testrepo):
     reference = testrepo.references.get('refs/heads/master')
-    assert reference.type == GIT_REF_OID
+    assert reference.type == ReferenceType.OID
 
 def test_refs_get_target(testrepo):
     reference = testrepo.references.get('HEAD')
@@ -165,9 +166,9 @@ def test_refs_rename(testrepo):
 
 def test_refs_resolve(testrepo):
     reference = testrepo.references.get('HEAD')
-    assert reference.type == GIT_REF_SYMBOLIC
+    assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
-    assert reference.type == GIT_REF_OID
+    assert reference.type == ReferenceType.OID
     assert reference.target.hex == LAST_COMMIT
 
 def test_refs_resolve_identity(testrepo):
@@ -197,7 +198,7 @@ def test_refs_create_symbolic(testrepo):
     # We add a tag as a new symbolic reference that always points to
     # "refs/heads/master"
     reference = testrepo.references.create('refs/tags/beta', 'refs/heads/master')
-    assert reference.type == GIT_REF_SYMBOLIC
+    assert reference.type == ReferenceType.SYMBOLIC
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
 
@@ -208,7 +209,7 @@ def test_refs_create_symbolic(testrepo):
     # try to create existing symbolic reference with force
     reference = testrepo.references.create('refs/tags/beta', 'refs/heads/master',
                                            force=True)
-    assert reference.type == GIT_REF_SYMBOLIC
+    assert reference.type == ReferenceType.SYMBOLIC
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
 
@@ -468,7 +469,7 @@ def test_reference_set_sha_prefix(testrepo):
 
 def test_reference_get_type(testrepo):
     reference = testrepo.lookup_reference('refs/heads/master')
-    assert reference.type == GIT_REF_OID
+    assert reference.type == ReferenceType.OID
 
 def test_get_target(testrepo):
     reference = testrepo.lookup_reference('HEAD')
@@ -546,9 +547,9 @@ def test_rename(testrepo):
 
 def test_reference_resolve(testrepo):
     reference = testrepo.lookup_reference('HEAD')
-    assert reference.type == GIT_REF_SYMBOLIC
+    assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
-    assert reference.type == GIT_REF_OID
+    assert reference.type == ReferenceType.OID
     assert reference.target.hex == LAST_COMMIT
 
 def test_reference_resolve_identity(testrepo):
@@ -595,7 +596,7 @@ def test_create_symbolic_reference(testrepo):
     # "refs/heads/master"
     reference = repo.create_reference('refs/tags/beta',
                                       'refs/heads/master')
-    assert reference.type == GIT_REF_SYMBOLIC
+    assert reference.type == ReferenceType.SYMBOLIC
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
 
@@ -607,7 +608,7 @@ def test_create_symbolic_reference(testrepo):
     # try to create existing symbolic reference with force
     reference = repo.create_reference('refs/tags/beta',
                                       'refs/heads/master', force=True)
-    assert reference.type == GIT_REF_SYMBOLIC
+    assert reference.type == ReferenceType.SYMBOLIC
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
 

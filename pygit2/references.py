@@ -26,7 +26,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from ._pygit2 import GIT_REFERENCES_ALL, GIT_REFERENCES_BRANCHES, GIT_REFERENCES_TAGS
+from .enums import ReferenceFilter
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
@@ -56,27 +56,28 @@ class References:
             else:
                 return
 
-    def iterator(self, references_return_type:int = GIT_REFERENCES_ALL):
+    def iterator(self, references_return_type: ReferenceFilter = ReferenceFilter.ALL):
         """ Creates a new iterator and fetches references for a given repository.
 
         Can also filter and pass all refs or only branches or only tags.
 
         Parameters:
 
-        references_return_type: int
+        references_return_type: ReferenceFilter
             Optional specifier to filter references. By default, all references are
             returned.
 
             The following values are accepted:
-            0 -> GIT_REFERENCES_ALL, fetches all refs, this is the default
-            1 -> GIT_REFERENCES_BRANCHES, fetches only branches
-            2 -> GIT_REFERENCES_TAGS, fetches only tags
+            - ReferenceFilter.ALL, fetches all refs, this is the default
+            - ReferenceFilter.BRANCHES, fetches only branches
+            - ReferenceFilter.TAGS, fetches only tags
 
         TODO: Add support for filtering by reference types notes and remotes.
         """
 
-        if references_return_type not in (GIT_REFERENCES_ALL, GIT_REFERENCES_BRANCHES, GIT_REFERENCES_TAGS):
-            raise ValueError("Parameter references_return_type is invalid")
+        # Enforce ReferenceFilter type - raises ValueError if we're given an invalid value
+        references_return_type = ReferenceFilter(references_return_type)
+
         iter = self._repository.references_iterator_init()
         while True:
             ref = self._repository.references_iterator_next(iter, references_return_type)
