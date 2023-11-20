@@ -68,34 +68,34 @@ Status
 
       Example, inspect the status of the repository::
 
-        from pygit2 import GIT_STATUS_CURRENT
+        from pygit2.enums import FileStatus
         status = repo.status()
         for filepath, flags in status.items():
-            if flags != GIT_STATUS_CURRENT:
+            if flags != FileStatus.CURRENT:
                 print(f"Filepath {filepath} isn't clean")
 
 This is the list of status flags for a single file::
 
-    GIT_STATUS_CURRENT
-    GIT_STATUS_INDEX_NEW
-    GIT_STATUS_INDEX_MODIFIED
-    GIT_STATUS_INDEX_DELETED
-    GIT_STATUS_INDEX_RENAMED
-    GIT_STATUS_INDEX_TYPECHANGE
-    GIT_STATUS_WT_NEW
-    GIT_STATUS_WT_MODIFIED
-    GIT_STATUS_WT_DELETED
-    GIT_STATUS_WT_TYPECHANGE
-    GIT_STATUS_WT_RENAMED
-    GIT_STATUS_WT_UNREADABLE
-    GIT_STATUS_IGNORED
-    GIT_STATUS_CONFLICTED
+    enums.FileStatus.CURRENT
+    enums.FileStatus.INDEX_NEW
+    enums.FileStatus.INDEX_MODIFIED
+    enums.FileStatus.INDEX_DELETED
+    enums.FileStatus.INDEX_RENAMED
+    enums.FileStatus.INDEX_TYPECHANGE
+    enums.FileStatus.WT_NEW
+    enums.FileStatus.WT_MODIFIED
+    enums.FileStatus.WT_DELETED
+    enums.FileStatus.WT_TYPECHANGE
+    enums.FileStatus.WT_RENAMED
+    enums.FileStatus.WT_UNREADABLE
+    enums.FileStatus.IGNORED
+    enums.FileStatus.CONFLICTED
 
 A combination of these values will be returned to indicate the status of a
 file.  Status compares the working directory, the index, and the current HEAD
-of the repository.  The `GIT_STATUS_INDEX` set of flags represents the status
-of file in the index relative to the HEAD, and the `GIT_STATUS_WT` set of flags
-represent the status of the file in the working directory relative to the
+of the repository.  The `INDEX_...` set of flags represents the status
+of file in the index relative to the HEAD, and the `WT_...` set of flags
+represents the status of the file in the working directory relative to the
 index.
 
 

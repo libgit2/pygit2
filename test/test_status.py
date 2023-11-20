@@ -24,6 +24,7 @@
 # Boston, MA 02110-1301, USA.
 import pygit2
 import pytest
+from pygit2 import FileStatus
 
 
 def test_status(dirtyrepo):
@@ -38,7 +39,7 @@ def test_status(dirtyrepo):
 
 def test_status_untracked_no(dirtyrepo):
     git_status = dirtyrepo.status(untracked_files="no")
-    not any(status & pygit2.GIT_STATUS_WT_NEW for status in git_status.values())
+    assert not any(status & FileStatus.WT_NEW for status in git_status.values())
 
 
 @pytest.mark.parametrize(
@@ -68,7 +69,7 @@ def test_status_untracked_no(dirtyrepo):
 def test_status_untracked_normal(dirtyrepo, untracked_files, expected):
     git_status = dirtyrepo.status(untracked_files=untracked_files)
     assert {
-        file for file, status in git_status.items() if status & pygit2.GIT_STATUS_WT_NEW
+        file for file, status in git_status.items() if status & FileStatus.WT_NEW
     } == expected
 
 
@@ -78,5 +79,5 @@ def test_status_ignored(dirtyrepo, ignored, expected):
     assert {
         file
         for file, status in git_status.items()
-        if status & pygit2.GIT_STATUS_IGNORED
+        if status & FileStatus.IGNORED
     } == expected

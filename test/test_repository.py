@@ -34,7 +34,7 @@ import pytest
 import pygit2
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid
-from pygit2 import CheckoutNotify, CheckoutStrategy, ResetMode, StashApplyProgress
+from pygit2 import CheckoutNotify, CheckoutStrategy, ResetMode, StashApplyProgress, FileStatus
 from . import utils
 
 
@@ -117,7 +117,7 @@ def test_checkout_aborted_from_callbacks(testrepo):
         return testrepo[testrepo.create_blob_fromworkdir("bye.txt")].data
 
     s = testrepo.status()
-    assert s == {'bye.txt': pygit2.GIT_STATUS_WT_NEW}
+    assert s == {'bye.txt': FileStatus.WT_NEW}
 
     class MyCheckoutCallbacks(pygit2.CheckoutCallbacks):
         def __init__(self):
@@ -203,7 +203,7 @@ def test_checkout_paths(testrepo):
     testrepo.checkout(ref_master)
     testrepo.checkout(ref_i18n, paths=['new'])
     status = testrepo.status()
-    assert status['new'] == pygit2.GIT_STATUS_INDEX_NEW
+    assert status['new'] == FileStatus.INDEX_NEW
 
 def test_merge_base(testrepo):
     commit = testrepo.merge_base(
@@ -354,9 +354,9 @@ def test_stash_partial(testrepo):
     with (Path(testrepo.workdir) / 'untracked2.txt').open('w') as f:
         f.write('do not stash me')
 
-    assert testrepo.status()['hello.txt'] == pygit2.GIT_STATUS_WT_MODIFIED
-    assert testrepo.status()['bye.txt'] == pygit2.GIT_STATUS_WT_NEW
-    assert testrepo.status()['untracked2.txt'] == pygit2.GIT_STATUS_WT_NEW
+    assert testrepo.status()['hello.txt'] == FileStatus.WT_MODIFIED
+    assert testrepo.status()['bye.txt'] == FileStatus.WT_NEW
+    assert testrepo.status()['untracked2.txt'] == FileStatus.WT_NEW
 
     def stash_pathspecs(paths):
         stash_id = testrepo.stash(sig, message=stash_message, keep_all=True, paths=paths)

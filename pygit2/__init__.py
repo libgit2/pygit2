@@ -60,6 +60,7 @@ from .enums import (
     RepositoryState,
     ResetMode,
     StashApplyProgress,
+    FileStatus,
     SubmoduleIgnore,
     SubmoduleStatus,
     SortMode,

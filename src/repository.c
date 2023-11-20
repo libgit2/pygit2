@@ -1675,10 +1675,10 @@ Repository_compress_references(Repository *self)
 }
 
 PyDoc_STRVAR(Repository_status__doc__,
-  "status(untracked_files: str = \"all\", ignored: bool = False) -> dict[str, int]\n"
+  "status(untracked_files: str = \"all\", ignored: bool = False) -> dict[str, enums.FileStatus]\n"
   "\n"
   "Reads the status of the repository and returns a dictionary with file\n"
-  "paths as keys and status flags as values. See pygit2.GIT_STATUS_*.\n"
+  "paths as keys and FileStatus flags as values.\n"
   "\n"
   "Parameters:\n"
   "\n"

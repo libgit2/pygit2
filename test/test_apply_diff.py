@@ -30,6 +30,7 @@ import os
 from pathlib import Path
 
 from pygit2 import ApplyLocation
+from pygit2 import FileStatus
 
 
 def read_content(testrepo):
@@ -84,21 +85,21 @@ def test_apply_diff_to_workdir(testrepo, new_content, patch_diff):
     testrepo.apply(patch_diff, ApplyLocation.WORKDIR)
 
     assert read_content(testrepo) == new_content
-    assert testrepo.status_file('hello.txt') == pygit2.GIT_STATUS_WT_MODIFIED
+    assert testrepo.status_file('hello.txt') == FileStatus.WT_MODIFIED
 
 def test_apply_diff_to_index(testrepo, old_content, patch_diff):
     # Apply the patch and compare
     testrepo.apply(patch_diff, ApplyLocation.INDEX)
 
     assert read_content(testrepo) == old_content
-    assert testrepo.status_file('hello.txt') & pygit2.GIT_STATUS_INDEX_MODIFIED
+    assert testrepo.status_file('hello.txt') & FileStatus.INDEX_MODIFIED
 
 def test_apply_diff_to_both(testrepo, new_content, patch_diff):
     # Apply the patch and compare
     testrepo.apply(patch_diff, ApplyLocation.BOTH)
 
     assert read_content(testrepo) == new_content
-    assert testrepo.status_file('hello.txt') & pygit2.GIT_STATUS_INDEX_MODIFIED
+    assert testrepo.status_file('hello.txt') & FileStatus.INDEX_MODIFIED
 
 def test_diff_applies_to_workdir(testrepo, old_content, patch_diff):
     # See if patch applies

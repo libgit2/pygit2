@@ -477,6 +477,36 @@ class FileMode(IntFlag):
     COMMIT = _pygit2.GIT_FILEMODE_COMMIT
 
 
+class FileStatus(IntFlag):
+    """
+    Status flags for a single file.
+
+    A combination of these values will be returned to indicate the status of
+    a file. Status compares the working directory, the index, and the current
+    HEAD of the repository.  The `INDEX_...` set of flags represents the status
+    of the file in the index relative to the HEAD, and the `WT_...` set of
+    flags represents the status of the file in the working directory relative
+    to the index.
+    """
+    CURRENT = _pygit2.GIT_STATUS_CURRENT
+
+    INDEX_NEW = _pygit2.GIT_STATUS_INDEX_NEW
+    INDEX_MODIFIED = _pygit2.GIT_STATUS_INDEX_MODIFIED
+    INDEX_DELETED = _pygit2.GIT_STATUS_INDEX_DELETED
+    INDEX_RENAMED = _pygit2.GIT_STATUS_INDEX_RENAMED
+    INDEX_TYPECHANGE = _pygit2.GIT_STATUS_INDEX_TYPECHANGE
+
+    WT_NEW = _pygit2.GIT_STATUS_WT_NEW
+    WT_MODIFIED = _pygit2.GIT_STATUS_WT_MODIFIED
+    WT_DELETED = _pygit2.GIT_STATUS_WT_DELETED
+    WT_TYPECHANGE = _pygit2.GIT_STATUS_WT_TYPECHANGE
+    WT_RENAMED = _pygit2.GIT_STATUS_WT_RENAMED
+    WT_UNREADABLE = _pygit2.GIT_STATUS_WT_UNREADABLE
+
+    IGNORED = _pygit2.GIT_STATUS_IGNORED
+    CONFLICTED = _pygit2.GIT_STATUS_CONFLICTED
+
+
 class MergeAnalysis(IntFlag):
     """ The results of `Repository.merge_analysis` indicate the merge opportunities. """
 

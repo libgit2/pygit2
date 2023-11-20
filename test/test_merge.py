@@ -30,6 +30,7 @@ from pathlib import Path
 import pytest
 
 from pygit2 import MergeAnalysis
+from pygit2 import FileStatus
 import pygit2
 
 
@@ -103,7 +104,7 @@ def test_merge_no_fastforward_conflicts(mergerepo):
     assert 'some-file' not in mergerepo.index.conflicts
     assert '.gitignore' in mergerepo.index.conflicts
 
-    status = pygit2.GIT_STATUS_CONFLICTED
+    status = FileStatus.CONFLICTED
     # Asking twice to assure the reference counting is correct
     assert {'.gitignore': status} == mergerepo.status()
     assert {'.gitignore': status} == mergerepo.status()
@@ -120,7 +121,7 @@ def test_merge_no_fastforward_conflicts(mergerepo):
     mergerepo.index.add('.gitignore')
     mergerepo.index.write()
     assert mergerepo.index.conflicts is None
-    assert {'.gitignore': pygit2.GIT_STATUS_INDEX_MODIFIED} == mergerepo.status()
+    assert {'.gitignore': FileStatus.INDEX_MODIFIED} == mergerepo.status()
 
 def test_merge_remove_conflicts(mergerepo):
     other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'

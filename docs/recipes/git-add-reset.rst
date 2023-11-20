@@ -52,7 +52,7 @@ Query the index state / Is file staged ?
 .. code-block:: python
 
     # Return True is the file is modified in the working tree
-    >>> repo.status_file(path) & pygit2.GIT_STATUS_WT_MODIFIED
+    >>> repo.status_file(path) & pygit2.enums.FileStatus.WT_MODIFIED
 
 ----------------------------------------------------------------------
 References
