@@ -26,8 +26,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from .enums import ReferenceType
-from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
+from .enums import BranchType, ReferenceType
 from ._pygit2 import Commit, Oid
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
 
 class Branches:
 
-    def __init__(self, repository: BaseRepository, flag: int = GIT_BRANCH_ALL, commit=None):
+    def __init__(self, repository: BaseRepository, flag: BranchType = BranchType.ALL, commit=None):
         self._repository = repository
         self._flag = flag
         if commit is not None:
@@ -47,17 +46,17 @@ class Branches:
                 commit = self._repository.expand_id(commit)
         self._commit = commit
 
-        if flag == GIT_BRANCH_ALL:
-            self.local = Branches(repository, flag=GIT_BRANCH_LOCAL, commit=commit)
-            self.remote = Branches(repository, flag=GIT_BRANCH_REMOTE, commit=commit)
+        if flag == BranchType.ALL:
+            self.local = Branches(repository, flag=BranchType.LOCAL, commit=commit)
+            self.remote = Branches(repository, flag=BranchType.REMOTE, commit=commit)
 
     def __getitem__(self, name: str):
         branch = None
-        if self._flag & GIT_BRANCH_LOCAL:
-            branch = self._repository.lookup_branch(name, GIT_BRANCH_LOCAL)
+        if self._flag & BranchType.LOCAL:
+            branch = self._repository.lookup_branch(name, BranchType.LOCAL)
 
-        if branch is None and self._flag & GIT_BRANCH_REMOTE:
-            branch = self._repository.lookup_branch(name, GIT_BRANCH_REMOTE)
+        if branch is None and self._flag & BranchType.REMOTE:
+            branch = self._repository.lookup_branch(name, BranchType.REMOTE)
 
         if branch is None or not self._valid(branch):
             raise KeyError(f'Branch not found: {name}')

@@ -309,10 +309,10 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
 
 
 PyDoc_STRVAR(Repository_lookup_branch__doc__,
-  "lookup_branch(branch_name: str, branch_type: int = GIT_BRANCH_LOCAL) -> Branch\n"
+  "lookup_branch(branch_name: str, branch_type: BranchType = BranchType.LOCAL) -> Branch\n"
   "\n"
   "Returns the Git reference for the given branch name (local or remote).\n"
-  "If branch_type is GIT_BRANCH_REMOTE, you must include the remote name\n"
+  "If branch_type is BranchType.REMOTE, you must include the remote name\n"
   "in the branch name (eg 'origin/master').");
 
 PyObject *
@@ -1439,15 +1439,15 @@ error:
 }
 
 PyDoc_STRVAR(Repository_listall_branches__doc__,
-  "listall_branches(flag: int = GIT_BRANCH_LOCAL) -> list[str]\n"
+  "listall_branches(flag: BranchType = BranchType.LOCAL) -> list[str]\n"
   "\n"
   "Return a list with all the branches in the repository.\n"
   "\n"
   "The *flag* may be:\n"
   "\n"
-  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
-  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
-  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
+  "- BranchType.LOCAL - return all local branches (set by default)\n"
+  "- BranchType.REMOTE - return all remote-tracking branches\n"
+  "- BranchType.ALL - return local branches and remote-tracking branches");
 
 PyObject *
 Repository_listall_branches(Repository *self, PyObject *args)
@@ -1456,15 +1456,15 @@ Repository_listall_branches(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_raw_listall_branches__doc__,
-  "raw_listall_branches(flag: int = GIT_BRANCH_LOCAL) -> list[bytes]\n"
+  "raw_listall_branches(flag: BranchType = BranchType.LOCAL) -> list[bytes]\n"
   "\n"
   "Return a list with all the branches in the repository.\n"
   "\n"
   "The *flag* may be:\n"
   "\n"
-  "- GIT_BRANCH_LOCAL - return all local branches (set by default)\n"
-  "- GIT_BRANCH_REMOTE - return all remote-tracking branches\n"
-  "- GIT_BRANCH_ALL - return local branches and remote-tracking branches");
+  "- BranchType.LOCAL - return all local branches (set by default)\n"
+  "- BranchType.REMOTE - return all remote-tracking branches\n"
+  "- BranchType.ALL - return local branches and remote-tracking branches");
 
 PyObject *
 Repository_raw_listall_branches(Repository *self, PyObject *args)

@@ -43,6 +43,7 @@ from .callbacks import git_checkout_options, git_stash_apply_options
 from .config import Config
 from .enums import (
     AttrCheck,
+    BranchType,
     CheckoutStrategy,
     DiffOption,
     FileMode,

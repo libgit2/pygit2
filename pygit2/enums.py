@@ -38,6 +38,12 @@ class AttrCheck(IntFlag):
     INCLUDE_COMMIT = C.GIT_ATTR_CHECK_INCLUDE_COMMIT
 
 
+class BranchType(IntFlag):
+    LOCAL = _pygit2.GIT_BRANCH_LOCAL
+    REMOTE = _pygit2.GIT_BRANCH_REMOTE
+    ALL = _pygit2.GIT_BRANCH_ALL
+
+
 class CheckoutNotify(IntFlag):
     """
     Checkout notification flags

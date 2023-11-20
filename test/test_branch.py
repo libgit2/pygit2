@@ -28,6 +28,7 @@
 import pygit2
 import pytest
 import os
+from pygit2 import BranchType
 
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -143,9 +144,9 @@ def test_lookup_branch_local(testrepo):
     branch = testrepo.lookup_branch(b'master')
     assert branch.target.hex == LAST_COMMIT
 
-    branch = testrepo.lookup_branch('i18n', pygit2.GIT_BRANCH_LOCAL)
+    branch = testrepo.lookup_branch('i18n', BranchType.LOCAL)
     assert branch.target.hex == I18N_LAST_COMMIT
-    branch = testrepo.lookup_branch(b'i18n', pygit2.GIT_BRANCH_LOCAL)
+    branch = testrepo.lookup_branch(b'i18n', BranchType.LOCAL)
     assert branch.target.hex == I18N_LAST_COMMIT
 
     assert testrepo.lookup_branch('not-exists') is None

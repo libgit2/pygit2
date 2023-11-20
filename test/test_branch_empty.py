@@ -25,6 +25,7 @@
 
 import pygit2
 import pytest
+from pygit2 import BranchType
 
 
 ORIGIN_MASTER_COMMIT = '784855caf26449a1914d2cf62d12b9374d76ae78'
@@ -82,24 +83,24 @@ def test_branches_upstream_name(repo):
 #
 
 def test_lookup_branch_remote(repo):
-    branch = repo.lookup_branch('origin/master', pygit2.GIT_BRANCH_REMOTE)
+    branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
     assert branch.target.hex == ORIGIN_MASTER_COMMIT
 
-    assert repo.lookup_branch('origin/not-exists', pygit2.GIT_BRANCH_REMOTE) is None
+    assert repo.lookup_branch('origin/not-exists', BranchType.REMOTE) is None
 
 def test_listall_branches(repo):
-    branches = sorted(repo.listall_branches(pygit2.GIT_BRANCH_REMOTE))
+    branches = sorted(repo.listall_branches(BranchType.REMOTE))
     assert branches == ['origin/master']
 
-    branches = sorted(repo.raw_listall_branches(pygit2.GIT_BRANCH_REMOTE))
+    branches = sorted(repo.raw_listall_branches(BranchType.REMOTE))
     assert branches == [b'origin/master']
 
 def test_branch_remote_name(repo):
-    branch = repo.lookup_branch('origin/master', pygit2.GIT_BRANCH_REMOTE)
+    branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
     assert branch.remote_name == 'origin'
 
 def test_branch_upstream(repo):
-    remote_master = repo.lookup_branch('origin/master', pygit2.GIT_BRANCH_REMOTE)
+    remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
     master = repo.create_branch('master', repo[remote_master.target.hex])
 
     assert master.upstream is None
@@ -115,7 +116,7 @@ def test_branch_upstream(repo):
     assert master.upstream is None
 
 def test_branch_upstream_name(repo):
-    remote_master = repo.lookup_branch('origin/master', pygit2.GIT_BRANCH_REMOTE)
+    remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
     master = repo.create_branch('master', repo[remote_master.target.hex])
 
     master.upstream = remote_master

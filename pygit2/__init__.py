@@ -41,6 +41,7 @@ from .config import Config
 from .credentials import *
 from .enums import (
     AttrCheck,
+    BranchType,
     CheckoutNotify,
     CheckoutStrategy,
     DiffOption,
