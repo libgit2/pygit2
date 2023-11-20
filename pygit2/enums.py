@@ -29,6 +29,39 @@ from . import _pygit2
 from .ffi import C
 
 
+class CheckoutNotify(IntFlag):
+    """
+    Checkout notification flags
+
+    Checkout will invoke an options notification callback
+    (`CheckoutCallbacks.checkout_notify`) for certain cases - you pick which
+    ones via `CheckoutCallbacks.checkout_notify_flags`.
+    """
+
+    NONE = C.GIT_CHECKOUT_NOTIFY_NONE
+
+    CONFLICT = C.GIT_CHECKOUT_NOTIFY_CONFLICT
+    "Invokes checkout on conflicting paths."
+
+    DIRTY = C.GIT_CHECKOUT_NOTIFY_DIRTY
+    """
+    Notifies about "dirty" files, i.e. those that do not need an update
+    but no longer match the baseline.  Core git displays these files when
+    checkout runs, but won't stop the checkout.
+    """
+
+    UPDATED = C.GIT_CHECKOUT_NOTIFY_UPDATED
+    "Sends notification for any file changed."
+
+    UNTRACKED = C.GIT_CHECKOUT_NOTIFY_UNTRACKED
+    "Notifies about untracked files."
+
+    IGNORED = C.GIT_CHECKOUT_NOTIFY_UNTRACKED
+    "Notifies about ignored files."
+
+    ALL = C.GIT_CHECKOUT_NOTIFY_ALL
+
+
 class DiffOption(IntFlag):
     """
     Flags for diff options.  A combination of these flags can be passed
@@ -318,6 +351,35 @@ class RepositoryState(IntEnum):
     REBASE_MERGE = C.GIT_REPOSITORY_STATE_REBASE_MERGE
     APPLY_MAILBOX = C.GIT_REPOSITORY_STATE_APPLY_MAILBOX
     APPLY_MAILBOX_OR_REBASE = C.GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE
+
+
+class StashApplyProgress(IntEnum):
+    """
+    Stash apply progression states
+    """
+
+    NONE = C.GIT_STASH_APPLY_PROGRESS_NONE
+
+    LOADING_STASH = C.GIT_STASH_APPLY_PROGRESS_LOADING_STASH
+    "Loading the stashed data from the object database."
+
+    ANALYZE_INDEX = C.GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX
+    "The stored index is being analyzed."
+
+    ANALYZE_MODIFIED = C.GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED
+    "The modified files are being analyzed."
+
+    ANALYZE_UNTRACKED = C.GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED
+    "The untracked and ignored files are being analyzed."
+
+    CHECKOUT_UNTRACKED = C.GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED
+    "The untracked files are being written to disk."
+
+    CHECKOUT_MODIFIED = C.GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED
+    "The modified files are being written to disk."
+
+    DONE = C.GIT_STASH_APPLY_PROGRESS_DONE
+    "The stash was applied successfully."
 
 
 class SubmoduleIgnore(IntEnum):

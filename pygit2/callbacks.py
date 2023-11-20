@@ -69,6 +69,7 @@ from typing import Optional
 
 # pygit2
 from ._pygit2 import Oid, DiffFile, GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
+from .enums import CheckoutNotify, StashApplyProgress
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
@@ -225,10 +226,10 @@ class CheckoutCallbacks(Payload):
     def __init__(self):
         super().__init__()
 
-    def checkout_notify_flags(self) -> int:
+    def checkout_notify_flags(self) -> CheckoutNotify:
         """
         Returns a bit mask of the notifications to receive from a checkout
-        (GIT_CHECKOUT_NOTIFY values combined with bitwise OR).
+        (a combination of enums.CheckoutNotify constants).
 
         By default, if you override `checkout_notify`, all notifications will
         be enabled. You can fine tune the notification types to enable by
@@ -240,19 +241,19 @@ class CheckoutCallbacks(Payload):
         if type(self).checkout_notify == CheckoutCallbacks.checkout_notify:
             # If the user hasn't overridden the notify function,
             # filter out all notifications.
-            return C.GIT_CHECKOUT_NOTIFY_NONE
+            return CheckoutNotify.NONE
         else:
             # If the user provides their own notify function,
             # enable all notifications by default.
-            return C.GIT_CHECKOUT_NOTIFY_ALL
+            return CheckoutNotify.ALL
 
     def checkout_notify(self,
-        why: int,
-        path: str,
-        baseline: Optional[DiffFile],
-        target: Optional[DiffFile],
-        workdir: Optional[DiffFile]
-    ):
+                        why: CheckoutNotify,
+                        path: str,
+                        baseline: Optional[DiffFile],
+                        target: Optional[DiffFile],
+                        workdir: Optional[DiffFile]
+                        ):
         """
         Checkout will invoke an optional notification callback for
         certain cases - you pick which ones via `checkout_notify_flags`.
@@ -281,11 +282,11 @@ class StashApplyCallbacks(CheckoutCallbacks):
     in your class, which you can then pass to stash apply or pop operations.
     """
 
-    def stash_apply_progress(self, progress: int):
+    def stash_apply_progress(self, progress: StashApplyProgress):
         """
         Stash application progress notification function.
 
-        `progress` is a GIT_STASH_APPLY_PROGRESS constant.
+        `progress` is a StashApplyProgress constant.
 
         Raising an exception from this callback will abort the stash
         application.
@@ -675,9 +676,9 @@ def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=N
 
     # If we want to receive any notifications, set up notify_cb in the options
     notify_flags = payload.checkout_notify_flags()
-    if notify_flags != C.GIT_CHECKOUT_NOTIFY_NONE:
+    if notify_flags != CheckoutNotify.NONE:
         opts.notify_cb = C._checkout_notify_cb
-        opts.notify_flags = notify_flags
+        opts.notify_flags = int(notify_flags)
         opts.notify_payload = handle
 
     # Set up progress callback if the user has provided their own
@@ -703,7 +704,7 @@ def git_checkout_options(callbacks=None, strategy=None, directory=None, paths=No
 #
 
 @libgit2_callback
-def _stash_apply_progress_cb(progress: int, data: StashApplyCallbacks):
+def _stash_apply_progress_cb(progress: StashApplyProgress, data: StashApplyCallbacks):
     try:
         data.stash_apply_progress(progress)
     except Passthrough:

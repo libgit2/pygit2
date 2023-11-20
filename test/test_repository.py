@@ -34,6 +34,7 @@ import pytest
 import pygit2
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid
+from pygit2 import CheckoutNotify, StashApplyProgress
 from . import utils
 
 
@@ -84,13 +85,13 @@ def test_checkout_callbacks(testrepo):
             self.conflicting_paths = set()
             self.updated_paths = set()
 
-        def checkout_notify_flags(self) -> int:
-            return pygit2.GIT_CHECKOUT_NOTIFY_CONFLICT | pygit2.GIT_CHECKOUT_NOTIFY_UPDATED
+        def checkout_notify_flags(self) -> CheckoutNotify:
+            return CheckoutNotify.CONFLICT | CheckoutNotify.UPDATED
 
         def checkout_notify(self, why, path, baseline, target, workdir):
-            if why == pygit2.GIT_CHECKOUT_NOTIFY_CONFLICT:
+            if why == CheckoutNotify.CONFLICT:
                 self.conflicting_paths.add(path)
-            elif why == pygit2.GIT_CHECKOUT_NOTIFY_UPDATED:
+            elif why == CheckoutNotify.UPDATED:
                 self.updated_paths.add(path)
 
     # checkout i18n with conflicts and default strategy should not be possible
@@ -392,7 +393,7 @@ def test_stash_progress_callback(testrepo):
     progress_sequence = []
 
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
-        def stash_apply_progress(self, progress: int):
+        def stash_apply_progress(self, progress: StashApplyProgress):
             progress_sequence.append(progress)
 
     # apply the stash
@@ -400,13 +401,13 @@ def test_stash_progress_callback(testrepo):
 
     # make sure the callbacks were notified of all the steps
     assert progress_sequence == [
-        pygit2.GIT_STASH_APPLY_PROGRESS_LOADING_STASH,
-        pygit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX,
-        pygit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED,
-        pygit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED,
-        pygit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED,
-        pygit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED,
-        pygit2.GIT_STASH_APPLY_PROGRESS_DONE,
+        StashApplyProgress.LOADING_STASH,
+        StashApplyProgress.ANALYZE_INDEX,
+        StashApplyProgress.ANALYZE_MODIFIED,
+        StashApplyProgress.ANALYZE_UNTRACKED,
+        StashApplyProgress.CHECKOUT_UNTRACKED,
+        StashApplyProgress.CHECKOUT_MODIFIED,
+        StashApplyProgress.DONE,
     ]
 
 def test_stash_aborted_from_callbacks(testrepo):
@@ -424,8 +425,8 @@ def test_stash_aborted_from_callbacks(testrepo):
     # define callbacks that will abort the unstash process
     # just as libgit2 is ready to write the files to disk
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
-        def stash_apply_progress(self, progress: int):
-            if progress == pygit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED:
+        def stash_apply_progress(self, progress: StashApplyProgress):
+            if progress == StashApplyProgress.CHECKOUT_UNTRACKED:
                 raise InterruptedError("Stop applying the stash!")
 
     # attempt to apply and delete the stash; the callbacks will interrupt that
@@ -460,7 +461,7 @@ def test_stash_apply_checkout_options(testrepo):
     # define callbacks that raise an InterruptedError when checkout detects a conflict
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
         def checkout_notify(self, why, path, baseline, target, workdir):
-            if why == pygit2.GIT_CHECKOUT_NOTIFY_CONFLICT:
+            if why == CheckoutNotify.CONFLICT:
                 raise InterruptedError("Applying the stash would create a conflict")
 
     # overwrite hello.txt so that applying the stash would create a conflict
