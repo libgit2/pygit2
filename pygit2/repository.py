@@ -34,7 +34,6 @@ import warnings
 # Import from pygit2
 from ._pygit2 import Repository as _Repository, init_file_backend
 from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from ._pygit2 import GIT_FILEMODE_LINK
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
@@ -46,6 +45,7 @@ from .enums import (
     AttrCheck,
     CheckoutStrategy,
     DiffOption,
+    FileMode,
     RepositoryOpenFlag,
     RepositoryState,
 )
@@ -1270,7 +1270,7 @@ class BaseRepository(_Repository):
             info.size = len(content)
             info.mtime = timestamp
             info.uname = info.gname = 'root'  # just because git does this
-            if entry.mode == GIT_FILEMODE_LINK:
+            if entry.mode == FileMode.LINK:
                 info.type = tarfile.SYMTYPE
                 info.linkname = content.decode("utf-8")
                 info.mode = 0o777  # symlinks get placeholder

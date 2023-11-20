@@ -27,7 +27,7 @@ import weakref
 
 # Import from pygit2
 from ._pygit2 import Oid, Tree, Diff
-from .enums import DiffOption
+from .enums import DiffOption, FileMode
 from .errors import check_error
 from .ffi import ffi, C
 from .utils import to_bytes, to_str
@@ -349,15 +349,19 @@ class Index:
 
 
 class IndexEntry:
-    __slots__ = ['id', 'path', 'mode']
+    path: str
+    "The path of this entry"
 
-    def __init__(self, path, object_id, mode):
+    id: Oid
+    "The id of the referenced object"
+
+    mode: FileMode
+    "The mode of this entry, a FileMode value"
+
+    def __init__(self, path, object_id: Oid, mode: FileMode):
         self.path = path
-        """The path of this entry"""
         self.id = object_id
-        """The id of the referenced object"""
         self.mode = mode
-        """The mode of this entry, a GIT_FILEMODE_* value"""
 
     @property
     def oid(self):
@@ -392,7 +396,7 @@ class IndexEntry:
         centry = ffi.new('git_index_entry *')
         # basically memcpy()
         ffi.buffer(ffi.addressof(centry, 'id'))[:] = self.id.raw[:]
-        centry.mode = self.mode
+        centry.mode = int(self.mode)
         path = ffi.new('char[]', to_bytes(self.path))
         centry.path = path
 
@@ -405,7 +409,7 @@ class IndexEntry:
 
         entry = cls.__new__(cls)
         entry.path = to_str(ffi.string(centry.path))
-        entry.mode = centry.mode
+        entry.mode = FileMode(centry.mode)
         entry.id = Oid(raw=bytes(ffi.buffer(ffi.addressof(centry, 'id'))[:]))
 
         return entry

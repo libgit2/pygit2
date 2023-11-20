@@ -45,16 +45,15 @@ TreeBuilder_dealloc(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_insert__doc__,
-    "insert(name: str, oid: Oid, attr: int)\n"
+    "insert(name: str, oid: Oid, attr: FileMode)\n"
     "\n"
     "Insert or replace an entry in the treebuilder.\n"
     "\n"
     "Parameters:\n"
     "\n"
     "attr\n"
-    "    Available values are GIT_FILEMODE_BLOB,\n"
-    "    GIT_FILEMODE_BLOB_EXECUTABLE, GIT_FILEMODE_TREE, GIT_FILEMODE_LINK\n"
-    "    and GIT_FILEMODE_COMMIT.\n");
+    "    Available values are FileMode.BLOB, FileMode.BLOB_EXECUTABLE,\n"
+    "    FileMode.TREE, FileMode.LINK and FileMode.COMMIT.\n");
 
 PyObject *
 TreeBuilder_insert(TreeBuilder *self, PyObject *args)

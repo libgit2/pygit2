@@ -45,6 +45,7 @@ from .enums import (
     CheckoutStrategy,
     DiffOption,
     Feature,
+    FileMode,
     ReferenceFilter,
     ReferenceType,
     RepositoryInitFlag,

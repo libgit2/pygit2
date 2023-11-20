@@ -31,6 +31,7 @@ import pytest
 
 import pygit2
 from pygit2 import Repository, Index, Oid
+from pygit2 import FileMode
 from . import utils
 
 
@@ -204,13 +205,13 @@ def test_change_attributes(testrepo):
     entry = index['hello.txt']
     ign_entry = index['.gitignore']
     assert ign_entry.id != entry.id
-    assert entry.mode != pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
+    assert entry.mode != FileMode.BLOB_EXECUTABLE
     entry.path = 'foo.txt'
     entry.id = ign_entry.id
-    entry.mode = pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
+    entry.mode = FileMode.BLOB_EXECUTABLE
     assert 'foo.txt' == entry.path
     assert ign_entry.id == entry.id
-    assert pygit2.GIT_FILEMODE_BLOB_EXECUTABLE == entry.mode
+    assert FileMode.BLOB_EXECUTABLE == entry.mode
 
 def test_write_tree_to(testrepo, tmp_path):
     pygit2.option(pygit2.GIT_OPT_ENABLE_STRICT_OBJECT_CREATION, False)
@@ -246,7 +247,7 @@ def test_entry_eq(testrepo):
     oid = Oid(hex='0907563af06c7464d62a70cdd135a6ba7d2b41d8')
     entry = pygit2.IndexEntry(hello_entry.path, oid, hello_entry.mode)
     assert hello_entry != entry
-    entry = pygit2.IndexEntry(hello_entry.path, hello_entry.id, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE)
+    entry = pygit2.IndexEntry(hello_entry.path, hello_entry.id, FileMode.BLOB_EXECUTABLE)
     assert hello_entry != entry
 
 def test_entry_repr(testrepo):

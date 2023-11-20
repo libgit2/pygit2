@@ -29,6 +29,7 @@ import pygit2
 import pytest
 
 from . import utils
+from pygit2 import FileMode
 
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
@@ -123,13 +124,13 @@ def test_new_tree(barerepo):
     t = repo.TreeBuilder()
     t.insert('x', b0, 0o0100644)
     t.insert('y', b1, 0o0100755)
-    t.insert('z', subtree.id, pygit2.GIT_FILEMODE_TREE)
+    t.insert('z', subtree.id, FileMode.TREE)
     tree = repo[t.write()]
 
     for name, oid, cls, filemode, type, type_str in [
-        ('x', b0, pygit2.Blob, pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_OBJ_BLOB, 'blob'),
-        ('y', b1, pygit2.Blob, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE, pygit2.GIT_OBJ_BLOB, 'blob'),
-        ('z', subtree.id, pygit2.Tree, pygit2.GIT_FILEMODE_TREE, pygit2.GIT_OBJ_TREE, 'tree')]:
+        ('x', b0, pygit2.Blob, FileMode.BLOB, pygit2.GIT_OBJ_BLOB, 'blob'),
+        ('y', b1, pygit2.Blob, FileMode.BLOB_EXECUTABLE, pygit2.GIT_OBJ_BLOB, 'blob'),
+        ('z', subtree.id, pygit2.Tree, FileMode.TREE, pygit2.GIT_OBJ_TREE, 'tree')]:
 
         assert name in tree
         obj = tree[name]

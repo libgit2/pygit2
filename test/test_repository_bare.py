@@ -185,7 +185,7 @@ def test_conflicts_in_bare_repository(barerepo):
     def create_conflict_file(repo, branch, content):
         oid = repo.create_blob(content.encode('utf-8'))
         tb = repo.TreeBuilder()
-        tb.insert('conflict', oid, pygit2.GIT_FILEMODE_BLOB)
+        tb.insert('conflict', oid, pygit2.FileMode.BLOB)
         tree = tb.write()
 
         sig = pygit2.Signature('Author', 'author@example.com')

@@ -331,6 +331,15 @@ class Feature(IntFlag):
     NSEC = C.GIT_FEATURE_NSEC
 
 
+class FileMode(IntFlag):
+    UNREADABLE = _pygit2.GIT_FILEMODE_UNREADABLE
+    TREE = _pygit2.GIT_FILEMODE_TREE
+    BLOB = _pygit2.GIT_FILEMODE_BLOB
+    BLOB_EXECUTABLE = _pygit2.GIT_FILEMODE_BLOB_EXECUTABLE
+    LINK = _pygit2.GIT_FILEMODE_LINK
+    COMMIT = _pygit2.GIT_FILEMODE_COMMIT
+
+
 class ReferenceFilter(IntEnum):
     """ Filters for References.iterator(). """
 
