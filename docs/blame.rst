@@ -39,11 +39,11 @@ Getters:
 Constants
 =========
 
-.. py:data:: GIT_BLAME_NORMAL
-.. py:data:: GIT_BLAME_TRACK_COPIES_SAME_FILE
-.. py:data:: GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES
-.. py:data:: GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES
-.. py:data:: GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES
-.. py:data:: GIT_BLAME_FIRST_PARENT
-.. py:data:: GIT_BLAME_USE_MAILMAP
-.. py:data:: GIT_BLAME_IGNORE_WHITESPACE
+.. py:data:: enums.BlameFlag.NORMAL
+.. py:data:: enums.BlameFlag.TRACK_COPIES_SAME_FILE
+.. py:data:: enums.BlameFlag.TRACK_COPIES_SAME_COMMIT_MOVES
+.. py:data:: enums.BlameFlag.TRACK_COPIES_SAME_COMMIT_COPIES
+.. py:data:: enums.BlameFlag.TRACK_COPIES_ANY_COMMIT_COPIES
+.. py:data:: enums.BlameFlag.FIRST_PARENT
+.. py:data:: enums.BlameFlag.USE_MAILMAP
+.. py:data:: enums.BlameFlag.IGNORE_WHITESPACE

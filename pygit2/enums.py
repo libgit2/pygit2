@@ -60,6 +60,36 @@ class AttrCheck(IntFlag):
     INCLUDE_COMMIT = C.GIT_ATTR_CHECK_INCLUDE_COMMIT
 
 
+class BlameFlag(IntFlag):
+    NORMAL = _pygit2.GIT_BLAME_NORMAL
+    "Normal blame, the default"
+
+    TRACK_COPIES_SAME_FILE = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_FILE
+    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+
+    TRACK_COPIES_SAME_COMMIT_MOVES = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES
+    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+
+    TRACK_COPIES_SAME_COMMIT_COPIES = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES
+    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+
+    TRACK_COPIES_ANY_COMMIT_COPIES = _pygit2.GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES
+    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+
+    FIRST_PARENT = _pygit2.GIT_BLAME_FIRST_PARENT
+    "Restrict the search of commits to those reachable following only the first parents."
+
+    USE_MAILMAP = _pygit2.GIT_BLAME_USE_MAILMAP
+    """
+    Use mailmap file to map author and committer names and email addresses
+    to canonical real names and email addresses. The mailmap will be read
+    from the working directory, or HEAD in a bare repository.
+    """
+
+    IGNORE_WHITESPACE = _pygit2.GIT_BLAME_IGNORE_WHITESPACE
+    "Ignore whitespace differences"
+
+
 class BranchType(IntFlag):
     LOCAL = _pygit2.GIT_BRANCH_LOCAL
     REMOTE = _pygit2.GIT_BRANCH_REMOTE

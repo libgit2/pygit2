@@ -43,6 +43,7 @@ from .callbacks import git_checkout_options, git_stash_apply_options
 from .config import Config
 from .enums import (
     AttrCheck,
+    BlameFlag,
     BranchType,
     CheckoutStrategy,
     DiffOption,
@@ -534,7 +535,7 @@ class BaseRepository(_Repository):
     #
     # blame
     #
-    def blame(self, path, flags=None, min_match_characters=None,
+    def blame(self, path, flags: BlameFlag = BlameFlag.NORMAL, min_match_characters=None,
               newest_commit=None, oldest_commit=None, min_line=None,
               max_line=None):
         """
@@ -546,7 +547,7 @@ class BaseRepository(_Repository):
             Path to the file to blame.
 
         flags
-            A GIT_BLAME_* constant.
+            An enums.BlameFlag constant.
 
         min_match_characters
             The number of alphanum chars that must be detected as moving/copying
@@ -566,13 +567,13 @@ class BaseRepository(_Repository):
 
         Examples::
 
-            repo.blame('foo.c', flags=GIT_BLAME_TRACK_COPIES_SAME_FILE)
+            repo.blame('foo.c', flags=enums.BlameFlag.IGNORE_WHITESPACE)
         """
 
         options = ffi.new('git_blame_options *')
         C.git_blame_options_init(options, C.GIT_BLAME_OPTIONS_VERSION)
         if flags:
-            options.flags = flags
+            options.flags = int(flags)
         if min_match_characters:
             options.min_match_characters = min_match_characters
         if newest_commit:

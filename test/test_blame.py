@@ -27,7 +27,7 @@
 
 import pytest
 
-from pygit2 import Signature, Oid, GIT_BLAME_IGNORE_WHITESPACE
+from pygit2 import Signature, Oid, BlameFlag
 
 
 PATH = 'hello.txt'
@@ -63,7 +63,7 @@ def test_blame_index(testrepo):
 
 
 def test_blame_flags(blameflagsrepo):
-    blame = blameflagsrepo.blame(PATH, flags=GIT_BLAME_IGNORE_WHITESPACE)
+    blame = blameflagsrepo.blame(PATH, flags=BlameFlag.IGNORE_WHITESPACE)
 
     assert len(blame) == 3
 

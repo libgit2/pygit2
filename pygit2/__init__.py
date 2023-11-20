@@ -42,7 +42,7 @@ from .credentials import *
 from .enums import (
     AttrCheck,
     ApplyLocation,
-    AttrCheckFlags,
+    BlameFlag,
     BranchType,
     CheckoutNotify,
     CheckoutStrategy,
