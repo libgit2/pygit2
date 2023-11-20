@@ -219,12 +219,14 @@ def test_fetch(emptyrepo):
     assert stats.indexed_objects == REMOTE_REPO_OBJECTS
     assert stats.received_objects == REMOTE_REPO_OBJECTS
 
+@utils.requires_network
 def test_fetch_depth_zero(testrepo):
     remote = testrepo.remotes[0]
     stats = remote.fetch(REMOTE_FETCHTEST_FETCHSPECS, depth=0)
     assert stats.indexed_objects == REMOTE_REPO_FETCH_ALL_OBJECTS
     assert stats.received_objects == REMOTE_REPO_FETCH_ALL_OBJECTS
 
+@utils.requires_network
 def test_fetch_depth_one(testrepo):
     remote = testrepo.remotes[0]
     stats = remote.fetch(REMOTE_FETCHTEST_FETCHSPECS, depth=1)
