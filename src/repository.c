@@ -2166,7 +2166,7 @@ out:
 }
 
 PyDoc_STRVAR(Repository_apply__doc__,
-  "apply(diff: Diff, location: int = GIT_APPLY_LOCATION_WORKDIR)\n"
+  "apply(diff: Diff, location: ApplyLocation = ApplyLocation.WORKDIR)\n"
   "\n"
   "Applies the given Diff object to HEAD, writing the results into the\n"
   "working directory, the index, or both.\n"
@@ -2177,8 +2177,8 @@ PyDoc_STRVAR(Repository_apply__doc__,
   "    The Diff to apply.\n"
   "\n"
   "location\n"
-  "    The location to apply: GIT_APPLY_LOCATION_WORKDIR (default),\n"
-  "    GIT_APPLY_LOCATION_INDEX, or GIT_APPLY_LOCATION_BOTH.\n"
+  "    The location to apply: ApplyLocation.WORKDIR (default),\n"
+  "    ApplyLocation.INDEX, or ApplyLocation.BOTH.\n"
   );
 
 PyObject *

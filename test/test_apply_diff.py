@@ -29,6 +29,8 @@ import pytest
 import os
 from pathlib import Path
 
+from pygit2 import ApplyLocation
+
 
 def read_content(testrepo):
     with (Path(testrepo.workdir) / 'hello.txt').open('rb') as f:
@@ -79,75 +81,75 @@ def test_apply_type_error(testrepo):
 
 def test_apply_diff_to_workdir(testrepo, new_content, patch_diff):
     # Apply the patch and compare
-    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_WORKDIR)
+    testrepo.apply(patch_diff, ApplyLocation.WORKDIR)
 
     assert read_content(testrepo) == new_content
     assert testrepo.status_file('hello.txt') == pygit2.GIT_STATUS_WT_MODIFIED
 
 def test_apply_diff_to_index(testrepo, old_content, patch_diff):
     # Apply the patch and compare
-    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_INDEX)
+    testrepo.apply(patch_diff, ApplyLocation.INDEX)
 
     assert read_content(testrepo) == old_content
     assert testrepo.status_file('hello.txt') & pygit2.GIT_STATUS_INDEX_MODIFIED
 
 def test_apply_diff_to_both(testrepo, new_content, patch_diff):
     # Apply the patch and compare
-    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH)
+    testrepo.apply(patch_diff, ApplyLocation.BOTH)
 
     assert read_content(testrepo) == new_content
     assert testrepo.status_file('hello.txt') & pygit2.GIT_STATUS_INDEX_MODIFIED
 
 def test_diff_applies_to_workdir(testrepo, old_content, patch_diff):
     # See if patch applies
-    assert testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_WORKDIR)
+    assert testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
 
     # Ensure it was a dry run
     assert read_content(testrepo) == old_content
 
     # Apply patch for real, then ensure it can't be applied again
-    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_WORKDIR)
-    assert not testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_WORKDIR)
+    testrepo.apply(patch_diff, ApplyLocation.WORKDIR)
+    assert not testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
 
     # It can still be applied to the index, though
-    assert testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_INDEX)
+    assert testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
 def test_diff_applies_to_index(testrepo, old_content, patch_diff):
     # See if patch applies
-    assert testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_INDEX)
+    assert testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
     # Ensure it was a dry run
     assert read_content(testrepo) == old_content
 
     # Apply patch for real, then ensure it can't be applied again
-    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_INDEX)
-    assert not testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_INDEX)
+    testrepo.apply(patch_diff, ApplyLocation.INDEX)
+    assert not testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
     # It can still be applied to the workdir, though
-    assert testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_WORKDIR)
+    assert testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
 
 def test_diff_applies_to_both(testrepo, old_content, patch_diff):
     # See if patch applies
-    assert testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH)
+    assert testrepo.applies(patch_diff, ApplyLocation.BOTH)
 
     # Ensure it was a dry run
     assert read_content(testrepo) == old_content
 
     # Apply patch for real, then ensure it can't be applied again
-    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH)
-    assert not testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH)
-    assert not testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_WORKDIR)
-    assert not testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_INDEX)
+    testrepo.apply(patch_diff, ApplyLocation.BOTH)
+    assert not testrepo.applies(patch_diff, ApplyLocation.BOTH)
+    assert not testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
+    assert not testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
 def test_applies_error(testrepo, old_content, patch_diff, foreign_patch_diff):
     # Try to apply a "foreign" patch that affects files that aren't in the repo;
     # ensure we get OSError about the missing file (due to raise_error)
     with pytest.raises(OSError):
-        testrepo.applies(foreign_patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH, raise_error=True)
+        testrepo.applies(foreign_patch_diff, ApplyLocation.BOTH, raise_error=True)
 
     # Apply a valid patch
-    testrepo.apply(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH)
+    testrepo.apply(patch_diff, ApplyLocation.BOTH)
 
     # Ensure it can't be applied again and we get an exception about it (due to raise_error)
     with pytest.raises(pygit2.GitError):
-        testrepo.applies(patch_diff, pygit2.GIT_APPLY_LOCATION_BOTH, raise_error=True)
+        testrepo.applies(patch_diff, ApplyLocation.BOTH, raise_error=True)

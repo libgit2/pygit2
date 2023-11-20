@@ -29,6 +29,28 @@ from . import _pygit2
 from .ffi import C
 
 
+class ApplyLocation(IntEnum):
+    """ Possible application locations for patches """
+
+    WORKDIR = _pygit2.GIT_APPLY_LOCATION_WORKDIR
+    """
+    Apply the patch to the workdir, leaving the index untouched.
+    This is the equivalent of `git apply` with no location argument.
+    """
+
+    INDEX = _pygit2.GIT_APPLY_LOCATION_INDEX
+    """
+    Apply the patch to the index, leaving the working directory
+    untouched.  This is the equivalent of `git apply --cached`.
+    """
+
+    BOTH = _pygit2.GIT_APPLY_LOCATION_BOTH
+    """
+    Apply the patch to both the working directory and the index.
+    This is the equivalent of `git apply --index`.
+    """
+
+
 class AttrCheck(IntFlag):
     FILE_THEN_INDEX = C.GIT_ATTR_CHECK_FILE_THEN_INDEX
     INDEX_THEN_FILE = C.GIT_ATTR_CHECK_INDEX_THEN_FILE
