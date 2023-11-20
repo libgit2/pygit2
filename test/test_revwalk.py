@@ -25,7 +25,7 @@
 
 """Tests for revision walk."""
 
-from pygit2 import GIT_SORT_NONE, GIT_SORT_TIME, GIT_SORT_REVERSE
+from pygit2 import SortMode
 
 
 # In the order given by git log
@@ -58,47 +58,47 @@ def test_log(testrepo):
 
 
 def test_walk(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker = testrepo.walk(log[0], SortMode.TIME)
     assert [x.hex for x in walker] == log
 
 def test_reverse(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_TIME | GIT_SORT_REVERSE)
+    walker = testrepo.walk(log[0], SortMode.TIME | SortMode.REVERSE)
     assert [x.hex for x in walker] == list(reversed(log))
 
 def test_hide(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker = testrepo.walk(log[0], SortMode.TIME)
     walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
     assert len(list(walker)) == 2
 
 def test_hide_prefix(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker = testrepo.walk(log[0], SortMode.TIME)
     walker.hide('4ec4389a')
     assert len(list(walker)) == 2
 
 def test_reset(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker = testrepo.walk(log[0], SortMode.TIME)
     walker.reset()
     assert [x.hex for x in walker] == []
 
 def test_push(testrepo):
-    walker = testrepo.walk(log[-1], GIT_SORT_TIME)
+    walker = testrepo.walk(log[-1], SortMode.TIME)
     assert [x.hex for x in walker] == log[-1:]
     walker.reset()
     walker.push(log[0])
     assert [x.hex for x in walker] == log
 
 def test_sort(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_TIME)
-    walker.sort(GIT_SORT_TIME | GIT_SORT_REVERSE)
+    walker = testrepo.walk(log[0], SortMode.TIME)
+    walker.sort(SortMode.TIME | SortMode.REVERSE)
     assert [x.hex for x in walker] == list(reversed(log))
 
 def test_simplify_first_parent(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_TIME)
+    walker = testrepo.walk(log[0], SortMode.TIME)
     walker.simplify_first_parent()
     assert len(list(walker)) == 3
 
 def test_default_sorting(testrepo):
-    walker = testrepo.walk(log[0], GIT_SORT_NONE)
+    walker = testrepo.walk(log[0], SortMode.NONE)
     list1 = list([x.id for x in walker])
     walker = testrepo.walk(log[0])
     list2 = list([x.id for x in walker])

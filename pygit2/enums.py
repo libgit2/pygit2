@@ -566,6 +566,37 @@ class RepositoryState(IntEnum):
     APPLY_MAILBOX_OR_REBASE = C.GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE
 
 
+class SortMode(IntFlag):
+    """
+    Flags to specify the sorting which a revwalk should perform.
+    """
+
+    NONE = _pygit2.GIT_SORT_NONE
+    """
+    Sort the output with the same default method from `git`: reverse
+    chronological order. This is the default sorting for new walkers.
+    """
+
+    TOPOLOGICAL = _pygit2.GIT_SORT_TOPOLOGICAL
+    """
+    Sort the repository contents in topological order (no parents before
+    all of its children are shown); this sorting mode can be combined
+    with TIME sorting to produce `git`'s `--date-order``.
+    """
+
+    TIME = _pygit2.GIT_SORT_TIME
+    """
+    Sort the repository contents by commit time; this sorting mode can be
+    combined with TOPOLOGICAL.
+    """
+
+    REVERSE = _pygit2.GIT_SORT_REVERSE
+    """
+    Iterate through the repository contents in reverse order;
+    this sorting mode can be combined with any of the above.
+    """
+
+
 class StashApplyProgress(IntEnum):
     """
     Stash apply progression states

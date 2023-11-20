@@ -92,7 +92,7 @@ Walker_push(Walker *self, PyObject *py_hex)
 
 
 PyDoc_STRVAR(Walker_sort__doc__,
-  "sort(mode: int)\n"
+  "sort(mode: enums.SortMode)\n"
   "\n"
   "Change the sorting mode (this resets the walker).");
 

@@ -60,6 +60,7 @@ from .enums import (
     StashApplyProgress,
     SubmoduleIgnore,
     SubmoduleStatus,
+    SortMode,
 )
 from .errors import check_error, Passthrough
 from .ffi import ffi, C

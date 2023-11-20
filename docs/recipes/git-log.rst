@@ -31,7 +31,7 @@ Traverse commit history
 .. code-block:: python
 
     >>> last = repo[repo.head.target]
-    >>> for commit in repo.walk(last.id, pygit2.GIT_SORT_TIME):
+    >>> for commit in repo.walk(last.id, pygit2.enums.SortMode.TIME):
     >>>     print(commit.message) # or some other operation
 
 ======================================================================
@@ -45,7 +45,7 @@ Show trailers from the last commit
 .. code-block:: python
 
     >>> last = repo[repo.head.target]
-    >>> for commit in repo.walk(last.id, pygit2.GIT_SORT_TIME):
+    >>> for commit in repo.walk(last.id, pygit2.enums.SortMode.TIME):
     >>>     print(commit.message_trailers.get('Bug'))
 
 
