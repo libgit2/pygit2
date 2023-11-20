@@ -68,8 +68,8 @@ from functools import wraps
 from typing import Optional
 
 # pygit2
-from ._pygit2 import Oid, DiffFile, GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
-from .enums import CheckoutNotify, StashApplyProgress
+from ._pygit2 import Oid, DiffFile
+from .enums import CheckoutNotify, CheckoutStrategy, StashApplyProgress
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
@@ -659,10 +659,9 @@ def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=N
     refs = [handle]
 
     # pygit2's default is SAFE | RECREATE_MISSING
-    opts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING
-    # and go through the arguments to see what the user wanted
-    if strategy:
-        opts.checkout_strategy = strategy
+    if strategy is None:
+        strategy = CheckoutStrategy.SAFE | CheckoutStrategy.RECREATE_MISSING
+    opts.checkout_strategy = int(strategy)
 
     if directory:
         target_dir = ffi.new('char[]', to_bytes(directory))

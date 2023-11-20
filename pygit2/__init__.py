@@ -42,6 +42,7 @@ from .credentials import *
 from .enums import (
     AttrCheck,
     CheckoutNotify,
+    CheckoutStrategy,
     DiffOption,
     Feature,
     RepositoryInitFlag,

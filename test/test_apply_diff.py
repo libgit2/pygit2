@@ -54,7 +54,7 @@ def patch_diff(testrepo, new_content):
     patch = testrepo.diff().patch
 
     # Rollback all changes
-    testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
+    testrepo.checkout('HEAD', strategy=pygit2.CheckoutStrategy.FORCE)
 
     # Return the diff
     return pygit2.Diff.parse_diff(patch)

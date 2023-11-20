@@ -35,7 +35,6 @@ import warnings
 from ._pygit2 import Repository as _Repository, init_file_backend
 from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from ._pygit2 import GIT_FILEMODE_LINK
-from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
@@ -45,6 +44,7 @@ from .callbacks import git_checkout_options, git_stash_apply_options
 from .config import Config
 from .enums import (
     AttrCheck,
+    CheckoutStrategy,
     DiffOption,
     RepositoryOpenFlag,
     RepositoryState,
@@ -307,7 +307,7 @@ class BaseRepository(_Repository):
         Checkout the given reference using the given strategy, and update the
         HEAD.
         The reference may be a reference name or a Reference object.
-        The default strategy is GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING.
+        The default strategy is SAFE | RECREATE_MISSING.
 
         If no reference is given, checkout from the index.
 
@@ -317,8 +317,8 @@ class BaseRepository(_Repository):
             The reference to checkout. After checkout, the current branch will
             be switched to this one.
 
-        strategy : int
-            A ``GIT_CHECKOUT_`` value. The default is ``GIT_CHECKOUT_SAFE``.
+        strategy : CheckoutStrategy
+            A ``CheckoutStrategy`` value. The default is ``SAFE | RECREATE_MISSING``.
 
         directory : str
             Alternative checkout path to workdir.
@@ -944,7 +944,7 @@ class BaseRepository(_Repository):
 
         checkout_opts = ffi.new("git_checkout_options *")
         C.git_checkout_options_init(checkout_opts, 1)
-        checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING
+        checkout_opts.checkout_strategy = int(CheckoutStrategy.SAFE | CheckoutStrategy.RECREATE_MISSING)
 
         commit_ptr = ffi.new("git_annotated_commit **")
         err = C.git_annotated_commit_lookup(commit_ptr, self._repo, c_id)
@@ -1181,7 +1181,7 @@ class BaseRepository(_Repository):
 
             >>> repo = pygit2.Repository('.')
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
-            >>> repo.stash_apply(strategy=GIT_CHECKOUT_ALLOW_CONFLICTS)
+            >>> repo.stash_apply(strategy=CheckoutStrategy.ALLOW_CONFLICTS)
         """
         with git_stash_apply_options(**kwargs) as payload:
             err = C.git_stash_apply(self._repo, index, payload.stash_apply_options)

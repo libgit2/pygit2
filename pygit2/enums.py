@@ -71,6 +71,92 @@ class CheckoutNotify(IntFlag):
     ALL = C.GIT_CHECKOUT_NOTIFY_ALL
 
 
+class CheckoutStrategy(IntFlag):
+    NONE = _pygit2.GIT_CHECKOUT_NONE
+    "Dry run, no actual updates"
+
+    SAFE = _pygit2.GIT_CHECKOUT_SAFE
+    """
+    Allow safe updates that cannot overwrite uncommitted data.
+    If the uncommitted changes don't conflict with the checked out files,
+    the checkout will still proceed, leaving the changes intact.
+    
+    Mutually exclusive with FORCE.
+    FORCE takes precedence over SAFE.
+    """
+
+    FORCE = _pygit2.GIT_CHECKOUT_FORCE
+    """
+    Allow all updates to force working directory to look like index.
+
+    Mutually exclusive with SAFE.
+    FORCE takes precedence over SAFE.
+    """
+
+    RECREATE_MISSING = _pygit2.GIT_CHECKOUT_RECREATE_MISSING
+    """ Allow checkout to recreate missing files """
+
+    ALLOW_CONFLICTS = _pygit2.GIT_CHECKOUT_ALLOW_CONFLICTS
+    """ Allow checkout to make safe updates even if conflicts are found """
+
+    REMOVE_UNTRACKED = _pygit2.GIT_CHECKOUT_REMOVE_UNTRACKED
+    """ Remove untracked files not in index (that are not ignored) """
+
+    REMOVE_IGNORED = _pygit2.GIT_CHECKOUT_REMOVE_IGNORED
+    """ Remove ignored files not in index """
+
+    UPDATE_ONLY = _pygit2.GIT_CHECKOUT_UPDATE_ONLY
+    """ Only update existing files, don't create new ones """
+
+    DONT_UPDATE_INDEX = _pygit2.GIT_CHECKOUT_DONT_UPDATE_INDEX
+    """
+    Normally checkout updates index entries as it goes; this stops that.
+    Implies `DONT_WRITE_INDEX`.
+    """
+
+    NO_REFRESH = _pygit2.GIT_CHECKOUT_NO_REFRESH
+    """ Don't refresh index/config/etc before doing checkout """
+
+    SKIP_UNMERGED = _pygit2.GIT_CHECKOUT_SKIP_UNMERGED
+    """ Allow checkout to skip unmerged files """
+
+    USE_OURS = _pygit2.GIT_CHECKOUT_USE_OURS
+    """ For unmerged files, checkout stage 2 from index """
+
+    USE_THEIRS = _pygit2.GIT_CHECKOUT_USE_THEIRS
+    """ For unmerged files, checkout stage 3 from index """
+
+    DISABLE_PATHSPEC_MATCH = _pygit2.GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH
+    """ Treat pathspec as simple list of exact match file paths """
+
+    SKIP_LOCKED_DIRECTORIES = _pygit2.GIT_CHECKOUT_SKIP_LOCKED_DIRECTORIES
+    """ Ignore directories in use, they will be left empty """
+
+    DONT_OVERWRITE_IGNORED = _pygit2.GIT_CHECKOUT_DONT_OVERWRITE_IGNORED
+    """ Don't overwrite ignored files that exist in the checkout target """
+
+    CONFLICT_STYLE_MERGE = _pygit2.GIT_CHECKOUT_CONFLICT_STYLE_MERGE
+    """ Write normal merge files for conflicts """
+
+    CONFLICT_STYLE_DIFF3 = _pygit2.GIT_CHECKOUT_CONFLICT_STYLE_DIFF3
+    """ Include common ancestor data in diff3 format files for conflicts """
+
+    DONT_REMOVE_EXISTING = _pygit2.GIT_CHECKOUT_DONT_REMOVE_EXISTING
+    """ Don't overwrite existing files or folders """
+
+    DONT_WRITE_INDEX = _pygit2.GIT_CHECKOUT_DONT_WRITE_INDEX
+    """ Normally checkout writes the index upon completion; this prevents that. """
+
+    DRY_RUN = _pygit2.GIT_CHECKOUT_DRY_RUN
+    """
+    Show what would be done by a checkout.  Stop after sending
+    notifications; don't update the working directory or index.
+    """
+
+    CONFLICT_STYLE_ZDIFF3 = _pygit2.GIT_CHECKOUT_CONFLICT_STYLE_DIFF3
+    """ Include common ancestor data in zdiff3 format for conflicts """
+
+
 class DiffOption(IntFlag):
     """
     Flags for diff options.  A combination of these flags can be passed

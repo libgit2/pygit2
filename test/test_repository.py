@@ -34,7 +34,7 @@ import pytest
 import pygit2
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid
-from pygit2 import CheckoutNotify, StashApplyProgress
+from pygit2 import CheckoutNotify, CheckoutStrategy, StashApplyProgress
 from . import utils
 
 
@@ -68,7 +68,7 @@ def test_checkout_ref(testrepo):
     head = testrepo.head
     head = testrepo[head.target]
     assert 'new' not in head.tree
-    testrepo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
+    testrepo.checkout(ref_i18n, strategy=CheckoutStrategy.FORCE)
 
     head = testrepo.head
     head = testrepo[head.target]
@@ -105,7 +105,7 @@ def test_checkout_callbacks(testrepo):
     head = testrepo[head.target]
     assert 'new' not in head.tree
     callbacks = MyCheckoutCallbacks()
-    testrepo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE, callbacks=callbacks)
+    testrepo.checkout(ref_i18n, strategy=CheckoutStrategy.FORCE, callbacks=callbacks)
     # make sure the callbacks caught the files affected by the checkout
     assert set() == callbacks.conflicting_paths
     assert {'bye.txt', 'new'} == callbacks.updated_paths
@@ -139,7 +139,7 @@ def test_checkout_aborted_from_callbacks(testrepo):
 
     # checkout i18n with GIT_CHECKOUT_FORCE - callbacks should prevent checkout from completing
     with pytest.raises(InterruptedError):
-        testrepo.checkout(ref_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE, callbacks=callbacks)
+        testrepo.checkout(ref_i18n, strategy=CheckoutStrategy.FORCE, callbacks=callbacks)
 
     assert callbacks.invoked_times == 2
     assert 'new' not in head.tree
@@ -156,7 +156,7 @@ def test_checkout_branch(testrepo):
     head = testrepo.head
     head = testrepo[head.target]
     assert 'new' not in head.tree
-    testrepo.checkout(branch_i18n, strategy=pygit2.GIT_CHECKOUT_FORCE)
+    testrepo.checkout(branch_i18n, strategy=CheckoutStrategy.FORCE)
 
     head = testrepo.head
     head = testrepo[head.target]
@@ -171,7 +171,7 @@ def test_checkout_index(testrepo):
 
     # checkout index
     assert 'hello.txt' in testrepo.status()
-    testrepo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
+    testrepo.checkout(strategy=CheckoutStrategy.FORCE)
     assert 'hello.txt' not in testrepo.status()
 
 def test_checkout_head(testrepo):
@@ -182,11 +182,11 @@ def test_checkout_head(testrepo):
 
     # checkout from index should not change anything
     assert 'bye.txt' in testrepo.status()
-    testrepo.checkout(strategy=pygit2.GIT_CHECKOUT_FORCE)
+    testrepo.checkout(strategy=CheckoutStrategy.FORCE)
     assert 'bye.txt' in testrepo.status()
 
     # checkout from head will reset index as well
-    testrepo.checkout('HEAD', strategy=pygit2.GIT_CHECKOUT_FORCE)
+    testrepo.checkout('HEAD', strategy=CheckoutStrategy.FORCE)
     assert 'bye.txt' not in testrepo.status()
 
 def test_checkout_alternative_dir(testrepo):
@@ -471,13 +471,13 @@ def test_stash_apply_checkout_options(testrepo):
     # apply the stash with the default (safe) strategy;
     # the callbacks should detect a conflict on checkout
     with pytest.raises(InterruptedError):
-        testrepo.stash_apply(strategy=pygit2.GIT_CHECKOUT_SAFE, callbacks=MyStashApplyCallbacks())
+        testrepo.stash_apply(strategy=CheckoutStrategy.SAFE, callbacks=MyStashApplyCallbacks())
 
     # hello.txt should be intact
     with hello_txt.open('r') as f: assert f.read() == 'conflicting content'
 
     # force apply the stash; this should work
-    testrepo.stash_apply(strategy=pygit2.GIT_CHECKOUT_FORCE, callbacks=MyStashApplyCallbacks())
+    testrepo.stash_apply(strategy=CheckoutStrategy.FORCE, callbacks=MyStashApplyCallbacks())
     with hello_txt.open('r') as f: assert f.read() == 'stashed content'
 
 
