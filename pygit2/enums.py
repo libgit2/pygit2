@@ -224,6 +224,18 @@ class DiffOption(IntFlag):
     """
 
 
+class Feature(IntFlag):
+    """
+    Combinations of these values describe the features with which libgit2
+    was compiled.
+    """
+
+    THREADS = C.GIT_FEATURE_THREADS
+    HTTPS = C.GIT_FEATURE_HTTPS
+    SSH = C.GIT_FEATURE_SSH
+    NSEC = C.GIT_FEATURE_NSEC
+
+
 class RepositoryInitFlag(IntFlag):
     """
     Option flags for pygit2.init_repository().

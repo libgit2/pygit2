@@ -42,6 +42,7 @@ from .credentials import *
 from .enums import (
     CheckoutNotify,
     DiffOption,
+    Feature,
     RepositoryInitFlag,
     RepositoryInitMode,
     RepositoryOpenFlag,
@@ -63,10 +64,13 @@ from .utils import to_bytes, to_str
 
 
 # Features
-features = C.git_libgit2_features()
-GIT_FEATURE_THREADS = C.GIT_FEATURE_THREADS
-GIT_FEATURE_HTTPS = C.GIT_FEATURE_HTTPS
-GIT_FEATURE_SSH = C.GIT_FEATURE_SSH
+features = Feature(C.git_libgit2_features())
+
+# GIT_FEATURE_* values for legacy code
+GIT_FEATURE_THREADS = Feature.THREADS
+GIT_FEATURE_HTTPS   = Feature.HTTPS
+GIT_FEATURE_SSH     = Feature.SSH
+GIT_FEATURE_NSEC    = Feature.NSEC
 
 # GIT_REPOSITORY_INIT_* values for legacy code
 GIT_REPOSITORY_INIT_BARE                = RepositoryInitFlag.BARE

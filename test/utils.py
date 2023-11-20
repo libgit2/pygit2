@@ -61,7 +61,7 @@ requires_proxy = pytest.mark.skipif(
     reason='Requires proxy at port 8888')
 
 requires_ssh = pytest.mark.skipif(
-    not (pygit2.features & pygit2.GIT_FEATURE_SSH),
+    pygit2.Feature.SSH not in pygit2.features,
     reason='Requires SSH')
 
 
