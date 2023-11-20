@@ -29,18 +29,18 @@ Settings mapping.
 
 from ssl import get_default_verify_paths
 
-from . import _pygit2
 from ._pygit2 import option
+from .enums import Option
 from .errors import GitError
 
 
 class SearchPathList:
 
     def __getitem__(self, key):
-        return option(_pygit2.GIT_OPT_GET_SEARCH_PATH, key)
+        return option(Option.GET_SEARCH_PATH, key)
 
     def __setitem__(self, key, value):
-        option(_pygit2.GIT_OPT_SET_SEARCH_PATH, key, value)
+        option(Option.SET_SEARCH_PATH, key, value)
 
 
 class Settings:
@@ -83,11 +83,11 @@ class Settings:
     @property
     def mwindow_size(self):
         """Get or set the maximum mmap window size"""
-        return option(_pygit2.GIT_OPT_GET_MWINDOW_SIZE)
+        return option(Option.GET_MWINDOW_SIZE)
 
     @mwindow_size.setter
     def mwindow_size(self, value):
-        option(_pygit2.GIT_OPT_SET_MWINDOW_SIZE, value)
+        option(Option.SET_MWINDOW_SIZE, value)
 
     @property
     def mwindow_mapped_limit(self):
@@ -95,11 +95,11 @@ class Settings:
         Get or set the maximum memory that will be mapped in total by the
         library
         """
-        return option(_pygit2.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT)
+        return option(Option.GET_MWINDOW_MAPPED_LIMIT)
 
     @mwindow_mapped_limit.setter
     def mwindow_mapped_limit(self, value):
-        return option(_pygit2.GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, value)
+        option(Option.SET_MWINDOW_MAPPED_LIMIT, value)
 
     @property
     def cached_memory(self):
@@ -107,7 +107,7 @@ class Settings:
         Get the current bytes in cache and the maximum that would be
         allowed in the cache.
         """
-        return option(_pygit2.GIT_OPT_GET_CACHED_MEMORY)
+        return option(Option.GET_CACHED_MEMORY)
 
     def enable_caching(self, value=True):
         """
@@ -117,7 +117,7 @@ class Settings:
         cannot immediately clear all cached objects, but each cache will
         be cleared on the next attempt to update anything in it.
         """
-        return option(_pygit2.GIT_OPT_ENABLE_CACHING, value)
+        return option(Option.ENABLE_CACHING, value)
 
     def disable_pack_keep_file_checks(self, value=True):
         """
@@ -125,7 +125,7 @@ class Settings:
         accessing packfiles, which can help performance with remote
         filesystems.
         """
-        return option(_pygit2.GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS, value)
+        return option(Option.DISABLE_PACK_KEEP_FILE_CHECKS, value)
 
     def cache_max_size(self, value):
         """
@@ -135,7 +135,7 @@ class Settings:
         briefly exceed it, but will start aggressively evicting objects
         from cache when that happens.  The default cache size is 256MB.
         """
-        return option(_pygit2.GIT_OPT_SET_CACHE_MAX_SIZE, value)
+        return option(Option.SET_CACHE_MAX_SIZE, value)
 
     def cache_object_limit(self, object_type, value):
         """
@@ -145,7 +145,7 @@ class Settings:
         Defaults to 0 for GIT_OBJECT_BLOB (i.e. won't cache blobs) and 4k
         for GIT_OBJECT_COMMIT, GIT_OBJECT_TREE, and GIT_OBJECT_TAG.
         """
-        return option(_pygit2.GIT_OPT_SET_CACHE_OBJECT_LIMIT, object_type, value)
+        return option(Option.SET_CACHE_OBJECT_LIMIT, object_type, value)
 
     @property
     def ssl_cert_file(self):
@@ -188,6 +188,6 @@ class Settings:
 
         Either parameter may be `NULL`, but not both.
         """
-        option(_pygit2.GIT_OPT_SET_SSL_CERT_LOCATIONS, cert_file, cert_dir)
+        option(Option.SET_SSL_CERT_LOCATIONS, cert_file, cert_dir)
         self._ssl_cert_file = cert_file
         self._ssl_cert_dir = cert_dir

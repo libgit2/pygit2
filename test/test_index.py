@@ -214,7 +214,7 @@ def test_change_attributes(testrepo):
     assert FileMode.BLOB_EXECUTABLE == entry.mode
 
 def test_write_tree_to(testrepo, tmp_path):
-    pygit2.option(pygit2.GIT_OPT_ENABLE_STRICT_OBJECT_CREATION, False)
+    pygit2.option(pygit2.Option.ENABLE_STRICT_OBJECT_CREATION, False)
     with utils.TemporaryRepository('emptyrepo.zip', tmp_path) as path:
         nrepo = Repository(path)
         id = testrepo.index.write_tree(nrepo)

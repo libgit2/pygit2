@@ -49,6 +49,7 @@ from .enums import (
     DiffOption,
     Feature,
     FileMode,
+    Option,
     MergeAnalysis,
     MergePreference,
     ReferenceFilter,

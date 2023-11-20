@@ -5,6 +5,7 @@ from .enums import ApplyLocation
 from .enums import BranchType
 from .enums import DiffFind
 from .enums import DiffOption
+from .enums import Option
 from .enums import MergeAnalysis
 from .enums import MergePreference
 from .enums import ReferenceFilter
@@ -47,36 +48,6 @@ GIT_OID_HEXSZ: int
 GIT_OID_HEX_ZERO: str
 GIT_OID_MINPREFIXLEN: int
 GIT_OID_RAWSZ: int
-GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS: int
-GIT_OPT_ENABLE_CACHING: int
-GIT_OPT_ENABLE_FSYNC_GITDIR: int
-GIT_OPT_ENABLE_OFS_DELTA: int
-GIT_OPT_ENABLE_STRICT_HASH_VERIFICATION: int
-GIT_OPT_ENABLE_STRICT_OBJECT_CREATION: int
-GIT_OPT_ENABLE_STRICT_SYMBOLIC_REF_CREATION: int
-GIT_OPT_ENABLE_UNSAVED_INDEX_SAFETY: int
-GIT_OPT_GET_CACHED_MEMORY: int
-GIT_OPT_GET_MWINDOW_MAPPED_LIMIT: int
-GIT_OPT_GET_MWINDOW_SIZE: int
-GIT_OPT_GET_OWNER_VALIDATION: int
-GIT_OPT_GET_PACK_MAX_OBJECTS: int
-GIT_OPT_GET_SEARCH_PATH: int
-GIT_OPT_GET_TEMPLATE_PATH: int
-GIT_OPT_GET_USER_AGENT: int
-GIT_OPT_GET_WINDOWS_SHAREMODE: int
-GIT_OPT_SET_ALLOCATOR: int
-GIT_OPT_SET_CACHE_MAX_SIZE: int
-GIT_OPT_SET_CACHE_OBJECT_LIMIT: int
-GIT_OPT_SET_MWINDOW_MAPPED_LIMIT: int
-GIT_OPT_SET_MWINDOW_SIZE: int
-GIT_OPT_SET_OWNER_VALIDATION: int
-GIT_OPT_SET_PACK_MAX_OBJECTS: int
-GIT_OPT_SET_SEARCH_PATH: int
-GIT_OPT_SET_SSL_CERT_LOCATIONS: int
-GIT_OPT_SET_SSL_CIPHERS: int
-GIT_OPT_SET_TEMPLATE_PATH: int
-GIT_OPT_SET_USER_AGENT: int
-GIT_OPT_SET_WINDOWS_SHAREMODE: int
 GIT_REVPARSE_MERGE_BASE: int
 GIT_REVPARSE_RANGE: int
 GIT_REVPARSE_SINGLE: int
@@ -514,7 +485,7 @@ def discover_repository(path: str, across_fs: bool = False, ceiling_dirs: str = 
 def hash(data: bytes) -> Oid: ...
 def hashfile(path: str) -> Oid: ...
 def init_file_backend(path: str, flags: int = 0) -> object: ...
-def option(*args, **kwargs) -> None: ...
+def option(opt: Option, *args) -> None: ...
 def reference_is_valid_name(refname: str) -> bool: ...
 def tree_entry_cmp(a: Object, b: Object) -> int: ...
 
