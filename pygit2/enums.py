@@ -29,6 +29,15 @@ from . import _pygit2
 from .ffi import C
 
 
+class AttrCheck(IntFlag):
+    FILE_THEN_INDEX = C.GIT_ATTR_CHECK_FILE_THEN_INDEX
+    INDEX_THEN_FILE = C.GIT_ATTR_CHECK_INDEX_THEN_FILE
+    INDEX_ONLY = C.GIT_ATTR_CHECK_INDEX_ONLY
+    NO_SYSTEM = C.GIT_ATTR_CHECK_NO_SYSTEM
+    INCLUDE_HEAD = C.GIT_ATTR_CHECK_INCLUDE_HEAD
+    INCLUDE_COMMIT = C.GIT_ATTR_CHECK_INCLUDE_COMMIT
+
+
 class CheckoutNotify(IntFlag):
     """
     Checkout notification flags

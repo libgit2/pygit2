@@ -24,6 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 from io import BytesIO
+from os import PathLike
 from string import hexdigits
 from time import time
 import tarfile
@@ -43,6 +44,7 @@ from .branches import Branches
 from .callbacks import git_checkout_options, git_stash_apply_options
 from .config import Config
 from .enums import (
+    AttrCheck,
     DiffOption,
     RepositoryOpenFlag,
     RepositoryState,
@@ -1319,7 +1321,13 @@ class BaseRepository(_Repository):
     #
     # Git attributes
     #
-    def get_attr(self, path, name, flags=0, commit=None):
+    def get_attr(
+            self,
+            path: typing.Union[str, bytes, PathLike],
+            name: typing.Union[str, bytes],
+            flags: AttrCheck = AttrCheck.FILE_THEN_INDEX,
+            commit: typing.Union[Oid, str, None] = None
+    ) -> typing.Union[bool, None, str]:
         """
         Retrieve an attribute for a file by path.
 
@@ -1336,12 +1344,11 @@ class BaseRepository(_Repository):
             The name of the attribute to look up.
 
         flags
-            A combination of `GIT_ATTR_CHECK_` flags which determine the
-            lookup order.
+            A combination of enums.AttrCheck flags which determine the lookup order.
 
         commit
-            Optional id of commit to load attributes from when
-            `GIT_ATTR_CHECK_INCLUDE_COMMIT` is specified.
+            Optional id of commit to load attributes from when the
+            `INCLUDE_COMMIT` flag is specified.
 
         Examples::
 
@@ -1355,7 +1362,7 @@ class BaseRepository(_Repository):
 
         copts = ffi.new('git_attr_options *')
         copts.version = C.GIT_ATTR_OPTIONS_VERSION
-        copts.flags = flags
+        copts.flags = int(flags)
         if commit is not None:
             if not isinstance(commit, Oid):
                 commit = Oid(hex=commit)
