@@ -647,7 +647,7 @@ Repository_merge_base_octopus(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_merge_analysis__doc__,
-  "merge_analysis(their_head: Oid, our_ref: str = \"HEAD\") -> tuple[int, int]\n"
+  "merge_analysis(their_head: Oid, our_ref: str = \"HEAD\") -> tuple[MergeAnalysis, MergePreference]\n"
   "\n"
   "Analyzes the given branch and determines the opportunities for\n"
   "merging it into a reference (defaults to HEAD).\n"
@@ -660,8 +660,8 @@ PyDoc_STRVAR(Repository_merge_analysis__doc__,
   "their_head\n"
   "    Head (commit Oid) to merge into\n"
   "\n"
-  "The first returned value is a mixture of the GIT_MERGE_ANALYSIS_NONE, _NORMAL,\n"
-  "_UP_TO_DATE, _FASTFORWARD and _UNBORN flags.\n"
+  "The first returned value is a mixture of the MergeAnalysis.NONE, NORMAL,\n"
+  "UP_TO_DATE, FASTFORWARD and UNBORN flags.\n"
   "The second value is the user's preference from 'merge.ff'");
 
 PyObject *

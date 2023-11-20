@@ -49,6 +49,8 @@ from .enums import (
     DiffOption,
     Feature,
     FileMode,
+    MergeAnalysis,
+    MergePreference,
     ReferenceFilter,
     ReferenceType,
     RepositoryInitFlag,

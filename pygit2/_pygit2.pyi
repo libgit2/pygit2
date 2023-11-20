@@ -4,6 +4,8 @@ from . import Index, Submodule
 from .enums import ApplyLocation
 from .enums import BranchType
 from .enums import DiffOption
+from .enums import MergeAnalysis
+from .enums import MergePreference
 from .enums import ReferenceFilter
 
 GIT_BLAME_FIRST_PARENT: int
@@ -57,14 +59,6 @@ GIT_DIFF_STATS_INCLUDE_SUMMARY: int
 GIT_DIFF_STATS_NONE: int
 GIT_DIFF_STATS_NUMBER: int
 GIT_DIFF_STATS_SHORT: int
-GIT_MERGE_ANALYSIS_FASTFORWARD: int
-GIT_MERGE_ANALYSIS_NONE: int
-GIT_MERGE_ANALYSIS_NORMAL: int
-GIT_MERGE_ANALYSIS_UNBORN: int
-GIT_MERGE_ANALYSIS_UP_TO_DATE: int
-GIT_MERGE_PREFERENCE_FASTFORWARD_ONLY: int
-GIT_MERGE_PREFERENCE_NONE: int
-GIT_MERGE_PREFERENCE_NO_FASTFORWARD: int
 GIT_OBJ_ANY: Literal[-2]
 GIT_OBJ_BLOB: Literal[3]
 GIT_OBJ_COMMIT: Literal[1]
@@ -448,7 +442,7 @@ class Repository:
     def lookup_reference(self, name: str) -> Reference: ...
     def lookup_reference_dwim(self, name: str) -> Reference: ...
     def lookup_worktree(self, name: str) -> Worktree: ...
-    def merge_analysis(self, their_head: _OidArg, our_ref: str = "HEAD") -> tuple[int,int]: ...
+    def merge_analysis(self, their_head: _OidArg, our_ref: str = "HEAD") -> tuple[MergeAnalysis, MergePreference]: ...
     def merge_base(self, oid1: _OidArg, oid2: _OidArg) -> Oid: ...
     def merge_base_many(self, oids: list[_OidArg]) -> Oid: ...
     def merge_base_octopus(self, oids: list[_OidArg]) -> Oid: ...

@@ -368,6 +368,58 @@ class FileMode(IntFlag):
     COMMIT = _pygit2.GIT_FILEMODE_COMMIT
 
 
+class MergeAnalysis(IntFlag):
+    """ The results of `Repository.merge_analysis` indicate the merge opportunities. """
+
+    NONE = _pygit2.GIT_MERGE_ANALYSIS_NONE
+    "No merge is possible.  (Unused.)"
+
+    NORMAL = _pygit2.GIT_MERGE_ANALYSIS_NORMAL
+    """
+    A "normal" merge; both HEAD and the given merge input have diverged
+    from their common ancestor.  The divergent commits must be merged.
+    """
+
+    UP_TO_DATE = _pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE
+    """
+    All given merge inputs are reachable from HEAD, meaning the
+    repository is up-to-date and no merge needs to be performed.
+    """
+
+    FASTFORWARD = _pygit2.GIT_MERGE_ANALYSIS_FASTFORWARD
+    """
+    The given merge input is a fast-forward from HEAD and no merge
+    needs to be performed.  Instead, the client can check out the
+    given merge input.
+    """
+
+    UNBORN = _pygit2.GIT_MERGE_ANALYSIS_UNBORN
+    """
+    The HEAD of the current repository is "unborn" and does not point to
+    a valid commit.  No merge can be performed, but the caller may wish
+    to simply set HEAD to the target commit(s).
+    """
+
+
+class MergePreference(IntFlag):
+    """ The user's stated preference for merges. """
+
+    NONE = _pygit2.GIT_MERGE_PREFERENCE_NONE
+    "No configuration was found that suggests a preferred behavior for merge."
+
+    NO_FASTFORWARD = _pygit2.GIT_MERGE_PREFERENCE_NO_FASTFORWARD
+    """
+    There is a `merge.ff=false` configuration setting, suggesting that
+    the user does not want to allow a fast-forward merge.
+    """
+
+    FASTFORWARD_ONLY = _pygit2.GIT_MERGE_PREFERENCE_FASTFORWARD_ONLY
+    """
+    There is a `merge.ff=only` configuration setting, suggesting that
+    the user only wants fast-forward merges.
+    """
+
+
 class ReferenceFilter(IntEnum):
     """ Filters for References.iterator(). """
 

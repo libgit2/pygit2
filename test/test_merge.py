@@ -29,8 +29,7 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import GIT_MERGE_ANALYSIS_UP_TO_DATE
-from pygit2 import GIT_MERGE_ANALYSIS_FASTFORWARD
+from pygit2 import MergeAnalysis
 import pygit2
 
 
@@ -43,13 +42,13 @@ def test_merge_analysis_uptodate(mergerepo):
     branch_id = mergerepo.get(branch_head_hex).id
 
     analysis, preference = mergerepo.merge_analysis(branch_id)
-    assert analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
-    assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+    assert analysis & MergeAnalysis.UP_TO_DATE
+    assert not analysis & MergeAnalysis.FASTFORWARD
     assert {} == mergerepo.status()
 
     analysis, preference = mergerepo.merge_analysis(branch_id, 'refs/heads/ff-branch')
-    assert analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
-    assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+    assert analysis & MergeAnalysis.UP_TO_DATE
+    assert not analysis & MergeAnalysis.FASTFORWARD
     assert {} == mergerepo.status()
 
 def test_merge_analysis_fastforward(mergerepo):
@@ -57,21 +56,21 @@ def test_merge_analysis_fastforward(mergerepo):
     branch_id = mergerepo.get(branch_head_hex).id
 
     analysis, preference = mergerepo.merge_analysis(branch_id)
-    assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
-    assert analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+    assert not analysis & MergeAnalysis.UP_TO_DATE
+    assert analysis & MergeAnalysis.FASTFORWARD
     assert {} == mergerepo.status()
 
     analysis, preference = mergerepo.merge_analysis(branch_id, 'refs/heads/master')
-    assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
-    assert analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+    assert not analysis & MergeAnalysis.UP_TO_DATE
+    assert analysis & MergeAnalysis.FASTFORWARD
     assert {} == mergerepo.status()
 
 def test_merge_no_fastforward_no_conflicts(mergerepo):
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
     branch_id = mergerepo.get(branch_head_hex).id
     analysis, preference = mergerepo.merge_analysis(branch_id)
-    assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
-    assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+    assert not analysis & MergeAnalysis.UP_TO_DATE
+    assert not analysis & MergeAnalysis.FASTFORWARD
     # Asking twice to assure the reference counting is correct
     assert {} == mergerepo.status()
     assert {} == mergerepo.status()
@@ -94,8 +93,8 @@ def test_merge_no_fastforward_conflicts(mergerepo):
     branch_id = mergerepo.get(branch_head_hex).id
 
     analysis, preference = mergerepo.merge_analysis(branch_id)
-    assert not analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE
-    assert not analysis & GIT_MERGE_ANALYSIS_FASTFORWARD
+    assert not analysis & MergeAnalysis.UP_TO_DATE
+    assert not analysis & MergeAnalysis.FASTFORWARD
 
     mergerepo.merge(branch_id)
     assert mergerepo.index.conflicts is not None
