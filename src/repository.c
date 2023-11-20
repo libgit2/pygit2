@@ -1995,7 +1995,7 @@ Repository_lookup_note(Repository *self, PyObject* args)
 }
 
 PyDoc_STRVAR(Repository_reset__doc__,
-    "reset(oid: Oid, reset_type: int)\n"
+    "reset(oid: Oid, reset_mode: enums.ResetMode)\n"
     "\n"
     "Resets the current head.\n"
     "\n"
@@ -2004,12 +2004,12 @@ PyDoc_STRVAR(Repository_reset__doc__,
     "oid\n"
     "    The oid of the commit to reset to.\n"
     "\n"
-    "reset_type\n"
-    "    * GIT_RESET_SOFT: resets head to point to oid, but does not modify\n"
+    "reset_mode\n"
+    "    * SOFT: resets head to point to oid, but does not modify\n"
     "      working copy, and leaves the changes in the index.\n"
-    "    * GIT_RESET_MIXED: resets head to point to oid, but does not modify\n"
+    "    * MIXED: resets head to point to oid, but does not modify\n"
     "      working copy. It empties the index too.\n"
-    "    * GIT_RESET_HARD: resets head to point to oid, and resets too the\n"
+    "    * HARD: resets head to point to oid, and resets too the\n"
     "      working copy and the content of the index.\n");
 
 PyObject *

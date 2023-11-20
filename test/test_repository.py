@@ -34,7 +34,7 @@ import pytest
 import pygit2
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid
-from pygit2 import CheckoutNotify, CheckoutStrategy, StashApplyProgress
+from pygit2 import CheckoutNotify, CheckoutStrategy, ResetMode, StashApplyProgress
 from . import utils
 
 
@@ -257,9 +257,7 @@ def test_reset_hard(testrepo):
     assert "hola mundo\n" in lines
     assert "bonjour le monde\n" in lines
 
-    testrepo.reset(
-        ref,
-        pygit2.GIT_RESET_HARD)
+    testrepo.reset(ref, ResetMode.HARD)
     assert testrepo.head.target.hex == ref
 
     with (Path(testrepo.workdir) / "hello.txt").open() as f:
@@ -275,9 +273,7 @@ def test_reset_soft(testrepo):
     assert "hola mundo\n" in lines
     assert "bonjour le monde\n" in lines
 
-    testrepo.reset(
-        ref,
-        pygit2.GIT_RESET_SOFT)
+    testrepo.reset(ref, ResetMode.SOFT)
     assert testrepo.head.target.hex == ref
     with (Path(testrepo.workdir) / "hello.txt").open() as f:
         lines = f.readlines()
@@ -296,9 +292,7 @@ def test_reset_mixed(testrepo):
     assert "hola mundo\n" in lines
     assert "bonjour le monde\n" in lines
 
-    testrepo.reset(
-        ref,
-        pygit2.GIT_RESET_MIXED)
+    testrepo.reset(ref, ResetMode.MIXED)
 
     assert testrepo.head.target.hex == ref
 

@@ -675,6 +675,19 @@ class RepositoryState(IntEnum):
     APPLY_MAILBOX_OR_REBASE = C.GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE
 
 
+class ResetMode(IntEnum):
+    """ Kinds of reset operation. """
+
+    SOFT = _pygit2.GIT_RESET_SOFT
+    "Move the head to the given commit"
+
+    MIXED = _pygit2.GIT_RESET_MIXED
+    "SOFT plus reset index to the commit"
+
+    HARD = _pygit2.GIT_RESET_HARD
+    "MIXED plus changes in working tree discarded"
+
+
 class SortMode(IntFlag):
     """
     Flags to specify the sorting which a revwalk should perform.

@@ -8,6 +8,7 @@ from .enums import DiffOption
 from .enums import MergeAnalysis
 from .enums import MergePreference
 from .enums import ReferenceFilter
+from .enums import ResetMode
 from .enums import SortMode
 
 GIT_CONFIG_LEVEL_GLOBAL: int
@@ -76,9 +77,6 @@ GIT_OPT_SET_SSL_CIPHERS: int
 GIT_OPT_SET_TEMPLATE_PATH: int
 GIT_OPT_SET_USER_AGENT: int
 GIT_OPT_SET_WINDOWS_SHAREMODE: int
-GIT_RESET_HARD: int
-GIT_RESET_MIXED: int
-GIT_RESET_SOFT: int
 GIT_REVPARSE_MERGE_BASE: int
 GIT_REVPARSE_RANGE: int
 GIT_REVPARSE_SINGLE: int
@@ -426,7 +424,7 @@ class Repository:
     def raw_listall_references(self) -> list[bytes]: ...
     def references_iterator_init(self) -> Iterator[Reference]: ...
     def references_iterator_next(self, iter: Iterator, references_return_type: ReferenceFilter = ReferenceFilter.ALL) -> Reference: ...
-    def reset(self, oid: _OidArg, reset_type: int) -> None: ...
+    def reset(self, oid: _OidArg, reset_type: ResetMode) -> None: ...
     def revparse(self, revspec: str) -> RevSpec: ...
     def revparse_ext(self, revision: str) -> tuple[Object,Reference]: ...
     def revparse_single(self, revision: str) -> Object: ...
