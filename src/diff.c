@@ -967,7 +967,7 @@ Diff_merge(Diff *self, PyObject *args)
 
 
 PyDoc_STRVAR(Diff_find_similar__doc__,
-  "find_similar(flags: int = GIT_DIFF_FIND_BY_CONFIG, rename_threshold: int = 50, copy_threshold: int = 50, rename_from_rewrite_threshold: int = 50, break_rewrite_threshold: int = 60, rename_limit: int = 1000)\n"
+  "find_similar(flags: enums.DiffFind = enums.DiffFind.FIND_BY_CONFIG, rename_threshold: int = 50, copy_threshold: int = 50, rename_from_rewrite_threshold: int = 50, break_rewrite_threshold: int = 60, rename_limit: int = 1000)\n"
   "\n"
   "Transform a diff marking file renames, copies, etc.\n"
   "\n"
@@ -976,7 +976,7 @@ PyDoc_STRVAR(Diff_find_similar__doc__,
   "will, if requested, break modified files into add/remove pairs if the "
   "amount of change is above a threshold.\n"
   "\n"
-  "flags - Combination of GIT_DIFF_FIND_* and GIT_DIFF_BREAK_* constants."
+  "flags - Combination of enums.DiffFind.FIND_* and enums.DiffFind.BREAK_* constants."
   );
 
 PyObject *

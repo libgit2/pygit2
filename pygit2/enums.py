@@ -215,6 +215,85 @@ class CheckoutStrategy(IntFlag):
     """ Include common ancestor data in zdiff3 format for conflicts """
 
 
+class DiffFind(IntFlag):
+    """ Flags to control the behavior of diff rename/copy detection. """
+
+    FIND_BY_CONFIG = _pygit2.GIT_DIFF_FIND_BY_CONFIG
+    """ Obey `diff.renames`. Overridden by any other FIND_... flag. """
+
+    FIND_RENAMES = _pygit2.GIT_DIFF_FIND_RENAMES
+    """ Look for renames? (`--find-renames`) """
+
+    FIND_RENAMES_FROM_REWRITES = _pygit2.GIT_DIFF_FIND_RENAMES_FROM_REWRITES
+    """ Consider old side of MODIFIED for renames? (`--break-rewrites=N`) """
+
+    FIND_COPIES = _pygit2.GIT_DIFF_FIND_COPIES
+    """ Look for copies? (a la `--find-copies`). """
+
+    FIND_COPIES_FROM_UNMODIFIED = _pygit2.GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED
+    """
+    Consider UNMODIFIED as copy sources? (`--find-copies-harder`).
+    For this to work correctly, use INCLUDE_UNMODIFIED when the initial
+    `Diff` is being generated.
+    """
+
+    FIND_REWRITES = _pygit2.GIT_DIFF_FIND_REWRITES
+    """ Mark significant rewrites for split (`--break-rewrites=/M`) """
+
+    BREAK_REWRITES = _pygit2.GIT_DIFF_BREAK_REWRITES
+    """ Actually split large rewrites into delete/add pairs """
+
+    FIND_AND_BREAK_REWRITES = _pygit2.GIT_DIFF_FIND_AND_BREAK_REWRITES
+    """ Mark rewrites for split and break into delete/add pairs """
+
+    FIND_FOR_UNTRACKED = _pygit2.GIT_DIFF_FIND_FOR_UNTRACKED
+    """
+    Find renames/copies for UNTRACKED items in working directory.
+    For this to work correctly, use INCLUDE_UNTRACKED when the initial
+    `Diff` is being generated (and obviously the diff must be against
+    the working directory for this to make sense).
+    """
+
+    FIND_ALL = _pygit2.GIT_DIFF_FIND_ALL
+    """ Turn on all finding features. """
+
+    FIND_IGNORE_LEADING_WHITESPACE = _pygit2.GIT_DIFF_FIND_IGNORE_LEADING_WHITESPACE
+    """ Measure similarity ignoring leading whitespace (default) """
+
+    FIND_IGNORE_WHITESPACE = _pygit2.GIT_DIFF_FIND_IGNORE_WHITESPACE
+    """ Measure similarity ignoring all whitespace """
+
+    FIND_DONT_IGNORE_WHITESPACE = _pygit2.GIT_DIFF_FIND_DONT_IGNORE_WHITESPACE
+    """ Measure similarity including all data """
+
+    FIND_EXACT_MATCH_ONLY = _pygit2.GIT_DIFF_FIND_EXACT_MATCH_ONLY
+    """ Measure similarity only by comparing SHAs (fast and cheap) """
+
+    BREAK_REWRITES_FOR_RENAMES_ONLY = _pygit2.GIT_DIFF_BREAK_REWRITES_FOR_RENAMES_ONLY
+    """
+    Do not break rewrites unless they contribute to a rename.
+
+    Normally, FIND_AND_BREAK_REWRITES will measure the self-
+    similarity of modified files and split the ones that have changed a
+    lot into a DELETE / ADD pair.  Then the sides of that pair will be
+    considered candidates for rename and copy detection.
+
+    If you add this flag in and the split pair is *not* used for an
+    actual rename or copy, then the modified record will be restored to
+    a regular MODIFIED record instead of being split.
+    """
+
+    FIND_REMOVE_UNMODIFIED = _pygit2.GIT_DIFF_FIND_REMOVE_UNMODIFIED
+    """
+    Remove any UNMODIFIED deltas after find_similar is done.
+
+    Using FIND_COPIES_FROM_UNMODIFIED to emulate the
+    --find-copies-harder behavior requires building a diff with the
+    INCLUDE_UNMODIFIED flag.  If you do not want UNMODIFIED records
+    in the final result, pass this flag to have them removed.
+    """
+
+
 class DiffOption(IntFlag):
     """
     Flags for diff options.  A combination of these flags can be passed

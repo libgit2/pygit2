@@ -3,6 +3,7 @@ from io import IOBase
 from . import Index, Submodule
 from .enums import ApplyLocation
 from .enums import BranchType
+from .enums import DiffFind
 from .enums import DiffOption
 from .enums import MergeAnalysis
 from .enums import MergePreference
@@ -27,22 +28,6 @@ GIT_DELTA_UNTRACKED: int
 GIT_DESCRIBE_ALL: int
 GIT_DESCRIBE_DEFAULT: int
 GIT_DESCRIBE_TAGS: int
-GIT_DIFF_BREAK_REWRITES: int
-GIT_DIFF_BREAK_REWRITES_FOR_RENAMES_ONLY: int
-GIT_DIFF_FIND_ALL: int
-GIT_DIFF_FIND_AND_BREAK_REWRITES: int
-GIT_DIFF_FIND_BY_CONFIG: int
-GIT_DIFF_FIND_COPIES: int
-GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED: int
-GIT_DIFF_FIND_DONT_IGNORE_WHITESPACE: int
-GIT_DIFF_FIND_EXACT_MATCH_ONLY: int
-GIT_DIFF_FIND_FOR_UNTRACKED: int
-GIT_DIFF_FIND_IGNORE_LEADING_WHITESPACE: int
-GIT_DIFF_FIND_IGNORE_WHITESPACE: int
-GIT_DIFF_FIND_REMOVE_UNMODIFIED: int
-GIT_DIFF_FIND_RENAMES: int
-GIT_DIFF_FIND_RENAMES_FROM_REWRITES: int
-GIT_DIFF_FIND_REWRITES: int
 GIT_DIFF_FLAG_BINARY: int
 GIT_DIFF_FLAG_EXISTS: int
 GIT_DIFF_FLAG_NOT_BINARY: int
@@ -224,7 +209,7 @@ class Diff:
     patch: str | None
     patchid: Oid
     stats: DiffStats
-    def find_similar(self, flags : int = GIT_DIFF_FIND_BY_CONFIG, rename_threshold : int = 50, copy_threshold : int = 50, rename_from_rewrite_threshold: int = 50, break_rewrite_threshold: int = 60, rename_limit: int = 1000) -> None: ...
+    def find_similar(self, flags: DiffFind = DiffFind.FIND_BY_CONFIG, rename_threshold : int = 50, copy_threshold : int = 50, rename_from_rewrite_threshold: int = 50, break_rewrite_threshold: int = 60, rename_limit: int = 1000) -> None: ...
     def merge(self, diff: Diff) -> None: ...
     @staticmethod
     def from_c(diff, repo) -> Diff: ...
