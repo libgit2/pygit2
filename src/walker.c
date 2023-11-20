@@ -149,7 +149,10 @@ Walker_iternext(Walker *self)
     git_commit *commit;
     git_oid oid;
 
+    Py_BEGIN_ALLOW_THREADS
     err = git_revwalk_next(&oid, self->walk);
+    Py_END_ALLOW_THREADS
+
     if (err < 0)
         return Error_set(err);
 
