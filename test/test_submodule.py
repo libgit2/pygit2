@@ -223,4 +223,3 @@ def test_submodule_reload(repo):
     # Tell it to refresh its cache
     sm.reload()
     assert sm.url == "https://github.com/libgit2/pygit2"
-

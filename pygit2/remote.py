@@ -130,10 +130,10 @@ class Remote:
             * `None` (the default) to disable proxy usage
             * `True` to enable automatic proxy detection
             * an url to a proxy (`http://proxy.example.org:3128/`)
-        
+
         depth : int
             Number of commits from the tip of each remote branch history to fetch.
-        
+
             If non-zero, the number of commits from the tip of each remote
             branch history to fetch. If zero, all history is fetched.
             The default is 0 (all history is fetched).

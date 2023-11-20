@@ -62,4 +62,3 @@ class SubmoduleStatus(IntFlag):
 
     WD_UNTRACKED = _pygit2.GIT_SUBMODULE_STATUS_WD_UNTRACKED
     "submodule workdir contains untracked files (flag available if ignore is NONE)"
-

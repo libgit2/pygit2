@@ -67,11 +67,12 @@ class Filter:
         If `Passthrough` is raised, the filter will not be applied.
 
         Parameters:
-            src: The source of the filtered blob.
-            attr_values: The values of each attribute for the blob being
-                filtered. `attr_values` will be a sorted list containing
-                attributes in the order they were defined in
-                ``cls.attributes``.
+
+        src: The source of the filtered blob.
+
+        attr_values: The values of each attribute for the blob being filtered.
+            `attr_values` will be a sorted list containing attributes in the
+            order they were defined in ``cls.attributes``.
         """
 
     def write(
@@ -86,11 +87,14 @@ class Filter:
         `write()` may be called multiple times per stream.
 
         Parameters:
-            data: Input data.
-            src: The source of the filtered blob.
-            write_next: The ``write()`` method of the next filter in the chain.
-                Filtered output data should be written to `write_next` whenever
-                it is available.
+
+        data: Input data.
+
+        src: The source of the filtered blob.
+
+        write_next: The ``write()`` method of the next filter in the chain.
+            Filtered output data should be written to `write_next` whenever it is
+            available.
         """
         write_next(data)
 

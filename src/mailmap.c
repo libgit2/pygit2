@@ -66,7 +66,7 @@ PyDoc_STRVAR(Mailmap_from_repository__doc__,
     "Mailmaps are loaded in the following order:\n"
     " 1. '.mailmap' in the root of the repository's working directory, if present.\n"
     " 2. The blob object identified by the 'mailmap.blob' config entry, if set.\n"
-    "	   [NOTE: 'mailmap.blob' defaults to 'HEAD:.mailmap' in bare repositories]\n"
+    "    [NOTE: 'mailmap.blob' defaults to 'HEAD:.mailmap' in bare repositories]\n"
     " 3. The path in the 'mailmap.file' config entry, if set.");
 PyObject *
 Mailmap_from_repository(Mailmap *dummy, PyObject *args)

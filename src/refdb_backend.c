@@ -85,8 +85,7 @@ iterator_get_next(struct pygit2_refdb_iterator *iter)
 }
 
 static int
-pygit2_refdb_iterator_next(
-        git_reference **out, git_reference_iterator *_iter)
+pygit2_refdb_iterator_next(git_reference **out, git_reference_iterator *_iter)
 {
     struct pygit2_refdb_iterator *iter = (struct pygit2_refdb_iterator *)_iter;
     Reference *ref = iterator_get_next(iter);
@@ -104,8 +103,7 @@ pygit2_refdb_iterator_next(
 }
 
 static int
-pygit2_refdb_iterator_next_name(const char **ref_name,
-		git_reference_iterator *_iter)
+pygit2_refdb_iterator_next_name(const char **ref_name, git_reference_iterator *_iter)
 {
     struct pygit2_refdb_iterator *iter = (struct pygit2_refdb_iterator *)_iter;
     Reference *ref = iterator_get_next(iter);
