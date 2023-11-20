@@ -1,6 +1,7 @@
 from typing import Iterator, Literal, Optional, overload
 from io import IOBase
 from . import Index, Submodule
+from .enums import DiffOption
 
 GIT_APPLY_LOCATION_BOTH: int
 GIT_APPLY_LOCATION_INDEX: int
@@ -48,8 +49,6 @@ GIT_DESCRIBE_DEFAULT: int
 GIT_DESCRIBE_TAGS: int
 GIT_DIFF_BREAK_REWRITES: int
 GIT_DIFF_BREAK_REWRITES_FOR_RENAMES_ONLY: int
-GIT_DIFF_DISABLE_PATHSPEC_MATCH: int
-GIT_DIFF_ENABLE_FAST_UNTRACKED_DIRS: int
 GIT_DIFF_FIND_ALL: int
 GIT_DIFF_FIND_AND_BREAK_REWRITES: int
 GIT_DIFF_FIND_BY_CONFIG: int
@@ -68,39 +67,11 @@ GIT_DIFF_FLAG_BINARY: int
 GIT_DIFF_FLAG_EXISTS: int
 GIT_DIFF_FLAG_NOT_BINARY: int
 GIT_DIFF_FLAG_VALID_ID: int
-GIT_DIFF_FORCE_BINARY: int
-GIT_DIFF_FORCE_TEXT: int
-GIT_DIFF_IGNORE_CASE: int
-GIT_DIFF_IGNORE_FILEMODE: int
-GIT_DIFF_IGNORE_SUBMODULES: int
-GIT_DIFF_IGNORE_WHITESPACE: int
-GIT_DIFF_IGNORE_WHITESPACE_CHANGE: int
-GIT_DIFF_IGNORE_WHITESPACE_EOL: int
-GIT_DIFF_INCLUDE_CASECHANGE: int
-GIT_DIFF_INCLUDE_IGNORED: int
-GIT_DIFF_INCLUDE_TYPECHANGE: int
-GIT_DIFF_INCLUDE_TYPECHANGE_TREES: int
-GIT_DIFF_INCLUDE_UNMODIFIED: int
-GIT_DIFF_INCLUDE_UNREADABLE: int
-GIT_DIFF_INCLUDE_UNREADABLE_AS_UNTRACKED: int
-GIT_DIFF_INCLUDE_UNTRACKED: int
-GIT_DIFF_INDENT_HEURISTIC: int
-GIT_DIFF_MINIMAL: int
-GIT_DIFF_NORMAL: int
-GIT_DIFF_PATIENCE: int
-GIT_DIFF_RECURSE_IGNORED_DIRS: int
-GIT_DIFF_RECURSE_UNTRACKED_DIRS: int
-GIT_DIFF_REVERSE: int
-GIT_DIFF_SHOW_BINARY: int
-GIT_DIFF_SHOW_UNMODIFIED: int
-GIT_DIFF_SHOW_UNTRACKED_CONTENT: int
-GIT_DIFF_SKIP_BINARY_CHECK: int
 GIT_DIFF_STATS_FULL: int
 GIT_DIFF_STATS_INCLUDE_SUMMARY: int
 GIT_DIFF_STATS_NONE: int
 GIT_DIFF_STATS_NUMBER: int
 GIT_DIFF_STATS_SHORT: int
-GIT_DIFF_UPDATE_INDEX: int
 GIT_FILEMODE_BLOB: int
 GIT_FILEMODE_BLOB_EXECUTABLE: int
 GIT_FILEMODE_COMMIT: int
@@ -264,7 +235,7 @@ class Blob(Object):
     is_binary: bool
     size: int
     def diff(self, blob: Blob = ..., flag: int = ..., old_as_path: str = ..., new_as_path: str = ...) -> Patch: ...
-    def diff_to_buffer(self, buffer: Optional[bytes] = None, flag: int = GIT_DIFF_NORMAL, old_as_path: str = ..., buffer_as_path: str = ...) -> Patch: ...
+    def diff_to_buffer(self, buffer: Optional[bytes] = None, flag: DiffOption = DiffOption.NORMAL, old_as_path: str = ..., buffer_as_path: str = ...) -> Patch: ...
 
 class Branch(Reference):
     branch_name: str
@@ -422,9 +393,9 @@ class Patch:
             new: Blob | bytes | None,
             old_as_path: str = ...,
             new_as_path: str = ...,
-            flag: int = ...,
-            context_lines: int = ...,
-            interhunk_lines: int = ...
+            flag: DiffOption = DiffOption.NORMAL,
+            context_lines: int = 3,
+            interhunk_lines: int = 0
     ) -> Patch: ...
 
 class RefLogEntry:
@@ -567,9 +538,9 @@ class Tag(Object):
     def get_object(self) -> Object: ...
 
 class Tree(Object):
-    def diff_to_index(self, index: Index, flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff: ...
-    def diff_to_tree(self, tree: Tree = ..., flags: int = ..., context_lines: int = ..., interhunk_lines: int = ..., swap: bool = ...) -> Diff: ...
-    def diff_to_workdir(self, flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff: ...
+    def diff_to_index(self, index: Index, flags: DiffOption = DiffOption.NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff: ...
+    def diff_to_tree(self, tree: Tree = ..., flags: DiffOption = DiffOption.NORMAL, context_lines: int = 3, interhunk_lines: int = 3, swap: bool = False) -> Diff: ...
+    def diff_to_workdir(self, flags: DiffOption = DiffOption.NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff: ...
     def __contains__(self, other: str) -> bool: ...  # Tree_contains
     def __getitem__(self, index: str | int) -> Object: ...  # Tree_subscript
     def __iter__(self) -> Iterator[Object]: ...

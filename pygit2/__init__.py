@@ -40,6 +40,7 @@ from .callbacks import git_clone_options, git_fetch_options, get_credentials
 from .config import Config
 from .credentials import *
 from .enums import (
+    DiffOption,
     RepositoryInitFlag,
     RepositoryInitMode,
     RepositoryOpenFlag,

@@ -31,8 +31,7 @@ import textwrap
 import pytest
 
 import pygit2
-from pygit2 import GIT_DIFF_INCLUDE_UNMODIFIED
-from pygit2 import GIT_DIFF_IGNORE_WHITESPACE, GIT_DIFF_IGNORE_WHITESPACE_EOL
+from pygit2 import DiffOption
 from pygit2 import GIT_DELTA_RENAMED
 
 
@@ -210,8 +209,8 @@ def test_diff_tree_opts(barerepo):
     commit_c = barerepo[COMMIT_SHA1_3]
     commit_d = barerepo[COMMIT_SHA1_4]
 
-    for flag in [GIT_DIFF_IGNORE_WHITESPACE,
-                 GIT_DIFF_IGNORE_WHITESPACE_EOL]:
+    for flag in [DiffOption.IGNORE_WHITESPACE,
+                 DiffOption.IGNORE_WHITESPACE_EOL]:
         diff = commit_c.tree.diff_to_tree(commit_d.tree, flag)
         assert diff is not None
         assert 0 == len(diff[0].hunks)
@@ -283,10 +282,9 @@ def test_find_similar(barerepo):
     commit_a = barerepo[COMMIT_SHA1_6]
     commit_b = barerepo[COMMIT_SHA1_7]
 
-    #~ Must pass GIT_DIFF_INCLUDE_UNMODIFIED if you expect to emulate
+    #~ Must pass INCLUDE_UNMODIFIED if you expect to emulate
     #~ --find-copies-harder during rename transformion...
-    diff = commit_a.tree.diff_to_tree(commit_b.tree,
-                                      GIT_DIFF_INCLUDE_UNMODIFIED)
+    diff = commit_a.tree.diff_to_tree(commit_b.tree, DiffOption.INCLUDE_UNMODIFIED)
     assert all(x.delta.status != GIT_DELTA_RENAMED for x in diff)
     assert all(x.delta.status_char() != 'R' for x in diff)
     diff.find_similar()

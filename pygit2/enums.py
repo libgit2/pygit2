@@ -29,6 +29,168 @@ from . import _pygit2
 from .ffi import C
 
 
+class DiffOption(IntFlag):
+    """
+    Flags for diff options.  A combination of these flags can be passed
+    in via the `flags` value in `diff_*` functions.
+    """
+
+    NORMAL = _pygit2.GIT_DIFF_NORMAL
+    "Normal diff, the default"
+
+    REVERSE = _pygit2.GIT_DIFF_REVERSE
+    "Reverse the sides of the diff"
+
+    INCLUDE_IGNORED = _pygit2.GIT_DIFF_INCLUDE_IGNORED
+    "Include ignored files in the diff"
+
+    RECURSE_IGNORED_DIRS = _pygit2.GIT_DIFF_RECURSE_IGNORED_DIRS
+    """
+    Even with INCLUDE_IGNORED, an entire ignored directory
+    will be marked with only a single entry in the diff; this flag
+    adds all files under the directory as IGNORED entries, too.
+    """
+
+    INCLUDE_UNTRACKED = _pygit2.GIT_DIFF_INCLUDE_UNTRACKED
+    "Include untracked files in the diff"
+
+    RECURSE_UNTRACKED_DIRS = _pygit2.GIT_DIFF_RECURSE_UNTRACKED_DIRS
+    """
+    Even with INCLUDE_UNTRACKED, an entire untracked
+    directory will be marked with only a single entry in the diff
+    (a la what core Git does in `git status`); this flag adds *all*
+    files under untracked directories as UNTRACKED entries, too.
+    """
+
+    INCLUDE_UNMODIFIED = _pygit2.GIT_DIFF_INCLUDE_UNMODIFIED
+    "Include unmodified files in the diff"
+
+    INCLUDE_TYPECHANGE = _pygit2.GIT_DIFF_INCLUDE_TYPECHANGE
+    """
+    Normally, a type change between files will be converted into a
+    DELETED record for the old and an ADDED record for the new; this
+    options enabled the generation of TYPECHANGE delta records.
+    """
+
+    INCLUDE_TYPECHANGE_TREES = _pygit2.GIT_DIFF_INCLUDE_TYPECHANGE_TREES
+    """
+    Even with INCLUDE_TYPECHANGE, blob->tree changes still generally
+    show as a DELETED blob.  This flag tries to correctly label
+    blob->tree transitions as TYPECHANGE records with new_file's
+    mode set to tree.  Note: the tree SHA will not be available.
+    """
+
+    IGNORE_FILEMODE = _pygit2.GIT_DIFF_IGNORE_FILEMODE
+    "Ignore file mode changes"
+
+    IGNORE_SUBMODULES = _pygit2.GIT_DIFF_IGNORE_SUBMODULES
+    "Treat all submodules as unmodified"
+
+    IGNORE_CASE = _pygit2.GIT_DIFF_IGNORE_CASE
+    "Use case insensitive filename comparisons"
+
+    INCLUDE_CASECHANGE = _pygit2.GIT_DIFF_INCLUDE_CASECHANGE
+    """
+    May be combined with IGNORE_CASE to specify that a file
+    that has changed case will be returned as an add/delete pair.
+    """
+
+    DISABLE_PATHSPEC_MATCH = _pygit2.GIT_DIFF_DISABLE_PATHSPEC_MATCH
+    """
+    If the pathspec is set in the diff options, this flags indicates
+    that the paths will be treated as literal paths instead of
+    fnmatch patterns.  Each path in the list must either be a full
+    path to a file or a directory.  (A trailing slash indicates that
+    the path will _only_ match a directory).  If a directory is
+    specified, all children will be included.
+    """
+
+    SKIP_BINARY_CHECK = _pygit2.GIT_DIFF_SKIP_BINARY_CHECK
+    """
+    Disable updating of the `binary` flag in delta records.  This is
+    useful when iterating over a diff if you don't need hunk and data
+    callbacks and want to avoid having to load file completely.
+    """
+
+    ENABLE_FAST_UNTRACKED_DIRS = _pygit2.GIT_DIFF_ENABLE_FAST_UNTRACKED_DIRS
+    """
+    When diff finds an untracked directory, to match the behavior of
+    core Git, it scans the contents for IGNORED and UNTRACKED files.
+    If *all* contents are IGNORED, then the directory is IGNORED; if
+    any contents are not IGNORED, then the directory is UNTRACKED.
+    This is extra work that may not matter in many cases.  This flag
+    turns off that scan and immediately labels an untracked directory
+    as UNTRACKED (changing the behavior to not match core Git).
+    """
+
+    UPDATE_INDEX = _pygit2.GIT_DIFF_UPDATE_INDEX
+    """
+    When diff finds a file in the working directory with stat
+    information different from the index, but the OID ends up being the
+    same, write the correct stat information into the index.  Note:
+    without this flag, diff will always leave the index untouched.
+    """
+
+    INCLUDE_UNREADABLE = _pygit2.GIT_DIFF_INCLUDE_UNREADABLE
+    "Include unreadable files in the diff"
+
+    INCLUDE_UNREADABLE_AS_UNTRACKED = _pygit2.GIT_DIFF_INCLUDE_UNREADABLE_AS_UNTRACKED
+    "Include unreadable files in the diff"
+
+    INDENT_HEURISTIC = _pygit2.GIT_DIFF_INDENT_HEURISTIC
+    """
+    Use a heuristic that takes indentation and whitespace into account
+    which generally can produce better diffs when dealing with ambiguous
+    diff hunks.
+    """
+
+    IGNORE_BLANK_LINES = _pygit2.GIT_DIFF_IGNORE_BLANK_LINES
+    "Ignore blank lines"
+
+    FORCE_TEXT = _pygit2.GIT_DIFF_FORCE_TEXT
+    "Treat all files as text, disabling binary attributes & detection"
+
+    FORCE_BINARY = _pygit2.GIT_DIFF_FORCE_BINARY
+    "Treat all files as binary, disabling text diffs"
+
+    IGNORE_WHITESPACE = _pygit2.GIT_DIFF_IGNORE_WHITESPACE
+    "Ignore all whitespace"
+
+    IGNORE_WHITESPACE_CHANGE = _pygit2.GIT_DIFF_IGNORE_WHITESPACE_CHANGE
+    "Ignore changes in amount of whitespace"
+
+    IGNORE_WHITESPACE_EOL = _pygit2.GIT_DIFF_IGNORE_WHITESPACE_EOL
+    "Ignore whitespace at end of line"
+
+    SHOW_UNTRACKED_CONTENT = _pygit2.GIT_DIFF_SHOW_UNTRACKED_CONTENT
+    """
+    When generating patch text, include the content of untracked files.
+    This automatically turns on INCLUDE_UNTRACKED but it does not turn
+    on RECURSE_UNTRACKED_DIRS.  Add that flag if you want the content
+    of every single UNTRACKED file.
+    """
+
+    SHOW_UNMODIFIED = _pygit2.GIT_DIFF_SHOW_UNMODIFIED
+    """
+    When generating output, include the names of unmodified files if
+    they are included in the git_diff.  Normally these are skipped in
+    the formats that list files (e.g. name-only, name-status, raw).
+    Even with this, these will not be included in patch format.
+    """
+
+    PATIENCE = _pygit2.GIT_DIFF_PATIENCE
+    "Use the 'patience diff' algorithm"
+
+    MINIMAL = _pygit2.GIT_DIFF_MINIMAL
+    "Take extra time to find minimal diff"
+
+    SHOW_BINARY = _pygit2.GIT_DIFF_SHOW_BINARY
+    """
+    Include the necessary deflate / delta information so that `git-apply`
+    can apply given diff information to binary files.
+    """
+
+
 class RepositoryInitFlag(IntFlag):
     """
     Option flags for pygit2.init_repository().

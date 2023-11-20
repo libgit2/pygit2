@@ -27,6 +27,7 @@ import weakref
 
 # Import from pygit2
 from ._pygit2 import Oid, Tree, Diff
+from .enums import DiffOption
 from .errors import check_error
 from .ffi import ffi, C
 from .utils import to_bytes, to_str
@@ -216,7 +217,12 @@ class Index:
 
         check_error(err, io=True)
 
-    def diff_to_workdir(self, flags=0, context_lines=3, interhunk_lines=0):
+    def diff_to_workdir(
+            self,
+            flags: DiffOption = DiffOption.NORMAL,
+            context_lines: int = 3,
+            interhunk_lines: int = 0
+    ) -> Diff:
         """
         Diff the index against the working directory. Return a <Diff> object
         with the differences between the index and the working copy.
@@ -224,7 +230,7 @@ class Index:
         Parameters:
 
         flags
-            A GIT_DIFF_* constant.
+            A combination of enums.DiffOption constants.
 
         context_lines
             The number of unchanged lines that define the boundary of a hunk
@@ -242,7 +248,7 @@ class Index:
         err = C.git_diff_options_init(copts, 1)
         check_error(err)
 
-        copts.flags = flags
+        copts.flags = int(flags)
         copts.context_lines = context_lines
         copts.interhunk_lines = interhunk_lines
 
@@ -253,7 +259,13 @@ class Index:
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
 
-    def diff_to_tree(self, tree, flags=0, context_lines=3, interhunk_lines=0):
+    def diff_to_tree(
+            self,
+            tree: Tree,
+            flags: DiffOption = DiffOption.NORMAL,
+            context_lines: int = 3,
+            interhunk_lines: int = 0
+    ) -> Diff:
         """
         Diff the index against a tree.  Return a <Diff> object with the
         differences between the index and the given tree.
@@ -264,7 +276,7 @@ class Index:
             The tree to diff.
 
         flags
-            A GIT_DIFF_* constant.
+            A combination of enums.DiffOption constants.
 
         context_lines
             The number of unchanged lines that define the boundary of a hunk
@@ -285,7 +297,7 @@ class Index:
         err = C.git_diff_options_init(copts, 1)
         check_error(err)
 
-        copts.flags = flags
+        copts.flags = int(flags)
         copts.context_lines = context_lines
         copts.interhunk_lines = interhunk_lines
 

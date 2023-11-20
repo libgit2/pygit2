@@ -33,7 +33,6 @@ import warnings
 # Import from pygit2
 from ._pygit2 import Repository as _Repository, init_file_backend
 from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from ._pygit2 import GIT_DIFF_NORMAL
 from ._pygit2 import GIT_FILEMODE_LINK
 from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
@@ -44,6 +43,7 @@ from .branches import Branches
 from .callbacks import git_checkout_options, git_stash_apply_options
 from .config import Config
 from .enums import (
+    DiffOption,
     RepositoryOpenFlag,
     RepositoryState,
 )
@@ -416,8 +416,14 @@ class BaseRepository(_Repository):
         return obj
 
 
-    def diff(self, a=None, b=None, cached=False, flags=GIT_DIFF_NORMAL,
-             context_lines=3, interhunk_lines=0):
+    def diff(
+            self,
+            a=None,
+            b=None,
+            cached=False,
+            flags: DiffOption = DiffOption.NORMAL,
+            context_lines: int = 3,
+            interhunk_lines: int = 0):
         """
         Show changes between the working tree and the index or a tree,
         changes between the index and a tree, changes between two trees, or
@@ -444,9 +450,7 @@ class BaseRepository(_Repository):
             If 'cached' is set to True, the index/staging area is used for comparing.
 
         flag
-            A combination of GIT_DIFF_* constants. For a list of the constants,
-            with a description, see git_diff_option_t in
-            https://github.com/libgit2/libgit2/blob/master/include/git2/diff.h
+            A combination of enums.DiffOption constants.
 
         context_lines
             The number of unchanged lines that define the boundary of a hunk
@@ -481,7 +485,7 @@ class BaseRepository(_Repository):
         b = self.__whatever_to_tree_or_blob(b)
 
         opt_keys = ['flags', 'context_lines', 'interhunk_lines']
-        opt_values = [flags, context_lines, interhunk_lines]
+        opt_values = [int(flags), context_lines, interhunk_lines]
 
         # Case 1: Diff tree to tree
         if isinstance(a, Tree) and isinstance(b, Tree):

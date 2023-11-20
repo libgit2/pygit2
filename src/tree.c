@@ -202,14 +202,14 @@ Tree_divide(Tree *self, PyObject *value)
 
 
 PyDoc_STRVAR(Tree_diff_to_workdir__doc__,
-  "diff_to_workdir(flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff\n"
+  "diff_to_workdir(flags: enums.DiffOption = enums.DiffOption.NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff\n"
   "\n"
   "Show the changes between the :py:class:`~pygit2.Tree` and the workdir.\n"
   "\n"
   "Parameters:\n"
   "\n"
-  "flag\n"
-  "    A GIT_DIFF_* constant.\n"
+  "flags\n"
+  "    A combination of enums.DiffOption constants.\n"
   "\n"
   "context_lines\n"
   "    The number of unchanged lines that define the boundary of a hunk\n"
@@ -241,7 +241,7 @@ Tree_diff_to_workdir(Tree *self, PyObject *args)
 
 
 PyDoc_STRVAR(Tree_diff_to_index__doc__,
-  "diff_to_index(index: Index, flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff\n"
+  "diff_to_index(index: Index, flags: enums.DiffOption = enums.DiffOption.NORMAL, context_lines: int = 3, interhunk_lines: int = 0) -> Diff\n"
   "\n"
   "Show the changes between the index and a given :py:class:`~pygit2.Tree`.\n"
   "\n"
@@ -250,8 +250,8 @@ PyDoc_STRVAR(Tree_diff_to_index__doc__,
   "index : :py:class:`~pygit2.Index`\n"
   "    The index to diff.\n"
   "\n"
-  "flag\n"
-  "    A GIT_DIFF_* constant.\n"
+  "flags\n"
+  "    A combination of enums.DiffOption constants.\n"
   "\n"
   "context_lines\n"
   "    The number of unchanged lines that define the boundary of a hunk\n"
@@ -321,7 +321,7 @@ error:
 
 
 PyDoc_STRVAR(Tree_diff_to_tree__doc__,
-  "diff_to_tree([tree: Tree, flags: int = GIT_DIFF_NORMAL, context_lines: int = 3, interhunk_lines: int = 0, swap: bool = False]) -> Diff\n"
+  "diff_to_tree([tree: Tree, flags: enums.DiffOption = enums.DiffOption.NORMAL, context_lines: int = 3, interhunk_lines: int = 0, swap: bool = False]) -> Diff\n"
   "\n"
   "Show the changes between two trees.\n"
   "\n"
@@ -331,8 +331,8 @@ PyDoc_STRVAR(Tree_diff_to_tree__doc__,
   "    The tree to diff. If no tree is given the empty tree will be used\n"
   "    instead.\n"
   "\n"
-  "flag\n"
-  "    A GIT_DIFF_* constant.\n"
+  "flags\n"
+  "    A combination of enums.DiffOption constants.\n"
   "\n"
   "context_lines\n"
   "    The number of unchanged lines that define the boundary of a hunk\n"

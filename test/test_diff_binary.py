@@ -54,9 +54,9 @@ Pc${NM&PdElPvrst3ey5{
 def test_binary_diff(repo):
     diff = repo.diff('HEAD', 'HEAD^')
     assert PATCH_BINARY == diff.patch
-    diff = repo.diff('HEAD', 'HEAD^', flags=pygit2.GIT_DIFF_SHOW_BINARY)
+    diff = repo.diff('HEAD', 'HEAD^', flags=pygit2.DiffOption.SHOW_BINARY)
     assert PATCH_BINARY_SHOW == diff.patch
     diff = repo.diff(b'HEAD', b'HEAD^')
     assert PATCH_BINARY == diff.patch
-    diff = repo.diff(b'HEAD', b'HEAD^', flags=pygit2.GIT_DIFF_SHOW_BINARY)
+    diff = repo.diff(b'HEAD', b'HEAD^', flags=pygit2.DiffOption.SHOW_BINARY)
     assert PATCH_BINARY_SHOW == diff.patch
