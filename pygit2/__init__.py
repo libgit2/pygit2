@@ -25,6 +25,8 @@
 
 # Standard Library
 import functools
+from os import PathLike
+import typing
 
 # Low level API
 from ._pygit2 import *
@@ -37,7 +39,14 @@ from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCa
 from .callbacks import git_clone_options, git_fetch_options, get_credentials
 from .config import Config
 from .credentials import *
-from .enums import SubmoduleIgnore, SubmoduleStatus
+from .enums import (
+    RepositoryInitFlag,
+    RepositoryInitMode,
+    RepositoryOpenFlag,
+    RepositoryState,
+    SubmoduleIgnore,
+    SubmoduleStatus,
+)
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .filter import Filter
@@ -56,39 +65,38 @@ GIT_FEATURE_THREADS = C.GIT_FEATURE_THREADS
 GIT_FEATURE_HTTPS = C.GIT_FEATURE_HTTPS
 GIT_FEATURE_SSH = C.GIT_FEATURE_SSH
 
-# GIT_REPOSITORY_INIT_*
-GIT_REPOSITORY_INIT_OPTIONS_VERSION = C.GIT_REPOSITORY_INIT_OPTIONS_VERSION
-GIT_REPOSITORY_INIT_BARE = C.GIT_REPOSITORY_INIT_BARE
-GIT_REPOSITORY_INIT_NO_REINIT = C.GIT_REPOSITORY_INIT_NO_REINIT
-GIT_REPOSITORY_INIT_NO_DOTGIT_DIR = C.GIT_REPOSITORY_INIT_NO_DOTGIT_DIR
-GIT_REPOSITORY_INIT_MKDIR = C.GIT_REPOSITORY_INIT_MKDIR
-GIT_REPOSITORY_INIT_MKPATH = C.GIT_REPOSITORY_INIT_MKPATH
-GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE = C.GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE
-GIT_REPOSITORY_INIT_RELATIVE_GITLINK = C.GIT_REPOSITORY_INIT_RELATIVE_GITLINK
-GIT_REPOSITORY_INIT_SHARED_UMASK = C.GIT_REPOSITORY_INIT_SHARED_UMASK
-GIT_REPOSITORY_INIT_SHARED_GROUP = C.GIT_REPOSITORY_INIT_SHARED_GROUP
-GIT_REPOSITORY_INIT_SHARED_ALL = C.GIT_REPOSITORY_INIT_SHARED_ALL
+# GIT_REPOSITORY_INIT_* values for legacy code
+GIT_REPOSITORY_INIT_BARE                = RepositoryInitFlag.BARE
+GIT_REPOSITORY_INIT_NO_REINIT           = RepositoryInitFlag.NO_REINIT
+GIT_REPOSITORY_INIT_NO_DOTGIT_DIR       = RepositoryInitFlag.NO_DOTGIT_DIR
+GIT_REPOSITORY_INIT_MKDIR               = RepositoryInitFlag.MKDIR
+GIT_REPOSITORY_INIT_MKPATH              = RepositoryInitFlag.MKPATH
+GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE   = RepositoryInitFlag.EXTERNAL_TEMPLATE
+GIT_REPOSITORY_INIT_RELATIVE_GITLINK    = RepositoryInitFlag.RELATIVE_GITLINK
+GIT_REPOSITORY_INIT_SHARED_UMASK        = RepositoryInitMode.SHARED_UMASK
+GIT_REPOSITORY_INIT_SHARED_GROUP        = RepositoryInitMode.SHARED_GROUP
+GIT_REPOSITORY_INIT_SHARED_ALL          = RepositoryInitMode.SHARED_ALL
 
-# GIT_REPOSITORY_OPEN_*
-GIT_REPOSITORY_OPEN_NO_SEARCH = C.GIT_REPOSITORY_OPEN_NO_SEARCH
-GIT_REPOSITORY_OPEN_CROSS_FS  = C.GIT_REPOSITORY_OPEN_CROSS_FS
-GIT_REPOSITORY_OPEN_BARE      = C.GIT_REPOSITORY_OPEN_BARE
-GIT_REPOSITORY_OPEN_NO_DOTGIT = C.GIT_REPOSITORY_OPEN_NO_DOTGIT
-GIT_REPOSITORY_OPEN_FROM_ENV  = C.GIT_REPOSITORY_OPEN_FROM_ENV
+# GIT_REPOSITORY_OPEN_* values for legacy code
+GIT_REPOSITORY_OPEN_NO_SEARCH   = RepositoryOpenFlag.NO_SEARCH
+GIT_REPOSITORY_OPEN_CROSS_FS    = RepositoryOpenFlag.CROSS_FS
+GIT_REPOSITORY_OPEN_BARE        = RepositoryOpenFlag.BARE
+GIT_REPOSITORY_OPEN_NO_DOTGIT   = RepositoryOpenFlag.NO_DOTGIT
+GIT_REPOSITORY_OPEN_FROM_ENV    = RepositoryOpenFlag.FROM_ENV
 
-# GIT_REPOSITORY_STATE_*
-GIT_REPOSITORY_STATE_NONE                    : int = C.GIT_REPOSITORY_STATE_NONE
-GIT_REPOSITORY_STATE_MERGE                   : int = C.GIT_REPOSITORY_STATE_MERGE
-GIT_REPOSITORY_STATE_REVERT                  : int = C.GIT_REPOSITORY_STATE_REVERT
-GIT_REPOSITORY_STATE_REVERT_SEQUENCE         : int = C.GIT_REPOSITORY_STATE_REVERT_SEQUENCE
-GIT_REPOSITORY_STATE_CHERRYPICK              : int = C.GIT_REPOSITORY_STATE_CHERRYPICK
-GIT_REPOSITORY_STATE_CHERRYPICK_SEQUENCE     : int = C.GIT_REPOSITORY_STATE_CHERRYPICK_SEQUENCE
-GIT_REPOSITORY_STATE_BISECT                  : int = C.GIT_REPOSITORY_STATE_BISECT
-GIT_REPOSITORY_STATE_REBASE                  : int = C.GIT_REPOSITORY_STATE_REBASE
-GIT_REPOSITORY_STATE_REBASE_INTERACTIVE      : int = C.GIT_REPOSITORY_STATE_REBASE_INTERACTIVE
-GIT_REPOSITORY_STATE_REBASE_MERGE            : int = C.GIT_REPOSITORY_STATE_REBASE_MERGE
-GIT_REPOSITORY_STATE_APPLY_MAILBOX           : int = C.GIT_REPOSITORY_STATE_APPLY_MAILBOX
-GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE : int = C.GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE
+# GIT_REPOSITORY_STATE_* values for legacy code
+GIT_REPOSITORY_STATE_NONE                    = RepositoryState.NONE
+GIT_REPOSITORY_STATE_MERGE                   = RepositoryState.MERGE
+GIT_REPOSITORY_STATE_REVERT                  = RepositoryState.REVERT
+GIT_REPOSITORY_STATE_REVERT_SEQUENCE         = RepositoryState.REVERT_SEQUENCE
+GIT_REPOSITORY_STATE_CHERRYPICK              = RepositoryState.CHERRYPICK
+GIT_REPOSITORY_STATE_CHERRYPICK_SEQUENCE     = RepositoryState.CHERRYPICK_SEQUENCE
+GIT_REPOSITORY_STATE_BISECT                  = RepositoryState.BISECT
+GIT_REPOSITORY_STATE_REBASE                  = RepositoryState.REBASE
+GIT_REPOSITORY_STATE_REBASE_INTERACTIVE      = RepositoryState.REBASE_INTERACTIVE
+GIT_REPOSITORY_STATE_REBASE_MERGE            = RepositoryState.REBASE_MERGE
+GIT_REPOSITORY_STATE_APPLY_MAILBOX           = RepositoryState.APPLY_MAILBOX
+GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE = RepositoryState.APPLY_MAILBOX_OR_REBASE
 
 # GIT_ATTR_CHECK_*
 GIT_ATTR_CHECK_FILE_THEN_INDEX = C.GIT_ATTR_CHECK_FILE_THEN_INDEX
@@ -125,32 +133,35 @@ GIT_STASH_APPLY_PROGRESS_DONE               : int = C.GIT_STASH_APPLY_PROGRESS_D
 # libgit version tuple
 LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)
 
-def init_repository(path, bare=False,
-                    flags=GIT_REPOSITORY_INIT_MKPATH,
-                    mode=0,
-                    workdir_path=None,
-                    description=None,
-                    template_path=None,
-                    initial_head=None,
-                    origin_url=None):
+
+def init_repository(
+        path: typing.Union[str, bytes, PathLike, None],
+        bare: bool = False,
+        flags: RepositoryInitFlag = RepositoryInitFlag.MKPATH,
+        mode: typing.Union[int, RepositoryInitMode] = RepositoryInitMode.SHARED_UMASK,
+        workdir_path: typing.Optional[str] = None,
+        description: typing.Optional[str] = None,
+        template_path: typing.Optional[str] = None,
+        initial_head: typing.Optional[str] = None,
+        origin_url: typing.Optional[str] = None
+) -> Repository:
     """
     Creates a new Git repository in the given *path*.
 
     If *bare* is True the repository will be bare, i.e. it will not have a
     working copy.
 
-    The *flags* may be a combination of:
+    The *flags* may be a combination of enums.RepositoryInitFlag constants:
 
-    - GIT_REPOSITORY_INIT_BARE (overriden by the *bare* parameter)
-    - GIT_REPOSITORY_INIT_NO_REINIT
-    - GIT_REPOSITORY_INIT_NO_DOTGIT_DIR
-    - GIT_REPOSITORY_INIT_MKDIR
-    - GIT_REPOSITORY_INIT_MKPATH (set by default)
-    - GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE
+    - BARE (overriden by the *bare* parameter)
+    - NO_REINIT
+    - NO_DOTGIT_DIR
+    - MKDIR
+    - MKPATH (set by default)
+    - EXTERNAL_TEMPLATE
 
-    The *mode* parameter may be any of GIT_REPOSITORY_SHARED_UMASK (default),
-    GIT_REPOSITORY_SHARED_GROUP or GIT_REPOSITORY_INIT_SHARED_ALL, or a custom
-    value.
+    The *mode* parameter may be any of the predefined modes in
+    enums.RepositoryInitMode (SHARED_UMASK being the default), or a custom int.
 
     The *workdir_path*, *description*, *template_path*, *initial_head* and
     *origin_url* are all strings.
@@ -162,13 +173,13 @@ def init_repository(path, bare=False,
         raise TypeError('Expected string type for path, found None.')
 
     if bare:
-        flags |= GIT_REPOSITORY_INIT_BARE
+        flags |= RepositoryInitFlag.BARE
 
     # Options
     options = ffi.new('git_repository_init_options *')
     C.git_repository_init_options_init(options,
-                                       GIT_REPOSITORY_INIT_OPTIONS_VERSION)
-    options.flags = flags
+                                       C.GIT_REPOSITORY_INIT_OPTIONS_VERSION)
+    options.flags = int(flags)
     options.mode = mode
 
     if workdir_path:

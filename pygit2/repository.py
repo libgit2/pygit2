@@ -43,6 +43,10 @@ from .blame import Blame
 from .branches import Branches
 from .callbacks import git_checkout_options, git_stash_apply_options
 from .config import Config
+from .enums import (
+    RepositoryOpenFlag,
+    RepositoryState,
+)
 from .errors import check_error
 from .ffi import ffi, C
 from .index import Index
@@ -500,13 +504,18 @@ class BaseRepository(_Repository):
 
         raise ValueError("Only blobs and treeish can be diffed")
 
-    def state(self) -> int:
+    def state(self) -> RepositoryState:
         """Determines the state of a git repository - ie, whether an operation
         (merge, cherry-pick, etc) is in progress.
 
-        Returns a GIT_REPOSITORY_STATE_* constant.
+        Returns a RepositoryState constant.
         """
-        return C.git_repository_state(self._repo)
+        cstate: int = C.git_repository_state(self._repo)
+        try:
+            return RepositoryState(cstate)
+        except ValueError:
+            # Some value not in the IntEnum - newer libgit2 version?
+            return cstate
 
     def state_cleanup(self):
         """Remove all the metadata associated with an ongoing command like
@@ -1540,7 +1549,10 @@ class BaseRepository(_Repository):
 
 
 class Repository(BaseRepository):
-    def __init__(self, path=None, flags=0):
+    def __init__(
+            self,
+            path: typing.Optional[str] = None,
+            flags: RepositoryOpenFlag = RepositoryOpenFlag.DEFAULT):
         """
         The Repository constructor will commonly be called with one argument,
         the path of the repository to open.
@@ -1556,13 +1568,9 @@ class Repository(BaseRepository):
         path : str
         The path to open - if not provided, the repository will have no backend.
 
-        flags : int
-        Flags controlling how to open the repository can optionally be provided - any combination of:
-        -   GIT_REPOSITORY_OPEN_NO_SEARCH
-        -   GIT_REPOSITORY_OPEN_CROSS_FS
-        -   GIT_REPOSITORY_OPEN_BARE
-        -   GIT_REPOSITORY_OPEN_NO_DOTGIT
-        -   GIT_REPOSITORY_OPEN_FROM_ENV
+        flags : enums.RepositoryOpenFlag
+        An optional combination of enums.RepositoryOpenFlag constants
+        controlling how to open the repository.
         """
 
         if path is not None:
@@ -1570,7 +1578,7 @@ class Repository(BaseRepository):
                 path = path.__fspath__()
             if not isinstance(path, str):
                 path = path.decode('utf-8')
-            path_backend = init_file_backend(path, flags)
+            path_backend = init_file_backend(path, int(flags))
             super().__init__(path_backend)
         else:
             super().__init__()

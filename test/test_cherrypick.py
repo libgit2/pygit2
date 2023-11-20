@@ -48,10 +48,10 @@ def test_cherrypick_already_something_in_index(mergerepo):
 
 
 def test_cherrypick_remove_conflicts(mergerepo):
-    assert mergerepo.state() == pygit2.GIT_REPOSITORY_STATE_NONE
+    assert mergerepo.state() == pygit2.RepositoryState.NONE
     other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     mergerepo.cherrypick(other_branch_tip)
-    assert mergerepo.state() == pygit2.GIT_REPOSITORY_STATE_CHERRYPICK
+    assert mergerepo.state() == pygit2.RepositoryState.CHERRYPICK
     idx = mergerepo.index
     conflicts = idx.conflicts
     assert conflicts is not None
@@ -60,4 +60,4 @@ def test_cherrypick_remove_conflicts(mergerepo):
     with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
     assert idx.conflicts is None
     mergerepo.state_cleanup()
-    assert mergerepo.state() == pygit2.GIT_REPOSITORY_STATE_NONE
+    assert mergerepo.state() == pygit2.RepositoryState.NONE

@@ -74,11 +74,11 @@ Below there are some general attributes and methods:
    flags
        Flags controlling how to open the repository can optionally be provided — any combination of:
 
-   * GIT_REPOSITORY_OPEN_NO_SEARCH
-   * GIT_REPOSITORY_OPEN_CROSS_FS
-   * GIT_REPOSITORY_OPEN_BARE
-   * GIT_REPOSITORY_OPEN_NO_DOTGIT
-   * GIT_REPOSITORY_OPEN_FROM_ENV
+   * enums.RepositoryOpenFlag.NO_SEARCH
+   * enums.RepositoryOpenFlag.CROSS_FS
+   * enums.RepositoryOpenFlag.BARE
+   * enums.RepositoryOpenFlag.NO_DOTGIT
+   * enums.RepositoryOpenFlag.FROM_ENV
 
    Example::
 

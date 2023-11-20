@@ -773,20 +773,20 @@ def test_open_extended(tmp_path):
         assert repo.workdir == orig_repo.workdir
 
         with pytest.raises(pygit2.GitError):
-            repo = pygit2.Repository(subdir_path, pygit2.GIT_REPOSITORY_OPEN_NO_SEARCH)
+            repo = pygit2.Repository(subdir_path, pygit2.RepositoryOpenFlag.NO_SEARCH)
 
         # GIT_REPOSITORY_OPEN_NO_DOTGIT
         gitdir_path = path / '.git'
         with pytest.raises(pygit2.GitError):
-            repo = pygit2.Repository(path, pygit2.GIT_REPOSITORY_OPEN_NO_DOTGIT)
+            repo = pygit2.Repository(path, pygit2.RepositoryOpenFlag.NO_DOTGIT)
 
-        repo = pygit2.Repository(gitdir_path, pygit2.GIT_REPOSITORY_OPEN_NO_DOTGIT)
+        repo = pygit2.Repository(gitdir_path, pygit2.RepositoryOpenFlag.NO_DOTGIT)
         assert not repo.is_bare
         assert repo.path == orig_repo.path
         assert repo.workdir == orig_repo.workdir
 
         # GIT_REPOSITORY_OPEN_BARE
-        repo = pygit2.Repository(gitdir_path, pygit2.GIT_REPOSITORY_OPEN_BARE)
+        repo = pygit2.Repository(gitdir_path, pygit2.RepositoryOpenFlag.BARE)
         assert repo.is_bare
         assert repo.path == orig_repo.path
         assert not repo.workdir
