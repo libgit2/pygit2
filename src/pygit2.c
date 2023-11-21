@@ -147,7 +147,7 @@ hashfile(PyObject *self, PyObject *args)
     if (py_path != NULL)
         path = PyBytes_AS_STRING(py_path);
 
-    err = git_odb_hashfile(&oid, path, GIT_OBJ_BLOB);
+    err = git_odb_hashfile(&oid, path, GIT_OBJECT_BLOB);
     Py_XDECREF(py_path);
     if (err < 0)
         return Error_set(err);
@@ -171,7 +171,7 @@ hash(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s#", &data, &size))
         return NULL;
 
-    err = git_odb_hash(&oid, data, size, GIT_OBJ_BLOB);
+    err = git_odb_hash(&oid, data, size, GIT_OBJECT_BLOB);
     if (err < 0) {
         return Error_set(err);
     }
@@ -479,11 +479,14 @@ PyInit__pygit2(void)
     ADD_TYPE(m, TreeBuilder)
     ADD_TYPE(m, Blob)
     ADD_TYPE(m, Tag)
-    ADD_CONSTANT_INT(m, GIT_OBJ_ANY)
-    ADD_CONSTANT_INT(m, GIT_OBJ_COMMIT)
-    ADD_CONSTANT_INT(m, GIT_OBJ_TREE)
-    ADD_CONSTANT_INT(m, GIT_OBJ_BLOB)
-    ADD_CONSTANT_INT(m, GIT_OBJ_TAG)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_ANY)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_INVALID)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_COMMIT)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_TREE)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_BLOB)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_TAG)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_OFS_DELTA)
+    ADD_CONSTANT_INT(m, GIT_OBJECT_REF_DELTA)
     /* Valid modes for index and tree entries. */
     ADD_CONSTANT_INT(m, GIT_FILEMODE_UNREADABLE)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_TREE)
@@ -491,6 +494,12 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_BLOB_EXECUTABLE)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_LINK)
     ADD_CONSTANT_INT(m, GIT_FILEMODE_COMMIT)
+    /* Deprecated constants for backward compatibility with old Python code*/
+    ADD_CONSTANT_INT(m, GIT_OBJ_ANY)
+    ADD_CONSTANT_INT(m, GIT_OBJ_COMMIT)
+    ADD_CONSTANT_INT(m, GIT_OBJ_TREE)
+    ADD_CONSTANT_INT(m, GIT_OBJ_BLOB)
+    ADD_CONSTANT_INT(m, GIT_OBJ_TAG)
 
     /*
      * Log

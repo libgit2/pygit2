@@ -485,7 +485,7 @@ Reference_peel(Reference *self, PyObject *args)
         return NULL;
 
     otype = py_object_to_otype(py_type);
-    if (otype == GIT_OBJ_BAD)
+    if (otype == GIT_OBJECT_INVALID)
         return NULL;
 
     err = git_reference_peel(&obj, self->reference, otype);

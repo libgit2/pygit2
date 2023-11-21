@@ -29,6 +29,8 @@ Settings mapping.
 
 from ssl import get_default_verify_paths
 
+import pygit2.enums
+
 from ._pygit2 import option
 from .enums import Option
 from .errors import GitError
@@ -136,13 +138,13 @@ class Settings:
         """
         return option(Option.SET_CACHE_MAX_SIZE, value)
 
-    def cache_object_limit(self, object_type, value):
+    def cache_object_limit(self, object_type: pygit2.enums.ObjectType, value):
         """
         Set the maximum data size for the given type of object to be
         considered eligible for caching in memory.  Setting to value to
         zero means that that type of object will not be cached.
-        Defaults to 0 for GIT_OBJECT_BLOB (i.e. won't cache blobs) and 4k
-        for GIT_OBJECT_COMMIT, GIT_OBJECT_TREE, and GIT_OBJECT_TAG.
+        Defaults to 0 for enums.ObjectType.BLOB (i.e. won't cache blobs)
+        and 4k for COMMIT, TREE, and TAG.
         """
         return option(Option.SET_CACHE_OBJECT_LIMIT, object_type, value)
 

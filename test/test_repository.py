@@ -34,7 +34,7 @@ import pytest
 import pygit2
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid
-from pygit2 import CheckoutNotify, CheckoutStrategy, ResetMode, StashApplyProgress, FileStatus
+from pygit2 import CheckoutNotify, CheckoutStrategy, FileStatus, ObjectType, ResetMode, StashApplyProgress
 from . import utils
 
 
@@ -504,7 +504,7 @@ def test_default_signature(testrepo):
 def test_new_repo(tmp_path):
     repo = init_repository(tmp_path, False)
 
-    oid = repo.write(pygit2.GIT_OBJ_BLOB, "Test")
+    oid = repo.write(ObjectType.BLOB, "Test")
     assert type(oid) == Oid
 
     assert (tmp_path / '.git').exists()

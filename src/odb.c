@@ -41,11 +41,13 @@ static git_otype
 int_to_loose_object_type(int type_id)
 {
     switch((git_otype)type_id) {
-        case GIT_OBJ_COMMIT: return GIT_OBJ_COMMIT;
-        case GIT_OBJ_TREE: return GIT_OBJ_TREE;
-        case GIT_OBJ_BLOB: return GIT_OBJ_BLOB;
-        case GIT_OBJ_TAG: return GIT_OBJ_TAG;
-        default: return GIT_OBJ_BAD;
+        case GIT_OBJECT_COMMIT:
+        case GIT_OBJECT_TREE:
+        case GIT_OBJECT_BLOB:
+        case GIT_OBJECT_TAG:
+            return (git_otype)type_id;
+        default:
+            return GIT_OBJECT_INVALID;
     }
 }
 
@@ -217,7 +219,7 @@ Odb_write(Odb *self, PyObject *args)
         return NULL;
 
     type = int_to_loose_object_type(type_id);
-    if (type == GIT_OBJ_BAD)
+    if (type == GIT_OBJECT_INVALID)
         return PyErr_Format(PyExc_ValueError, "%d", type_id);
 
     err = git_odb_open_wstream(&stream, self->odb, buflen, type);

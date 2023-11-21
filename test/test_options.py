@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 import pygit2
-from pygit2 import option, GIT_OBJ_BLOB, ConfigLevel, Option
+from pygit2 import option, ConfigLevel, ObjectType, Option
 
 
 def __option(getter, setter, value):
@@ -65,7 +65,7 @@ def test_cache_object_limit():
 
 def test_cache_object_limit_proxy():
     new_limit = 4 * 1024
-    pygit2.settings.cache_object_limit(GIT_OBJ_BLOB, new_limit)
+    pygit2.settings.cache_object_limit(ObjectType.BLOB, new_limit)
 
 def test_cached_memory():
     value = option(Option.GET_CACHED_MEMORY)

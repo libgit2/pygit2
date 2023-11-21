@@ -241,16 +241,16 @@ static git_otype
 py_type_to_git_type(PyTypeObject *py_type)
 {
     if (py_type == &CommitType)
-        return GIT_OBJ_COMMIT;
+        return GIT_OBJECT_COMMIT;
     else if (py_type == &TreeType)
-        return GIT_OBJ_TREE;
+        return GIT_OBJECT_TREE;
     else if (py_type == &BlobType)
-        return GIT_OBJ_BLOB;
+        return GIT_OBJECT_BLOB;
     else if (py_type == &TagType)
-        return GIT_OBJ_TAG;
+        return GIT_OBJECT_TAG;
 
     PyErr_SetString(PyExc_ValueError, "invalid target type");
-    return GIT_OBJ_BAD; /* -1 */
+    return GIT_OBJECT_INVALID; /* -1 */
 }
 
 git_otype
@@ -259,12 +259,12 @@ py_object_to_otype(PyObject *py_type)
     long value;
 
     if (py_type == Py_None)
-        return GIT_OBJ_ANY;
+        return GIT_OBJECT_ANY;
 
     if (PyLong_Check(py_type)) {
         value = PyLong_AsLong(py_type);
         if (value == -1 && PyErr_Occurred())
-            return GIT_OBJ_BAD;
+            return GIT_OBJECT_INVALID;
 
         /* TODO Check whether the value is a valid value */
         return (git_otype)value;
@@ -274,5 +274,5 @@ py_object_to_otype(PyObject *py_type)
         return py_type_to_git_type((PyTypeObject *) py_type);
 
     PyErr_SetString(PyExc_ValueError, "invalid target type");
-    return GIT_OBJ_BAD; /* -1 */
+    return GIT_OBJECT_INVALID; /* -1 */
 }

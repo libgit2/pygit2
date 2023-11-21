@@ -27,7 +27,7 @@
 
 import pytest
 
-from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag
+from pygit2 import ObjectType, Tree, Tag
 
 
 BLOB_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
@@ -84,7 +84,7 @@ def test_peel_commit(testrepo):
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
     # and peel to the tree
-    tree = commit.peel(GIT_OBJ_TREE)
+    tree = commit.peel(ObjectType.TREE)
 
     assert type(tree) == Tree
     assert str(tree.id) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
@@ -102,7 +102,7 @@ def test_invalid(testrepo):
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
 
-    with pytest.raises(ValueError): commit.peel(GIT_OBJ_TAG)
+    with pytest.raises(ValueError): commit.peel(ObjectType.TAG)
 
 def test_invalid_type(testrepo):
     commit_id = testrepo.lookup_reference('refs/heads/master').target

@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pygit2 import GIT_OBJ_COMMIT, Oid, Signature
+from pygit2 import ObjectType, Oid, Signature
 
 content = """\
 tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
@@ -118,7 +118,7 @@ def test_commit_signing(gpgsigned):
     assert gpgsig_content == commit.read_raw().decode("utf-8")
 
     # perform sanity checks
-    assert GIT_OBJ_COMMIT == commit.type
+    assert ObjectType.COMMIT == commit.type
     assert "6569fdf71dbd99081891154641869c537784a3ba" == commit.hex
     assert commit.message_encoding is None
     assert message == commit.message

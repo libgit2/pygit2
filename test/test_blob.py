@@ -33,6 +33,7 @@ from queue import Queue
 import pytest
 
 import pygit2
+from pygit2 import ObjectType
 from . import utils
 
 
@@ -86,7 +87,7 @@ def test_read_blob(testrepo):
     assert sha == BLOB_SHA
     assert isinstance(blob, pygit2.Blob)
     assert not blob.is_binary
-    assert pygit2.GIT_OBJ_BLOB == blob.type
+    assert ObjectType.BLOB == blob.type
     assert BLOB_CONTENT == blob.data
     assert len(BLOB_CONTENT) == blob.size
     assert BLOB_CONTENT == blob.read_raw()
@@ -96,7 +97,7 @@ def test_create_blob(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert pygit2.GIT_OBJ_BLOB == blob.type
+    assert ObjectType.BLOB == blob.type
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_NEW_CONTENT) == blob_oid.hex
@@ -117,7 +118,7 @@ def test_create_blob_fromworkdir(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert pygit2.GIT_OBJ_BLOB == blob.type
+    assert ObjectType.BLOB == blob.type
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_FILE_CONTENT) == blob_oid.hex
@@ -142,7 +143,7 @@ def test_create_blob_fromdisk(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert pygit2.GIT_OBJ_BLOB == blob.type
+    assert ObjectType.BLOB == blob.type
 
 def test_create_blob_fromiobase(testrepo):
     with pytest.raises(TypeError):
@@ -153,7 +154,7 @@ def test_create_blob_fromiobase(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert pygit2.GIT_OBJ_BLOB == blob.type
+    assert ObjectType.BLOB == blob.type
 
     assert blob_oid == blob.id
     assert BLOB_SHA == blob_oid.hex

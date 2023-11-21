@@ -27,6 +27,7 @@
 
 import pygit2
 import pytest
+from pygit2 import ObjectType
 
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
@@ -37,8 +38,8 @@ def test_read_tag(barerepo):
     tag = repo[TAG_SHA]
     target = repo[tag.target]
     assert isinstance(tag, pygit2.Tag)
-    assert pygit2.GIT_OBJ_TAG == tag.type
-    assert pygit2.GIT_OBJ_COMMIT == target.type
+    assert ObjectType.TAG == tag.type
+    assert ObjectType.COMMIT == target.type
     assert 'root' == tag.name
     assert 'Tagged root commit.\n' == tag.message
     assert 'Initial test data commit.\n' == target.message
@@ -53,10 +54,9 @@ def test_new_tag(barerepo):
     target_prefix = target[:5]
     too_short_prefix = target[:3]
     with pytest.raises(ValueError):
-        barerepo.create_tag(name, too_short_prefix, pygit2.GIT_OBJ_BLOB, tagger, message)
+        barerepo.create_tag(name, too_short_prefix, ObjectType.BLOB, tagger, message)
 
-    sha = barerepo.create_tag(name, target_prefix, pygit2.GIT_OBJ_BLOB,
-                               tagger, message)
+    sha = barerepo.create_tag(name, target_prefix, ObjectType.BLOB, tagger, message)
     tag = barerepo[sha]
 
     assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.hex

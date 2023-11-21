@@ -132,8 +132,7 @@ Object_short_id__get__(Object *self)
 
 
 PyDoc_STRVAR(Object_type__doc__,
-    "One of the GIT_OBJ_COMMIT, GIT_OBJ_TREE, GIT_OBJ_BLOB or GIT_OBJ_TAG\n"
-    "constants.");
+    "One of the enums.ObjectType.COMMIT, TREE, BLOB or TAG constants.");
 
 PyObject *
 Object_type__get__(Object *self)
@@ -243,7 +242,7 @@ Object_peel(Object *self, PyObject *py_type)
     if (Object__load(self) == NULL) { return NULL; } // Lazy load
 
     otype = py_object_to_otype(py_type);
-    if (otype == GIT_OBJ_BAD)
+    if (otype == GIT_OBJECT_INVALID)
         return NULL;
 
     err = git_object_peel(&peeled, self->obj, otype);
@@ -383,16 +382,16 @@ wrap_object(git_object *c_object, Repository *repo, const git_tree_entry *entry)
     git_object_t obj_type = (c_object) ? git_object_type(c_object) : git_tree_entry_type(entry);
 
     switch (obj_type) {
-        case GIT_OBJ_COMMIT:
+        case GIT_OBJECT_COMMIT:
             py_obj = PyObject_New(Object, &CommitType);
             break;
-        case GIT_OBJ_TREE:
+        case GIT_OBJECT_TREE:
             py_obj = PyObject_New(Object, &TreeType);
             break;
-        case GIT_OBJ_BLOB:
+        case GIT_OBJECT_BLOB:
             py_obj = PyObject_New(Object, &BlobType);
             break;
-        case GIT_OBJ_TAG:
+        case GIT_OBJECT_TAG:
             py_obj = PyObject_New(Object, &TagType);
             break;
         default:

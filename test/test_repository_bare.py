@@ -33,6 +33,7 @@ import tempfile
 import pygit2
 import pytest
 
+from pygit2 import ObjectType
 from . import utils
 
 
@@ -72,22 +73,22 @@ def test_read(barerepo):
     ab = barerepo.read(BLOB_OID)
     a = barerepo.read(BLOB_HEX)
     assert ab == a
-    assert (pygit2.GIT_OBJ_BLOB, b'a contents\n') == a
+    assert (ObjectType.BLOB, b'a contents\n') == a
 
     a2 = barerepo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-    assert (pygit2.GIT_OBJ_BLOB, b'a contents 2\n') == a2
+    assert (ObjectType.BLOB, b'a contents 2\n') == a2
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = barerepo.read(a_hex_prefix)
-    assert (pygit2.GIT_OBJ_BLOB, b'a contents\n') == a3
+    assert (ObjectType.BLOB, b'a contents\n') == a3
 
 def test_write(barerepo):
     data = b"hello world"
     # invalid object type
     with pytest.raises(ValueError):
-        barerepo.write(pygit2.GIT_OBJ_ANY, data)
+        barerepo.write(ObjectType.ANY, data)
 
-    oid = barerepo.write(pygit2.GIT_OBJ_BLOB, data)
+    oid = barerepo.write(ObjectType.BLOB, data)
     assert type(oid) == pygit2.Oid
 
 def test_contains(barerepo):
@@ -111,19 +112,19 @@ def test_lookup_blob(barerepo):
     a = barerepo[BLOB_HEX]
     assert b'a contents\n' == a.read_raw()
     assert BLOB_HEX == a.hex
-    assert pygit2.GIT_OBJ_BLOB == a.type
+    assert ObjectType.BLOB == a.type
 
 def test_lookup_blob_prefix(barerepo):
     a = barerepo[BLOB_HEX[:5]]
     assert b'a contents\n' == a.read_raw()
     assert BLOB_HEX == a.hex
-    assert pygit2.GIT_OBJ_BLOB == a.type
+    assert ObjectType.BLOB == a.type
 
 def test_lookup_commit(barerepo):
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit = barerepo[commit_sha]
     assert commit_sha == commit.hex
-    assert pygit2.GIT_OBJ_COMMIT == commit.type
+    assert ObjectType.COMMIT == commit.type
     assert commit.message == ('Second test data commit.\n\n'
                               'This commit has some additional text.\n')
 
@@ -133,7 +134,7 @@ def test_lookup_commit_prefix(barerepo):
     too_short_prefix = commit_sha[:3]
     commit = barerepo[commit_sha_prefix]
     assert commit_sha == commit.hex
-    assert pygit2.GIT_OBJ_COMMIT == commit.type
+    assert ObjectType.COMMIT == commit.type
     assert 'Second test data commit.\n\n' 'This commit has some additional text.\n' == commit.message
     with pytest.raises(ValueError):
         barerepo.__getitem__(too_short_prefix)

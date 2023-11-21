@@ -694,6 +694,32 @@ class MergePreference(IntFlag):
     """
 
 
+class ObjectType(IntEnum):
+    ANY = _pygit2.GIT_OBJECT_ANY
+    "Object can be any of the following"
+
+    INVALID = _pygit2.GIT_OBJECT_INVALID
+    "Object is invalid."
+
+    COMMIT = _pygit2.GIT_OBJECT_COMMIT
+    "A commit object."
+
+    TREE = _pygit2.GIT_OBJECT_TREE
+    "A tree (directory listing) object."
+
+    BLOB = _pygit2.GIT_OBJECT_BLOB
+    "A file revision object."
+
+    TAG = _pygit2.GIT_OBJECT_TAG
+    "An annotated tag object."
+
+    OFS_DELTA = _pygit2.GIT_OBJECT_OFS_DELTA
+    "A delta, base is given by an offset."
+
+    REF_DELTA = _pygit2.GIT_OBJECT_REF_DELTA
+    "A delta, base is given by object id."
+
+
 class Option(IntEnum):
     """ Global libgit2 library options """
     # Commented out values --> exists in libgit2 but not supported in pygit2's options.c yet

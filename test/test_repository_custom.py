@@ -54,4 +54,4 @@ def test_references(repo):
 
 def test_objects(repo):
     a = repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')
-    assert (pygit2.GIT_OBJ_BLOB, b'foobar\n') == a
+    assert (pygit2.ObjectType.BLOB, b'foobar\n') == a

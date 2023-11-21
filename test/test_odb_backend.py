@@ -113,12 +113,12 @@ def test_read(proxy):
     ab = proxy.read(BLOB_OID)
     a = proxy.read(BLOB_HEX)
     assert ab == a
-    assert (pygit2.GIT_OBJ_BLOB, b'a contents\n') == a
+    assert (pygit2.ObjectType.BLOB, b'a contents\n') == a
 
 def test_read_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
     a3 = proxy.read_prefix(a_hex_prefix)
-    assert (pygit2.GIT_OBJ_BLOB, b'a contents\n', BLOB_OID) == a3
+    assert (pygit2.ObjectType.BLOB, b'a contents\n', BLOB_OID) == a3
 
 def test_exists(proxy):
     with pytest.raises(TypeError):

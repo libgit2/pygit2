@@ -297,7 +297,7 @@ Repository_git_object_lookup_prefix(Repository *self, PyObject *key)
     if (len == 0)
         return NULL;
 
-    err = git_object_lookup_prefix(&obj, self->repo, &oid, len, GIT_OBJ_ANY);
+    err = git_object_lookup_prefix(&obj, self->repo, &oid, len, GIT_OBJECT_ANY);
     if (err == 0)
         return wrap_object(obj, self, NULL);
 
@@ -1181,7 +1181,7 @@ Repository_create_commit_with_signature(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_create_tag__doc__,
-  "create_tag(name: str, oid: Oid, type: int, tagger: Signature[, message: str]) -> Oid\n"
+  "create_tag(name: str, oid: Oid, type: enums.ObjectType, tagger: Signature[, message: str]) -> Oid\n"
   "\n"
   "Create a new tag object, return its oid.");
 
@@ -2032,7 +2032,7 @@ Repository_reset(Repository *self, PyObject* args)
         return NULL;
 
     err = git_object_lookup_prefix(&target, self->repo, &oid, len,
-                                   GIT_OBJ_ANY);
+                                   GIT_OBJECT_ANY);
     err = err < 0 ? err : git_reset(self->repo, target, reset_type, NULL);
     git_object_free(target);
     if (err < 0)

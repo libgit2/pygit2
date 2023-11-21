@@ -54,6 +54,7 @@ from .enums import (
     DiffStatsFormat,
     Feature,
     FileMode,
+    ObjectType,
     Option,
     MergeAnalysis,
     MergePreference,

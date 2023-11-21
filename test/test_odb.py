@@ -33,7 +33,7 @@ import pytest
 
 # pygit2
 from pygit2 import Odb, Oid
-from pygit2 import GIT_OBJ_ANY, GIT_OBJ_BLOB
+from pygit2 import ObjectType
 from . import utils
 
 
@@ -71,20 +71,20 @@ def test_read(odb):
     ab = odb.read(BLOB_OID)
     a = odb.read(BLOB_HEX)
     assert ab == a
-    assert (GIT_OBJ_BLOB, b'a contents\n') == a
+    assert (ObjectType.BLOB, b'a contents\n') == a
 
     a2 = odb.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-    assert (GIT_OBJ_BLOB, b'a contents 2\n') == a2
+    assert (ObjectType.BLOB, b'a contents 2\n') == a2
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = odb.read(a_hex_prefix)
-    assert (GIT_OBJ_BLOB, b'a contents\n') == a3
+    assert (ObjectType.BLOB, b'a contents\n') == a3
 
 def test_write(odb):
     data = b"hello world"
     # invalid object type
     with pytest.raises(ValueError):
-        odb.write(GIT_OBJ_ANY, data)
+        odb.write(ObjectType.ANY, data)
 
-    oid = odb.write(GIT_OBJ_BLOB, data)
+    oid = odb.write(ObjectType.BLOB, data)
     assert type(oid) == Oid

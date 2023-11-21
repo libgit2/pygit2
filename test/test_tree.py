@@ -29,7 +29,7 @@ import pygit2
 import pytest
 
 from . import utils
-from pygit2 import FileMode
+from pygit2 import FileMode, ObjectType
 
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
@@ -97,12 +97,12 @@ def test_read_subtree(barerepo):
 
     subtree_entry = tree['c']
     assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
-    assert subtree_entry.type == pygit2.GIT_OBJ_TREE
+    assert subtree_entry.type == ObjectType.TREE
     assert subtree_entry.type_str == 'tree'
 
     subtree_entry = tree / 'c'
     assertTreeEntryEqual(subtree_entry, SUBTREE_SHA, 'c', 0o0040000)
-    assert subtree_entry.type == pygit2.GIT_OBJ_TREE
+    assert subtree_entry.type == ObjectType.TREE
     assert subtree_entry.type_str == 'tree'
 
     subtree = barerepo[subtree_entry.id]
@@ -128,9 +128,9 @@ def test_new_tree(barerepo):
     tree = repo[t.write()]
 
     for name, oid, cls, filemode, type, type_str in [
-        ('x', b0, pygit2.Blob, FileMode.BLOB, pygit2.GIT_OBJ_BLOB, 'blob'),
-        ('y', b1, pygit2.Blob, FileMode.BLOB_EXECUTABLE, pygit2.GIT_OBJ_BLOB, 'blob'),
-        ('z', subtree.id, pygit2.Tree, FileMode.TREE, pygit2.GIT_OBJ_TREE, 'tree')]:
+        ('x', b0, pygit2.Blob, FileMode.BLOB, ObjectType.BLOB, 'blob'),
+        ('y', b1, pygit2.Blob, FileMode.BLOB_EXECUTABLE, ObjectType.BLOB, 'blob'),
+        ('z', subtree.id, pygit2.Tree, FileMode.TREE, ObjectType.TREE, 'tree')]:
 
         assert name in tree
         obj = tree[name]
