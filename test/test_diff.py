@@ -31,8 +31,7 @@ import textwrap
 import pytest
 
 import pygit2
-from pygit2 import DiffOption, DiffStatsFormat
-from pygit2 import GIT_DELTA_RENAMED
+from pygit2 import DeltaStatus, DiffOption, DiffStatsFormat
 
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -285,10 +284,10 @@ def test_find_similar(barerepo):
     #~ Must pass INCLUDE_UNMODIFIED if you expect to emulate
     #~ --find-copies-harder during rename transformion...
     diff = commit_a.tree.diff_to_tree(commit_b.tree, DiffOption.INCLUDE_UNMODIFIED)
-    assert all(x.delta.status != GIT_DELTA_RENAMED for x in diff)
+    assert all(x.delta.status != DeltaStatus.RENAMED for x in diff)
     assert all(x.delta.status_char() != 'R' for x in diff)
     diff.find_similar()
-    assert any(x.delta.status == GIT_DELTA_RENAMED for x in diff)
+    assert any(x.delta.status == DeltaStatus.RENAMED for x in diff)
     assert any(x.delta.status_char() == 'R' for x in diff)
 
 def test_diff_stats(barerepo):

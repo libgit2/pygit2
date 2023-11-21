@@ -245,6 +245,52 @@ class ConfigLevel(IntEnum):
     specific config file available that actually is loaded)"""
 
 
+class DeltaStatus(IntEnum):
+    """
+    What type of change is described by a DiffDelta?
+
+    `RENAMED` and `COPIED` will only show up if you run
+    `find_similar()` on the Diff object.
+
+    `TYPECHANGE` only shows up given `INCLUDE_TYPECHANGE`
+    in the DiffOption option flags (otherwise type changes
+    will be split into ADDED / DELETED pairs).
+    """
+
+    UNMODIFIED = _pygit2.GIT_DELTA_UNMODIFIED
+    "no changes"
+
+    ADDED = _pygit2.GIT_DELTA_ADDED
+    "entry does not exist in old version"
+
+    DELETED = _pygit2.GIT_DELTA_DELETED
+    "entry does not exist in new version"
+
+    MODIFIED = _pygit2.GIT_DELTA_MODIFIED
+    "entry content changed between old and new"
+
+    RENAMED = _pygit2.GIT_DELTA_RENAMED
+    "entry was renamed between old and new"
+
+    COPIED = _pygit2.GIT_DELTA_COPIED
+    "entry was copied from another old entry"
+
+    IGNORED = _pygit2.GIT_DELTA_IGNORED
+    "entry is ignored item in workdir"
+
+    UNTRACKED = _pygit2.GIT_DELTA_UNTRACKED
+    "entry is untracked item in workdir"
+
+    TYPECHANGE = _pygit2.GIT_DELTA_TYPECHANGE
+    "type of entry changed between old and new"
+
+    UNREADABLE = _pygit2.GIT_DELTA_UNREADABLE
+    "entry is unreadable"
+
+    CONFLICTED = _pygit2.GIT_DELTA_CONFLICTED
+    "entry in the index is conflicted"
+
+
 class DescribeStrategy(IntEnum):
     """
     Reference lookup strategy.
@@ -336,6 +382,32 @@ class DiffFind(IntFlag):
     INCLUDE_UNMODIFIED flag.  If you do not want UNMODIFIED records
     in the final result, pass this flag to have them removed.
     """
+
+
+class DiffFlag(IntFlag):
+    """
+    Flags for the delta object and the file objects on each side.
+
+    These flags are used for both the `flags` value of the `DiffDelta`
+    and the flags for the `DiffFile` objects representing the old and
+    new sides of the delta.  Values outside of this public range should be
+    considered reserved for internal or future use.
+    """
+
+    BINARY = _pygit2.GIT_DIFF_FLAG_BINARY
+    "file(s) treated as binary data"
+
+    NOT_BINARY = _pygit2.GIT_DIFF_FLAG_NOT_BINARY
+    "file(s) treated as text data"
+
+    VALID_ID = _pygit2.GIT_DIFF_FLAG_VALID_ID
+    "`id` value is known correct"
+
+    EXISTS = _pygit2.GIT_DIFF_FLAG_EXISTS
+    "file exists at this side of the delta"
+
+    VALID_SIZE = _pygit2.GIT_DIFF_FLAG_VALID_SIZE
+    "file size value is known correct"
 
 
 class DiffOption(IntFlag):
