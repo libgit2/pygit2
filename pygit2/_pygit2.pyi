@@ -13,10 +13,6 @@ from .enums import ReferenceFilter
 from .enums import ResetMode
 from .enums import SortMode
 
-GIT_CONFIG_LEVEL_GLOBAL: int
-GIT_CONFIG_LEVEL_LOCAL: int
-GIT_CONFIG_LEVEL_SYSTEM: int
-GIT_CONFIG_LEVEL_XDG: int
 GIT_DELTA_ADDED: int
 GIT_DELTA_CONFLICTED: int
 GIT_DELTA_COPIED: int

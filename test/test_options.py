@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 import pygit2
-from pygit2 import option, GIT_OBJ_BLOB, Option
+from pygit2 import option, GIT_OBJ_BLOB, ConfigLevel, Option
 
 
 def __option(getter, setter, value):
@@ -95,18 +95,18 @@ def test_cache_max_size_proxy():
     assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
 def test_search_path():
-    paths = [(pygit2.GIT_CONFIG_LEVEL_GLOBAL, '/tmp/global'),
-             (pygit2.GIT_CONFIG_LEVEL_XDG,    '/tmp/xdg'),
-             (pygit2.GIT_CONFIG_LEVEL_SYSTEM, '/tmp/etc')]
+    paths = [(ConfigLevel.GLOBAL, '/tmp/global'),
+             (ConfigLevel.XDG,    '/tmp/xdg'),
+             (ConfigLevel.SYSTEM, '/tmp/etc')]
 
     for level, path in paths:
         option(Option.SET_SEARCH_PATH, level, path)
         assert path == option(Option.GET_SEARCH_PATH, level)
 
 def test_search_path_proxy():
-    paths = [(pygit2.GIT_CONFIG_LEVEL_GLOBAL, '/tmp2/global'),
-             (pygit2.GIT_CONFIG_LEVEL_XDG,    '/tmp2/xdg'),
-             (pygit2.GIT_CONFIG_LEVEL_SYSTEM, '/tmp2/etc')]
+    paths = [(ConfigLevel.GLOBAL, '/tmp2/global'),
+             (ConfigLevel.XDG,    '/tmp2/xdg'),
+             (ConfigLevel.SYSTEM, '/tmp2/etc')]
 
     for level, path in paths:
         pygit2.settings.search_path[level] = path

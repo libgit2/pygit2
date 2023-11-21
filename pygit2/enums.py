@@ -215,6 +215,36 @@ class CheckoutStrategy(IntFlag):
     """ Include common ancestor data in zdiff3 format for conflicts """
 
 
+class ConfigLevel(IntEnum):
+    """
+    Priority level of a config file.
+    These priority levels correspond to the natural escalation logic
+    (from higher to lower) when searching for config entries in git.git.
+    """
+
+    PROGRAMDATA = _pygit2.GIT_CONFIG_LEVEL_PROGRAMDATA
+    "System-wide on Windows, for compatibility with portable git"
+
+    SYSTEM = _pygit2.GIT_CONFIG_LEVEL_SYSTEM
+    "System-wide configuration file; /etc/gitconfig on Linux systems"
+
+    XDG = _pygit2.GIT_CONFIG_LEVEL_XDG
+    "XDG compatible configuration file; typically ~/.config/git/config"
+
+    GLOBAL = _pygit2.GIT_CONFIG_LEVEL_GLOBAL
+    "User-specific configuration file (also called Global configuration file); typically ~/.gitconfig"
+
+    LOCAL = _pygit2.GIT_CONFIG_LEVEL_LOCAL
+    "Repository specific configuration file; $WORK_DIR/.git/config on non-bare repos"
+
+    APP = _pygit2.GIT_CONFIG_LEVEL_APP
+    "Application specific configuration file; freely defined by applications"
+
+    HIGHEST_LEVEL = _pygit2.GIT_CONFIG_HIGHEST_LEVEL
+    """Represents the highest level available config file (i.e. the most
+    specific config file available that actually is loaded)"""
+
+
 class DescribeStrategy(IntEnum):
     """
     Reference lookup strategy.

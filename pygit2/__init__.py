@@ -46,6 +46,7 @@ from .enums import (
     BranchType,
     CheckoutNotify,
     CheckoutStrategy,
+    ConfigLevel,
     DescribeStrategy,
     DiffOption,
     DiffStatsFormat,

@@ -74,9 +74,8 @@ class Settings:
     def search_path(self):
         """Configuration file search path.
 
-        This behaves like an array whose indices correspond to the
-        GIT_CONFIG_LEVEL_* values.  The local search path cannot be
-        changed.
+        This behaves like an array whose indices correspond to ConfigLevel values.
+        The local search path cannot be changed.
         """
         return self._search_path
 

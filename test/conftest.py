@@ -10,9 +10,9 @@ from . import utils
 def global_git_config():
     # Do not use global config for better test reproducibility.
     # https://github.com/libgit2/pygit2/issues/989
-    levels = [pygit2.GIT_CONFIG_LEVEL_GLOBAL,
-              pygit2.GIT_CONFIG_LEVEL_XDG,
-              pygit2.GIT_CONFIG_LEVEL_SYSTEM]
+    levels = [pygit2.ConfigLevel.GLOBAL,
+              pygit2.ConfigLevel.XDG,
+              pygit2.ConfigLevel.SYSTEM]
     for level in levels:
         pygit2.settings.search_path[level] = ""
 
