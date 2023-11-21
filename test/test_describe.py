@@ -27,7 +27,7 @@
 
 import pytest
 
-from pygit2 import GIT_DESCRIBE_TAGS, GIT_DESCRIBE_ALL
+from pygit2 import DescribeStrategy
 import pygit2
 
 
@@ -50,11 +50,11 @@ def test_describe_default_oid(testrepo):
     assert '2be5719' == testrepo.describe(show_commit_oid_as_fallback=True)
 
 def test_describe_strategies(testrepo):
-    assert 'heads/master' == testrepo.describe(describe_strategy=GIT_DESCRIBE_ALL)
+    assert 'heads/master' == testrepo.describe(describe_strategy=DescribeStrategy.ALL)
 
     testrepo.create_reference('refs/tags/thetag', '4ec4389a8068641da2d6578db0419484972284c8')
     with pytest.raises(KeyError): testrepo.describe()
-    assert 'thetag-2-g2be5719' == testrepo.describe(describe_strategy=GIT_DESCRIBE_TAGS)
+    assert 'thetag-2-g2be5719' == testrepo.describe(describe_strategy=DescribeStrategy.TAGS)
 
 def test_describe_pattern(testrepo):
     add_tag(testrepo, 'private/tag1', '5ebeeebb320790caf276b9fc8b24546d63316533')

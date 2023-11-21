@@ -215,6 +215,20 @@ class CheckoutStrategy(IntFlag):
     """ Include common ancestor data in zdiff3 format for conflicts """
 
 
+class DescribeStrategy(IntEnum):
+    """
+    Reference lookup strategy.
+
+    These behave like the --tags and --all options to git-describe,
+    namely they say to look for any reference in either refs/tags/ or
+    refs/ respectively.
+    """
+
+    DEFAULT = _pygit2.GIT_DESCRIBE_DEFAULT
+    TAGS = _pygit2.GIT_DESCRIBE_TAGS
+    ALL = _pygit2.GIT_DESCRIBE_ALL
+
+
 class DiffFind(IntFlag):
     """ Flags to control the behavior of diff rename/copy detection. """
 

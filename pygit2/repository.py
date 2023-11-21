@@ -46,6 +46,7 @@ from .enums import (
     BlameFlag,
     BranchType,
     CheckoutStrategy,
+    DescribeStrategy,
     DiffOption,
     FileMode,
     RepositoryOpenFlag,
@@ -960,7 +961,8 @@ class BaseRepository(_Repository):
     # Describe
     #
     def describe(self, committish=None, max_candidates_tags=None,
-                 describe_strategy=None, pattern=None,
+                 describe_strategy: DescribeStrategy = DescribeStrategy.DEFAULT,
+                 pattern=None,
                  only_follow_first_parent=None,
                  show_commit_oid_as_fallback=None, abbreviated_size=None,
                  always_use_long_format=None, dirty_suffix=None):
@@ -980,14 +982,13 @@ class BaseRepository(_Repository):
             take slightly longer but may produce a more accurate result. A
             value of 0 will cause only exact matches to be output.
 
-        describe_strategy : int
+        describe_strategy : DescribeStrategy
             Can be one of:
 
-            * `GIT_DESCRIBE_DEFAULT` - Only match annotated tags. (This is
-              equivalent to setting this parameter to `None`.)
-            * `GIT_DESCRIBE_TAGS` - Match everything under refs/tags/
+            * `DescribeStrategy.DEFAULT` - Only match annotated tags.
+            * `DescribeStrategy.TAGS` - Match everything under refs/tags/
               (includes lightweight tags).
-            * `GIT_DESCRIBE_ALL` - Match everything under refs/ (includes
+            * `DescribeStrategy.ALL` - Match everything under refs/ (includes
               branches).
 
         pattern : str
@@ -1024,7 +1025,7 @@ class BaseRepository(_Repository):
         if max_candidates_tags is not None:
             options.max_candidates_tags = max_candidates_tags
         if describe_strategy is not None:
-            options.describe_strategy = describe_strategy
+            options.describe_strategy = int(describe_strategy)
         if pattern:
             # The returned pointer object has ownership on the allocated
             # memory. Make sure it is kept alive until git_describe_commit() or
