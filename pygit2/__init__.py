@@ -47,6 +47,7 @@ from .enums import (
     CheckoutNotify,
     CheckoutStrategy,
     DiffOption,
+    DiffStatsFormat,
     Feature,
     FileMode,
     Option,

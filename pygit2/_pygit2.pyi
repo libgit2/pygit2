@@ -5,9 +5,10 @@ from .enums import ApplyLocation
 from .enums import BranchType
 from .enums import DiffFind
 from .enums import DiffOption
-from .enums import Option
+from .enums import DiffStatsFormat
 from .enums import MergeAnalysis
 from .enums import MergePreference
+from .enums import Option
 from .enums import ReferenceFilter
 from .enums import ResetMode
 from .enums import SortMode
@@ -34,11 +35,6 @@ GIT_DIFF_FLAG_BINARY: int
 GIT_DIFF_FLAG_EXISTS: int
 GIT_DIFF_FLAG_NOT_BINARY: int
 GIT_DIFF_FLAG_VALID_ID: int
-GIT_DIFF_STATS_FULL: int
-GIT_DIFF_STATS_INCLUDE_SUMMARY: int
-GIT_DIFF_STATS_NONE: int
-GIT_DIFF_STATS_NUMBER: int
-GIT_DIFF_STATS_SHORT: int
 GIT_OBJ_ANY: Literal[-2]
 GIT_OBJ_BLOB: Literal[3]
 GIT_OBJ_COMMIT: Literal[1]
@@ -208,7 +204,7 @@ class DiffStats:
     deletions: int
     files_changed: int
     insertions: int
-    def format(self, format: int, width: int) -> str: ...
+    def format(self, format: DiffStatsFormat, width: int) -> str: ...
 
 class GitError(Exception): ...
 

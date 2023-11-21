@@ -31,7 +31,7 @@ import textwrap
 import pytest
 
 import pygit2
-from pygit2 import DiffOption
+from pygit2 import DiffOption, DiffStatsFormat
 from pygit2 import GIT_DELTA_RENAMED
 
 
@@ -300,8 +300,7 @@ def test_diff_stats(barerepo):
     assert 1 == stats.insertions
     assert 2 == stats.deletions
     assert 2 == stats.files_changed
-    formatted = stats.format(format=pygit2.GIT_DIFF_STATS_FULL |
-                                    pygit2.GIT_DIFF_STATS_INCLUDE_SUMMARY,
+    formatted = stats.format(format=DiffStatsFormat.FULL | DiffStatsFormat.INCLUDE_SUMMARY,
                              width=80)
     assert STATS_EXPECTED == formatted
 

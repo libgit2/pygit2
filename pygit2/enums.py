@@ -456,6 +456,25 @@ class DiffOption(IntFlag):
     """
 
 
+class DiffStatsFormat(IntFlag):
+    """ Formatting options for diff stats """
+
+    NONE = _pygit2.GIT_DIFF_STATS_NONE
+    "No stats"
+
+    FULL = _pygit2.GIT_DIFF_STATS_FULL
+    "Full statistics, equivalent of `--stat`"
+
+    SHORT = _pygit2.GIT_DIFF_STATS_SHORT
+    "Short statistics, equivalent of `--shortstat`"
+
+    NUMBER = _pygit2.GIT_DIFF_STATS_NUMBER
+    "Number statistics, equivalent of `--numstat`"
+
+    INCLUDE_SUMMARY = _pygit2.GIT_DIFF_STATS_INCLUDE_SUMMARY
+    "Extended header information such as creations, renames and mode changes, equivalent of `--summary`"
+
+
 class Feature(IntFlag):
     """
     Combinations of these values describe the features with which libgit2
