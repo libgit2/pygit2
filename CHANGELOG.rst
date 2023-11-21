@@ -1,4 +1,4 @@
-1.13.3 (UNRELEASED)
+1.13.3 (2023-11-21)
 -------------------------
 
 - New API for filters in Python
@@ -10,10 +10,11 @@
   `#1245 <https://github.com/libgit2/pygit2/pull/1245>`_
   `#1246 <https://github.com/libgit2/pygit2/pull/1246>`_
 
-- New submodule ``init(...)``, ``update(...)`` and ``reload(...)`` functions;
-  new repository ``submodule_cache_all()``, ``submodule_cache_clear()`` and
-  ``submodule_status(...)`` functions
+- New submodule ``init(...)``, ``update(...)`` and ``reload(...)`` functions
   `#1248 <https://github.com/libgit2/pygit2/pull/1248>`_
+
+- Release GIL in ``Walker.__next__``
+  `#1249 <https://github.com/libgit2/pygit2/pull/1249>`_
 
 - Type hints for submodule functions in ``Repository``
   `#1247 <https://github.com/libgit2/pygit2/pull/1247>`_

@@ -4,41 +4,42 @@ Authors::
   Carlos Martín Nieto
   Nico von Geyso
   Sviatoslav Sydorenko
-  Robert Coup
-  Matthias Bartelmeß
-  W. Trevor King
   Iliyas Jorio
+  Matthias Bartelmeß
+  Robert Coup
+  W. Trevor King
   Drew DeVault
   Dave Borowitz
   Brandon Milton
   Daniel Rodríguez Troitiño
+  Peter Rowlands
   Richo Healey
   Christian Boos
   Julien Miotte
   Nick Hynes
   Richard Möhn
   Xu Tao
-  Jose Plana
   Matthew Duggan
   Matthew Gamble
   Jeremy Westwood
+  Jose Plana
   Martin Lenders
-  Petr Hosek
   Sriram Raghu
   Victor Garcia
-  Xavier Delannoy
   Yonggang Luo
   Patrick Steinhardt
+  Petr Hosek
   Tamir Bahar
   Valentin Haenel
+  Xavier Delannoy
   Michael Jones
   Saugat Pachhai
   Bernardo Heynemann
-  Brodie Rao
   John Szakmeister
   Nabijacz Leweli
   Simon Cozens
   Vlad Temian
+  Brodie Rao
   Chad Dombrova
   Lukas Fleischer
   Mathias Leppich
@@ -49,7 +50,6 @@ Authors::
   Dan Sully
   David Versmisse
   Mikhail Yushkovskiy
-  Peter Rowlands
   Robin Stocker
   Rohit Sanjay
   Rémi Duraffort
@@ -119,6 +119,7 @@ Authors::
   Vicent Marti
   Zbigniew Jędrzejewski-Szmek
   Zoran Zaric
+  nikitalita
   Adam Gausmann
   Adam Spiers
   Albin Söderström

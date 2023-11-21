@@ -7,8 +7,7 @@ dedicated subdirectory of the repositories tree.
 
 .. autoclass:: pygit2.Repository
    :members: add_submodule, init_submodules, listall_submodules,
-             lookup_submodule, update_submodules, submodule_status, submodule_cache_all,
-             submodule_cache_clear
+             lookup_submodule, update_submodules
 
    :noindex:
 
