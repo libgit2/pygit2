@@ -16,6 +16,6 @@ You can use any of the fancy `<rev>` forms supported by libgit2::
 
 Constants:
 
-.. py:data:: GIT_REVPARSE_SINGLE
-.. py:data:: GIT_REVPARSE_RANGE
-.. py:data:: GIT_REVPARSE_MERGE_BASE
+.. py:data:: pygit2.enums.RevSpecFlag.SINGLE
+.. py:data:: pygit2.enums.RevSpecFlag.RANGE
+.. py:data:: pygit2.enums.RevSpecFlag.MERGE_BASE

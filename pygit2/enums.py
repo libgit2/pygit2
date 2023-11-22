@@ -987,6 +987,22 @@ class ResetMode(IntEnum):
     "MIXED plus changes in working tree discarded"
 
 
+class RevSpecFlag(IntFlag):
+    """
+    Revparse flags.
+    These indicate the intended behavior of the spec passed to Repository.revparse()
+    """
+
+    SINGLE = _pygit2.GIT_REVSPEC_SINGLE
+    "The spec targeted a single object."
+
+    RANGE = _pygit2.GIT_REVSPEC_RANGE
+    "The spec targeted a range of commits."
+
+    MERGE_BASE = _pygit2.GIT_REVSPEC_MERGE_BASE
+    "The spec used the '...' operator, which invokes special semantics."
+
+
 class SortMode(IntFlag):
     """
     Flags to specify the sorting which a revwalk should perform.

@@ -69,6 +69,7 @@ from .enums import (
     RepositoryOpenFlag,
     RepositoryState,
     ResetMode,
+    RevSpecFlag,
     StashApplyProgress,
     FileStatus,
     SubmoduleIgnore,

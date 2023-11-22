@@ -25,7 +25,7 @@
 
 """Tests for revision parsing."""
 
-from pygit2 import GIT_REVPARSE_SINGLE, GIT_REVPARSE_RANGE, GIT_REVPARSE_MERGE_BASE, InvalidSpecError
+from pygit2 import RevSpecFlag, InvalidSpecError
 from pytest import raises
 
 HEAD_SHA = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -61,21 +61,21 @@ def test_revparse_1(testrepo):
     s = testrepo.revparse('master')
     assert s.from_object.hex == HEAD_SHA
     assert s.to_object is None
-    assert s.flags == GIT_REVPARSE_SINGLE
+    assert s.flags == RevSpecFlag.SINGLE
 
 
 def test_revparse_range_1(testrepo):
     s = testrepo.revparse('HEAD^1..acecd5e')
     assert s.from_object.hex == PARENT_SHA
     assert s.to_object.hex.startswith('acecd5e')
-    assert s.flags == GIT_REVPARSE_RANGE
+    assert s.flags == RevSpecFlag.RANGE
 
 
 def test_revparse_range_2(testrepo):
     s = testrepo.revparse('HEAD...i18n')
     assert s.from_object.hex.startswith('2be5719')
     assert s.to_object.hex.startswith('5470a67')
-    assert s.flags == GIT_REVPARSE_RANGE | GIT_REVPARSE_MERGE_BASE
+    assert s.flags == RevSpecFlag.RANGE | RevSpecFlag.MERGE_BASE
     assert testrepo.merge_base(s.from_object.id, s.to_object.id) is not None
 
 
