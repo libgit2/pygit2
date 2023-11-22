@@ -259,6 +259,43 @@ class ConfigLevel(IntEnum):
     specific config file available that actually is loaded)"""
 
 
+class CredentialType(IntFlag):
+    """
+    Supported credential types. This represents the various types of
+    authentication methods supported by the library.
+    """
+
+    USERPASS_PLAINTEXT = C.GIT_CREDENTIAL_USERPASS_PLAINTEXT
+    "A vanilla user/password request"
+
+    SSH_KEY = C.GIT_CREDENTIAL_SSH_KEY
+    "An SSH key-based authentication request"
+
+    SSH_CUSTOM = C.GIT_CREDENTIAL_SSH_CUSTOM
+    "An SSH key-based authentication request, with a custom signature"
+
+    DEFAULT = C.GIT_CREDENTIAL_DEFAULT
+    "An NTLM/Negotiate-based authentication request."
+
+    SSH_INTERACTIVE = C.GIT_CREDENTIAL_SSH_INTERACTIVE
+    "An SSH interactive authentication request."
+
+    USERNAME = C.GIT_CREDENTIAL_USERNAME
+    """
+    Username-only authentication request.
+    Used as a pre-authentication step if the underlying transport (eg. SSH,
+    with no username in its URL) does not know which username to use.
+    """
+
+    SSH_MEMORY = C.GIT_CREDENTIAL_SSH_MEMORY
+    """
+    An SSH key-based authentication request.
+    Allows credentials to be read from memory instead of files.
+    Note that because of differences in crypto backend support, it might
+    not be functional. 
+    """
+
+
 class DeltaStatus(IntEnum):
     """
     What type of change is described by a DiffDelta?

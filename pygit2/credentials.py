@@ -25,14 +25,7 @@
 
 from .ffi import C
 
-
-GIT_CREDENTIAL_USERPASS_PLAINTEXT = C.GIT_CREDENTIAL_USERPASS_PLAINTEXT
-GIT_CREDENTIAL_SSH_KEY = C.GIT_CREDENTIAL_SSH_KEY
-GIT_CREDENTIAL_SSH_CUSTOM = C.GIT_CREDENTIAL_SSH_CUSTOM
-GIT_CREDENTIAL_DEFAULT = C.GIT_CREDENTIAL_DEFAULT
-GIT_CREDENTIAL_SSH_INTERACTIVE = C.GIT_CREDENTIAL_SSH_INTERACTIVE
-GIT_CREDENTIAL_USERNAME = C.GIT_CREDENTIAL_USERNAME
-GIT_CREDENTIAL_SSH_MEMORY = C.GIT_CREDENTIAL_SSH_MEMORY
+from .enums import CredentialType
 
 
 class Username:
@@ -46,8 +39,8 @@ class Username:
         self._username = username
 
     @property
-    def credential_type(self):
-        return GIT_CREDENTIAL_USERNAME
+    def credential_type(self) -> CredentialType:
+        return CredentialType.USERNAME
 
     @property
     def credential_tuple(self):
@@ -69,8 +62,8 @@ class UserPass:
         self._password = password
 
     @property
-    def credential_type(self):
-        return GIT_CREDENTIAL_USERPASS_PLAINTEXT
+    def credential_type(self) -> CredentialType:
+        return CredentialType.USERPASS_PLAINTEXT
 
     @property
     def credential_tuple(self):
@@ -110,8 +103,8 @@ class Keypair:
         self._passphrase = passphrase
 
     @property
-    def credential_type(self):
-        return GIT_CREDENTIAL_SSH_KEY
+    def credential_type(self) -> CredentialType:
+        return CredentialType.SSH_KEY
 
     @property
     def credential_tuple(self):
@@ -128,5 +121,5 @@ class KeypairFromAgent(Keypair):
 
 class KeypairFromMemory(Keypair):
     @property
-    def credential_type(self):
-        return GIT_CREDENTIAL_SSH_MEMORY
+    def credential_type(self) -> CredentialType:
+        return CredentialType.SSH_MEMORY

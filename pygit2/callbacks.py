@@ -65,11 +65,11 @@ API.
 # Standard Library
 from contextlib import contextmanager
 from functools import wraps
-from typing import Optional
+from typing import Optional, Union
 
 # pygit2
 from ._pygit2 import Oid, DiffFile
-from .enums import CheckoutNotify, CheckoutStrategy, StashApplyProgress
+from .enums import CheckoutNotify, CheckoutStrategy, CredentialType, StashApplyProgress
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
@@ -131,7 +131,7 @@ class RemoteCallbacks(Payload):
             Progress output from the remote.
         """
 
-    def credentials(self, url, username_from_url, allowed_types):
+    def credentials(self, url: str, username_from_url: Union[str, None], allowed_types: CredentialType):
         """
         Credentials callback.  If the remote server requires authentication,
         this function will be called and its return value used for
@@ -148,8 +148,9 @@ class RemoteCallbacks(Payload):
         username_from_url : str or None
             Username extracted from the url, if any.
 
-        allowed_types : int
-            Credential types supported by the remote.
+        allowed_types : CredentialType
+            A combination of CredentialType bitflags representing the
+            credential types supported by the remote.
         """
         raise Passthrough
 
@@ -477,6 +478,9 @@ def _credentials_cb(cred_out, url, username, allowed, data):
     if not credentials:
         return 0
 
+    # convert int flags to enum before forwarding to user code
+    allowed = CredentialType(allowed)
+
     ccred = get_credentials(credentials, url, username, allowed)
     cred_out[0] = ccred[0]
     return 0
@@ -575,12 +579,12 @@ def get_credentials(fn, url, username, allowed):
         raise TypeError("invalid credential type")
 
     ccred = ffi.new('git_credential **')
-    if cred_type == C.GIT_CREDENTIAL_USERPASS_PLAINTEXT:
+    if cred_type == CredentialType.USERPASS_PLAINTEXT:
         name, passwd = credential_tuple
         err = C.git_credential_userpass_plaintext_new(ccred, to_bytes(name),
                                                       to_bytes(passwd))
 
-    elif cred_type == C.GIT_CREDENTIAL_SSH_KEY:
+    elif cred_type == CredentialType.SSH_KEY:
         name, pubkey, privkey, passphrase = credential_tuple
         name = to_bytes(name)
         if pubkey is None and privkey is None:
@@ -590,11 +594,11 @@ def get_credentials(fn, url, username, allowed):
                                                to_bytes(privkey),
                                                to_bytes(passphrase))
 
-    elif cred_type == C.GIT_CREDENTIAL_USERNAME:
+    elif cred_type == CredentialType.USERNAME:
         name, = credential_tuple
         err = C.git_credential_username_new(ccred, to_bytes(name))
 
-    elif cred_type == C.GIT_CREDENTIAL_SSH_MEMORY:
+    elif cred_type == CredentialType.SSH_MEMORY:
         name, pubkey, privkey, passphrase = credential_tuple
         if pubkey is None and privkey is None:
             raise TypeError("SSH keys from memory are empty")

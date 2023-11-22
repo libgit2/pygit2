@@ -48,6 +48,7 @@ from .enums import (
     CheckoutNotify,
     CheckoutStrategy,
     ConfigLevel,
+    CredentialType,
     DeltaStatus,
     DescribeStrategy,
     DiffFlag,
@@ -161,6 +162,15 @@ GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED  = StashApplyProgress.ANALYZE_UNTRACK
 GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED = StashApplyProgress.CHECKOUT_UNTRACKED
 GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED  = StashApplyProgress.CHECKOUT_MODIFIED
 GIT_STASH_APPLY_PROGRESS_DONE               = StashApplyProgress.DONE
+
+# GIT_CREDENTIAL_* values for legacy code
+GIT_CREDENTIAL_USERPASS_PLAINTEXT           = CredentialType.USERPASS_PLAINTEXT
+GIT_CREDENTIAL_SSH_KEY                      = CredentialType.SSH_KEY
+GIT_CREDENTIAL_SSH_CUSTOM                   = CredentialType.SSH_CUSTOM
+GIT_CREDENTIAL_DEFAULT                      = CredentialType.DEFAULT
+GIT_CREDENTIAL_SSH_INTERACTIVE              = CredentialType.SSH_INTERACTIVE
+GIT_CREDENTIAL_USERNAME                     = CredentialType.USERNAME
+GIT_CREDENTIAL_SSH_MEMORY                   = CredentialType.SSH_MEMORY
 
 # libgit version tuple
 LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)

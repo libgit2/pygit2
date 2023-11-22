@@ -30,7 +30,7 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
+from pygit2 import CredentialType, Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
 from . import utils
 
 
@@ -127,7 +127,7 @@ def test_keypair_from_memory(tmp_path, pygit2_empty_key):
 def test_callback(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(testrepo, url, username, allowed):
-            assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
+            assert allowed & CredentialType.USERPASS_PLAINTEXT
             raise Exception("I don't know the password")
 
     url = "https://github.com/github/github"
@@ -138,7 +138,7 @@ def test_callback(testrepo):
 def test_bad_cred_type(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(testrepo, url, username, allowed):
-            assert allowed & pygit2.GIT_CREDENTIAL_USERPASS_PLAINTEXT
+            assert allowed & CredentialType.USERPASS_PLAINTEXT
             return Keypair("git", "foo.pub", "foo", "sekkrit")
 
     url = "https://github.com/github/github"
