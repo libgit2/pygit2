@@ -53,6 +53,7 @@ from .enums import (
     DiffOption,
     DiffStatsFormat,
     Feature,
+    FetchPrune,
     FileMode,
     ObjectType,
     Option,
@@ -133,10 +134,10 @@ GIT_ATTR_CHECK_NO_SYSTEM       = AttrCheck.NO_SYSTEM
 GIT_ATTR_CHECK_INCLUDE_HEAD    = AttrCheck.INCLUDE_HEAD
 GIT_ATTR_CHECK_INCLUDE_COMMIT  = AttrCheck.INCLUDE_COMMIT
 
-# GIT_FETCH_PRUNE
-GIT_FETCH_PRUNE_UNSPECIFIED    = C.GIT_FETCH_PRUNE_UNSPECIFIED
-GIT_FETCH_PRUNE                = C.GIT_FETCH_PRUNE
-GIT_FETCH_NO_PRUNE             = C.GIT_FETCH_NO_PRUNE
+# GIT_FETCH_PRUNE_* values for legacy code
+GIT_FETCH_PRUNE_UNSPECIFIED    = FetchPrune.UNSPECIFIED
+GIT_FETCH_PRUNE                = FetchPrune.PRUNE
+GIT_FETCH_NO_PRUNE             = FetchPrune.NO_PRUNE
 
 # GIT_CHECKOUT_NOTIFY_* values for legacy code
 GIT_CHECKOUT_NOTIFY_NONE       = CheckoutNotify.NONE

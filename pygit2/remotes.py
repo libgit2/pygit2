@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING
 # Import from pygit2
 from ._pygit2 import Oid
 from .callbacks import git_fetch_options, git_push_options, git_remote_callbacks
+from .enums import FetchPrune
 from .errors import check_error
 from .ffi import ffi, C
 from .refspec import Refspec
@@ -118,18 +119,17 @@ class Remote:
                                        ffi.NULL)
             payload.check_error(err)
 
-    def fetch(self, refspecs=None, message=None, callbacks=None, prune=C.GIT_FETCH_PRUNE_UNSPECIFIED, proxy=None, depth=0):
+    def fetch(self, refspecs=None, message=None, callbacks=None, prune: FetchPrune = FetchPrune.UNSPECIFIED, proxy=None, depth=0):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
 
         Parameters:
 
-        prune : enum
-            Either <GIT_FETCH_PRUNE_UNSPECIFIED>, <GIT_FETCH_PRUNE>, or
-            <GIT_FETCH_NO_PRUNE>. The first uses the configuration from the
-            repo, the second will remove any remote branch in the local
-            repository that does not exist in the remote and the last will
-            always keep the remote branches
+        prune : enums.FetchPrune
+            * `UNSPECIFIED`: use the configuration from the repository.
+            * `PRUNE`: remove any remote branch in the local repository
+               that does not exist in the remote.
+            * `NO_PRUNE`: always keep the remote branches
 
         proxy : None or True or str
             Proxy configuration. Can be one of:

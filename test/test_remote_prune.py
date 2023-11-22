@@ -42,11 +42,11 @@ def test_fetch_remote_default(clonerepo):
     assert 'origin/i18n' in clonerepo.branches
 
 def test_fetch_remote_prune(clonerepo):
-    clonerepo.remotes[0].fetch(prune=pygit2.GIT_FETCH_PRUNE)
+    clonerepo.remotes[0].fetch(prune=pygit2.FetchPrune.PRUNE)
     assert 'origin/i18n' not in clonerepo.branches
 
 def test_fetch_no_prune(clonerepo):
-    clonerepo.remotes[0].fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
+    clonerepo.remotes[0].fetch(prune=pygit2.FetchPrune.NO_PRUNE)
     assert 'origin/i18n' in clonerepo.branches
 
 def test_remote_prune(clonerepo):
@@ -59,7 +59,7 @@ def test_remote_prune(clonerepo):
     remote = clonerepo.remotes['origin']
     # We do a fetch in order to establish the connection to the remote.
     # Prune operation requires an active connection.
-    remote.fetch(prune=pygit2.GIT_FETCH_NO_PRUNE)
+    remote.fetch(prune=pygit2.FetchPrune.NO_PRUNE)
     assert 'origin/i18n' in clonerepo.branches
     remote.prune(callbacks)
     assert pruned == ['refs/remotes/origin/i18n']

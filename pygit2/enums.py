@@ -603,6 +603,20 @@ class Feature(IntFlag):
     NSEC = C.GIT_FEATURE_NSEC
 
 
+class FetchPrune(IntEnum):
+    """ Acceptable prune settings when fetching. """
+
+    UNSPECIFIED = C.GIT_FETCH_PRUNE_UNSPECIFIED
+    "Use the setting from the configuration"
+
+    PRUNE = C.GIT_FETCH_PRUNE
+    """Force pruning on: remove any remote branch in the local repository
+    that does not exist in the remote."""
+
+    NO_PRUNE = C.GIT_FETCH_NO_PRUNE
+    """Force pruning off: always keep the remote branches."""
+
+
 class FileMode(IntFlag):
     UNREADABLE = _pygit2.GIT_FILEMODE_UNREADABLE
     TREE = _pygit2.GIT_FILEMODE_TREE
