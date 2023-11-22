@@ -3,6 +3,7 @@ import codecs
 import pytest
 
 import pygit2
+from pygit2 import BlobFilter
 from pygit2.errors import Passthrough
 
 
@@ -77,10 +78,7 @@ def unmatched_filter():
 def test_filter(testrepo, rot13_filter):
     blob_oid = testrepo.create_blob_fromworkdir("bye.txt")
     blob = testrepo[blob_oid]
-    flags = (
-        pygit2.GIT_BLOB_FILTER_CHECK_FOR_BINARY
-        | pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD
-    )
+    flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
     assert b'olr jbeyq\n' == blob.data
     with pygit2.BlobIO(blob) as reader:
         assert b'olr jbeyq\n' == reader.read()
@@ -91,10 +89,7 @@ def test_filter(testrepo, rot13_filter):
 def test_filter_buffered(testrepo, buffered_filter):
     blob_oid = testrepo.create_blob_fromworkdir("bye.txt")
     blob = testrepo[blob_oid]
-    flags = (
-        pygit2.GIT_BLOB_FILTER_CHECK_FOR_BINARY
-        | pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD
-    )
+    flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
     assert b'olr jbeyq\n' == blob.data
     with pygit2.BlobIO(blob) as reader:
         assert b'olr jbeyq\n' == reader.read()
@@ -105,10 +100,7 @@ def test_filter_buffered(testrepo, buffered_filter):
 def test_filter_passthrough(testrepo, passthrough_filter):
     blob_oid = testrepo.create_blob_fromworkdir("bye.txt")
     blob = testrepo[blob_oid]
-    flags = (
-        pygit2.GIT_BLOB_FILTER_CHECK_FOR_BINARY
-        | pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD
-    )
+    flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
     assert b'bye world\n' == blob.data
     with pygit2.BlobIO(blob) as reader:
         assert b'bye world\n' == reader.read()
@@ -119,10 +111,7 @@ def test_filter_passthrough(testrepo, passthrough_filter):
 def test_filter_unmatched(testrepo, unmatched_filter):
     blob_oid = testrepo.create_blob_fromworkdir("bye.txt")
     blob = testrepo[blob_oid]
-    flags = (
-        pygit2.GIT_BLOB_FILTER_CHECK_FOR_BINARY
-        | pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD
-    )
+    flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
     assert b'bye world\n' == blob.data
     with pygit2.BlobIO(blob) as reader:
         assert b'bye world\n' == reader.read()

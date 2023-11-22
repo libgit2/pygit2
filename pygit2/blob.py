@@ -5,7 +5,8 @@ from contextlib import AbstractContextManager
 from typing import Optional
 from queue import Queue
 
-from ._pygit2 import GIT_BLOB_FILTER_CHECK_FOR_BINARY, Blob, Oid
+from ._pygit2 import Blob, Oid
+from .enums import BlobFilter
 
 
 class _BlobIO(io.RawIOBase):
@@ -20,7 +21,7 @@ class _BlobIO(io.RawIOBase):
         self,
         blob: Blob,
         as_path: Optional[str] = None,
-        flags: int = GIT_BLOB_FILTER_CHECK_FOR_BINARY,
+        flags: BlobFilter = BlobFilter.CHECK_FOR_BINARY,
         commit_id: Optional[Oid] = None,
     ):
         super().__init__()
@@ -34,7 +35,7 @@ class _BlobIO(io.RawIOBase):
             args=(self._queue, self._ready, self._writer_closed),
             kwargs={
                 "as_path": as_path,
-                "flags": flags,
+                "flags": int(flags),
                 "commit_id": commit_id,
             },
             daemon=True,
@@ -127,7 +128,7 @@ class BlobIO(io.BufferedReader, AbstractContextManager):
         self,
         blob: Blob,
         as_path: Optional[str] = None,
-        flags: int = GIT_BLOB_FILTER_CHECK_FOR_BINARY,
+        flags: BlobFilter = BlobFilter.CHECK_FOR_BINARY,
         commit_id: Optional[Oid] = None,
     ):
         """Wrap the specified blob.
@@ -137,10 +138,10 @@ class BlobIO(io.BufferedReader, AbstractContextManager):
             as_path: Filter the contents of the blob as if it had the specified
                 path. If `as_path` is None, the raw contents of the blob will
                 be read.
-            flags: GIT_BLOB_FILTER_* bitflags (only applicable when `as_path`
-                is set).
-            commit_oid: Commit to load attributes from when
-                GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT is specified in `flags`
+            flags: A combination of enums.BlobFilter constants
+                (only applicable when `as_path` is set).
+            commit_id: Commit to load attributes from when
+                ATTRIBUTES_FROM_COMMIT is specified in `flags`
                 (only applicable when `as_path` is set).
         """
         raw = _BlobIO(blob, as_path=as_path, flags=flags, commit_id=commit_id)

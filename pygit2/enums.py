@@ -90,6 +90,20 @@ class BlameFlag(IntFlag):
     "Ignore whitespace differences"
 
 
+class BlobFilter(IntFlag):
+    CHECK_FOR_BINARY = _pygit2.GIT_BLOB_FILTER_CHECK_FOR_BINARY
+    "Do not apply filters to binary files."
+
+    NO_SYSTEM_ATTRIBUTES = _pygit2.GIT_BLOB_FILTER_NO_SYSTEM_ATTRIBUTES
+    "Filters will not load configuration from the system-wide `gitattributes` in `/etc` (or system equivalent)."
+
+    ATTRIBUTES_FROM_HEAD = _pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD
+    "Load filters from a `.gitattributes` file in the HEAD commit."
+
+    ATTRIBUTES_FROM_COMMIT = _pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT
+    "Load filters from a `.gitattributes` file in the specified commit."
+
+
 class BranchType(IntFlag):
     LOCAL = _pygit2.GIT_BRANCH_LOCAL
     REMOTE = _pygit2.GIT_BRANCH_REMOTE
@@ -654,6 +668,38 @@ class FileStatus(IntFlag):
 
     IGNORED = _pygit2.GIT_STATUS_IGNORED
     CONFLICTED = _pygit2.GIT_STATUS_CONFLICTED
+
+
+class FilterFlag(IntFlag):
+    """ Filter option flags. """
+
+    DEFAULT = _pygit2.GIT_FILTER_DEFAULT
+
+    ALLOW_UNSAFE = _pygit2.GIT_FILTER_ALLOW_UNSAFE
+    "Don't error for `safecrlf` violations, allow them to continue."
+
+    NO_SYSTEM_ATTRIBUTES = _pygit2.GIT_FILTER_NO_SYSTEM_ATTRIBUTES
+    "Don't load `/etc/gitattributes` (or the system equivalent)"
+
+    ATTRIBUTES_FROM_HEAD = _pygit2.GIT_FILTER_ATTRIBUTES_FROM_HEAD
+    "Load attributes from `.gitattributes` in the root of HEAD"
+
+    ATTRIBUTES_FROM_COMMIT = _pygit2.GIT_FILTER_ATTRIBUTES_FROM_COMMIT
+    "Load attributes from `.gitattributes` in a given commit. This can only be specified in a `git_filter_options`."
+
+
+class FilterMode(IntEnum):
+    """
+    Filters are applied in one of two directions: smudging - which is
+    exporting a file from the Git object database to the working directory,
+    and cleaning - which is importing a file from the working directory to
+    the Git object database.  These values control which direction of
+    change is being applied.
+    """
+    TO_WORKTREE = _pygit2.GIT_FILTER_TO_WORKTREE
+    SMUDGE = _pygit2.GIT_FILTER_SMUDGE
+    TO_ODB = _pygit2.GIT_FILTER_TO_ODB
+    CLEAN = _pygit2.GIT_FILTER_CLEAN
 
 
 class MergeAnalysis(IntFlag):

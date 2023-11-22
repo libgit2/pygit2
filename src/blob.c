@@ -226,7 +226,7 @@ static void blob_filter_stream_free(git_writestream *s)
 
 
 PyDoc_STRVAR(Blob__write_to_queue__doc__,
-  "_write_to_queue(queue: queue.Queue, closed: threading.Event, chunk_size: int = io.DEFAULT_BUFFER_SIZE, [as_path: str = None, flags: int = GIT_BLOB_FILTER_CHECK_FOR_BINARY, commit_id: oid = None]) -> None\n"
+  "_write_to_queue(queue: queue.Queue, closed: threading.Event, chunk_size: int = io.DEFAULT_BUFFER_SIZE, [as_path: str = None, flags: enums.BlobFilter = enums.BlobFilter.CHECK_FOR_BINARY, commit_id: oid = None]) -> None\n"
   "\n"
   "Write the contents of the blob in chunks to `queue`.\n"
   "If `as_path` is None, the raw contents of blob will be written to the queue,\n"
@@ -261,13 +261,12 @@ PyDoc_STRVAR(Blob__write_to_queue__doc__,
   "    When set, the blob contents will be filtered as if it had this\n"
   "    filename (used for attribute lookups).\n"
   "\n"
-  "flags : int\n"
-  "    GIT_BLOB_FILTER_* bitflags (only applicable when `as_path` is set).\n"
+  "flags : enums.BlobFilter\n"
+  "    A combination of BlobFilter constants (only applicable when `as_path` is set).\n"
   "\n"
   "commit_id : oid\n"
-  "    Commit to load attributes from when\n"
-  "    GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT is specified in `flags`\n"
-  "    (only applicable when `as_path` is set).\n");
+  "    Commit to load attributes from when ATTRIBUTES_FROM_COMMIT is\n"
+  "    specified in `flags` (only applicable when `as_path` is set).\n");
 
 PyObject *
 Blob__write_to_queue(Blob *self, PyObject *args, PyObject *kwds)

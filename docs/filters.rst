@@ -38,7 +38,7 @@ setting.
             self.buffer = io.BytesIO()
 
         def check(self, src, attr_values):
-            if src.mode == GIT_FILTER_SMUDGE:
+            if src.mode == pygit2.enums.FilterMode.SMUDGE:
                 # attr_values contains the values of the 'text' and 'eol'
                 # attributes in that order (as they are defined in
                 # CRLFFilter.attributes
@@ -48,7 +48,7 @@ setting.
                     self.linesep = b'\r\n'
                 elif eol == 'lf':
                     self.linesep = b'\n'
-            else:  # src.mode == GIT_FILTER_CLEAN
+            else:  # src.mode == pygit2.enums.FilterMode.CLEAN
                 # always use LF line-endings when writing to the ODB
                 self.linesep = b'\n'
 

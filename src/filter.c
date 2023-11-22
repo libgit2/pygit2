@@ -85,7 +85,7 @@ FilterSource_filemode__get__(FilterSource *self)
 
 PyDoc_STRVAR(FilterSource_oid__doc__,
     "Oid of the source object. If the oid is unknown "
-    "(often the case with GIT_FILTER_CLEAN) then `oid` will be None.\n");
+    "(often the case with FilterMode.CLEAN) then `oid` will be None.\n");
 PyObject *
 FilterSource_oid__get__(FilterSource *self)
 {
@@ -96,7 +96,7 @@ FilterSource_oid__get__(FilterSource *self)
 }
 
 PyDoc_STRVAR(FilterSource_mode__doc__,
-    "Filter mode (either GIT_FILTER_CLEAN or GIT_FILTER_SMUDGE).\n");
+    "Filter mode (either FilterMode.CLEAN or FilterMode.SMUDGE).\n");
 
 PyObject *
 FilterSource_mode__get__(FilterSource *self)
@@ -105,7 +105,7 @@ FilterSource_mode__get__(FilterSource *self)
 }
 
 PyDoc_STRVAR(FilterSource_flags__doc__,
-    "GIT_FILTER_* flags to be applied to the data.\n");
+    "A combination of filter flags (enums.FilterFlag) to be applied to the data.\n");
 
 PyObject *
 FilterSource_flags__get__(FilterSource *self)
