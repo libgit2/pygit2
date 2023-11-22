@@ -47,104 +47,136 @@ def repo(tmp_path):
 
 
 def test_lookup_submodule(repo):
-    s = repo.lookup_submodule(SUBM_PATH)
+    s = repo.submodules[SUBM_PATH]
+    assert s is not None
+    s = repo.submodules.get(SUBM_PATH)
     assert s is not None
 
+
 def test_lookup_submodule_aspath(repo):
-    s = repo.lookup_submodule(Path(SUBM_PATH))
+    s = repo.submodules[Path(SUBM_PATH)]
     assert s is not None
+
+
+def test_lookup_missing_submodule(repo):
+    with pytest.raises(KeyError):
+        s = repo.submodules['does-not-exist']
+    assert repo.submodules.get('does-not-exist') is None
+
 
 def test_listall_submodules(repo):
     submodules = repo.listall_submodules()
     assert len(submodules) == 1
     assert submodules[0] == SUBM_PATH
 
+
+def test_contains_submodule(repo):
+    assert SUBM_PATH in repo.submodules
+    assert 'does-not-exist' not in repo.submodules
+
+
+def test_submodule_iterator(repo):
+    for s in repo.submodules:
+        assert isinstance(s, pygit2.Submodule)
+        assert s.path == repo.submodules[s.path].path
+
+
 @utils.requires_network
 def test_submodule_open(repo):
-    s = repo.lookup_submodule(SUBM_PATH)
-    repo.init_submodules()
-    repo.update_submodules()
+    s = repo.submodules[SUBM_PATH]
+    repo.submodules.init()
+    repo.submodules.update()
     r = s.open()
     assert r is not None
     assert str(r.head.target) == SUBM_HEAD_SHA
 
+
 def test_name(repo):
-    s = repo.lookup_submodule(SUBM_PATH)
+    s = repo.submodules[SUBM_PATH]
     assert SUBM_NAME == s.name
 
+
 def test_path(repo):
-    s = repo.lookup_submodule(SUBM_PATH)
+    s = repo.submodules[SUBM_PATH]
     assert SUBM_PATH == s.path
 
+
 def test_url(repo):
-    s = repo.lookup_submodule(SUBM_PATH)
+    s = repo.submodules[SUBM_PATH]
     assert SUBM_URL == s.url
+
 
 @utils.requires_network
 def test_init_and_update(repo):
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
 
-    status = repo.submodule_status(SUBM_NAME)
+    status = repo.submodules.status(SUBM_NAME)
     assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.WD_UNINITIALIZED)
 
-    repo.init_submodules()
-    repo.update_submodules()
+    repo.submodules.init()
+    repo.submodules.update()
 
     assert subrepo_file_path.exists()
 
-    status = repo.submodule_status(SUBM_NAME)
+    status = repo.submodules.status(SUBM_NAME)
     assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD)
+
 
 @utils.requires_network
 def test_specified_update(repo):
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
-    repo.init_submodules(submodules=['TestGitRepository'])
-    repo.update_submodules(submodules=['TestGitRepository'])
+    repo.submodules.init(submodules=['TestGitRepository'])
+    repo.submodules.update(submodules=['TestGitRepository'])
     assert subrepo_file_path.exists()
+
 
 @utils.requires_network
 def test_update_instance(repo):
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
-    sm = repo.lookup_submodule('TestGitRepository')
+    sm = repo.submodules['TestGitRepository']
     sm.init()
     sm.update()
     assert subrepo_file_path.exists()
 
+
 @utils.requires_network
 def test_oneshot_update(repo):
-    status = repo.submodule_status(SUBM_NAME)
+    status = repo.submodules.status(SUBM_NAME)
     assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.WD_UNINITIALIZED)
 
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
-    repo.update_submodules(init=True)
+    repo.submodules.update(init=True)
     assert subrepo_file_path.exists()
 
-    status = repo.submodule_status(SUBM_NAME)
+    status = repo.submodules.status(SUBM_NAME)
     assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD)
+
 
 @utils.requires_network
 def test_oneshot_update_instance(repo):
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
-    sm = repo.lookup_submodule(SUBM_NAME)
+    sm = repo.submodules[SUBM_NAME]
     sm.update(init=True)
     assert subrepo_file_path.exists()
 
+
 @utils.requires_network
 def test_head_id(repo):
-    s = repo.lookup_submodule(SUBM_PATH)
+    s = repo.submodules[SUBM_PATH]
     assert str(s.head_id) == SUBM_HEAD_SHA
+
 
 @utils.requires_network
 def test_add_submodule(repo):
     sm_repo_path = "test/testrepo"
-    sm = repo.add_submodule(SUBM_URL, sm_repo_path)
+    sm = repo.submodules.add(SUBM_URL, sm_repo_path)
 
-    status = repo.submodule_status(sm_repo_path)
+    status = repo.submodules.status(sm_repo_path)
     assert status == (SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD | SS.INDEX_ADDED)
 
     sm_repo = sm.open()
@@ -152,28 +184,29 @@ def test_add_submodule(repo):
     assert SUBM_URL == sm.url
     assert not sm_repo.is_empty
 
+
 @utils.requires_network
 def test_submodule_status(repo):
     common_status = SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG
 
     # Submodule needs initializing
-    assert repo.submodule_status(SUBM_PATH) == common_status | SS.WD_UNINITIALIZED
+    assert repo.submodules.status(SUBM_PATH) == common_status | SS.WD_UNINITIALIZED
 
     # If ignoring ALL, don't look at WD
-    assert repo.submodule_status(SUBM_PATH, ignore=SI.ALL) == common_status
+    assert repo.submodules.status(SUBM_PATH, ignore=SI.ALL) == common_status
 
     # Update the submodule
-    repo.update_submodules(init=True)
+    repo.submodules.update(init=True)
 
     # It's in our WD now
-    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD
+    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD
 
     # Open submodule repo
-    sm_repo: pygit2.Repository = repo.lookup_submodule(SUBM_PATH).open()
+    sm_repo: pygit2.Repository = repo.submodules[SUBM_PATH].open()
 
     # Move HEAD in the submodule (WD_MODIFIED)
     sm_repo.checkout('refs/tags/annotated_tag')
-    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_MODIFIED
+    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_MODIFIED
 
     # Move HEAD back to master
     sm_repo.checkout('refs/heads/master')
@@ -181,34 +214,36 @@ def test_submodule_status(repo):
     # Touch some file in the submodule's workdir (WD_WD_MODIFIED)
     with open(Path(repo.workdir, SUBM_PATH, 'master.txt'), 'wt') as f:
         f.write("modifying master.txt")
-    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED
+    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED
 
     # Add an untracked file in the submodule's workdir (WD_UNTRACKED)
     with open(Path(repo.workdir, SUBM_PATH, 'some_untracked_file.txt'), 'wt') as f:
         f.write("hi")
-    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED | SS.WD_UNTRACKED
+    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED | SS.WD_UNTRACKED
 
     # Add modified files to the submodule's index (WD_INDEX_MODIFIED)
     sm_repo.index.add_all()
     sm_repo.index.write()
-    assert repo.submodule_status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_INDEX_MODIFIED
+    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_INDEX_MODIFIED
+
 
 def test_submodule_cache(repo):
     # When the cache is turned on, looking up the same submodule twice must return the same git_submodule object
-    repo.submodule_cache_all()
-    sm1 = repo.lookup_submodule(SUBM_NAME)
-    sm2 = repo.lookup_submodule(SUBM_NAME)
+    repo.submodules.cache_all()
+    sm1 = repo.submodules[SUBM_NAME]
+    sm2 = repo.submodules[SUBM_NAME]
     assert sm1._subm == sm2._subm
 
     # After turning off the cache, each lookup must return a new git_submodule object
-    repo.submodule_cache_clear()
-    sm3 = repo.lookup_submodule(SUBM_NAME)
-    sm4 = repo.lookup_submodule(SUBM_NAME)
+    repo.submodules.cache_clear()
+    sm3 = repo.submodules[SUBM_NAME]
+    sm4 = repo.submodules[SUBM_NAME]
     assert sm1._subm != sm3._subm
     assert sm3._subm != sm4._subm
 
+
 def test_submodule_reload(repo):
-    sm = repo.lookup_submodule(SUBM_NAME)
+    sm = repo.submodules[SUBM_NAME]
     assert sm.url == "https://github.com/libgit2/TestGitRepository"
 
     # Doctor the config file outside of libgit2

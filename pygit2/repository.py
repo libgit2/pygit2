@@ -65,6 +65,7 @@ class BaseRepository(_Repository):
         self.branches = Branches(self)
         self.references = References(self)
         self.remotes = RemoteCollection(self)
+        self.submodules = Submodules(self)
 
         # Get the pointer as the contents of a buffer and store it for
         # later access
@@ -128,174 +129,33 @@ class BaseRepository(_Repository):
     # Submodules
     #
 
-    def add_submodule(
-            self,
-            url: str,
-            path: str,
-            link: bool = True,
-            callbacks: typing.Optional[RemoteCallbacks] = None
-    ) -> Submodule:
-        """
-        Add a submodule to the index.
-        The submodule is automatically cloned.
-
-        Returns: the submodule that was added.
-
-        Parameters:
-
-        url
-            The URL of the submdoule.
-
-        path
-            The path within the parent repository to add the submodule
-
-        link
-            Should workdir contain a gitlink to the repo in `.git/modules` vs. repo directly in workdir.
-
-        callbacks
-            Optional RemoteCallbacks to clone the submodule.
-        """
-        csub = ffi.new('git_submodule **')
-        curl = ffi.new('char[]', to_bytes(url))
-        cpath = ffi.new('char[]', to_bytes(path))
-        gitlink = 1 if link else 0
-
-        err = C.git_submodule_add_setup(csub, self._repo, curl, cpath, gitlink)
-        check_error(err)
-
-        submodule_instance = Submodule._from_c(self, csub[0])
-
-        # prepare options
-        opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
-
-        with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
-            crepo = ffi.new('git_repository **')
-            err = C.git_submodule_clone(crepo, submodule_instance._subm, opts)
-            payload.check_error(err)
-
-        # clean-up the submodule repository
-        Repository._from_c(crepo[0], True)
-
-        err = C.git_submodule_add_finalize(submodule_instance._subm)
-        check_error(err)
-        return submodule_instance
+    def add_submodule(self, *args, **kwargs):
+        """ Deprecated. Use Repository.submodules.add(...) instead. """
+        return self.submodules.add(*args, **kwargs)
 
     def lookup_submodule(self, path: str) -> Submodule:
-        """
-        Look up submodule information by name or path.
-        """
-        csub = ffi.new('git_submodule **')
-        cpath = ffi.new('char[]', to_bytes(path))
+        """ Deprecated. Use Repository.submodules[...] instead. """
+        return self.submodules[path]
 
-        err = C.git_submodule_lookup(csub, self._repo, cpath)
-        check_error(err)
-        return Submodule._from_c(self, csub[0])
+    def init_submodules(self, *args, **kwargs):
+        """ Deprecated. Use Repository.submodules.init(...) instead. """
+        return self.submodules.init(*args, **kwargs)
 
-    def init_submodules(
-            self,
-            submodules: typing.Optional[typing.Iterable[str]] = None,
-            overwrite: bool = False):
-        """
-        Initialize submodules in the repository. Just like "git submodule init",
-        this copies information about the submodules into ".git/config".
+    def update_submodules(self, *args, **kwargs):
+        """ Deprecated. Use Repository.submodules.update(...) instead. """
+        return self.submodules.update(*args, **kwargs)
 
-        Parameters:
-
-        submodules
-            Optional list of submodule paths or names to initialize
-            (the submodule is ultimately resolved with Repository.lookup_submodule()).
-            Default argument initializes all submodules.
-
-        overwrite
-            Flag indicating if initialization should overwrite submodule entries.
-        """
-        if submodules is None:
-            submodules = self.listall_submodules()
-
-        instances = [self.lookup_submodule(s) for s in submodules]
-
-        for submodule in instances:
-            submodule.init(overwrite)
-
-    def update_submodules(
-            self,
-            submodules: typing.Optional[typing.Iterable[str]] = None,
-            init: bool = False,
-            callbacks: typing.Optional[RemoteCallbacks] = None):
-        """
-        Update submodules. This will clone a missing submodule and checkout
-        the subrepository to the commit specified in the index of the
-        containing repository. If the submodule repository doesn't contain the
-        target commit (e.g. because fetchRecurseSubmodules isn't set), then the
-        submodule is fetched using the fetch options supplied in options.
-
-        Parameters:
-
-        submodules
-            Optional list of submodule paths or names (the submodule is ultimately
-            resolved with Repository.lookup_submodule()). If you omit this parameter
-            or pass None, all submodules will be updated.
-
-        init
-            If the submodule is not initialized, setting this flag to True will
-            initialize the submodule before updating. Otherwise, this will raise
-            an error if attempting to update an uninitialized repository.
-
-        callbacks
-            Optional RemoteCallbacks to clone or fetch the submodule.
-        """
-        if submodules is None:
-            submodules = self.listall_submodules()
-
-        instances = [self.lookup_submodule(s) for s in submodules]
-
-        for submodule in instances:
-            submodule.update(init, callbacks)
-
-    def submodule_status(self, name: str, ignore: SubmoduleIgnore = SubmoduleIgnore.UNSPECIFIED) -> SubmoduleStatus:
-        """
-        Get the status of a submodule.
-
-        Returns: A combination of SubmoduleStatus flags.
-
-        Parameters:
-
-        name
-            Submodule name or path (the submodule is ultimately resolved with lookup_submodule()).
-
-        ignore
-            A SubmoduleIgnore value indicating how deeply to examine the working directory.
-        """
-        cstatus = ffi.new('unsigned int *')
-        err = C.git_submodule_status(cstatus, self._repo, to_bytes(name), ignore)
-        check_error(err)
-        return SubmoduleStatus(cstatus[0])
+    def submodule_status(self, *args, **kwargs):
+        """ Deprecated. Use Repository.submodules.status(...) instead. """
+        return self.submodules.status(*args, **kwargs)
 
     def submodule_cache_all(self):
-        """
-        Load and cache all submodules in the repository.
-
-        Because the `.gitmodules` file is unstructured, loading submodules is an
-        O(N) operation.  Any operation that requires accessing all submodules is O(N^2)
-        in the number of submodules, if it has to look each one up individually.
-        This function loads all submodules and caches them so that subsequent calls to
-        `lookup_submodule` are O(1).
-        """
-        err = C.git_repository_submodule_cache_all(self._repo)
-        check_error(err)
+        """ Deprecated. Use Repository.submodules.cache_all(...) instead. """
+        return self.submodules.cache_all()
 
     def submodule_cache_clear(self):
-        """
-        Clear the submodule cache populated by `submodule_cache_all`.
-        If there is no cache, do nothing.
-
-        The cache incorporates data from the repository's configuration, as well
-        as the state of the working tree, the index, and HEAD. So any time any
-        of these has changed, the cache might become invalid.
-        """
-        err = C.git_repository_submodule_cache_clear(self._repo)
-        check_error(err)
+        """ Deprecated. Use Repository.submodules.cache_clear(...) instead. """
+        return self.submodules.cache_clear()
 
     #
     # Mapping interface
@@ -1832,6 +1692,199 @@ class References:
 
     def compress(self):
         return self._repository.compress_references()
+
+
+class Submodules:
+    """ Collection of submodules in a repository. """
+
+    def __init__(self, repository: BaseRepository):
+        self._repository = repository
+        assert isinstance(self._repository, BaseRepository)
+
+    def __getitem__(self, name: str) -> Submodule:
+        """
+        Look up submodule information by name or path.
+        Raises KeyError if there is no such submodule.
+        """
+        csub = ffi.new('git_submodule **')
+        cpath = ffi.new('char[]', to_bytes(name))
+
+        err = C.git_submodule_lookup(csub, self._repository._repo, cpath)
+        check_error(err)
+        return Submodule._from_c(self._repository, csub[0])
+
+    def __contains__(self, name: str) -> bool:
+        return self.get(name) is not None
+
+    def __iter__(self) -> typing.Iterator[Submodule]:
+        for s in self._repository.listall_submodules():
+            yield self[s]
+
+    def get(self, name: str) -> typing.Union[Submodule, None]:
+        """
+        Look up submodule information by name or path.
+        Unlike __getitem__, this returns None if the submodule is not found.
+        """
+        try:
+            return self[name]
+        except KeyError:
+            return None
+
+    def add(
+            self,
+            url: str,
+            path: str,
+            link: bool = True,
+            callbacks: typing.Optional[RemoteCallbacks] = None
+    ) -> Submodule:
+        """
+        Add a submodule to the index.
+        The submodule is automatically cloned.
+
+        Returns: the submodule that was added.
+
+        Parameters:
+
+        url
+            The URL of the submodule.
+
+        path
+            The path within the parent repository to add the submodule
+
+        link
+            Should workdir contain a gitlink to the repo in `.git/modules` vs. repo directly in workdir.
+
+        callbacks
+            Optional RemoteCallbacks to clone the submodule.
+        """
+        csub = ffi.new('git_submodule **')
+        curl = ffi.new('char[]', to_bytes(url))
+        cpath = ffi.new('char[]', to_bytes(path))
+        gitlink = 1 if link else 0
+
+        err = C.git_submodule_add_setup(csub, self._repository._repo, curl, cpath, gitlink)
+        check_error(err)
+
+        submodule_instance = Submodule._from_c(self._repository, csub[0])
+
+        # prepare options
+        opts = ffi.new('git_submodule_update_options *')
+        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+
+        with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
+            crepo = ffi.new('git_repository **')
+            err = C.git_submodule_clone(crepo, submodule_instance._subm, opts)
+            payload.check_error(err)
+
+        # clean-up the submodule repository
+        Repository._from_c(crepo[0], True)
+
+        err = C.git_submodule_add_finalize(submodule_instance._subm)
+        check_error(err)
+        return submodule_instance
+
+    def init(
+            self,
+            submodules: typing.Optional[typing.Iterable[str]] = None,
+            overwrite: bool = False):
+        """
+        Initialize submodules in the repository. Just like "git submodule init",
+        this copies information about the submodules into ".git/config".
+
+        Parameters:
+
+        submodules
+            Optional list of submodule paths or names to initialize.
+            Default argument initializes all submodules.
+
+        overwrite
+            Flag indicating if initialization should overwrite submodule entries.
+        """
+        if submodules is None:
+            submodules = self._repository.listall_submodules()
+
+        instances = [self[s] for s in submodules]
+
+        for submodule in instances:
+            submodule.init(overwrite)
+
+    def update(
+            self,
+            submodules: typing.Optional[typing.Iterable[str]] = None,
+            init: bool = False,
+            callbacks: typing.Optional[RemoteCallbacks] = None):
+        """
+        Update submodules. This will clone a missing submodule and checkout
+        the subrepository to the commit specified in the index of the
+        containing repository. If the submodule repository doesn't contain the
+        target commit (e.g. because fetchRecurseSubmodules isn't set), then the
+        submodule is fetched using the fetch options supplied in options.
+
+        Parameters:
+
+        submodules
+            Optional list of submodule paths or names. If you omit this parameter
+            or pass None, all submodules will be updated.
+
+        init
+            If the submodule is not initialized, setting this flag to True will
+            initialize the submodule before updating. Otherwise, this will raise
+            an error if attempting to update an uninitialized repository.
+
+        callbacks
+            Optional RemoteCallbacks to clone or fetch the submodule.
+        """
+        if submodules is None:
+            submodules = self._repository.listall_submodules()
+
+        instances = [self[s] for s in submodules]
+
+        for submodule in instances:
+            submodule.update(init, callbacks)
+
+    def status(self, name: str, ignore: SubmoduleIgnore = SubmoduleIgnore.UNSPECIFIED) -> SubmoduleStatus:
+        """
+        Get the status of a submodule.
+
+        Returns: A combination of SubmoduleStatus flags.
+
+        Parameters:
+
+        name
+            Submodule name or path.
+
+        ignore
+            A SubmoduleIgnore value indicating how deeply to examine the working directory.
+        """
+        cstatus = ffi.new('unsigned int *')
+        err = C.git_submodule_status(cstatus, self._repository._repo, to_bytes(name), ignore)
+        check_error(err)
+        return SubmoduleStatus(cstatus[0])
+
+    def cache_all(self):
+        """
+        Load and cache all submodules in the repository.
+
+        Because the `.gitmodules` file is unstructured, loading submodules is an
+        O(N) operation.  Any operation that requires accessing all submodules is O(N^2)
+        in the number of submodules, if it has to look each one up individually.
+        This function loads all submodules and caches them so that subsequent
+        submodule lookups by name are O(1).
+        """
+        err = C.git_repository_submodule_cache_all(self._repository._repo)
+        check_error(err)
+
+    def cache_clear(self):
+        """
+        Clear the submodule cache populated by `submodule_cache_all`.
+        If there is no cache, do nothing.
+
+        The cache incorporates data from the repository's configuration, as well
+        as the state of the working tree, the index, and HEAD. So any time any
+        of these has changed, the cache might become invalid.
+        """
+        err = C.git_repository_submodule_cache_clear(self._repository._repo)
+        check_error(err)
 
 
 class Repository(BaseRepository):
