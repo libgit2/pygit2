@@ -130,32 +130,20 @@ class BaseRepository(_Repository):
     #
 
     def add_submodule(self, *args, **kwargs):
-        """ Deprecated. Use Repository.submodules.add(...) instead. """
+        warnings.warn("Use repo.submodules.add(...)", DeprecationWarning)
         return self.submodules.add(*args, **kwargs)
 
     def lookup_submodule(self, path: str) -> Submodule:
-        """ Deprecated. Use Repository.submodules[...] instead. """
+        warnings.warn("Use repo.submodules[...]", DeprecationWarning)
         return self.submodules[path]
 
     def init_submodules(self, *args, **kwargs):
-        """ Deprecated. Use Repository.submodules.init(...) instead. """
+        warnings.warn("Use repo.submodules.init(...)", DeprecationWarning)
         return self.submodules.init(*args, **kwargs)
 
     def update_submodules(self, *args, **kwargs):
-        """ Deprecated. Use Repository.submodules.update(...) instead. """
+        warnings.warn("Use repo.submodules.update(...)", DeprecationWarning)
         return self.submodules.update(*args, **kwargs)
-
-    def submodule_status(self, *args, **kwargs):
-        """ Deprecated. Use Repository.submodules.status(...) instead. """
-        return self.submodules.status(*args, **kwargs)
-
-    def submodule_cache_all(self):
-        """ Deprecated. Use Repository.submodules.cache_all(...) instead. """
-        return self.submodules.cache_all()
-
-    def submodule_cache_clear(self):
-        """ Deprecated. Use Repository.submodules.cache_clear(...) instead. """
-        return self.submodules.cache_clear()
 
     #
     # Mapping interface
