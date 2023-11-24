@@ -1,3 +1,22 @@
+1.14.0 (UNRELEASED)
+-------------------------
+
+- New ``Repository.submodules`` namespace
+  `#1250 <https://github.com/libgit2/pygit2/pull/1250>`_
+
+Breaking changes:
+
+- Remove deprecated ``Repository.create_remote(...)`` function,
+  use instead ``Repository.remotes.create(...)``
+
+Deprecations:
+
+- Deprecate ``Repository.add_submodule(...)``, use ``Repository.submodules.add(...)``
+- Deprecate ``Repository.lookup_submodule(...)``, use ``Repository.submodules[...]``
+- Deprecate ``Repository.init_submodules(...)``, use ``Repository.submodules.init(...)``
+- Deprecate ``Repository.update_submodule(...)``, use ``Repository.submodules.update(...)``
+
+
 1.13.3 (2023-11-21)
 -------------------------
 

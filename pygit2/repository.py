@@ -164,13 +164,6 @@ class BaseRepository(_Repository):
         return f"pygit2.Repository({repr(self.path)})"
 
     #
-    # Remotes
-    #
-    def create_remote(self, name, url):
-        warnings.warn("Use repo.remotes.create(..)", DeprecationWarning)
-        return self.remotes.create(name, url)
-
-    #
     # Configuration
     #
     @property
