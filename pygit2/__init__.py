@@ -30,24 +30,24 @@ import functools
 from ._pygit2 import *
 
 # High level API
+from ._build import __version__
 from .blame import Blame, BlameHunk
 from .blob import BlobIO
-from .callbacks import git_clone_options, git_fetch_options, get_credentials
 from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCallbacks
+from .callbacks import git_clone_options, git_fetch_options, get_credentials
 from .config import Config
 from .credentials import *
-from .errors import check_error, Passthrough
 from .enums import SubmoduleIgnore, SubmoduleStatus
+from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .filter import Filter
 from .index import Index, IndexEntry
-from .remote import Remote
-from .repository import Repository
 from .packbuilder import PackBuilder
+from .remotes import Remote
+from .repository import Repository
 from .settings import Settings
-from .submodule import Submodule
+from .submodules import Submodule
 from .utils import to_bytes, to_str
-from ._build import __version__
 
 
 # Features

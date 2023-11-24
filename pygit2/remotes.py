@@ -23,6 +23,9 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 # Import from pygit2
 from ._pygit2 import Oid
 from .callbacks import git_fetch_options, git_push_options, git_remote_callbacks
@@ -30,6 +33,10 @@ from .errors import check_error
 from .ffi import ffi, C
 from .refspec import Refspec
 from .utils import maybe_string, to_bytes, strarray_to_strings, StrArray
+
+# Need BaseRepository for type hints, but don't let it cause a circular dependency
+if TYPE_CHECKING:
+    from .repository import BaseRepository
 
 
 class TransferProgress:
@@ -62,7 +69,7 @@ class TransferProgress:
 
 class Remote:
 
-    def __init__(self, repo, ptr):
+    def __init__(self, repo: BaseRepository, ptr):
         """The constructor is for internal use only.
         """
         self._repo = repo
@@ -282,7 +289,7 @@ class RemoteCollection:
     >>> repo.remotes["origin"]
     """
 
-    def __init__(self, repo):
+    def __init__(self, repo: BaseRepository):
         self._repo = repo;
 
     def __len__(self):

@@ -33,7 +33,8 @@ from .errors import check_error
 from .ffi import ffi, C
 from .utils import to_bytes
 
-if TYPE_CHECKING:  # need BaseRepository for type hints, but don't let it cause a circular dependency
+# Need BaseRepository for type hints, but don't let it cause a circular dependency
+if TYPE_CHECKING:
     from .repository import BaseRepository
 
 

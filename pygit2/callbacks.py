@@ -528,7 +528,7 @@ def _sideband_progress_cb(string, length, data):
 
 @libgit2_callback
 def _transfer_progress_cb(stats_ptr, data):
-    from .remote import TransferProgress
+    from .remotes import TransferProgress
 
     transfer_progress = getattr(data, 'transfer_progress', None)
     if not transfer_progress:

@@ -23,11 +23,10 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Import from the Standard Library
 from io import BytesIO
 from string import hexdigits
-import tarfile
 from time import time
+import tarfile
 import typing
 import warnings
 
@@ -36,23 +35,22 @@ from ._pygit2 import Repository as _Repository, init_file_backend
 from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from ._pygit2 import GIT_DIFF_NORMAL
 from ._pygit2 import GIT_FILEMODE_LINK
-from ._pygit2 import GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE, GIT_BRANCH_ALL
-from ._pygit2 import GIT_REF_SYMBOLIC
-from ._pygit2 import GIT_REFERENCES_ALL, GIT_REFERENCES_BRANCHES, GIT_REFERENCES_TAGS
 from ._pygit2 import GIT_CHECKOUT_SAFE, GIT_CHECKOUT_RECREATE_MISSING
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
+from .blame import Blame
+from .branches import Branches
 from .callbacks import git_checkout_options, git_stash_apply_options
 from .config import Config
 from .errors import check_error
 from .ffi import ffi, C
 from .index import Index
-from .remote import RemoteCollection
-from .blame import Blame
-from .utils import to_bytes, StrArray
-from .submodule import Submodule, SubmoduleCollection
 from .packbuilder import PackBuilder
+from .references import References
+from .remotes import RemoteCollection
+from .submodules import Submodule, SubmoduleCollection
+from .utils import to_bytes, StrArray
 
 
 class BaseRepository(_Repository):
@@ -1539,139 +1537,6 @@ class BaseRepository(_Repository):
         check_error(err)
 
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
-
-
-class Branches:
-
-    def __init__(self, repository: BaseRepository, flag: int = GIT_BRANCH_ALL, commit=None):
-        self._repository = repository
-        self._flag = flag
-        if commit is not None:
-            if isinstance(commit, Commit):
-                commit = commit.id
-            elif not isinstance(commit, Oid):
-                commit = self._repository.expand_id(commit)
-        self._commit = commit
-
-        if flag == GIT_BRANCH_ALL:
-            self.local = Branches(repository, flag=GIT_BRANCH_LOCAL, commit=commit)
-            self.remote = Branches(repository, flag=GIT_BRANCH_REMOTE, commit=commit)
-
-    def __getitem__(self, name: str):
-        branch = None
-        if self._flag & GIT_BRANCH_LOCAL:
-            branch = self._repository.lookup_branch(name, GIT_BRANCH_LOCAL)
-
-        if branch is None and self._flag & GIT_BRANCH_REMOTE:
-            branch = self._repository.lookup_branch(name, GIT_BRANCH_REMOTE)
-
-        if branch is None or not self._valid(branch):
-            raise KeyError(f'Branch not found: {name}')
-
-        return branch
-
-    def get(self, key: str):
-        try:
-            return self[key]
-        except KeyError:
-            return None
-
-    def __iter__(self):
-        for branch_name in self._repository.listall_branches(self._flag):
-            if self._commit is None or self.get(branch_name) is not None:
-                yield branch_name
-
-    def create(self, name: str, commit, force=False):
-        return self._repository.create_branch(name, commit, force)
-
-    def delete(self, name: str):
-        self[name].delete()
-
-    def _valid(self, branch):
-        if branch.type == GIT_REF_SYMBOLIC:
-            branch = branch.resolve()
-
-        return (
-            self._commit is None
-            or branch.target == self._commit
-            or self._repository.descendant_of(branch.target, self._commit)
-        )
-
-    def with_commit(self, commit):
-        assert self._commit is None
-        return Branches(self._repository, self._flag, commit)
-
-    def __contains__(self, name):
-        return self.get(name) is not None
-
-
-class References:
-
-    def __init__(self, repository: BaseRepository):
-        self._repository = repository
-
-    def __getitem__(self, name: str):
-        return self._repository.lookup_reference(name)
-
-    def get(self, key: str):
-        try:
-            return self[key]
-        except KeyError:
-            return None
-
-    def __iter__(self):
-        iter = self._repository.references_iterator_init()
-        while True:
-            ref = self._repository.references_iterator_next(iter)
-            if ref:
-                yield ref.name
-            else:
-                return
-
-    def iterator(self, references_return_type:int = GIT_REFERENCES_ALL):
-        """ Creates a new iterator and fetches references for a given repository.
-
-        Can also filter and pass all refs or only branches or only tags.
-
-        Parameters:
-
-        references_return_type: int
-            Optional specifier to filter references. By default, all references are
-            returned.
-
-            The following values are accepted:
-            0 -> GIT_REFERENCES_ALL, fetches all refs, this is the default
-            1 -> GIT_REFERENCES_BRANCHES, fetches only branches
-            2 -> GIT_REFERENCES_TAGS, fetches only tags
-
-        TODO: Add support for filtering by reference types notes and remotes.
-        """
-
-        if references_return_type not in (GIT_REFERENCES_ALL, GIT_REFERENCES_BRANCHES, GIT_REFERENCES_TAGS):
-            raise ValueError("Parameter references_return_type is invalid")
-        iter = self._repository.references_iterator_init()
-        while True:
-            ref = self._repository.references_iterator_next(iter, references_return_type)
-            if ref:
-                yield ref
-            else:
-                return
-
-    def create(self, name, target, force=False):
-        return self._repository.create_reference(name, target, force)
-
-    def delete(self, name: str):
-        self[name].delete()
-
-    def __contains__(self, name: str):
-        return self.get(name) is not None
-
-    @property
-    def objects(self):
-        return self._repository.listall_reference_objects()
-
-    def compress(self):
-        return self._repository.compress_references()
 
 
 class Repository(BaseRepository):
