@@ -46,7 +46,7 @@ setting.
 
                 if eol == 'crlf':
                     self.linesep = b'\r\n'
-                elif eol = 'lf':
+                elif eol == 'lf':
                     self.linesep = b'\n'
             else:  # src.mode == GIT_FILTER_CLEAN
                 # always use LF line-endings when writing to the ODB
