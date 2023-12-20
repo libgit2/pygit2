@@ -128,3 +128,8 @@ def test_filter_unmatched(testrepo, unmatched_filter):
         assert b'bye world\n' == reader.read()
     with pygit2.BlobIO(blob, as_path="bye.txt", flags=flags) as reader:
         assert b'bye world\n' == reader.read()
+
+def test_filter_cleanup(dirtyrepo, rot13_filter):
+    # Indirectly test that pygit2_filter_cleanup has the GIL
+    # before calling pygit2_filter_payload_free.
+    dirtyrepo.diff()
