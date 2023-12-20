@@ -542,7 +542,9 @@ void pygit2_filter_cleanup(git_filter *self, void *payload)
 {
     struct pygit2_filter_payload *pl = (struct pygit2_filter_payload *)payload;
 
+    PyGILState_STATE gil = PyGILState_Ensure();
     pygit2_filter_payload_free(pl);
+    PyGILState_Release(gil);
 }
 
 void pygit2_filter_shutdown(git_filter *self)
