@@ -70,6 +70,11 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         else
             yum install perl-IPC-Cmd -y
         fi
+    elif [ -f /sbin/apk ]; then
+        apk add wget
+        if [ -z "$OPENSSL_VERSION" ]; then
+            apk add openssl-dev
+        fi
     fi
     rm -rf ci
     mkdir ci || true
