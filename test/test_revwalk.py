@@ -25,7 +25,7 @@
 
 """Tests for revision walk."""
 
-from pygit2 import SortMode
+from pygit2.enums import SortMode
 
 
 # In the order given by git log

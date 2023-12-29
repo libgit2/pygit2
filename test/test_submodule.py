@@ -31,7 +31,7 @@ import pygit2
 import pytest
 
 from . import utils
-from pygit2 import SubmoduleIgnore as SI, SubmoduleStatus as SS
+from pygit2.enums import SubmoduleIgnore as SI, SubmoduleStatus as SS
 
 
 SUBM_NAME = 'TestGitRepository'

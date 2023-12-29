@@ -32,6 +32,7 @@ import typing
 from ._pygit2 import *
 
 # High level API
+from . import enums
 from ._build import __version__
 from .blame import Blame, BlameHunk
 from .blob import BlobIO
@@ -39,44 +40,6 @@ from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCa
 from .callbacks import git_clone_options, git_fetch_options, get_credentials
 from .config import Config
 from .credentials import *
-from .enums import (
-    AttrCheck,
-    ApplyLocation,
-    BlameFlag,
-    BlobFilter,
-    BranchType,
-    CheckoutNotify,
-    CheckoutStrategy,
-    ConfigLevel,
-    CredentialType,
-    DeltaStatus,
-    DescribeStrategy,
-    DiffFlag,
-    DiffOption,
-    DiffStatsFormat,
-    Feature,
-    FetchPrune,
-    FileMode,
-    FilterFlag,
-    FilterMode,
-    ObjectType,
-    Option,
-    MergeAnalysis,
-    MergePreference,
-    ReferenceFilter,
-    ReferenceType,
-    RepositoryInitFlag,
-    RepositoryInitMode,
-    RepositoryOpenFlag,
-    RepositoryState,
-    ResetMode,
-    RevSpecFlag,
-    StashApplyProgress,
-    FileStatus,
-    SubmoduleIgnore,
-    SubmoduleStatus,
-    SortMode,
-)
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .filter import Filter
@@ -91,7 +54,7 @@ from .utils import to_bytes, to_str
 
 
 # Features
-features = Feature(C.git_libgit2_features())
+features = enums.Feature(C.git_libgit2_features())
 
 # libgit version tuple
 LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)
@@ -100,8 +63,8 @@ LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)
 def init_repository(
         path: typing.Union[str, bytes, PathLike, None],
         bare: bool = False,
-        flags: RepositoryInitFlag = RepositoryInitFlag.MKPATH,
-        mode: typing.Union[int, RepositoryInitMode] = RepositoryInitMode.SHARED_UMASK,
+        flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
+        mode: typing.Union[int, enums.RepositoryInitMode] = enums.RepositoryInitMode.SHARED_UMASK,
         workdir_path: typing.Optional[str] = None,
         description: typing.Optional[str] = None,
         template_path: typing.Optional[str] = None,
@@ -136,7 +99,7 @@ def init_repository(
         raise TypeError('Expected string type for path, found None.')
 
     if bare:
-        flags |= RepositoryInitFlag.BARE
+        flags |= enums.RepositoryInitFlag.BARE
 
     # Options
     options = ffi.new('git_repository_init_options *')

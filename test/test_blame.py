@@ -27,7 +27,8 @@
 
 import pytest
 
-from pygit2 import Signature, Oid, BlameFlag
+from pygit2 import Signature, Oid
+from pygit2.enums import BlameFlag
 
 
 PATH = 'hello.txt'

@@ -29,7 +29,8 @@ import sys
 
 import pytest
 
-from pygit2 import Signature, Oid, GitError, ObjectType
+from pygit2 import Signature, Oid, GitError
+from pygit2.enums import ObjectType
 from . import utils
 
 

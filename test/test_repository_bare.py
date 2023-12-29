@@ -29,11 +29,10 @@ import os
 from pathlib import Path
 import sys
 import tempfile
-
-import pygit2
 import pytest
 
-from pygit2 import ObjectType
+import pygit2
+from pygit2.enums import FileMode, ObjectType
 from . import utils
 
 
@@ -186,7 +185,7 @@ def test_conflicts_in_bare_repository(barerepo):
     def create_conflict_file(repo, branch, content):
         oid = repo.create_blob(content.encode('utf-8'))
         tb = repo.TreeBuilder()
-        tb.insert('conflict', oid, pygit2.FileMode.BLOB)
+        tb.insert('conflict', oid, FileMode.BLOB)
         tree = tb.write()
 
         sig = pygit2.Signature('Author', 'author@example.com')

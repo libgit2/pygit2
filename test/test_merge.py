@@ -29,9 +29,8 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import MergeAnalysis
-from pygit2 import FileStatus
 import pygit2
+from pygit2.enums import FileStatus, MergeAnalysis
 
 
 @pytest.mark.parametrize("id", [None, 42])

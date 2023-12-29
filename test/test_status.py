@@ -22,9 +22,11 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
-import pygit2
+
 import pytest
-from pygit2 import FileStatus
+
+import pygit2
+from pygit2.enums import FileStatus
 
 
 def test_status(dirtyrepo):

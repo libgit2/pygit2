@@ -24,7 +24,8 @@
 # Boston, MA 02110-1301, USA.
 
 import pygit2
-from pygit2 import option, ConfigLevel, ObjectType, Option
+from pygit2 import option
+from pygit2.enums import ConfigLevel, ObjectType, Option
 
 
 def __option(getter, setter, value):
@@ -61,7 +62,7 @@ def test_mwindow_mapped_limit_300():
 
 def test_cache_object_limit():
     new_limit = 2 * 1024
-    option(Option.SET_CACHE_OBJECT_LIMIT, GIT_OBJ_BLOB, new_limit)
+    option(Option.SET_CACHE_OBJECT_LIMIT, ObjectType.BLOB, new_limit)
 
 def test_cache_object_limit_proxy():
     new_limit = 4 * 1024

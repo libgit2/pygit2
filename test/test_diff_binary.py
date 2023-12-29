@@ -23,8 +23,10 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pygit2
 import pytest
+
+import pygit2
+from pygit2.enums import DiffOption
 
 from . import utils
 
@@ -54,9 +56,9 @@ Pc${NM&PdElPvrst3ey5{
 def test_binary_diff(repo):
     diff = repo.diff('HEAD', 'HEAD^')
     assert PATCH_BINARY == diff.patch
-    diff = repo.diff('HEAD', 'HEAD^', flags=pygit2.DiffOption.SHOW_BINARY)
+    diff = repo.diff('HEAD', 'HEAD^', flags=DiffOption.SHOW_BINARY)
     assert PATCH_BINARY_SHOW == diff.patch
     diff = repo.diff(b'HEAD', b'HEAD^')
     assert PATCH_BINARY == diff.patch
-    diff = repo.diff(b'HEAD', b'HEAD^', flags=pygit2.DiffOption.SHOW_BINARY)
+    diff = repo.diff(b'HEAD', b'HEAD^', flags=DiffOption.SHOW_BINARY)
     assert PATCH_BINARY_SHOW == diff.patch

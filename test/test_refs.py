@@ -29,10 +29,9 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import ReferenceType
-from pygit2 import Signature
-from pygit2 import Commit, Tree, reference_is_valid_name
+from pygit2 import Commit, Signature, Tree, reference_is_valid_name
 from pygit2 import AlreadyExistsError, GitError, InvalidSpecError
+from pygit2.enums import ReferenceType
 
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'

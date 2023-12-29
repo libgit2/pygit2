@@ -26,9 +26,10 @@
 """Tests for merging and information about it."""
 
 from pathlib import Path
+import pytest
 
 import pygit2
-import pytest
+from pygit2.enums import RepositoryState
 
 
 def test_cherrypick_none(mergerepo):
@@ -48,10 +49,10 @@ def test_cherrypick_already_something_in_index(mergerepo):
 
 
 def test_cherrypick_remove_conflicts(mergerepo):
-    assert mergerepo.state() == pygit2.RepositoryState.NONE
+    assert mergerepo.state() == RepositoryState.NONE
     other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     mergerepo.cherrypick(other_branch_tip)
-    assert mergerepo.state() == pygit2.RepositoryState.CHERRYPICK
+    assert mergerepo.state() == RepositoryState.CHERRYPICK
     idx = mergerepo.index
     conflicts = idx.conflicts
     assert conflicts is not None
@@ -60,4 +61,4 @@ def test_cherrypick_remove_conflicts(mergerepo):
     with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
     assert idx.conflicts is None
     mergerepo.state_cleanup()
-    assert mergerepo.state() == pygit2.RepositoryState.NONE
+    assert mergerepo.state() == RepositoryState.NONE

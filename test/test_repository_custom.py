@@ -24,9 +24,10 @@
 # Boston, MA 02110-1301, USA.
 
 from pathlib import Path
+import pytest
 
 import pygit2
-import pytest
+from pygit2.enums import ObjectType
 
 
 @pytest.fixture
@@ -54,4 +55,4 @@ def test_references(repo):
 
 def test_objects(repo):
     a = repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')
-    assert (pygit2.ObjectType.BLOB, b'foobar\n') == a
+    assert (ObjectType.BLOB, b'foobar\n') == a

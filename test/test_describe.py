@@ -27,7 +27,7 @@
 
 import pytest
 
-from pygit2 import DescribeStrategy
+from pygit2.enums import DescribeStrategy, ObjectType
 import pygit2
 
 
@@ -35,7 +35,7 @@ def add_tag(repo, name, target):
     message = 'Example tag.\n'
     tagger = pygit2.Signature('John Doe', 'jdoe@example.com', 12347, 0)
 
-    sha = repo.create_tag(name, target, pygit2.ObjectType.COMMIT, tagger, message)
+    sha = repo.create_tag(name, target, ObjectType.COMMIT, tagger, message)
     return sha
 
 

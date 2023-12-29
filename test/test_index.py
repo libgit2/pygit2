@@ -31,7 +31,7 @@ import pytest
 
 import pygit2
 from pygit2 import Repository, Index, Oid
-from pygit2 import FileMode
+from pygit2.enums import FileMode
 from . import utils
 
 
@@ -214,7 +214,7 @@ def test_change_attributes(testrepo):
     assert FileMode.BLOB_EXECUTABLE == entry.mode
 
 def test_write_tree_to(testrepo, tmp_path):
-    pygit2.option(pygit2.Option.ENABLE_STRICT_OBJECT_CREATION, False)
+    pygit2.option(pygit2.enums.Option.ENABLE_STRICT_OBJECT_CREATION, False)
     with utils.TemporaryRepository('emptyrepo.zip', tmp_path) as path:
         nrepo = Repository(path)
         id = testrepo.index.write_tree(nrepo)

@@ -23,7 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pygit2 import ObjectType, Oid, Signature
+from pygit2 import Oid, Signature
+from pygit2.enums import ObjectType
 
 content = """\
 tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904

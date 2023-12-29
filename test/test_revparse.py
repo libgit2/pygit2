@@ -25,7 +25,8 @@
 
 """Tests for revision parsing."""
 
-from pygit2 import RevSpecFlag, InvalidSpecError
+from pygit2 import InvalidSpecError
+from pygit2.enums import RevSpecFlag
 from pytest import raises
 
 HEAD_SHA = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'

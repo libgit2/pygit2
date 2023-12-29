@@ -31,7 +31,7 @@ import textwrap
 import pytest
 
 import pygit2
-from pygit2 import DeltaStatus, DiffOption, DiffStatsFormat
+from pygit2.enums import DeltaStatus, DiffOption, DiffStatsFormat
 
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'

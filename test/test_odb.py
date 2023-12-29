@@ -33,7 +33,7 @@ import pytest
 
 # pygit2
 from pygit2 import Odb, Oid
-from pygit2 import ObjectType
+from pygit2.enums import ObjectType
 from . import utils
 
 

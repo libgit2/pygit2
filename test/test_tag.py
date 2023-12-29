@@ -25,9 +25,10 @@
 
 """Tests for Tag objects."""
 
-import pygit2
 import pytest
-from pygit2 import ObjectType
+
+import pygit2
+from pygit2.enums import ObjectType
 
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'

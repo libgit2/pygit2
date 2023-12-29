@@ -34,7 +34,15 @@ import pytest
 import pygit2
 from pygit2 import init_repository, clone_repository, discover_repository
 from pygit2 import Oid
-from pygit2 import CheckoutNotify, CheckoutStrategy, FileStatus, ObjectType, ResetMode, StashApplyProgress
+from pygit2.enums import (
+    CheckoutNotify,
+    CheckoutStrategy,
+    FileStatus,
+    ObjectType,
+    RepositoryOpenFlag,
+    ResetMode,
+    StashApplyProgress,
+)
 from . import utils
 
 
@@ -768,20 +776,20 @@ def test_open_extended(tmp_path):
         assert repo.workdir == orig_repo.workdir
 
         with pytest.raises(pygit2.GitError):
-            repo = pygit2.Repository(subdir_path, pygit2.RepositoryOpenFlag.NO_SEARCH)
+            repo = pygit2.Repository(subdir_path, RepositoryOpenFlag.NO_SEARCH)
 
         # GIT_REPOSITORY_OPEN_NO_DOTGIT
         gitdir_path = path / '.git'
         with pytest.raises(pygit2.GitError):
-            repo = pygit2.Repository(path, pygit2.RepositoryOpenFlag.NO_DOTGIT)
+            repo = pygit2.Repository(path, RepositoryOpenFlag.NO_DOTGIT)
 
-        repo = pygit2.Repository(gitdir_path, pygit2.RepositoryOpenFlag.NO_DOTGIT)
+        repo = pygit2.Repository(gitdir_path, RepositoryOpenFlag.NO_DOTGIT)
         assert not repo.is_bare
         assert repo.path == orig_repo.path
         assert repo.workdir == orig_repo.workdir
 
         # GIT_REPOSITORY_OPEN_BARE
-        repo = pygit2.Repository(gitdir_path, pygit2.RepositoryOpenFlag.BARE)
+        repo = pygit2.Repository(gitdir_path, RepositoryOpenFlag.BARE)
         assert repo.is_bare
         assert repo.path == orig_repo.path
         assert not repo.workdir

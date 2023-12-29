@@ -24,13 +24,11 @@
 # Boston, MA 02110-1301, USA.
 
 import pygit2
+from pygit2.enums import ApplyLocation, CheckoutStrategy, FileStatus
 import pytest
 
 import os
 from pathlib import Path
-
-from pygit2 import ApplyLocation
-from pygit2 import FileStatus
 
 
 def read_content(testrepo):
@@ -57,7 +55,7 @@ def patch_diff(testrepo, new_content):
     patch = testrepo.diff().patch
 
     # Rollback all changes
-    testrepo.checkout('HEAD', strategy=pygit2.CheckoutStrategy.FORCE)
+    testrepo.checkout('HEAD', strategy=CheckoutStrategy.FORCE)
 
     # Return the diff
     return pygit2.Diff.parse_diff(patch)

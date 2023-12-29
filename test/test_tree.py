@@ -24,12 +24,12 @@
 # Boston, MA 02110-1301, USA.
 
 import operator
-
-import pygit2
 import pytest
 
+import pygit2
+from pygit2.enums import FileMode, ObjectType
+
 from . import utils
-from pygit2 import FileMode, ObjectType
 
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'

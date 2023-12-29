@@ -30,7 +30,8 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import CredentialType, Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
+from pygit2 import Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
+from pygit2.enums import CredentialType
 from . import utils
 
 

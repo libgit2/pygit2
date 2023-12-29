@@ -28,7 +28,7 @@
 import pygit2
 import pytest
 import os
-from pygit2 import BranchType
+from pygit2.enums import BranchType
 
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'

@@ -33,7 +33,7 @@ from queue import Queue
 import pytest
 
 import pygit2
-from pygit2 import ObjectType
+from pygit2.enums import ObjectType
 from . import utils
 
 

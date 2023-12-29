@@ -3,7 +3,7 @@ import codecs
 import pytest
 
 import pygit2
-from pygit2 import BlobFilter
+from pygit2.enums import BlobFilter
 from pygit2.errors import Passthrough
 
 

@@ -27,7 +27,8 @@
 
 import pytest
 
-from pygit2 import ObjectType, Tree, Tag
+from pygit2 import Tree, Tag
+from pygit2.enums import ObjectType
 
 
 BLOB_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
