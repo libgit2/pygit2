@@ -81,6 +81,7 @@ from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .filter import Filter
 from .index import Index, IndexEntry
+from .legacyenums import *
 from .packbuilder import PackBuilder
 from .remotes import Remote
 from .repository import Repository
@@ -91,86 +92,6 @@ from .utils import to_bytes, to_str
 
 # Features
 features = Feature(C.git_libgit2_features())
-
-# GIT_FEATURE_* values for legacy code
-GIT_FEATURE_THREADS = Feature.THREADS
-GIT_FEATURE_HTTPS   = Feature.HTTPS
-GIT_FEATURE_SSH     = Feature.SSH
-GIT_FEATURE_NSEC    = Feature.NSEC
-
-# GIT_REPOSITORY_INIT_* values for legacy code
-GIT_REPOSITORY_INIT_BARE                = RepositoryInitFlag.BARE
-GIT_REPOSITORY_INIT_NO_REINIT           = RepositoryInitFlag.NO_REINIT
-GIT_REPOSITORY_INIT_NO_DOTGIT_DIR       = RepositoryInitFlag.NO_DOTGIT_DIR
-GIT_REPOSITORY_INIT_MKDIR               = RepositoryInitFlag.MKDIR
-GIT_REPOSITORY_INIT_MKPATH              = RepositoryInitFlag.MKPATH
-GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE   = RepositoryInitFlag.EXTERNAL_TEMPLATE
-GIT_REPOSITORY_INIT_RELATIVE_GITLINK    = RepositoryInitFlag.RELATIVE_GITLINK
-GIT_REPOSITORY_INIT_SHARED_UMASK        = RepositoryInitMode.SHARED_UMASK
-GIT_REPOSITORY_INIT_SHARED_GROUP        = RepositoryInitMode.SHARED_GROUP
-GIT_REPOSITORY_INIT_SHARED_ALL          = RepositoryInitMode.SHARED_ALL
-
-# GIT_REPOSITORY_OPEN_* values for legacy code
-GIT_REPOSITORY_OPEN_NO_SEARCH   = RepositoryOpenFlag.NO_SEARCH
-GIT_REPOSITORY_OPEN_CROSS_FS    = RepositoryOpenFlag.CROSS_FS
-GIT_REPOSITORY_OPEN_BARE        = RepositoryOpenFlag.BARE
-GIT_REPOSITORY_OPEN_NO_DOTGIT   = RepositoryOpenFlag.NO_DOTGIT
-GIT_REPOSITORY_OPEN_FROM_ENV    = RepositoryOpenFlag.FROM_ENV
-
-# GIT_REPOSITORY_STATE_* values for legacy code
-GIT_REPOSITORY_STATE_NONE                    = RepositoryState.NONE
-GIT_REPOSITORY_STATE_MERGE                   = RepositoryState.MERGE
-GIT_REPOSITORY_STATE_REVERT                  = RepositoryState.REVERT
-GIT_REPOSITORY_STATE_REVERT_SEQUENCE         = RepositoryState.REVERT_SEQUENCE
-GIT_REPOSITORY_STATE_CHERRYPICK              = RepositoryState.CHERRYPICK
-GIT_REPOSITORY_STATE_CHERRYPICK_SEQUENCE     = RepositoryState.CHERRYPICK_SEQUENCE
-GIT_REPOSITORY_STATE_BISECT                  = RepositoryState.BISECT
-GIT_REPOSITORY_STATE_REBASE                  = RepositoryState.REBASE
-GIT_REPOSITORY_STATE_REBASE_INTERACTIVE      = RepositoryState.REBASE_INTERACTIVE
-GIT_REPOSITORY_STATE_REBASE_MERGE            = RepositoryState.REBASE_MERGE
-GIT_REPOSITORY_STATE_APPLY_MAILBOX           = RepositoryState.APPLY_MAILBOX
-GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE = RepositoryState.APPLY_MAILBOX_OR_REBASE
-
-# GIT_ATTR_CHECK_* values for legacy code
-GIT_ATTR_CHECK_FILE_THEN_INDEX = AttrCheck.FILE_THEN_INDEX
-GIT_ATTR_CHECK_INDEX_THEN_FILE = AttrCheck.INDEX_THEN_FILE
-GIT_ATTR_CHECK_INDEX_ONLY      = AttrCheck.INDEX_ONLY
-GIT_ATTR_CHECK_NO_SYSTEM       = AttrCheck.NO_SYSTEM
-GIT_ATTR_CHECK_INCLUDE_HEAD    = AttrCheck.INCLUDE_HEAD
-GIT_ATTR_CHECK_INCLUDE_COMMIT  = AttrCheck.INCLUDE_COMMIT
-
-# GIT_FETCH_PRUNE_* values for legacy code
-GIT_FETCH_PRUNE_UNSPECIFIED    = FetchPrune.UNSPECIFIED
-GIT_FETCH_PRUNE                = FetchPrune.PRUNE
-GIT_FETCH_NO_PRUNE             = FetchPrune.NO_PRUNE
-
-# GIT_CHECKOUT_NOTIFY_* values for legacy code
-GIT_CHECKOUT_NOTIFY_NONE       = CheckoutNotify.NONE
-GIT_CHECKOUT_NOTIFY_CONFLICT   = CheckoutNotify.CONFLICT
-GIT_CHECKOUT_NOTIFY_DIRTY      = CheckoutNotify.DIRTY
-GIT_CHECKOUT_NOTIFY_UPDATED    = CheckoutNotify.UPDATED
-GIT_CHECKOUT_NOTIFY_UNTRACKED  = CheckoutNotify.UNTRACKED
-GIT_CHECKOUT_NOTIFY_IGNORED    = CheckoutNotify.IGNORED
-GIT_CHECKOUT_NOTIFY_ALL        = CheckoutNotify.ALL
-
-# GIT_STASH_APPLY_PROGRESS_* values for legacy code
-GIT_STASH_APPLY_PROGRESS_NONE               = StashApplyProgress.NONE
-GIT_STASH_APPLY_PROGRESS_LOADING_STASH      = StashApplyProgress.LOADING_STASH
-GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX      = StashApplyProgress.ANALYZE_INDEX
-GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED   = StashApplyProgress.ANALYZE_MODIFIED
-GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED  = StashApplyProgress.ANALYZE_UNTRACKED
-GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED = StashApplyProgress.CHECKOUT_UNTRACKED
-GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED  = StashApplyProgress.CHECKOUT_MODIFIED
-GIT_STASH_APPLY_PROGRESS_DONE               = StashApplyProgress.DONE
-
-# GIT_CREDENTIAL_* values for legacy code
-GIT_CREDENTIAL_USERPASS_PLAINTEXT           = CredentialType.USERPASS_PLAINTEXT
-GIT_CREDENTIAL_SSH_KEY                      = CredentialType.SSH_KEY
-GIT_CREDENTIAL_SSH_CUSTOM                   = CredentialType.SSH_CUSTOM
-GIT_CREDENTIAL_DEFAULT                      = CredentialType.DEFAULT
-GIT_CREDENTIAL_SSH_INTERACTIVE              = CredentialType.SSH_INTERACTIVE
-GIT_CREDENTIAL_USERNAME                     = CredentialType.USERNAME
-GIT_CREDENTIAL_SSH_MEMORY                   = CredentialType.SSH_MEMORY
 
 # libgit version tuple
 LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)
