@@ -87,6 +87,7 @@ int git_repository_ident(const char **name, const char **email, const git_reposi
 int git_repository_set_ident(git_repository *repo, const char *name, const char *email);
 int git_repository_index(git_index **out, git_repository *repo);
 git_repository_state_t git_repository_state(git_repository *repo);
-
+int git_repository_message(git_buf *out, git_repository *repo);
+int git_repository_message_remove(git_repository *repo);
 int git_repository_submodule_cache_all(git_repository *repo);
 int git_repository_submodule_cache_clear(git_repository *repo);

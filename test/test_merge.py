@@ -286,3 +286,26 @@ def test_merge_mergeheads(mergerepo):
 
     mergerepo.state_cleanup()
     assert mergerepo.listall_mergeheads() == [], "state_cleanup() should wipe the mergeheads"
+
+
+def test_merge_message(mergerepo):
+    assert not mergerepo.message
+    assert not mergerepo.raw_message
+
+    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    mergerepo.merge(branch_head_hex)
+
+    assert mergerepo.message.startswith(f"Merge commit '{branch_head_hex}'")
+    assert mergerepo.message.encode('utf-8') == mergerepo.raw_message
+
+    mergerepo.state_cleanup()
+    assert not mergerepo.message
+
+
+def test_merge_remove_message(mergerepo):
+    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    mergerepo.merge(branch_head_hex)
+
+    assert mergerepo.message.startswith(f"Merge commit '{branch_head_hex}'")
+    mergerepo.remove_message()
+    assert not mergerepo.message

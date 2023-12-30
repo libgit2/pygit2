@@ -958,6 +958,51 @@ class BaseRepository(_Repository):
         check_error(err)
 
     #
+    # Prepared message (MERGE_MSG)
+    #
+    @property
+    def raw_message(self) -> bytes:
+        """
+        Retrieve git's prepared message (bytes).
+        See `Repository.message` for more information.
+        """
+        buf = ffi.new('git_buf *', (ffi.NULL, 0))
+        try:
+            err = C.git_repository_message(buf, self._repo)
+            if err == C.GIT_ENOTFOUND:
+                return b''
+            check_error(err)
+            return ffi.string(buf.ptr)
+        finally:
+            C.git_buf_dispose(buf)
+
+    @property
+    def message(self) -> str:
+        """
+        Retrieve git's prepared message.
+
+        Operations such as git revert/cherry-pick/merge with the -n option stop
+        just short of creating a commit with the changes and save their
+        prepared message in .git/MERGE_MSG so the next git-commit execution can
+        present it to the user for them to amend if they wish.
+
+        Use this function to get the contents of this file. Don't forget to
+        call `Repository.remove_message()` after you create the commit.
+
+        Note that the message is also removed by `Repository.state_cleanup()`.
+
+        If there is no such message, an empty string is returned.
+        """
+        return self.raw_message.decode('utf-8')
+
+    def remove_message(self):
+        """
+        Remove git's prepared message.
+        """
+        err = C.git_repository_message_remove(self._repo)
+        check_error(err)
+
+    #
     # Describe
     #
     def describe(self, committish=None, max_candidates_tags=None,
