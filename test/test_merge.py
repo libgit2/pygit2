@@ -274,3 +274,15 @@ def test_merge_octopus(mergerepo):
     merge_tree = index.write_tree()
 
     assert merge_tree == merge_commits_tree
+
+
+def test_merge_mergeheads(mergerepo):
+    assert mergerepo.listall_mergeheads() == []
+
+    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    mergerepo.merge(branch_head_hex)
+
+    assert mergerepo.listall_mergeheads() == [pygit2.Oid(hex=branch_head_hex)]
+
+    mergerepo.state_cleanup()
+    assert mergerepo.listall_mergeheads() == [], "state_cleanup() should wipe the mergeheads"

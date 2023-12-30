@@ -2336,6 +2336,52 @@ Repository_listall_stashes(Repository *self, PyObject *args)
     }
 }
 
+static int foreach_mergehead_cb(const git_oid *oid, void *payload)
+{
+    PyObject* py_oid = git_oid_to_python(oid);
+    if (py_oid == NULL)
+        return GIT_EUSER;
+
+    PyObject* list = (PyObject*) payload;
+    int err = PyList_Append(list, (PyObject*) py_oid);
+    Py_DECREF(py_oid);
+    if (err < 0)
+        return GIT_EUSER;
+
+    return 0;
+}
+
+PyDoc_STRVAR(Repository_listall_mergeheads__doc__,
+  "listall_mergeheads() -> list[Oid]\n"
+  "\n"
+  "If a merge is in progress, return a list of all commit oids in the MERGE_HEAD file.\n"
+  "Return an empty list if there is no MERGE_HEAD file (no merge in progress).");
+
+PyObject *
+Repository_listall_mergeheads(Repository *self, PyObject *args)
+{
+    int err;
+
+    PyObject *list = PyList_New(0);
+    if (list == NULL)
+        return NULL;
+
+    err = git_repository_mergehead_foreach(self->repo, foreach_mergehead_cb, (void*)list);
+
+    if (err == 0) {
+        return list;
+    } else if (err == GIT_ENOTFOUND) {
+        /* MERGE_HEAD not found - return empty list */
+        return list;
+    }
+    else {
+        Py_CLEAR(list);
+        if (PyErr_Occurred())
+            return NULL;
+        return Error_set(err);
+    }
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_O),
@@ -2389,6 +2435,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, set_odb, METH_O),
     METHOD(Repository, set_refdb, METH_O),
     METHOD(Repository, listall_stashes, METH_NOARGS),
+    METHOD(Repository, listall_mergeheads, METH_NOARGS),
     {NULL}
 };
 
