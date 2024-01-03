@@ -1,18 +1,23 @@
 from typing import Iterator, Literal, Optional, overload
 from io import IOBase
 from . import Index, Submodule
-from .enums import ApplyLocation
-from .enums import BranchType
-from .enums import DiffFind
-from .enums import DiffOption
-from .enums import DiffStatsFormat
-from .enums import MergeAnalysis
-from .enums import MergePreference
-from .enums import ObjectType
-from .enums import Option
-from .enums import ReferenceFilter
-from .enums import ResetMode
-from .enums import SortMode
+from .enums import (
+    ApplyLocation,
+    BranchType,
+    DiffFind,
+    DiffFlag,
+    DiffOption,
+    DiffStatsFormat,
+    FileMode,
+    FileStatus,
+    MergeAnalysis,
+    MergePreference,
+    ObjectType,
+    Option,
+    ReferenceFilter,
+    ResetMode,
+    SortMode,
+)
 
 GIT_OBJ_BLOB: Literal[3]
 GIT_OBJ_COMMIT: Literal[1]
@@ -139,19 +144,19 @@ class Diff:
     def __len__(self) -> int: ...
 
 class DiffDelta:
-    flags: int
+    flags: DiffFlag
     is_binary: bool
-    new_file: DiffFile
     nfiles: int
+    new_file: DiffFile
     old_file: DiffFile
     similarity: int
-    status: int
+    status: FileStatus
     def status_char(self) -> str: ...
 
 class DiffFile:
-    flags: int
+    flags: DiffFlag
     id: Oid
-    mode: int
+    mode: FileMode
     path: str
     raw_path: bytes
     size: int

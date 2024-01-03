@@ -65,6 +65,10 @@ extern PyTypeObject NoteIterType;
 extern PyTypeObject StashType;
 extern PyTypeObject RefsIteratorType;
 
+extern PyObject *FileStatusEnum;
+extern PyObject *MergeAnalysisEnum;
+extern PyObject *MergePreferenceEnum;
+
 /* forward-declaration for Repsository._from_c() */
 PyTypeObject RepositoryType;
 
@@ -705,7 +709,22 @@ Repository_merge_analysis(Repository *self, PyObject *args)
         goto out;
     }
 
-    py_result = Py_BuildValue("(ii)", analysis, preference);
+    // Convert analysis to MergeAnalysis enum
+    PyObject *analysis_enum = pygit2_enum(MergeAnalysisEnum, analysis);
+    if (!analysis_enum) {
+        py_result = NULL;
+        goto out;
+    }
+
+    // Convert preference to MergePreference enum
+    PyObject *preference_enum = pygit2_enum(MergePreferenceEnum, preference);
+    if (!preference_enum) {
+        py_result = NULL;
+        Py_DECREF(analysis_enum);
+        goto out;
+    }
+
+    py_result = Py_BuildValue("(OO)", analysis_enum, preference_enum);
 
 out:
     git_reference_free(our_ref);
@@ -1754,14 +1773,17 @@ Repository_status(Repository *self, PyObject *args, PyObject *kw)
             path = entry->head_to_index->old_file.path;
         else
             path = entry->index_to_workdir->old_file.path;
-        status = PyLong_FromLong((long) entry->status);
+
+        /* Get corresponding entry in enums.FileStatus for status int */
+        status = pygit2_enum(FileStatusEnum, entry->status);
+        if (status == NULL)
+            goto error;
 
         err = PyDict_SetItemString(dict, path, status);
         Py_CLEAR(status);
 
         if (err < 0)
             goto error;
-
     }
 
     git_status_list_free(list);
@@ -1775,7 +1797,7 @@ error:
 
 
 PyDoc_STRVAR(Repository_status_file__doc__,
-  "status_file(path: str) -> int\n"
+  "status_file(path: str) -> enums.FileStatus\n"
   "\n"
   "Returns the status of the given file path.");
 
@@ -1795,7 +1817,7 @@ Repository_status_file(Repository *self, PyObject *value)
     }
     free(path);
 
-    return PyLong_FromLong(status);
+    return pygit2_enum(FileStatusEnum, (int) status);
 }
 
 

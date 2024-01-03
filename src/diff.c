@@ -47,6 +47,10 @@ extern PyTypeObject DiffLineType;
 extern PyTypeObject DiffStatsType;
 extern PyTypeObject RepositoryType;
 
+extern PyObject *DeltaStatusEnum;
+extern PyObject *DiffFlagEnum;
+extern PyObject *FileModeEnum;
+
 PyObject *
 wrap_diff(git_diff *diff, Repository *repo)
 {
@@ -204,18 +208,42 @@ DiffFile_from_c(DiffFile *dummy, PyObject *py_diff_file_ptr)
     return wrap_diff_file(diff_file);
 }
 
+PyDoc_STRVAR(DiffFile_flags__doc__,
+    "A combination of enums.DiffFlag constants."
+);
+
+PyObject *
+DiffFile_flags__get__(DiffFile *self)
+{
+    return pygit2_enum(DiffFlagEnum, self->flags);
+}
+
+PyDoc_STRVAR(DiffFile_mode__doc__,
+    "Mode of the entry (an enums.FileMode constant)."
+);
+
+PyObject *
+DiffFile_mode__get__(DiffFile *self)
+{
+    return pygit2_enum(FileModeEnum, self->mode);
+}
+
 PyMemberDef DiffFile_members[] = {
     MEMBER(DiffFile, id, T_OBJECT, "Oid of the item."),
     MEMBER(DiffFile, path, T_STRING, "Path to the entry."),
     MEMBER(DiffFile, raw_path, T_OBJECT, "Path to the entry (bytes)."),
     MEMBER(DiffFile, size, T_LONG, "Size of the entry."),
-    MEMBER(DiffFile, flags, T_UINT, "Combination of GIT_DIFF_FLAG_* flags."),
-    MEMBER(DiffFile, mode, T_USHORT, "Mode of the entry."),
     {NULL}
 };
 
 PyMethodDef DiffFile_methods[] = {
     METHOD(DiffFile, from_c, METH_STATIC | METH_O),
+    {NULL},
+};
+
+PyGetSetDef DiffFile_getsetters[] = {
+    GETTER(DiffFile, flags),
+    GETTER(DiffFile, mode),
     {NULL},
 };
 
@@ -251,7 +279,7 @@ PyTypeObject DiffFileType = {
     0,                                         /* tp_iternext       */
     DiffFile_methods,                          /* tp_methods        */
     DiffFile_members,                          /* tp_members        */
-    0,                                         /* tp_getset         */
+    DiffFile_getsetters,                       /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */
     0,                                         /* tp_descr_get      */
@@ -294,6 +322,26 @@ DiffDelta_is_binary__get__(DiffDelta *self)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(DiffDelta_status__doc__,
+    "An enums.FileStatus constant."
+);
+
+PyObject *
+DiffDelta_status__get__(DiffDelta *self)
+{
+    return pygit2_enum(DeltaStatusEnum, self->status);
+}
+
+PyDoc_STRVAR(DiffDelta_flags__doc__,
+    "A combination of enums.DiffFlag constants."
+);
+
+PyObject *
+DiffDelta_flags__get__(DiffDelta *self)
+{
+    return pygit2_enum(DiffFlagEnum, self->flags);
+}
+
 static void
 DiffDelta_dealloc(DiffDelta *self)
 {
@@ -308,8 +356,6 @@ static PyMethodDef DiffDelta_methods[] = {
 };
 
 PyMemberDef DiffDelta_members[] = {
-    MEMBER(DiffDelta, status, T_UINT, "A GIT_DELTA_* constant."),
-    MEMBER(DiffDelta, flags, T_UINT, "Combination of GIT_DIFF_FLAG_* flags."),
     MEMBER(DiffDelta, similarity, T_USHORT, "For renamed and copied."),
     MEMBER(DiffDelta, nfiles, T_USHORT, "Number of files in the delta."),
     MEMBER(DiffDelta, old_file, T_OBJECT, "\"from\" side of the diff."),
@@ -319,6 +365,8 @@ PyMemberDef DiffDelta_members[] = {
 
 PyGetSetDef DiffDelta_getsetters[] = {
     GETTER(DiffDelta, is_binary),
+    GETTER(DiffDelta, status),
+    GETTER(DiffDelta, flags),
     {NULL}
 };
 

@@ -59,6 +59,11 @@ features = enums.Feature(C.git_libgit2_features())
 # libgit version tuple
 LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)
 
+# Let _pygit2 cache references to Python enum types.
+# This is separate from PyInit__pygit2() to avoid a circular import.
+cache_enums()
+del cache_enums  # Don't expose this to user code
+
 
 def init_repository(
         path: typing.Union[str, bytes, PathLike, None],

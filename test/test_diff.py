@@ -31,7 +31,7 @@ import textwrap
 import pytest
 
 import pygit2
-from pygit2.enums import DeltaStatus, DiffOption, DiffStatsFormat
+from pygit2.enums import DeltaStatus, DiffFlag, DiffOption, DiffStatsFormat, FileMode
 
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -174,9 +174,13 @@ def test_diff_tree(barerepo):
         assert hunk.new_start == 1
         assert hunk.new_lines == 1
 
-        assert patch.delta.old_file.path == 'a'
-        assert patch.delta.new_file.path == 'a'
-        assert patch.delta.is_binary == False
+        assert not patch.delta.is_binary
+        assert patch.delta.flags & DiffFlag.NOT_BINARY
+
+        for dfile in patch.delta.old_file, patch.delta.new_file:
+            assert dfile.path == 'a'
+            assert dfile.flags == DiffFlag.NOT_BINARY | DiffFlag.VALID_ID | DiffFlag.VALID_SIZE | DiffFlag.EXISTS
+            assert dfile.mode == FileMode.BLOB
 
     _test(commit_a.tree.diff_to_tree(commit_b.tree))
     _test(barerepo.diff(COMMIT_SHA1_1, COMMIT_SHA1_2))
@@ -317,6 +321,8 @@ def test_deltas(barerepo):
         assert delta.nfiles == patch_delta.nfiles
         assert delta.old_file.id == patch_delta.old_file.id
         assert delta.new_file.id == patch_delta.new_file.id
+        assert delta.old_file.mode == patch_delta.old_file.mode
+        assert delta.new_file.mode == patch_delta.new_file.mode
 
         # As explained in the libgit2 documentation, flags are not set
         #assert delta.flags == patch_delta.flags

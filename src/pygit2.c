@@ -42,6 +42,13 @@ PyObject *GitError;
 PyObject *AlreadyExistsError;
 PyObject *InvalidSpecError;
 
+PyObject *DeltaStatusEnum;
+PyObject *DiffFlagEnum;
+PyObject *FileModeEnum;
+PyObject *FileStatusEnum;
+PyObject *MergeAnalysisEnum;
+PyObject *MergePreferenceEnum;
+
 extern PyTypeObject RepositoryType;
 extern PyTypeObject OdbType;
 extern PyTypeObject OdbBackendType;
@@ -361,6 +368,74 @@ filter_unregister(PyObject *self, PyObject *args)
 }
 
 
+static void
+forget_enums(void)
+{
+    Py_XDECREF(DeltaStatusEnum);
+    Py_XDECREF(DiffFlagEnum);
+    Py_XDECREF(FileModeEnum);
+    Py_XDECREF(FileStatusEnum);
+    Py_XDECREF(MergeAnalysisEnum);
+    Py_XDECREF(MergePreferenceEnum);
+
+    DeltaStatusEnum = NULL;
+    DiffFlagEnum = NULL;
+    FileModeEnum = NULL;
+    FileStatusEnum = NULL;
+    MergeAnalysisEnum = NULL;
+    MergePreferenceEnum = NULL;
+}
+
+PyDoc_STRVAR(cache_enums__doc__,
+    "cache_enums()\n"
+    "\n"
+    "For internal use only. Do not call this from user code.\n"
+    "\n"
+    "Let the _pygit2 C module cache references to Python enums\n"
+    "defined in pygit2.enums.\n");
+
+PyObject *
+cache_enums(PyObject *self, PyObject *args)
+{
+    (void) args;
+
+    /* In case this is somehow being called several times, let go of old references */
+    forget_enums();
+
+    PyObject *enums = PyImport_ImportModule("pygit2.enums");
+    if (enums == NULL) {
+        return NULL;
+    }
+
+#define CACHE_PYGIT2_ENUM(name) do { \
+    name##Enum = PyObject_GetAttrString(enums, #name); \
+    if (name##Enum == NULL) { goto fail; } \
+} while (0)
+
+    CACHE_PYGIT2_ENUM(DeltaStatus);
+    CACHE_PYGIT2_ENUM(DiffFlag);
+    CACHE_PYGIT2_ENUM(FileMode);
+    CACHE_PYGIT2_ENUM(FileStatus);
+    CACHE_PYGIT2_ENUM(MergeAnalysis);
+    CACHE_PYGIT2_ENUM(MergePreference);
+
+#undef CACHE_PYGIT2_ENUM
+
+    Py_RETURN_NONE;
+
+fail:
+    Py_DECREF(enums);
+    forget_enums();
+    return NULL;
+}
+
+void
+free_module(void *self)
+{
+    forget_enums();
+}
+
+
 PyMethodDef module_methods[] = {
     {"discover_repository", discover_repository, METH_VARARGS, discover_repository__doc__},
     {"hash", hash, METH_VARARGS, hash__doc__},
@@ -371,9 +446,9 @@ PyMethodDef module_methods[] = {
     {"tree_entry_cmp", tree_entry_cmp, METH_VARARGS, tree_entry_cmp__doc__},
     {"filter_register", (PyCFunction)filter_register, METH_VARARGS | METH_KEYWORDS, filter_register__doc__},
     {"filter_unregister", filter_unregister, METH_VARARGS, filter_unregister__doc__},
+    {"cache_enums", cache_enums, METH_NOARGS, cache_enums__doc__},
     {NULL}
 };
-
 
 struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
@@ -384,7 +459,7 @@ struct PyModuleDef moduledef = {
     NULL,                            /* m_reload */
     NULL,                            /* m_traverse */
     NULL,                            /* m_clear */
-    NULL,                            /* m_free */
+    free_module,                     /* m_free */
 };
 
 PyMODINIT_FUNC

@@ -99,6 +99,11 @@ char* pgit_encode_fsdefault(PyObject *value);
 
 git_otype py_object_to_otype(PyObject *py_type);
 
+
+/* Enum utilities (pygit2.enums) */
+PyObject *pygit2_enum(PyObject *enum_type, int value);
+
+
 /* Helpers to make shorter PyMethodDef and PyGetSetDef blocks */
 #define METHOD(type, name, args)\
   {#name, (PyCFunction) type ## _ ## name, args, type ## _ ## name ## __doc__}

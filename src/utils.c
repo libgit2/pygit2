@@ -276,3 +276,18 @@ py_object_to_otype(PyObject *py_type)
     PyErr_SetString(PyExc_ValueError, "invalid target type");
     return GIT_OBJECT_INVALID; /* -1 */
 }
+
+
+/**
+ * Convert an integer to a reference to an IntEnum or IntFlag in pygit2.enums.
+ */
+PyObject *
+pygit2_enum(PyObject *enum_type, int value)
+{
+    if (!enum_type) {
+        PyErr_SetString(PyExc_TypeError, "an enum has not been cached in _pygit2.cache_enums()");
+        return NULL;
+    }
+    PyObject *enum_instance = PyObject_CallFunction(enum_type, "(i)", value);
+    return enum_instance;
+}
