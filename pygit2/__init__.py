@@ -30,6 +30,7 @@ import typing
 
 # Low level API
 from ._pygit2 import *
+from ._pygit2 import _cache_enums
 
 # High level API
 from . import enums
@@ -61,8 +62,7 @@ LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)
 
 # Let _pygit2 cache references to Python enum types.
 # This is separate from PyInit__pygit2() to avoid a circular import.
-cache_enums()
-del cache_enums  # Don't expose this to user code
+_cache_enums()
 
 
 def init_repository(

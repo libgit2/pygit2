@@ -379,8 +379,8 @@ forget_enums(void)
     Py_CLEAR(MergePreferenceEnum);
 }
 
-PyDoc_STRVAR(cache_enums__doc__,
-    "cache_enums()\n"
+PyDoc_STRVAR(_cache_enums__doc__,
+    "_cache_enums()\n"
     "\n"
     "For internal use only. Do not call this from user code.\n"
     "\n"
@@ -388,7 +388,7 @@ PyDoc_STRVAR(cache_enums__doc__,
     "defined in pygit2.enums.\n");
 
 PyObject *
-cache_enums(PyObject *self, PyObject *args)
+_cache_enums(PyObject *self, PyObject *args)
 {
     (void) args;
 
@@ -439,7 +439,7 @@ PyMethodDef module_methods[] = {
     {"tree_entry_cmp", tree_entry_cmp, METH_VARARGS, tree_entry_cmp__doc__},
     {"filter_register", (PyCFunction)filter_register, METH_VARARGS | METH_KEYWORDS, filter_register__doc__},
     {"filter_unregister", filter_unregister, METH_VARARGS, filter_unregister__doc__},
-    {"cache_enums", cache_enums, METH_NOARGS, cache_enums__doc__},
+    {"_cache_enums", _cache_enums, METH_NOARGS, _cache_enums__doc__},
     {NULL}
 };
 
