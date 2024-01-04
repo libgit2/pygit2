@@ -371,19 +371,12 @@ filter_unregister(PyObject *self, PyObject *args)
 static void
 forget_enums(void)
 {
-    Py_XDECREF(DeltaStatusEnum);
-    Py_XDECREF(DiffFlagEnum);
-    Py_XDECREF(FileModeEnum);
-    Py_XDECREF(FileStatusEnum);
-    Py_XDECREF(MergeAnalysisEnum);
-    Py_XDECREF(MergePreferenceEnum);
-
-    DeltaStatusEnum = NULL;
-    DiffFlagEnum = NULL;
-    FileModeEnum = NULL;
-    FileStatusEnum = NULL;
-    MergeAnalysisEnum = NULL;
-    MergePreferenceEnum = NULL;
+    Py_CLEAR(DeltaStatusEnum);
+    Py_CLEAR(DiffFlagEnum);
+    Py_CLEAR(FileModeEnum);
+    Py_CLEAR(FileStatusEnum);
+    Py_CLEAR(MergeAnalysisEnum);
+    Py_CLEAR(MergePreferenceEnum);
 }
 
 PyDoc_STRVAR(cache_enums__doc__,
