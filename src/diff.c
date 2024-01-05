@@ -541,6 +541,17 @@ PyTypeObject DiffIterType = {
 PyObject *
 diff_get_delta_byindex(git_diff *diff, size_t idx)
 {
+    git_patch *patch = NULL;
+    int err;
+
+    /* create a git_patch in order to store delta->flags */
+    err = git_patch_from_diff(&patch, diff, idx);
+    if (err < 0) {
+        PyErr_SetObject(PyExc_IndexError, PyLong_FromSize_t(idx));
+        return NULL;
+    }
+    git_patch_free(patch);
+
     const git_diff_delta *delta = git_diff_get_delta(diff, idx);
     if (delta == NULL) {
         PyErr_SetObject(PyExc_IndexError, PyLong_FromSize_t(idx));
