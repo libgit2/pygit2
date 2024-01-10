@@ -4,6 +4,25 @@
 - New ``Repository.submodules`` namespace
   `#1250 <https://github.com/libgit2/pygit2/pull/1250>`_
 
+- New ``pygit2.enums`` supersedes the ``GIT_`` constants
+  `#1251 <https://github.com/libgit2/pygit2/pull/1251>`_
+
+- New ``Repository.listall_mergeheads()``, ``Repository.message``,
+  ``Repository.raw_message`` and ``Repository.remove_message()``
+  `#1261 <https://github.com/libgit2/pygit2/pull/1261>`_
+
+- Changed now ``Repository.status(...)``, ``Repository.status_file(...)``,
+  ``Repository.merge_analysis(...)``, ``DiffFile.flags``, ``DiffFile.mode``,
+  ``DiffDelta.flags`` and ``DiffDelta.status`` return enums
+  `#1263 <https://github.com/libgit2/pygit2/pull/1263>`_
+
+- Fix crash in filter cleanup
+  `#1259 <https://github.com/libgit2/pygit2/pull/1259>`_
+
+- Documentation fixes
+  `#1255 <https://github.com/libgit2/pygit2/pull/1255>`_
+  `#1258 <https://github.com/libgit2/pygit2/pull/1258>`_
+
 Breaking changes:
 
 - Remove deprecated ``Repository.create_remote(...)`` function,
@@ -15,6 +34,7 @@ Deprecations:
 - Deprecate ``Repository.lookup_submodule(...)``, use ``Repository.submodules[...]``
 - Deprecate ``Repository.init_submodules(...)``, use ``Repository.submodules.init(...)``
 - Deprecate ``Repository.update_submodule(...)``, use ``Repository.submodules.update(...)``
+- Deprecate ``GIT_*`` constants, use ``pygit2.enums``
 
 
 1.13.3 (2023-11-21)
