@@ -51,10 +51,9 @@ example `three-argument rebases`_.
     cherry = repo.revparse_single('9e044d03c')
     basket = repo.branches.get('basket')
 
-    base      = repo.merge_base(cherry.id, basket.target)
-    base_tree = cherry.parents[0].tree
+    base = repo.merge_base(cherry.id, basket.target)
 
-    index = repo.merge_trees(base_tree, basket, cherry)
+    index = repo.merge_trees(base, basket, cherry)
     tree_id = index.write_tree(repo)
 
     author    = cherry.author
