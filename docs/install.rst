@@ -50,7 +50,7 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.8 to 3.12
+- Python 3.9 to 3.12
 - PyPy3 7.3+
 
 Python requirements (these are specified in ``setup.py``):
@@ -85,6 +85,8 @@ of Python and the required libgit2 version.
 
 +-----------+----------------+------------+
 | pygit2    | Python         | libgit2    |
++-----------+----------------+------------+
+| 1.14      | 3.9 - 3.12     | 1.7        |
 +-----------+----------------+------------+
 | 1.13      | 3.8 - 3.12     | 1.7        |
 +-----------+----------------+------------+

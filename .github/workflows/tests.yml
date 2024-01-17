@@ -13,13 +13,13 @@ jobs:
       matrix:
         include:
         - os: ubuntu-22.04
-          python-version: 3.8
+          python-version: 3.9
         - os: ubuntu-22.04
           python-version: '3.12'
         - os: ubuntu-22.04
           python-version: 'pypy3.9'
         - os: macos-latest
-          python-version: 3.8
+          python-version: 3.9
 
     steps:
     - name: Checkout pygit2

@@ -30,7 +30,7 @@ jobs:
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
-    
+
       - uses: actions/upload-artifact@v3
         with:
           name: wheels
@@ -54,4 +54,3 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
-        

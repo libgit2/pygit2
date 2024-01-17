@@ -1,6 +1,11 @@
 1.14.0 (UNRELEASED)
 -------------------------
 
+- Drop support for Python 3.8
+
+- Add Linux wheels for musl
+  `#1266 <https://github.com/libgit2/pygit2/pull/1266>`_
+
 - New ``Repository.submodules`` namespace
   `#1250 <https://github.com/libgit2/pygit2/pull/1250>`_
 
@@ -22,6 +27,8 @@
 - Documentation fixes
   `#1255 <https://github.com/libgit2/pygit2/pull/1255>`_
   `#1258 <https://github.com/libgit2/pygit2/pull/1258>`_
+  `#1268 <https://github.com/libgit2/pygit2/pull/1268>`_
+  `#1270 <https://github.com/libgit2/pygit2/pull/1270>`_
 
 Breaking changes:
 
