@@ -8,10 +8,6 @@ environment:
       secure: 7YD82RnQJ9rnJE/josiQ/V6VWh+tlhmJpWVM/u5jGdl8XqyhsLEKF5MNMYd4ZYxA/MGaYBCQ525d4m9RSDk9RB+uIFMZJLnl1eOjHQVyJ+ZZmJb65tqd/fR5hybhWtVhn+0wANiI4uqrojFFVy1HjfBYSrvyk+7LLDxfSVTqkhMEhbZbWBpGP/3VET1gPy+qdlWcL7quwhSBPSbKpyMi/cqvp5/yFLAM615RRABgQUDpRyXxtBTReRgWSxi9kUXXqR18ZvQlvMLnAsEnGFRenA==
   matrix:
   - GENERATOR: 'Visual Studio 14'
-    PYTHON: 'C:\Python38\python.exe'
-  - GENERATOR: 'Visual Studio 14 Win64'
-    PYTHON: 'C:\Python38-x64\python.exe'
-  - GENERATOR: 'Visual Studio 14'
     PYTHON: 'C:\Python39\python.exe'
   - GENERATOR: 'Visual Studio 14 Win64'
     PYTHON: 'C:\Python39-x64\python.exe'
