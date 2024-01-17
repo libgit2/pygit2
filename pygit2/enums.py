@@ -772,6 +772,134 @@ class MergeAnalysis(IntFlag):
     """
 
 
+class MergeFavor(IntEnum):
+    """
+    Merge file favor options for `Repository.merge` instruct the file-level
+    merging functionality how to deal with conflicting regions of the files.
+    """
+
+    NORMAL = C.GIT_MERGE_FILE_FAVOR_NORMAL
+    """
+    When a region of a file is changed in both branches, a conflict will be
+    recorded in the index so that `checkout` can produce a merge file with
+    conflict markers in the working directory.
+
+    This is the default.
+    """
+
+    OURS = C.GIT_MERGE_FILE_FAVOR_OURS
+    """
+    When a region of a file is changed in both branches, the file created in
+    the index will contain the "ours" side of any conflicting region.
+
+    The index will not record a conflict.
+    """
+
+    THEIRS = C.GIT_MERGE_FILE_FAVOR_THEIRS
+    """
+    When a region of a file is changed in both branches, the file created in
+    the index will contain the "theirs" side of any conflicting region.
+    
+    The index will not record a conflict.
+    """
+
+    UNION = C.GIT_MERGE_FILE_FAVOR_UNION
+    """
+    When a region of a file is changed in both branches, the file
+    created in the index will contain each unique line from each side,
+    which has the result of combining both files.
+
+    The index will not record a conflict.
+    """
+
+
+class MergeFileFlag(IntFlag):
+    """ File merging flags """
+
+    DEFAULT = C.GIT_MERGE_FILE_DEFAULT
+    """ Defaults """
+
+    STYLE_MERGE = C.GIT_MERGE_FILE_STYLE_MERGE
+    """ Create standard conflicted merge files """
+
+    STYLE_DIFF3 = C.GIT_MERGE_FILE_STYLE_DIFF3
+    """ Create diff3-style files """
+
+    SIMPLIFY_ALNUM = C.GIT_MERGE_FILE_SIMPLIFY_ALNUM
+    """ Condense non-alphanumeric regions for simplified diff file """
+
+    IGNORE_WHITESPACE = C.GIT_MERGE_FILE_IGNORE_WHITESPACE
+    """ Ignore all whitespace """
+
+    IGNORE_WHITESPACE_CHANGE = C.GIT_MERGE_FILE_IGNORE_WHITESPACE_CHANGE
+    """ Ignore changes in amount of whitespace """
+
+    IGNORE_WHITESPACE_EOL = C.GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL
+    """ Ignore whitespace at end of line """
+
+    DIFF_PATIENCE = C.GIT_MERGE_FILE_DIFF_PATIENCE
+    """ Use the "patience diff" algorithm """
+
+    DIFF_MINIMAL = C.GIT_MERGE_FILE_DIFF_MINIMAL
+    """ Take extra time to find minimal diff """
+
+    STYLE_ZDIFF3 = C.GIT_MERGE_FILE_STYLE_ZDIFF3
+    """ Create zdiff3 ("zealous diff3")-style files """
+
+    ACCEPT_CONFLICTS = C.GIT_MERGE_FILE_ACCEPT_CONFLICTS
+    """
+    Do not produce file conflicts when common regions have changed;
+    keep the conflict markers in the file and accept that as the merge result.
+    """
+
+    # Backward compatibility with old pygit2 flag names
+    _DEPRECATED_STANDARD_STYLE = STYLE_MERGE
+    _DEPRECATED_DIFF3_STYLE = STYLE_DIFF3
+    _DEPRECATED_PATIENCE = DIFF_PATIENCE
+    _DEPRECATED_MINIMAL = DIFF_MINIMAL
+
+
+class MergeFlag(IntFlag):
+    """
+    Flags for `Repository.merge` options.
+    A combination of these flags can be passed in via the `flags` value.
+    """
+
+    FIND_RENAMES = C.GIT_MERGE_FIND_RENAMES
+    """
+    Detect renames that occur between the common ancestor and the "ours"
+    side or the common ancestor and the "theirs" side.  This will enable
+    the ability to merge between a modified and renamed file.
+    """
+
+    FAIL_ON_CONFLICT = C.GIT_MERGE_FAIL_ON_CONFLICT
+    """
+    If a conflict occurs, exit immediately instead of attempting to
+    continue resolving conflicts.  The merge operation will raise GitError
+    (GIT_EMERGECONFLICT) and no index will be returned.
+    """
+
+    SKIP_REUC = C.GIT_MERGE_SKIP_REUC
+    """
+    Do not write the REUC extension on the generated index.
+    """
+
+    NO_RECURSIVE = C.GIT_MERGE_NO_RECURSIVE
+    """
+    If the commits being merged have multiple merge bases, do not build
+    a recursive merge base (by merging the multiple merge bases),
+    instead simply use the first base.  This flag provides a similar
+    merge base to `git-merge-resolve`.
+    """
+
+    VIRTUAL_BASE = C.GIT_MERGE_VIRTUAL_BASE
+    """
+    Treat this merge as if it is to produce the virtual base of a recursive
+    merge.  This will ensure that there are no conflicts, any conflicting
+    regions will keep conflict markers in the merge result.
+    """
+
+
 class MergePreference(IntFlag):
     """ The user's stated preference for merges. """
 
@@ -1159,3 +1287,32 @@ class SubmoduleStatus(IntFlag):
 
     WD_UNTRACKED = _pygit2.GIT_SUBMODULE_STATUS_WD_UNTRACKED
     "submodule workdir contains untracked files (flag available if ignore is NONE)"
+
+
+def _deprecated_flag_dict_to_intflag(flag_dict, default_value):
+    """
+    Convert a dict eg {"find_renames": True, "skip_reuc": True} to an IntFlag.
+    """
+
+    enum_type = type(default_value)
+    assert issubclass(enum_type, IntFlag)
+
+    value = default_value
+
+    for k, v in flag_dict.items():
+        k = k.upper()
+
+        try:
+            f = enum_type[k]
+        except KeyError:
+            try:
+                f = enum_type["_DEPRECATED_" + k]
+            except KeyError:
+                raise ValueError(f"unknown {enum_type.__name__}: {k}")
+
+        if v:
+            value |= f
+        else:
+            value &= ~f
+
+    return value

@@ -49,12 +49,16 @@ from .enums import (
     DescribeStrategy,
     DiffOption,
     FileMode,
+    MergeFavor,
+    MergeFileFlag,
+    MergeFlag,
     RepositoryOpenFlag,
     RepositoryState,
+    _deprecated_flag_dict_to_intflag,
 )
 from .errors import check_error
 from .ffi import ffi, C
-from .index import Index
+from .index import Index, IndexEntry
 from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
@@ -611,88 +615,50 @@ class BaseRepository(_Repository):
     #
     # Merging
     #
-    _FAVOR_TO_ENUM = {
-        'normal': C.GIT_MERGE_FILE_FAVOR_NORMAL,
-        'ours': C.GIT_MERGE_FILE_FAVOR_OURS,
-        'theirs': C.GIT_MERGE_FILE_FAVOR_THEIRS,
-        'union': C.GIT_MERGE_FILE_FAVOR_UNION,
-    }
+    @staticmethod
+    def _merge_options(favor: MergeFavor, flags: MergeFlag, file_flags: MergeFileFlag):
+        """ Return a 'git_merge_opts *' """
 
-    _MERGE_FLAG_TO_ENUM = {
-        'find_renames': C.GIT_MERGE_FIND_RENAMES,
-        'fail_on_conflict': C.GIT_MERGE_FAIL_ON_CONFLICT,
-        'skip_reuc': C.GIT_MERGE_SKIP_REUC,
-        'no_recursive': C.GIT_MERGE_NO_RECURSIVE,
-    }
+        # Parse deprecated favor value (str)
+        if isinstance(favor, str):
+            try:
+                favor = MergeFavor[favor.upper()]
+            except KeyError:
+                raise ValueError(f"unknown favor: {favor}")
+            warnings.warn("Use pygit2.enums.MergeFavor", DeprecationWarning)
+        if not isinstance(favor, (int, MergeFavor)):
+            raise TypeError("favor argument must be MergeFavor")
 
-    _MERGE_FLAG_DEFAULTS = {
-        'find_renames': True,
-    }
+        # Parse deprecated flags value (dict[str, bool])
+        if isinstance(flags, dict):
+            flags = _deprecated_flag_dict_to_intflag(flags, MergeFlag.FIND_RENAMES)
+            warnings.warn("Use pygit2.enums.MergeFlag", DeprecationWarning)
+        if not isinstance(flags, (int, MergeFlag)):
+            raise TypeError("flags argument must be MergeFlag")
 
-    _MERGE_FILE_FLAG_TO_ENUM = {
-        'standard_style': C.GIT_MERGE_FILE_STYLE_MERGE,
-        'diff3_style': C.GIT_MERGE_FILE_STYLE_DIFF3,
-        'simplify_alnum': C.GIT_MERGE_FILE_SIMPLIFY_ALNUM,
-        'ignore_whitespace': C.GIT_MERGE_FILE_IGNORE_WHITESPACE,
-        'ignore_whitespace_change': C.GIT_MERGE_FILE_IGNORE_WHITESPACE_CHANGE,
-        'ignore_whitespace_eol': C.GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL,
-        'patience': C.GIT_MERGE_FILE_DIFF_PATIENCE,
-        'minimal': C.GIT_MERGE_FILE_DIFF_MINIMAL,
-    }
-
-    _MERGE_FILE_FLAG_DEFAULTS = {}
-
-    @classmethod
-    def _flag_dict_to_bitmask(cls, flag_dict, flag_defaults, mapping, label):
-        """
-        Converts a dict eg {"find_renames": True, "skip_reuc": True} to
-        a bitmask eg C.GIT_MERGE_FIND_RENAMES | C.GIT_MERGE_SKIP_REUC.
-        """
-        merged_dict = {**flag_defaults, **flag_dict}
-        bitmask = 0
-        for k, v in merged_dict.items():
-            enum = mapping.get(k, None)
-            if enum is None:
-                raise ValueError(f"unknown {label}: {k}")
-            if v:
-                bitmask |= enum
-        return bitmask
-
-    @classmethod
-    def _merge_options(cls, favor='normal', flags=None, file_flags=None):
-        """Return a 'git_merge_opts *'
-        """
-        flags = flags or {}
-        file_flags = file_flags or {}
-
-        favor_val = cls._FAVOR_TO_ENUM.get(favor, None)
-        if favor_val is None:
-            raise ValueError(f"unknown favor: {favor}")
-
-        flags_bitmask = Repository._flag_dict_to_bitmask(
-            flags,
-            cls._MERGE_FLAG_DEFAULTS,
-            cls._MERGE_FLAG_TO_ENUM,
-            "merge flag"
-        )
-        file_flags_bitmask = cls._flag_dict_to_bitmask(
-            file_flags,
-            cls._MERGE_FILE_FLAG_DEFAULTS,
-            cls._MERGE_FILE_FLAG_TO_ENUM,
-            "merge file_flag"
-        )
+        # Parse deprecated file_flags value (dict[str, bool])
+        if isinstance(file_flags, dict):
+            file_flags = _deprecated_flag_dict_to_intflag(file_flags, MergeFileFlag.DEFAULT)
+            warnings.warn("Use pygit2.enums.MergeFileFlag", DeprecationWarning)
+        if not isinstance(file_flags, (int, MergeFileFlag)):
+            raise TypeError("file_flags argument must be MergeFileFlag")
 
         opts = ffi.new('git_merge_options *')
         err = C.git_merge_options_init(opts, C.GIT_MERGE_OPTIONS_VERSION)
         check_error(err)
 
-        opts.file_favor = favor_val
-        opts.flags = flags_bitmask
-        opts.file_flags = file_flags_bitmask
+        opts.file_favor = int(favor)
+        opts.flags = int(flags)
+        opts.file_flags = int(file_flags)
 
         return opts
 
-    def merge_file_from_index(self, ancestor, ours, theirs):
+    def merge_file_from_index(
+            self,
+            ancestor: typing.Union[None, IndexEntry],
+            ours: typing.Union[None, IndexEntry],
+            theirs: typing.Union[None, IndexEntry]
+            ) -> str:
         """Merge files from index. Return a string with the merge result
         containing possible conflicts.
 
@@ -725,7 +691,14 @@ class BaseRepository(_Repository):
 
         return ret
 
-    def merge_commits(self, ours, theirs, favor='normal', flags=None, file_flags=None):
+    def merge_commits(
+            self,
+            ours: typing.Union[str, Oid, Commit],
+            theirs: typing.Union[str, Oid, Commit],
+            favor = MergeFavor.NORMAL,
+            flags = MergeFlag.FIND_RENAMES,
+            file_flags = MergeFavor.NORMAL,
+            ) -> Index:
         """
         Merge two arbitrary commits.
 
@@ -740,47 +713,18 @@ class BaseRepository(_Repository):
             The commit which will be merged into "ours"
 
         favor
-            How to deal with file-level conflicts. Can be one of
-
-            * normal (default). Conflicts will be preserved.
-            * ours. The "ours" side of the conflict region is used.
-            * theirs. The "theirs" side of the conflict region is used.
-            * union. Unique lines from each side will be used.
-
+            An enums.MergeFavor constant specifying how to deal with file-level conflicts.
             For all but NORMAL, the index will not record a conflict.
 
         flags
-            A dict of str: bool to turn on or off functionality while merging.
-            If a key is not present, the default will be used. The keys are:
-
-            * find_renames. Detect file renames. Defaults to True.
-            * fail_on_conflict. If a conflict occurs, exit immediately instead
-              of attempting to continue resolving conflicts.
-            * skip_reuc. Do not write the REUC extension on the generated index.
-            * no_recursive. If the commits being merged have multiple merge
-              bases, do not build a recursive merge base (by merging the
-              multiple merge bases), instead simply use the first base.
+            A combination of enums.MergeFlag constants.
 
         file_flags
-            A dict of str: bool to turn on or off functionality while merging.
-            If a key is not present, the default will be used. The keys are:
-
-            * standard_style. Create standard conflicted merge files.
-            * diff3_style. Create diff3-style file.
-            * simplify_alnum. Condense non-alphanumeric regions for simplified
-              diff file.
-            * ignore_whitespace. Ignore all whitespace.
-            * ignore_whitespace_change. Ignore changes in amount of whitespace.
-            * ignore_whitespace_eol. Ignore whitespace at end of line.
-            * patience. Use the "patience diff" algorithm
-            * minimal. Take extra time to find minimal diff
+            A combination of enums.MergeFileFlag constants.
 
         Both "ours" and "theirs" can be any object which peels to a commit or
         the id (string or Oid) of an object which peels to a commit.
         """
-        flags = flags or {}
-        file_flags = file_flags or {}
-
         ours_ptr = ffi.new('git_commit **')
         theirs_ptr = ffi.new('git_commit **')
         cindex = ffi.new('git_index **')
@@ -803,7 +747,14 @@ class BaseRepository(_Repository):
 
         return Index.from_c(self, cindex)
 
-    def merge_trees(self, ancestor, ours, theirs, favor='normal', flags=None, file_flags=None):
+    def merge_trees(
+            self,
+            ancestor: typing.Union[str, Oid, Tree],
+            ours: typing.Union[str, Oid, Tree],
+            theirs: typing.Union[str, Oid, Tree],
+            favor = MergeFavor.NORMAL,
+            flags = MergeFlag.FIND_RENAMES,
+            file_flags = MergeFileFlag.DEFAULT):
         """
         Merge two trees.
 
@@ -821,44 +772,15 @@ class BaseRepository(_Repository):
             The commit which will be merged into "ours".
 
         favor
-            How to deal with file-level conflicts. Can be one of:
-
-            * normal (default). Conflicts will be preserved.
-            * ours. The "ours" side of the conflict region is used.
-            * theirs. The "theirs" side of the conflict region is used.
-            * union. Unique lines from each side will be used.
-
+            An enums.MergeFavor constant specifying how to deal with file-level conflicts.
             For all but NORMAL, the index will not record a conflict.
 
         flags
-            A dict of str: bool to turn on or off functionality while merging.
-            If a key is not present, the default will be used. The keys are:
-
-            * find_renames. Detect file renames. Defaults to True.
-            * fail_on_conflict. If a conflict occurs, exit immediately instead
-              of attempting to continue resolving conflicts.
-            * skip_reuc. Do not write the REUC extension on the generated index.
-            * no_recursive. If the commits being merged have multiple merge
-              bases, do not build a recursive merge base (by merging the
-              multiple merge bases), instead simply use the first base.
+            A combination of enums.MergeFlag constants.
 
         file_flags
-            A dict of str: bool to turn on or off functionality while merging.
-            If a key is not present, the default will be used. The keys are:
-
-            * standard_style. Create standard conflicted merge files.
-            * diff3_style. Create diff3-style file.
-            * simplify_alnum. Condense non-alphanumeric regions for simplified
-              diff file.
-            * ignore_whitespace. Ignore all whitespace.
-            * ignore_whitespace_change. Ignore changes in amount of whitespace.
-            * ignore_whitespace_eol. Ignore whitespace at end of line.
-            * patience. Use the "patience diff" algorithm
-            * minimal. Take extra time to find minimal diff
+            A combination of enums.MergeFileFlag constants.
         """
-        flags = flags or {}
-        file_flags = file_flags or {}
-
         ancestor_ptr = ffi.new('git_tree **')
         ours_ptr = ffi.new('git_tree **')
         theirs_ptr = ffi.new('git_tree **')
@@ -886,7 +808,12 @@ class BaseRepository(_Repository):
 
         return Index.from_c(self, cindex)
 
-    def merge(self, id, favor="normal", flags=None, file_flags=None):
+    def merge(
+            self, 
+            id: typing.Union[Oid, str],
+            favor = MergeFavor.NORMAL,
+            flags = MergeFlag.FIND_RENAMES,
+            file_flags = MergeFileFlag.DEFAULT):
         """
         Merges the given id into HEAD.
 
@@ -901,40 +828,14 @@ class BaseRepository(_Repository):
             The id to merge into HEAD
 
         favor
-            How to deal with file-level conflicts. Can be one of
-
-            * normal (default). Conflicts will be preserved.
-            * ours. The "ours" side of the conflict region is used.
-            * theirs. The "theirs" side of the conflict region is used.
-            * union. Unique lines from each side will be used.
-
+            An enums.MergeFavor constant specifying how to deal with file-level conflicts.
             For all but NORMAL, the index will not record a conflict.
 
         flags
-            A dict of str: bool to turn on or off functionality while merging.
-            If a key is not present, the default will be used. The keys are:
-
-            * find_renames. Detect file renames. Defaults to True.
-            * fail_on_conflict. If a conflict occurs, exit immediately instead
-              of attempting to continue resolving conflicts.
-            * skip_reuc. Do not write the REUC extension on the generated index.
-            * no_recursive. If the commits being merged have multiple merge
-              bases, do not build a recursive merge base (by merging the
-              multiple merge bases), instead simply use the first base.
+            A combination of enums.MergeFlag constants.
 
         file_flags
-            A dict of str: bool to turn on or off functionality while merging.
-            If a key is not present, the default will be used. The keys are:
-
-            * standard_style. Create standard conflicted merge files.
-            * diff3_style. Create diff3-style file.
-            * simplify_alnum. Condense non-alphanumeric regions for simplified
-              diff file.
-            * ignore_whitespace. Ignore all whitespace.
-            * ignore_whitespace_change. Ignore changes in amount of whitespace.
-            * ignore_whitespace_eol. Ignore whitespace at end of line.
-            * patience. Use the "patience diff" algorithm
-            * minimal. Take extra time to find minimal diff
+            A combination of enums.MergeFileFlag constants.
         """
         if not isinstance(id, (str, Oid)):
             raise TypeError(f'expected oid (string or <Oid>) got {type(id)}')
@@ -943,7 +844,7 @@ class BaseRepository(_Repository):
         c_id = ffi.new("git_oid *")
         ffi.buffer(c_id)[:] = id.raw[:]
 
-        merge_opts = self._merge_options(favor, flags=flags or {}, file_flags=file_flags or {})
+        merge_opts = self._merge_options(favor, flags, file_flags)
 
         checkout_opts = ffi.new("git_checkout_options *")
         C.git_checkout_options_init(checkout_opts, 1)

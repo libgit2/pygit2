@@ -30,7 +30,7 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2.enums import FileStatus, MergeAnalysis
+from pygit2.enums import FileStatus, MergeAnalysis, MergeFavor, MergeFlag, MergeFileFlag
 
 
 @pytest.mark.parametrize("id", [None, 42])
@@ -140,9 +140,9 @@ def test_merge_remove_conflicts(mergerepo):
 
 
 @pytest.mark.parametrize("favor", [
-    'ours',
-    'theirs',
-    'union',
+    MergeFavor.OURS,
+    MergeFavor.THEIRS,
+    MergeFavor.UNION,
 ])
 def test_merge_favor(mergerepo, favor):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
@@ -150,9 +150,26 @@ def test_merge_favor(mergerepo, favor):
 
     assert mergerepo.index.conflicts is None
 
+@pytest.mark.parametrize("favor", [
+    'ours',
+    'theirs',
+    'union',
+])
+def test_merge_favor_deprecated_names(mergerepo, favor):
+    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    with pytest.warns(DeprecationWarning):
+        mergerepo.merge(branch_head_hex, favor=favor)
+
+    assert mergerepo.index.conflicts is None
+
 def test_merge_fail_on_conflict(mergerepo):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+
     with pytest.raises(pygit2.GitError):
+        mergerepo.merge(branch_head_hex, flags=MergeFlag.FIND_RENAMES | MergeFlag.FAIL_ON_CONFLICT)
+    
+    # Deprecated flags dict
+    with pytest.warns(DeprecationWarning), pytest.raises(pygit2.GitError):
         mergerepo.merge(branch_head_hex, flags={'fail_on_conflict': True})
 
 def test_merge_commits(mergerepo):
@@ -172,9 +189,16 @@ def test_merge_commits(mergerepo):
 
 def test_merge_commits_favor(mergerepo):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
-    merge_index = mergerepo.merge_commits(mergerepo.head.target, branch_head_hex, favor='ours')
+
+    merge_index = mergerepo.merge_commits(mergerepo.head.target, branch_head_hex, favor=MergeFavor.OURS)
     assert merge_index.conflicts is None
 
+    # Deprecated favor value
+    with pytest.warns(DeprecationWarning):
+        merge_index = mergerepo.merge_commits(mergerepo.head.target, branch_head_hex, favor='ours')
+        assert merge_index.conflicts is None
+
+    # Incorrect favor value
     with pytest.raises(ValueError):
         mergerepo.merge_commits(mergerepo.head.target, branch_head_hex, favor='foo')
 
@@ -198,48 +222,49 @@ def test_merge_trees(mergerepo):
 def test_merge_trees_favor(mergerepo):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     ancestor_id = mergerepo.merge_base(mergerepo.head.target, branch_head_hex)
-    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex, favor='ours')
+    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex, favor=MergeFavor.OURS)
     assert merge_index.conflicts is None
 
     with pytest.raises(ValueError):
         mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex, favor='foo')
 
 
-def test_merge_options():
-    from pygit2.ffi import C
+def test_merge_options_deprecated_names():
+    with pytest.warns(DeprecationWarning):
+        favor = MergeFavor.OURS
+        flags = MergeFlag.FIND_RENAMES | MergeFlag.FAIL_ON_CONFLICT
+        file_flags = MergeFileFlag.IGNORE_WHITESPACE | MergeFileFlag.DIFF_PATIENCE
+        o1 = pygit2.Repository._merge_options(favor=favor, flags=flags, file_flags=file_flags)
+        o2 = pygit2.Repository._merge_options(
+            favor='ours', flags={'fail_on_conflict': True}, file_flags={'ignore_whitespace': True, 'patience': True}
+        )
+        assert favor == o1.file_favor == o2.file_favor
+        assert flags == o1.flags == o2.flags
+        assert file_flags == o1.file_flags == o2.file_flags
 
-    # Default
-    o = pygit2.Repository._merge_options()
-    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_NORMAL
-    assert o.flags == C.GIT_MERGE_FIND_RENAMES
-    assert o.file_flags == 0
+        favor = MergeFavor.THEIRS
+        flags = 0
+        file_flags = 0
+        o1 = pygit2.Repository._merge_options(favor=favor, flags=flags, file_flags=file_flags)
+        o2 = pygit2.Repository._merge_options(
+            favor='theirs', flags={'find_renames': False}, file_flags={'ignore_whitespace': False}
+        )
+        assert favor == o1.file_favor == o2.file_favor
+        assert flags == o1.flags == o2.flags
+        assert file_flags == o1.file_flags == o2.file_flags
 
-    o = pygit2.Repository._merge_options(
-        favor='ours', flags={'fail_on_conflict': True}, file_flags={'ignore_whitespace': True}
-    )
-    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_OURS
-    assert o.flags == C.GIT_MERGE_FIND_RENAMES | C.GIT_MERGE_FAIL_ON_CONFLICT
-    assert o.file_flags == C.GIT_MERGE_FILE_IGNORE_WHITESPACE
-
-    o = pygit2.Repository._merge_options(
-        favor='theirs', flags={'find_renames': False}, file_flags={'ignore_whitespace': False}
-    )
-    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_THEIRS
-    assert o.flags == 0
-    assert o.file_flags == 0
-
-    o = pygit2.Repository._merge_options(
-        favor='union',
-        flags={'find_renames': True, 'no_recursive': True},
-        file_flags={'diff3_style': True, 'ignore_whitespace': True, 'patience': True}
-    )
-    assert o.file_favor == C.GIT_MERGE_FILE_FAVOR_UNION
-    assert o.flags == C.GIT_MERGE_FIND_RENAMES | C.GIT_MERGE_NO_RECURSIVE
-    assert o.file_flags == (
-        C.GIT_MERGE_FILE_STYLE_DIFF3
-        | C.GIT_MERGE_FILE_IGNORE_WHITESPACE
-        | C.GIT_MERGE_FILE_DIFF_PATIENCE
-    )
+        favor = MergeFavor.UNION
+        flags = MergeFlag.FIND_RENAMES | MergeFlag.NO_RECURSIVE
+        file_flags = MergeFileFlag.STYLE_DIFF3 | MergeFileFlag.IGNORE_WHITESPACE | MergeFileFlag.DIFF_PATIENCE
+        o1 = pygit2.Repository._merge_options(favor=favor, flags=flags, file_flags=file_flags)
+        o2 = pygit2.Repository._merge_options(
+            favor='union',
+            flags={'find_renames': True, 'no_recursive': True},
+            file_flags={'diff3_style': True, 'ignore_whitespace': True, 'patience': True}
+        )
+        assert favor == o1.file_favor == o2.file_favor
+        assert flags == o1.flags == o2.flags
+        assert file_flags == o1.file_flags == o2.file_flags
 
 
 def test_merge_many(mergerepo):

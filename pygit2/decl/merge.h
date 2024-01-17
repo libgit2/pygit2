@@ -5,6 +5,7 @@ typedef enum {
 	GIT_MERGE_FAIL_ON_CONFLICT = 2,
 	GIT_MERGE_SKIP_REUC = 4,
 	GIT_MERGE_NO_RECURSIVE = 8,
+	GIT_MERGE_VIRTUAL_BASE = (1 << 4),
 } git_merge_flag_t;
 
 typedef enum {
@@ -24,6 +25,8 @@ typedef enum {
 	GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL = 32,
 	GIT_MERGE_FILE_DIFF_PATIENCE = 64,
 	GIT_MERGE_FILE_DIFF_MINIMAL = 128,
+	GIT_MERGE_FILE_STYLE_ZDIFF3 = (1 << 8),
+	GIT_MERGE_FILE_ACCEPT_CONFLICTS = (1 << 9),
 } git_merge_file_flag_t;
 
 typedef struct {

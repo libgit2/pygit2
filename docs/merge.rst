@@ -19,10 +19,12 @@ branch reference in the case of a fastforward.
 
 Example::
 
+    >>> from pygit2.enums import MergeFavor, MergeFlag
     >>> other_branch_tip = '5ebeeebb320790caf276b9fc8b24546d63316533'
     >>> repo.merge(other_branch_tip)
-    >>> repo.merge(other_branch_tip, favor='ours')
-    >>> repo.merge(other_branch_tip, flags={'find_renames': False})
+    >>> repo.merge(other_branch_tip, favor=MergeFavor.OURS)
+    >>> repo.merge(other_branch_tip, flags=MergeFlag.FIND_RENAMES | MergeFlag.NO_RECURSIVE)
+    >>> repo.merge(other_branch_tip, flags=0)  # turn off FIND_RENAMES (on by default if flags omitted)
 
 You can now inspect the index file for conflicts and get back to the
 user to resolve if there are. Once there are no conflicts left, you
