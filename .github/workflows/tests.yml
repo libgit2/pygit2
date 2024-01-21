@@ -23,10 +23,10 @@ jobs:
 
     steps:
     - name: Checkout pygit2
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -46,13 +46,13 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Build & test
       uses: uraimo/run-on-arch-action@v2
       with:
         arch: aarch64
-        distro: ubuntu20.04
+        distro: ubuntu22.04
         install: |
           apt-get update -q -y
           apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
@@ -70,7 +70,7 @@ jobs:
       uses: uraimo/run-on-arch-action@v2
       with:
         arch: s390x
-        distro: ubuntu20.04
+        distro: ubuntu22.04
         install: |
           apt-get update -q -y
           apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
