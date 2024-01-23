@@ -2,7 +2,7 @@
 requires = ["setuptools", "wheel"]
 
 [tool.cibuildwheel]
-skip = "pp3*"
+skip = "pp3* *musllinux_aarch64"
 
 archs = ["auto"]
 build-frontend = "default"
@@ -17,7 +17,6 @@ archs = ["x86_64", "aarch64"]
 
 [[tool.cibuildwheel.overrides]]
 select = "*-musllinux*"
-archs = ["x86_64"]
 repair-wheel-command = "LD_LIBRARY_PATH=/project/ci/lib auditwheel repair -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.macos]
