@@ -26,7 +26,6 @@
 # Import setuptools before distutils to avoid user warning
 from setuptools import setup, Extension
 
-import codecs
 from distutils.command.build import build
 from distutils.command.sdist import sdist
 from distutils import log
@@ -82,8 +81,8 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Version Control"]
 
-with codecs.open('README.rst', 'r', 'utf-8') as readme:
-    long_description = readme.read()
+__dir__ = Path(__file__).parent
+long_description = (__dir__ / 'README.md').read_text()
 
 cmdclass = {
     'sdist': sdist_files_from_git,
@@ -125,7 +124,7 @@ class BuildWithDLLs(build):
 if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
-src = Path('src')
+src = __dir__ / 'src'
 pygit2_exts = [str(path) for path in sorted(src.iterdir()) if path.suffix == '.c']
 ext_modules = [
     Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)
@@ -144,6 +143,7 @@ setup(
     maintainer='J. David Ibáñez',
     maintainer_email='jdavid.ibp@gmail.com',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=['pygit2'],
     package_data={'pygit2': ['decl/*.h', '*.pyi']},
     zip_safe=False,
@@ -158,7 +158,7 @@ setup(
     url='https://github.com/libgit2/pygit2',
     project_urls={
         'Documentation': 'https://www.pygit2.org/',
-        'Changelog': 'https://github.com/libgit2/pygit2/blob/master/CHANGELOG.rst',
+        'Changelog': 'https://github.com/libgit2/pygit2/blob/master/CHANGELOG.md',
         'Funding': 'https://github.com/sponsors/jdavid',
     },
 )
