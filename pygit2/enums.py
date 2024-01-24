@@ -152,7 +152,7 @@ class CheckoutStrategy(IntFlag):
     Allow safe updates that cannot overwrite uncommitted data.
     If the uncommitted changes don't conflict with the checked out files,
     the checkout will still proceed, leaving the changes intact.
-    
+
     Mutually exclusive with FORCE.
     FORCE takes precedence over SAFE.
     """
@@ -292,7 +292,7 @@ class CredentialType(IntFlag):
     An SSH key-based authentication request.
     Allows credentials to be read from memory instead of files.
     Note that because of differences in crypto backend support, it might
-    not be functional. 
+    not be functional.
     """
 
 
@@ -799,7 +799,7 @@ class MergeFavor(IntEnum):
     """
     When a region of a file is changed in both branches, the file created in
     the index will contain the "theirs" side of any conflicting region.
-    
+
     The index will not record a conflict.
     """
 

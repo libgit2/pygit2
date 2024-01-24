@@ -809,7 +809,7 @@ class BaseRepository(_Repository):
         return Index.from_c(self, cindex)
 
     def merge(
-            self, 
+            self,
             id: typing.Union[Oid, str],
             favor = MergeFavor.NORMAL,
             flags = MergeFlag.FIND_RENAMES,

@@ -3,23 +3,28 @@
 
 - Drop support for Python 3.8
 
-- Add Linux wheels for musl
+- Add Linux wheels for musl on x86_64
   `#1266 <https://github.com/libgit2/pygit2/pull/1266>`_
 
 - New ``Repository.submodules`` namespace
   `#1250 <https://github.com/libgit2/pygit2/pull/1250>`_
 
-- New ``pygit2.enums`` supersedes the ``GIT_`` constants
-  `#1251 <https://github.com/libgit2/pygit2/pull/1251>`_
-
 - New ``Repository.listall_mergeheads()``, ``Repository.message``,
   ``Repository.raw_message`` and ``Repository.remove_message()``
   `#1261 <https://github.com/libgit2/pygit2/pull/1261>`_
 
-- Changed now ``Repository.status(...)``, ``Repository.status_file(...)``,
+- New ``pygit2.enums`` supersedes the ``GIT_`` constants
+  `#1251 <https://github.com/libgit2/pygit2/pull/1251>`_
+
+- Now ``Repository.status(...)``, ``Repository.status_file(...)``,
   ``Repository.merge_analysis(...)``, ``DiffFile.flags``, ``DiffFile.mode``,
   ``DiffDelta.flags`` and ``DiffDelta.status`` return enums
   `#1263 <https://github.com/libgit2/pygit2/pull/1263>`_
+
+- Now repository's ``merge(...)``, ``merge_commits(...)`` and
+  ``merge_trees(...)`` take enums/flags for their ``favor``, ``flags`` and
+  ``file_flags`` arguments.
+  `#1271 <https://github.com/libgit2/pygit2/pull/1271>`_
 
 - Fix crash in filter cleanup
   `#1259 <https://github.com/libgit2/pygit2/pull/1259>`_
@@ -42,6 +47,9 @@ Deprecations:
 - Deprecate ``Repository.init_submodules(...)``, use ``Repository.submodules.init(...)``
 - Deprecate ``Repository.update_submodule(...)``, use ``Repository.submodules.update(...)``
 - Deprecate ``GIT_*`` constants, use ``pygit2.enums``
+- Passign dicts to repository's ``merge(...)``, ``merge_commits(...)`` and
+  ``merge_trees(...)`` is deprecated. Instead pass ``MergeFavor`` for the ``favor``
+  argument, ``MergeFlag`` for ``flags``, and ``MergeFileFlag`` for ``file_flags``.
 
 
 1.13.3 (2023-11-21)
