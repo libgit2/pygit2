@@ -697,7 +697,7 @@ class BaseRepository(_Repository):
             theirs: typing.Union[str, Oid, Commit],
             favor = MergeFavor.NORMAL,
             flags = MergeFlag.FIND_RENAMES,
-            file_flags = MergeFavor.NORMAL,
+            file_flags = MergeFileFlag.DEFAULT,
             ) -> Index:
         """
         Merge two arbitrary commits.
