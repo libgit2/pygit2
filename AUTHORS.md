@@ -3,8 +3,8 @@ Authors:
     J. David Ibáñez
     Carlos Martín Nieto
     Nico von Geyso
-    Sviatoslav Sydorenko
     Iliyas Jorio
+    Sviatoslav Sydorenko
     Matthias Bartelmeß
     Robert Coup
     W. Trevor King
@@ -49,6 +49,7 @@ Authors:
     Andrew Olsen
     Dan Sully
     David Versmisse
+    Grégory Herrero
     Mikhail Yushkovskiy
     Robin Stocker
     Rohit Sanjay
@@ -56,6 +57,7 @@ Authors:
     Santiago Perez De Rosso
     Sebastian Thiel
     Thom Wiggers
+    William Manley
     Alexander Linne
     Alok Singhal
     Assaf Nativ
@@ -66,6 +68,7 @@ Authors:
     Fraser Tweedale
     Grégoire ROCHER
     Han-Wen Nienhuys
+    Helio Machado
     Jason Ziglar
     Leonardo Rhodes
     Mark Adams
@@ -78,7 +81,6 @@ Authors:
     Sukhman Bhuller
     Thomas Kluyver
     Tyler Cipriani
-    William Manley
     Alex Chamberlain
     Alexander Bayandin
     Amit Bakshi
@@ -90,7 +92,6 @@ Authors:
     Dustin Raimondi
     Eric Schrijver
     Greg Fitzgerald
-    Gregory Herrero
     Guillermo Pérez
     Hervé Cauwelier
     Hong Minhee
@@ -167,6 +168,7 @@ Authors:
     Isabella Stephens
     Jacob Swanson
     Jasper Lievisse Adriaanse
+    Jimisola Laursen
     Jiri Benc
     Jonathan Robson
     Josh Bleecher Snyder

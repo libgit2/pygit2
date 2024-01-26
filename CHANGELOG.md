@@ -1,4 +1,4 @@
-# 1.14.0 (UNRELEASED)
+# 1.14.0 (2024-01-26)
 
 -   Drop support for Python 3.8
 -   Add Linux wheels for musl on x86_64
@@ -10,14 +10,14 @@
     [#1261](https://github.com/libgit2/pygit2/pull/1261)
 -   New `pygit2.enums` supersedes the `GIT_` constants
     [#1251](https://github.com/libgit2/pygit2/pull/1251)
--   Now `Repository.status(...)`, `Repository.status_file(...)`,
-    `Repository.merge_analysis(...)`, `DiffFile.flags`, `DiffFile.mode`,
+-   Now `Repository.status()`, `Repository.status_file()`,
+    `Repository.merge_analysis()`, `DiffFile.flags`, `DiffFile.mode`,
     `DiffDelta.flags` and `DiffDelta.status` return enums
     [#1263](https://github.com/libgit2/pygit2/pull/1263)
--   Now repository\'s `merge(...)`, `merge_commits(...)` and
-    `merge_trees(...)` take enums/flags for their `favor`, `flags` and
-    `file_flags` arguments.
+-   Now repository\'s `merge()`, `merge_commits()` and `merge_trees()`
+    take enums/flags for their `favor`, `flags` and `file_flags` arguments.
     [#1271](https://github.com/libgit2/pygit2/pull/1271)
+    [#1272](https://github.com/libgit2/pygit2/pull/1272)
 -   Fix crash in filter cleanup
     [#1259](https://github.com/libgit2/pygit2/pull/1259)
 -   Documentation fixes
@@ -33,14 +33,10 @@ Breaking changes:
 
 Deprecations:
 
--   Deprecate `Repository.add_submodule(...)`, use
-    `Repository.submodules.add(...)`
--   Deprecate `Repository.lookup_submodule(...)`, use
-    `Repository.submodules[...]`
--   Deprecate `Repository.init_submodules(...)`, use
-    `Repository.submodules.init(...)`
--   Deprecate `Repository.update_submodule(...)`, use
-    `Repository.submodules.update(...)`
+-   Deprecate `Repository.add_submodule(...)`, use `Repository.submodules.add(...)`
+-   Deprecate `Repository.lookup_submodule(...)`, use `Repository.submodules[...]`
+-   Deprecate `Repository.init_submodules(...)`, use `Repository.submodules.init(...)`
+-   Deprecate `Repository.update_submodule(...)`, use `Repository.submodules.update(...)`
 -   Deprecate `GIT_*` constants, use `pygit2.enums`
 -   Passign dicts to repository\'s `merge(...)`, `merge_commits(...)`
     and `merge_trees(...)` is deprecated. Instead pass `MergeFavor` for
