@@ -34,7 +34,7 @@ LIBGIT2_VER_REVISION: int
 
 class Object:
     _pointer: bytes
-    filemode: int
+    filemode: FileMode
     hex: str
     id: Oid
     name: str | None

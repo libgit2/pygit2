@@ -40,6 +40,7 @@ extern PyTypeObject TreeType;
 extern PyTypeObject CommitType;
 extern PyTypeObject BlobType;
 extern PyTypeObject TagType;
+extern PyObject *FileModeEnum;
 
 PyTypeObject ObjectType;
 
@@ -159,7 +160,7 @@ Object__pointer__get__(Object *self)
 }
 
 PyDoc_STRVAR(Object_name__doc__,
-             "Name (will be None if the object was not reached trough a tree)");
+             "Name (or None if the object was not reached through a tree)");
 PyObject *
 Object_name__get__(Object *self)
 {
@@ -181,14 +182,14 @@ Object_raw_name__get__(Object *self)
 }
 
 PyDoc_STRVAR(Object_filemode__doc__,
-             "Filemode (will be None if the object was not reached trough a tree)");
+             "An enums.FileMode constant (or None if the object was not reached through a tree)");
 PyObject *
 Object_filemode__get__(Object *self)
 {
     if (self->entry == NULL)
         Py_RETURN_NONE;
 
-    return PyLong_FromLong(git_tree_entry_filemode(self->entry));
+    return pygit2_enum(FileModeEnum, git_tree_entry_filemode(self->entry));
 }
 
 
