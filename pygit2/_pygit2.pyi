@@ -15,6 +15,7 @@ from .enums import (
     ObjectType,
     Option,
     ReferenceFilter,
+    ReferenceType,
     ResetMode,
     SortMode,
 )
@@ -69,7 +70,7 @@ class Reference:
     raw_target: Oid | bytes
     shorthand: str
     target: Oid | str
-    type: int
+    type: ReferenceType
     def __init__(self, *args) -> None: ...
     def delete(self) -> None: ...
     def log(self) -> Iterator[RefLogEntry]: ...

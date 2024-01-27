@@ -1004,10 +1004,23 @@ class ReferenceFilter(IntEnum):
 class ReferenceType(IntFlag):
     """ Basic type of any Git reference. """
 
-    INVALID = _pygit2.GIT_REF_INVALID
-    OID = _pygit2.GIT_REF_OID
-    SYMBOLIC = _pygit2.GIT_REF_SYMBOLIC
-    LISTALL = _pygit2.GIT_REF_LISTALL
+    INVALID = C.GIT_REFERENCE_INVALID
+    "Invalid reference"
+
+    DIRECT = C.GIT_REFERENCE_DIRECT
+    "A reference that points at an object id"
+
+    SYMBOLIC = C.GIT_REFERENCE_SYMBOLIC
+    "A reference that points at another reference"
+
+    ALL = C.GIT_REFERENCE_ALL
+    "Bitwise OR of (DIRECT | SYMBOLIC)"
+
+    # Deprecated entries
+    OID = DIRECT
+    "Deprecated, use DIRECT instead"
+    LISTALL = ALL
+    "Deprecated, use ALL instead"
 
 
 class RepositoryInitFlag(IntFlag):

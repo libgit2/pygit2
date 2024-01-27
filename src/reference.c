@@ -43,6 +43,7 @@ extern PyObject *GitError;
 extern PyTypeObject RefLogEntryType;
 extern PyTypeObject RepositoryType;
 extern PyTypeObject SignatureType;
+extern PyObject *ReferenceTypeEnum;
 
 PyTypeObject ReferenceType;
 
@@ -424,7 +425,7 @@ Reference_raw_shorthand__get__(Reference *self)
 }
 
 PyDoc_STRVAR(Reference_type__doc__,
-    "Type, either GIT_REF_OID or GIT_REF_SYMBOLIC.");
+    "An enums.ReferenceType constant (either OID or SYMBOLIC).");
 
 PyObject *
 Reference_type__get__(Reference *self)
@@ -433,7 +434,8 @@ Reference_type__get__(Reference *self)
 
     CHECK_REFERENCE(self);
     c_type = git_reference_type(self->reference);
-    return PyLong_FromLong(c_type);
+
+    return pygit2_enum(ReferenceTypeEnum, c_type);
 }
 
 

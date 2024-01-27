@@ -48,6 +48,7 @@ PyObject *FileModeEnum;
 PyObject *FileStatusEnum;
 PyObject *MergeAnalysisEnum;
 PyObject *MergePreferenceEnum;
+PyObject *ReferenceTypeEnum;
 
 extern PyTypeObject RepositoryType;
 extern PyTypeObject OdbType;
@@ -377,6 +378,7 @@ forget_enums(void)
     Py_CLEAR(FileStatusEnum);
     Py_CLEAR(MergeAnalysisEnum);
     Py_CLEAR(MergePreferenceEnum);
+    Py_CLEAR(ReferenceTypeEnum);
 }
 
 PyDoc_STRVAR(_cache_enums__doc__,
@@ -411,6 +413,7 @@ _cache_enums(PyObject *self, PyObject *args)
     CACHE_PYGIT2_ENUM(FileStatus);
     CACHE_PYGIT2_ENUM(MergeAnalysis);
     CACHE_PYGIT2_ENUM(MergePreference);
+    CACHE_PYGIT2_ENUM(ReferenceType);
 
 #undef CACHE_PYGIT2_ENUM
 
@@ -606,13 +609,14 @@ PyInit__pygit2(void)
     ADD_TYPE(m, Reference)
     ADD_TYPE(m, RefLogEntry)
     ADD_TYPE(m, Note)
+    ADD_CONSTANT_INT(m, GIT_REFERENCES_ALL)
+    ADD_CONSTANT_INT(m, GIT_REFERENCES_BRANCHES)
+    ADD_CONSTANT_INT(m, GIT_REFERENCES_TAGS)
+    /* libgit2 deprecated enums */
     ADD_CONSTANT_INT(m, GIT_REF_INVALID)
     ADD_CONSTANT_INT(m, GIT_REF_OID)
     ADD_CONSTANT_INT(m, GIT_REF_SYMBOLIC)
     ADD_CONSTANT_INT(m, GIT_REF_LISTALL)
-    ADD_CONSTANT_INT(m, GIT_REFERENCES_ALL)
-    ADD_CONSTANT_INT(m, GIT_REFERENCES_BRANCHES)
-    ADD_CONSTANT_INT(m, GIT_REFERENCES_TAGS)
 
     /*
      * RevSpec
@@ -622,7 +626,7 @@ PyInit__pygit2(void)
     ADD_CONSTANT_INT(m, GIT_REVSPEC_SINGLE)
     ADD_CONSTANT_INT(m, GIT_REVSPEC_RANGE)
     ADD_CONSTANT_INT(m, GIT_REVSPEC_MERGE_BASE)
-    /* Deprecated enums */
+    /* libgit2 deprecated enums */
     ADD_CONSTANT_INT(m, GIT_REVPARSE_SINGLE)
     ADD_CONSTANT_INT(m, GIT_REVPARSE_RANGE)
     ADD_CONSTANT_INT(m, GIT_REVPARSE_MERGE_BASE)
