@@ -5,12 +5,12 @@ Remotes
 .. py:attribute:: Repository.remotes
 
    The collection of configured remotes, an instance of
-   :py:class:`pygit2.remote.RemoteCollection`
+   :py:class:`pygit2.remotes.RemoteCollection`
 
 The remote collection
 ==========================
 
-.. autoclass:: pygit2.remote.RemoteCollection
+.. autoclass:: pygit2.remotes.RemoteCollection
    :members:
 
 The Remote type
@@ -30,7 +30,7 @@ The TransferProgress type
 
 This class contains the data which is available to us during a fetch.
 
-.. autoclass:: pygit2.remote.TransferProgress
+.. autoclass:: pygit2.remotes.TransferProgress
    :members:
 
 The Refspec type
