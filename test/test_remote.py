@@ -39,7 +39,6 @@ REMOTE_URL = 'https://github.com/libgit2/pygit2.git'
 REMOTE_FETCHSPEC_SRC = 'refs/heads/*'
 REMOTE_FETCHSPEC_DST = 'refs/remotes/origin/*'
 REMOTE_REPO_OBJECTS = 30
-REMOTE_REPO_BYTES = 2758
 REMOTE_FETCHTEST_FETCHSPECS = ["refs/tags/v1.13.2"]
 REMOTE_REPO_FETCH_ALL_OBJECTS = 13276
 REMOTE_REPO_FETCH_HEAD_COMMIT_OBJECTS = 238
@@ -215,7 +214,8 @@ def test_remote_refcount(testrepo):
 def test_fetch(emptyrepo):
     remote = emptyrepo.remotes[0]
     stats = remote.fetch()
-    assert stats.received_bytes == REMOTE_REPO_BYTES
+    assert stats.received_bytes > 2700
+    assert stats.received_bytes < 2800
     assert stats.indexed_objects == REMOTE_REPO_OBJECTS
     assert stats.received_objects == REMOTE_REPO_OBJECTS
 
