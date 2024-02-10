@@ -1,7 +1,23 @@
+# 1.14.1 (2024-02-10)
+
+- Update wheels to libgit2 v1.7.2
+
+- Now `Object.filemode` returns `enums.FileMode` and `Reference.type` returns
+  `enums.ReferenceType`
+  [#1273](https://github.com/libgit2/pygit2/pull/1273)
+
+- Fix tests on Fedora 40
+  [#1275](https://github.com/libgit2/pygit2/pull/1275)
+
+Deprecations:
+
+- Deprecate `ReferenceType.OID`, use `ReferenceType.DIRECT`
+- Deprecate `ReferenceType.LISTALL`, use `ReferenceType.ALL`
+
 # 1.14.0 (2024-01-26)
 
 -   Drop support for Python 3.8
--   Add Linux wheels for musl on x86_64
+-   Add Linux wheels for musl on x86\_64
     [#1266](https://github.com/libgit2/pygit2/pull/1266)
 -   New `Repository.submodules` namespace
     [#1250](https://github.com/libgit2/pygit2/pull/1250)

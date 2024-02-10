@@ -161,6 +161,7 @@ Authors:
     Erik van Zijst
     Fabrice Salvaire
     Ferengee
+    Florian Weimer
     Frazer McLean
     Gustavo Di Pietro
     Holger Frey
