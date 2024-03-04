@@ -32,7 +32,7 @@ from pygit2 import Oid
 import pytest
 
 
-HEX = "15b648aec6ed045b5ca6f57f8b7831a8b4757298"
+HEX = '15b648aec6ed045b5ca6f57f8b7831a8b4757298'
 RAW = unhexlify(HEX.encode('ascii'))
 
 
@@ -41,24 +41,35 @@ def test_raw():
     assert oid.raw == RAW
     assert str(oid) == HEX
 
+
 def test_hex():
     oid = Oid(hex=HEX)
     assert oid.raw == RAW
     assert str(oid) == HEX
 
+
 def test_hex_bytes():
-    hex = bytes(HEX, "ascii")
-    with pytest.raises(TypeError): Oid(hex=hex)
+    hex = bytes(HEX, 'ascii')
+    with pytest.raises(TypeError):
+        Oid(hex=hex)
+
 
 def test_none():
-    with pytest.raises(ValueError): Oid()
+    with pytest.raises(ValueError):
+        Oid()
+
 
 def test_both():
-    with pytest.raises(ValueError): Oid(raw=RAW, hex=HEX)
+    with pytest.raises(ValueError):
+        Oid(raw=RAW, hex=HEX)
+
 
 def test_long():
-    with pytest.raises(ValueError): Oid(raw=RAW + b'a')
-    with pytest.raises(ValueError): Oid(hex=HEX + 'a')
+    with pytest.raises(ValueError):
+        Oid(raw=RAW + b'a')
+    with pytest.raises(ValueError):
+        Oid(hex=HEX + 'a')
+
 
 def test_cmp():
     oid1 = Oid(raw=RAW)
@@ -68,7 +79,7 @@ def test_cmp():
     assert oid1 == oid2
 
     # Not equal
-    oid2 = Oid(hex="15b648aec6ed045b5ca6f57f8b7831a8b4757299")
+    oid2 = Oid(hex='15b648aec6ed045b5ca6f57f8b7831a8b4757299')
     assert oid1 != oid2
 
     # Other
@@ -78,12 +89,13 @@ def test_cmp():
     assert not oid1 > oid2
     assert not oid1 >= oid2
 
+
 def test_hash():
     s = set()
     s.add(Oid(raw=RAW))
     s.add(Oid(hex=HEX))
     assert len(s) == 1
 
-    s.add(Oid(hex="0000000000000000000000000000000000000000"))
-    s.add(Oid(hex="0000000000000000000000000000000000000001"))
+    s.add(Oid(hex='0000000000000000000000000000000000000000'))
+    s.add(Oid(hex='0000000000000000000000000000000000000001'))
     assert len(s) == 3

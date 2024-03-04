@@ -30,7 +30,7 @@ from .ffi import C
 
 
 class ApplyLocation(IntEnum):
-    """ Possible application locations for patches """
+    """Possible application locations for patches"""
 
     WORKDIR = _pygit2.GIT_APPLY_LOCATION_WORKDIR
     """
@@ -62,22 +62,22 @@ class AttrCheck(IntFlag):
 
 class BlameFlag(IntFlag):
     NORMAL = _pygit2.GIT_BLAME_NORMAL
-    "Normal blame, the default"
+    'Normal blame, the default'
 
     TRACK_COPIES_SAME_FILE = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_FILE
-    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+    'Not yet implemented and reserved for future use (as of libgit2 1.7.1).'
 
     TRACK_COPIES_SAME_COMMIT_MOVES = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES
-    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+    'Not yet implemented and reserved for future use (as of libgit2 1.7.1).'
 
     TRACK_COPIES_SAME_COMMIT_COPIES = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES
-    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+    'Not yet implemented and reserved for future use (as of libgit2 1.7.1).'
 
     TRACK_COPIES_ANY_COMMIT_COPIES = _pygit2.GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES
-    "Not yet implemented and reserved for future use (as of libgit2 1.7.1)."
+    'Not yet implemented and reserved for future use (as of libgit2 1.7.1).'
 
     FIRST_PARENT = _pygit2.GIT_BLAME_FIRST_PARENT
-    "Restrict the search of commits to those reachable following only the first parents."
+    'Restrict the search of commits to those reachable following only the first parents.'
 
     USE_MAILMAP = _pygit2.GIT_BLAME_USE_MAILMAP
     """
@@ -87,21 +87,21 @@ class BlameFlag(IntFlag):
     """
 
     IGNORE_WHITESPACE = _pygit2.GIT_BLAME_IGNORE_WHITESPACE
-    "Ignore whitespace differences"
+    'Ignore whitespace differences'
 
 
 class BlobFilter(IntFlag):
     CHECK_FOR_BINARY = _pygit2.GIT_BLOB_FILTER_CHECK_FOR_BINARY
-    "Do not apply filters to binary files."
+    'Do not apply filters to binary files.'
 
     NO_SYSTEM_ATTRIBUTES = _pygit2.GIT_BLOB_FILTER_NO_SYSTEM_ATTRIBUTES
-    "Filters will not load configuration from the system-wide `gitattributes` in `/etc` (or system equivalent)."
+    'Filters will not load configuration from the system-wide `gitattributes` in `/etc` (or system equivalent).'
 
     ATTRIBUTES_FROM_HEAD = _pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD
-    "Load filters from a `.gitattributes` file in the HEAD commit."
+    'Load filters from a `.gitattributes` file in the HEAD commit.'
 
     ATTRIBUTES_FROM_COMMIT = _pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_COMMIT
-    "Load filters from a `.gitattributes` file in the specified commit."
+    'Load filters from a `.gitattributes` file in the specified commit.'
 
 
 class BranchType(IntFlag):
@@ -122,7 +122,7 @@ class CheckoutNotify(IntFlag):
     NONE = C.GIT_CHECKOUT_NOTIFY_NONE
 
     CONFLICT = C.GIT_CHECKOUT_NOTIFY_CONFLICT
-    "Invokes checkout on conflicting paths."
+    'Invokes checkout on conflicting paths.'
 
     DIRTY = C.GIT_CHECKOUT_NOTIFY_DIRTY
     """
@@ -132,20 +132,20 @@ class CheckoutNotify(IntFlag):
     """
 
     UPDATED = C.GIT_CHECKOUT_NOTIFY_UPDATED
-    "Sends notification for any file changed."
+    'Sends notification for any file changed.'
 
     UNTRACKED = C.GIT_CHECKOUT_NOTIFY_UNTRACKED
-    "Notifies about untracked files."
+    'Notifies about untracked files.'
 
     IGNORED = C.GIT_CHECKOUT_NOTIFY_UNTRACKED
-    "Notifies about ignored files."
+    'Notifies about ignored files.'
 
     ALL = C.GIT_CHECKOUT_NOTIFY_ALL
 
 
 class CheckoutStrategy(IntFlag):
     NONE = _pygit2.GIT_CHECKOUT_NONE
-    "Dry run, no actual updates"
+    'Dry run, no actual updates'
 
     SAFE = _pygit2.GIT_CHECKOUT_SAFE
     """
@@ -237,22 +237,22 @@ class ConfigLevel(IntEnum):
     """
 
     PROGRAMDATA = _pygit2.GIT_CONFIG_LEVEL_PROGRAMDATA
-    "System-wide on Windows, for compatibility with portable git"
+    'System-wide on Windows, for compatibility with portable git'
 
     SYSTEM = _pygit2.GIT_CONFIG_LEVEL_SYSTEM
-    "System-wide configuration file; /etc/gitconfig on Linux systems"
+    'System-wide configuration file; /etc/gitconfig on Linux systems'
 
     XDG = _pygit2.GIT_CONFIG_LEVEL_XDG
-    "XDG compatible configuration file; typically ~/.config/git/config"
+    'XDG compatible configuration file; typically ~/.config/git/config'
 
     GLOBAL = _pygit2.GIT_CONFIG_LEVEL_GLOBAL
-    "User-specific configuration file (also called Global configuration file); typically ~/.gitconfig"
+    'User-specific configuration file (also called Global configuration file); typically ~/.gitconfig'
 
     LOCAL = _pygit2.GIT_CONFIG_LEVEL_LOCAL
-    "Repository specific configuration file; $WORK_DIR/.git/config on non-bare repos"
+    'Repository specific configuration file; $WORK_DIR/.git/config on non-bare repos'
 
     APP = _pygit2.GIT_CONFIG_LEVEL_APP
-    "Application specific configuration file; freely defined by applications"
+    'Application specific configuration file; freely defined by applications'
 
     HIGHEST_LEVEL = _pygit2.GIT_CONFIG_HIGHEST_LEVEL
     """Represents the highest level available config file (i.e. the most
@@ -266,19 +266,19 @@ class CredentialType(IntFlag):
     """
 
     USERPASS_PLAINTEXT = C.GIT_CREDENTIAL_USERPASS_PLAINTEXT
-    "A vanilla user/password request"
+    'A vanilla user/password request'
 
     SSH_KEY = C.GIT_CREDENTIAL_SSH_KEY
-    "An SSH key-based authentication request"
+    'An SSH key-based authentication request'
 
     SSH_CUSTOM = C.GIT_CREDENTIAL_SSH_CUSTOM
-    "An SSH key-based authentication request, with a custom signature"
+    'An SSH key-based authentication request, with a custom signature'
 
     DEFAULT = C.GIT_CREDENTIAL_DEFAULT
-    "An NTLM/Negotiate-based authentication request."
+    'An NTLM/Negotiate-based authentication request.'
 
     SSH_INTERACTIVE = C.GIT_CREDENTIAL_SSH_INTERACTIVE
-    "An SSH interactive authentication request."
+    'An SSH interactive authentication request.'
 
     USERNAME = C.GIT_CREDENTIAL_USERNAME
     """
@@ -309,37 +309,37 @@ class DeltaStatus(IntEnum):
     """
 
     UNMODIFIED = _pygit2.GIT_DELTA_UNMODIFIED
-    "no changes"
+    'no changes'
 
     ADDED = _pygit2.GIT_DELTA_ADDED
-    "entry does not exist in old version"
+    'entry does not exist in old version'
 
     DELETED = _pygit2.GIT_DELTA_DELETED
-    "entry does not exist in new version"
+    'entry does not exist in new version'
 
     MODIFIED = _pygit2.GIT_DELTA_MODIFIED
-    "entry content changed between old and new"
+    'entry content changed between old and new'
 
     RENAMED = _pygit2.GIT_DELTA_RENAMED
-    "entry was renamed between old and new"
+    'entry was renamed between old and new'
 
     COPIED = _pygit2.GIT_DELTA_COPIED
-    "entry was copied from another old entry"
+    'entry was copied from another old entry'
 
     IGNORED = _pygit2.GIT_DELTA_IGNORED
-    "entry is ignored item in workdir"
+    'entry is ignored item in workdir'
 
     UNTRACKED = _pygit2.GIT_DELTA_UNTRACKED
-    "entry is untracked item in workdir"
+    'entry is untracked item in workdir'
 
     TYPECHANGE = _pygit2.GIT_DELTA_TYPECHANGE
-    "type of entry changed between old and new"
+    'type of entry changed between old and new'
 
     UNREADABLE = _pygit2.GIT_DELTA_UNREADABLE
-    "entry is unreadable"
+    'entry is unreadable'
 
     CONFLICTED = _pygit2.GIT_DELTA_CONFLICTED
-    "entry in the index is conflicted"
+    'entry in the index is conflicted'
 
 
 class DescribeStrategy(IntEnum):
@@ -357,7 +357,7 @@ class DescribeStrategy(IntEnum):
 
 
 class DiffFind(IntFlag):
-    """ Flags to control the behavior of diff rename/copy detection. """
+    """Flags to control the behavior of diff rename/copy detection."""
 
     FIND_BY_CONFIG = _pygit2.GIT_DIFF_FIND_BY_CONFIG
     """ Obey `diff.renames`. Overridden by any other FIND_... flag. """
@@ -446,19 +446,19 @@ class DiffFlag(IntFlag):
     """
 
     BINARY = _pygit2.GIT_DIFF_FLAG_BINARY
-    "file(s) treated as binary data"
+    'file(s) treated as binary data'
 
     NOT_BINARY = _pygit2.GIT_DIFF_FLAG_NOT_BINARY
-    "file(s) treated as text data"
+    'file(s) treated as text data'
 
     VALID_ID = _pygit2.GIT_DIFF_FLAG_VALID_ID
-    "`id` value is known correct"
+    '`id` value is known correct'
 
     EXISTS = _pygit2.GIT_DIFF_FLAG_EXISTS
-    "file exists at this side of the delta"
+    'file exists at this side of the delta'
 
     VALID_SIZE = _pygit2.GIT_DIFF_FLAG_VALID_SIZE
-    "file size value is known correct"
+    'file size value is known correct'
 
 
 class DiffOption(IntFlag):
@@ -468,13 +468,13 @@ class DiffOption(IntFlag):
     """
 
     NORMAL = _pygit2.GIT_DIFF_NORMAL
-    "Normal diff, the default"
+    'Normal diff, the default'
 
     REVERSE = _pygit2.GIT_DIFF_REVERSE
-    "Reverse the sides of the diff"
+    'Reverse the sides of the diff'
 
     INCLUDE_IGNORED = _pygit2.GIT_DIFF_INCLUDE_IGNORED
-    "Include ignored files in the diff"
+    'Include ignored files in the diff'
 
     RECURSE_IGNORED_DIRS = _pygit2.GIT_DIFF_RECURSE_IGNORED_DIRS
     """
@@ -484,7 +484,7 @@ class DiffOption(IntFlag):
     """
 
     INCLUDE_UNTRACKED = _pygit2.GIT_DIFF_INCLUDE_UNTRACKED
-    "Include untracked files in the diff"
+    'Include untracked files in the diff'
 
     RECURSE_UNTRACKED_DIRS = _pygit2.GIT_DIFF_RECURSE_UNTRACKED_DIRS
     """
@@ -495,7 +495,7 @@ class DiffOption(IntFlag):
     """
 
     INCLUDE_UNMODIFIED = _pygit2.GIT_DIFF_INCLUDE_UNMODIFIED
-    "Include unmodified files in the diff"
+    'Include unmodified files in the diff'
 
     INCLUDE_TYPECHANGE = _pygit2.GIT_DIFF_INCLUDE_TYPECHANGE
     """
@@ -513,13 +513,13 @@ class DiffOption(IntFlag):
     """
 
     IGNORE_FILEMODE = _pygit2.GIT_DIFF_IGNORE_FILEMODE
-    "Ignore file mode changes"
+    'Ignore file mode changes'
 
     IGNORE_SUBMODULES = _pygit2.GIT_DIFF_IGNORE_SUBMODULES
-    "Treat all submodules as unmodified"
+    'Treat all submodules as unmodified'
 
     IGNORE_CASE = _pygit2.GIT_DIFF_IGNORE_CASE
-    "Use case insensitive filename comparisons"
+    'Use case insensitive filename comparisons'
 
     INCLUDE_CASECHANGE = _pygit2.GIT_DIFF_INCLUDE_CASECHANGE
     """
@@ -564,10 +564,10 @@ class DiffOption(IntFlag):
     """
 
     INCLUDE_UNREADABLE = _pygit2.GIT_DIFF_INCLUDE_UNREADABLE
-    "Include unreadable files in the diff"
+    'Include unreadable files in the diff'
 
     INCLUDE_UNREADABLE_AS_UNTRACKED = _pygit2.GIT_DIFF_INCLUDE_UNREADABLE_AS_UNTRACKED
-    "Include unreadable files in the diff"
+    'Include unreadable files in the diff'
 
     INDENT_HEURISTIC = _pygit2.GIT_DIFF_INDENT_HEURISTIC
     """
@@ -577,22 +577,22 @@ class DiffOption(IntFlag):
     """
 
     IGNORE_BLANK_LINES = _pygit2.GIT_DIFF_IGNORE_BLANK_LINES
-    "Ignore blank lines"
+    'Ignore blank lines'
 
     FORCE_TEXT = _pygit2.GIT_DIFF_FORCE_TEXT
-    "Treat all files as text, disabling binary attributes & detection"
+    'Treat all files as text, disabling binary attributes & detection'
 
     FORCE_BINARY = _pygit2.GIT_DIFF_FORCE_BINARY
-    "Treat all files as binary, disabling text diffs"
+    'Treat all files as binary, disabling text diffs'
 
     IGNORE_WHITESPACE = _pygit2.GIT_DIFF_IGNORE_WHITESPACE
-    "Ignore all whitespace"
+    'Ignore all whitespace'
 
     IGNORE_WHITESPACE_CHANGE = _pygit2.GIT_DIFF_IGNORE_WHITESPACE_CHANGE
-    "Ignore changes in amount of whitespace"
+    'Ignore changes in amount of whitespace'
 
     IGNORE_WHITESPACE_EOL = _pygit2.GIT_DIFF_IGNORE_WHITESPACE_EOL
-    "Ignore whitespace at end of line"
+    'Ignore whitespace at end of line'
 
     SHOW_UNTRACKED_CONTENT = _pygit2.GIT_DIFF_SHOW_UNTRACKED_CONTENT
     """
@@ -614,7 +614,7 @@ class DiffOption(IntFlag):
     "Use the 'patience diff' algorithm"
 
     MINIMAL = _pygit2.GIT_DIFF_MINIMAL
-    "Take extra time to find minimal diff"
+    'Take extra time to find minimal diff'
 
     SHOW_BINARY = _pygit2.GIT_DIFF_SHOW_BINARY
     """
@@ -624,22 +624,22 @@ class DiffOption(IntFlag):
 
 
 class DiffStatsFormat(IntFlag):
-    """ Formatting options for diff stats """
+    """Formatting options for diff stats"""
 
     NONE = _pygit2.GIT_DIFF_STATS_NONE
-    "No stats"
+    'No stats'
 
     FULL = _pygit2.GIT_DIFF_STATS_FULL
-    "Full statistics, equivalent of `--stat`"
+    'Full statistics, equivalent of `--stat`'
 
     SHORT = _pygit2.GIT_DIFF_STATS_SHORT
-    "Short statistics, equivalent of `--shortstat`"
+    'Short statistics, equivalent of `--shortstat`'
 
     NUMBER = _pygit2.GIT_DIFF_STATS_NUMBER
-    "Number statistics, equivalent of `--numstat`"
+    'Number statistics, equivalent of `--numstat`'
 
     INCLUDE_SUMMARY = _pygit2.GIT_DIFF_STATS_INCLUDE_SUMMARY
-    "Extended header information such as creations, renames and mode changes, equivalent of `--summary`"
+    'Extended header information such as creations, renames and mode changes, equivalent of `--summary`'
 
 
 class Feature(IntFlag):
@@ -655,10 +655,10 @@ class Feature(IntFlag):
 
 
 class FetchPrune(IntEnum):
-    """ Acceptable prune settings when fetching. """
+    """Acceptable prune settings when fetching."""
 
     UNSPECIFIED = C.GIT_FETCH_PRUNE_UNSPECIFIED
-    "Use the setting from the configuration"
+    'Use the setting from the configuration'
 
     PRUNE = C.GIT_FETCH_PRUNE
     """Force pruning on: remove any remote branch in the local repository
@@ -688,6 +688,7 @@ class FileStatus(IntFlag):
     flags represents the status of the file in the working directory relative
     to the index.
     """
+
     CURRENT = _pygit2.GIT_STATUS_CURRENT
 
     INDEX_NEW = _pygit2.GIT_STATUS_INDEX_NEW
@@ -708,7 +709,7 @@ class FileStatus(IntFlag):
 
 
 class FilterFlag(IntFlag):
-    """ Filter option flags. """
+    """Filter option flags."""
 
     DEFAULT = _pygit2.GIT_FILTER_DEFAULT
 
@@ -719,10 +720,10 @@ class FilterFlag(IntFlag):
     "Don't load `/etc/gitattributes` (or the system equivalent)"
 
     ATTRIBUTES_FROM_HEAD = _pygit2.GIT_FILTER_ATTRIBUTES_FROM_HEAD
-    "Load attributes from `.gitattributes` in the root of HEAD"
+    'Load attributes from `.gitattributes` in the root of HEAD'
 
     ATTRIBUTES_FROM_COMMIT = _pygit2.GIT_FILTER_ATTRIBUTES_FROM_COMMIT
-    "Load attributes from `.gitattributes` in a given commit. This can only be specified in a `git_filter_options`."
+    'Load attributes from `.gitattributes` in a given commit. This can only be specified in a `git_filter_options`.'
 
 
 class FilterMode(IntEnum):
@@ -733,6 +734,7 @@ class FilterMode(IntEnum):
     the Git object database.  These values control which direction of
     change is being applied.
     """
+
     TO_WORKTREE = _pygit2.GIT_FILTER_TO_WORKTREE
     SMUDGE = _pygit2.GIT_FILTER_SMUDGE
     TO_ODB = _pygit2.GIT_FILTER_TO_ODB
@@ -740,10 +742,10 @@ class FilterMode(IntEnum):
 
 
 class MergeAnalysis(IntFlag):
-    """ The results of `Repository.merge_analysis` indicate the merge opportunities. """
+    """The results of `Repository.merge_analysis` indicate the merge opportunities."""
 
     NONE = _pygit2.GIT_MERGE_ANALYSIS_NONE
-    "No merge is possible.  (Unused.)"
+    'No merge is possible.  (Unused.)'
 
     NORMAL = _pygit2.GIT_MERGE_ANALYSIS_NORMAL
     """
@@ -814,7 +816,7 @@ class MergeFavor(IntEnum):
 
 
 class MergeFileFlag(IntFlag):
-    """ File merging flags """
+    """File merging flags"""
 
     DEFAULT = C.GIT_MERGE_FILE_DEFAULT
     """ Defaults """
@@ -901,10 +903,10 @@ class MergeFlag(IntFlag):
 
 
 class MergePreference(IntFlag):
-    """ The user's stated preference for merges. """
+    """The user's stated preference for merges."""
 
     NONE = _pygit2.GIT_MERGE_PREFERENCE_NONE
-    "No configuration was found that suggests a preferred behavior for merge."
+    'No configuration was found that suggests a preferred behavior for merge.'
 
     NO_FASTFORWARD = _pygit2.GIT_MERGE_PREFERENCE_NO_FASTFORWARD
     """
@@ -921,32 +923,33 @@ class MergePreference(IntFlag):
 
 class ObjectType(IntEnum):
     ANY = _pygit2.GIT_OBJECT_ANY
-    "Object can be any of the following"
+    'Object can be any of the following'
 
     INVALID = _pygit2.GIT_OBJECT_INVALID
-    "Object is invalid."
+    'Object is invalid.'
 
     COMMIT = _pygit2.GIT_OBJECT_COMMIT
-    "A commit object."
+    'A commit object.'
 
     TREE = _pygit2.GIT_OBJECT_TREE
-    "A tree (directory listing) object."
+    'A tree (directory listing) object.'
 
     BLOB = _pygit2.GIT_OBJECT_BLOB
-    "A file revision object."
+    'A file revision object.'
 
     TAG = _pygit2.GIT_OBJECT_TAG
-    "An annotated tag object."
+    'An annotated tag object.'
 
     OFS_DELTA = _pygit2.GIT_OBJECT_OFS_DELTA
-    "A delta, base is given by an offset."
+    'A delta, base is given by an offset.'
 
     REF_DELTA = _pygit2.GIT_OBJECT_REF_DELTA
-    "A delta, base is given by object id."
+    'A delta, base is given by object id.'
 
 
 class Option(IntEnum):
-    """ Global libgit2 library options """
+    """Global libgit2 library options"""
+
     # Commented out values --> exists in libgit2 but not supported in pygit2's options.c yet
     GET_MWINDOW_SIZE = _pygit2.GIT_OPT_GET_MWINDOW_SIZE
     SET_MWINDOW_SIZE = _pygit2.GIT_OPT_SET_MWINDOW_SIZE
@@ -963,7 +966,9 @@ class Option(IntEnum):
     SET_SSL_CERT_LOCATIONS = _pygit2.GIT_OPT_SET_SSL_CERT_LOCATIONS
     SET_USER_AGENT = _pygit2.GIT_OPT_SET_USER_AGENT
     ENABLE_STRICT_OBJECT_CREATION = _pygit2.GIT_OPT_ENABLE_STRICT_OBJECT_CREATION
-    ENABLE_STRICT_SYMBOLIC_REF_CREATION = _pygit2.GIT_OPT_ENABLE_STRICT_SYMBOLIC_REF_CREATION
+    ENABLE_STRICT_SYMBOLIC_REF_CREATION = (
+        _pygit2.GIT_OPT_ENABLE_STRICT_SYMBOLIC_REF_CREATION
+    )
     SET_SSL_CIPHERS = _pygit2.GIT_OPT_SET_SSL_CIPHERS
     GET_USER_AGENT = _pygit2.GIT_OPT_GET_USER_AGENT
     ENABLE_OFS_DELTA = _pygit2.GIT_OPT_ENABLE_OFS_DELTA
@@ -994,7 +999,7 @@ class Option(IntEnum):
 
 
 class ReferenceFilter(IntEnum):
-    """ Filters for References.iterator(). """
+    """Filters for References.iterator()."""
 
     ALL = _pygit2.GIT_REFERENCES_ALL
     BRANCHES = _pygit2.GIT_REFERENCES_BRANCHES
@@ -1002,25 +1007,25 @@ class ReferenceFilter(IntEnum):
 
 
 class ReferenceType(IntFlag):
-    """ Basic type of any Git reference. """
+    """Basic type of any Git reference."""
 
     INVALID = C.GIT_REFERENCE_INVALID
-    "Invalid reference"
+    'Invalid reference'
 
     DIRECT = C.GIT_REFERENCE_DIRECT
-    "A reference that points at an object id"
+    'A reference that points at an object id'
 
     SYMBOLIC = C.GIT_REFERENCE_SYMBOLIC
-    "A reference that points at another reference"
+    'A reference that points at another reference'
 
     ALL = C.GIT_REFERENCE_ALL
-    "Bitwise OR of (DIRECT | SYMBOLIC)"
+    'Bitwise OR of (DIRECT | SYMBOLIC)'
 
     # Deprecated entries
     OID = DIRECT
-    "Deprecated, use DIRECT instead"
+    'Deprecated, use DIRECT instead'
     LISTALL = ALL
-    "Deprecated, use ALL instead"
+    'Deprecated, use ALL instead'
 
 
 class RepositoryInitFlag(IntFlag):
@@ -1029,10 +1034,10 @@ class RepositoryInitFlag(IntFlag):
     """
 
     BARE = C.GIT_REPOSITORY_INIT_BARE
-    "Create a bare repository with no working directory."
+    'Create a bare repository with no working directory.'
 
     NO_REINIT = C.GIT_REPOSITORY_INIT_NO_REINIT
-    "Raise GitError if the path appears to already be a git repository."
+    'Raise GitError if the path appears to already be a git repository.'
 
     NO_DOTGIT_DIR = C.GIT_REPOSITORY_INIT_NO_DOTGIT_DIR
     """Normally a "/.git/" will be appended to the repo path for
@@ -1046,7 +1051,7 @@ class RepositoryInitFlag(IntFlag):
     as needed."""
 
     MKPATH = C.GIT_REPOSITORY_INIT_MKPATH
-    "Recursively make all components of the repo and workdir paths as necessary."
+    'Recursively make all components of the repo and workdir paths as necessary.'
 
     EXTERNAL_TEMPLATE = C.GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE
     """libgit2 normally uses internal templates to initialize a new repo.
@@ -1065,7 +1070,7 @@ class RepositoryInitMode(IntEnum):
     """
 
     SHARED_UMASK = C.GIT_REPOSITORY_INIT_SHARED_UMASK
-    "Use permissions configured by umask - the default."
+    'Use permissions configured by umask - the default.'
 
     SHARED_GROUP = C.GIT_REPOSITORY_INIT_SHARED_GROUP
     """
@@ -1083,7 +1088,7 @@ class RepositoryOpenFlag(IntFlag):
     """
 
     DEFAULT = 0
-    "Default flags."
+    'Default flags.'
 
     NO_SEARCH = C.GIT_REPOSITORY_OPEN_NO_SEARCH
     """
@@ -1138,6 +1143,7 @@ class RepositoryState(IntEnum):
     Repository state: These values represent possible states for the repository
     to be in, based on the current operation which is ongoing.
     """
+
     NONE = C.GIT_REPOSITORY_STATE_NONE
     MERGE = C.GIT_REPOSITORY_STATE_MERGE
     REVERT = C.GIT_REPOSITORY_STATE_REVERT
@@ -1153,16 +1159,16 @@ class RepositoryState(IntEnum):
 
 
 class ResetMode(IntEnum):
-    """ Kinds of reset operation. """
+    """Kinds of reset operation."""
 
     SOFT = _pygit2.GIT_RESET_SOFT
-    "Move the head to the given commit"
+    'Move the head to the given commit'
 
     MIXED = _pygit2.GIT_RESET_MIXED
-    "SOFT plus reset index to the commit"
+    'SOFT plus reset index to the commit'
 
     HARD = _pygit2.GIT_RESET_HARD
-    "MIXED plus changes in working tree discarded"
+    'MIXED plus changes in working tree discarded'
 
 
 class RevSpecFlag(IntFlag):
@@ -1172,10 +1178,10 @@ class RevSpecFlag(IntFlag):
     """
 
     SINGLE = _pygit2.GIT_REVSPEC_SINGLE
-    "The spec targeted a single object."
+    'The spec targeted a single object.'
 
     RANGE = _pygit2.GIT_REVSPEC_RANGE
-    "The spec targeted a range of commits."
+    'The spec targeted a range of commits.'
 
     MERGE_BASE = _pygit2.GIT_REVSPEC_MERGE_BASE
     "The spec used the '...' operator, which invokes special semantics."
@@ -1220,25 +1226,25 @@ class StashApplyProgress(IntEnum):
     NONE = C.GIT_STASH_APPLY_PROGRESS_NONE
 
     LOADING_STASH = C.GIT_STASH_APPLY_PROGRESS_LOADING_STASH
-    "Loading the stashed data from the object database."
+    'Loading the stashed data from the object database.'
 
     ANALYZE_INDEX = C.GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX
-    "The stored index is being analyzed."
+    'The stored index is being analyzed.'
 
     ANALYZE_MODIFIED = C.GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED
-    "The modified files are being analyzed."
+    'The modified files are being analyzed.'
 
     ANALYZE_UNTRACKED = C.GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED
-    "The untracked and ignored files are being analyzed."
+    'The untracked and ignored files are being analyzed.'
 
     CHECKOUT_UNTRACKED = C.GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED
-    "The untracked files are being written to disk."
+    'The untracked files are being written to disk.'
 
     CHECKOUT_MODIFIED = C.GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED
-    "The modified files are being written to disk."
+    'The modified files are being written to disk.'
 
     DONE = C.GIT_STASH_APPLY_PROGRESS_DONE
-    "The stash was applied successfully."
+    'The stash was applied successfully.'
 
 
 class SubmoduleIgnore(IntEnum):
@@ -1246,60 +1252,60 @@ class SubmoduleIgnore(IntEnum):
     "use the submodule's configuration"
 
     NONE = _pygit2.GIT_SUBMODULE_IGNORE_NONE
-    "any change or untracked == dirty"
+    'any change or untracked == dirty'
 
     UNTRACKED = _pygit2.GIT_SUBMODULE_IGNORE_UNTRACKED
-    "dirty if tracked files change"
+    'dirty if tracked files change'
 
     DIRTY = _pygit2.GIT_SUBMODULE_IGNORE_DIRTY
-    "only dirty if HEAD moved"
+    'only dirty if HEAD moved'
 
     ALL = _pygit2.GIT_SUBMODULE_IGNORE_ALL
-    "never dirty"
+    'never dirty'
 
 
 class SubmoduleStatus(IntFlag):
     IN_HEAD = _pygit2.GIT_SUBMODULE_STATUS_IN_HEAD
-    "superproject head contains submodule"
+    'superproject head contains submodule'
 
     IN_INDEX = _pygit2.GIT_SUBMODULE_STATUS_IN_INDEX
-    "superproject index contains submodule"
+    'superproject index contains submodule'
 
     IN_CONFIG = _pygit2.GIT_SUBMODULE_STATUS_IN_CONFIG
-    "superproject gitmodules has submodule"
+    'superproject gitmodules has submodule'
 
     IN_WD = _pygit2.GIT_SUBMODULE_STATUS_IN_WD
-    "superproject workdir has submodule"
+    'superproject workdir has submodule'
 
     INDEX_ADDED = _pygit2.GIT_SUBMODULE_STATUS_INDEX_ADDED
-    "in index, not in head (flag available if ignore is not ALL)"
+    'in index, not in head (flag available if ignore is not ALL)'
 
     INDEX_DELETED = _pygit2.GIT_SUBMODULE_STATUS_INDEX_DELETED
-    "in head, not in index (flag available if ignore is not ALL)"
+    'in head, not in index (flag available if ignore is not ALL)'
 
     INDEX_MODIFIED = _pygit2.GIT_SUBMODULE_STATUS_INDEX_MODIFIED
     "index and head don't match (flag available if ignore is not ALL)"
 
     WD_UNINITIALIZED = _pygit2.GIT_SUBMODULE_STATUS_WD_UNINITIALIZED
-    "workdir contains empty repository (flag available if ignore is not ALL)"
+    'workdir contains empty repository (flag available if ignore is not ALL)'
 
     WD_ADDED = _pygit2.GIT_SUBMODULE_STATUS_WD_ADDED
-    "in workdir, not index (flag available if ignore is not ALL)"
+    'in workdir, not index (flag available if ignore is not ALL)'
 
     WD_DELETED = _pygit2.GIT_SUBMODULE_STATUS_WD_DELETED
-    "in index, not workdir (flag available if ignore is not ALL)"
+    'in index, not workdir (flag available if ignore is not ALL)'
 
     WD_MODIFIED = _pygit2.GIT_SUBMODULE_STATUS_WD_MODIFIED
     "index and workdir head don't match (flag available if ignore is not ALL)"
 
     WD_INDEX_MODIFIED = _pygit2.GIT_SUBMODULE_STATUS_WD_INDEX_MODIFIED
-    "submodule workdir index is dirty (flag available if ignore is NONE or UNTRACKED)"
+    'submodule workdir index is dirty (flag available if ignore is NONE or UNTRACKED)'
 
     WD_WD_MODIFIED = _pygit2.GIT_SUBMODULE_STATUS_WD_WD_MODIFIED
-    "submodule workdir has modified files (flag available if ignore is NONE or UNTRACKED)"
+    'submodule workdir has modified files (flag available if ignore is NONE or UNTRACKED)'
 
     WD_UNTRACKED = _pygit2.GIT_SUBMODULE_STATUS_WD_UNTRACKED
-    "submodule workdir contains untracked files (flag available if ignore is NONE)"
+    'submodule workdir contains untracked files (flag available if ignore is NONE)'
 
 
 def _deprecated_flag_dict_to_intflag(flag_dict, default_value):
@@ -1319,9 +1325,9 @@ def _deprecated_flag_dict_to_intflag(flag_dict, default_value):
             f = enum_type[k]
         except KeyError:
             try:
-                f = enum_type["_DEPRECATED_" + k]
+                f = enum_type['_DEPRECATED_' + k]
             except KeyError:
-                raise ValueError(f"unknown {enum_type.__name__}: {k}")
+                raise ValueError(f'unknown {enum_type.__name__}: {k}')
 
         if v:
             value |= f

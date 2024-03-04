@@ -66,15 +66,17 @@ _cache_enums()
 
 
 def init_repository(
-        path: typing.Union[str, bytes, PathLike, None],
-        bare: bool = False,
-        flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
-        mode: typing.Union[int, enums.RepositoryInitMode] = enums.RepositoryInitMode.SHARED_UMASK,
-        workdir_path: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        template_path: typing.Optional[str] = None,
-        initial_head: typing.Optional[str] = None,
-        origin_url: typing.Optional[str] = None
+    path: typing.Union[str, bytes, PathLike, None],
+    bare: bool = False,
+    flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
+    mode: typing.Union[
+        int, enums.RepositoryInitMode
+    ] = enums.RepositoryInitMode.SHARED_UMASK,
+    workdir_path: typing.Optional[str] = None,
+    description: typing.Optional[str] = None,
+    template_path: typing.Optional[str] = None,
+    initial_head: typing.Optional[str] = None,
+    origin_url: typing.Optional[str] = None,
 ) -> Repository:
     """
     Creates a new Git repository in the given *path*.
@@ -108,8 +110,7 @@ def init_repository(
 
     # Options
     options = ffi.new('git_repository_init_options *')
-    C.git_repository_init_options_init(options,
-                                       C.GIT_REPOSITORY_INIT_OPTIONS_VERSION)
+    C.git_repository_init_options_init(options, C.GIT_REPOSITORY_INIT_OPTIONS_VERSION)
     options.flags = int(flags)
     options.mode = mode
 
@@ -143,8 +144,15 @@ def init_repository(
 
 
 def clone_repository(
-        url, path, bare=False, repository=None, remote=None,
-        checkout_branch=None, callbacks=None, depth=0):
+    url,
+    path,
+    bare=False,
+    repository=None,
+    remote=None,
+    checkout_branch=None,
+    callbacks=None,
+    depth=0,
+):
     """
     Clones a new Git repository from *url* in the given *path*.
 

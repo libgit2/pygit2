@@ -35,6 +35,7 @@ from . import utils
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'
 
+
 def assertTreeEntryEqual(entry, sha, name, filemode):
     assert entry.hex == sha
     assert entry.name == name
@@ -44,7 +45,8 @@ def assertTreeEntryEqual(entry, sha, name, filemode):
 
 def test_read_tree(barerepo):
     tree = barerepo[TREE_SHA]
-    with pytest.raises(TypeError): tree[()]
+    with pytest.raises(TypeError):
+        tree[()]
     with pytest.raises(TypeError):
         tree / 123
     utils.assertRaisesWithArg(KeyError, 'abcd', lambda: tree['abcd'])
@@ -79,6 +81,7 @@ def test_read_tree(barerepo):
     with pytest.raises(TypeError):
         tree / 'a' / 'cd'
 
+
 def test_equality(barerepo):
     tree_a = barerepo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
     tree_b = barerepo['2ad1d3456c5c4a1c9e40aeeddb9cd20b409623c8']
@@ -87,10 +90,12 @@ def test_equality(barerepo):
     assert tree_a['a'] != tree_b['b']
     assert tree_a['b'] == tree_b['b']
 
+
 def test_sorting(barerepo):
     tree_a = barerepo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
     assert list(tree_a) == sorted(reversed(list(tree_a)), key=pygit2.tree_entry_key)
     assert list(tree_a) != reversed(list(tree_a))
+
 
 def test_read_subtree(barerepo):
     tree = barerepo[TREE_SHA]
@@ -110,8 +115,9 @@ def test_read_subtree(barerepo):
     sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
     assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
-    subtree_entry = (tree / 'c')
+    subtree_entry = tree / 'c'
     assert subtree_entry == barerepo[subtree_entry.id]
+
 
 def test_new_tree(barerepo):
     repo = barerepo
@@ -130,8 +136,8 @@ def test_new_tree(barerepo):
     for name, oid, cls, filemode, type, type_str in [
         ('x', b0, pygit2.Blob, FileMode.BLOB, ObjectType.BLOB, 'blob'),
         ('y', b1, pygit2.Blob, FileMode.BLOB_EXECUTABLE, ObjectType.BLOB, 'blob'),
-        ('z', subtree.id, pygit2.Tree, FileMode.TREE, ObjectType.TREE, 'tree')]:
-
+        ('z', subtree.id, pygit2.Tree, FileMode.TREE, ObjectType.TREE, 'tree'),
+    ]:
         assert name in tree
         obj = tree[name]
         assert isinstance(obj, cls)
@@ -151,10 +157,14 @@ def test_new_tree(barerepo):
         assert repo[obj.id].id == oid
         assert obj == repo[obj.id]
 
+
 def test_modify_tree(barerepo):
     tree = barerepo[TREE_SHA]
-    with pytest.raises(TypeError): operator.setitem('c', tree['a'])
-    with pytest.raises(TypeError): operator.delitem('c')
+    with pytest.raises(TypeError):
+        operator.setitem('c', tree['a'])
+    with pytest.raises(TypeError):
+        operator.delitem('c')
+
 
 def test_iterate_tree(barerepo):
     """
@@ -166,6 +176,7 @@ def test_iterate_tree(barerepo):
     for tree_entry in tree:
         assert tree_entry == tree[tree_entry.name]
 
+
 def test_iterate_tree_nested(barerepo):
     """
     Testing that we're able to iterate of a Tree object and then iterate
@@ -176,6 +187,7 @@ def test_iterate_tree_nested(barerepo):
         if isinstance(tree_entry, pygit2.Tree):
             for tree_entry2 in tree_entry:
                 pass
+
 
 def test_deep_contains(barerepo):
     tree = barerepo[TREE_SHA]

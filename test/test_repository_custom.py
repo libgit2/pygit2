@@ -47,11 +47,14 @@ def repo(testrepopacked):
     repo.set_refdb(refdb)
     yield repo
 
+
 def test_references(repo):
     refs = [(ref.name, ref.target.hex) for ref in repo.references.objects]
     assert sorted(refs) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
-        ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98')]
+        ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
+    ]
+
 
 def test_objects(repo):
     a = repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')

@@ -37,7 +37,6 @@ from .errors import GitError
 
 
 class SearchPathList:
-
     def __getitem__(self, key):
         return option(Option.GET_SEARCH_PATH, key)
 

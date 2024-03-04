@@ -70,5 +70,5 @@ def get_libgit2_paths():
             'libraries': ['git2'],
             'include_dirs': [str(x) for x in include_dirs],
             'library_dirs': [str(x) for x in library_dirs],
-        }
+        },
     )

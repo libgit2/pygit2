@@ -92,6 +92,7 @@ def test_read_blob(testrepo):
     assert len(BLOB_CONTENT) == blob.size
     assert BLOB_CONTENT == blob.read_raw()
 
+
 def test_create_blob(testrepo):
     blob_oid = testrepo.create_blob(BLOB_NEW_CONTENT)
     blob = testrepo[blob_oid]
@@ -108,13 +109,16 @@ def test_create_blob(testrepo):
     blob_buffer = memoryview(blob)
     assert len(BLOB_NEW_CONTENT) == len(blob_buffer)
     assert BLOB_NEW_CONTENT == blob_buffer
+
     def set_content():
         blob_buffer[:2] = b'hi'
 
-    with pytest.raises(TypeError): set_content()
+    with pytest.raises(TypeError):
+        set_content()
+
 
 def test_create_blob_fromworkdir(testrepo):
-    blob_oid = testrepo.create_blob_fromworkdir("bye.txt")
+    blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
@@ -127,11 +131,13 @@ def test_create_blob_fromworkdir(testrepo):
     assert len(BLOB_FILE_CONTENT) == blob.size
     assert BLOB_FILE_CONTENT == blob.read_raw()
 
+
 def test_create_blob_fromworkdir_aspath(testrepo):
-    blob_oid = testrepo.create_blob_fromworkdir(Path("bye.txt"))
+    blob_oid = testrepo.create_blob_fromworkdir(Path('bye.txt'))
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
+
 
 def test_create_blob_outside_workdir(testrepo):
     with pytest.raises(KeyError):
@@ -144,6 +150,7 @@ def test_create_blob_fromdisk(testrepo):
 
     assert isinstance(blob, pygit2.Blob)
     assert ObjectType.BLOB == blob.type
+
 
 def test_create_blob_fromiobase(testrepo):
     with pytest.raises(TypeError):
@@ -159,26 +166,31 @@ def test_create_blob_fromiobase(testrepo):
     assert blob_oid == blob.id
     assert BLOB_SHA == blob_oid.hex
 
+
 def test_diff_blob(testrepo):
     blob = testrepo[BLOB_SHA]
     old_blob = testrepo['3b18e512dba79e4c8300dd08aeb37f8e728b8dad']
-    patch = blob.diff(old_blob, old_as_path="hello.txt")
+    patch = blob.diff(old_blob, old_as_path='hello.txt')
     assert len(patch.hunks) == 1
+
 
 def test_diff_blob_to_buffer(testrepo):
     blob = testrepo[BLOB_SHA]
-    patch = blob.diff_to_buffer("hello world")
+    patch = blob.diff_to_buffer('hello world')
     assert len(patch.hunks) == 1
+
 
 def test_diff_blob_to_buffer_patch_patch(testrepo):
     blob = testrepo[BLOB_SHA]
-    patch = blob.diff_to_buffer("hello world")
+    patch = blob.diff_to_buffer('hello world')
     assert patch.text == BLOB_PATCH
+
 
 def test_diff_blob_to_buffer_delete(testrepo):
     blob = testrepo[BLOB_SHA]
     patch = blob.diff_to_buffer(None)
     assert patch.text == BLOB_PATCH_DELETED
+
 
 def test_diff_blob_create(testrepo):
     old = testrepo[testrepo.create_blob(BLOB_CONTENT)]
@@ -186,6 +198,7 @@ def test_diff_blob_create(testrepo):
 
     patch = old.diff(new)
     assert patch.text == BLOB_PATCH_2
+
 
 def test_blob_from_repo(testrepo):
     blob = testrepo[BLOB_SHA]
@@ -195,6 +208,7 @@ def test_blob_from_repo(testrepo):
     patch_two = blob.diff_to_buffer(None)
 
     assert patch_one.text == patch_two.text
+
 
 def test_blob_write_to_queue(testrepo):
     queue = Queue()
@@ -208,6 +222,7 @@ def test_blob_write_to_queue(testrepo):
     while not queue.empty():
         chunks.append(queue.get())
     assert BLOB_CONTENT == b''.join(chunks)
+
 
 def test_blob_write_to_queue_filtered(testrepo):
     queue = Queue()
@@ -223,12 +238,14 @@ def test_blob_write_to_queue_filtered(testrepo):
         chunks.append(queue.get())
     assert b'bye world\n' == b''.join(chunks)
 
+
 def test_blobio(testrepo):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     with pygit2.BlobIO(blob) as reader:
         assert b'bye world\n' == reader.read()
     assert not reader.raw._thread.is_alive()
+
 
 def test_blobio_filtered(testrepo):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')

@@ -35,7 +35,9 @@ from . import utils
 
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
-COMMIT_SHA_TO_AMEND = '784855caf26449a1914d2cf62d12b9374d76ae78'  # tip of the master branch
+COMMIT_SHA_TO_AMEND = (
+    '784855caf26449a1914d2cf62d12b9374d76ae78'  # tip of the master branch
+)
 
 
 @utils.refcount
@@ -55,21 +57,27 @@ def test_read_commit(barerepo):
     assert 1 == len(parents)
     assert 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c' == str(parents[0].id)
     assert commit.message_encoding is None
-    assert commit.message == ('Second test data commit.\n\n'
-                              'This commit has some additional text.\n')
+    assert commit.message == (
+        'Second test data commit.\n\n' 'This commit has some additional text.\n'
+    )
     commit_time = 1288481576
     assert commit_time == commit.commit_time
-    assert commit.committer == Signature('Dave Borowitz', 'dborowitz@google.com', commit_time, -420)
-    assert commit.author == Signature('Dave Borowitz', 'dborowitz@google.com', 1288477363, -420)
+    assert commit.committer == Signature(
+        'Dave Borowitz', 'dborowitz@google.com', commit_time, -420
+    )
+    assert commit.author == Signature(
+        'Dave Borowitz', 'dborowitz@google.com', 1288477363, -420
+    )
     assert '967fce8df97cc71722d3c2a5930ef3e6f1d27b12' == str(commit.tree.id)
+
 
 def test_new_commit(barerepo):
     repo = barerepo
     message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
     committer = Signature('John Doe', 'jdoe@example.com', 12346, 0)
     author = Signature(
-        'J. David Ibáñez', 'jdavid@example.com', 12345, 0,
-        encoding='utf-8')
+        'J. David Ibáñez', 'jdavid@example.com', 12345, 0, encoding='utf-8'
+    )
     tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
     tree_prefix = tree[:5]
     too_short_prefix = tree[:3]
@@ -78,8 +86,7 @@ def test_new_commit(barerepo):
     with pytest.raises(ValueError):
         repo.create_commit(None, author, committer, message, too_short_prefix, parents)
 
-    sha = repo.create_commit(None, author, committer, message,
-                             tree_prefix, parents)
+    sha = repo.create_commit(None, author, committer, message, tree_prefix, parents)
     commit = repo[sha]
 
     assert ObjectType.COMMIT == commit.type
@@ -95,20 +102,20 @@ def test_new_commit(barerepo):
     assert COMMIT_SHA == commit.parents[0].hex
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
+
 def test_new_commit_encoding(barerepo):
     repo = barerepo
     encoding = 'iso-8859-1'
     message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
-    committer = Signature('John Doe', 'jdoe@example.com', 12346, 0,
-                          encoding)
-    author = Signature('J. David Ibáñez', 'jdavid@example.com', 12345, 0,
-                       encoding)
+    committer = Signature('John Doe', 'jdoe@example.com', 12346, 0, encoding)
+    author = Signature('J. David Ibáñez', 'jdavid@example.com', 12345, 0, encoding)
     tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
     tree_prefix = tree[:5]
 
     parents = [COMMIT_SHA[:5]]
-    sha = repo.create_commit(None, author, committer, message,
-                             tree_prefix, parents, encoding)
+    sha = repo.create_commit(
+        None, author, committer, message, tree_prefix, parents, encoding
+    )
     commit = repo[sha]
 
     assert ObjectType.COMMIT == commit.type
@@ -123,6 +130,7 @@ def test_new_commit_encoding(barerepo):
     assert COMMIT_SHA == commit.parents[0].hex
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
+
 def test_modify_commit(barerepo):
     message = 'New commit.\n\nMessage.\n'
     committer = ('John Doe', 'jdoe@example.com', 12346)
@@ -130,11 +138,17 @@ def test_modify_commit(barerepo):
 
     commit = barerepo[COMMIT_SHA]
 
-    with pytest.raises(AttributeError): setattr(commit, 'message', message)
-    with pytest.raises(AttributeError): setattr(commit, 'committer', committer)
-    with pytest.raises(AttributeError): setattr(commit, 'author', author)
-    with pytest.raises(AttributeError): setattr(commit, 'tree', None)
-    with pytest.raises(AttributeError): setattr(commit, 'parents', None)
+    with pytest.raises(AttributeError):
+        setattr(commit, 'message', message)
+    with pytest.raises(AttributeError):
+        setattr(commit, 'committer', committer)
+    with pytest.raises(AttributeError):
+        setattr(commit, 'author', author)
+    with pytest.raises(AttributeError):
+        setattr(commit, 'tree', None)
+    with pytest.raises(AttributeError):
+        setattr(commit, 'parents', None)
+
 
 def test_amend_commit_metadata(barerepo):
     repo = barerepo
@@ -142,15 +156,22 @@ def test_amend_commit_metadata(barerepo):
     assert commit.id == repo.head.target
 
     encoding = 'iso-8859-1'
-    amended_message = "Amended commit message.\n\nMessage with non-ascii chars: ééé.\n"
+    amended_message = 'Amended commit message.\n\nMessage with non-ascii chars: ééé.\n'
     amended_author = Signature(
-        'Jane Author', 'jane@example.com', 12345, 0, encoding=encoding)
+        'Jane Author', 'jane@example.com', 12345, 0, encoding=encoding
+    )
     amended_committer = Signature(
-        'John Committer', 'john@example.com', 12346, 0, encoding=encoding)
+        'John Committer', 'john@example.com', 12346, 0, encoding=encoding
+    )
 
     amended_oid = repo.amend_commit(
-        commit, 'HEAD', message=amended_message, author=amended_author,
-        committer=amended_committer, encoding=encoding)
+        commit,
+        'HEAD',
+        message=amended_message,
+        author=amended_author,
+        committer=amended_committer,
+        encoding=encoding,
+    )
     amended_commit = repo[amended_oid]
 
     assert repo.head.target == amended_oid
@@ -161,6 +182,7 @@ def test_amend_commit_metadata(barerepo):
     assert commit.author != amended_commit.author
     assert commit.committer != amended_commit.committer
     assert commit.tree == amended_commit.tree  # we didn't touch the tree
+
 
 def test_amend_commit_tree(barerepo):
     repo = barerepo
@@ -181,6 +203,7 @@ def test_amend_commit_tree(barerepo):
     assert commit.tree_id != amended_commit.tree_id
     assert Oid(hex=tree) == amended_commit.tree_id
 
+
 def test_amend_commit_not_tip_of_branch(barerepo):
     repo = barerepo
 
@@ -193,7 +216,8 @@ def test_amend_commit_not_tip_of_branch(barerepo):
         repo.amend_commit(commit, 'HEAD', message="this won't work!")
 
     # We can still amend the commit if we don't try to update a ref.
-    repo.amend_commit(commit, None, message="this will work")
+    repo.amend_commit(commit, None, message='this will work')
+
 
 def test_amend_commit_no_op(barerepo):
     repo = barerepo
@@ -203,6 +227,7 @@ def test_amend_commit_no_op(barerepo):
     amended_oid = repo.amend_commit(commit, None)
     assert amended_oid == commit.id
 
+
 def test_amend_commit_argument_types(barerepo):
     repo = barerepo
 
@@ -211,32 +236,42 @@ def test_amend_commit_argument_types(barerepo):
     alt_commit1 = Oid(hex=COMMIT_SHA_TO_AMEND)
     alt_commit2 = COMMIT_SHA_TO_AMEND
     alt_tree = some_tree
-    alt_refname = repo.head  # try this one last, because it'll change the commit at the tip
+    alt_refname = (
+        repo.head
+    )  # try this one last, because it'll change the commit at the tip
 
     # Pass bad values/types for the commit
-    with pytest.raises(ValueError): repo.amend_commit(None, None)
-    with pytest.raises(TypeError): repo.amend_commit(some_tree, None)
+    with pytest.raises(ValueError):
+        repo.amend_commit(None, None)
+    with pytest.raises(TypeError):
+        repo.amend_commit(some_tree, None)
 
     # Pass bad types for signatures
-    with pytest.raises(TypeError): repo.amend_commit(commit, None, author="Toto")
-    with pytest.raises(TypeError): repo.amend_commit(commit, None, committer="Toto")
+    with pytest.raises(TypeError):
+        repo.amend_commit(commit, None, author='Toto')
+    with pytest.raises(TypeError):
+        repo.amend_commit(commit, None, committer='Toto')
 
     # Pass bad refnames
-    with pytest.raises(ValueError): repo.amend_commit(commit, "this-ref-doesnt-exist")
-    with pytest.raises(TypeError): repo.amend_commit(commit, repo)
+    with pytest.raises(ValueError):
+        repo.amend_commit(commit, 'this-ref-doesnt-exist')
+    with pytest.raises(TypeError):
+        repo.amend_commit(commit, repo)
 
     # Pass bad trees
-    with pytest.raises(ValueError): repo.amend_commit(commit, None, tree="can't parse this")
-    with pytest.raises(KeyError): repo.amend_commit(commit, None, tree="baaaaad")
+    with pytest.raises(ValueError):
+        repo.amend_commit(commit, None, tree="can't parse this")
+    with pytest.raises(KeyError):
+        repo.amend_commit(commit, None, tree='baaaaad')
 
     # Pass an Oid for the commit
-    amended_oid = repo.amend_commit(alt_commit1, None, message="Hello")
+    amended_oid = repo.amend_commit(alt_commit1, None, message='Hello')
     amended_commit = repo[amended_oid]
     assert ObjectType.COMMIT == amended_commit.type
     assert str(amended_oid) != COMMIT_SHA_TO_AMEND
 
     # Pass a str for the commit
-    amended_oid = repo.amend_commit(alt_commit2, None, message="Hello", tree=alt_tree)
+    amended_oid = repo.amend_commit(alt_commit2, None, message='Hello', tree=alt_tree)
     amended_commit = repo[amended_oid]
     assert ObjectType.COMMIT == amended_commit.type
     assert str(amended_oid) != COMMIT_SHA_TO_AMEND
@@ -245,7 +280,7 @@ def test_amend_commit_argument_types(barerepo):
 
     # Pass an actual reference object for refname
     # (Warning: the tip of the branch will be altered after this test!)
-    amended_oid = repo.amend_commit(alt_commit2, alt_refname, message="Hello")
+    amended_oid = repo.amend_commit(alt_commit2, alt_refname, message='Hello')
     amended_commit = repo[amended_oid]
     assert ObjectType.COMMIT == amended_commit.type
     assert str(amended_oid) != COMMIT_SHA_TO_AMEND

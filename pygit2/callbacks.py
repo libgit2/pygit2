@@ -80,8 +80,8 @@ from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
 # libgit2, to the Python callbacks. And back.
 #
 
-class Payload:
 
+class Payload:
     def __init__(self, **kw):
         for key, value in kw.items():
             setattr(self, key, value)
@@ -131,7 +131,12 @@ class RemoteCallbacks(Payload):
             Progress output from the remote.
         """
 
-    def credentials(self, url: str, username_from_url: Union[str, None], allowed_types: CredentialType):
+    def credentials(
+        self,
+        url: str,
+        username_from_url: Union[str, None],
+        allowed_types: CredentialType,
+    ):
         """
         Credentials callback.  If the remote server requires authentication,
         this function will be called and its return value used for
@@ -248,13 +253,14 @@ class CheckoutCallbacks(Payload):
             # enable all notifications by default.
             return CheckoutNotify.ALL
 
-    def checkout_notify(self,
-                        why: CheckoutNotify,
-                        path: str,
-                        baseline: Optional[DiffFile],
-                        target: Optional[DiffFile],
-                        workdir: Optional[DiffFile]
-                        ):
+    def checkout_notify(
+        self,
+        why: CheckoutNotify,
+        path: str,
+        baseline: Optional[DiffFile],
+        target: Optional[DiffFile],
+        workdir: Optional[DiffFile],
+    ):
         """
         Checkout will invoke an optional notification callback for
         certain cases - you pick which ones via `checkout_notify_flags`.
@@ -300,6 +306,7 @@ class StashApplyCallbacks(CheckoutCallbacks):
 # turn call to callbacks defined later in this module. These context managers
 # are used in the pygit2 API, see for instance remote.py
 #
+
 
 @contextmanager
 def git_clone_options(payload, opts=None):
@@ -407,6 +414,7 @@ def git_remote_callbacks(payload):
 # exception.
 #
 
+
 def libgit2_callback(f):
     @wraps(f)
     def wrapper(*args):
@@ -502,7 +510,9 @@ def _push_update_reference_cb(ref, msg, data):
 def _remote_create_cb(remote_out, repo, name, url, data):
     from .repository import Repository
 
-    remote = data.remote(Repository._from_c(repo, False), ffi.string(name), ffi.string(url))
+    remote = data.remote(
+        Repository._from_c(repo, False), ffi.string(name), ffi.string(url)
+    )
     remote_out[0] = remote._remote
     # we no longer own the C object
     remote._remote = ffi.NULL
@@ -560,9 +570,9 @@ def _update_tips_cb(refname, a, b, data):
 # Other functions, used above.
 #
 
+
 def get_credentials(fn, url, username, allowed):
-    """Call fn and return the credentials object.
-    """
+    """Call fn and return the credentials object."""
     url_str = maybe_string(url)
     username_str = maybe_string(username)
 
@@ -571,18 +581,19 @@ def get_credentials(fn, url, username, allowed):
     credential_type = getattr(creds, 'credential_type', None)
     credential_tuple = getattr(creds, 'credential_tuple', None)
     if not credential_type or not credential_tuple:
-        raise TypeError("credential does not implement interface")
+        raise TypeError('credential does not implement interface')
 
     cred_type = credential_type
 
     if not (allowed & cred_type):
-        raise TypeError("invalid credential type")
+        raise TypeError('invalid credential type')
 
     ccred = ffi.new('git_credential **')
     if cred_type == CredentialType.USERPASS_PLAINTEXT:
         name, passwd = credential_tuple
-        err = C.git_credential_userpass_plaintext_new(ccred, to_bytes(name),
-                                                      to_bytes(passwd))
+        err = C.git_credential_userpass_plaintext_new(
+            ccred, to_bytes(name), to_bytes(passwd)
+        )
 
     elif cred_type == CredentialType.SSH_KEY:
         name, pubkey, privkey, passphrase = credential_tuple
@@ -590,23 +601,27 @@ def get_credentials(fn, url, username, allowed):
         if pubkey is None and privkey is None:
             err = C.git_credential_ssh_key_from_agent(ccred, name)
         else:
-            err = C.git_credential_ssh_key_new(ccred, name, to_bytes(pubkey),
-                                               to_bytes(privkey),
-                                               to_bytes(passphrase))
+            err = C.git_credential_ssh_key_new(
+                ccred, name, to_bytes(pubkey), to_bytes(privkey), to_bytes(passphrase)
+            )
 
     elif cred_type == CredentialType.USERNAME:
-        name, = credential_tuple
+        (name,) = credential_tuple
         err = C.git_credential_username_new(ccred, to_bytes(name))
 
     elif cred_type == CredentialType.SSH_MEMORY:
         name, pubkey, privkey, passphrase = credential_tuple
         if pubkey is None and privkey is None:
-            raise TypeError("SSH keys from memory are empty")
-        err = C.git_credential_ssh_key_memory_new(ccred, to_bytes(name),
-                                                  to_bytes(pubkey), to_bytes(privkey),
-                                                  to_bytes(passphrase))
+            raise TypeError('SSH keys from memory are empty')
+        err = C.git_credential_ssh_key_memory_new(
+            ccred,
+            to_bytes(name),
+            to_bytes(pubkey),
+            to_bytes(privkey),
+            to_bytes(passphrase),
+        )
     else:
-        raise TypeError("unsupported credential type")
+        raise TypeError('unsupported credential type')
 
     check_error(err)
 
@@ -617,8 +632,11 @@ def get_credentials(fn, url, username, allowed):
 # Checkout callbacks
 #
 
+
 @libgit2_callback
-def _checkout_notify_cb(why, path_cstr, baseline, target, workdir, data: CheckoutCallbacks):
+def _checkout_notify_cb(
+    why, path_cstr, baseline, target, workdir, data: CheckoutCallbacks
+):
     pypath = maybe_string(path_cstr)
     pybaseline = DiffFile.from_c(ptr_to_bytes(baseline))
     pytarget = DiffFile.from_c(ptr_to_bytes(target))
@@ -643,7 +661,13 @@ def _checkout_progress_cb(path, completed_steps, total_steps, data: CheckoutCall
     data.checkout_progress(maybe_string(path), completed_steps, total_steps)
 
 
-def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=None, c_checkout_options_ptr=None):
+def _git_checkout_options(
+    callbacks=None,
+    strategy=None,
+    directory=None,
+    paths=None,
+    c_checkout_options_ptr=None,
+):
     if callbacks is None:
         payload = CheckoutCallbacks()
     else:
@@ -699,12 +723,15 @@ def _git_checkout_options(callbacks=None, strategy=None, directory=None, paths=N
 
 @contextmanager
 def git_checkout_options(callbacks=None, strategy=None, directory=None, paths=None):
-    yield _git_checkout_options(callbacks=callbacks, strategy=strategy, directory=directory, paths=paths)
+    yield _git_checkout_options(
+        callbacks=callbacks, strategy=strategy, directory=directory, paths=paths
+    )
 
 
 #
 # Stash callbacks
 #
+
 
 @libgit2_callback
 def _stash_apply_progress_cb(progress: StashApplyProgress, data: StashApplyCallbacks):
@@ -723,7 +750,9 @@ def _stash_apply_progress_cb(progress: StashApplyProgress, data: StashApplyCallb
 
 
 @contextmanager
-def git_stash_apply_options(callbacks=None, reinstate_index=False, strategy=None, directory=None, paths=None):
+def git_stash_apply_options(
+    callbacks=None, reinstate_index=False, strategy=None, directory=None, paths=None
+):
     if callbacks is None:
         callbacks = StashApplyCallbacks()
 

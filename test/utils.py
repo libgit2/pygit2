@@ -41,7 +41,8 @@ import pygit2
 
 requires_future_libgit2 = pytest.mark.skipif(
     pygit2.LIBGIT2_VER < (2, 0, 0),
-    reason='This test may work with a future version of libgit2')
+    reason='This test may work with a future version of libgit2',
+)
 
 try:
     socket.gethostbyname('github.com')
@@ -49,31 +50,26 @@ try:
 except socket.gaierror:
     has_network = False
 
-requires_network = pytest.mark.skipif(
-    not has_network,
-    reason='Requires network')
+requires_network = pytest.mark.skipif(not has_network, reason='Requires network')
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     has_proxy = sock.connect_ex(('', 8888)) == 0
 
-requires_proxy = pytest.mark.skipif(
-    not has_proxy,
-    reason='Requires proxy at port 8888')
+requires_proxy = pytest.mark.skipif(not has_proxy, reason='Requires proxy at port 8888')
 
 requires_ssh = pytest.mark.skipif(
-    pygit2.enums.Feature.SSH not in pygit2.features,
-    reason='Requires SSH')
+    pygit2.enums.Feature.SSH not in pygit2.features, reason='Requires SSH'
+)
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
 
 fspath = pytest.mark.skipif(
     is_pypy,
-    reason="PyPy doesn't fully support fspath, see https://foss.heptapod.net/pypy/pypy/-/issues/3168")
+    reason="PyPy doesn't fully support fspath, see https://foss.heptapod.net/pypy/pypy/-/issues/3168",
+)
 
-refcount = pytest.mark.skipif(
-    is_pypy,
-    reason='skip refcounts checks in pypy')
+refcount = pytest.mark.skipif(is_pypy, reason='skip refcounts checks in pypy')
 
 
 def force_rm_handle(remove_path, path, excinfo):
@@ -100,7 +96,6 @@ def rmtree(path):
 
 
 class TemporaryRepository:
-
     def __init__(self, name, tmp_path):
         self.name = name
         self.tmp_path = tmp_path

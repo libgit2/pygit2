@@ -70,7 +70,7 @@ DIFF_HEAD_TO_INDEX_EXPECTED = [
     'staged_delete_file_modified',
     'staged_new',
     'staged_new_file_deleted',
-    'staged_new_file_modified'
+    'staged_new_file_modified',
 ]
 
 DIFF_HEAD_TO_WORKDIR_EXPECTED = [
@@ -82,7 +82,7 @@ DIFF_HEAD_TO_WORKDIR_EXPECTED = [
     'staged_delete',
     'staged_delete_file_modified',
     'subdir/deleted_file',
-    'subdir/modified_file'
+    'subdir/modified_file',
 ]
 
 DIFF_INDEX_TO_WORK_EXPECTED = [
@@ -94,7 +94,7 @@ DIFF_INDEX_TO_WORK_EXPECTED = [
     'staged_new_file_deleted',
     'staged_new_file_modified',
     'subdir/deleted_file',
-    'subdir/modified_file'
+    'subdir/modified_file',
 ]
 
 HUNK_EXPECTED = """- a contents 2
@@ -106,6 +106,7 @@ STATS_EXPECTED = """ a   | 2 +-
  2 files changed, 1 insertion(+), 2 deletions(-)
  delete mode 100644 c/d
 """
+
 
 def test_diff_empty_index(dirtyrepo):
     repo = dirtyrepo
@@ -119,6 +120,7 @@ def test_diff_empty_index(dirtyrepo):
     files = [patch.delta.new_file.path for patch in diff]
     assert DIFF_HEAD_TO_INDEX_EXPECTED == files
 
+
 def test_workdir_to_tree(dirtyrepo):
     repo = dirtyrepo
     head = repo[repo.lookup_reference('HEAD').resolve().target]
@@ -131,6 +133,7 @@ def test_workdir_to_tree(dirtyrepo):
     files = [patch.delta.new_file.path for patch in diff]
     assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
 
+
 def test_index_to_workdir(dirtyrepo):
     diff = dirtyrepo.diff()
     files = [patch.delta.new_file.path for patch in diff]
@@ -140,8 +143,11 @@ def test_index_to_workdir(dirtyrepo):
 def test_diff_invalid(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
-    with pytest.raises(TypeError): commit_a.tree.diff_to_tree(commit_b)
-    with pytest.raises(TypeError): commit_a.tree.diff_to_index(commit_b)
+    with pytest.raises(TypeError):
+        commit_a.tree.diff_to_tree(commit_b)
+    with pytest.raises(TypeError):
+        commit_a.tree.diff_to_index(commit_b)
+
 
 def test_diff_empty_index_bare(barerepo):
     repo = barerepo
@@ -158,6 +164,7 @@ def test_diff_empty_index_bare(barerepo):
     diff = repo.diff('HEAD', cached=True)
     files = [patch.delta.new_file.path.split('/')[0] for patch in diff]
     assert [x.name for x in head.tree] == files
+
 
 def test_diff_tree(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
@@ -179,7 +186,13 @@ def test_diff_tree(barerepo):
 
         for dfile in patch.delta.old_file, patch.delta.new_file:
             assert dfile.path == 'a'
-            assert dfile.flags == DiffFlag.NOT_BINARY | DiffFlag.VALID_ID | DiffFlag.VALID_SIZE | DiffFlag.EXISTS
+            assert (
+                dfile.flags
+                == DiffFlag.NOT_BINARY
+                | DiffFlag.VALID_ID
+                | DiffFlag.VALID_SIZE
+                | DiffFlag.EXISTS
+            )
             assert dfile.mode == FileMode.BLOB
 
     _test(commit_a.tree.diff_to_tree(commit_b.tree))
@@ -204,16 +217,17 @@ def test_diff_empty_tree(barerepo):
     assert all(commit_a.tree[x] for x in entries)
     assert all('+' == x for x in get_context_for_lines(diff_swaped))
 
+
 def test_diff_revparse(barerepo):
     diff = barerepo.diff('HEAD', 'HEAD~6')
     assert type(diff) == pygit2.Diff
+
 
 def test_diff_tree_opts(barerepo):
     commit_c = barerepo[COMMIT_SHA1_3]
     commit_d = barerepo[COMMIT_SHA1_4]
 
-    for flag in [DiffOption.IGNORE_WHITESPACE,
-                 DiffOption.IGNORE_WHITESPACE_EOL]:
+    for flag in [DiffOption.IGNORE_WHITESPACE, DiffOption.IGNORE_WHITESPACE_EOL]:
         diff = commit_c.tree.diff_to_tree(commit_d.tree, flag)
         assert diff is not None
         assert 0 == len(diff[0].hunks)
@@ -221,6 +235,7 @@ def test_diff_tree_opts(barerepo):
     diff = commit_c.tree.diff_to_tree(commit_d.tree)
     assert diff is not None
     assert 1 == len(diff[0].hunks)
+
 
 def test_diff_merge(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
@@ -248,6 +263,7 @@ def test_diff_merge(barerepo):
     assert patch.delta.old_file.path == 'a'
     assert patch.delta.new_file.path == 'a'
 
+
 def test_diff_patch(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
@@ -255,6 +271,7 @@ def test_diff_patch(barerepo):
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     assert diff.patch == PATCH
     assert len(diff) == len([patch for patch in diff])
+
 
 def test_diff_ids(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
@@ -264,12 +281,14 @@ def test_diff_ids(barerepo):
     assert delta.old_file.id.hex == '7f129fd57e31e935c6d60a0c794efe4e6927664b'
     assert delta.new_file.id.hex == 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 
+
 def test_diff_patchid(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     assert diff.patch == PATCH
     assert diff.patchid.hex == PATCHID
+
 
 def test_hunk_content(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
@@ -281,18 +300,20 @@ def test_hunk_content(barerepo):
     for line in hunk.lines:
         assert line.content == line.raw_content.decode()
 
+
 def test_find_similar(barerepo):
     commit_a = barerepo[COMMIT_SHA1_6]
     commit_b = barerepo[COMMIT_SHA1_7]
 
-    #~ Must pass INCLUDE_UNMODIFIED if you expect to emulate
-    #~ --find-copies-harder during rename transformion...
+    # ~ Must pass INCLUDE_UNMODIFIED if you expect to emulate
+    # ~ --find-copies-harder during rename transformion...
     diff = commit_a.tree.diff_to_tree(commit_b.tree, DiffOption.INCLUDE_UNMODIFIED)
     assert all(x.delta.status != DeltaStatus.RENAMED for x in diff)
     assert all(x.delta.status_char() != 'R' for x in diff)
     diff.find_similar()
     assert any(x.delta.status == DeltaStatus.RENAMED for x in diff)
     assert any(x.delta.status_char() == 'R' for x in diff)
+
 
 def test_diff_stats(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
@@ -303,9 +324,11 @@ def test_diff_stats(barerepo):
     assert 1 == stats.insertions
     assert 2 == stats.deletions
     assert 2 == stats.files_changed
-    formatted = stats.format(format=DiffStatsFormat.FULL | DiffStatsFormat.INCLUDE_SUMMARY,
-                             width=80)
+    formatted = stats.format(
+        format=DiffStatsFormat.FULL | DiffStatsFormat.INCLUDE_SUMMARY, width=80
+    )
     assert STATS_EXPECTED == formatted
+
 
 def test_deltas(barerepo):
     commit_a = barerepo[COMMIT_SHA1_1]
@@ -325,7 +348,8 @@ def test_deltas(barerepo):
         assert delta.new_file.mode == patch_delta.new_file.mode
 
         # As explained in the libgit2 documentation, flags are not set
-        #assert delta.flags == patch_delta.flags
+        # assert delta.flags == patch_delta.flags
+
 
 def test_diff_parse(barerepo):
     diff = pygit2.Diff.parse_diff(PATCH)
@@ -338,18 +362,21 @@ def test_diff_parse(barerepo):
     deltas = list(diff.deltas)
     assert 2 == len(deltas)
 
+
 def test_parse_diff_null():
     with pytest.raises(TypeError):
         pygit2.Diff.parse_diff(None)
 
+
 def test_parse_diff_bad():
     diff = textwrap.dedent(
-    """
+        """
     diff --git a/file1 b/file1
     old mode 0644
     new mode 0644
     @@ -1,1 +1,1 @@
     -Hi!
-    """)
+    """
+    )
     with pytest.raises(pygit2.GitError):
         pygit2.Diff.parse_diff(diff)

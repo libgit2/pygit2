@@ -55,6 +55,7 @@ def test_pack(odb):
     for obj in pack:
         assert obj in odb
 
+
 def test_loose(odb):
     odb, path = odb
 
@@ -97,6 +98,7 @@ class ProxyBackend(pygit2.OdbBackend):
 # This doesn't make much sense, but it's possible.
 #
 
+
 @pytest.fixture
 def proxy(barerepo):
     path = Path(barerepo.path) / 'objects'
@@ -105,6 +107,7 @@ def proxy(barerepo):
 
 def test_iterable(proxy):
     assert BLOB_HEX in [str(o) for o in proxy]
+
 
 def test_read(proxy):
     with pytest.raises(TypeError):
@@ -116,10 +119,12 @@ def test_read(proxy):
     assert ab == a
     assert (ObjectType.BLOB, b'a contents\n') == a
 
+
 def test_read_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
     a3 = proxy.read_prefix(a_hex_prefix)
     assert (ObjectType.BLOB, b'a contents\n', BLOB_OID) == a3
+
 
 def test_exists(proxy):
     with pytest.raises(TypeError):
@@ -127,6 +132,7 @@ def test_exists(proxy):
 
     assert proxy.exists('1' * 40) == False
     assert proxy.exists(BLOB_HEX) == True
+
 
 def test_exists_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
@@ -137,6 +143,7 @@ def test_exists_prefix(proxy):
 #
 # Test a custom object backend, through a Repository.
 #
+
 
 @pytest.fixture
 def repo(barerepo):

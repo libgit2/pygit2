@@ -35,16 +35,19 @@ def read_content(testrepo):
     with (Path(testrepo.workdir) / 'hello.txt').open('rb') as f:
         return f.read().decode('utf-8')
 
+
 @pytest.fixture
 def new_content():
     content = ['bye world', 'adiós', 'au revoir monde']
     content = ''.join(x + os.linesep for x in content)
     return content
 
+
 @pytest.fixture
 def old_content(testrepo):
     with (Path(testrepo.workdir) / 'hello.txt').open('rb') as f:
         return f.read().decode('utf-8')
+
 
 @pytest.fixture
 def patch_diff(testrepo, new_content):
@@ -59,6 +62,7 @@ def patch_diff(testrepo, new_content):
 
     # Return the diff
     return pygit2.Diff.parse_diff(patch)
+
 
 @pytest.fixture
 def foreign_patch_diff():
@@ -78,12 +82,14 @@ def test_apply_type_error(testrepo):
     with pytest.raises(TypeError):
         testrepo.apply('HEAD')
 
+
 def test_apply_diff_to_workdir(testrepo, new_content, patch_diff):
     # Apply the patch and compare
     testrepo.apply(patch_diff, ApplyLocation.WORKDIR)
 
     assert read_content(testrepo) == new_content
     assert testrepo.status_file('hello.txt') == FileStatus.WT_MODIFIED
+
 
 def test_apply_diff_to_index(testrepo, old_content, patch_diff):
     # Apply the patch and compare
@@ -92,12 +98,14 @@ def test_apply_diff_to_index(testrepo, old_content, patch_diff):
     assert read_content(testrepo) == old_content
     assert testrepo.status_file('hello.txt') & FileStatus.INDEX_MODIFIED
 
+
 def test_apply_diff_to_both(testrepo, new_content, patch_diff):
     # Apply the patch and compare
     testrepo.apply(patch_diff, ApplyLocation.BOTH)
 
     assert read_content(testrepo) == new_content
     assert testrepo.status_file('hello.txt') & FileStatus.INDEX_MODIFIED
+
 
 def test_diff_applies_to_workdir(testrepo, old_content, patch_diff):
     # See if patch applies
@@ -113,6 +121,7 @@ def test_diff_applies_to_workdir(testrepo, old_content, patch_diff):
     # It can still be applied to the index, though
     assert testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
+
 def test_diff_applies_to_index(testrepo, old_content, patch_diff):
     # See if patch applies
     assert testrepo.applies(patch_diff, ApplyLocation.INDEX)
@@ -127,6 +136,7 @@ def test_diff_applies_to_index(testrepo, old_content, patch_diff):
     # It can still be applied to the workdir, though
     assert testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
 
+
 def test_diff_applies_to_both(testrepo, old_content, patch_diff):
     # See if patch applies
     assert testrepo.applies(patch_diff, ApplyLocation.BOTH)
@@ -139,6 +149,7 @@ def test_diff_applies_to_both(testrepo, old_content, patch_diff):
     assert not testrepo.applies(patch_diff, ApplyLocation.BOTH)
     assert not testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
     assert not testrepo.applies(patch_diff, ApplyLocation.INDEX)
+
 
 def test_applies_error(testrepo, old_content, patch_diff, foreign_patch_diff):
     # Try to apply a "foreign" patch that affects files that aren't in the repo;

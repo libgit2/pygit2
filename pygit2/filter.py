@@ -52,7 +52,7 @@ class Filter:
     """
 
     #: Space-separated string list of attributes to be used in `check()`
-    attributes: str = ""
+    attributes: str = ''
 
     @classmethod
     def nattrs(cls) -> int:
@@ -76,10 +76,7 @@ class Filter:
         """
 
     def write(
-        self,
-        data: bytes,
-        src: FilterSource,
-        write_next: Callable[[bytes], None]
+        self, data: bytes, src: FilterSource, write_next: Callable[[bytes], None]
     ):
         """
         Write input `data` to this filter.
@@ -98,10 +95,7 @@ class Filter:
         """
         write_next(data)
 
-    def close(
-        self,
-        write_next: Callable[[bytes], None]
-    ):
+    def close(self, write_next: Callable[[bytes], None]):
         """
         Close this filter.
 

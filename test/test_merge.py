@@ -33,9 +33,11 @@ import pygit2
 from pygit2.enums import FileStatus, MergeAnalysis, MergeFavor, MergeFlag, MergeFileFlag
 
 
-@pytest.mark.parametrize("id", [None, 42])
+@pytest.mark.parametrize('id', [None, 42])
 def test_merge_invalid_type(mergerepo, id):
-    with pytest.raises(TypeError): mergerepo.merge(id)
+    with pytest.raises(TypeError):
+        mergerepo.merge(id)
+
 
 def test_merge_analysis_uptodate(mergerepo):
     branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
@@ -51,6 +53,7 @@ def test_merge_analysis_uptodate(mergerepo):
     assert not analysis & MergeAnalysis.FASTFORWARD
     assert {} == mergerepo.status()
 
+
 def test_merge_analysis_fastforward(mergerepo):
     branch_head_hex = 'e97b4cfd5db0fb4ebabf4f203979ca4e5d1c7c87'
     branch_id = mergerepo.get(branch_head_hex).id
@@ -65,6 +68,7 @@ def test_merge_analysis_fastforward(mergerepo):
     assert analysis & MergeAnalysis.FASTFORWARD
     assert {} == mergerepo.status()
 
+
 def test_merge_no_fastforward_no_conflicts(mergerepo):
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
     branch_id = mergerepo.get(branch_head_hex).id
@@ -75,9 +79,12 @@ def test_merge_no_fastforward_no_conflicts(mergerepo):
     assert {} == mergerepo.status()
     assert {} == mergerepo.status()
 
+
 def test_merge_invalid_hex(mergerepo):
     branch_head_hex = '12345678'
-    with pytest.raises(KeyError): mergerepo.merge(branch_head_hex)
+    with pytest.raises(KeyError):
+        mergerepo.merge(branch_head_hex)
+
 
 def test_merge_already_something_in_index(mergerepo):
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
@@ -85,7 +92,8 @@ def test_merge_already_something_in_index(mergerepo):
     with (Path(mergerepo.workdir) / 'inindex.txt').open('w') as f:
         f.write('new content')
     mergerepo.index.add('inindex.txt')
-    with pytest.raises(pygit2.GitError): mergerepo.merge(branch_oid)
+    with pytest.raises(pygit2.GitError):
+        mergerepo.merge(branch_oid)
 
 
 def test_merge_no_fastforward_conflicts(mergerepo):
@@ -122,6 +130,7 @@ def test_merge_no_fastforward_conflicts(mergerepo):
     assert mergerepo.index.conflicts is None
     assert {'.gitignore': FileStatus.INDEX_MODIFIED} == mergerepo.status()
 
+
 def test_merge_remove_conflicts(mergerepo):
     other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     mergerepo.merge(other_branch_tip)
@@ -134,27 +143,35 @@ def test_merge_remove_conflicts(mergerepo):
     except KeyError:
         mergerepo.fail("conflicts['.gitignore'] raised KeyError unexpectedly")
     del idx.conflicts['.gitignore']
-    with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
+    with pytest.raises(KeyError):
+        conflicts.__getitem__('.gitignore')
     assert '.gitignore' not in conflicts
     assert idx.conflicts is None
 
 
-@pytest.mark.parametrize("favor", [
-    MergeFavor.OURS,
-    MergeFavor.THEIRS,
-    MergeFavor.UNION,
-])
+@pytest.mark.parametrize(
+    'favor',
+    [
+        MergeFavor.OURS,
+        MergeFavor.THEIRS,
+        MergeFavor.UNION,
+    ],
+)
 def test_merge_favor(mergerepo, favor):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     mergerepo.merge(branch_head_hex, favor=favor)
 
     assert mergerepo.index.conflicts is None
 
-@pytest.mark.parametrize("favor", [
-    'ours',
-    'theirs',
-    'union',
-])
+
+@pytest.mark.parametrize(
+    'favor',
+    [
+        'ours',
+        'theirs',
+        'union',
+    ],
+)
 def test_merge_favor_deprecated_names(mergerepo, favor):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     with pytest.warns(DeprecationWarning):
@@ -162,15 +179,19 @@ def test_merge_favor_deprecated_names(mergerepo, favor):
 
     assert mergerepo.index.conflicts is None
 
+
 def test_merge_fail_on_conflict(mergerepo):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
 
     with pytest.raises(pygit2.GitError):
-        mergerepo.merge(branch_head_hex, flags=MergeFlag.FIND_RENAMES | MergeFlag.FAIL_ON_CONFLICT)
-    
+        mergerepo.merge(
+            branch_head_hex, flags=MergeFlag.FIND_RENAMES | MergeFlag.FAIL_ON_CONFLICT
+        )
+
     # Deprecated flags dict
     with pytest.warns(DeprecationWarning), pytest.raises(pygit2.GitError):
         mergerepo.merge(branch_head_hex, flags={'fail_on_conflict': True})
+
 
 def test_merge_commits(mergerepo):
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
@@ -187,15 +208,20 @@ def test_merge_commits(mergerepo):
 
     assert merge_tree == merge_commits_tree
 
+
 def test_merge_commits_favor(mergerepo):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
 
-    merge_index = mergerepo.merge_commits(mergerepo.head.target, branch_head_hex, favor=MergeFavor.OURS)
+    merge_index = mergerepo.merge_commits(
+        mergerepo.head.target, branch_head_hex, favor=MergeFavor.OURS
+    )
     assert merge_index.conflicts is None
 
     # Deprecated favor value
     with pytest.warns(DeprecationWarning):
-        merge_index = mergerepo.merge_commits(mergerepo.head.target, branch_head_hex, favor='ours')
+        merge_index = mergerepo.merge_commits(
+            mergerepo.head.target, branch_head_hex, favor='ours'
+        )
         assert merge_index.conflicts is None
 
     # Incorrect favor value
@@ -208,7 +234,9 @@ def test_merge_trees(mergerepo):
     branch_id = mergerepo.get(branch_head_hex).id
     ancestor_id = mergerepo.merge_base(mergerepo.head.target, branch_id)
 
-    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex)
+    merge_index = mergerepo.merge_trees(
+        ancestor_id, mergerepo.head.target, branch_head_hex
+    )
     assert merge_index.conflicts is None
     merge_commits_tree = merge_index.write_tree(mergerepo)
 
@@ -219,14 +247,19 @@ def test_merge_trees(mergerepo):
 
     assert merge_tree == merge_commits_tree
 
+
 def test_merge_trees_favor(mergerepo):
     branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
     ancestor_id = mergerepo.merge_base(mergerepo.head.target, branch_head_hex)
-    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex, favor=MergeFavor.OURS)
+    merge_index = mergerepo.merge_trees(
+        ancestor_id, mergerepo.head.target, branch_head_hex, favor=MergeFavor.OURS
+    )
     assert merge_index.conflicts is None
 
     with pytest.raises(ValueError):
-        mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex, favor='foo')
+        mergerepo.merge_trees(
+            ancestor_id, mergerepo.head.target, branch_head_hex, favor='foo'
+        )
 
 
 def test_merge_options_deprecated_names():
@@ -234,9 +267,13 @@ def test_merge_options_deprecated_names():
         favor = MergeFavor.OURS
         flags = MergeFlag.FIND_RENAMES | MergeFlag.FAIL_ON_CONFLICT
         file_flags = MergeFileFlag.IGNORE_WHITESPACE | MergeFileFlag.DIFF_PATIENCE
-        o1 = pygit2.Repository._merge_options(favor=favor, flags=flags, file_flags=file_flags)
+        o1 = pygit2.Repository._merge_options(
+            favor=favor, flags=flags, file_flags=file_flags
+        )
         o2 = pygit2.Repository._merge_options(
-            favor='ours', flags={'fail_on_conflict': True}, file_flags={'ignore_whitespace': True, 'patience': True}
+            favor='ours',
+            flags={'fail_on_conflict': True},
+            file_flags={'ignore_whitespace': True, 'patience': True},
         )
         assert favor == o1.file_favor == o2.file_favor
         assert flags == o1.flags == o2.flags
@@ -245,9 +282,13 @@ def test_merge_options_deprecated_names():
         favor = MergeFavor.THEIRS
         flags = 0
         file_flags = 0
-        o1 = pygit2.Repository._merge_options(favor=favor, flags=flags, file_flags=file_flags)
+        o1 = pygit2.Repository._merge_options(
+            favor=favor, flags=flags, file_flags=file_flags
+        )
         o2 = pygit2.Repository._merge_options(
-            favor='theirs', flags={'find_renames': False}, file_flags={'ignore_whitespace': False}
+            favor='theirs',
+            flags={'find_renames': False},
+            file_flags={'ignore_whitespace': False},
         )
         assert favor == o1.file_favor == o2.file_favor
         assert flags == o1.flags == o2.flags
@@ -255,12 +296,22 @@ def test_merge_options_deprecated_names():
 
         favor = MergeFavor.UNION
         flags = MergeFlag.FIND_RENAMES | MergeFlag.NO_RECURSIVE
-        file_flags = MergeFileFlag.STYLE_DIFF3 | MergeFileFlag.IGNORE_WHITESPACE | MergeFileFlag.DIFF_PATIENCE
-        o1 = pygit2.Repository._merge_options(favor=favor, flags=flags, file_flags=file_flags)
+        file_flags = (
+            MergeFileFlag.STYLE_DIFF3
+            | MergeFileFlag.IGNORE_WHITESPACE
+            | MergeFileFlag.DIFF_PATIENCE
+        )
+        o1 = pygit2.Repository._merge_options(
+            favor=favor, flags=flags, file_flags=file_flags
+        )
         o2 = pygit2.Repository._merge_options(
             favor='union',
             flags={'find_renames': True, 'no_recursive': True},
-            file_flags={'diff3_style': True, 'ignore_whitespace': True, 'patience': True}
+            file_flags={
+                'diff3_style': True,
+                'ignore_whitespace': True,
+                'patience': True,
+            },
         )
         assert favor == o1.file_favor == o2.file_favor
         assert flags == o1.flags == o2.flags
@@ -272,7 +323,9 @@ def test_merge_many(mergerepo):
     branch_id = mergerepo.get(branch_head_hex).id
     ancestor_id = mergerepo.merge_base_many([mergerepo.head.target, branch_id])
 
-    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex)
+    merge_index = mergerepo.merge_trees(
+        ancestor_id, mergerepo.head.target, branch_head_hex
+    )
     assert merge_index.conflicts is None
     merge_commits_tree = merge_index.write_tree(mergerepo)
 
@@ -289,7 +342,9 @@ def test_merge_octopus(mergerepo):
     branch_id = mergerepo.get(branch_head_hex).id
     ancestor_id = mergerepo.merge_base_octopus([mergerepo.head.target, branch_id])
 
-    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_head_hex)
+    merge_index = mergerepo.merge_trees(
+        ancestor_id, mergerepo.head.target, branch_head_hex
+    )
     assert merge_index.conflicts is None
     merge_commits_tree = merge_index.write_tree(mergerepo)
 
@@ -310,7 +365,9 @@ def test_merge_mergeheads(mergerepo):
     assert mergerepo.listall_mergeheads() == [pygit2.Oid(hex=branch_head_hex)]
 
     mergerepo.state_cleanup()
-    assert mergerepo.listall_mergeheads() == [], "state_cleanup() should wipe the mergeheads"
+    assert (
+        mergerepo.listall_mergeheads() == []
+    ), 'state_cleanup() should wipe the mergeheads'
 
 
 def test_merge_message(mergerepo):

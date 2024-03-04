@@ -33,12 +33,16 @@ def wrap_signature(csig):
     if not csig:
         return None
 
-    return Signature(ffi.string(csig.name).decode('utf-8'),
-                     ffi.string(csig.email).decode('utf-8'),
-                     csig.when.time, csig.when.offset, 'utf-8')
+    return Signature(
+        ffi.string(csig.name).decode('utf-8'),
+        ffi.string(csig.email).decode('utf-8'),
+        csig.when.time,
+        csig.when.offset,
+        'utf-8',
+    )
+
 
 class BlameHunk:
-
     @classmethod
     def _from_c(cls, blame, ptr):
         hunk = cls.__new__(cls)
@@ -69,7 +73,9 @@ class BlameHunk:
 
     @property
     def final_commit_id(self):
-        return Oid(raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'final_commit_id'))[:]))
+        return Oid(
+            raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'final_commit_id'))[:])
+        )
 
     @property
     def orig_start_line_number(self):
@@ -83,7 +89,9 @@ class BlameHunk:
 
     @property
     def orig_commit_id(self):
-        return Oid(raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'orig_commit_id'))[:]))
+        return Oid(
+            raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'orig_commit_id'))[:])
+        )
 
     @property
     def orig_path(self):
@@ -96,7 +104,6 @@ class BlameHunk:
 
 
 class Blame:
-
     @classmethod
     def _from_c(cls, repo, ptr):
         blame = cls.__new__(cls)

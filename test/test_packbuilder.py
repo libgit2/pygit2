@@ -53,7 +53,7 @@ def test_add_recursively(testrepo):
     packbuilder = PackBuilder(testrepo)
     packbuilder.add_recur(testrepo.head.target)
 
-    #expect a count of 4 made up of the following referenced objects:
+    # expect a count of 4 made up of the following referenced objects:
     # Commit
     # Tree
     # Blob: hello.txt
@@ -74,6 +74,7 @@ def test_pack_with_delegate(testrepo, tmp_path):
             br = pb._repo.branches.get(branch)
             for commit in br.log():
                 pb.add_recur(commit.oid_new)
+
     confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate)
 
 
@@ -83,6 +84,7 @@ def setup_second_repo(tmp_path):
     with utils.TemporaryRepository('testrepo.zip', tmp_path_2) as path:
         testrepo = pygit2.Repository(path)
     return testrepo
+
 
 def confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate):
     # Helper method to confirm the contents of two repos before and after packing
@@ -97,7 +99,6 @@ def confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate):
     # assert that the number of written objects is the same as the number of objects in the repo
     written_objects = testrepo.pack(pack_path, pack_delegate=pack_delegate)
     assert written_objects == len([obj for obj in testrepo])
-
 
     # assert that the number of objects in the pack repo is the same as the original repo
     orig_objects = [obj for obj in testrepo.odb]

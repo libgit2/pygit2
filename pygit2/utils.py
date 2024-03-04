@@ -97,13 +97,13 @@ class StrArray:
             return
 
         if not isinstance(l, (list, tuple)):
-            raise TypeError("Value must be a list")
+            raise TypeError('Value must be a list')
 
         strings = [None] * len(l)
         for i in range(len(l)):
             li = l[i]
             if not isinstance(li, str) and not hasattr(li, '__fspath__'):
-                raise TypeError("Value must be a string or PathLike object")
+                raise TypeError('Value must be a string or PathLike object')
 
             strings[i] = ffi.new('char []', to_bytes(li))
 

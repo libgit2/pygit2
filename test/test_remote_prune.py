@@ -43,16 +43,20 @@ def test_fetch_remote_default(clonerepo):
     clonerepo.remotes[0].fetch()
     assert 'origin/i18n' in clonerepo.branches
 
+
 def test_fetch_remote_prune(clonerepo):
     clonerepo.remotes[0].fetch(prune=FetchPrune.PRUNE)
     assert 'origin/i18n' not in clonerepo.branches
+
 
 def test_fetch_no_prune(clonerepo):
     clonerepo.remotes[0].fetch(prune=FetchPrune.NO_PRUNE)
     assert 'origin/i18n' in clonerepo.branches
 
+
 def test_remote_prune(clonerepo):
     pruned = []
+
     class MyCallbacks(pygit2.RemoteCallbacks):
         def update_tips(self, name, old, new):
             pruned.append(name)

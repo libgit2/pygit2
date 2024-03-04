@@ -42,11 +42,13 @@ def test_bare(barerepo):
 def test_index(testrepo):
     assert testrepo.index is not None
 
+
 def test_read(testrepo):
     index = testrepo.index
     assert len(index) == 2
 
-    with pytest.raises(TypeError): index[()]
+    with pytest.raises(TypeError):
+        index[()]
     utils.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
     utils.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
 
@@ -55,6 +57,7 @@ def test_read(testrepo):
     assert index['hello.txt'].hex == sha
     assert index['hello.txt'].path == 'hello.txt'
     assert index[1].hex == sha
+
 
 def test_add(testrepo):
     index = testrepo.index
@@ -66,12 +69,14 @@ def test_add(testrepo):
     assert len(index) == 3
     assert index['bye.txt'].hex == sha
 
+
 def test_add_aspath(testrepo):
     index = testrepo.index
 
     assert 'bye.txt' not in index
     index.add(Path('bye.txt'))
     assert 'bye.txt' in index
+
 
 def test_add_all(testrepo):
     clear(testrepo)
@@ -106,6 +111,7 @@ def test_add_all(testrepo):
     assert index['bye.txt'].hex == sha_bye
     assert index['hello.txt'].hex == sha_hello
 
+
 def test_add_all_aspath(testrepo):
     clear(testrepo)
 
@@ -114,11 +120,13 @@ def test_add_all_aspath(testrepo):
     assert 'bye.txt' in index
     assert 'hello.txt' in index
 
+
 def clear(repo):
     index = repo.index
     assert len(index) == 2
     index.clear()
     assert len(index) == 0
+
 
 def test_write(testrepo):
     index = testrepo.index
@@ -150,6 +158,7 @@ def test_write_tree(testrepo):
     oid = testrepo.index.write_tree()
     assert oid.hex == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
+
 def test_iter(testrepo):
     index = testrepo.index
     n = len(index)
@@ -159,26 +168,31 @@ def test_iter(testrepo):
     entries = [index[x].hex for x in range(n)]
     assert list(x.hex for x in index) == entries
 
+
 def test_mode(testrepo):
     """
-        Testing that we can access an index entry mode.
+    Testing that we can access an index entry mode.
     """
     index = testrepo.index
 
     hello_mode = index['hello.txt'].mode
     assert hello_mode == 33188
 
+
 def test_bare_index(testrepo):
     index = pygit2.Index(Path(testrepo.path) / 'index')
     assert [x.hex for x in index] == [x.hex for x in testrepo.index]
 
-    with pytest.raises(pygit2.GitError): index.add('bye.txt')
+    with pytest.raises(pygit2.GitError):
+        index.add('bye.txt')
+
 
 def test_remove(testrepo):
     index = testrepo.index
     assert 'hello.txt' in index
     index.remove('hello.txt')
     assert 'hello.txt' not in index
+
 
 def test_remove_all(testrepo):
     index = testrepo.index
@@ -188,17 +202,20 @@ def test_remove_all(testrepo):
 
     index.remove_all(['not-existing'])  # this doesn't error
 
+
 def test_remove_aspath(testrepo):
     index = testrepo.index
     assert 'hello.txt' in index
     index.remove(Path('hello.txt'))
     assert 'hello.txt' not in index
 
+
 def test_remove_all_aspath(testrepo):
     index = testrepo.index
     assert 'hello.txt' in index
     index.remove_all([Path('hello.txt')])
     assert 'hello.txt' not in index
+
 
 def test_change_attributes(testrepo):
     index = testrepo.index
@@ -212,6 +229,7 @@ def test_change_attributes(testrepo):
     assert 'foo.txt' == entry.path
     assert ign_entry.id == entry.id
     assert FileMode.BLOB_EXECUTABLE == entry.mode
+
 
 def test_write_tree_to(testrepo, tmp_path):
     pygit2.option(pygit2.enums.Option.ENABLE_STRICT_OBJECT_CREATION, False)
@@ -229,6 +247,7 @@ def test_create_entry(testrepo):
     tree_id = index.write_tree()
     assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == str(tree_id)
 
+
 def test_create_entry_aspath(testrepo):
     index = testrepo.index
     hello_entry = index[Path('hello.txt')]
@@ -236,37 +255,47 @@ def test_create_entry_aspath(testrepo):
     index.add(entry)
     index.write_tree()
 
+
 def test_entry_eq(testrepo):
     index = testrepo.index
     hello_entry = index['hello.txt']
     entry = pygit2.IndexEntry(hello_entry.path, hello_entry.id, hello_entry.mode)
     assert hello_entry == entry
 
-    entry = pygit2.IndexEntry("README.md", hello_entry.id, hello_entry.mode)
+    entry = pygit2.IndexEntry('README.md', hello_entry.id, hello_entry.mode)
     assert hello_entry != entry
     oid = Oid(hex='0907563af06c7464d62a70cdd135a6ba7d2b41d8')
     entry = pygit2.IndexEntry(hello_entry.path, oid, hello_entry.mode)
     assert hello_entry != entry
-    entry = pygit2.IndexEntry(hello_entry.path, hello_entry.id, FileMode.BLOB_EXECUTABLE)
+    entry = pygit2.IndexEntry(
+        hello_entry.path, hello_entry.id, FileMode.BLOB_EXECUTABLE
+    )
     assert hello_entry != entry
+
 
 def test_entry_repr(testrepo):
     index = testrepo.index
     hello_entry = index['hello.txt']
-    assert (repr(hello_entry) ==
-            "<pygit2.index.IndexEntry path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>")
-    assert (str(hello_entry) ==
-            "<path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>")
+    assert (
+        repr(hello_entry)
+        == '<pygit2.index.IndexEntry path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>'
+    )
+    assert (
+        str(hello_entry)
+        == '<path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>'
+    )
 
 
 def test_create_empty():
     Index()
+
 
 def test_create_empty_read_tree_as_string():
     index = Index()
     # no repo associated, so we don't know where to read from
     with pytest.raises(TypeError):
         index('read_tree', 'fd937514cb799514d4b81bb24c5fcfeb6472b245')
+
 
 def test_create_empty_read_tree(testrepo):
     index = Index()

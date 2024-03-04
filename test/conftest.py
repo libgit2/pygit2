@@ -10,11 +10,13 @@ from . import utils
 def global_git_config():
     # Do not use global config for better test reproducibility.
     # https://github.com/libgit2/pygit2/issues/989
-    levels = [pygit2.enums.ConfigLevel.GLOBAL,
-              pygit2.enums.ConfigLevel.XDG,
-              pygit2.enums.ConfigLevel.SYSTEM]
+    levels = [
+        pygit2.enums.ConfigLevel.GLOBAL,
+        pygit2.enums.ConfigLevel.XDG,
+        pygit2.enums.ConfigLevel.SYSTEM,
+    ]
     for level in levels:
-        pygit2.settings.search_path[level] = ""
+        pygit2.settings.search_path[level] = ''
 
     # Fix tests running in AppVeyor
     if platform.system() == 'Windows':

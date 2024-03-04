@@ -34,7 +34,6 @@ if TYPE_CHECKING:
 
 
 class References:
-
     def __init__(self, repository: BaseRepository):
         self._repository = repository
 
@@ -57,7 +56,7 @@ class References:
                 return
 
     def iterator(self, references_return_type: ReferenceFilter = ReferenceFilter.ALL):
-        """ Creates a new iterator and fetches references for a given repository.
+        """Creates a new iterator and fetches references for a given repository.
 
         Can also filter and pass all refs or only branches or only tags.
 
@@ -80,7 +79,9 @@ class References:
 
         iter = self._repository.references_iterator_init()
         while True:
-            ref = self._repository.references_iterator_next(iter, references_return_type)
+            ref = self._repository.references_iterator_next(
+                iter, references_return_type
+            )
             if ref:
                 yield ref
             else:

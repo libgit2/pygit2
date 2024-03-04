@@ -137,11 +137,11 @@ class Index:
 
         if isinstance(tree, Oid):
             if repo is None:
-                raise TypeError("id given but no associated repository")
+                raise TypeError('id given but no associated repository')
 
             tree = repo[tree]
         elif not isinstance(tree, Tree):
-            raise TypeError("argument must be Oid or Tree")
+            raise TypeError('argument must be Oid or Tree')
 
         tree_cptr = ffi.new('git_tree **')
         ffi.buffer(tree_cptr)[:] = tree._pointer[:]
@@ -172,14 +172,12 @@ class Index:
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
     def remove(self, path, level=0):
-        """Remove an entry from the Index.
-        """
+        """Remove an entry from the Index."""
         err = C.git_index_remove(self._index, to_bytes(path), level)
         check_error(err, io=True)
 
     def remove_all(self, pathspecs):
-        """Remove all index entries matching pathspecs.
-        """
+        """Remove all index entries matching pathspecs."""
         with StrArray(pathspecs) as arr:
             err = C.git_index_remove_all(self._index, arr, ffi.NULL, ffi.NULL)
             check_error(err, io=True)
@@ -218,10 +216,10 @@ class Index:
         check_error(err, io=True)
 
     def diff_to_workdir(
-            self,
-            flags: DiffOption = DiffOption.NORMAL,
-            context_lines: int = 3,
-            interhunk_lines: int = 0
+        self,
+        flags: DiffOption = DiffOption.NORMAL,
+        context_lines: int = 3,
+        interhunk_lines: int = 0,
     ) -> Diff:
         """
         Diff the index against the working directory. Return a <Diff> object
@@ -253,18 +251,17 @@ class Index:
         copts.interhunk_lines = interhunk_lines
 
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_index_to_workdir(cdiff, repo._repo, self._index,
-                                          copts)
+        err = C.git_diff_index_to_workdir(cdiff, repo._repo, self._index, copts)
         check_error(err)
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
 
     def diff_to_tree(
-            self,
-            tree: Tree,
-            flags: DiffOption = DiffOption.NORMAL,
-            context_lines: int = 3,
-            interhunk_lines: int = 0
+        self,
+        tree: Tree,
+        flags: DiffOption = DiffOption.NORMAL,
+        context_lines: int = 3,
+        interhunk_lines: int = 0,
     ) -> Diff:
         """
         Diff the index against a tree.  Return a <Diff> object with the
@@ -305,12 +302,10 @@ class Index:
         ffi.buffer(ctree)[:] = tree._pointer[:]
 
         cdiff = ffi.new('git_diff **')
-        err = C.git_diff_tree_to_index(cdiff, repo._repo, ctree[0],
-                                       self._index, copts)
+        err = C.git_diff_tree_to_index(cdiff, repo._repo, ctree[0], self._index, copts)
         check_error(err)
 
         return Diff.from_c(bytes(ffi.buffer(cdiff)[:]), repo)
-
 
     #
     # Conflicts
@@ -350,13 +345,13 @@ class Index:
 
 class IndexEntry:
     path: str
-    "The path of this entry"
+    'The path of this entry'
 
     id: Oid
-    "The id of the referenced object"
+    'The id of the referenced object'
 
     mode: FileMode
-    "The mode of this entry, a FileMode value"
+    'The mode of this entry, a FileMode value'
 
     def __init__(self, path, object_id: Oid, mode: FileMode):
         self.path = path
@@ -378,14 +373,16 @@ class IndexEntry:
 
     def __repr__(self):
         t = type(self)
-        return f"<{t.__module__}.{t.__qualname__} path={self.path} id={self.hex} mode={self.mode}>"
+        return f'<{t.__module__}.{t.__qualname__} path={self.path} id={self.hex} mode={self.mode}>'
 
     def __eq__(self, other):
         if self is other:
             return True
         if not isinstance(other, IndexEntry):
             return NotImplemented
-        return self.path == other.path and self.id == other.id and self.mode == other.mode
+        return (
+            self.path == other.path and self.id == other.id and self.mode == other.mode
+        )
 
     def _to_c(self):
         """Convert this entry into the C structure
@@ -416,7 +413,6 @@ class IndexEntry:
 
 
 class ConflictCollection:
-
     def __init__(self, index):
         self._index = index
 
@@ -425,8 +421,9 @@ class ConflictCollection:
         cours = ffi.new('git_index_entry **')
         ctheirs = ffi.new('git_index_entry **')
 
-        err = C.git_index_conflict_get(cancestor, cours, ctheirs,
-                                       self._index._index, to_bytes(path))
+        err = C.git_index_conflict_get(
+            cancestor, cours, ctheirs, self._index._index, to_bytes(path)
+        )
         check_error(err)
 
         ancestor = IndexEntry._from_c(cancestor[0])
@@ -447,8 +444,9 @@ class ConflictCollection:
         cours = ffi.new('git_index_entry **')
         ctheirs = ffi.new('git_index_entry **')
 
-        err = C.git_index_conflict_get(cancestor, cours, ctheirs,
-                                       self._index._index, to_bytes(path))
+        err = C.git_index_conflict_get(
+            cancestor, cours, ctheirs, self._index._index, to_bytes(path)
+        )
         if err == C.GIT_ENOTFOUND:
             return False
 
@@ -457,7 +455,6 @@ class ConflictCollection:
 
 
 class ConflictIterator:
-
     def __init__(self, index):
         citer = ffi.new('git_index_conflict_iterator **')
         err = C.git_index_conflict_iterator_new(citer, index._index)

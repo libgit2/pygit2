@@ -30,6 +30,7 @@ from ._pygit2 import GitError
 
 value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
 
+
 def check_error(err, io=False):
     if err >= 0:
         return
@@ -43,7 +44,7 @@ def check_error(err, io=False):
     if giterr != ffi.NULL:
         message = ffi.string(giterr.message).decode('utf8')
     else:
-        message = f"err {err} (no message provided)"
+        message = f'err {err} (no message provided)'
 
     # Translate to Python errors
     if err in value_errors:
@@ -64,7 +65,8 @@ def check_error(err, io=False):
     # Generic Git error
     raise GitError(message)
 
+
 # Indicate that we want libgit2 to pretend a function was not set
 class Passthrough(Exception):
     def __init__(self):
-        super().__init__( "The function asked for pass-through")
+        super().__init__('The function asked for pass-through')

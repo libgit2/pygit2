@@ -49,28 +49,34 @@ from . import utils
 def test_is_empty(testrepo):
     assert not testrepo.is_empty
 
+
 def test_is_bare(testrepo):
     assert not testrepo.is_bare
+
 
 def test_get_path(testrepo_path):
     testrepo, path = testrepo_path
     assert Path(testrepo.path).resolve() == (path / '.git').resolve()
 
+
 def test_get_workdir(testrepo_path):
     testrepo, path = testrepo_path
     assert Path(testrepo.workdir).resolve() == path.resolve()
+
 
 def test_set_workdir(testrepo):
     directory = tempfile.mkdtemp()
     testrepo.workdir = directory
     assert Path(testrepo.workdir).resolve() == Path(directory).resolve()
 
+
 def test_checkout_ref(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
 
     # checkout i18n with conflicts and default strategy should
     # not be possible
-    with pytest.raises(pygit2.GitError): testrepo.checkout(ref_i18n)
+    with pytest.raises(pygit2.GitError):
+        testrepo.checkout(ref_i18n)
 
     # checkout i18n with GIT_CHECKOUT_FORCE
     head = testrepo.head
@@ -83,6 +89,7 @@ def test_checkout_ref(testrepo):
     assert head.hex == ref_i18n.target.hex
     assert 'new' in head.tree
     assert 'bye.txt' not in testrepo.status()
+
 
 def test_checkout_callbacks(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
@@ -104,7 +111,8 @@ def test_checkout_callbacks(testrepo):
 
     # checkout i18n with conflicts and default strategy should not be possible
     callbacks = MyCheckoutCallbacks()
-    with pytest.raises(pygit2.GitError): testrepo.checkout(ref_i18n, callbacks=callbacks)
+    with pytest.raises(pygit2.GitError):
+        testrepo.checkout(ref_i18n, callbacks=callbacks)
     # make sure the callbacks caught that
     assert {'bye.txt'} == callbacks.conflicting_paths
 
@@ -118,11 +126,12 @@ def test_checkout_callbacks(testrepo):
     assert set() == callbacks.conflicting_paths
     assert {'bye.txt', 'new'} == callbacks.updated_paths
 
+
 def test_checkout_aborted_from_callbacks(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
 
     def read_bye_txt():
-        return testrepo[testrepo.create_blob_fromworkdir("bye.txt")].data
+        return testrepo[testrepo.create_blob_fromworkdir('bye.txt')].data
 
     s = testrepo.status()
     assert s == {'bye.txt': FileStatus.WT_NEW}
@@ -137,7 +146,7 @@ def test_checkout_aborted_from_callbacks(testrepo):
             # skip one file so we're certain that NO files are affected,
             # even if aborting the checkout from the second file
             if self.invoked_times == 2:
-                raise InterruptedError("Stop the checkout!")
+                raise InterruptedError('Stop the checkout!')
 
     head = testrepo.head
     head = testrepo[head.target]
@@ -147,18 +156,22 @@ def test_checkout_aborted_from_callbacks(testrepo):
 
     # checkout i18n with GIT_CHECKOUT_FORCE - callbacks should prevent checkout from completing
     with pytest.raises(InterruptedError):
-        testrepo.checkout(ref_i18n, strategy=CheckoutStrategy.FORCE, callbacks=callbacks)
+        testrepo.checkout(
+            ref_i18n, strategy=CheckoutStrategy.FORCE, callbacks=callbacks
+        )
 
     assert callbacks.invoked_times == 2
     assert 'new' not in head.tree
     assert b'bye world\n' == read_bye_txt()
+
 
 def test_checkout_branch(testrepo):
     branch_i18n = testrepo.lookup_branch('i18n')
 
     # checkout i18n with conflicts and default strategy should
     # not be possible
-    with pytest.raises(pygit2.GitError): testrepo.checkout(branch_i18n)
+    with pytest.raises(pygit2.GitError):
+        testrepo.checkout(branch_i18n)
 
     # checkout i18n with GIT_CHECKOUT_FORCE
     head = testrepo.head
@@ -172,6 +185,7 @@ def test_checkout_branch(testrepo):
     assert 'new' in head.tree
     assert 'bye.txt' not in testrepo.status()
 
+
 def test_checkout_index(testrepo):
     # some changes to working dir
     with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
@@ -181,6 +195,7 @@ def test_checkout_index(testrepo):
     assert 'hello.txt' in testrepo.status()
     testrepo.checkout(strategy=CheckoutStrategy.FORCE)
     assert 'hello.txt' not in testrepo.status()
+
 
 def test_checkout_head(testrepo):
     # some changes to the index
@@ -197,6 +212,7 @@ def test_checkout_head(testrepo):
     testrepo.checkout('HEAD', strategy=CheckoutStrategy.FORCE)
     assert 'bye.txt' not in testrepo.status()
 
+
 def test_checkout_alternative_dir(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
     extra_dir = Path(testrepo.workdir) / 'extra-dir'
@@ -204,6 +220,7 @@ def test_checkout_alternative_dir(testrepo):
     assert len(list(extra_dir.iterdir())) == 0
     testrepo.checkout(ref_i18n, directory=extra_dir)
     assert not len(list(extra_dir.iterdir())) == 0
+
 
 def test_checkout_paths(testrepo):
     ref_i18n = testrepo.lookup_reference('refs/heads/i18n')
@@ -213,116 +230,134 @@ def test_checkout_paths(testrepo):
     status = testrepo.status()
     assert status['new'] == FileStatus.INDEX_NEW
 
+
 def test_merge_base(testrepo):
     commit = testrepo.merge_base(
         '5ebeeebb320790caf276b9fc8b24546d63316533',
-        '4ec4389a8068641da2d6578db0419484972284c8')
+        '4ec4389a8068641da2d6578db0419484972284c8',
+    )
     assert commit.hex == 'acecd5ea2924a4b900e7e149496e1f4b57976e51'
 
     # Create a commit without any merge base to any other
-    sig = pygit2.Signature("me", "me@example.com")
-    indep = testrepo.create_commit(None, sig, sig, "a new root commit",
-                                    testrepo[commit].peel(pygit2.Tree).id, [])
+    sig = pygit2.Signature('me', 'me@example.com')
+    indep = testrepo.create_commit(
+        None, sig, sig, 'a new root commit', testrepo[commit].peel(pygit2.Tree).id, []
+    )
 
     assert testrepo.merge_base(indep, commit) is None
+
 
 def test_descendent_of(testrepo):
     assert not testrepo.descendant_of(
         '5ebeeebb320790caf276b9fc8b24546d63316533',
-        '4ec4389a8068641da2d6578db0419484972284c8')
+        '4ec4389a8068641da2d6578db0419484972284c8',
+    )
     assert not testrepo.descendant_of(
         '5ebeeebb320790caf276b9fc8b24546d63316533',
-        '5ebeeebb320790caf276b9fc8b24546d63316533')
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+    )
     assert testrepo.descendant_of(
         '5ebeeebb320790caf276b9fc8b24546d63316533',
-        'acecd5ea2924a4b900e7e149496e1f4b57976e51')
+        'acecd5ea2924a4b900e7e149496e1f4b57976e51',
+    )
     assert not testrepo.descendant_of(
         'acecd5ea2924a4b900e7e149496e1f4b57976e51',
-        '5ebeeebb320790caf276b9fc8b24546d63316533')
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+    )
 
     with pytest.raises(pygit2.GitError):
         testrepo.descendant_of(
             '2' * 40,  # a valid but inexistent SHA
-            '5ebeeebb320790caf276b9fc8b24546d63316533')
+            '5ebeeebb320790caf276b9fc8b24546d63316533',
+        )
+
 
 def test_ahead_behind(testrepo):
     ahead, behind = testrepo.ahead_behind(
         '5ebeeebb320790caf276b9fc8b24546d63316533',
-        '4ec4389a8068641da2d6578db0419484972284c8')
+        '4ec4389a8068641da2d6578db0419484972284c8',
+    )
     assert 1 == ahead
     assert 2 == behind
 
     ahead, behind = testrepo.ahead_behind(
         '4ec4389a8068641da2d6578db0419484972284c8',
-        '5ebeeebb320790caf276b9fc8b24546d63316533')
+        '5ebeeebb320790caf276b9fc8b24546d63316533',
+    )
     assert 2 == ahead
     assert 1 == behind
 
+
 def test_reset_hard(testrepo):
-    ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-    with (Path(testrepo.workdir) / "hello.txt").open() as f:
+    ref = '5ebeeebb320790caf276b9fc8b24546d63316533'
+    with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
-    assert "hola mundo\n" in lines
-    assert "bonjour le monde\n" in lines
+    assert 'hola mundo\n' in lines
+    assert 'bonjour le monde\n' in lines
 
     testrepo.reset(ref, ResetMode.HARD)
     assert testrepo.head.target.hex == ref
 
-    with (Path(testrepo.workdir) / "hello.txt").open() as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
-    #Hard reset will reset the working copy too
-    assert "hola mundo\n" not in lines
-    assert "bonjour le monde\n" not in lines
+    # Hard reset will reset the working copy too
+    assert 'hola mundo\n' not in lines
+    assert 'bonjour le monde\n' not in lines
+
 
 def test_reset_soft(testrepo):
-    ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-    with (Path(testrepo.workdir) / "hello.txt").open() as f:
+    ref = '5ebeeebb320790caf276b9fc8b24546d63316533'
+    with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
-    assert "hola mundo\n" in lines
-    assert "bonjour le monde\n" in lines
+    assert 'hola mundo\n' in lines
+    assert 'bonjour le monde\n' in lines
 
     testrepo.reset(ref, ResetMode.SOFT)
     assert testrepo.head.target.hex == ref
-    with (Path(testrepo.workdir) / "hello.txt").open() as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
-    #Soft reset will not reset the working copy
-    assert "hola mundo\n" in lines
-    assert "bonjour le monde\n" in lines
+    # Soft reset will not reset the working copy
+    assert 'hola mundo\n' in lines
+    assert 'bonjour le monde\n' in lines
 
-    #soft reset will keep changes in the index
+    # soft reset will keep changes in the index
     diff = testrepo.diff(cached=True)
-    with pytest.raises(KeyError): diff[0]
+    with pytest.raises(KeyError):
+        diff[0]
+
 
 def test_reset_mixed(testrepo):
-    ref = "5ebeeebb320790caf276b9fc8b24546d63316533"
-    with (Path(testrepo.workdir) / "hello.txt").open() as f:
+    ref = '5ebeeebb320790caf276b9fc8b24546d63316533'
+    with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
-    assert "hola mundo\n" in lines
-    assert "bonjour le monde\n" in lines
+    assert 'hola mundo\n' in lines
+    assert 'bonjour le monde\n' in lines
 
     testrepo.reset(ref, ResetMode.MIXED)
 
     assert testrepo.head.target.hex == ref
 
-    with (Path(testrepo.workdir) / "hello.txt").open() as f:
+    with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
-    #mixed reset will not reset the working copy
-    assert "hola mundo\n" in lines
-    assert "bonjour le monde\n" in lines
+    # mixed reset will not reset the working copy
+    assert 'hola mundo\n' in lines
+    assert 'bonjour le monde\n' in lines
 
-    #mixed reset will set the index to match working copy
+    # mixed reset will set the index to match working copy
     diff = testrepo.diff(cached=True)
-    assert "hola mundo\n" in diff.patch
-    assert "bonjour le monde\n" in diff.patch
+    assert 'hola mundo\n' in diff.patch
+    assert 'bonjour le monde\n' in diff.patch
+
 
 def test_stash(testrepo):
-    stash_hash = "6aab5192f88018cb98a7ede99c242f43add5a2fd"
-    stash_message = "custom stash message"
+    stash_hash = '6aab5192f88018cb98a7ede99c242f43add5a2fd'
+    stash_message = 'custom stash message'
     sig = pygit2.Signature(
-            name='Stasher',
-            email='stasher@example.com',
-            time=1641000000,  # fixed time so the oid is stable
-            offset=0)
+        name='Stasher',
+        email='stasher@example.com',
+        time=1641000000,  # fixed time so the oid is stable
+        offset=0,
+    )
 
     # make sure we're starting with no stashes
     assert [] == testrepo.listall_stashes()
@@ -336,9 +371,9 @@ def test_stash(testrepo):
 
     repo_stashes = testrepo.listall_stashes()
     assert 1 == len(repo_stashes)
-    assert repr(repo_stashes[0]) == f"<pygit2.Stash{{{stash_hash}}}>"
+    assert repr(repo_stashes[0]) == f'<pygit2.Stash{{{stash_hash}}}>'
     assert repo_stashes[0].commit_id.hex == stash_hash
-    assert repo_stashes[0].message == "On master: " + stash_message
+    assert repo_stashes[0].message == 'On master: ' + stash_message
 
     testrepo.stash_apply()
     assert 'hello.txt' in testrepo.status()
@@ -347,11 +382,15 @@ def test_stash(testrepo):
     testrepo.stash_drop()
     assert [] == testrepo.listall_stashes()
 
-    with pytest.raises(KeyError): testrepo.stash_pop()
+    with pytest.raises(KeyError):
+        testrepo.stash_pop()
+
 
 def test_stash_partial(testrepo):
-    stash_message = "custom stash message"
-    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+    stash_message = 'custom stash message'
+    sig = pygit2.Signature(
+        name='Stasher', email='stasher@example.com', time=1641000000, offset=0
+    )
 
     # make sure we're starting with no stashes
     assert [] == testrepo.listall_stashes()
@@ -367,7 +406,9 @@ def test_stash_partial(testrepo):
     assert testrepo.status()['untracked2.txt'] == FileStatus.WT_NEW
 
     def stash_pathspecs(paths):
-        stash_id = testrepo.stash(sig, message=stash_message, keep_all=True, paths=paths)
+        stash_id = testrepo.stash(
+            sig, message=stash_message, keep_all=True, paths=paths
+        )
         stash_commit = testrepo[stash_id].peel(pygit2.Commit)
         stash_diff = testrepo.diff(stash_commit.parents[0], stash_commit)
         stash_files = set(patch.delta.new_file.path for patch in stash_diff)
@@ -382,15 +423,18 @@ def test_stash_partial(testrepo):
     # Stash a modified file and an untracked file
     assert stash_pathspecs(['hello.txt', 'bye.txt'])
 
+
 def test_stash_progress_callback(testrepo):
-    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+    sig = pygit2.Signature(
+        name='Stasher', email='stasher@example.com', time=1641000000, offset=0
+    )
 
     # some changes to working dir
     with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
         f.write('new content')
 
     # create the stash
-    testrepo.stash(sig, include_untracked=True, message="custom stash message")
+    testrepo.stash(sig, include_untracked=True, message='custom stash message')
 
     progress_sequence = []
 
@@ -412,8 +456,11 @@ def test_stash_progress_callback(testrepo):
         StashApplyProgress.DONE,
     ]
 
+
 def test_stash_aborted_from_callbacks(testrepo):
-    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+    sig = pygit2.Signature(
+        name='Stasher', email='stasher@example.com', time=1641000000, offset=0
+    )
 
     # some changes to working dir
     with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
@@ -422,14 +469,14 @@ def test_stash_aborted_from_callbacks(testrepo):
         f.write('yo')
 
     # create the stash
-    testrepo.stash(sig, include_untracked=True, message="custom stash message")
+    testrepo.stash(sig, include_untracked=True, message='custom stash message')
 
     # define callbacks that will abort the unstash process
     # just as libgit2 is ready to write the files to disk
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
         def stash_apply_progress(self, progress: StashApplyProgress):
             if progress == StashApplyProgress.CHECKOUT_UNTRACKED:
-                raise InterruptedError("Stop applying the stash!")
+                raise InterruptedError('Stop applying the stash!')
 
     # attempt to apply and delete the stash; the callbacks will interrupt that
     with pytest.raises(InterruptedError):
@@ -446,10 +493,13 @@ def test_stash_aborted_from_callbacks(testrepo):
     # and since we didn't let stash_pop run to completion, the stash itself should still be here
     repo_stashes = testrepo.listall_stashes()
     assert 1 == len(repo_stashes)
-    assert repo_stashes[0].message == "On master: custom stash message"
+    assert repo_stashes[0].message == 'On master: custom stash message'
+
 
 def test_stash_apply_checkout_options(testrepo):
-    sig = pygit2.Signature(name='Stasher', email='stasher@example.com', time=1641000000, offset=0)
+    sig = pygit2.Signature(
+        name='Stasher', email='stasher@example.com', time=1641000000, offset=0
+    )
 
     hello_txt = Path(testrepo.workdir) / 'hello.txt'
 
@@ -458,13 +508,13 @@ def test_stash_apply_checkout_options(testrepo):
         f.write('stashed content')
 
     # create the stash
-    testrepo.stash(sig, include_untracked=True, message="custom stash message")
+    testrepo.stash(sig, include_untracked=True, message='custom stash message')
 
     # define callbacks that raise an InterruptedError when checkout detects a conflict
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
         def checkout_notify(self, why, path, baseline, target, workdir):
             if why == CheckoutNotify.CONFLICT:
-                raise InterruptedError("Applying the stash would create a conflict")
+                raise InterruptedError('Applying the stash would create a conflict')
 
     # overwrite hello.txt so that applying the stash would create a conflict
     with hello_txt.open('w') as f:
@@ -473,23 +523,27 @@ def test_stash_apply_checkout_options(testrepo):
     # apply the stash with the default (safe) strategy;
     # the callbacks should detect a conflict on checkout
     with pytest.raises(InterruptedError):
-        testrepo.stash_apply(strategy=CheckoutStrategy.SAFE, callbacks=MyStashApplyCallbacks())
+        testrepo.stash_apply(
+            strategy=CheckoutStrategy.SAFE, callbacks=MyStashApplyCallbacks()
+        )
 
     # hello.txt should be intact
-    with hello_txt.open('r') as f: assert f.read() == 'conflicting content'
+    with hello_txt.open('r') as f:
+        assert f.read() == 'conflicting content'
 
     # force apply the stash; this should work
-    testrepo.stash_apply(strategy=CheckoutStrategy.FORCE, callbacks=MyStashApplyCallbacks())
-    with hello_txt.open('r') as f: assert f.read() == 'stashed content'
+    testrepo.stash_apply(
+        strategy=CheckoutStrategy.FORCE, callbacks=MyStashApplyCallbacks()
+    )
+    with hello_txt.open('r') as f:
+        assert f.read() == 'stashed content'
 
 
 def test_revert(testrepo):
     master = testrepo.head.peel()
     commit_to_revert = testrepo['4ec4389a8068641da2d6578db0419484972284c8']
     parent = commit_to_revert.parents[0]
-    commit_diff_stats = (
-        parent.tree.diff_to_tree(commit_to_revert.tree).stats
-    )
+    commit_diff_stats = parent.tree.diff_to_tree(commit_to_revert.tree).stats
 
     revert_index = testrepo.revert_commit(commit_to_revert, master)
     revert_diff_stats = revert_index.diff_to_tree(master.tree).stats
@@ -502,7 +556,7 @@ def test_revert(testrepo):
 def test_default_signature(testrepo):
     config = testrepo.config
     config['user.name'] = 'Random J Hacker'
-    config['user.email'] ='rjh@example.com'
+    config['user.email'] = 'rjh@example.com'
 
     sig = testrepo.default_signature
     assert 'Random J Hacker' == sig.name
@@ -512,7 +566,7 @@ def test_default_signature(testrepo):
 def test_new_repo(tmp_path):
     repo = init_repository(tmp_path, False)
 
-    oid = repo.write(ObjectType.BLOB, "Test")
+    oid = repo.write(ObjectType.BLOB, 'Test')
     assert type(oid) == Oid
 
     assert (tmp_path / '.git').exists()
@@ -522,21 +576,26 @@ def test_no_arg(tmp_path):
     repo = init_repository(tmp_path)
     assert not repo.is_bare
 
+
 def test_no_arg_aspath(tmp_path):
     repo = init_repository(Path(tmp_path))
     assert not repo.is_bare
+
 
 def test_pos_arg_false(tmp_path):
     repo = init_repository(tmp_path, False)
     assert not repo.is_bare
 
+
 def test_pos_arg_true(tmp_path):
     repo = init_repository(tmp_path, True)
     assert repo.is_bare
 
+
 def test_keyword_arg_false(tmp_path):
     repo = init_repository(tmp_path, bare=False)
     assert not repo.is_bare
+
 
 def test_keyword_arg_true(tmp_path):
     repo = init_repository(tmp_path, bare=True)
@@ -545,16 +604,18 @@ def test_keyword_arg_true(tmp_path):
 
 def test_discover_repo(tmp_path):
     repo = init_repository(tmp_path, False)
-    subdir = tmp_path / "test1" / "test2"
+    subdir = tmp_path / 'test1' / 'test2'
     subdir.mkdir(parents=True)
     assert repo.path == discover_repository(str(subdir))
+
 
 @utils.fspath
 def test_discover_repo_aspath(tmp_path):
     repo = init_repository(Path(tmp_path), False)
-    subdir = Path(tmp_path) / "test1" / "test2"
+    subdir = Path(tmp_path) / 'test1' / 'test2'
     subdir.mkdir(parents=True)
     assert repo.path == discover_repository(subdir)
+
 
 def test_discover_repo_not_found():
     assert discover_repository(tempfile.tempdir) is None
@@ -567,6 +628,7 @@ def test_repository_init(barerepo_path):
     pygit2.Repository(str(path))
     pygit2.Repository(bytes(path))
 
+
 def test_clone_repository(barerepo, tmp_path):
     assert barerepo.is_bare
     repo = clone_repository(Path(barerepo.path), tmp_path / 'clonepath')
@@ -576,10 +638,12 @@ def test_clone_repository(barerepo, tmp_path):
     assert not repo.is_empty
     assert not repo.is_bare
 
+
 def test_clone_bare_repository(barerepo, tmp_path):
     repo = clone_repository(barerepo.path, tmp_path / 'clone', bare=True)
     assert not repo.is_empty
     assert repo.is_bare
+
 
 @utils.requires_network
 def test_clone_shallow_repository(tmp_path):
@@ -599,23 +663,26 @@ def test_clone_repository_and_remote_callbacks(barerepo, tmp_path):
 
     # here we override the name
     def create_remote(repo, name, url):
-        return repo.remotes.create("custom_remote", url)
+        return repo.remotes.create('custom_remote', url)
 
-    repo = clone_repository(url, repo_path, repository=create_repository, remote=create_remote)
+    repo = clone_repository(
+        url, repo_path, repository=create_repository, remote=create_remote
+    )
     assert not repo.is_empty
     assert 'refs/remotes/custom_remote/master' in repo.listall_references()
     assert b'refs/remotes/custom_remote/master' in repo.raw_listall_references()
-    assert repo.remotes["custom_remote"] is not None
+    assert repo.remotes['custom_remote'] is not None
 
 
 @utils.requires_network
 def test_clone_with_credentials(tmp_path):
     url = 'https://github.com/libgit2/TestGitRepository'
-    credentials = pygit2.UserPass("libgit2", "libgit2")
+    credentials = pygit2.UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
     repo = clone_repository(url, tmp_path, callbacks=callbacks)
 
     assert not repo.is_empty
+
 
 @utils.requires_network
 def test_clone_bad_credentials(tmp_path):
@@ -623,18 +690,23 @@ def test_clone_bad_credentials(tmp_path):
         def credentials(self, url, username, allowed):
             raise RuntimeError('Unexpected error')
 
-    url = "https://github.com/github/github"
+    url = 'https://github.com/github/github'
     with pytest.raises(RuntimeError) as exc:
         clone_repository(url, tmp_path, callbacks=MyCallbacks())
     assert str(exc.value) == 'Unexpected error'
 
+
 def test_clone_with_checkout_branch(barerepo, tmp_path):
     # create a test case which isolates the remote
-    test_repo = clone_repository(barerepo.path, tmp_path / 'testrepo-orig.git', bare=True)
+    test_repo = clone_repository(
+        barerepo.path, tmp_path / 'testrepo-orig.git', bare=True
+    )
     test_repo.create_branch('test', test_repo[test_repo.head.target])
-    repo = clone_repository(test_repo.path, tmp_path / 'testrepo.git',
-                            checkout_branch='test', bare=True)
+    repo = clone_repository(
+        test_repo.path, tmp_path / 'testrepo.git', checkout_branch='test', bare=True
+    )
     assert repo.lookup_reference('HEAD').target == 'refs/heads/test'
+
 
 # FIXME The tests below are commented because they are broken:
 #
@@ -646,7 +718,7 @@ def test_clone_with_checkout_branch(barerepo, tmp_path):
 # - test_clone_push_spec: Passes, but does nothing useful.
 #
 
-#def test_clone_push_url():
+# def test_clone_push_url():
 #    repo_path = "./test/data/testrepo.git/"
 #    repo = clone_repository(
 #        repo_path, tmp_path, push_url="custom_push_url"
@@ -656,7 +728,7 @@ def test_clone_with_checkout_branch(barerepo, tmp_path):
 #    # enable this test
 #    # assert repo.remotes[0].pushurl == "custom_push_url"
 #
-#def test_clone_fetch_spec():
+# def test_clone_fetch_spec():
 #    repo_path = "./test/data/testrepo.git/"
 #    repo = clone_repository(repo_path, tmp_path,
 #                            fetch_spec="refs/heads/test")
@@ -666,7 +738,7 @@ def test_clone_with_checkout_branch(barerepo, tmp_path):
 #    # not getting it.
 #    # assert repo.remotes[0].fetchspec == "refs/heads/test"
 #
-#def test_clone_push_spec():
+# def test_clone_push_spec():
 #    repo_path = "./test/data/testrepo.git/"
 #    repo = clone_repository(repo_path, tmp_path,
 #                            push_spec="refs/heads/test")
@@ -718,6 +790,7 @@ def test_worktree(testrepo):
     worktree.prune(True)
     assert testrepo.list_worktrees() == []
 
+
 @utils.fspath
 def test_worktree_aspath(testrepo):
     worktree_name = 'foo'
@@ -727,6 +800,7 @@ def test_worktree_aspath(testrepo):
     worktree_dir.rmdir()
     testrepo.add_worktree(worktree_name, worktree_dir)
     assert testrepo.list_worktrees() == [worktree_name]
+
 
 def test_worktree_custom_ref(testrepo):
     worktree_name = 'foo'
@@ -761,6 +835,7 @@ def test_worktree_custom_ref(testrepo):
     # The branch still exists
     assert branch_name in testrepo.branches
 
+
 def test_open_extended(tmp_path):
     with utils.TemporaryRepository('dirtyrepo.zip', tmp_path) as path:
         orig_repo = pygit2.Repository(path)
@@ -769,7 +844,7 @@ def test_open_extended(tmp_path):
         assert orig_repo.workdir
 
         # GIT_REPOSITORY_OPEN_NO_SEARCH
-        subdir_path = path / "subdir"
+        subdir_path = path / 'subdir'
         repo = pygit2.Repository(subdir_path)
         assert not repo.is_bare
         assert repo.path == orig_repo.path
@@ -793,6 +868,7 @@ def test_open_extended(tmp_path):
         assert repo.is_bare
         assert repo.path == orig_repo.path
         assert not repo.workdir
+
 
 def test_is_shallow(testrepo):
     assert not testrepo.is_shallow

@@ -35,8 +35,9 @@ if TYPE_CHECKING:
 
 
 class Branches:
-
-    def __init__(self, repository: BaseRepository, flag: BranchType = BranchType.ALL, commit=None):
+    def __init__(
+        self, repository: BaseRepository, flag: BranchType = BranchType.ALL, commit=None
+    ):
         self._repository = repository
         self._flag = flag
         if commit is not None:

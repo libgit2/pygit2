@@ -41,11 +41,9 @@ if TYPE_CHECKING:
 
 
 class TransferProgress:
-    """Progress downloading and indexing data during a fetch.
-    """
+    """Progress downloading and indexing data during a fetch."""
 
     def __init__(self, tp):
-
         self.total_objects = tp.total_objects
         """Total number of objects to download"""
 
@@ -69,10 +67,8 @@ class TransferProgress:
 
 
 class Remote:
-
     def __init__(self, repo: BaseRepository, ptr):
-        """The constructor is for internal use only.
-        """
+        """The constructor is for internal use only."""
         self._repo = repo
         self._remote = ptr
         self._stored_exception = None
@@ -114,12 +110,20 @@ class Remote:
         C.git_proxy_options_init(proxy_opts, C.GIT_PROXY_OPTIONS_VERSION)
         self.__set_proxy(proxy_opts, proxy)
         with git_remote_callbacks(callbacks) as payload:
-            err = C.git_remote_connect(self._remote, direction,
-                                       payload.remote_callbacks, proxy_opts,
-                                       ffi.NULL)
+            err = C.git_remote_connect(
+                self._remote, direction, payload.remote_callbacks, proxy_opts, ffi.NULL
+            )
             payload.check_error(err)
 
-    def fetch(self, refspecs=None, message=None, callbacks=None, prune: FetchPrune = FetchPrune.UNSPECIFIED, proxy=None, depth=0):
+    def fetch(
+        self,
+        refspecs=None,
+        message=None,
+        callbacks=None,
+        prune: FetchPrune = FetchPrune.UNSPECIFIED,
+        proxy=None,
+        depth=0,
+    ):
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
 
@@ -186,11 +190,11 @@ class Remote:
                 loid = None
 
             remote = {
-                "local": local,
-                "loid": loid,
-                "name": maybe_string(ref.name),
-                "symref_target": maybe_string(ref.symref_target),
-                "oid": Oid(raw=bytes(ffi.buffer(ref.oid.id)[:])),
+                'local': local,
+                'loid': loid,
+                'name': maybe_string(ref.name),
+                'symref_target': maybe_string(ref.symref_target),
+                'oid': Oid(raw=bytes(ffi.buffer(ref.oid.id)[:])),
             }
 
             results.append(remote)
@@ -198,8 +202,7 @@ class Remote:
         return results
 
     def prune(self, callbacks=None):
-        """Perform a prune against this remote.
-        """
+        """Perform a prune against this remote."""
         with git_remote_callbacks(callbacks) as payload:
             err = C.git_remote_prune(self._remote, payload.remote_callbacks)
             payload.check_error(err)
@@ -276,7 +279,7 @@ class Remote:
             self.__url = ffi.new('char[]', to_bytes(proxy))
             proxy_opts.url = self.__url
         else:
-            raise TypeError("Proxy must be None, True, or a string")
+            raise TypeError('Proxy must be None, True, or a string')
 
 
 class RemoteCollection:
@@ -290,7 +293,7 @@ class RemoteCollection:
     """
 
     def __init__(self, repo: BaseRepository):
-        self._repo = repo;
+        self._repo = repo
 
     def __len__(self):
         names = ffi.new('git_strarray *')
@@ -351,7 +354,9 @@ class RemoteCollection:
         url = to_bytes(url)
         if fetch:
             fetch = to_bytes(fetch)
-            err = C.git_remote_create_with_fetchspec(cremote, self._repo._repo, name, url, fetch)
+            err = C.git_remote_create_with_fetchspec(
+                cremote, self._repo._repo, name, url, fetch
+            )
         else:
             err = C.git_remote_create(cremote, self._repo._repo, name, url)
 
@@ -378,13 +383,15 @@ class RemoteCollection:
         """
 
         if not new_name:
-            raise ValueError("Current remote name must be a non-empty string")
+            raise ValueError('Current remote name must be a non-empty string')
 
         if not new_name:
-            raise ValueError("New remote name must be a non-empty string")
+            raise ValueError('New remote name must be a non-empty string')
 
         problems = ffi.new('git_strarray *')
-        err = C.git_remote_rename(problems, self._repo._repo, to_bytes(name), to_bytes(new_name))
+        err = C.git_remote_rename(
+            problems, self._repo._repo, to_bytes(name), to_bytes(new_name)
+        )
         check_error(err)
 
         ret = strarray_to_strings(problems)
@@ -401,27 +408,25 @@ class RemoteCollection:
         check_error(err)
 
     def set_url(self, name, url):
-        """ Set the URL for a remote
-        """
+        """Set the URL for a remote"""
         err = C.git_remote_set_url(self._repo._repo, to_bytes(name), to_bytes(url))
         check_error(err)
 
     def set_push_url(self, name, url):
-        """Set the push-URL for a remote
-        """
+        """Set the push-URL for a remote"""
         err = C.git_remote_set_pushurl(self._repo._repo, to_bytes(name), to_bytes(url))
         check_error(err)
 
     def add_fetch(self, name, refspec):
-        """Add a fetch refspec (str) to the remote
-        """
+        """Add a fetch refspec (str) to the remote"""
 
-        err = C.git_remote_add_fetch(self._repo._repo, to_bytes(name), to_bytes(refspec))
+        err = C.git_remote_add_fetch(
+            self._repo._repo, to_bytes(name), to_bytes(refspec)
+        )
         check_error(err)
 
     def add_push(self, name, refspec):
-        """Add a push refspec (str) to the remote
-        """
+        """Add a push refspec (str) to the remote"""
 
         err = C.git_remote_add_push(self._repo._repo, to_bytes(name), to_bytes(refspec))
         check_error(err)

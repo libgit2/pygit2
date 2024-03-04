@@ -86,26 +86,24 @@ a simple commit which works\
 
 def test_commit_signing(gpgsigned):
     repo = gpgsigned
-    message = "a simple commit which works"
+    message = 'a simple commit which works'
     author = Signature(
-        name="Ben Burkert",
-        email="ben@benburkert.com",
+        name='Ben Burkert',
+        email='ben@benburkert.com',
         time=1358451456,
         offset=-480,
     )
     committer = Signature(
-        name="Ben Burkert",
-        email="ben@benburkert.com",
+        name='Ben Burkert',
+        email='ben@benburkert.com',
         time=1358451456,
         offset=-480,
     )
-    tree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-    parents = ["8496071c1b46c854b31185ea97743be6a8774479"]
+    tree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
+    parents = ['8496071c1b46c854b31185ea97743be6a8774479']
 
     # create commit string
-    commit_string = repo.create_commit_string(
-        author, committer, message, tree, parents
-    )
+    commit_string = repo.create_commit_string(author, committer, message, tree, parents)
     assert commit_string == content
 
     # create/retrieve signed commit
@@ -114,13 +112,13 @@ def test_commit_signing(gpgsigned):
     signature, payload = commit.gpg_signature
 
     # validate signed commit
-    assert content == payload.decode("utf-8")
-    assert gpgsig == signature.decode("utf-8")
-    assert gpgsig_content == commit.read_raw().decode("utf-8")
+    assert content == payload.decode('utf-8')
+    assert gpgsig == signature.decode('utf-8')
+    assert gpgsig_content == commit.read_raw().decode('utf-8')
 
     # perform sanity checks
     assert ObjectType.COMMIT == commit.type
-    assert "6569fdf71dbd99081891154641869c537784a3ba" == commit.hex
+    assert '6569fdf71dbd99081891154641869c537784a3ba' == commit.hex
     assert commit.message_encoding is None
     assert message == commit.message
     assert 1358451456 == commit.commit_time
@@ -134,7 +132,7 @@ def test_commit_signing(gpgsigned):
 
 
 def test_get_gpg_signature_when_unsigned(gpgsigned):
-    unhash = "5b5b025afb0b4c913b4c338a42934a3863bf3644"
+    unhash = '5b5b025afb0b4c913b4c338a42934a3863bf3644'
 
     repo = gpgsigned
     commit = repo.get(unhash)

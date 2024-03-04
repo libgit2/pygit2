@@ -46,47 +46,51 @@ ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
 
 def test_username():
-    username = "git"
+    username = 'git'
     cred = Username(username)
     assert (username,) == cred.credential_tuple
 
 
 def test_userpass():
-    username = "git"
-    password = "sekkrit"
+    username = 'git'
+    password = 'sekkrit'
 
     cred = UserPass(username, password)
     assert (username, password) == cred.credential_tuple
 
+
 def test_ssh_key():
-    username = "git"
-    pubkey = "id_rsa.pub"
-    privkey = "id_rsa"
-    passphrase = "bad wolf"
+    username = 'git'
+    pubkey = 'id_rsa.pub'
+    privkey = 'id_rsa'
+    passphrase = 'bad wolf'
 
     cred = Keypair(username, pubkey, privkey, passphrase)
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
+
 
 def test_ssh_key_aspath():
-    username = "git"
-    pubkey = Path("id_rsa.pub")
-    privkey = Path("id_rsa")
-    passphrase = "bad wolf"
+    username = 'git'
+    pubkey = Path('id_rsa.pub')
+    privkey = Path('id_rsa')
+    passphrase = 'bad wolf'
 
     cred = Keypair(username, pubkey, privkey, passphrase)
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
+
 def test_ssh_agent():
-    username = "git"
+    username = 'git'
 
     cred = KeypairFromAgent(username)
     assert (username, None, None, None) == cred.credential_tuple
 
+
 def test_ssh_from_memory():
-    username = "git"
-    pubkey = "public key data"
-    privkey = "private key data"
-    passphrase = "secret passphrase"
+    username = 'git'
+    pubkey = 'public key data'
+    privkey = 'private key data'
+    passphrase = 'secret passphrase'
 
     cred = KeypairFromMemory(username, pubkey, privkey, passphrase)
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
@@ -101,7 +105,7 @@ def test_keypair(tmp_path, pygit2_empty_key):
 
     prv, pub, secret = pygit2_empty_key
 
-    keypair = pygit2.Keypair("git", pub, prv, secret)
+    keypair = pygit2.Keypair('git', pub, prv, secret)
     callbacks = pygit2.RemoteCallbacks(credentials=keypair)
     pygit2.clone_repository(url, tmp_path, callbacks=callbacks)
 
@@ -120,7 +124,7 @@ def test_keypair_from_memory(tmp_path, pygit2_empty_key):
     with open(pub) as f:
         pub_mem = f.read()
 
-    keypair = pygit2.KeypairFromMemory("git", pub_mem, prv_mem, secret)
+    keypair = pygit2.KeypairFromMemory('git', pub_mem, prv_mem, secret)
     callbacks = pygit2.RemoteCallbacks(credentials=keypair)
     pygit2.clone_repository(url, tmp_path, callbacks=callbacks)
 
@@ -131,20 +135,24 @@ def test_callback(testrepo):
             assert allowed & CredentialType.USERPASS_PLAINTEXT
             raise Exception("I don't know the password")
 
-    url = "https://github.com/github/github"
-    remote = testrepo.remotes.create("github", url)
-    with pytest.raises(Exception): remote.fetch(callbacks=MyCallbacks())
+    url = 'https://github.com/github/github'
+    remote = testrepo.remotes.create('github', url)
+    with pytest.raises(Exception):
+        remote.fetch(callbacks=MyCallbacks())
+
 
 @utils.requires_network
 def test_bad_cred_type(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(testrepo, url, username, allowed):
             assert allowed & CredentialType.USERPASS_PLAINTEXT
-            return Keypair("git", "foo.pub", "foo", "sekkrit")
+            return Keypair('git', 'foo.pub', 'foo', 'sekkrit')
 
-    url = "https://github.com/github/github"
-    remote = testrepo.remotes.create("github", url)
-    with pytest.raises(TypeError): remote.fetch(callbacks=MyCallbacks())
+    url = 'https://github.com/github/github'
+    remote = testrepo.remotes.create('github', url)
+    with pytest.raises(TypeError):
+        remote.fetch(callbacks=MyCallbacks())
+
 
 @utils.requires_network
 def test_fetch_certificate_check(testrepo):
@@ -163,20 +171,21 @@ def test_fetch_certificate_check(testrepo):
     # libgit2 uses different error message for Linux and Windows
     # TODO test one or the other depending on the platform
     assert str(exc.value) in (
-        'user rejected certificate for github.com', # httpclient
-        'user cancelled certificate check') # winhttp
+        'user rejected certificate for github.com',  # httpclient
+        'user cancelled certificate check',
+    )  # winhttp
 
     # TODO Add GitError.error_code
-    #assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
+    # assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
 
 
 @utils.requires_network
 def test_user_pass(testrepo):
-    credentials = UserPass("libgit2", "libgit2")
+    credentials = UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
     url = 'https://github.com/libgit2/TestGitRepository'
-    remote = testrepo.remotes.create("bb", url)
+    remote = testrepo.remotes.create('bb', url)
     remote.fetch(callbacks=callbacks)
 
 
@@ -184,9 +193,9 @@ def test_user_pass(testrepo):
 @utils.requires_network
 @utils.requires_future_libgit2
 def test_proxy(testrepo):
-    credentials = UserPass("libgit2", "libgit2")
+    credentials = UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
     url = 'https://github.com/libgit2/TestGitRepository'
-    remote = testrepo.remotes.create("bb", url)
+    remote = testrepo.remotes.create('bb', url)
     remote.fetch(callbacks=callbacks, proxy='http://localhost:8888')

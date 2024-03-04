@@ -44,13 +44,16 @@ def test_branches_remote_get(repo):
 
     assert repo.branches.remote.get('origin/not-exists') is None
 
+
 def test_branches_remote(repo):
     branches = sorted(repo.branches.remote)
     assert branches == ['origin/master']
 
+
 def test_branches_remote_getitem(repo):
     branch = repo.branches.remote['origin/master']
     assert branch.remote_name == 'origin'
+
 
 def test_branches_upstream(repo):
     remote_master = repo.branches.remote['origin/master']
@@ -63,7 +66,8 @@ def test_branches_upstream(repo):
     def set_bad_upstream():
         master.upstream = 2.5
 
-    with pytest.raises(TypeError): set_bad_upstream()
+    with pytest.raises(TypeError):
+        set_bad_upstream()
 
     master.upstream = None
     assert master.upstream is None
@@ -71,8 +75,7 @@ def test_branches_upstream(repo):
 
 def test_branches_upstream_name(repo):
     remote_master = repo.branches.remote['origin/master']
-    master = repo.branches.create('master',
-                                       repo[remote_master.target.hex])
+    master = repo.branches.create('master', repo[remote_master.target.hex])
 
     master.upstream = remote_master
     assert master.upstream_name == 'refs/remotes/origin/master'
@@ -82,11 +85,13 @@ def test_branches_upstream_name(repo):
 # Low level API written in C, repo.remotes call these.
 #
 
+
 def test_lookup_branch_remote(repo):
     branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
     assert branch.target.hex == ORIGIN_MASTER_COMMIT
 
     assert repo.lookup_branch('origin/not-exists', BranchType.REMOTE) is None
+
 
 def test_listall_branches(repo):
     branches = sorted(repo.listall_branches(BranchType.REMOTE))
@@ -95,9 +100,11 @@ def test_listall_branches(repo):
     branches = sorted(repo.raw_listall_branches(BranchType.REMOTE))
     assert branches == [b'origin/master']
 
+
 def test_branch_remote_name(repo):
     branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
     assert branch.remote_name == 'origin'
+
 
 def test_branch_upstream(repo):
     remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
@@ -110,10 +117,12 @@ def test_branch_upstream(repo):
     def set_bad_upstream():
         master.upstream = 2.5
 
-    with pytest.raises(TypeError): set_bad_upstream()
+    with pytest.raises(TypeError):
+        set_bad_upstream()
 
     master.upstream = None
     assert master.upstream is None
+
 
 def test_branch_upstream_name(repo):
     remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
