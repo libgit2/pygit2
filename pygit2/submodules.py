@@ -39,7 +39,6 @@ if TYPE_CHECKING:
 
 
 class Submodule:
-
     @classmethod
     def _from_c(cls, repo: BaseRepository, cptr):
         subm = cls.__new__(cls)
@@ -94,7 +93,9 @@ class Submodule:
         """
 
         opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+        C.git_submodule_update_options_init(
+            opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION
+        )
 
         with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
             err = C.git_submodule_update(self._subm, int(init), opts)
@@ -147,7 +148,7 @@ class Submodule:
 
 
 class SubmoduleCollection:
-    """ Collection of submodules in a repository. """
+    """Collection of submodules in a repository."""
 
     def __init__(self, repository: BaseRepository):
         self._repository = repository
@@ -182,11 +183,11 @@ class SubmoduleCollection:
             return None
 
     def add(
-            self,
-            url: str,
-            path: str,
-            link: bool = True,
-            callbacks: Optional[RemoteCallbacks] = None
+        self,
+        url: str,
+        path: str,
+        link: bool = True,
+        callbacks: Optional[RemoteCallbacks] = None,
     ) -> Submodule:
         """
         Add a submodule to the index.
@@ -213,14 +214,18 @@ class SubmoduleCollection:
         cpath = ffi.new('char[]', to_bytes(path))
         gitlink = 1 if link else 0
 
-        err = C.git_submodule_add_setup(csub, self._repository._repo, curl, cpath, gitlink)
+        err = C.git_submodule_add_setup(
+            csub, self._repository._repo, curl, cpath, gitlink
+        )
         check_error(err)
 
         submodule_instance = Submodule._from_c(self._repository, csub[0])
 
         # Prepare options
         opts = ffi.new('git_submodule_update_options *')
-        C.git_submodule_update_options_init(opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
+        C.git_submodule_update_options_init(
+            opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION
+        )
 
         with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
             crepo = ffi.new('git_repository **')
@@ -229,16 +234,14 @@ class SubmoduleCollection:
 
         # Clean up submodule repository
         from .repository import Repository
+
         Repository._from_c(crepo[0], True)
 
         err = C.git_submodule_add_finalize(submodule_instance._subm)
         check_error(err)
         return submodule_instance
 
-    def init(
-            self,
-            submodules: Optional[Iterable[str]] = None,
-            overwrite: bool = False):
+    def init(self, submodules: Optional[Iterable[str]] = None, overwrite: bool = False):
         """
         Initialize submodules in the repository. Just like "git submodule init",
         this copies information about the submodules into ".git/config".
@@ -261,10 +264,11 @@ class SubmoduleCollection:
             submodule.init(overwrite)
 
     def update(
-            self,
-            submodules: Optional[Iterable[str]] = None,
-            init: bool = False,
-            callbacks: Optional[RemoteCallbacks] = None):
+        self,
+        submodules: Optional[Iterable[str]] = None,
+        init: bool = False,
+        callbacks: Optional[RemoteCallbacks] = None,
+    ):
         """
         Update submodules. This will clone a missing submodule and checkout
         the subrepository to the commit specified in the index of the
@@ -294,7 +298,9 @@ class SubmoduleCollection:
         for submodule in instances:
             submodule.update(init, callbacks)
 
-    def status(self, name: str, ignore: SubmoduleIgnore = SubmoduleIgnore.UNSPECIFIED) -> SubmoduleStatus:
+    def status(
+        self, name: str, ignore: SubmoduleIgnore = SubmoduleIgnore.UNSPECIFIED
+    ) -> SubmoduleStatus:
         """
         Get the status of a submodule.
 
@@ -309,7 +315,9 @@ class SubmoduleCollection:
             A SubmoduleIgnore value indicating how deeply to examine the working directory.
         """
         cstatus = ffi.new('unsigned int *')
-        err = C.git_submodule_status(cstatus, self._repository._repo, to_bytes(name), ignore)
+        err = C.git_submodule_status(
+            cstatus, self._repository._repo, to_bytes(name), ignore
+        )
         check_error(err)
         return SubmoduleStatus(cstatus[0])
 

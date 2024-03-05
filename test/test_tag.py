@@ -44,7 +44,10 @@ def test_read_tag(barerepo):
     assert 'root' == tag.name
     assert 'Tagged root commit.\n' == tag.message
     assert 'Initial test data commit.\n' == target.message
-    assert tag.tagger == pygit2.Signature('Dave Borowitz', 'dborowitz@google.com', 1288724692, -420)
+    assert tag.tagger == pygit2.Signature(
+        'Dave Borowitz', 'dborowitz@google.com', 1288724692, -420
+    )
+
 
 def test_new_tag(barerepo):
     name = 'thetag'
@@ -67,6 +70,7 @@ def test_new_tag(barerepo):
     assert message == tag.message
     assert name == barerepo[tag.hex].name
 
+
 def test_modify_tag(barerepo):
     name = 'thetag'
     target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
@@ -74,10 +78,15 @@ def test_modify_tag(barerepo):
     tagger = ('John Doe', 'jdoe@example.com', 12347)
 
     tag = barerepo[TAG_SHA]
-    with pytest.raises(AttributeError): setattr(tag, 'name', name)
-    with pytest.raises(AttributeError): setattr(tag, 'target', target)
-    with pytest.raises(AttributeError): setattr(tag, 'tagger', tagger)
-    with pytest.raises(AttributeError): setattr(tag, 'message', message)
+    with pytest.raises(AttributeError):
+        setattr(tag, 'name', name)
+    with pytest.raises(AttributeError):
+        setattr(tag, 'target', target)
+    with pytest.raises(AttributeError):
+        setattr(tag, 'tagger', tagger)
+    with pytest.raises(AttributeError):
+        setattr(tag, 'message', message)
+
 
 def test_get_object(barerepo):
     repo = barerepo

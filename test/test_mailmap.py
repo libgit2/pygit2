@@ -40,33 +40,33 @@ Santa Claus <santa.claus@northpole.xx> <me@company.xx>
 """
 
 TEST_ENTRIES = [
-    (None, "cto@company.xx", None, "cto@coompany.xx"),
-    ("Some Dude", "some@dude.xx", "nick1", "bugs@company.xx"),
-    ("Other Author", "other@author.xx", "nick2", "bugs@company.xx"),
-    ("Other Author", "other@author.xx", None, "nick2@company.xx"),
-    ("Phil Hill", None, None, "phil@company.xx"),
-    (None, "joseph@company.xx", "Joseph", "bugs@company.xx"),
-    ("Santa Claus", "santa.claus@northpole.xx", None, "me@company.xx")
+    (None, 'cto@company.xx', None, 'cto@coompany.xx'),
+    ('Some Dude', 'some@dude.xx', 'nick1', 'bugs@company.xx'),
+    ('Other Author', 'other@author.xx', 'nick2', 'bugs@company.xx'),
+    ('Other Author', 'other@author.xx', None, 'nick2@company.xx'),
+    ('Phil Hill', None, None, 'phil@company.xx'),
+    (None, 'joseph@company.xx', 'Joseph', 'bugs@company.xx'),
+    ('Santa Claus', 'santa.claus@northpole.xx', None, 'me@company.xx'),
 ]
 
 TEST_RESOLVE = [
-    ("Brad", "cto@company.xx", "Brad", "cto@coompany.xx"),
-    ("Brad L", "cto@company.xx", "Brad L", "cto@coompany.xx"),
-    ("Some Dude", "some@dude.xx", "nick1", "bugs@company.xx"),
-    ("Other Author", "other@author.xx", "nick2", "bugs@company.xx"),
-    ("nick3", "bugs@company.xx", "nick3", "bugs@company.xx"),
-    ("Other Author", "other@author.xx", "Some Garbage", "nick2@company.xx"),
-    ("Phil Hill", "phil@company.xx", "unknown", "phil@company.xx"),
-    ("Joseph", "joseph@company.xx", "Joseph", "bugs@company.xx"),
-    ("Santa Claus", "santa.claus@northpole.xx", "Clause", "me@company.xx"),
-    ("Charles", "charles@charles.xx", "Charles", "charles@charles.xx")
+    ('Brad', 'cto@company.xx', 'Brad', 'cto@coompany.xx'),
+    ('Brad L', 'cto@company.xx', 'Brad L', 'cto@coompany.xx'),
+    ('Some Dude', 'some@dude.xx', 'nick1', 'bugs@company.xx'),
+    ('Other Author', 'other@author.xx', 'nick2', 'bugs@company.xx'),
+    ('nick3', 'bugs@company.xx', 'nick3', 'bugs@company.xx'),
+    ('Other Author', 'other@author.xx', 'Some Garbage', 'nick2@company.xx'),
+    ('Phil Hill', 'phil@company.xx', 'unknown', 'phil@company.xx'),
+    ('Joseph', 'joseph@company.xx', 'Joseph', 'bugs@company.xx'),
+    ('Santa Claus', 'santa.claus@northpole.xx', 'Clause', 'me@company.xx'),
+    ('Charles', 'charles@charles.xx', 'Charles', 'charles@charles.xx'),
 ]
 
 
 def test_empty():
     mailmap = Mailmap()
 
-    for (_, _, name, email) in TEST_RESOLVE:
+    for _, _, name, email in TEST_RESOLVE:
         assert mailmap.resolve(name, email) == (name, email)
 
 
@@ -77,14 +77,14 @@ def test_new():
     for entry in TEST_ENTRIES:
         mailmap.add_entry(*entry)
 
-    for (real_name, real_email, name, email) in TEST_RESOLVE:
+    for real_name, real_email, name, email in TEST_RESOLVE:
         assert mailmap.resolve(name, email) == (real_name, real_email)
 
 
 def test_parsed():
     mailmap = Mailmap.from_buffer(TEST_MAILMAP)
 
-    for (real_name, real_email, name, email) in TEST_RESOLVE:
+    for real_name, real_email, name, email in TEST_RESOLVE:
         assert mailmap.resolve(name, email) == (real_name, real_email)
 
 

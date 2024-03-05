@@ -1,0 +1,26 @@
+name: Lints
+
+on:
+  pull_request:
+  push:
+    paths-ignore:
+    - '**.rst'
+
+jobs:
+  ruff:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout pygit2
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install ruff
+      run: pip install ruff
+
+    - name: Check code style with ruff
+      run: ruff format --diff

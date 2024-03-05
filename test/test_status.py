@@ -40,30 +40,30 @@ def test_status(dirtyrepo):
 
 
 def test_status_untracked_no(dirtyrepo):
-    git_status = dirtyrepo.status(untracked_files="no")
+    git_status = dirtyrepo.status(untracked_files='no')
     assert not any(status & FileStatus.WT_NEW for status in git_status.values())
 
 
 @pytest.mark.parametrize(
-    "untracked_files,expected",
+    'untracked_files,expected',
     [
-        ("no", set()),
+        ('no', set()),
         (
-            "normal",
+            'normal',
             {
-                "untracked_dir/",
-                "staged_delete_file_modified",
-                "subdir/new_file",
-                "new_file",
+                'untracked_dir/',
+                'staged_delete_file_modified',
+                'subdir/new_file',
+                'new_file',
             },
         ),
         (
-            "all",
+            'all',
             {
-                "new_file",
-                "subdir/new_file",
-                "staged_delete_file_modified",
-                "untracked_dir/untracked_file",
+                'new_file',
+                'subdir/new_file',
+                'staged_delete_file_modified',
+                'untracked_dir/untracked_file',
             },
         ),
     ],
@@ -75,11 +75,9 @@ def test_status_untracked_normal(dirtyrepo, untracked_files, expected):
     } == expected
 
 
-@pytest.mark.parametrize("ignored,expected", [(True, {"ignored"}), (False, set())])
+@pytest.mark.parametrize('ignored,expected', [(True, {'ignored'}), (False, set())])
 def test_status_ignored(dirtyrepo, ignored, expected):
     git_status = dirtyrepo.status(ignored=ignored)
     assert {
-        file
-        for file, status in git_status.items()
-        if status & FileStatus.IGNORED
+        file for file, status in git_status.items() if status & FileStatus.IGNORED
     } == expected

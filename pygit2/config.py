@@ -42,7 +42,6 @@ def str_to_bytes(value, name):
 
 
 class ConfigIterator:
-
     def __init__(self, config, ptr):
         self._iter = ptr
         self._config = config
@@ -74,8 +73,7 @@ class ConfigMultivarIterator(ConfigIterator):
 
 
 class Config:
-    """Git configuration management.
-    """
+    """Git configuration management."""
 
     def __init__(self, path=None):
         cconfig = ffi.new('git_config **')
@@ -83,7 +81,7 @@ class Config:
         if not path:
             err = C.git_config_new(cconfig)
         else:
-            path = str_to_bytes(path, "path")
+            path = str_to_bytes(path, 'path')
             err = C.git_config_open_ondisk(cconfig, path)
 
         check_error(err, io=True)
@@ -104,7 +102,7 @@ class Config:
             pass
 
     def _get(self, key):
-        key = str_to_bytes(key, "key")
+        key = str_to_bytes(key, 'key')
 
         entry = ffi.new('git_config_entry **')
         err = C.git_config_get_entry(entry, self._config, key)
@@ -141,7 +139,7 @@ class Config:
         return entry.value
 
     def __setitem__(self, key, value):
-        key = str_to_bytes(key, "key")
+        key = str_to_bytes(key, 'key')
 
         err = 0
         if isinstance(value, bool):
@@ -154,7 +152,7 @@ class Config:
         check_error(err)
 
     def __delitem__(self, key):
-        key = str_to_bytes(key, "key")
+        key = str_to_bytes(key, 'key')
 
         err = C.git_config_delete_entry(self._config, key)
         check_error(err)
@@ -178,7 +176,7 @@ class Config:
         The optional ''regex'' parameter is expected to be a regular expression
         to filter the variables we're interested in.
         """
-        name = str_to_bytes(name, "name")
+        name = str_to_bytes(name, 'name')
         regex = to_bytes(regex or None)
 
         citer = ffi.new('git_config_iterator **')
@@ -191,9 +189,9 @@ class Config:
         """Set a multivar ''name'' to ''value''. ''regexp'' is a regular
         expression to indicate which values to replace.
         """
-        name = str_to_bytes(name, "name")
-        regex = str_to_bytes(regex, "regex")
-        value = str_to_bytes(value, "value")
+        name = str_to_bytes(name, 'name')
+        regex = str_to_bytes(regex, 'regex')
+        value = str_to_bytes(value, 'value')
 
         err = C.git_config_set_multivar(self._config, name, regex, value)
         check_error(err)
@@ -202,8 +200,8 @@ class Config:
         """Delete a multivar ''name''. ''regexp'' is a regular expression to
         indicate which values to delete.
         """
-        name = str_to_bytes(name, "name")
-        regex = str_to_bytes(regex, "regex")
+        name = str_to_bytes(name, 'name')
+        regex = str_to_bytes(regex, 'regex')
 
         err = C.git_config_delete_multivar(self._config, name, regex)
         check_error(err)
@@ -241,8 +239,9 @@ class Config:
     def add_file(self, path, level=0, force=0):
         """Add a config file instance to an existing config."""
 
-        err = C.git_config_add_file_ondisk(self._config, to_bytes(path), level,
-                                           ffi.NULL, force)
+        err = C.git_config_add_file_ondisk(
+            self._config, to_bytes(path), level, ffi.NULL, force
+        )
         check_error(err)
 
     def snapshot(self):
@@ -293,26 +292,22 @@ class Config:
 
     @staticmethod
     def get_system_config():
-        """Return a <Config> object representing the system configuration file.
-        """
+        """Return a <Config> object representing the system configuration file."""
         return Config._from_found_config(C.git_config_find_system)
 
     @staticmethod
     def get_global_config():
-        """Return a <Config> object representing the global configuration file.
-        """
+        """Return a <Config> object representing the global configuration file."""
         return Config._from_found_config(C.git_config_find_global)
 
     @staticmethod
     def get_xdg_config():
-        """Return a <Config> object representing the global configuration file.
-        """
+        """Return a <Config> object representing the global configuration file."""
         return Config._from_found_config(C.git_config_find_xdg)
 
 
 class ConfigEntry:
-    """An entry in a configuation object.
-    """
+    """An entry in a configuation object."""
 
     @classmethod
     def _from_c(cls, ptr, iterator=None):

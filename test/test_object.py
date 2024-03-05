@@ -48,7 +48,8 @@ def test_equality(testrepo):
 
     assert commit_a is not commit_b
     assert commit_a == commit_b
-    assert not(commit_a != commit_b)
+    assert not (commit_a != commit_b)
+
 
 def test_hashing(testrepo):
     # get a commit object twice and compare hashes
@@ -80,6 +81,7 @@ def test_hashing(testrepo):
     l = [commit_a]
     assert commit_b in l
 
+
 def test_peel_commit(testrepo):
     # start by looking up the commit
     commit_id = testrepo.lookup_reference('refs/heads/master').target
@@ -89,6 +91,7 @@ def test_peel_commit(testrepo):
 
     assert type(tree) == Tree
     assert str(tree.id) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
+
 
 def test_peel_commit_type(testrepo):
     commit_id = testrepo.lookup_reference('refs/heads/master').target
@@ -103,19 +106,24 @@ def test_invalid(testrepo):
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
 
-    with pytest.raises(ValueError): commit.peel(ObjectType.TAG)
+    with pytest.raises(ValueError):
+        commit.peel(ObjectType.TAG)
+
 
 def test_invalid_type(testrepo):
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
 
-    with pytest.raises(ValueError): commit.peel(Tag)
+    with pytest.raises(ValueError):
+        commit.peel(Tag)
+
 
 def test_short_id(testrepo):
-    seen = {} # from short_id to full hex id
+    seen = {}  # from short_id to full hex id
+
     def test_obj(obj, msg):
         short_id = obj.short_id
-        msg = msg+" short_id="+short_id
+        msg = msg + ' short_id=' + short_id
         already = seen.get(short_id)
         if already:
             assert already == obj.id.hex
@@ -123,15 +131,16 @@ def test_short_id(testrepo):
             seen[short_id] = obj.id.hex
             lookup = testrepo[short_id]
             assert obj.id == lookup.id
+
     for commit in testrepo.walk(testrepo.head.target):
-        test_obj(commit, "commit#"+commit.id.hex)
+        test_obj(commit, 'commit#' + commit.id.hex)
         tree = commit.tree
-        test_obj(tree, "tree#"+tree.id.hex)
+        test_obj(tree, 'tree#' + tree.id.hex)
         for entry in tree:
-            test_obj(testrepo[entry.hex], "entry="+entry.name+"#"+entry.hex)
+            test_obj(testrepo[entry.hex], 'entry=' + entry.name + '#' + entry.hex)
 
 
 def test_repr(testrepo):
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit_a = testrepo[commit_id]
-    assert repr(commit_a) == "<pygit2.Object{commit:%s}>" % commit_id
+    assert repr(commit_a) == '<pygit2.Object{commit:%s}>' % commit_id

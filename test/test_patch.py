@@ -90,6 +90,7 @@ def test_patch_create_from_buffers():
 
     assert patch.text == BLOB_PATCH
 
+
 def test_patch_create_from_blobs(testrepo):
     old_blob = testrepo[BLOB_OLD_SHA]
     new_blob = testrepo[BLOB_NEW_SHA]
@@ -103,6 +104,7 @@ def test_patch_create_from_blobs(testrepo):
 
     assert patch.text == BLOB_PATCH2
 
+
 def test_patch_create_from_blob_buffer(testrepo):
     old_blob = testrepo[BLOB_OLD_SHA]
     patch = pygit2.Patch.create_from(
@@ -114,6 +116,7 @@ def test_patch_create_from_blob_buffer(testrepo):
 
     assert patch.text == BLOB_PATCH
 
+
 def test_patch_create_from_blob_buffer_add(testrepo):
     patch = pygit2.Patch.create_from(
         None,
@@ -123,6 +126,7 @@ def test_patch_create_from_blob_buffer_add(testrepo):
     )
 
     assert patch.text == BLOB_PATCH_ADDED
+
 
 def test_patch_create_from_blob_buffer_delete(testrepo):
     old_blob = testrepo[BLOB_OLD_SHA]
@@ -136,13 +140,16 @@ def test_patch_create_from_blob_buffer_delete(testrepo):
 
     assert patch.text == BLOB_PATCH_DELETED
 
+
 def test_patch_create_from_bad_old_type_arg(testrepo):
     with pytest.raises(TypeError):
         pygit2.Patch.create_from(testrepo, BLOB_NEW_CONTENT)
 
+
 def test_patch_create_from_bad_new_type_arg(testrepo):
     with pytest.raises(TypeError):
         pygit2.Patch.create_from(None, testrepo)
+
 
 def test_context_lines(testrepo):
     old_blob = testrepo[BLOB_OLD_SHA]
@@ -156,10 +163,11 @@ def test_context_lines(testrepo):
     )
 
     context_count = len(
-        [line for line in patch.text.splitlines() if line.startswith(" ")]
+        [line for line in patch.text.splitlines() if line.startswith(' ')]
     )
 
     assert context_count != 0
+
 
 def test_no_context_lines(testrepo):
     old_blob = testrepo[BLOB_OLD_SHA]
@@ -174,10 +182,11 @@ def test_no_context_lines(testrepo):
     )
 
     context_count = len(
-        [line for line in patch.text.splitlines() if line.startswith(" ")]
+        [line for line in patch.text.splitlines() if line.startswith(' ')]
     )
 
     assert context_count == 0
+
 
 def test_patch_create_blob_blobs(testrepo):
     old_blob = testrepo[testrepo.create_blob(BLOB_OLD_CONTENT)]
@@ -192,6 +201,7 @@ def test_patch_create_blob_blobs(testrepo):
 
     assert patch.text == BLOB_PATCH
 
+
 def test_patch_create_blob_buffer(testrepo):
     blob = testrepo[testrepo.create_blob(BLOB_OLD_CONTENT)]
     patch = pygit2.Patch.create_from(
@@ -202,6 +212,7 @@ def test_patch_create_blob_buffer(testrepo):
     )
 
     assert patch.text == BLOB_PATCH
+
 
 def test_patch_create_blob_delete(testrepo):
     blob = testrepo[testrepo.create_blob(BLOB_OLD_CONTENT)]
@@ -214,6 +225,7 @@ def test_patch_create_blob_delete(testrepo):
 
     assert patch.text == BLOB_PATCH_DELETED
 
+
 def test_patch_create_blob_add(testrepo):
     blob = testrepo[testrepo.create_blob(BLOB_NEW_CONTENT)]
     patch = pygit2.Patch.create_from(
@@ -224,6 +236,7 @@ def test_patch_create_blob_add(testrepo):
     )
 
     assert patch.text == BLOB_PATCH_ADDED
+
 
 def test_patch_delete_blob(testrepo):
     blob = testrepo[BLOB_OLD_SHA]
@@ -239,19 +252,14 @@ def test_patch_delete_blob(testrepo):
     del blob
     assert patch.text == BLOB_PATCH_DELETED
 
+
 def test_patch_multi_blob(testrepo):
     blob = testrepo[BLOB_OLD_SHA]
-    patch = pygit2.Patch.create_from(
-        blob,
-        None
-    )
+    patch = pygit2.Patch.create_from(blob, None)
     patch_text = patch.text
 
     blob = testrepo[BLOB_OLD_SHA]
-    patch2 = pygit2.Patch.create_from(
-        blob,
-        None
-    )
+    patch2 = pygit2.Patch.create_from(blob, None)
     patch_text2 = patch.text
 
     assert patch_text == patch_text2

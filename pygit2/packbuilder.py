@@ -31,9 +31,7 @@ from .utils import to_bytes
 
 
 class PackBuilder:
-
     def __init__(self, repo):
-
         cpackbuilder = ffi.new('git_packbuilder **')
         err = C.git_packbuilder_new(cpackbuilder, repo._repo)
         check_error(err)

@@ -81,7 +81,7 @@ h_files = [
     'revert.h',
     'stash.h',
     'submodule.h',
-    'callbacks.h', # Bridge from libgit2 to Python
+    'callbacks.h',  # Bridge from libgit2 to Python
 ]
 h_source = []
 for h_file in h_files:
@@ -99,7 +99,7 @@ C_PREAMBLE = """\
 # ffi
 _, libgit2_kw = get_libgit2_paths()
 ffi = FFI()
-ffi.set_source("pygit2._libgit2", C_PREAMBLE, **libgit2_kw)
+ffi.set_source('pygit2._libgit2', C_PREAMBLE, **libgit2_kw)
 ffi.cdef(C_HEADER_SRC)
 
 

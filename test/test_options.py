@@ -35,6 +35,7 @@ def __option(getter, setter, value):
     # Reset to avoid side effects in later tests
     option(setter, old_value)
 
+
 def __proxy(name, value):
     old_value = getattr(pygit2.settings, name)
     setattr(pygit2.settings, name, value)
@@ -42,38 +43,43 @@ def __proxy(name, value):
     # Reset to avoid side effects in later tests
     setattr(pygit2.settings, name, old_value)
 
+
 def test_mwindow_size():
-    __option(
-        Option.GET_MWINDOW_SIZE,
-        Option.SET_MWINDOW_SIZE,
-        200 * 1024)
+    __option(Option.GET_MWINDOW_SIZE, Option.SET_MWINDOW_SIZE, 200 * 1024)
+
 
 def test_mwindow_size_proxy():
     __proxy('mwindow_size', 300 * 1024)
 
+
 def test_mwindow_mapped_limit_200():
     __option(
-        Option.GET_MWINDOW_MAPPED_LIMIT,
-        Option.SET_MWINDOW_MAPPED_LIMIT,
-        200 * 1024)
+        Option.GET_MWINDOW_MAPPED_LIMIT, Option.SET_MWINDOW_MAPPED_LIMIT, 200 * 1024
+    )
+
 
 def test_mwindow_mapped_limit_300():
     __proxy('mwindow_mapped_limit', 300 * 1024)
+
 
 def test_cache_object_limit():
     new_limit = 2 * 1024
     option(Option.SET_CACHE_OBJECT_LIMIT, ObjectType.BLOB, new_limit)
 
+
 def test_cache_object_limit_proxy():
     new_limit = 4 * 1024
     pygit2.settings.cache_object_limit(ObjectType.BLOB, new_limit)
+
 
 def test_cached_memory():
     value = option(Option.GET_CACHED_MEMORY)
     assert value[1] == 256 * 1024**2
 
+
 def test_cached_memory_proxy():
     assert pygit2.settings.cached_memory[1] == 256 * 1024**2
+
 
 def test_enable_caching():
     pygit2.settings.enable_caching(False)
@@ -82,6 +88,7 @@ def test_enable_caching():
     option(Option.ENABLE_CACHING, False)
     option(Option.ENABLE_CACHING, True)
 
+
 def test_disable_pack_keep_file_checks():
     pygit2.settings.disable_pack_keep_file_checks(False)
     pygit2.settings.disable_pack_keep_file_checks(True)
@@ -89,30 +96,37 @@ def test_disable_pack_keep_file_checks():
     option(Option.DISABLE_PACK_KEEP_FILE_CHECKS, False)
     option(Option.DISABLE_PACK_KEEP_FILE_CHECKS, True)
 
+
 def test_cache_max_size_proxy():
     pygit2.settings.cache_max_size(128 * 1024**2)
     assert pygit2.settings.cached_memory[1] == 128 * 1024**2
     pygit2.settings.cache_max_size(256 * 1024**2)
     assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
+
 def test_search_path():
-    paths = [(ConfigLevel.GLOBAL, '/tmp/global'),
-             (ConfigLevel.XDG,    '/tmp/xdg'),
-             (ConfigLevel.SYSTEM, '/tmp/etc')]
+    paths = [
+        (ConfigLevel.GLOBAL, '/tmp/global'),
+        (ConfigLevel.XDG, '/tmp/xdg'),
+        (ConfigLevel.SYSTEM, '/tmp/etc'),
+    ]
 
     for level, path in paths:
         option(Option.SET_SEARCH_PATH, level, path)
         assert path == option(Option.GET_SEARCH_PATH, level)
 
+
 def test_search_path_proxy():
-    paths = [(ConfigLevel.GLOBAL, '/tmp2/global'),
-             (ConfigLevel.XDG,    '/tmp2/xdg'),
-             (ConfigLevel.SYSTEM, '/tmp2/etc')]
+    paths = [
+        (ConfigLevel.GLOBAL, '/tmp2/global'),
+        (ConfigLevel.XDG, '/tmp2/xdg'),
+        (ConfigLevel.SYSTEM, '/tmp2/etc'),
+    ]
 
     for level, path in paths:
         pygit2.settings.search_path[level] = path
         assert path == pygit2.settings.search_path[level]
 
+
 def test_owner_validation():
-    __option(Option.GET_OWNER_VALIDATION,
-             Option.SET_OWNER_VALIDATION, 0)
+    __option(Option.GET_OWNER_VALIDATION, Option.SET_OWNER_VALIDATION, 0)

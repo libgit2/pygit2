@@ -31,7 +31,7 @@ from pygit2 import Config
 from . import utils
 
 
-CONFIG_FILENAME = "test_config"
+CONFIG_FILENAME = 'test_config'
 
 
 @pytest.fixture
@@ -46,6 +46,7 @@ def config(testrepo):
 def test_config(config):
     assert config is not None
 
+
 def test_global_config():
     try:
         assert Config.get_global_config() is not None
@@ -53,12 +54,14 @@ def test_global_config():
         # There is no user config
         pass
 
+
 def test_system_config():
     try:
         assert Config.get_system_config() is not None
     except IOError:
         # There is no system config
         pass
+
 
 def test_new():
     # Touch file
@@ -76,10 +79,11 @@ def test_new():
     assert 'core.editor' in config_read
     assert config_read['core.editor'] == 'ed'
 
+
 def test_add():
-    with open(CONFIG_FILENAME, "w") as new_file:
-        new_file.write("[this]\n\tthat = true\n")
-        new_file.write("[something \"other\"]\n\there = false")
+    with open(CONFIG_FILENAME, 'w') as new_file:
+        new_file.write('[this]\n\tthat = true\n')
+        new_file.write('[something "other"]\n\there = false')
 
     config = Config()
     config.add_file(CONFIG_FILENAME, 0)
@@ -88,21 +92,25 @@ def test_add():
     assert 'something.other.here' in config
     assert not config.get_bool('something.other.here')
 
+
 def test_add_aspath():
-    with open(CONFIG_FILENAME, "w") as new_file:
-        new_file.write("[this]\n\tthat = true\n")
+    with open(CONFIG_FILENAME, 'w') as new_file:
+        new_file.write('[this]\n\tthat = true\n')
 
     config = Config()
     config.add_file(Path(CONFIG_FILENAME), 0)
     assert 'this.that' in config
 
+
 def test_read(config):
-    with pytest.raises(TypeError): config[()]
-    with pytest.raises(TypeError): config[-4]
-    utils.assertRaisesWithArg(ValueError, "invalid config item name 'abc'",
-                              lambda: config['abc'])
-    utils.assertRaisesWithArg(KeyError, 'abc.def',
-                              lambda: config['abc.def'])
+    with pytest.raises(TypeError):
+        config[()]
+    with pytest.raises(TypeError):
+        config[-4]
+    utils.assertRaisesWithArg(
+        ValueError, "invalid config item name 'abc'", lambda: config['abc']
+    )
+    utils.assertRaisesWithArg(KeyError, 'abc.def', lambda: config['abc.def'])
 
     assert 'core.bare' in config
     assert not config.get_bool('core.bare')
@@ -138,9 +146,10 @@ def test_write(config):
     del config['core.dummy3']
     assert 'core.dummy3' not in config
 
+
 def test_multivar():
-    with open(CONFIG_FILENAME, "w") as new_file:
-        new_file.write("[this]\n\tthat = foobar\n\tthat = foobeer\n")
+    with open(CONFIG_FILENAME, 'w') as new_file:
+        new_file.write('[this]\n\tthat = foobar\n\tthat = foobeer\n')
 
     config = Config()
     config.add_file(CONFIG_FILENAME, 6)
@@ -170,6 +179,7 @@ def test_multivar():
     l = list(config.get_multivar('this.that', ''))
     assert [] == l
 
+
 def test_iterator(config):
     lst = {}
     for entry in config:
@@ -179,9 +189,10 @@ def test_iterator(config):
     assert 'core.bare' in lst
     assert lst['core.bare']
 
-def test_parsing():
-    assert Config.parse_bool("on")
-    assert Config.parse_bool("1")
 
-    assert 5 == Config.parse_int("5")
-    assert 1024 == Config.parse_int("1k")
+def test_parsing():
+    assert Config.parse_bool('on')
+    assert Config.parse_bool('1')
+
+    assert 5 == Config.parse_int('5')
+    assert 1024 == Config.parse_int('1k')

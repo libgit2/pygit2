@@ -33,11 +33,15 @@ from pygit2.enums import RepositoryState
 
 
 def test_cherrypick_none(mergerepo):
-    with pytest.raises(TypeError): mergerepo.cherrypick(None)
+    with pytest.raises(TypeError):
+        mergerepo.cherrypick(None)
+
 
 def test_cherrypick_invalid_hex(mergerepo):
     branch_head_hex = '12345678'
-    with pytest.raises(KeyError): mergerepo.cherrypick(branch_head_hex)
+    with pytest.raises(KeyError):
+        mergerepo.cherrypick(branch_head_hex)
+
 
 def test_cherrypick_already_something_in_index(mergerepo):
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
@@ -45,7 +49,8 @@ def test_cherrypick_already_something_in_index(mergerepo):
     with (Path(mergerepo.workdir) / 'inindex.txt').open('w') as f:
         f.write('new content')
     mergerepo.index.add('inindex.txt')
-    with pytest.raises(pygit2.GitError): mergerepo.cherrypick(branch_oid)
+    with pytest.raises(pygit2.GitError):
+        mergerepo.cherrypick(branch_oid)
 
 
 def test_cherrypick_remove_conflicts(mergerepo):
@@ -56,14 +61,15 @@ def test_cherrypick_remove_conflicts(mergerepo):
     mergerepo.cherrypick(other_branch_tip)
 
     assert mergerepo.state() == RepositoryState.CHERRYPICK
-    assert mergerepo.message.startswith("commit to provoke a conflict")
+    assert mergerepo.message.startswith('commit to provoke a conflict')
 
     idx = mergerepo.index
     conflicts = idx.conflicts
     assert conflicts is not None
     conflicts['.gitignore']
     del idx.conflicts['.gitignore']
-    with pytest.raises(KeyError): conflicts.__getitem__('.gitignore')
+    with pytest.raises(KeyError):
+        conflicts.__getitem__('.gitignore')
     assert idx.conflicts is None
 
     mergerepo.state_cleanup()

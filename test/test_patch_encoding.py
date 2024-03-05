@@ -35,6 +35,7 @@ index e84e339..201e0c9 100644
 +foo
 """
 
+
 def test_patch_from_non_utf8():
     # blobs encoded in ISO-8859-1
     old_content = b'Kristian H\xf8gsberg\n'
@@ -52,6 +53,7 @@ def test_patch_from_non_utf8():
     # `patch.text` corrupted the ISO-8859-1 content as it forced UTF-8
     # decoding, so assert that we cannot get the original content back:
     assert patch.text.encode('utf-8') != expected_diff
+
 
 def test_patch_create_from_blobs(encodingrepo):
     patch = pygit2.Patch.create_from(

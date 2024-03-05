@@ -30,8 +30,7 @@ from .utils import to_bytes
 
 
 class Refspec:
-    """The constructor is for internal use only.
-    """
+    """The constructor is for internal use only."""
 
     def __init__(self, owner, ptr):
         self._owner = owner

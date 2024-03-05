@@ -57,11 +57,14 @@ def odb(barerepo):
     odb = barerepo.odb
     yield odb
 
+
 def test_iterable(odb):
     assert BLOB_HEX in [str(o) for o in odb]
 
+
 def test_contains(odb):
     assert BLOB_HEX in odb
+
 
 def test_read(odb):
     with pytest.raises(TypeError):
@@ -80,8 +83,9 @@ def test_read(odb):
     a3 = odb.read(a_hex_prefix)
     assert (ObjectType.BLOB, b'a contents\n') == a3
 
+
 def test_write(odb):
-    data = b"hello world"
+    data = b'hello world'
     # invalid object type
     with pytest.raises(ValueError):
         odb.write(ObjectType.ANY, data)

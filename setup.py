@@ -37,6 +37,7 @@ import sys
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')
 from _build import __version__, get_libgit2_paths
+
 del sys.path[0]
 
 
@@ -45,8 +46,9 @@ libgit2_bin, libgit2_kw = get_libgit2_paths()
 
 class sdist_files_from_git(sdist):
     def get_file_list(self):
-        popen = Popen(['git', 'ls-files'], stdout=PIPE, stderr=PIPE,
-                      universal_newlines=True)
+        popen = Popen(
+            ['git', 'ls-files'], stdout=PIPE, stderr=PIPE, universal_newlines=True
+        )
         stdoutdata, stderrdata = popen.communicate()
         if popen.returncode != 0:
             print(stderrdata)
@@ -69,17 +71,18 @@ class sdist_files_from_git(sdist):
 
 
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Topic :: Software Development :: Version Control"]
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Topic :: Software Development :: Version Control',
+]
 
 __dir__ = Path(__file__).parent
 long_description = (__dir__ / 'README.md').read_text()
@@ -101,7 +104,7 @@ class BuildWithDLLs(build):
             libgit2_dlls.append('git2.dll')
         elif compiler_type == 'mingw32':
             libgit2_dlls.append('libgit2.dll')
-        look_dirs = [libgit2_bin] + os.getenv("PATH", "").split(os.pathsep)
+        look_dirs = [libgit2_bin] + os.getenv('PATH', '').split(os.pathsep)
 
         target = Path(self.build_lib).absolute() / 'pygit2'
         for dll in libgit2_dlls:
@@ -120,15 +123,14 @@ class BuildWithDLLs(build):
         for s, d in self._get_dlls():
             self.copy_file(s, d)
 
+
 # On Windows we package up the dlls with the plugin.
 if os.name == 'nt':
     cmdclass['build'] = BuildWithDLLs
 
 src = __dir__ / 'src'
 pygit2_exts = [str(path) for path in sorted(src.iterdir()) if path.suffix == '.c']
-ext_modules = [
-    Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)
-]
+ext_modules = [Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)]
 
 with open('requirements.txt') as f:
     install_requires = f.read().splitlines()

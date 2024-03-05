@@ -28,6 +28,7 @@
 # when running the test suite in Continuous Integration.
 import os
 import sys
+
 cwd = os.getcwd()
 sys.path.remove(cwd)
 sys.path.append(cwd)

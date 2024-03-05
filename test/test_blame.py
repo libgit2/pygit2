@@ -34,15 +34,30 @@ from pygit2.enums import BlameFlag
 PATH = 'hello.txt'
 
 HUNKS = [
-    (Oid(hex='acecd5ea2924a4b900e7e149496e1f4b57976e51'), 1,
-     Signature('J. David Ibañez', 'jdavid@itaapy.com',
-               1297179898, 60, encoding='utf-8'), True),
-    (Oid(hex='6aaa262e655dd54252e5813c8e5acd7780ed097d'), 2,
-     Signature('J. David Ibañez', 'jdavid@itaapy.com',
-               1297696877, 60, encoding='utf-8'), False),
-    (Oid(hex='4ec4389a8068641da2d6578db0419484972284c8'), 3,
-     Signature('J. David Ibañez', 'jdavid@itaapy.com',
-               1297696908, 60, encoding='utf-8'), False)
+    (
+        Oid(hex='acecd5ea2924a4b900e7e149496e1f4b57976e51'),
+        1,
+        Signature(
+            'J. David Ibañez', 'jdavid@itaapy.com', 1297179898, 60, encoding='utf-8'
+        ),
+        True,
+    ),
+    (
+        Oid(hex='6aaa262e655dd54252e5813c8e5acd7780ed097d'),
+        2,
+        Signature(
+            'J. David Ibañez', 'jdavid@itaapy.com', 1297696877, 60, encoding='utf-8'
+        ),
+        False,
+    ),
+    (
+        Oid(hex='4ec4389a8068641da2d6578db0419484972284c8'),
+        3,
+        Signature(
+            'J. David Ibañez', 'jdavid@itaapy.com', 1297696908, 60, encoding='utf-8'
+        ),
+        False,
+    ),
 ]
 
 
@@ -87,7 +102,9 @@ def test_blame_with_invalid_index(testrepo):
         blame[100000]
         blame[-1]
 
-    with pytest.raises(IndexError): test()
+    with pytest.raises(IndexError):
+        test()
+
 
 def test_blame_for_line(testrepo):
     blame = testrepo.blame(PATH)
@@ -105,6 +122,7 @@ def test_blame_for_line(testrepo):
         assert HUNKS[i][2] == hunk.orig_committer
         assert HUNKS[i][3] == hunk.boundary
 
+
 def test_blame_with_invalid_line(testrepo):
     blame = testrepo.blame(PATH)
 
@@ -113,13 +131,15 @@ def test_blame_with_invalid_line(testrepo):
         blame.for_line(100000)
         blame.for_line(-1)
 
-    with pytest.raises(IndexError): test()
+    with pytest.raises(IndexError):
+        test()
+
 
 def test_blame_newest(testrepo):
     revs = [
-        ( 'master^2',   3 ),
-        ( 'master^2^',  2 ),
-        ( 'master^2^^', 1 ),
+        ('master^2', 3),
+        ('master^2^', 2),
+        ('master^2^^', 1),
     ]
 
     for rev, num_commits in revs:

@@ -32,6 +32,7 @@ from pygit2 import Index, Oid, Tree, Object
 TREE_HASH = 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 COMMIT_HASH = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
+
 def check_writing(repo, treeish, timestamp=None):
     archive = tarfile.open('foo.tar', mode='w')
     repo.write_archive(treeish, archive)
@@ -53,10 +54,12 @@ def check_writing(repo, treeish, timestamp=None):
     assert path.is_file()
     path.unlink()
 
+
 def test_write_tree(testrepo):
     check_writing(testrepo, TREE_HASH)
     check_writing(testrepo, Oid(hex=TREE_HASH))
     check_writing(testrepo, testrepo[TREE_HASH])
+
 
 def test_write_commit(testrepo):
     commit_timestamp = testrepo[COMMIT_HASH].committer.time

@@ -173,7 +173,7 @@ def test_head_id(repo):
 
 @utils.requires_network
 def test_add_submodule(repo):
-    sm_repo_path = "test/testrepo"
+    sm_repo_path = 'test/testrepo'
     sm = repo.submodules.add(SUBM_URL, sm_repo_path)
 
     status = repo.submodules.status(sm_repo_path)
@@ -206,25 +206,36 @@ def test_submodule_status(repo):
 
     # Move HEAD in the submodule (WD_MODIFIED)
     sm_repo.checkout('refs/tags/annotated_tag')
-    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_MODIFIED
+    assert (
+        repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_MODIFIED
+    )
 
     # Move HEAD back to master
     sm_repo.checkout('refs/heads/master')
 
     # Touch some file in the submodule's workdir (WD_WD_MODIFIED)
     with open(Path(repo.workdir, SUBM_PATH, 'master.txt'), 'wt') as f:
-        f.write("modifying master.txt")
-    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED
+        f.write('modifying master.txt')
+    assert (
+        repo.submodules.status(SUBM_PATH)
+        == common_status | SS.IN_WD | SS.WD_WD_MODIFIED
+    )
 
     # Add an untracked file in the submodule's workdir (WD_UNTRACKED)
     with open(Path(repo.workdir, SUBM_PATH, 'some_untracked_file.txt'), 'wt') as f:
-        f.write("hi")
-    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_WD_MODIFIED | SS.WD_UNTRACKED
+        f.write('hi')
+    assert (
+        repo.submodules.status(SUBM_PATH)
+        == common_status | SS.IN_WD | SS.WD_WD_MODIFIED | SS.WD_UNTRACKED
+    )
 
     # Add modified files to the submodule's index (WD_INDEX_MODIFIED)
     sm_repo.index.add_all()
     sm_repo.index.write()
-    assert repo.submodules.status(SUBM_PATH) == common_status | SS.IN_WD | SS.WD_INDEX_MODIFIED
+    assert (
+        repo.submodules.status(SUBM_PATH)
+        == common_status | SS.IN_WD | SS.WD_INDEX_MODIFIED
+    )
 
 
 def test_submodule_cache(repo):
@@ -244,17 +255,17 @@ def test_submodule_cache(repo):
 
 def test_submodule_reload(repo):
     sm = repo.submodules[SUBM_NAME]
-    assert sm.url == "https://github.com/libgit2/TestGitRepository"
+    assert sm.url == 'https://github.com/libgit2/TestGitRepository'
 
     # Doctor the config file outside of libgit2
-    with open(Path(repo.workdir, ".gitmodules"), "wt") as f:
+    with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:
         f.write('[submodule "TestGitRepository"]\n')
         f.write('\tpath = TestGitRepository\n')
         f.write('\turl = https://github.com/libgit2/pygit2\n')
 
     # Submodule object is oblivious to the change
-    assert sm.url == "https://github.com/libgit2/TestGitRepository"
+    assert sm.url == 'https://github.com/libgit2/TestGitRepository'
 
     # Tell it to refresh its cache
     sm.reload()
-    assert sm.url == "https://github.com/libgit2/pygit2"
+    assert sm.url == 'https://github.com/libgit2/pygit2'

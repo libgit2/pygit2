@@ -34,9 +34,9 @@ class _BlobIO(io.RawIOBase):
             target=self._blob._write_to_queue,
             args=(self._queue, self._ready, self._writer_closed),
             kwargs={
-                "as_path": as_path,
-                "flags": int(flags),
-                "commit_id": commit_id,
+                'as_path': as_path,
+                'flags': int(flags),
+                'commit_id': commit_id,
             },
             daemon=True,
         )
