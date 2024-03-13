@@ -132,9 +132,6 @@ src = __dir__ / 'src'
 pygit2_exts = [str(path) for path in sorted(src.iterdir()) if path.suffix == '.c']
 ext_modules = [Extension('pygit2._pygit2', pygit2_exts, **libgit2_kw)]
 
-with open('requirements.txt') as f:
-    install_requires = f.read().splitlines()
-
 setup(
     name='pygit2',
     description='Python bindings for libgit2.',
@@ -155,7 +152,7 @@ setup(
     # Requirements
     python_requires='>=3.9',
     setup_requires=['cffi>=1.16.0'],
-    install_requires=install_requires,
+    install_requires=['cffi>=1.16.0'],
     # URLs
     url='https://github.com/libgit2/pygit2',
     project_urls={
