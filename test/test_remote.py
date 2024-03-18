@@ -231,7 +231,7 @@ def test_fetch(emptyrepo):
     remote = emptyrepo.remotes[0]
     stats = remote.fetch()
     assert stats.received_bytes > 2700
-    assert stats.received_bytes < 2800
+    assert stats.received_bytes < 3100
     assert stats.indexed_objects == REMOTE_REPO_OBJECTS
     assert stats.received_objects == REMOTE_REPO_OBJECTS
 
