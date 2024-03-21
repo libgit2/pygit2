@@ -6,17 +6,19 @@ typedef enum {
 	GIT_CONFIG_LEVEL_XDG = 3,
 	GIT_CONFIG_LEVEL_GLOBAL = 4,
 	GIT_CONFIG_LEVEL_LOCAL = 5,
-	GIT_CONFIG_LEVEL_APP = 6,
-	GIT_CONFIG_HIGHEST_LEVEL = -1,
+	GIT_CONFIG_LEVEL_WORKTREE = 6,
+	GIT_CONFIG_LEVEL_APP = 7,
+	GIT_CONFIG_HIGHEST_LEVEL = -1
 } git_config_level_t;
 
 typedef struct git_config_entry {
 	const char *name;
 	const char *value;
+	const char *backend_type;
+	const char *origin_path;
 	unsigned int include_depth;
 	git_config_level_t level;
 	void (*free)(struct git_config_entry *entry);
-	void *payload;
 } git_config_entry;
 
 void git_config_entry_free(git_config_entry *);

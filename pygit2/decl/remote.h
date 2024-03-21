@@ -57,6 +57,7 @@ typedef struct {
 	git_proxy_options proxy_opts;
 	git_remote_redirect_t follow_redirects;
 	git_strarray custom_headers;
+	git_strarray remote_push_options;
 } git_push_options;
 
 int git_push_options_init(
@@ -80,7 +81,8 @@ typedef struct {
 	int version;
 	git_remote_callbacks callbacks;
 	git_fetch_prune_t prune;
-	int update_fetchhead;
+	unsigned int update_fetchhead : 1,
+	             report_unchanged : 1;
 	git_remote_autotag_option_t download_tags;
 	git_proxy_options proxy_opts;
 	int depth;

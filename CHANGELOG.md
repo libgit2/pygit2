@@ -1,3 +1,20 @@
+# 1.15.0 (UNRELEASED)
+
+- Upgrade to libgit2 v1.8.0
+
+- Remove setuptools runtime dependency
+  [#1281](https://github.com/libgit2/pygit2/pull/1281)
+
+- Coding style with ruff
+  [#1280](https://github.com/libgit2/pygit2/pull/1280)
+
+- Add wheels for ppc64le
+  [#1279](https://github.com/libgit2/pygit2/pull/1279)
+
+- Fix tests on EPEL8 builds for s390x
+  [#1283](https://github.com/libgit2/pygit2/pull/1283)
+
+
 # 1.14.1 (2024-02-10)
 
 - Update wheels to libgit2 v1.7.2
