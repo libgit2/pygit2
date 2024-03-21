@@ -28,6 +28,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <git2.h>
+#include <git2/sys/errors.h>
 #include <git2/sys/filter.h>
 #include "diff.h"
 #include "error.h"

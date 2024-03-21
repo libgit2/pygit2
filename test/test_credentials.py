@@ -26,6 +26,7 @@
 """Tests for credentials"""
 
 from pathlib import Path
+import platform
 
 import pytest
 
@@ -169,11 +170,11 @@ def test_fetch_certificate_check(testrepo):
         remote.fetch(callbacks=MyCallbacks())
 
     # libgit2 uses different error message for Linux and Windows
-    # TODO test one or the other depending on the platform
-    assert str(exc.value) in (
-        'user rejected certificate for github.com',  # httpclient
-        'user cancelled certificate check',
-    )  # winhttp
+    value = str(exc.value)
+    if platform.system() == 'Windows':
+        assert value == 'user cancelled certificate check'  # winhttp
+    else:
+        assert value == 'user rejected certificate for github.com'  # httpclient
 
     # TODO Add GitError.error_code
     # assert exc.value.error_code == pygit2.GIT_ERROR_HTTP
