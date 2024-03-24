@@ -3,4 +3,4 @@ typedef struct git_strarray {
 	size_t count;
 } git_strarray;
 
-void git_strarray_free(git_strarray *array);
+void git_strarray_dispose(git_strarray *array);

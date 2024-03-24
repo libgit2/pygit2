@@ -26,7 +26,7 @@
 import os
 
 # Import from pygit2
-from .ffi import ffi
+from .ffi import ffi, C
 
 
 def maybe_string(ptr):
@@ -73,11 +73,16 @@ def ptr_to_bytes(ptr_cdata):
 
 
 def strarray_to_strings(arr):
-    l = [None] * arr.count
-    for i in range(arr.count):
-        l[i] = ffi.string(arr.strings[i]).decode('utf-8')
+    """
+    Return a list of strings from a git_strarray pointer.
 
-    return l
+    Free the strings contained in the git_strarry, this means it won't be usable after
+    calling this function.
+    """
+    try:
+        return [ffi.string(arr.strings[i]).decode('utf-8') for i in range(arr.count)]
+    finally:
+        C.git_strarray_dispose(arr)
 
 
 class StrArray:

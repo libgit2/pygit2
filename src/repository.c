@@ -1069,8 +1069,7 @@ Repository_create_commit(Repository *self, PyObject *args)
 
     err = git_commit_create(&oid, self->repo, update_ref,
                             py_author->signature, py_committer->signature,
-                            encoding, message, tree, parent_count,
-                            (const git_commit**)parents);
+                            encoding, message, tree, parent_count, parents);
     if (err < 0) {
         Error_set(err);
         goto out;
@@ -1152,8 +1151,7 @@ Repository_create_commit_string(Repository *self, PyObject *args)
 
     err = git_commit_create_buffer(&buf, self->repo,
                                    py_author->signature, py_committer->signature,
-                                   encoding, message, tree, parent_count,
-                                   (const git_commit**)parents);
+                                   encoding, message, tree, parent_count, parents);
     if (err < 0) {
         Error_set(err);
         goto out;
@@ -1313,7 +1311,7 @@ Repository_raw_listall_references(Repository *self, PyObject *args)
     }
 
 out:
-    git_strarray_free(&c_result);
+    git_strarray_dispose(&c_result);
     return py_result;
 }
 
@@ -2182,7 +2180,7 @@ Repository_list_worktrees(Repository *self, PyObject *args)
     }
 
 out:
-    git_strarray_free(&c_result);
+    git_strarray_dispose(&c_result);
     return py_result;
 }
 
