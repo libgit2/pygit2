@@ -54,7 +54,6 @@ from .enums import (
     MergeFlag,
     RepositoryOpenFlag,
     RepositoryState,
-    _deprecated_flag_dict_to_intflag,
 )
 from .errors import check_error
 from .ffi import ffi, C
@@ -133,26 +132,6 @@ class BaseRepository(_Repository):
 
     def __iter__(self):
         return iter(self.odb)
-
-    #
-    # Submodules
-    #
-
-    def add_submodule(self, *args, **kwargs):
-        warnings.warn('Use repo.submodules.add(...)', DeprecationWarning)
-        return self.submodules.add(*args, **kwargs)
-
-    def lookup_submodule(self, path: str) -> Submodule:
-        warnings.warn('Use repo.submodules[...]', DeprecationWarning)
-        return self.submodules[path]
-
-    def init_submodules(self, *args, **kwargs):
-        warnings.warn('Use repo.submodules.init(...)', DeprecationWarning)
-        return self.submodules.init(*args, **kwargs)
-
-    def update_submodules(self, *args, **kwargs):
-        warnings.warn('Use repo.submodules.update(...)', DeprecationWarning)
-        return self.submodules.update(*args, **kwargs)
 
     #
     # Mapping interface
@@ -624,29 +603,13 @@ class BaseRepository(_Repository):
     def _merge_options(favor: MergeFavor, flags: MergeFlag, file_flags: MergeFileFlag):
         """Return a 'git_merge_opts *'"""
 
-        # Parse deprecated favor value (str)
-        if isinstance(favor, str):
-            try:
-                favor = MergeFavor[favor.upper()]
-            except KeyError:
-                raise ValueError(f'unknown favor: {favor}')
-            warnings.warn('Use pygit2.enums.MergeFavor', DeprecationWarning)
+        # Check arguments type
         if not isinstance(favor, (int, MergeFavor)):
             raise TypeError('favor argument must be MergeFavor')
 
-        # Parse deprecated flags value (dict[str, bool])
-        if isinstance(flags, dict):
-            flags = _deprecated_flag_dict_to_intflag(flags, MergeFlag.FIND_RENAMES)
-            warnings.warn('Use pygit2.enums.MergeFlag', DeprecationWarning)
         if not isinstance(flags, (int, MergeFlag)):
             raise TypeError('flags argument must be MergeFlag')
 
-        # Parse deprecated file_flags value (dict[str, bool])
-        if isinstance(file_flags, dict):
-            file_flags = _deprecated_flag_dict_to_intflag(
-                file_flags, MergeFileFlag.DEFAULT
-            )
-            warnings.warn('Use pygit2.enums.MergeFileFlag', DeprecationWarning)
         if not isinstance(file_flags, (int, MergeFileFlag)):
             raise TypeError('file_flags argument must be MergeFileFlag')
 

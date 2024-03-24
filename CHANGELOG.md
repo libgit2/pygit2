@@ -14,6 +14,20 @@
 - Fix tests on EPEL8 builds for s390x
   [#1283](https://github.com/libgit2/pygit2/pull/1283)
 
+Breaking changes:
+
+- Remove deprecated `Repository.add_submodule(...)`, use `Repository.submodules.add(...)`
+- Remove deprecated `Repository.lookup_submodule(...)`, use `Repository.submodules[...]`
+- Remove deprecated `Repository.init_submodules(...)`, use `Repository.submodules.init(...)`
+- Remove deprecated `Repository.update_submodule(...)`, use `Repository.submodules.update(...)`
+
+- Remove deprecated support for passing dicts to repository\'s `merge(...)`,
+  `merge_commits(...)` and `merge_trees(...)`. Instead pass `MergeFlag` for `flags`, and
+  `MergeFileFlag` for `file_flags`.
+
+- Remove deprecated support for passing a string for the favor argument to repository\'s
+  `merge(...)`, `merge_commits(...)` and `merge_trees(...)`. Instead pass `MergeFavor`.
+
 
 # 1.14.1 (2024-02-10)
 
@@ -66,15 +80,18 @@ Breaking changes:
 
 Deprecations:
 
--   Deprecate `Repository.add_submodule(...)`, use `Repository.submodules.add(...)`
--   Deprecate `Repository.lookup_submodule(...)`, use `Repository.submodules[...]`
--   Deprecate `Repository.init_submodules(...)`, use `Repository.submodules.init(...)`
--   Deprecate `Repository.update_submodule(...)`, use `Repository.submodules.update(...)`
--   Deprecate `GIT_*` constants, use `pygit2.enums`
--   Passign dicts to repository\'s `merge(...)`, `merge_commits(...)`
-    and `merge_trees(...)` is deprecated. Instead pass `MergeFavor` for
-    the `favor` argument, `MergeFlag` for `flags`, and `MergeFileFlag`
-    for `file_flags`.
+- Deprecate `Repository.add_submodule(...)`, use `Repository.submodules.add(...)`
+- Deprecate `Repository.lookup_submodule(...)`, use `Repository.submodules[...]`
+- Deprecate `Repository.init_submodules(...)`, use `Repository.submodules.init(...)`
+- Deprecate `Repository.update_submodule(...)`, use `Repository.submodules.update(...)`
+- Deprecate `GIT_*` constants, use `pygit2.enums`
+
+- Passing dicts to repository\'s `merge(...)`, `merge_commits(...)` and `merge_trees(...)`
+  is deprecated. Instead pass `MergeFlag` for the `flags` argument, and `MergeFileFlag` for
+  `file_flags`.
+
+- Passing a string for the favor argument to repository\'s `merge(...)`, `merge_commits(...)`
+  and `merge_trees(...)` is deprecated. Instead pass `MergeFavor`.
 
 # 1.13.3 (2023-11-21)
 

@@ -6,10 +6,15 @@ A submodule is a foreign repository that is embedded within a
 dedicated subdirectory of the repositories tree.
 
 .. autoclass:: pygit2.Repository
-   :members: add_submodule, init_submodules, listall_submodules,
-             lookup_submodule, update_submodules
+   :members: listall_submodules
 
-   :noindex:
+   .. py:attribute:: Repository.submodules
+
+      The collection of submodules, an instance of
+      :py:class:`pygit2.submodules.SubmoduleCollection`
+
+.. autoclass:: pygit2.submodules.SubmoduleCollection
+   :members:
 
 
 The Submodule type

@@ -1309,32 +1309,3 @@ class SubmoduleStatus(IntFlag):
 
     WD_UNTRACKED = _pygit2.GIT_SUBMODULE_STATUS_WD_UNTRACKED
     'submodule workdir contains untracked files (flag available if ignore is NONE)'
-
-
-def _deprecated_flag_dict_to_intflag(flag_dict, default_value):
-    """
-    Convert a dict eg {"find_renames": True, "skip_reuc": True} to an IntFlag.
-    """
-
-    enum_type = type(default_value)
-    assert issubclass(enum_type, IntFlag)
-
-    value = default_value
-
-    for k, v in flag_dict.items():
-        k = k.upper()
-
-        try:
-            f = enum_type[k]
-        except KeyError:
-            try:
-                f = enum_type['_DEPRECATED_' + k]
-            except KeyError:
-                raise ValueError(f'unknown {enum_type.__name__}: {k}')
-
-        if v:
-            value |= f
-        else:
-            value &= ~f
-
-    return value
