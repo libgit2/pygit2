@@ -100,7 +100,6 @@ def test_refs_set_sha_prefix(testrepo):
 def test_refs_get_type(testrepo):
     reference = testrepo.references.get('refs/heads/master')
     assert reference.type == ReferenceType.DIRECT
-    assert reference.type == ReferenceType.OID  # deprecated
 
 
 def test_refs_get_target(testrepo):
@@ -193,7 +192,6 @@ def test_refs_resolve(testrepo):
     assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
     assert reference.type == ReferenceType.DIRECT
-    assert reference.type == ReferenceType.OID  # deprecated
     assert reference.target.hex == LAST_COMMIT
 
 
@@ -540,7 +538,6 @@ def test_reference_set_sha_prefix(testrepo):
 def test_reference_get_type(testrepo):
     reference = testrepo.lookup_reference('refs/heads/master')
     assert reference.type == ReferenceType.DIRECT
-    assert reference.type == ReferenceType.OID  # deprecated
 
 
 def test_get_target(testrepo):
@@ -633,7 +630,6 @@ def test_reference_resolve(testrepo):
     assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
     assert reference.type == ReferenceType.DIRECT
-    assert reference.type == ReferenceType.OID  # deprecated
     assert reference.target.hex == LAST_COMMIT
 
 

@@ -857,12 +857,6 @@ class MergeFileFlag(IntFlag):
     keep the conflict markers in the file and accept that as the merge result.
     """
 
-    # Backward compatibility with old pygit2 flag names
-    _DEPRECATED_STANDARD_STYLE = STYLE_MERGE
-    _DEPRECATED_DIFF3_STYLE = STYLE_DIFF3
-    _DEPRECATED_PATIENCE = DIFF_PATIENCE
-    _DEPRECATED_MINIMAL = DIFF_MINIMAL
-
 
 class MergeFlag(IntFlag):
     """
@@ -1023,12 +1017,6 @@ class ReferenceType(IntFlag):
 
     ALL = C.GIT_REFERENCE_ALL
     'Bitwise OR of (DIRECT | SYMBOLIC)'
-
-    # Deprecated entries
-    OID = DIRECT
-    'Deprecated, use DIRECT instead'
-    LISTALL = ALL
-    'Deprecated, use ALL instead'
 
 
 class RepositoryInitFlag(IntFlag):

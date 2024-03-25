@@ -21,6 +21,12 @@ Breaking changes:
 - Remove deprecated `Repository.init_submodules(...)`, use `Repository.submodules.init(...)`
 - Remove deprecated `Repository.update_submodule(...)`, use `Repository.submodules.update(...)`
 
+- Remove deprecated constants `GIT_OBJ_XXX`, use `ObjectType`
+- Remove deprecated constants `GIT_REVPARSE_XXX`, use `RevSpecFlag`
+- Remove deprecated constants `GIT_REF_XXX`, use `ReferenceType`
+- Remove deprecated `ReferenceType.OID`, use instead `ReferenceType.DIRECT`
+- Remove deprecated `ReferenceType.LISTALL`, use instead `ReferenceType.ALL`
+
 - Remove deprecated support for passing dicts to repository\'s `merge(...)`,
   `merge_commits(...)` and `merge_trees(...)`. Instead pass `MergeFlag` for `flags`, and
   `MergeFileFlag` for `file_flags`.
