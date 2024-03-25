@@ -155,29 +155,23 @@ def test_multivar():
     config.add_file(CONFIG_FILENAME, 6)
     assert 'this.that' in config
 
-    l = list(config.get_multivar('this.that'))
-    assert ['foobar', 'foobeer'] == l
-    l = list(config.get_multivar('this.that', 'bar'))
-    assert ['foobar'] == l
-
-    l = list(config.get_multivar('this.that', 'foo.*'))
-    assert ['foobar', 'foobeer'] == l
+    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that'))
+    assert ['foobar'] == list(config.get_multivar('this.that', 'bar'))
+    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that', 'foo.*'))
 
     config.set_multivar('this.that', '^.*beer', 'fool')
-    l = list(config.get_multivar('this.that', 'fool'))
-    assert ['fool'] == l
+    assert ['fool'] == list(config.get_multivar('this.that', 'fool'))
 
     config.set_multivar('this.that', 'foo.*', 'foo-123456')
-    l = list(config.get_multivar('this.that', 'foo.*'))
-    assert ['foo-123456', 'foo-123456'] == l
+    assert ['foo-123456', 'foo-123456'] == list(
+        config.get_multivar('this.that', 'foo.*')
+    )
 
     config.delete_multivar('this.that', 'bar')
-    l = list(config.get_multivar('this.that', ''))
-    assert ['foo-123456', 'foo-123456'] == l
+    assert ['foo-123456', 'foo-123456'] == list(config.get_multivar('this.that', ''))
 
     config.delete_multivar('this.that', 'foo-[0-9]+')
-    l = list(config.get_multivar('this.that', ''))
-    assert [] == l
+    assert [] == list(config.get_multivar('this.that', ''))
 
 
 def test_iterator(config):

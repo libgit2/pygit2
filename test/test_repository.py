@@ -829,7 +829,7 @@ def test_worktree_custom_ref(testrepo):
     assert testrepo.list_worktrees() == []
 
     # The ref is no longer checked out
-    assert worktree_ref.is_checked_out() == False
+    assert worktree_ref.is_checked_out() is False
 
     # The branch still exists
     assert branch_name in testrepo.branches

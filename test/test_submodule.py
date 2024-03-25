@@ -60,7 +60,7 @@ def test_lookup_submodule_aspath(repo):
 
 def test_lookup_missing_submodule(repo):
     with pytest.raises(KeyError):
-        s = repo.submodules['does-not-exist']
+        repo.submodules['does-not-exist']
     assert repo.submodules.get('does-not-exist') is None
 
 

@@ -139,7 +139,7 @@ def test_refspec(testrepo):
     refspec = remote.get_refspec(0)
     assert refspec.src == REMOTE_FETCHSPEC_SRC
     assert refspec.dst == REMOTE_FETCHSPEC_DST
-    assert True == refspec.force
+    assert refspec.force is True
     assert ORIGIN_REFSPEC == refspec.string
 
     assert list == type(remote.fetch_refspecs)

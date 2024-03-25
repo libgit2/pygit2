@@ -130,8 +130,8 @@ def test_exists(proxy):
     with pytest.raises(TypeError):
         proxy.exists(123)
 
-    assert proxy.exists('1' * 40) == False
-    assert proxy.exists(BLOB_HEX) == True
+    assert not proxy.exists('1' * 40)
+    assert proxy.exists(BLOB_HEX)
 
 
 def test_exists_prefix(proxy):

@@ -84,6 +84,7 @@ def test_branches_upstream_name(repo):
 # Low level API written in C, repo.remotes call these.
 #
 
+
 def test_lookup_branch_remote(repo):
     branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
     assert str(branch.target) == ORIGIN_MASTER_COMMIT

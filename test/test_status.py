@@ -25,7 +25,6 @@
 
 import pytest
 
-import pygit2
 from pygit2.enums import FileStatus
 
 

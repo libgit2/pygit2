@@ -78,8 +78,7 @@ def test_hashing(testrepo):
     assert commit_b in d
     assert d[commit_b]
 
-    l = [commit_a]
-    assert commit_b in l
+    assert commit_b == commit_a
 
 
 def test_peel_commit(testrepo):

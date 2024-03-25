@@ -72,12 +72,6 @@ fspath = pytest.mark.skipif(
 refcount = pytest.mark.skipif(is_pypy, reason='skip refcounts checks in pypy')
 
 
-def force_rm_handle(remove_path, path, excinfo):
-    path = Path(path)
-    path.chmod(path.stat().st_mode | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
-    remove_path(path)
-
-
 def gen_blob_sha1(data):
     # http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
     m = hashlib.sha1()
@@ -86,13 +80,18 @@ def gen_blob_sha1(data):
     return m.hexdigest()
 
 
+def force_rm_handle(remove_path, path, excinfo):
+    path = Path(path)
+    path.chmod(path.stat().st_mode | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
+    remove_path(path)
+
+
 def rmtree(path):
     """In Windows a read-only file cannot be removed, and shutil.rmtree fails.
     So we implement our own version of rmtree to address this issue.
     """
     if Path(path).exists():
-        onerror = lambda func, path, e: force_rm_handle(func, path, e)
-        shutil.rmtree(path, onerror=onerror)
+        shutil.rmtree(path, onerror=force_rm_handle)
 
 
 class TemporaryRepository:
