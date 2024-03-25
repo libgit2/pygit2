@@ -123,21 +123,21 @@ def test_short_id(testrepo):
 
     def test_obj(obj, msg):
         short_id = obj.short_id
-        msg = msg + ' short_id=' + short_id
+        msg = msg + f' short_id={short_id}'
         already = seen.get(short_id)
         if already:
-            assert already == obj.id.hex
+            assert already == str(obj.id)
         else:
-            seen[short_id] = obj.id.hex
+            seen[short_id] = str(obj.id)
             lookup = testrepo[short_id]
             assert obj.id == lookup.id
 
     for commit in testrepo.walk(testrepo.head.target):
-        test_obj(commit, 'commit#' + commit.id.hex)
+        test_obj(commit, f'commit#{commit.id}')
         tree = commit.tree
-        test_obj(tree, 'tree#' + tree.id.hex)
+        test_obj(tree, f'tree#{tree.id}')
         for entry in tree:
-            test_obj(testrepo[entry.hex], 'entry=' + entry.name + '#' + entry.hex)
+            test_obj(testrepo[entry.hex], f'entry={entry.name}#{entry.hex}')
 
 
 def test_repr(testrepo):

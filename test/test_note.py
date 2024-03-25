@@ -49,32 +49,31 @@ def test_create_note(barerepo):
     annotated_id = barerepo.revparse_single('HEAD~3').hex
     author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
     note_id = barerepo.create_note(NOTE[1], author, committer, annotated_id)
-    assert NOTE[0] == note_id.hex
+    assert NOTE[0] == str(note_id)
 
     # check the note blob
     assert NOTE[1].encode() == barerepo[note_id].data
 
 
 def test_lookup_note(barerepo):
-    annotated_id = barerepo.head.target.hex
+    annotated_id = str(barerepo.head.target)
     note = barerepo.lookup_note(annotated_id)
-    assert NOTES[0][0] == note.id.hex
+    assert NOTES[0][0] == str(note.id)
     assert NOTES[0][1] == note.message
 
 
 def test_remove_note(barerepo):
     head = barerepo.head
-    note = barerepo.lookup_note(head.target.hex)
+    note = barerepo.lookup_note(str(head.target))
     author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
     note.remove(author, committer)
     with pytest.raises(KeyError):
-        barerepo.lookup_note(head.target.hex)
+        barerepo.lookup_note(str(head.target))
 
 
 def test_iterate_notes(barerepo):
     for i, note in enumerate(barerepo.notes()):
-        entry = (note.id.hex, note.message, note.annotated_id.hex)
-        assert NOTES[i] == entry
+        assert NOTES[i] == (str(note.id), note.message, str(note.annotated_id))
 
 
 def test_iterate_non_existing_ref(barerepo):

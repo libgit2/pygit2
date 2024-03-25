@@ -366,7 +366,7 @@ class IndexEntry:
     @property
     def hex(self):
         """The id of the referenced object as a hex string"""
-        return self.id.hex
+        return str(self.id)
 
     def __str__(self):
         return f'<path={self.path} id={self.hex} mode={self.mode}>'

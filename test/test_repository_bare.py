@@ -53,7 +53,7 @@ def test_is_bare(barerepo):
 
 def test_head(barerepo):
     head = barerepo.head
-    assert HEAD_SHA == head.target.hex
+    assert HEAD_SHA == str(head.target)
     assert type(head) == pygit2.Reference
     assert not barerepo.head_is_unborn
     assert not barerepo.head_is_detached
@@ -62,11 +62,11 @@ def test_head(barerepo):
 def test_set_head(barerepo):
     # Test setting a detatched HEAD.
     barerepo.set_head(pygit2.Oid(hex=PARENT_SHA))
-    assert barerepo.head.target.hex == PARENT_SHA
+    assert str(barerepo.head.target) == PARENT_SHA
     # And test setting a normal HEAD.
     barerepo.set_head('refs/heads/master')
     assert barerepo.head.name == 'refs/heads/master'
-    assert barerepo.head.target.hex == HEAD_SHA
+    assert str(barerepo.head.target) == HEAD_SHA
 
 
 def test_read(barerepo):
@@ -158,7 +158,7 @@ def test_lookup_commit_prefix(barerepo):
 def test_expand_id(barerepo):
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     expanded = barerepo.expand_id(commit_sha[:7])
-    assert commit_sha == expanded.hex
+    assert commit_sha == str(expanded)
 
 
 @utils.refcount

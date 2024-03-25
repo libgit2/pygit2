@@ -23,7 +23,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -86,7 +85,7 @@ def test_checkout_ref(testrepo):
 
     head = testrepo.head
     head = testrepo[head.target]
-    assert head.hex == ref_i18n.target.hex
+    assert head.hex == str(ref_i18n.target)
     assert 'new' in head.tree
     assert 'bye.txt' not in testrepo.status()
 
@@ -181,7 +180,7 @@ def test_checkout_branch(testrepo):
 
     head = testrepo.head
     head = testrepo[head.target]
-    assert head.hex == branch_i18n.target.hex
+    assert head.hex == str(branch_i18n.target)
     assert 'new' in head.tree
     assert 'bye.txt' not in testrepo.status()
 
@@ -236,7 +235,7 @@ def test_merge_base(testrepo):
         '5ebeeebb320790caf276b9fc8b24546d63316533',
         '4ec4389a8068641da2d6578db0419484972284c8',
     )
-    assert commit.hex == 'acecd5ea2924a4b900e7e149496e1f4b57976e51'
+    assert str(commit) == 'acecd5ea2924a4b900e7e149496e1f4b57976e51'
 
     # Create a commit without any merge base to any other
     sig = pygit2.Signature('me', 'me@example.com')
@@ -296,7 +295,7 @@ def test_reset_hard(testrepo):
     assert 'bonjour le monde\n' in lines
 
     testrepo.reset(ref, ResetMode.HARD)
-    assert testrepo.head.target.hex == ref
+    assert str(testrepo.head.target) == ref
 
     with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
@@ -313,7 +312,7 @@ def test_reset_soft(testrepo):
     assert 'bonjour le monde\n' in lines
 
     testrepo.reset(ref, ResetMode.SOFT)
-    assert testrepo.head.target.hex == ref
+    assert str(testrepo.head.target) == ref
     with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
     # Soft reset will not reset the working copy
@@ -335,7 +334,7 @@ def test_reset_mixed(testrepo):
 
     testrepo.reset(ref, ResetMode.MIXED)
 
-    assert testrepo.head.target.hex == ref
+    assert str(testrepo.head.target) == ref
 
     with (Path(testrepo.workdir) / 'hello.txt').open() as f:
         lines = f.readlines()
@@ -372,7 +371,7 @@ def test_stash(testrepo):
     repo_stashes = testrepo.listall_stashes()
     assert 1 == len(repo_stashes)
     assert repr(repo_stashes[0]) == f'<pygit2.Stash{{{stash_hash}}}>'
-    assert repo_stashes[0].commit_id.hex == stash_hash
+    assert str(repo_stashes[0].commit_id) == stash_hash
     assert repo_stashes[0].message == 'On master: ' + stash_message
 
     testrepo.stash_apply()

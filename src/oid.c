@@ -254,18 +254,8 @@ Oid_raw__get__(Oid *self)
 }
 
 
-PyDoc_STRVAR(Oid_hex__doc__, "Hex oid, a 40 chars long string (type str).\n"
-    "This attribute is deprecated, please use the built-in str()\n");
-
-PyObject *
-Oid_hex__get__(Oid *self)
-{
-    return Oid__str__(self);
-}
-
 PyGetSetDef Oid_getseters[] = {
     GETTER(Oid, raw),
-    GETTER(Oid, hex),
     {NULL},
 };
 

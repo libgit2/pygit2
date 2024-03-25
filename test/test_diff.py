@@ -278,8 +278,8 @@ def test_diff_ids(barerepo):
     commit_b = barerepo[COMMIT_SHA1_2]
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
     delta = patch.delta
-    assert delta.old_file.id.hex == '7f129fd57e31e935c6d60a0c794efe4e6927664b'
-    assert delta.new_file.id.hex == 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
+    assert str(delta.old_file.id) == '7f129fd57e31e935c6d60a0c794efe4e6927664b'
+    assert str(delta.new_file.id) == 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 
 
 def test_diff_patchid(barerepo):
@@ -287,7 +287,7 @@ def test_diff_patchid(barerepo):
     commit_b = barerepo[COMMIT_SHA1_2]
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     assert diff.patch == PATCH
-    assert diff.patchid.hex == PATCHID
+    assert str(diff.patchid) == PATCHID
 
 
 def test_hunk_content(barerepo):

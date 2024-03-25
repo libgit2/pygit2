@@ -38,7 +38,7 @@ LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 
 def test_refs_list_objects(testrepo):
-    refs = [(ref.name, ref.target.hex) for ref in testrepo.references.objects]
+    refs = [(ref.name, str(ref.target)) for ref in testrepo.references.objects]
     assert sorted(refs) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
         ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
@@ -80,21 +80,21 @@ def test_refs_getitem(testrepo):
 
 def test_refs_get_sha(testrepo):
     reference = testrepo.references['refs/heads/master']
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
 
 def test_refs_set_sha(testrepo):
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.references.get('refs/heads/master')
     reference.set_target(NEW_COMMIT)
-    assert reference.target.hex == NEW_COMMIT
+    assert str(reference.target) == NEW_COMMIT
 
 
 def test_refs_set_sha_prefix(testrepo):
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.references.get('refs/heads/master')
     reference.set_target(NEW_COMMIT[0:6])
-    assert reference.target.hex == NEW_COMMIT
+    assert str(reference.target) == NEW_COMMIT
 
 
 def test_refs_get_type(testrepo):
@@ -192,7 +192,7 @@ def test_refs_resolve(testrepo):
     assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
     assert reference.type == ReferenceType.DIRECT
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
 
 def test_refs_resolve_identity(testrepo):
@@ -207,7 +207,7 @@ def test_refs_create(testrepo):
     refs = testrepo.references
     assert 'refs/tags/version1' in refs
     reference = testrepo.references.get('refs/tags/version1')
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
     # try to create existing reference
     with pytest.raises(ValueError):
@@ -217,7 +217,7 @@ def test_refs_create(testrepo):
     reference = testrepo.references.create(
         'refs/tags/version1', LAST_COMMIT, force=True
     )
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
 
 def test_refs_create_symbolic(testrepo):
@@ -270,11 +270,11 @@ def test_refs_equality(testrepo):
 def test_refs_compress(testrepo):
     packed_refs_file = Path(testrepo.path) / 'packed-refs'
     assert not packed_refs_file.exists()
-    old_refs = [(ref.name, ref.target.hex) for ref in testrepo.references.objects]
+    old_refs = [(ref.name, str(ref.target)) for ref in testrepo.references.objects]
 
     testrepo.references.compress()
     assert packed_refs_file.exists()
-    new_refs = [(ref.name, ref.target.hex) for ref in testrepo.references.objects]
+    new_refs = [(x.name, str(x.target)) for x in testrepo.references.objects]
     assert old_refs == new_refs
 
 
@@ -285,7 +285,7 @@ def test_refs_compress(testrepo):
 
 def test_list_all_reference_objects(testrepo):
     repo = testrepo
-    refs = [(ref.name, ref.target.hex) for ref in repo.listall_reference_objects()]
+    refs = [(ref.name, str(ref.target)) for ref in repo.listall_reference_objects()]
 
     assert sorted(refs) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
@@ -338,7 +338,7 @@ def test_references_iterator_next(testrepo):
     for _ in range(4):
         curr_ref = repo.references_iterator_next(iter_all)
         if curr_ref:
-            all_refs.append((curr_ref.name, curr_ref.target.hex))
+            all_refs.append((curr_ref.name, str(curr_ref.target)))
 
     assert sorted(all_refs) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
@@ -352,7 +352,7 @@ def test_references_iterator_next(testrepo):
     for _ in range(4):
         curr_ref = repo.references_iterator_next(iter_branches, 1)
         if curr_ref:
-            all_branches.append((curr_ref.name, curr_ref.target.hex))
+            all_branches.append((curr_ref.name, str(curr_ref.target)))
 
     assert sorted(all_branches) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
@@ -364,7 +364,7 @@ def test_references_iterator_next(testrepo):
     for _ in range(4):
         curr_ref = repo.references_iterator_next(iter_tags, 2)
         if curr_ref:
-            all_tags.append((curr_ref.name, curr_ref.target.hex))
+            all_tags.append((curr_ref.name, str(curr_ref.target)))
 
     assert sorted(all_tags) == [
         ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
@@ -381,10 +381,7 @@ def test_references_iterator_next_python(testrepo):
         'refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
     )
 
-    refs = []
-    for ref in repo.references.iterator():
-        refs.append((ref.name, ref.target.hex))
-
+    refs = [(x.name, str(x.target)) for x in repo.references.iterator()]
     assert sorted(refs) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
         ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
@@ -392,19 +389,13 @@ def test_references_iterator_next_python(testrepo):
         ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
     ]
 
-    branches = []
-    for branch in repo.references.iterator(1):
-        branches.append((branch.name, branch.target.hex))
-
+    branches = [(x.name, str(x.target)) for x in repo.references.iterator(1)]
     assert sorted(branches) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
         ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
     ]
 
-    tags = []
-    for tag in repo.references.iterator(2):
-        tags.append((tag.name, tag.target.hex))
-
+    tags = [(x.name, str(x.target)) for x in repo.references.iterator(2)]
     assert sorted(tags) == [
         ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
         ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
@@ -518,21 +509,21 @@ def test_resolve_refish(testrepo):
 
 def test_reference_get_sha(testrepo):
     reference = testrepo.lookup_reference('refs/heads/master')
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
 
 def test_reference_set_sha(testrepo):
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.lookup_reference('refs/heads/master')
     reference.set_target(NEW_COMMIT)
-    assert reference.target.hex == NEW_COMMIT
+    assert str(reference.target) == NEW_COMMIT
 
 
 def test_reference_set_sha_prefix(testrepo):
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.lookup_reference('refs/heads/master')
     reference.set_target(NEW_COMMIT[0:6])
-    assert reference.target.hex == NEW_COMMIT
+    assert str(reference.target) == NEW_COMMIT
 
 
 def test_reference_get_type(testrepo):
@@ -630,7 +621,7 @@ def test_reference_resolve(testrepo):
     assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
     assert reference.type == ReferenceType.DIRECT
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
 
 def test_reference_resolve_identity(testrepo):
@@ -645,7 +636,7 @@ def test_create_reference(testrepo):
     assert 'refs/tags/version1' in testrepo.listall_references()
     assert b'refs/tags/version1' in testrepo.raw_listall_references()
     reference = testrepo.lookup_reference('refs/tags/version1')
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
     # try to create existing reference
     with pytest.raises(AlreadyExistsError) as error:
@@ -657,7 +648,7 @@ def test_create_reference(testrepo):
 
     # try to create existing reference with force
     reference = testrepo.create_reference('refs/tags/version1', LAST_COMMIT, force=True)
-    assert reference.target.hex == LAST_COMMIT
+    assert str(reference.target) == LAST_COMMIT
 
 
 def test_create_reference_with_message(testrepo):

@@ -148,7 +148,7 @@ def test_read_tree(testrepo):
     assert len(index) == 1
     # Test read-write returns the same oid
     oid = index.write_tree()
-    assert oid.hex == tree_oid
+    assert str(oid) == tree_oid
     # Test the index is only modified in memory
     index.read()
     assert len(index) == 2
@@ -156,7 +156,7 @@ def test_read_tree(testrepo):
 
 def test_write_tree(testrepo):
     oid = testrepo.index.write_tree()
-    assert oid.hex == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
+    assert str(oid) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
 def test_iter(testrepo):

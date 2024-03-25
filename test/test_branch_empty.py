@@ -23,7 +23,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pygit2
 import pytest
 from pygit2.enums import BranchType
 
@@ -40,7 +39,7 @@ def repo(emptyrepo):
 
 def test_branches_remote_get(repo):
     branch = repo.branches.remote.get('origin/master')
-    assert branch.target.hex == ORIGIN_MASTER_COMMIT
+    assert str(branch.target) == ORIGIN_MASTER_COMMIT
 
     assert repo.branches.remote.get('origin/not-exists') is None
 
@@ -57,7 +56,7 @@ def test_branches_remote_getitem(repo):
 
 def test_branches_upstream(repo):
     remote_master = repo.branches.remote['origin/master']
-    master = repo.branches.create('master', repo[remote_master.target.hex])
+    master = repo.branches.create('master', repo[remote_master.target])
 
     assert master.upstream is None
     master.upstream = remote_master
@@ -75,7 +74,7 @@ def test_branches_upstream(repo):
 
 def test_branches_upstream_name(repo):
     remote_master = repo.branches.remote['origin/master']
-    master = repo.branches.create('master', repo[remote_master.target.hex])
+    master = repo.branches.create('master', repo[remote_master.target])
 
     master.upstream = remote_master
     assert master.upstream_name == 'refs/remotes/origin/master'
@@ -85,10 +84,9 @@ def test_branches_upstream_name(repo):
 # Low level API written in C, repo.remotes call these.
 #
 
-
 def test_lookup_branch_remote(repo):
     branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
-    assert branch.target.hex == ORIGIN_MASTER_COMMIT
+    assert str(branch.target) == ORIGIN_MASTER_COMMIT
 
     assert repo.lookup_branch('origin/not-exists', BranchType.REMOTE) is None
 
@@ -108,7 +106,7 @@ def test_branch_remote_name(repo):
 
 def test_branch_upstream(repo):
     remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
-    master = repo.create_branch('master', repo[remote_master.target.hex])
+    master = repo.create_branch('master', repo[remote_master.target])
 
     assert master.upstream is None
     master.upstream = remote_master
@@ -126,7 +124,7 @@ def test_branch_upstream(repo):
 
 def test_branch_upstream_name(repo):
     remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
-    master = repo.create_branch('master', repo[remote_master.target.hex])
+    master = repo.create_branch('master', repo[remote_master.target])
 
     master.upstream = remote_master
     assert master.upstream_name == 'refs/remotes/origin/master'

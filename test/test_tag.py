@@ -65,7 +65,7 @@ def test_new_tag(barerepo):
 
     assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.hex
     assert name == tag.name
-    assert target == tag.target.hex
+    assert target == str(tag.target)
     assert tagger == tag.tagger
     assert message == tag.message
     assert name == barerepo[tag.hex].name
