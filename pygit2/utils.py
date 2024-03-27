@@ -92,7 +92,7 @@ class StrArray:
     list of strings. This has a context manager, which you should use, e.g.
 
         with StrArray(list_of_strings) as arr:
-            C.git_function_that_takes_strarray(arr)
+            C.git_function_that_takes_strarray(arr.ptr)
     """
 
     def __init__(self, l):
@@ -117,10 +117,14 @@ class StrArray:
         self.array = ffi.new('git_strarray *', [self._arr, len(strings)])
 
     def __enter__(self):
-        return self.array
+        return self
 
     def __exit__(self, type, value, traceback):
         pass
+
+    @property
+    def ptr(self):
+        return self.array
 
 
 class GenericIterator:

@@ -179,7 +179,7 @@ class Index:
     def remove_all(self, pathspecs):
         """Remove all index entries matching pathspecs."""
         with StrArray(pathspecs) as arr:
-            err = C.git_index_remove_all(self._index, arr, ffi.NULL, ffi.NULL)
+            err = C.git_index_remove_all(self._index, arr.ptr, ffi.NULL, ffi.NULL)
             check_error(err, io=True)
 
     def add_all(self, pathspecs=None):
@@ -190,7 +190,7 @@ class Index:
         """
         pathspecs = pathspecs or []
         with StrArray(pathspecs) as arr:
-            err = C.git_index_add_all(self._index, arr, 0, ffi.NULL, ffi.NULL)
+            err = C.git_index_add_all(self._index, arr.ptr, 0, ffi.NULL, ffi.NULL)
             check_error(err, io=True)
 
     def add(self, path_or_entry):

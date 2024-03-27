@@ -155,7 +155,7 @@ class Remote:
             opts.depth = depth
             self.__set_proxy(opts.proxy_opts, proxy)
             with StrArray(refspecs) as arr:
-                err = C.git_remote_fetch(self._remote, arr, opts, to_bytes(message))
+                err = C.git_remote_fetch(self._remote, arr.ptr, opts, to_bytes(message))
                 payload.check_error(err)
 
         return TransferProgress(C.git_remote_stats(self._remote))
@@ -263,7 +263,7 @@ class Remote:
             opts = payload.push_options
             self.__set_proxy(opts.proxy_opts, proxy)
             with StrArray(specs) as refspecs:
-                err = C.git_remote_push(self._remote, refspecs, opts)
+                err = C.git_remote_push(self._remote, refspecs.ptr, opts)
                 payload.check_error(err)
 
     def __set_proxy(self, proxy_opts, proxy):
