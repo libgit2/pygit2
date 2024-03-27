@@ -93,6 +93,16 @@ class StrArray:
 
         with StrArray(list_of_strings) as arr:
             C.git_function_that_takes_strarray(arr.ptr)
+
+    To make a pre-existing git_strarray point to the provided list of strings,
+    use the context manager's assign_to() method:
+
+        struct = ffi.new('git_strarray *', [ffi.NULL, 0])
+        with StrArray(list_of_strings) as arr:
+            arr.assign_to(struct)
+
+    The above construct is still subject to FFI scoping rules, i.e. the
+    contents of 'struct' only remain valid within the StrArray context.
     """
 
     def __init__(self, l):
@@ -125,6 +135,14 @@ class StrArray:
     @property
     def ptr(self):
         return self.array
+
+    def assign_to(self, git_strarray):
+        if self.array == ffi.NULL:
+            git_strarray.strings = ffi.NULL
+            git_strarray.count = 0
+        else:
+            git_strarray.strings = self._arr
+            git_strarray.count = len(self._strings)
 
 
 class GenericIterator:
