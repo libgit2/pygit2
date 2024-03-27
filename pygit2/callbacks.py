@@ -699,7 +699,7 @@ def _git_checkout_options(
     if paths:
         strarray = StrArray(paths)
         refs.append(strarray)
-        opts.paths = strarray.array[0]
+        opts.paths = strarray.ptr[0]
 
     # If we want to receive any notifications, set up notify_cb in the options
     notify_flags = payload.checkout_notify_flags()

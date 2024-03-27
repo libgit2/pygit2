@@ -29,7 +29,6 @@ from string import hexdigits
 from time import time
 import tarfile
 import typing
-import warnings
 
 # Import from pygit2
 from ._pygit2 import Repository as _Repository, init_file_backend
@@ -61,7 +60,7 @@ from .index import Index, IndexEntry
 from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
-from .submodules import Submodule, SubmoduleCollection
+from .submodules import SubmoduleCollection
 from .utils import to_bytes, StrArray
 
 
@@ -1073,7 +1072,7 @@ class BaseRepository(_Repository):
 
         if paths:
             arr = StrArray(paths)
-            opts.paths = arr.array[0]
+            opts.paths = arr.ptr[0]
 
         coid = ffi.new('git_oid *')
         err = C.git_stash_save_with_opts(coid, self._repo, opts)

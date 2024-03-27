@@ -2,6 +2,9 @@
 
 - Upgrade to libgit2 v1.8.0
 
+- New `push_options` optional argument in `Repository.push(...)`
+  [#1282](https://github.com/libgit2/pygit2/pull/1282)
+
 - Remove setuptools runtime dependency
   [#1281](https://github.com/libgit2/pygit2/pull/1281)
 

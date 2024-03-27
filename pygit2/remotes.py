@@ -33,6 +33,7 @@ from .enums import FetchPrune
 from .errors import check_error
 from .ffi import ffi, C
 from .refspec import Refspec
+from . import utils
 from .utils import maybe_string, to_bytes, strarray_to_strings, StrArray
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
@@ -299,13 +300,10 @@ class RemoteCollection:
         self._repo = repo
 
     def __len__(self):
-        names = ffi.new('git_strarray *')
-        try:
+        with utils.new_git_strarray() as names:
             err = C.git_remote_list(names, self._repo._repo)
             check_error(err)
             return names.count
-        finally:
-            C.git_strarray_dispose(names)
 
     def __iter__(self):
         cremote = ffi.new('git_remote **')
@@ -326,14 +324,11 @@ class RemoteCollection:
         return Remote(self._repo, cremote[0])
 
     def _ffi_names(self):
-        names = ffi.new('git_strarray *')
-        try:
+        with utils.new_git_strarray() as names:
             err = C.git_remote_list(names, self._repo._repo)
             check_error(err)
             for i in range(names.count):
                 yield names.strings[i]
-        finally:
-            C.git_strarray_dispose(names)
 
     def names(self):
         """An iterator over the names of the available remotes."""

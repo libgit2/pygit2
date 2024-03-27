@@ -23,6 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import contextlib
 import os
 
 # Import from pygit2
@@ -72,6 +73,13 @@ def ptr_to_bytes(ptr_cdata):
     return bytes(ffi.buffer(pp)[:])
 
 
+@contextlib.contextmanager
+def new_git_strarray():
+    strarray = ffi.new('git_strarray *')
+    yield strarray
+    C.git_strarray_dispose(strarray)
+
+
 def strarray_to_strings(arr):
     """
     Return a list of strings from a git_strarray pointer.
@@ -108,7 +116,7 @@ class StrArray:
     def __init__(self, l):
         # Allow passing in None as lg2 typically considers them the same as empty
         if l is None:
-            self.array = ffi.NULL
+            self.__array = ffi.NULL
             return
 
         if not isinstance(l, (list, tuple)):
@@ -122,9 +130,9 @@ class StrArray:
 
             strings[i] = ffi.new('char []', to_bytes(li))
 
-        self._arr = ffi.new('char *[]', strings)
-        self._strings = strings
-        self.array = ffi.new('git_strarray *', [self._arr, len(strings)])
+        self.__arr = ffi.new('char *[]', strings)
+        self.__strings = strings
+        self.__array = ffi.new('git_strarray *', [self.__arr, len(strings)])
 
     def __enter__(self):
         return self
@@ -134,15 +142,15 @@ class StrArray:
 
     @property
     def ptr(self):
-        return self.array
+        return self.__array
 
     def assign_to(self, git_strarray):
-        if self.array == ffi.NULL:
+        if self.__array == ffi.NULL:
             git_strarray.strings = ffi.NULL
             git_strarray.count = 0
         else:
-            git_strarray.strings = self._arr
-            git_strarray.count = len(self._strings)
+            git_strarray.strings = self.__arr
+            git_strarray.count = len(self.__strings)
 
 
 class GenericIterator:
