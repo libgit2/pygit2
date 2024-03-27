@@ -25,12 +25,14 @@
 
 """Tests for Remote objects."""
 
+from unittest.mock import patch
 import sys
 
 import pytest
 
 import pygit2
 from pygit2 import Oid
+from pygit2.ffi import ffi
 from . import utils
 
 
@@ -356,3 +358,25 @@ def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
 
     with pytest.raises(pygit2.GitError):
         remote.push(['refs/heads/master'])
+
+
+@patch.object(pygit2.callbacks, 'RemoteCallbacks')
+def test_push_options(mock_callbacks, origin, clone, remote):
+    remote.push(['refs/heads/master'])
+    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    assert remote_push_options.count == 0
+
+    remote.push(['refs/heads/master'], push_options=[])
+    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    assert remote_push_options.count == 0
+
+    remote.push(['refs/heads/master'], push_options=['foo'])
+    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    assert remote_push_options.count == 1
+    assert ffi.string(remote_push_options.strings[0]) == b'foo'
+
+    remote.push(['refs/heads/master'], push_options=['Option A', 'Option B'])
+    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    assert remote_push_options.count == 2
+    assert ffi.string(remote_push_options.strings[0]) == b'Option A'
+    assert ffi.string(remote_push_options.strings[1]) == b'Option B'

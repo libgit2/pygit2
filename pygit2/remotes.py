@@ -236,7 +236,7 @@ class Remote:
         check_error(err)
         return strarray_to_strings(specs)
 
-    def push(self, specs, callbacks=None, proxy=None):
+    def push(self, specs, callbacks=None, proxy=None, push_options=None):
         """
         Push the given refspec to the remote. Raises ``GitError`` on protocol
         error or unpack failure.
@@ -258,11 +258,16 @@ class Remote:
             * `None` (the default) to disable proxy usage
             * `True` to enable automatic proxy detection
             * an url to a proxy (`http://proxy.example.org:3128/`)
+
+        push_options : [str]
+            Push options to send to the server, which passes them to the
+            pre-receive as well as the post-receive hook.
         """
         with git_push_options(callbacks) as payload:
             opts = payload.push_options
             self.__set_proxy(opts.proxy_opts, proxy)
-            with StrArray(specs) as refspecs:
+            with StrArray(specs) as refspecs, StrArray(push_options) as pushopts:
+                pushopts.assign_to(opts.remote_push_options)
                 err = C.git_remote_push(self._remote, refspecs.ptr, opts)
                 payload.check_error(err)
 
