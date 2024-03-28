@@ -103,7 +103,9 @@ def test_commit_signing(gpgsigned):
     parent = '8496071c1b46c854b31185ea97743be6a8774479'
 
     # create commit string
-    commit_string = repo.create_commit_string(author, committer, message, tree, [parent])
+    commit_string = repo.create_commit_string(
+        author, committer, message, tree, [parent]
+    )
     assert commit_string == content
 
     # create/retrieve signed commit
