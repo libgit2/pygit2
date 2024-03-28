@@ -14,7 +14,7 @@ Index read::
 Iterate over all entries of the index::
 
     >>> for entry in index:
-    ...     print(entry.path, entry.hex)
+    ...     print(entry.path, entry.id)
 
 Index write::
 

@@ -25,7 +25,7 @@ Show log message
 Show SHA hash
 ======================================================================
 
-    >>> hash = commit.hex
+    >>> hash = str(commit.id)
 
 ======================================================================
 Show diff
@@ -51,7 +51,7 @@ Then you can make your message:
     >>>
     >>> dt      = datetime.fromtimestamp(float(commit.author.time), tzinfo)
     >>> timestr = dt.strftime('%c %z')
-    >>> msg     = '\n'.join([f'commit {commit.tree_id.hex}',
+    >>> msg     = '\n'.join([f'commit {commit.tree_id}',
     ...                      f'Author: {commit.author.name} <{commit.author.email}>',
     ...                      f'Date:   {timestr}',
     ...                      '',

@@ -23,6 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import warnings
 import weakref
 
 # Import from pygit2
@@ -366,14 +367,15 @@ class IndexEntry:
     @property
     def hex(self):
         """The id of the referenced object as a hex string"""
+        warnings.warn('Use str(entry.id)', DeprecationWarning)
         return str(self.id)
 
     def __str__(self):
-        return f'<path={self.path} id={self.hex} mode={self.mode}>'
+        return f'<path={self.path} id={self.id} mode={self.mode}>'
 
     def __repr__(self):
         t = type(self)
-        return f'<{t.__module__}.{t.__qualname__} path={self.path} id={self.hex} mode={self.mode}>'
+        return f'<{t.__module__}.{t.__qualname__} path={self.path} id={self.id} mode={self.mode}>'
 
     def __eq__(self, other):
         if self is other:

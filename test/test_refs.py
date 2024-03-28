@@ -410,7 +410,7 @@ def test_references_iterator_invalid_filter(testrepo):
     for _ in range(4):
         curr_ref = repo.references_iterator_next(iter_all, 5)
         if curr_ref:
-            all_refs.append((curr_ref.name, curr_ref.target.hex))
+            all_refs.append((curr_ref.name, curr_ref.target))
 
     assert all_refs == []
 
@@ -420,7 +420,7 @@ def test_references_iterator_invalid_filter_python(testrepo):
     refs = []
     with pytest.raises(ValueError):
         for ref in repo.references.iterator(5):
-            refs.append((ref.name, ref.target.hex))
+            refs.append((ref.name, ref.target))
 
 
 def test_lookup_reference(testrepo):

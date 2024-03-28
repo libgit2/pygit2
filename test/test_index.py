@@ -54,9 +54,9 @@ def test_read(testrepo):
 
     sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'
     assert 'hello.txt' in index
-    assert index['hello.txt'].hex == sha
+    assert index['hello.txt'].id == sha
     assert index['hello.txt'].path == 'hello.txt'
-    assert index[1].hex == sha
+    assert index[1].id == sha
 
 
 def test_add(testrepo):
@@ -67,7 +67,7 @@ def test_add(testrepo):
     index.add('bye.txt')
     assert 'bye.txt' in index
     assert len(index) == 3
-    assert index['bye.txt'].hex == sha
+    assert index['bye.txt'].id == sha
 
 
 def test_add_aspath(testrepo):
@@ -90,8 +90,8 @@ def test_add_all(testrepo):
     assert 'bye.txt' in index
     assert 'hello.txt' in index
 
-    assert index['bye.txt'].hex == sha_bye
-    assert index['hello.txt'].hex == sha_hello
+    assert index['bye.txt'].id == sha_bye
+    assert index['hello.txt'].id == sha_hello
 
     clear(testrepo)
 
@@ -99,8 +99,8 @@ def test_add_all(testrepo):
     assert 'bye.txt' in index
     assert 'hello.txt' in index
 
-    assert index['bye.txt'].hex == sha_bye
-    assert index['hello.txt'].hex == sha_hello
+    assert index['bye.txt'].id == sha_bye
+    assert index['hello.txt'].id == sha_hello
 
     clear(testrepo)
 
@@ -108,8 +108,8 @@ def test_add_all(testrepo):
     assert 'bye.txt' in index
     assert 'hello.txt' in index
 
-    assert index['bye.txt'].hex == sha_bye
-    assert index['hello.txt'].hex == sha_hello
+    assert index['bye.txt'].id == sha_bye
+    assert index['hello.txt'].id == sha_hello
 
 
 def test_add_all_aspath(testrepo):
@@ -163,8 +163,8 @@ def test_iter(testrepo):
     assert len(list(index)) == n
 
     # Compare SHAs, not IndexEntry object identity
-    entries = [index[x].hex for x in range(n)]
-    assert list(x.hex for x in index) == entries
+    entries = [index[x].id for x in range(n)]
+    assert list(x.id for x in index) == entries
 
 
 def test_mode(testrepo):
@@ -179,7 +179,7 @@ def test_mode(testrepo):
 
 def test_bare_index(testrepo):
     index = pygit2.Index(Path(testrepo.path) / 'index')
-    assert [x.hex for x in index] == [x.hex for x in testrepo.index]
+    assert [x.id for x in index] == [x.id for x in testrepo.index]
 
     with pytest.raises(pygit2.GitError):
         index.add('bye.txt')

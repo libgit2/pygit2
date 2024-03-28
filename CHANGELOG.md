@@ -19,6 +19,10 @@
 - Fix tests on EPEL8 builds for s390x
   [#1283](https://github.com/libgit2/pygit2/pull/1283)
 
+Deprecations:
+
+- Deprecate `IndexEntry.hex`, use `str(IndexEntry.id)`
+
 Breaking changes:
 
 - Remove deprecated `oid.hex`, use `str(oid)`

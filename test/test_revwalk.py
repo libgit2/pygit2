@@ -83,7 +83,7 @@ def test_hide_prefix(testrepo):
 def test_reset(testrepo):
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.reset()
-    assert [x.hex for x in walker] == []
+    assert list(walker) == []
 
 
 def test_push(testrepo):
