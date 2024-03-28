@@ -60,8 +60,8 @@ def test_refs_list(testrepo):
 
 def test_head(testrepo):
     head = testrepo.head
-    assert LAST_COMMIT == testrepo[head.target].hex
-    assert LAST_COMMIT == testrepo[head.raw_target].hex
+    assert LAST_COMMIT == str(testrepo[head.target].id)
+    assert LAST_COMMIT == str(testrepo[head.raw_target].id)
 
 
 def test_refs_getitem(testrepo):
@@ -484,27 +484,27 @@ def test_resolve_refish(testrepo):
 
     commit, ref = repo.resolve_refish('refs/heads/i18n')
     assert ref.name == 'refs/heads/i18n'
-    assert commit.hex == '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
+    assert str(commit.id) == '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 
     commit, ref = repo.resolve_refish('master')
     assert ref.name == 'refs/heads/master'
-    assert commit.hex == LAST_COMMIT
+    assert str(commit.id) == LAST_COMMIT
 
     commit, ref = repo.resolve_refish('origin/master')
     assert ref.name == 'refs/remotes/origin/master'
-    assert commit.hex == LAST_COMMIT
+    assert str(commit.id) == LAST_COMMIT
 
     commit, ref = repo.resolve_refish('version1')
     assert ref.name == 'refs/tags/version1'
-    assert commit.hex == LAST_COMMIT
+    assert str(commit.id) == LAST_COMMIT
 
     commit, ref = repo.resolve_refish(LAST_COMMIT)
     assert ref is None
-    assert commit.hex == LAST_COMMIT
+    assert str(commit.id) == LAST_COMMIT
 
     commit, ref = repo.resolve_refish('HEAD~1')
     assert ref is None
-    assert commit.hex == '5ebeeebb320790caf276b9fc8b24546d63316533'
+    assert str(commit.id) == '5ebeeebb320790caf276b9fc8b24546d63316533'
 
 
 def test_reference_get_sha(testrepo):

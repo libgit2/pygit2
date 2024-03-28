@@ -90,16 +90,16 @@ def test_new_commit(barerepo):
     commit = repo[sha]
 
     assert ObjectType.COMMIT == commit.type
-    assert '98286caaab3f1fde5bf52c8369b2b0423bad743b' == commit.hex
+    assert '98286caaab3f1fde5bf52c8369b2b0423bad743b' == str(commit.id)
     assert commit.message_encoding is None
     assert message == commit.message
     assert 12346 == commit.commit_time
     assert committer == commit.committer
     assert author == commit.author
-    assert tree == commit.tree.hex
+    assert tree == str(commit.tree.id)
     assert Oid(hex=tree) == commit.tree_id
     assert 1 == len(commit.parents)
-    assert COMMIT_SHA == commit.parents[0].hex
+    assert COMMIT_SHA == str(commit.parents[0].id)
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
 
@@ -124,10 +124,10 @@ def test_new_commit_encoding(barerepo):
     assert 12346 == commit.commit_time
     assert committer == commit.committer
     assert author == commit.author
-    assert tree == commit.tree.hex
+    assert tree == str(commit.tree.id)
     assert Oid(hex=tree) == commit.tree_id
     assert 1 == len(commit.parents)
-    assert COMMIT_SHA == commit.parents[0].hex
+    assert COMMIT_SHA == str(commit.parents[0].id)
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
 

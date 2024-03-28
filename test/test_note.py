@@ -46,9 +46,9 @@ NOTES = [
 
 
 def test_create_note(barerepo):
-    annotated_id = barerepo.revparse_single('HEAD~3').hex
+    annotated_id = barerepo.revparse_single('HEAD~3').id
     author = committer = Signature('Foo bar', 'foo@bar.com', 12346, 0)
-    note_id = barerepo.create_note(NOTE[1], author, committer, annotated_id)
+    note_id = barerepo.create_note(NOTE[1], author, committer, str(annotated_id))
     assert NOTE[0] == str(note_id)
 
     # check the note blob

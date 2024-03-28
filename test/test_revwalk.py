@@ -60,12 +60,12 @@ def test_log(testrepo):
 
 def test_walk(testrepo):
     walker = testrepo.walk(log[0], SortMode.TIME)
-    assert [x.hex for x in walker] == log
+    assert [str(x.id) for x in walker] == log
 
 
 def test_reverse(testrepo):
     walker = testrepo.walk(log[0], SortMode.TIME | SortMode.REVERSE)
-    assert [x.hex for x in walker] == list(reversed(log))
+    assert [str(x.id) for x in walker] == list(reversed(log))
 
 
 def test_hide(testrepo):
@@ -88,16 +88,16 @@ def test_reset(testrepo):
 
 def test_push(testrepo):
     walker = testrepo.walk(log[-1], SortMode.TIME)
-    assert [x.hex for x in walker] == log[-1:]
+    assert [str(x.id) for x in walker] == log[-1:]
     walker.reset()
     walker.push(log[0])
-    assert [x.hex for x in walker] == log
+    assert [str(x.id) for x in walker] == log
 
 
 def test_sort(testrepo):
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.sort(SortMode.TIME | SortMode.REVERSE)
-    assert [x.hex for x in walker] == list(reversed(log))
+    assert [str(x.id) for x in walker] == list(reversed(log))
 
 
 def test_simplify_first_parent(testrepo):

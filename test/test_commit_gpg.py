@@ -100,10 +100,10 @@ def test_commit_signing(gpgsigned):
         offset=-480,
     )
     tree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
-    parents = ['8496071c1b46c854b31185ea97743be6a8774479']
+    parent = '8496071c1b46c854b31185ea97743be6a8774479'
 
     # create commit string
-    commit_string = repo.create_commit_string(author, committer, message, tree, parents)
+    commit_string = repo.create_commit_string(author, committer, message, tree, [parent])
     assert commit_string == content
 
     # create/retrieve signed commit
@@ -118,17 +118,17 @@ def test_commit_signing(gpgsigned):
 
     # perform sanity checks
     assert ObjectType.COMMIT == commit.type
-    assert '6569fdf71dbd99081891154641869c537784a3ba' == commit.hex
+    assert '6569fdf71dbd99081891154641869c537784a3ba' == str(commit.id)
     assert commit.message_encoding is None
     assert message == commit.message
     assert 1358451456 == commit.commit_time
     assert committer == commit.committer
     assert author == commit.author
-    assert tree == commit.tree.hex
+    assert tree == str(commit.tree.id)
     assert Oid(hex=tree) == commit.tree_id
     assert 1 == len(commit.parents)
-    assert parents[0] == commit.parents[0].hex
-    assert Oid(hex=parents[0]) == commit.parent_ids[0]
+    assert parent == str(commit.parents[0].id)
+    assert Oid(hex=parent) == commit.parent_ids[0]
 
 
 def test_get_gpg_signature_when_unsigned(gpgsigned):

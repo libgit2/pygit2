@@ -85,7 +85,7 @@ def test_checkout_ref(testrepo):
 
     head = testrepo.head
     head = testrepo[head.target]
-    assert head.hex == str(ref_i18n.target)
+    assert head.id == ref_i18n.target
     assert 'new' in head.tree
     assert 'bye.txt' not in testrepo.status()
 
@@ -180,7 +180,7 @@ def test_checkout_branch(testrepo):
 
     head = testrepo.head
     head = testrepo[head.target]
-    assert head.hex == str(branch_i18n.target)
+    assert head.id == branch_i18n.target
     assert 'new' in head.tree
     assert 'bye.txt' not in testrepo.status()
 

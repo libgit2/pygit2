@@ -55,7 +55,7 @@ def test_rebuild_treebuilder(barerepo):
     for entry in tree:
         name = entry.name
         assert bld.get(name) is None
-        bld.insert(name, entry.hex, entry.filemode)
+        bld.insert(name, entry.id, entry.filemode)
         assert bld.get(name).id == entry.id
     result = bld.write()
 

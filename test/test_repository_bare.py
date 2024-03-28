@@ -115,24 +115,24 @@ def test_iterable(barerepo):
 def test_lookup_blob(barerepo):
     with pytest.raises(TypeError):
         barerepo[123]
-    assert barerepo[BLOB_OID].hex == BLOB_HEX
+    assert str(barerepo[BLOB_OID].id) == BLOB_HEX
     a = barerepo[BLOB_HEX]
     assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == a.hex
+    assert BLOB_HEX == str(a.id)
     assert ObjectType.BLOB == a.type
 
 
 def test_lookup_blob_prefix(barerepo):
     a = barerepo[BLOB_HEX[:5]]
     assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == a.hex
+    assert BLOB_HEX == str(a.id)
     assert ObjectType.BLOB == a.type
 
 
 def test_lookup_commit(barerepo):
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit = barerepo[commit_sha]
-    assert commit_sha == commit.hex
+    assert commit_sha == str(commit.id)
     assert ObjectType.COMMIT == commit.type
     assert commit.message == (
         'Second test data commit.\n\n' 'This commit has some additional text.\n'
@@ -144,7 +144,7 @@ def test_lookup_commit_prefix(barerepo):
     commit_sha_prefix = commit_sha[:7]
     too_short_prefix = commit_sha[:3]
     commit = barerepo[commit_sha_prefix]
-    assert commit_sha == commit.hex
+    assert commit_sha == str(commit.id)
     assert ObjectType.COMMIT == commit.type
     assert (
         'Second test data commit.\n\n'
@@ -183,7 +183,7 @@ def test_get_workdir(barerepo):
 
 def test_revparse_single(barerepo):
     parent = barerepo.revparse_single('HEAD^')
-    assert parent.hex == PARENT_SHA
+    assert str(parent.id) == PARENT_SHA
 
 
 def test_hash(barerepo):

@@ -20,6 +20,7 @@
 Breaking changes:
 
 - Remove deprecated `oid.hex`, use `str(oid)`
+- Remove deprecated `object.hex`, use `str(object.id)`
 
 - Remove deprecated `Repository.add_submodule(...)`, use `Repository.submodules.add(...)`
 - Remove deprecated `Repository.lookup_submodule(...)`, use `Repository.submodules[...]`

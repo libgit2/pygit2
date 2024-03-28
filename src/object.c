@@ -101,17 +101,6 @@ Object_oid__get__(Object *self)
     return Object_id__get__(self);
 }
 
-PyDoc_STRVAR(Object_hex__doc__,
-    "Hexadecimal representation of the object id. This is a shortcut for\n"
-    "Object.id.hex\n"
-    "This attribute is deprecated, please use 'id'\n");
-
-PyObject *
-Object_hex__get__(Object *self)
-{
-    return git_oid_to_py_str(Object__id(self));
-}
-
 
 PyDoc_STRVAR(Object_short_id__doc__,
     "An unambiguous short (abbreviated) hex Oid string for the object.");
@@ -313,7 +302,6 @@ Object_richcompare(PyObject *o1, PyObject *o2, int op)
 PyGetSetDef Object_getseters[] = {
     GETTER(Object, oid),
     GETTER(Object, id),
-    GETTER(Object, hex),
     GETTER(Object, short_id),
     GETTER(Object, type),
     GETTER(Object, type_str),

@@ -136,7 +136,7 @@ def test_short_id(testrepo):
         tree = commit.tree
         test_obj(tree, f'tree#{tree.id}')
         for entry in tree:
-            test_obj(testrepo[entry.hex], f'entry={entry.name}#{entry.hex}')
+            test_obj(testrepo[entry.id], f'entry={entry.name}#{entry.id}')
 
 
 def test_repr(testrepo):

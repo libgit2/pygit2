@@ -82,7 +82,7 @@ index a520c24..0000000
 
 def test_read_blob(testrepo):
     blob = testrepo[BLOB_SHA]
-    assert blob.hex == BLOB_SHA
+    assert str(blob.id) == BLOB_SHA
     assert str(blob.id) == BLOB_SHA
     assert isinstance(blob, pygit2.Blob)
     assert not blob.is_binary
