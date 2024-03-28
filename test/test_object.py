@@ -89,7 +89,7 @@ def test_peel_commit(testrepo):
     tree = commit.peel(ObjectType.TREE)
 
     assert type(tree) == Tree
-    assert str(tree.id) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
+    assert tree.id == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
 def test_peel_commit_type(testrepo):
@@ -98,7 +98,7 @@ def test_peel_commit_type(testrepo):
     tree = commit.peel(Tree)
 
     assert type(tree) == Tree
-    assert str(tree.id) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
+    assert tree.id == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
 def test_invalid(testrepo):
@@ -125,9 +125,9 @@ def test_short_id(testrepo):
         msg = msg + f' short_id={short_id}'
         already = seen.get(short_id)
         if already:
-            assert already == str(obj.id)
+            assert already == obj.id
         else:
-            seen[short_id] = str(obj.id)
+            seen[short_id] = obj.id
             lookup = testrepo[short_id]
             assert obj.id == lookup.id
 

@@ -52,10 +52,10 @@ def test_commit_refcount(barerepo):
 
 def test_read_commit(barerepo):
     commit = barerepo[COMMIT_SHA]
-    assert COMMIT_SHA == str(commit.id)
+    assert COMMIT_SHA == commit.id
     parents = commit.parents
     assert 1 == len(parents)
-    assert 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c' == str(parents[0].id)
+    assert 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c' == parents[0].id
     assert commit.message_encoding is None
     assert commit.message == (
         'Second test data commit.\n\n' 'This commit has some additional text.\n'
@@ -68,7 +68,7 @@ def test_read_commit(barerepo):
     assert commit.author == Signature(
         'Dave Borowitz', 'dborowitz@google.com', 1288477363, -420
     )
-    assert '967fce8df97cc71722d3c2a5930ef3e6f1d27b12' == str(commit.tree.id)
+    assert '967fce8df97cc71722d3c2a5930ef3e6f1d27b12' == commit.tree.id
 
 
 def test_new_commit(barerepo):
@@ -90,16 +90,16 @@ def test_new_commit(barerepo):
     commit = repo[sha]
 
     assert ObjectType.COMMIT == commit.type
-    assert '98286caaab3f1fde5bf52c8369b2b0423bad743b' == str(commit.id)
+    assert '98286caaab3f1fde5bf52c8369b2b0423bad743b' == commit.id
     assert commit.message_encoding is None
     assert message == commit.message
     assert 12346 == commit.commit_time
     assert committer == commit.committer
     assert author == commit.author
-    assert tree == str(commit.tree.id)
+    assert tree == commit.tree.id
     assert Oid(hex=tree) == commit.tree_id
     assert 1 == len(commit.parents)
-    assert COMMIT_SHA == str(commit.parents[0].id)
+    assert COMMIT_SHA == commit.parents[0].id
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
 
@@ -124,10 +124,10 @@ def test_new_commit_encoding(barerepo):
     assert 12346 == commit.commit_time
     assert committer == commit.committer
     assert author == commit.author
-    assert tree == str(commit.tree.id)
+    assert tree == commit.tree.id
     assert Oid(hex=tree) == commit.tree_id
     assert 1 == len(commit.parents)
-    assert COMMIT_SHA == str(commit.parents[0].id)
+    assert COMMIT_SHA == commit.parents[0].id
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
 
@@ -268,13 +268,13 @@ def test_amend_commit_argument_types(barerepo):
     amended_oid = repo.amend_commit(alt_commit1, None, message='Hello')
     amended_commit = repo[amended_oid]
     assert ObjectType.COMMIT == amended_commit.type
-    assert str(amended_oid) != COMMIT_SHA_TO_AMEND
+    assert amended_oid != COMMIT_SHA_TO_AMEND
 
     # Pass a str for the commit
     amended_oid = repo.amend_commit(alt_commit2, None, message='Hello', tree=alt_tree)
     amended_commit = repo[amended_oid]
     assert ObjectType.COMMIT == amended_commit.type
-    assert str(amended_oid) != COMMIT_SHA_TO_AMEND
+    assert amended_oid != COMMIT_SHA_TO_AMEND
     assert repo[COMMIT_SHA_TO_AMEND].tree != amended_commit.tree
     assert alt_tree.id == amended_commit.tree_id
 
@@ -283,5 +283,5 @@ def test_amend_commit_argument_types(barerepo):
     amended_oid = repo.amend_commit(alt_commit2, alt_refname, message='Hello')
     amended_commit = repo[amended_oid]
     assert ObjectType.COMMIT == amended_commit.type
-    assert str(amended_oid) != COMMIT_SHA_TO_AMEND
+    assert amended_oid != COMMIT_SHA_TO_AMEND
     assert repo.head.target == amended_oid

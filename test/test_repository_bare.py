@@ -53,7 +53,7 @@ def test_is_bare(barerepo):
 
 def test_head(barerepo):
     head = barerepo.head
-    assert HEAD_SHA == str(head.target)
+    assert HEAD_SHA == head.target
     assert type(head) == pygit2.Reference
     assert not barerepo.head_is_unborn
     assert not barerepo.head_is_detached
@@ -62,11 +62,11 @@ def test_head(barerepo):
 def test_set_head(barerepo):
     # Test setting a detatched HEAD.
     barerepo.set_head(pygit2.Oid(hex=PARENT_SHA))
-    assert str(barerepo.head.target) == PARENT_SHA
+    assert barerepo.head.target == PARENT_SHA
     # And test setting a normal HEAD.
     barerepo.set_head('refs/heads/master')
     assert barerepo.head.name == 'refs/heads/master'
-    assert str(barerepo.head.target) == HEAD_SHA
+    assert barerepo.head.target == HEAD_SHA
 
 
 def test_read(barerepo):
@@ -115,24 +115,24 @@ def test_iterable(barerepo):
 def test_lookup_blob(barerepo):
     with pytest.raises(TypeError):
         barerepo[123]
-    assert str(barerepo[BLOB_OID].id) == BLOB_HEX
+    assert barerepo[BLOB_OID].id == BLOB_HEX
     a = barerepo[BLOB_HEX]
     assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == str(a.id)
+    assert BLOB_HEX == a.id
     assert ObjectType.BLOB == a.type
 
 
 def test_lookup_blob_prefix(barerepo):
     a = barerepo[BLOB_HEX[:5]]
     assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == str(a.id)
+    assert BLOB_HEX == a.id
     assert ObjectType.BLOB == a.type
 
 
 def test_lookup_commit(barerepo):
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit = barerepo[commit_sha]
-    assert commit_sha == str(commit.id)
+    assert commit_sha == commit.id
     assert ObjectType.COMMIT == commit.type
     assert commit.message == (
         'Second test data commit.\n\n' 'This commit has some additional text.\n'
@@ -144,7 +144,7 @@ def test_lookup_commit_prefix(barerepo):
     commit_sha_prefix = commit_sha[:7]
     too_short_prefix = commit_sha[:3]
     commit = barerepo[commit_sha_prefix]
-    assert commit_sha == str(commit.id)
+    assert commit_sha == commit.id
     assert ObjectType.COMMIT == commit.type
     assert (
         'Second test data commit.\n\n'
@@ -157,7 +157,7 @@ def test_lookup_commit_prefix(barerepo):
 def test_expand_id(barerepo):
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     expanded = barerepo.expand_id(commit_sha[:7])
-    assert commit_sha == str(expanded)
+    assert commit_sha == expanded
 
 
 @utils.refcount
@@ -183,7 +183,7 @@ def test_get_workdir(barerepo):
 
 def test_revparse_single(barerepo):
     parent = barerepo.revparse_single('HEAD^')
-    assert str(parent.id) == PARENT_SHA
+    assert parent.id == PARENT_SHA
 
 
 def test_hash(barerepo):

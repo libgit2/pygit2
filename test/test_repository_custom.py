@@ -49,7 +49,7 @@ def repo(testrepopacked):
 
 
 def test_references(repo):
-    refs = [(ref.name, str(ref.target)) for ref in repo.references.objects]
+    refs = [(ref.name, ref.target) for ref in repo.references.objects]
     assert sorted(refs) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
         ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),

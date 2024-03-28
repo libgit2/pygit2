@@ -39,8 +39,7 @@ def repo(emptyrepo):
 
 def test_branches_remote_get(repo):
     branch = repo.branches.remote.get('origin/master')
-    assert str(branch.target) == ORIGIN_MASTER_COMMIT
-
+    assert branch.target == ORIGIN_MASTER_COMMIT
     assert repo.branches.remote.get('origin/not-exists') is None
 
 
@@ -87,8 +86,7 @@ def test_branches_upstream_name(repo):
 
 def test_lookup_branch_remote(repo):
     branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
-    assert str(branch.target) == ORIGIN_MASTER_COMMIT
-
+    assert branch.target == ORIGIN_MASTER_COMMIT
     assert repo.lookup_branch('origin/not-exists', BranchType.REMOTE) is None
 
 

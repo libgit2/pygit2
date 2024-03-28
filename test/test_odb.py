@@ -45,7 +45,7 @@ BLOB_OID = Oid(raw=BLOB_RAW)
 def test_emptyodb(barerepo):
     odb = Odb()
 
-    assert len([str(o) for o in odb]) == 0
+    assert len(list(odb)) == 0
     assert BLOB_HEX not in odb
     path = Path(barerepo.path) / 'objects'
     odb.add_disk_alternate(path)
@@ -59,7 +59,7 @@ def odb(barerepo):
 
 
 def test_iterable(odb):
-    assert BLOB_HEX in [str(o) for o in odb]
+    assert BLOB_HEX in odb
 
 
 def test_contains(odb):

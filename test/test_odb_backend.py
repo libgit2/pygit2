@@ -106,7 +106,7 @@ def proxy(barerepo):
 
 
 def test_iterable(proxy):
-    assert BLOB_HEX in [str(o) for o in proxy]
+    assert BLOB_HEX in [o for o in proxy]
 
 
 def test_read(proxy):
@@ -136,8 +136,7 @@ def test_exists(proxy):
 
 def test_exists_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
-    a3 = proxy.exists_prefix(a_hex_prefix)
-    assert BLOB_HEX == str(a3)
+    assert BLOB_HEX == proxy.exists_prefix(a_hex_prefix)
 
 
 #

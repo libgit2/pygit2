@@ -63,9 +63,9 @@ def test_new_tag(barerepo):
     sha = barerepo.create_tag(name, target_prefix, ObjectType.BLOB, tagger, message)
     tag = barerepo[sha]
 
-    assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == str(tag.id)
+    assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.id
     assert name == tag.name
-    assert target == str(tag.target)
+    assert target == tag.target
     assert tagger == tag.tagger
     assert message == tag.message
     assert name == barerepo[tag.id].name

@@ -39,13 +39,13 @@ RAW = unhexlify(HEX.encode('ascii'))
 def test_raw():
     oid = Oid(raw=RAW)
     assert oid.raw == RAW
-    assert str(oid) == HEX
+    assert oid == HEX
 
 
 def test_hex():
     oid = Oid(hex=HEX)
     assert oid.raw == RAW
-    assert str(oid) == HEX
+    assert oid == HEX
 
 
 def test_hex_bytes():

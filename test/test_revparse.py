@@ -34,23 +34,19 @@ PARENT_SHA = '5ebeeebb320790caf276b9fc8b24546d63316533'  # HEAD^
 
 
 def test_revparse_single(testrepo):
-    o = testrepo.revparse_single('HEAD')
-    assert str(o.id) == HEAD_SHA
-
-    o = testrepo.revparse_single('HEAD^')
-    assert str(o.id) == PARENT_SHA
-
+    assert testrepo.revparse_single('HEAD').id == HEAD_SHA
+    assert testrepo.revparse_single('HEAD^').id == PARENT_SHA
     o = testrepo.revparse_single('@{-1}')
-    assert str(o.id) == '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
+    assert o.id == '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 
 
 def test_revparse_ext(testrepo):
     o, r = testrepo.revparse_ext('master')
-    assert str(o.id) == HEAD_SHA
+    assert o.id == HEAD_SHA
     assert r == testrepo.references['refs/heads/master']
 
     o, r = testrepo.revparse_ext('HEAD^')
-    assert str(o.id) == PARENT_SHA
+    assert o.id == PARENT_SHA
     assert r is None
 
     o, r = testrepo.revparse_ext('i18n')
@@ -60,14 +56,14 @@ def test_revparse_ext(testrepo):
 
 def test_revparse_1(testrepo):
     s = testrepo.revparse('master')
-    assert str(s.from_object.id) == HEAD_SHA
+    assert s.from_object.id == HEAD_SHA
     assert s.to_object is None
     assert s.flags == RevSpecFlag.SINGLE
 
 
 def test_revparse_range_1(testrepo):
     s = testrepo.revparse('HEAD^1..acecd5e')
-    assert str(s.from_object.id) == PARENT_SHA
+    assert s.from_object.id == PARENT_SHA
     assert str(s.to_object.id).startswith('acecd5e')
     assert s.flags == RevSpecFlag.RANGE
 

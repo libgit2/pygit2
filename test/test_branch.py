@@ -40,10 +40,10 @@ SHARED_COMMIT = '4ec4389a8068641da2d6578db0419484972284c8'
 
 def test_branches_getitem(testrepo):
     branch = testrepo.branches['master']
-    assert str(branch.target) == LAST_COMMIT
+    assert branch.target == LAST_COMMIT
 
     branch = testrepo.branches.local['i18n']
-    assert str(branch.target) == I18N_LAST_COMMIT
+    assert branch.target == I18N_LAST_COMMIT
     assert testrepo.branches.get('not-exists') is None
     with pytest.raises(KeyError):
         testrepo.branches['not-exists']
@@ -59,7 +59,7 @@ def test_branches_create(testrepo):
     reference = testrepo.branches.create('version1', commit)
     assert 'version1' in testrepo.branches
     reference = testrepo.branches['version1']
-    assert str(reference.target) == LAST_COMMIT
+    assert reference.target == LAST_COMMIT
 
     # try to create existing reference
     with pytest.raises(ValueError):
@@ -67,7 +67,7 @@ def test_branches_create(testrepo):
 
     # try to create existing reference with force
     reference = testrepo.branches.create('version1', commit, True)
-    assert str(reference.target) == LAST_COMMIT
+    assert reference.target == LAST_COMMIT
 
 
 def test_branches_delete(testrepo):
@@ -92,10 +92,10 @@ def test_branches_is_not_head(testrepo):
 
 def test_branches_rename(testrepo):
     new_branch = testrepo.branches['i18n'].rename('new-branch')
-    assert str(new_branch.target) == I18N_LAST_COMMIT
+    assert new_branch.target == I18N_LAST_COMMIT
 
     new_branch_2 = testrepo.branches.get('new-branch')
-    assert str(new_branch_2.target) == I18N_LAST_COMMIT
+    assert new_branch_2.target == I18N_LAST_COMMIT
 
 
 def test_branches_rename_error(testrepo):
@@ -107,7 +107,7 @@ def test_branches_rename_error(testrepo):
 def test_branches_rename_force(testrepo):
     original_branch = testrepo.branches.get('master')
     new_branch = original_branch.rename('i18n', True)
-    assert str(new_branch.target) == LAST_COMMIT
+    assert new_branch.target == LAST_COMMIT
 
 
 def test_branches_rename_invalid(testrepo):
@@ -153,15 +153,11 @@ def test_branches_with_commit(testrepo):
 
 
 def test_lookup_branch_local(testrepo):
-    branch = testrepo.lookup_branch('master')
-    assert str(branch.target) == LAST_COMMIT
-    branch = testrepo.lookup_branch(b'master')
-    assert str(branch.target) == LAST_COMMIT
+    assert testrepo.lookup_branch('master').target == LAST_COMMIT
+    assert testrepo.lookup_branch(b'master').target == LAST_COMMIT
 
-    branch = testrepo.lookup_branch('i18n', BranchType.LOCAL)
-    assert str(branch.target) == I18N_LAST_COMMIT
-    branch = testrepo.lookup_branch(b'i18n', BranchType.LOCAL)
-    assert str(branch.target) == I18N_LAST_COMMIT
+    assert testrepo.lookup_branch('i18n', BranchType.LOCAL).target == I18N_LAST_COMMIT
+    assert testrepo.lookup_branch(b'i18n', BranchType.LOCAL).target == I18N_LAST_COMMIT
 
     assert testrepo.lookup_branch('not-exists') is None
     assert testrepo.lookup_branch(b'not-exists') is None
@@ -179,21 +175,18 @@ def test_listall_branches(testrepo):
 
 def test_create_branch(testrepo):
     commit = testrepo[LAST_COMMIT]
-    reference = testrepo.create_branch('version1', commit)
+    testrepo.create_branch('version1', commit)
     refs = testrepo.listall_branches()
     assert 'version1' in refs
-    reference = testrepo.lookup_branch('version1')
-    assert str(reference.target) == LAST_COMMIT
-    reference = testrepo.lookup_branch(b'version1')
-    assert str(reference.target) == LAST_COMMIT
+    assert testrepo.lookup_branch('version1').target == LAST_COMMIT
+    assert testrepo.lookup_branch(b'version1').target == LAST_COMMIT
 
     # try to create existing reference
     with pytest.raises(ValueError):
         testrepo.create_branch('version1', commit)
 
     # try to create existing reference with force
-    reference = testrepo.create_branch('version1', commit, True)
-    assert str(reference.target) == LAST_COMMIT
+    assert testrepo.create_branch('version1', commit, True).target == LAST_COMMIT
 
 
 def test_delete(testrepo):
@@ -231,12 +224,9 @@ def test_branch_is_checked_out_returns_false_if_branch_is_not_checked_out(testre
 
 
 def test_branch_rename_succeeds(testrepo):
-    original_branch = testrepo.lookup_branch('i18n')
-    new_branch = original_branch.rename('new-branch')
-    assert str(new_branch.target) == I18N_LAST_COMMIT
-
-    new_branch_2 = testrepo.lookup_branch('new-branch')
-    assert str(new_branch_2.target) == I18N_LAST_COMMIT
+    branch = testrepo.lookup_branch('i18n')
+    assert branch.rename('new-branch').target == I18N_LAST_COMMIT
+    assert testrepo.lookup_branch('new-branch').target == I18N_LAST_COMMIT
 
 
 def test_branch_rename_fails_if_destination_already_exists(testrepo):
@@ -246,9 +236,8 @@ def test_branch_rename_fails_if_destination_already_exists(testrepo):
 
 
 def test_branch_rename_not_fails_if_force_is_true(testrepo):
-    original_branch = testrepo.lookup_branch('master')
-    new_branch = original_branch.rename('i18n', True)
-    assert str(new_branch.target) == LAST_COMMIT
+    branch = testrepo.lookup_branch('master')
+    assert branch.rename('i18n', True).target == LAST_COMMIT
 
 
 def test_branch_rename_fails_with_invalid_names(testrepo):

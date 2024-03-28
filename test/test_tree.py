@@ -37,7 +37,7 @@ SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'
 
 
 def assertTreeEntryEqual(entry, sha, name, filemode):
-    assert str(entry.id) == sha
+    assert entry.id == sha
     assert entry.name == name
     assert entry.filemode == filemode
     assert entry.raw_name == name.encode('utf-8')

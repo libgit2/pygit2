@@ -82,8 +82,8 @@ index a520c24..0000000
 
 def test_read_blob(testrepo):
     blob = testrepo[BLOB_SHA]
-    assert str(blob.id) == BLOB_SHA
-    assert str(blob.id) == BLOB_SHA
+    assert blob.id == BLOB_SHA
+    assert blob.id == BLOB_SHA
     assert isinstance(blob, pygit2.Blob)
     assert not blob.is_binary
     assert ObjectType.BLOB == blob.type
@@ -100,7 +100,7 @@ def test_create_blob(testrepo):
     assert ObjectType.BLOB == blob.type
 
     assert blob_oid == blob.id
-    assert utils.gen_blob_sha1(BLOB_NEW_CONTENT) == str(blob_oid)
+    assert utils.gen_blob_sha1(BLOB_NEW_CONTENT) == blob_oid
 
     assert BLOB_NEW_CONTENT == blob.data
     assert len(BLOB_NEW_CONTENT) == blob.size
@@ -124,7 +124,7 @@ def test_create_blob_fromworkdir(testrepo):
     assert ObjectType.BLOB == blob.type
 
     assert blob_oid == blob.id
-    assert utils.gen_blob_sha1(BLOB_FILE_CONTENT) == str(blob_oid)
+    assert utils.gen_blob_sha1(BLOB_FILE_CONTENT) == blob_oid
 
     assert BLOB_FILE_CONTENT == blob.data
     assert len(BLOB_FILE_CONTENT) == blob.size
@@ -163,7 +163,7 @@ def test_create_blob_fromiobase(testrepo):
     assert ObjectType.BLOB == blob.type
 
     assert blob_oid == blob.id
-    assert BLOB_SHA == str(blob_oid)
+    assert BLOB_SHA == blob_oid
 
 
 def test_diff_blob(testrepo):

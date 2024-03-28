@@ -198,19 +198,29 @@ Oid_hash(PyObject *oid)
 
 
 PyObject *
-Oid_richcompare(PyObject *o1, PyObject *o2, int op)
+Oid_richcompare(PyObject *self, PyObject *other, int op)
 {
-    PyObject *res;
+    git_oid *oid = &((Oid*)self)->oid;
     int cmp;
 
-    /* Comparing to something else than an Oid is not supported. */
-    if (!PyObject_TypeCheck(o2, &OidType)) {
+    // Can compare an oid against another oid or a unicode string
+    if (PyObject_TypeCheck(other, &OidType)) {
+        cmp = git_oid_cmp(oid, &((Oid*)other)->oid);
+    }
+    else if (PyObject_TypeCheck(other, &PyUnicode_Type)) {
+        const char * str = PyUnicode_AsUTF8(other);
+        if (str == NULL) {
+            return NULL;
+        }
+        cmp = git_oid_strcmp(oid, str);
+    }
+    else {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
     }
 
-    /* Ok go. */
-    cmp = git_oid_cmp(&((Oid*)o1)->oid, &((Oid*)o2)->oid);
+    // Return boolean
+    PyObject *res;
     switch (op) {
         case Py_LT:
             res = (cmp <= 0) ? Py_True: Py_False;

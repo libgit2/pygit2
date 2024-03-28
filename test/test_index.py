@@ -147,16 +147,14 @@ def test_read_tree(testrepo):
     index.read_tree(tree_oid)
     assert len(index) == 1
     # Test read-write returns the same oid
-    oid = index.write_tree()
-    assert str(oid) == tree_oid
+    assert index.write_tree() == tree_oid
     # Test the index is only modified in memory
     index.read()
     assert len(index) == 2
 
 
 def test_write_tree(testrepo):
-    oid = testrepo.index.write_tree()
-    assert str(oid) == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
+    assert testrepo.index.write_tree() == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
 def test_iter(testrepo):
@@ -244,8 +242,7 @@ def test_create_entry(testrepo):
     hello_entry = index['hello.txt']
     entry = pygit2.IndexEntry('README.md', hello_entry.id, hello_entry.mode)
     index.add(entry)
-    tree_id = index.write_tree()
-    assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == str(tree_id)
+    assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == index.write_tree()
 
 
 def test_create_entry_aspath(testrepo):

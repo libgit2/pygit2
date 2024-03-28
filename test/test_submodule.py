@@ -88,7 +88,7 @@ def test_submodule_open(repo):
     repo.submodules.update()
     r = s.open()
     assert r is not None
-    assert str(r.head.target) == SUBM_HEAD_SHA
+    assert r.head.target == SUBM_HEAD_SHA
 
 
 def test_name(repo):
@@ -167,8 +167,7 @@ def test_oneshot_update_instance(repo):
 
 @utils.requires_network
 def test_head_id(repo):
-    s = repo.submodules[SUBM_PATH]
-    assert str(s.head_id) == SUBM_HEAD_SHA
+    assert repo.submodules[SUBM_PATH].head_id == SUBM_HEAD_SHA
 
 
 @utils.requires_network
