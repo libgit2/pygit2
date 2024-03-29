@@ -1,5 +1,7 @@
 # 1.15.0 (UNRELEASED)
 
+- Many deprecated features have been removed, see below
+
 - Upgrade to libgit2 v1.8.0
 
 - New `push_options` optional argument in `Repository.push(...)`
@@ -27,6 +29,7 @@ Breaking changes:
 
 - Remove deprecated `oid.hex`, use `str(oid)`
 - Remove deprecated `object.hex`, use `str(object.id)`
+- Remove deprecated `object.oid`, use `object.id`
 
 - Remove deprecated `Repository.add_submodule(...)`, use `Repository.submodules.add(...)`
 - Remove deprecated `Repository.lookup_submodule(...)`, use `Repository.submodules[...]`

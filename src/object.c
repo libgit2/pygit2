@@ -91,16 +91,6 @@ Object_id__get__(Object *self)
     return git_oid_to_python(Object__id(self));
 }
 
-PyDoc_STRVAR(Object_oid__doc__,
-    "The object id, an instance of the Oid type.\n"
-    "This attribute is deprecated, please use 'id'\n");
-
-PyObject *
-Object_oid__get__(Object *self)
-{
-    return Object_id__get__(self);
-}
-
 
 PyDoc_STRVAR(Object_short_id__doc__,
     "An unambiguous short (abbreviated) hex Oid string for the object.");
@@ -300,7 +290,6 @@ Object_richcompare(PyObject *o1, PyObject *o2, int op)
 }
 
 PyGetSetDef Object_getseters[] = {
-    GETTER(Object, oid),
     GETTER(Object, id),
     GETTER(Object, short_id),
     GETTER(Object, type),
