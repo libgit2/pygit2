@@ -466,7 +466,7 @@ Repository_path__get__(Repository *self, void *closure)
     if (c_path == NULL)
         Py_RETURN_NONE;
 
-    return to_path(c_path);
+    return PyUnicode_DecodeFSDefault(c_path);
 }
 
 
@@ -483,7 +483,7 @@ Repository_workdir__get__(Repository *self, void *closure)
     if (c_path == NULL)
         Py_RETURN_NONE;
 
-    return to_path(c_path);
+    return PyUnicode_DecodeFSDefault(c_path);
 }
 
 int
@@ -1274,7 +1274,7 @@ Repository_create_branch(Repository *self, PyObject *args)
 
 static PyObject *
 to_path_f(const char * x) {
-    return to_path(x);
+    return PyUnicode_DecodeFSDefault(x);
 }
 
 PyDoc_STRVAR(Repository_raw_listall_references__doc__,
@@ -2171,7 +2171,7 @@ Repository_list_worktrees(Repository *self, PyObject *args)
 
     /* Fill it */
     for (index=0; index < c_result.count; index++) {
-        py_string = to_path(c_result.strings[index]);
+        py_string = PyUnicode_DecodeFSDefault(c_result.strings[index]);
         if (py_string == NULL) {
             Py_CLEAR(py_result);
             goto out;

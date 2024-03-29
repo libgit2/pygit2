@@ -126,7 +126,7 @@ PyDoc_STRVAR(Object_type_str__doc__,
 PyObject *
 Object_type_str__get__(Object *self)
 {
-    return to_path(git_object_type2string(Object__type(self)));
+    return PyUnicode_DecodeFSDefault(git_object_type2string(Object__type(self)));
 }
 
 PyDoc_STRVAR(Object__pointer__doc__, "Get the object's pointer. For internal use only.");
@@ -146,7 +146,7 @@ Object_name__get__(Object *self)
     if (self->entry == NULL)
         Py_RETURN_NONE;
 
-    return to_path(git_tree_entry_name(self->entry));
+    return PyUnicode_DecodeFSDefault(git_tree_entry_name(self->entry));
 }
 
 PyDoc_STRVAR(Object_raw_name__doc__, "Name (bytes).");

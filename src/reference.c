@@ -297,7 +297,7 @@ Reference_target__get__(Reference *self)
     if (ret != NULL)
         return ret;
     if (c_name != NULL)
-        return to_path(c_name);
+        return PyUnicode_DecodeFSDefault(c_name);
     return NULL;
 }
 
@@ -392,7 +392,7 @@ PyObject *
 Reference_name__get__(Reference *self)
 {
     CHECK_REFERENCE(self);
-    return to_path(git_reference_name(self->reference));
+    return PyUnicode_DecodeFSDefault(git_reference_name(self->reference));
 }
 
 PyDoc_STRVAR(Reference_raw_name__doc__, "The full name of the reference (Bytes).");
@@ -411,7 +411,7 @@ PyObject *
 Reference_shorthand__get__(Reference *self)
 {
     CHECK_REFERENCE(self);
-    return to_path(git_reference_shorthand(self->reference));
+    return PyUnicode_DecodeFSDefault(git_reference_shorthand(self->reference));
 }
 
 PyDoc_STRVAR(Reference_raw_shorthand__doc__,
