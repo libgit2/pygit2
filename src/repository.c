@@ -879,17 +879,17 @@ PyDoc_STRVAR(Repository_create_blob_fromworkdir__doc__,
     "is raised.");
 
 PyObject *
-Repository_create_blob_fromworkdir(Repository *self, PyObject *py_path)
+Repository_create_blob_fromworkdir(Repository *self, PyObject *value)
 {
     PyObject *tvalue;
-    const char *path = pgit_borrow_encoding(py_path, Py_FileSystemDefaultEncoding,
-                                            Py_FileSystemDefaultEncodeErrors, &tvalue);
+    char *path = pgit_borrow_fsdefault(value, &tvalue);
     if (path == NULL)
         return NULL;
 
     git_oid oid;
     int err = git_blob_create_fromworkdir(&oid, self->repo, path);
     Py_DECREF(tvalue);
+
     if (err < 0)
         return Error_set(err);
 
@@ -903,21 +903,17 @@ PyDoc_STRVAR(Repository_create_blob_fromdisk__doc__,
     "Create a new blob from a file anywhere (no working directory check).");
 
 PyObject *
-Repository_create_blob_fromdisk(Repository *self, PyObject *args)
+Repository_create_blob_fromdisk(Repository *self, PyObject *value)
 {
-    git_oid oid;
-    PyBytesObject *py_path = NULL;
-    const char* path = NULL;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "O&", PyUnicode_FSConverter, &py_path))
+    PyObject *tvalue;
+    char *path = pgit_borrow_fsdefault(value, &tvalue);
+    if (path == NULL)
         return NULL;
 
-    if (py_path != NULL)
-      path = PyBytes_AS_STRING(py_path);
+    git_oid oid;
+    int err = git_blob_create_fromdisk(&oid, self->repo, path);
+    Py_DECREF(tvalue);
 
-    err = git_blob_create_fromdisk(&oid, self->repo, path);
-    Py_XDECREF(py_path);
     if (err < 0)
         return Error_set(err);
 
@@ -1532,7 +1528,8 @@ PyObject *
 Repository_lookup_reference(Repository *self, PyObject *py_name)
 {
     /* 1- Get the C name */
-    char *c_name = pgit_encode_fsdefault(py_name);
+    PyObject *tvalue;
+    char *c_name = pgit_borrow_fsdefault(py_name, &tvalue);
     if (c_name == NULL)
         return NULL;
 
@@ -1541,10 +1538,10 @@ Repository_lookup_reference(Repository *self, PyObject *py_name)
     int err = git_reference_lookup(&c_reference, self->repo, c_name);
     if (err) {
         PyObject *err_obj = Error_set_str(err, c_name);
-        free(c_name);
+        Py_DECREF(tvalue);
         return err_obj;
     }
-    free(c_name);
+    Py_DECREF(tvalue);
 
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference, self);
@@ -1559,7 +1556,8 @@ PyObject *
 Repository_lookup_reference_dwim(Repository *self, PyObject *py_name)
 {
     /* 1- Get the C name */
-    char *c_name = pgit_encode_fsdefault(py_name);
+    PyObject *tvalue;
+    char *c_name = pgit_borrow_fsdefault(py_name, &tvalue);
     if (c_name == NULL)
         return NULL;
 
@@ -1568,10 +1566,10 @@ Repository_lookup_reference_dwim(Repository *self, PyObject *py_name)
     int err = git_reference_dwim(&c_reference, self->repo, c_name);
     if (err) {
         PyObject *err_obj = Error_set_str(err, c_name);
-        free(c_name);
+        Py_DECREF(tvalue);
         return err_obj;
     }
-    free(c_name);
+    Py_DECREF(tvalue);
 
     /* 3- Make an instance of Reference and return it */
     return wrap_reference(c_reference, self);
@@ -1802,7 +1800,8 @@ PyDoc_STRVAR(Repository_status_file__doc__,
 PyObject *
 Repository_status_file(Repository *self, PyObject *value)
 {
-    char *path = pgit_encode_fsdefault(value);
+    PyObject *tvalue;
+    char *path = pgit_borrow_fsdefault(value, &tvalue);
     if (!path)
         return NULL;
 
@@ -1810,10 +1809,10 @@ Repository_status_file(Repository *self, PyObject *value)
     int err = git_status_file(&status, self->repo, path);
     if (err) {
         PyObject *err_obj = Error_set_str(err, path);
-        free(path);
+        Py_DECREF(tvalue);
         return err_obj;
     }
-    free(path);
+    Py_DECREF(tvalue);
 
     return pygit2_enum(FileStatusEnum, (int) status);
 }
@@ -2405,7 +2404,7 @@ Repository_listall_mergeheads(Repository *self, PyObject *args)
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_O),
-    METHOD(Repository, create_blob_fromdisk, METH_VARARGS),
+    METHOD(Repository, create_blob_fromdisk, METH_O),
     METHOD(Repository, create_blob_fromiobase, METH_O),
     METHOD(Repository, create_commit, METH_VARARGS),
     METHOD(Repository, create_commit_string, METH_VARARGS),

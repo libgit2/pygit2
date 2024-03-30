@@ -65,12 +65,14 @@ Odb_init(Odb *self, PyObject *args, PyObject *kwds)
 
     int err;
     if (py_path) {
-        char *path = pgit_encode_fsdefault(py_path);
+        PyObject *tvalue;
+        char *path = pgit_borrow_fsdefault(py_path, &tvalue);
         if (path == NULL)
             return -1;
         err = git_odb_open(&self->odb, path);
-        free(path);
-    } else {
+        Py_DECREF(tvalue);
+    }
+    else {
         err = git_odb_new(&self->odb);
     }
 
@@ -139,12 +141,13 @@ PyDoc_STRVAR(Odb_add_disk_alternate__doc__,
 PyObject *
 Odb_add_disk_alternate(Odb *self, PyObject *py_path)
 {
-    char *path = pgit_encode_fsdefault(py_path);
+    PyObject *tvalue;
+    char *path = pgit_borrow_fsdefault(py_path, &tvalue);
     if (path == NULL)
         return NULL;
 
     int err = git_odb_add_disk_alternate(self->odb, path);
-    free(path);
+    Py_DECREF(tvalue);
     if (err)
         return Error_set(err);
 

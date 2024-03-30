@@ -90,7 +90,7 @@ to_unicode_n(const char *value, size_t len, const char *encoding,
 const char* pgit_borrow(PyObject *value);
 const char* pgit_borrow_encoding(PyObject *value, const char *encoding, const char *errors, PyObject **tvalue);
 char* pgit_encode(PyObject *value, const char *encoding);
-char* pgit_encode_fsdefault(PyObject *value);
+char* pgit_borrow_fsdefault(PyObject *value, PyObject **tvalue);
 
 
 //PyObject * get_pylist_from_git_strarray(git_strarray *strarray);

@@ -267,15 +267,17 @@ option(PyObject *self, PyObject *args)
                 return NULL;
 
             /* py_file and py_dir are only valid if they are strings */
+            PyObject *tvalue_file = NULL;
             if (PyUnicode_Check(py_file) || PyBytes_Check(py_file))
-                file_path = pgit_encode_fsdefault(py_file);
+                file_path = pgit_borrow_fsdefault(py_file, &tvalue_file);
 
+            PyObject *tvalue_dir = NULL;
             if (PyUnicode_Check(py_dir) || PyBytes_Check(py_dir))
-                dir_path = pgit_encode_fsdefault(py_dir);
+                dir_path = pgit_borrow_fsdefault(py_dir, &tvalue_dir);
 
             err = git_libgit2_opts(GIT_OPT_SET_SSL_CERT_LOCATIONS, file_path, dir_path);
-            free(file_path);
-            free(dir_path);
+            Py_XDECREF(tvalue_file);
+            Py_XDECREF(tvalue_dir);
 
             if (err)
                 return Error_set(err);

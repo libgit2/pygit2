@@ -218,14 +218,15 @@ Reference_rename(Reference *self, PyObject *py_name)
     CHECK_REFERENCE(self);
 
     // Get the C name
-    char *c_name = pgit_encode_fsdefault(py_name);
+    PyObject *tvalue;
+    char *c_name = pgit_borrow_fsdefault(py_name, &tvalue);
     if (c_name == NULL)
         return NULL;
 
     // Rename
     git_reference *new_reference;
     int err = git_reference_rename(&new_reference, self->reference, c_name, 0, NULL);
-    free(c_name);
+    Py_DECREF(tvalue);
     if (err)
         return Error_set(err);
 
@@ -366,12 +367,13 @@ Reference_set_target(Reference *self, PyObject *args, PyObject *kwds)
     }
 
     /* Case 2: Symbolic */
-    char *c_name = pgit_encode_fsdefault(py_target);
+    PyObject *tvalue;
+    char *c_name = pgit_borrow_fsdefault(py_target, &tvalue);
     if (c_name == NULL)
         return NULL;
 
     err = git_reference_symbolic_set_target(&new_ref, self->reference, c_name, message);
-    free(c_name);
+    Py_DECREF(tvalue);
     if (err < 0)
         goto error;
 

@@ -595,12 +595,13 @@ OdbBackendPack_init(OdbBackendPack *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTuple(args, "O", &py_path))
         return -1;
 
-    char *path = pgit_encode_fsdefault(py_path);
+    PyObject *tvalue;
+    char *path = pgit_borrow_fsdefault(py_path, &tvalue);
     if (path == NULL)
         return -1;
 
     int err = git_odb_backend_pack(&self->super.odb_backend, path);
-    free(path);
+    Py_DECREF(tvalue);
     if (err) {
         Error_set(err);
         return -1;
@@ -688,13 +689,14 @@ OdbBackendLoose_init(OdbBackendLoose *self, PyObject *args, PyObject *kwds)
                           &do_fsync, &dir_mode, &file_mode))
         return -1;
 
-    char *path = pgit_encode_fsdefault(py_path);
+    PyObject *tvalue;
+    char *path = pgit_borrow_fsdefault(py_path, &tvalue);
     if (path == NULL)
         return -1;
 
     int err = git_odb_backend_loose(&self->super.odb_backend, path, compression_level,
                                     do_fsync, dir_mode, file_mode);
-    free(path);
+    Py_DECREF(tvalue);
     if (err) {
         Error_set(err);
         return -1;

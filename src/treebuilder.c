@@ -106,12 +106,13 @@ PyDoc_STRVAR(TreeBuilder_get__doc__,
 PyObject *
 TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
 {
-    char *filename = pgit_encode_fsdefault(py_filename);
+    PyObject *tvalue;
+    char *filename = pgit_borrow_fsdefault(py_filename, &tvalue);
     if (filename == NULL)
         return NULL;
 
     const git_tree_entry *entry_src = git_treebuilder_get(self->bld, filename);
-    free(filename);
+    Py_DECREF(tvalue);
     if (entry_src == NULL)
         Py_RETURN_NONE;
 
@@ -133,12 +134,13 @@ PyDoc_STRVAR(TreeBuilder_remove__doc__,
 PyObject *
 TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
 {
-    char *filename = pgit_encode_fsdefault(py_filename);
+    PyObject *tvalue;
+    char *filename = pgit_borrow_fsdefault(py_filename, &tvalue);
     if (filename == NULL)
         return NULL;
 
     int err = git_treebuilder_remove(self->bld, filename);
-    free(filename);
+    Py_DECREF(tvalue);
     if (err)
         return Error_set(err);
 

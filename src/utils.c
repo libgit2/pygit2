@@ -87,9 +87,20 @@ pgit_encode(PyObject *value, const char *encoding)
 }
 
 char*
-pgit_encode_fsdefault(PyObject *value)
+pgit_borrow_fsdefault(PyObject *value, PyObject **tvalue)
 {
-    return pgit_encode(value, Py_FileSystemDefaultEncoding);
+    PyObject *str = PyOS_FSPath(value);
+    if (str == NULL) {
+        return NULL;
+    }
+
+    PyObject *bytes = PyUnicode_EncodeFSDefault(str);
+    if (bytes == NULL) {
+        return NULL;
+    }
+
+    *tvalue = bytes;
+    return PyBytes_AS_STRING(bytes);
 }
 
 /**
