@@ -63,29 +63,6 @@ to_unicode_safe(const char *value, const char *encoding)
     return py_str;
 }
 
-/**
- * Return a *newly allocated* C string holding the string contained in the
- * 'value' argument.
- */
-char *
-pgit_encode(PyObject *value, const char *encoding)
-{
-    PyObject *tmp = NULL;
-
-    const char *borrowed = pgit_borrow_encoding(value, encoding, NULL, &tmp);
-    if (!borrowed)
-        return NULL;
-
-    char *c_str = strdup(borrowed);
-    Py_DECREF(tmp);
-
-    if (!c_str) {
-        // FIXME Set exception
-    }
-
-    return c_str;
-}
-
 char*
 pgit_borrow_fsdefault(PyObject *value, PyObject **tvalue)
 {
@@ -173,80 +150,6 @@ pgit_borrow(PyObject *value)
     return NULL;
 }
 
-
-/**
- * Converts the (struct) git_strarray to a Python list
- */
-/*
-PyObject *
-get_pylist_from_git_strarray(git_strarray *strarray)
-{
-    size_t index;
-    PyObject *new_list;
-
-    new_list = PyList_New(strarray->count);
-    if (new_list == NULL)
-        return NULL;
-
-    for (index = 0; index < strarray->count; index++)
-        PyList_SET_ITEM(new_list, index,
-                        to_unicode(strarray->strings[index], NULL, NULL));
-
-    return new_list;
-}
-*/
-
-/**
- * Converts the Python list to struct git_strarray
- * returns -1 if conversion failed
- */
-/*
-int
-get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist)
-{
-    Py_ssize_t index, n;
-    PyObject *item;
-    void *ptr;
-    char *str;
-
-    if (!PyList_Check(pylist)) {
-        PyErr_SetString(PyExc_TypeError, "Value must be a list");
-        return -1;
-    }
-
-    n = PyList_Size(pylist);
-
-    // allocate new git_strarray
-    ptr = calloc(n, sizeof(char *));
-    if (!ptr) {
-        PyErr_SetNone(PyExc_MemoryError);
-        return -1;
-    }
-
-    array->strings = ptr;
-    array->count = n;
-
-    for (index = 0; index < n; index++) {
-        item = PyList_GetItem(pylist, index);
-        str = pgit_encode(item, NULL);
-        if (!str)
-            goto on_error;
-
-        array->strings[index] = str;
-    }
-
-    return 0;
-
-on_error:
-    n = index;
-    for (index = 0; index < n; index++) {
-        free(array->strings[index]);
-    }
-    free(array->strings);
-
-    return -1;
-}
-*/
 
 static git_otype
 py_type_to_git_type(PyTypeObject *py_type)
