@@ -137,7 +137,7 @@ class CheckoutNotify(IntFlag):
     UNTRACKED = C.GIT_CHECKOUT_NOTIFY_UNTRACKED
     'Notifies about untracked files.'
 
-    IGNORED = C.GIT_CHECKOUT_NOTIFY_UNTRACKED
+    IGNORED = C.GIT_CHECKOUT_NOTIFY_IGNORED
     'Notifies about ignored files.'
 
     ALL = C.GIT_CHECKOUT_NOTIFY_ALL
