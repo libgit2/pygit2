@@ -143,9 +143,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.0.tar.gz -O libgit2-1.8.0.tar.gz
-   $ tar xzf libgit2-1.8.0.tar.gz
-   $ cd libgit2-1.8.0/
+   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.1.tar.gz -O libgit2-1.8.1.tar.gz
+   $ tar xzf libgit2-1.8.1.tar.gz
+   $ cd libgit2-1.8.1/
    $ cmake .
    $ make
    $ sudo make install
@@ -227,9 +227,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.0.tar.gz -O libgit2-1.8.0.tar.gz
-   $ tar xzf libgit2-1.8.0.tar.gz
-   $ cd libgit2-1.8.0/
+   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.1.tar.gz -O libgit2-1.8.1.tar.gz
+   $ tar xzf libgit2-1.8.1.tar.gz
+   $ cd libgit2-1.8.1/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ cmake --build . --target install
 
@@ -286,7 +286,7 @@ variable.  The following recipe shows you how to do it from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ git clone --depth=1 -b v1.8.0 https://github.com/libgit2/libgit2.git
+   $ git clone --depth=1 -b v1.8.1 https://github.com/libgit2/libgit2.git
    $ cd libgit2
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 14 Win64"
    $ cmake --build . --config release --target install
