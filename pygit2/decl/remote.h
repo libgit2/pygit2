@@ -81,8 +81,7 @@ typedef struct {
 	int version;
 	git_remote_callbacks callbacks;
 	git_fetch_prune_t prune;
-	unsigned int update_fetchhead : 1,
-	             report_unchanged : 1;
+	unsigned int update_fetchhead;
 	git_remote_autotag_option_t download_tags;
 	git_proxy_options proxy_opts;
 	int depth;
