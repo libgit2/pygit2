@@ -72,6 +72,7 @@ Authors:
     Jason Ziglar
     Leonardo Rhodes
     Mark Adams
+    Michał Kępień
     Nika Layzell
     Peter-Yi Zhang
     Petr Viktorin
@@ -81,6 +82,7 @@ Authors:
     Sukhman Bhuller
     Thomas Kluyver
     Tyler Cipriani
+    WANG Xuerui
     Alex Chamberlain
     Alexander Bayandin
     Amit Bakshi
@@ -185,10 +187,12 @@ Authors:
     Mathieu Parent
     Mathieu Pillard
     Matthaus Woolard
+    Maxwell G
     Michał Górny
     Nicolás Sanguinetti
     Nikita Kartashov
     Nikolai Zujev
+    Nils Philippsen
     Noah Fontes
     Óscar San José
     Patrick Lühne
@@ -212,6 +216,7 @@ Authors:
     Tad Hardesty
     Timo Röhling
     Vladimir Rutsky
+    Wim Jeantine-Glenn
     Yu Jianjian
     buhl
     chengyuhang

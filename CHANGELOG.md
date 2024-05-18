@@ -1,13 +1,19 @@
-# 1.15.0 (UNRELEASED)
+# 1.15.0 (2024-05-18)
 
 - Many deprecated features have been removed, see below
 
-- Upgrade to libgit2 v1.8.0
+- Upgrade to libgit2 v1.8.1
 
 - New `push_options` optional argument in `Repository.push(...)`
   [#1282](https://github.com/libgit2/pygit2/pull/1282)
 
 - New support comparison of `Oid` with text string
+
+- Fix `CheckoutNotify.IGNORED`
+  [#1288](https://github.com/libgit2/pygit2/issues/1288)
+
+- Use default error handler when decoding/encoding paths
+  [#537](https://github.com/libgit2/pygit2/issues/537)
 
 - Remove setuptools runtime dependency
   [#1281](https://github.com/libgit2/pygit2/pull/1281)
