@@ -106,6 +106,15 @@ def test_url(repo):
     assert SUBM_URL == s.url
 
 
+def test_missing_url(repo):
+    # Remove "url" from .gitmodules
+    with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:
+        f.write('[submodule "TestGitRepository"]\n')
+        f.write('\tpath = TestGitRepository\n')
+    s = repo.submodules[SUBM_PATH]
+    assert not s.url
+
+
 @utils.requires_network
 def test_init_and_update(repo):
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'

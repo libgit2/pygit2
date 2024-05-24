@@ -31,7 +31,7 @@ from .callbacks import git_fetch_options, RemoteCallbacks
 from .enums import SubmoduleIgnore, SubmoduleStatus
 from .errors import check_error
 from .ffi import ffi, C
-from .utils import to_bytes
+from .utils import to_bytes, maybe_string
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
@@ -129,10 +129,10 @@ class Submodule:
         return ffi.string(path).decode('utf-8')
 
     @property
-    def url(self):
+    def url(self) -> Union[str, None]:
         """URL of the submodule."""
         url = C.git_submodule_url(self._subm)
-        return ffi.string(url).decode('utf-8')
+        return maybe_string(url)
 
     @property
     def branch(self):
