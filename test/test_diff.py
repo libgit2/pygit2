@@ -339,6 +339,8 @@ def test_deltas(barerepo):
     assert len(deltas) == len(patches)
     for i, delta in enumerate(deltas):
         patch_delta = patches[i].delta
+        assert isinstance(delta.status, DeltaStatus)
+        assert isinstance(patch_delta.status, DeltaStatus)
         assert delta.status == patch_delta.status
         assert delta.similarity == patch_delta.similarity
         assert delta.nfiles == patch_delta.nfiles

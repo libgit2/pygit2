@@ -4,12 +4,12 @@ from . import Index, Submodule
 from .enums import (
     ApplyLocation,
     BranchType,
+    DeltaStatus,
     DiffFind,
     DiffFlag,
     DiffOption,
     DiffStatsFormat,
     FileMode,
-    FileStatus,
     MergeAnalysis,
     MergePreference,
     ObjectType,
@@ -171,7 +171,7 @@ class DiffDelta:
     new_file: DiffFile
     old_file: DiffFile
     similarity: int
-    status: FileStatus
+    status: DeltaStatus
     def status_char(self) -> str: ...
 
 class DiffFile:

@@ -323,7 +323,7 @@ DiffDelta_is_binary__get__(DiffDelta *self)
 }
 
 PyDoc_STRVAR(DiffDelta_status__doc__,
-    "An enums.FileStatus constant."
+    "An enums.DeltaStatus constant."
 );
 
 PyObject *
