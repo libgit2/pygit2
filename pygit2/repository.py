@@ -1548,6 +1548,6 @@ class Repository(BaseRepository):
         cptr = ffi.new('git_repository **')
         cptr[0] = ptr
         repo = cls.__new__(cls)
-        super(cls, repo)._from_c(bytes(ffi.buffer(cptr)[:]), owned)
+        BaseRepository._from_c(repo, bytes(ffi.buffer(cptr)[:]), owned)
         repo._common_init()
         return repo
