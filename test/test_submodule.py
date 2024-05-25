@@ -91,6 +91,20 @@ def test_submodule_open(repo):
     assert r.head.target == SUBM_HEAD_SHA
 
 
+@utils.requires_network
+def test_submodule_open_from_repository_subclass(repo):
+    class CustomRepoClass(pygit2.Repository):
+        pass
+
+    custom_repo = CustomRepoClass(repo.workdir)
+    s = custom_repo.submodules[SUBM_PATH]
+    custom_repo.submodules.init()
+    custom_repo.submodules.update()
+    r = s.open()
+    assert isinstance(r, CustomRepoClass)
+    assert r.head.target == SUBM_HEAD_SHA
+
+
 def test_name(repo):
     s = repo.submodules[SUBM_PATH]
     assert SUBM_NAME == s.name
