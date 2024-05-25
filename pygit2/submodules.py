@@ -73,7 +73,9 @@ class Submodule:
         err = C.git_submodule_init(self._subm, int(overwrite))
         check_error(err)
 
-    def update(self, init: bool = False, callbacks: RemoteCallbacks = None):
+    def update(
+        self, init: bool = False, callbacks: RemoteCallbacks = None, depth: int = 0
+    ):
         """
         Update a submodule. This will clone a missing submodule and checkout
         the subrepository to the commit specified in the index of the
@@ -90,12 +92,17 @@ class Submodule:
 
         callbacks
             Optional RemoteCallbacks to clone or fetch the submodule.
+
+        depth
+            Number of commits to fetch.
+            The default is 0 (full commit history).
         """
 
         opts = ffi.new('git_submodule_update_options *')
         C.git_submodule_update_options_init(
             opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION
         )
+        opts.fetch_opts.depth = depth
 
         with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
             err = C.git_submodule_update(self._subm, int(init), opts)
@@ -188,6 +195,7 @@ class SubmoduleCollection:
         path: str,
         link: bool = True,
         callbacks: Optional[RemoteCallbacks] = None,
+        depth: int = 0,
     ) -> Submodule:
         """
         Add a submodule to the index.
@@ -208,6 +216,10 @@ class SubmoduleCollection:
 
         callbacks
             Optional RemoteCallbacks to clone the submodule.
+
+        depth
+            Number of commits to fetch.
+            The default is 0 (full commit history).
         """
         csub = ffi.new('git_submodule **')
         curl = ffi.new('char[]', to_bytes(url))
@@ -226,6 +238,7 @@ class SubmoduleCollection:
         C.git_submodule_update_options_init(
             opts, C.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION
         )
+        opts.fetch_opts.depth = depth
 
         with git_fetch_options(callbacks, opts=opts.fetch_opts) as payload:
             crepo = ffi.new('git_repository **')
@@ -268,6 +281,7 @@ class SubmoduleCollection:
         submodules: Optional[Iterable[str]] = None,
         init: bool = False,
         callbacks: Optional[RemoteCallbacks] = None,
+        depth: int = 0,
     ):
         """
         Update submodules. This will clone a missing submodule and checkout
@@ -289,6 +303,10 @@ class SubmoduleCollection:
 
         callbacks
             Optional RemoteCallbacks to clone or fetch the submodule.
+
+        depth
+            Number of commits to fetch.
+            The default is 0 (full commit history).
         """
         if submodules is None:
             submodules = self._repository.listall_submodules()
@@ -296,7 +314,7 @@ class SubmoduleCollection:
         instances = [self[s] for s in submodules]
 
         for submodule in instances:
-            submodule.update(init, callbacks)
+            submodule.update(init, callbacks, depth)
 
     def status(
         self, name: str, ignore: SubmoduleIgnore = SubmoduleIgnore.UNSPECIFIED
