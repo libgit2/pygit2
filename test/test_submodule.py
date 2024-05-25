@@ -38,6 +38,7 @@ SUBM_NAME = 'TestGitRepository'
 SUBM_PATH = 'TestGitRepository'
 SUBM_URL = 'https://github.com/libgit2/TestGitRepository'
 SUBM_HEAD_SHA = '49322bb17d3acc9146f98c97d078513228bbf3c0'
+SUBM_BOTTOM_SHA = '6c8b137b1c652731597c89668f417b8695f28dd7'
 
 
 @pytest.fixture
@@ -143,26 +144,42 @@ def test_update_instance(repo):
 
 
 @utils.requires_network
-def test_oneshot_update(repo):
+@pytest.mark.parametrize('depth', [0, 1])
+def test_oneshot_update(repo, depth):
     status = repo.submodules.status(SUBM_NAME)
     assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.WD_UNINITIALIZED)
 
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
-    repo.submodules.update(init=True)
+    repo.submodules.update(init=True, depth=depth)
     assert subrepo_file_path.exists()
 
     status = repo.submodules.status(SUBM_NAME)
     assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD)
 
+    sm_repo = repo.submodules[SUBM_NAME].open()
+    if depth == 0:
+        sm_repo[SUBM_BOTTOM_SHA]  # full history must be available
+    else:
+        with pytest.raises(KeyError):
+            sm_repo[SUBM_BOTTOM_SHA]  # shallow clone
+
 
 @utils.requires_network
-def test_oneshot_update_instance(repo):
+@pytest.mark.parametrize('depth', [0, 1])
+def test_oneshot_update_instance(repo, depth):
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     sm = repo.submodules[SUBM_NAME]
-    sm.update(init=True)
+    sm.update(init=True, depth=depth)
     assert subrepo_file_path.exists()
+
+    sm_repo = sm.open()
+    if depth == 0:
+        sm_repo[SUBM_BOTTOM_SHA]  # full history must be available
+    else:
+        with pytest.raises(KeyError):
+            sm_repo[SUBM_BOTTOM_SHA]  # shallow clone
 
 
 @utils.requires_network
@@ -171,9 +188,10 @@ def test_head_id(repo):
 
 
 @utils.requires_network
-def test_add_submodule(repo):
+@pytest.mark.parametrize('depth', [0, 1])
+def test_add_submodule(repo, depth):
     sm_repo_path = 'test/testrepo'
-    sm = repo.submodules.add(SUBM_URL, sm_repo_path)
+    sm = repo.submodules.add(SUBM_URL, sm_repo_path, depth=depth)
 
     status = repo.submodules.status(sm_repo_path)
     assert status == (SS.IN_INDEX | SS.IN_CONFIG | SS.IN_WD | SS.INDEX_ADDED)
@@ -182,6 +200,12 @@ def test_add_submodule(repo):
     assert sm_repo_path == sm.path
     assert SUBM_URL == sm.url
     assert not sm_repo.is_empty
+
+    if depth == 0:
+        sm_repo[SUBM_BOTTOM_SHA]  # full history must be available
+    else:
+        with pytest.raises(KeyError):
+            sm_repo[SUBM_BOTTOM_SHA]  # shallow clone
 
 
 @utils.requires_network
