@@ -1343,6 +1343,19 @@ class BaseRepository(_Repository):
         err = C.git_repository_set_ident(self._repo, to_bytes(name), to_bytes(email))
         check_error(err)
 
+    def revert(self, commit: Commit):
+        """
+        Revert the given commit, producing changes in the index and working
+        directory.
+
+        This operation updates the repository's state and prepared message
+        (MERGE_MSG).
+        """
+        commit_ptr = ffi.new('git_commit **')
+        ffi.buffer(commit_ptr)[:] = commit._pointer[:]
+        err = C.git_revert(self._repo, commit_ptr[0], ffi.NULL)
+        check_error(err)
+
     def revert_commit(self, revert_commit, our_commit, mainline=0):
         """
         Revert the given Commit against the given "our" Commit, producing an

@@ -39,6 +39,7 @@ from pygit2.enums import (
     FileStatus,
     ObjectType,
     RepositoryOpenFlag,
+    RepositoryState,
     ResetMode,
     StashApplyProgress,
 )
@@ -538,7 +539,7 @@ def test_stash_apply_checkout_options(testrepo):
         assert f.read() == 'stashed content'
 
 
-def test_revert(testrepo):
+def test_revert_commit(testrepo):
     master = testrepo.head.peel()
     commit_to_revert = testrepo['4ec4389a8068641da2d6578db0419484972284c8']
     parent = commit_to_revert.parents[0]
@@ -550,6 +551,26 @@ def test_revert(testrepo):
     assert revert_diff_stats.insertions == commit_diff_stats.deletions
     assert revert_diff_stats.deletions == commit_diff_stats.insertions
     assert revert_diff_stats.files_changed == commit_diff_stats.files_changed
+
+
+def test_revert(testrepo):
+    hello_txt = Path(testrepo.workdir) / 'hello.txt'
+    commit_to_revert = testrepo['4ec4389a8068641da2d6578db0419484972284c8']
+
+    assert testrepo.state() == RepositoryState.NONE
+    assert not testrepo.message
+    assert 'bonjour le monde' in hello_txt.read_text()
+
+    # Revert addition of French line in hello.txt
+    testrepo.revert(commit_to_revert)
+
+    assert 'bonjour le monde' not in hello_txt.read_text()
+    assert testrepo.status()['hello.txt'] == FileStatus.INDEX_MODIFIED
+    assert testrepo.state() == RepositoryState.REVERT
+    assert (
+        testrepo.message
+        == f'Revert "Say hello in French"\n\nThis reverts commit {commit_to_revert.id}.\n'
+    )
 
 
 def test_default_signature(testrepo):
