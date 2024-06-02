@@ -57,3 +57,14 @@ typedef enum {
 	GIT_SUBMODULE_IGNORE_DIRTY     = 3,
 	GIT_SUBMODULE_IGNORE_ALL       = 4,
 } git_submodule_ignore_t;
+
+typedef enum {
+	GIT_OBJECT_ANY       = ...,
+	GIT_OBJECT_INVALID   = ...,
+	GIT_OBJECT_COMMIT    = ...,
+	GIT_OBJECT_TREE      = ...,
+	GIT_OBJECT_BLOB      = ...,
+	GIT_OBJECT_TAG       = ...,
+	GIT_OBJECT_OFS_DELTA = ...,
+	GIT_OBJECT_REF_DELTA = ...,
+} git_object_t;

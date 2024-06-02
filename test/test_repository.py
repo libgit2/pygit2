@@ -898,3 +898,65 @@ def test_is_shallow(testrepo):
         f.write('abcdef0123456789abcdef0123456789abcdef00\n')
 
     assert testrepo.is_shallow
+
+
+def test_repository_hashfile(testrepo):
+    original_hash = testrepo.index['hello.txt'].id
+
+    # Test simple use
+    h = testrepo.hashfile('hello.txt')
+    assert h == original_hash
+
+    # Test absolute path
+    h = testrepo.hashfile(str(Path(testrepo.workdir, 'hello.txt')))
+    assert h == original_hash
+
+    # Test missing path
+    with pytest.raises(KeyError):
+        testrepo.hashfile('missing-file')
+
+    # Test invalid object type
+    with pytest.raises(pygit2.GitError):
+        testrepo.hashfile('hello.txt', ObjectType.OFS_DELTA)
+
+
+def test_repository_hashfile_filter(testrepo):
+    original_hash = testrepo.index['hello.txt'].id
+
+    with open(Path(testrepo.workdir, 'hello.txt'), 'rb') as f:
+        original_text = f.read()
+
+    crlf_data = original_text.replace(b'\n', b'\r\n')
+    crlf_hash = utils.gen_blob_sha1(crlf_data)
+    assert crlf_hash != original_hash
+
+    # Write hellocrlf.txt as a copy of hello.txt with CRLF line endings
+    with open(Path(testrepo.workdir, 'hellocrlf.txt'), 'wb') as f:
+        f.write(crlf_data)
+
+    # Set up a CRLF filter
+    testrepo.config['core.autocrlf'] = True
+    with open(Path(testrepo.workdir, '.gitattributes'), 'wt') as f:
+        f.write('*.txt text\n*.bin binary\n\n')
+
+    # By default, hellocrlf.txt should have the same hash as the original,
+    # due to core.autocrlf=True
+    h = testrepo.hashfile('hellocrlf.txt')
+    assert h == original_hash
+
+    # Treat absolute path with filters
+    h = testrepo.hashfile(str(Path(testrepo.workdir, 'hellocrlf.txt')))
+    assert h == original_hash
+
+    # Bypass filters
+    h = testrepo.hashfile('hellocrlf.txt', as_path='')
+    assert h == crlf_hash
+
+    # Bypass filters via .gitattributes
+    h = testrepo.hashfile('hellocrlf.txt', as_path='foobar.bin')
+    assert h == crlf_hash
+
+    # If core.safecrlf=fail, hashing a non-CRLF file will fail
+    testrepo.config['core.safecrlf'] = 'fail'
+    with pytest.raises(pygit2.GitError):
+        h = testrepo.hashfile('hello.txt')

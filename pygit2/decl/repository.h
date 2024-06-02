@@ -83,6 +83,7 @@ int git_repository_set_head_detached(
 	git_repository* repo,
 	const git_oid* commitish);
 
+int git_repository_hashfile(git_oid *out, git_repository *repo, const char *path, git_object_t type, const char *as_path);
 int git_repository_ident(const char **name, const char **email, const git_repository *repo);
 int git_repository_set_ident(git_repository *repo, const char *name, const char *email);
 int git_repository_index(git_index **out, git_repository *repo);
