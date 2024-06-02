@@ -109,6 +109,7 @@ discover_repository(PyObject *self, PyObject *args)
     const char *ceiling_dirs = NULL;
     PyObject *py_repo_path = NULL;
     int err;
+    PyObject *result = NULL;
 
     if (!PyArg_ParseTuple(args, "O&|IO&", PyUnicode_FSConverter, &py_path, &across_fs,
                           PyUnicode_FSConverter, &py_ceiling_dirs))
@@ -122,18 +123,20 @@ discover_repository(PyObject *self, PyObject *args)
     memset(&repo_path, 0, sizeof(git_buf));
     err = git_repository_discover(&repo_path, path, across_fs, ceiling_dirs);
 
-    Py_XDECREF(py_path);
+    if (err == GIT_OK) {
+        py_repo_path = PyUnicode_DecodeFSDefault(repo_path.ptr);
+        git_buf_dispose(&repo_path);
+        result = py_repo_path;
+    } else if (err == GIT_ENOTFOUND) {
+        result = Py_None;
+    } else {
+        result = Error_set_str(err, path);
+    }
+
     Py_XDECREF(py_ceiling_dirs);
+    Py_XDECREF(py_path);
 
-    if (err == GIT_ENOTFOUND)
-        Py_RETURN_NONE;
-    if (err < 0)
-        return Error_set_str(err, path);
-
-    py_repo_path = PyUnicode_DecodeFSDefault(repo_path.ptr);
-    git_buf_dispose(&repo_path);
-
-    return py_repo_path;
+    return result;
 };
 
 PyDoc_STRVAR(hashfile__doc__,
@@ -200,6 +203,7 @@ init_file_backend(PyObject *self, PyObject *args)
     unsigned int flags = 0;
     int err = GIT_OK;
     git_repository *repository = NULL;
+    PyObject *result = NULL;
 
     if (!PyArg_ParseTuple(args, "O&|I", PyUnicode_FSConverter, &py_path, &flags))
         return NULL;
@@ -208,25 +212,23 @@ init_file_backend(PyObject *self, PyObject *args)
 
     err = git_repository_open_ext(&repository, path, flags, NULL);
 
-    Py_XDECREF(py_path);
-
-    if (err < 0) {
+    if (err == GIT_OK) {
+        result = PyCapsule_New(repository, "backend", NULL);
+    } else {
+        result = NULL;
         Error_set_str(err, path);
-        goto cleanup;
+
+        if (repository) {
+            git_repository_free(repository);
+        }
+
+        if (err == GIT_ENOTFOUND) {
+            PyErr_Format(GitError, "Repository not found at %s", path);
+        }
     }
 
-    return PyCapsule_New(repository, "backend", NULL);
-
-cleanup:
-    if (repository) {
-        git_repository_free(repository);
-    }
-
-    if (err == GIT_ENOTFOUND) {
-        PyErr_Format(GitError, "Repository not found at %s", path);
-    }
-
-    return NULL;
+    Py_XDECREF(py_path);
+    return result;
 }
 
 
