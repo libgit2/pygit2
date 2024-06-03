@@ -211,6 +211,24 @@ def test_head_id(repo):
 
 
 @utils.requires_network
+def test_head_id_null(repo):
+    gitmodules_newlines = (
+        '\n'
+        '[submodule "uncommitted_submodule"]\n'
+        '    path = pygit2\n'
+        '    url = https://github.com/libgit2/pygit2\n'
+        '\n'
+    )
+    with open(Path(repo.workdir, '.gitmodules'), 'a') as f:
+        f.write(gitmodules_newlines)
+
+    subm = repo.submodules['uncommitted_submodule']
+
+    # The submodule isn't in the HEAD yet, so head_id should be None
+    assert subm.head_id is None
+
+
+@utils.requires_network
 @pytest.mark.parametrize('depth', [0, 1])
 def test_add_submodule(repo, depth):
     sm_repo_path = 'test/testrepo'
