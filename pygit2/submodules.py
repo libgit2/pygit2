@@ -148,10 +148,17 @@ class Submodule:
         return ffi.string(branch).decode('utf-8')
 
     @property
-    def head_id(self):
-        """Head of the submodule."""
+    def head_id(self) -> Union[Oid, None]:
+        """
+        The submodule's HEAD commit id (as recorded in the superproject's
+        current HEAD tree).
+        Returns None if the superproject's HEAD doesn't contain the submodule.
+        """
+
         head = C.git_submodule_head_id(self._subm)
-        return Oid(raw=bytes(ffi.buffer(head)[:]))
+        if head == ffi.NULL:
+            return None
+        return Oid(raw=bytes(ffi.buffer(head.id)[:]))
 
 
 class SubmoduleCollection:
