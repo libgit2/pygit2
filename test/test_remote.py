@@ -373,10 +373,9 @@ def test_push_options(mock_callbacks, origin, clone, remote):
     remote.push(['refs/heads/master'], push_options=['foo'])
     remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
     assert remote_push_options.count == 1
-    assert ffi.string(remote_push_options.strings[0]) == b'foo'
+    # strings pointed to by remote_push_options.strings[] are already freed
 
     remote.push(['refs/heads/master'], push_options=['Option A', 'Option B'])
     remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
     assert remote_push_options.count == 2
-    assert ffi.string(remote_push_options.strings[0]) == b'Option A'
-    assert ffi.string(remote_push_options.strings[1]) == b'Option B'
+    # strings pointed to by remote_push_options.strings[] are already freed
