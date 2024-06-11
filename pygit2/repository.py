@@ -51,6 +51,7 @@ from .enums import (
     MergeFavor,
     MergeFileFlag,
     MergeFlag,
+    ObjectType,
     RepositoryOpenFlag,
     RepositoryState,
 )
@@ -128,6 +129,58 @@ class BaseRepository(_Repository):
         builder.write(path=path)
 
         return builder.written_objects_count
+
+    def hashfile(
+        self,
+        path: str,
+        object_type: ObjectType = ObjectType.BLOB,
+        as_path: typing.Optional[str] = None,
+    ):
+        """Calculate the hash of a file using repository filtering rules.
+
+        If you simply want to calculate the hash of a file on disk with no filters,
+        you can just use `pygit2.hashfile()`. However, if you want to hash a file
+        in the repository and you want to apply filtering rules (e.g. crlf filters)
+        before generating the SHA, then use this function.
+
+        Note: if the repository has `core.safecrlf` set to fail and the filtering
+        triggers that failure, then this function will raise an error and not
+        calculate the hash of the file.
+
+        Returns: Output value of calculated SHA (Oid)
+
+        Parameters:
+
+        path
+            Path to file on disk whose contents should be hashed. This may be
+            an absolute path or a relative path, in which case it will be treated
+            as a path within the working directory.
+
+        object_type
+            The object type to hash (e.g. enums.ObjectType.BLOB)
+
+        as_path
+            The path to use to look up filtering rules. If this is an empty string
+            then no filters will be applied when calculating the hash.
+            If this is `None` and the `path` parameter is a file within the
+            repository's working directory, then the `path` will be used.
+        """
+        c_path = to_bytes(path)
+
+        if as_path is None:
+            c_as_path = ffi.NULL
+        else:
+            c_as_path = to_bytes(as_path)
+
+        c_oid = ffi.new('git_oid *')
+
+        err = C.git_repository_hashfile(
+            c_oid, self._repo, c_path, int(object_type), c_as_path
+        )
+        check_error(err)
+
+        oid = Oid(raw=bytes(ffi.buffer(c_oid.id)[:]))
+        return oid
 
     def __iter__(self):
         return iter(self.odb)
