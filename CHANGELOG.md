@@ -1,3 +1,31 @@
+# 1.15.1 (UNRELEASED)
+
+- New `Repository.revert(...)`
+  [#1297](https://github.com/libgit2/pygit2/pull/1297)
+
+- New optional `depth` argument in submodules `add()` and `update()` methods
+  [#1296](https://github.com/libgit2/pygit2/pull/1296)
+
+- Now `Submodule.url` returns `None` when the submodule does not have a url
+  [#1294](https://github.com/libgit2/pygit2/pull/1294)
+
+- Fix use after free bug in error reporting
+  [#1299](https://github.com/libgit2/pygit2/pull/1299)
+
+- Fix `Submodule.head_id` when the submodule is not in the current HEAD tree
+  [#1300](https://github.com/libgit2/pygit2/pull/1300)
+
+- Fix `Submodule.open()` when subclassing `Repository`
+  [#1295](https://github.com/libgit2/pygit2/pull/1295)
+
+- Fix error in the test suite when running with address sanitizer
+  [#1304](https://github.com/libgit2/pygit2/pull/1304)
+  [#1301](https://github.com/libgit2/pygit2/issues/1301)
+
+- Annotations and documentation fixes
+  [#1293](https://github.com/libgit2/pygit2/pull/1293)
+
+
 # 1.15.0 (2024-05-18)
 
 - Many deprecated features have been removed, see below
