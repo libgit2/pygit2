@@ -18,7 +18,7 @@ Supports Python 3.9 to 3.12 and PyPy3 7.3+
 
 ## Sponsors
 
--   [Iterative](https://iterative.ai/)
+- [Microsoft](https://github.com/microsoft)
 
 Add your name and link here, [become a
 sponsor](https://github.com/sponsors/jdavid).

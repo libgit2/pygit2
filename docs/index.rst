@@ -19,7 +19,7 @@ Links
 Sponsors
 =====================================
 
-- `Iterative <https://iterative.ai/>`_
+- `Microsoft <https://github.com/microsoft>`_
 
 Add your name and link here, `become a sponsor <https://github.com/sponsors/jdavid>`_.
 
