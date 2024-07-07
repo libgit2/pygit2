@@ -50,6 +50,7 @@ Authors:
     Dan Sully
     David Versmisse
     Grégory Herrero
+    Michał Kępień
     Mikhail Yushkovskiy
     Robin Stocker
     Rohit Sanjay
@@ -72,7 +73,6 @@ Authors:
     Jason Ziglar
     Leonardo Rhodes
     Mark Adams
-    Michał Kępień
     Nika Layzell
     Peter-Yi Zhang
     Petr Viktorin

@@ -1,4 +1,4 @@
-# 1.15.1 (UNRELEASED)
+# 1.15.1 (2024-07-07)
 
 - New `Repository.revert(...)`
   [#1297](https://github.com/libgit2/pygit2/pull/1297)
