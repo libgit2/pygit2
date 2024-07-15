@@ -145,7 +145,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=['pygit2'],
-    package_data={'pygit2': ['decl/*.h', '*.pyi', "py.typed"]},
+    package_data={'pygit2': ['decl/*.h', '*.pyi', 'py.typed']},
     zip_safe=False,
     cmdclass=cmdclass,
     cffi_modules=['pygit2/_run.py:ffi'],
