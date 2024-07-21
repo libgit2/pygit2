@@ -908,7 +908,10 @@ def test_repository_hashfile(testrepo):
     assert h == original_hash
 
     # Test absolute path
-    h = testrepo.hashfile(str(Path(testrepo.workdir, 'hello.txt')))
+    # For best results on Windows, pass a pure POSIX path. (See https://github.com/libgit2/libgit2/issues/6825)
+    absolute_path = Path(testrepo.workdir, 'hello.txt')
+    absolute_path = absolute_path.as_posix()  # Windows compatibility
+    h = testrepo.hashfile(str(absolute_path))
     assert h == original_hash
 
     # Test missing path
@@ -944,8 +947,11 @@ def test_repository_hashfile_filter(testrepo):
     h = testrepo.hashfile('hellocrlf.txt')
     assert h == original_hash
 
-    # Treat absolute path with filters
-    h = testrepo.hashfile(str(Path(testrepo.workdir, 'hellocrlf.txt')))
+    # Treat absolute path with filters.
+    # For best results on Windows, pass a pure POSIX path. (See https://github.com/libgit2/libgit2/issues/6825)
+    absolute_path = Path(testrepo.workdir, 'hellocrlf.txt')
+    absolute_path = absolute_path.as_posix()  # Windows compatibility
+    h = testrepo.hashfile(str(absolute_path))
     assert h == original_hash
 
     # Bypass filters
