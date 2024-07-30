@@ -141,6 +141,38 @@ option(PyObject *self, PyObject *args)
             Py_RETURN_NONE;
         }
 
+        case GIT_OPT_GET_MWINDOW_FILE_LIMIT:
+        {
+            size_t limit;
+
+            error = git_libgit2_opts(GIT_OPT_GET_MWINDOW_FILE_LIMIT, &limit);
+            if (error < 0)
+                return Error_set(error);
+
+            return PyLong_FromSize_t(limit);
+        }
+
+        case GIT_OPT_SET_MWINDOW_FILE_LIMIT:
+        {
+            size_t limit;
+            PyObject *py_limit;
+
+            py_limit = PyTuple_GetItem(args, 1);
+            if (!py_limit)
+                return NULL;
+
+            if (!PyLong_Check(py_limit))
+                return Error_type_error(
+                    "size should be an integer, got %.200s", py_limit);
+
+            limit = PyLong_AsSize_t(py_limit);
+            error = git_libgit2_opts(GIT_OPT_SET_MWINDOW_SIZE, limit);
+            if (error  < 0)
+                return Error_set(error);
+
+            Py_RETURN_NONE;
+        }
+        
         case GIT_OPT_GET_SEARCH_PATH:
         {
             PyObject *py_level;
