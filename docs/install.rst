@@ -50,12 +50,12 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.9 to 3.12
+- Python 3.10 to 3.13
 - PyPy3 7.3+
 
 Python requirements (these are specified in ``setup.py``):
 
-- cffi 1.16.0 or later
+- cffi 1.17.0 or later
 
 Libgit2 **v1.8.x**; binary wheels already include libgit2, so you only need to
 worry about this if you install the source package.
