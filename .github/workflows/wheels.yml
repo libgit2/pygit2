@@ -13,7 +13,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-12]
+        include:
+        - name: linux
+          os: ubuntu-24.04
+        - name: macos
+          os: macos-12
 
     steps:
       - uses: actions/checkout@v4
@@ -33,9 +37,9 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{ matrix.name }}
           path: ./wheelhouse/*.whl
 
   pypi:
@@ -44,10 +48,11 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
-        name: wheels
         path: dist
+        pattern: wheels-*
+        merge-multiple: true
 
     - name: Display structure of downloaded files
       run: ls -lh dist
