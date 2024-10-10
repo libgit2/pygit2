@@ -1,3 +1,25 @@
+# 1.16.0 (UNRELEASED)
+
+- Add support for Python 3.13
+
+- Drop support for Python 3.9
+
+- New `Repository.hashfile(...)`
+  [#1298](https://github.com/libgit2/pygit2/pull/1298)
+
+- New `Option.GET_MWINDOW_FILE_LIMIT` and `Option.SET_MWINDOW_FILE_LIMIT`
+  [#1312](https://github.com/libgit2/pygit2/pull/1312)
+
+- Fix overriding `certficate_check(...)` callback via argument to `RemoteCallbacks(...)`
+  [#1321](https://github.com/libgit2/pygit2/pull/1321)
+
+- Add py.typed
+  [#1310](https://github.com/libgit2/pygit2/pull/1310)
+
+- Fix `discover_repository(...)` annotation
+  [#1313](https://github.com/libgit2/pygit2/pull/1313)
+
+
 # 1.15.1 (2024-07-07)
 
 - New `Repository.revert(...)`
