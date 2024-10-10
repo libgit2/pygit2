@@ -113,12 +113,12 @@ class RemoteCallbacks(Payload):
     RemoteCallbacks(certificate=certificate).
     """
 
-    def __init__(self, credentials=None, certificate=None):
+    def __init__(self, credentials=None, certificate_check=None):
         super().__init__()
         if credentials is not None:
             self.credentials = credentials
-        if certificate is not None:
-            self.certificate = certificate
+        if certificate_check is not None:
+            self.certificate_check = certificate_check
 
     def sideband_progress(self, string):
         """
@@ -344,7 +344,7 @@ def git_fetch_options(payload, opts=None):
     opts.callbacks.transfer_progress = C._transfer_progress_cb
     opts.callbacks.update_tips = C._update_tips_cb
     opts.callbacks.credentials = C._credentials_cb
-    opts.callbacks.certificate_check = C._certificate_cb
+    opts.callbacks.certificate_check = C._certificate_check_cb
     # Payload
     handle = ffi.new_handle(payload)
     opts.callbacks.payload = handle
@@ -368,7 +368,7 @@ def git_push_options(payload, opts=None):
     opts.callbacks.transfer_progress = C._transfer_progress_cb
     opts.callbacks.update_tips = C._update_tips_cb
     opts.callbacks.credentials = C._credentials_cb
-    opts.callbacks.certificate_check = C._certificate_cb
+    opts.callbacks.certificate_check = C._certificate_check_cb
     opts.callbacks.push_update_reference = C._push_update_reference_cb
     # Payload
     handle = ffi.new_handle(payload)
@@ -457,7 +457,7 @@ def libgit2_callback_void(f):
 
 
 @libgit2_callback
-def _certificate_cb(cert_i, valid, host, data):
+def _certificate_check_cb(cert_i, valid, host, data):
     # We want to simulate what should happen if libgit2 supported pass-through
     # for this callback. For SSH, 'valid' is always False, because it doesn't
     # look at known_hosts, but we do want to let it through in order to do what

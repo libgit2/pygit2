@@ -1,4 +1,4 @@
-extern "Python" int _certificate_cb(
+extern "Python" int _certificate_check_cb(
     git_cert *cert,
     int valid,
     const char *host,
