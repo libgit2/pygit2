@@ -1,4 +1,4 @@
-# 1.16.0 (UNRELEASED)
+# 1.16.0 (2024-10-11)
 
 - Add support for Python 3.13
 
@@ -10,7 +10,7 @@
 - New `Option.GET_MWINDOW_FILE_LIMIT` and `Option.SET_MWINDOW_FILE_LIMIT`
   [#1312](https://github.com/libgit2/pygit2/pull/1312)
 
-- Fix overriding `certficate_check(...)` callback via argument to `RemoteCallbacks(...)`
+- Fix overriding `certificate_check(...)` callback via argument to `RemoteCallbacks(...)`
   [#1321](https://github.com/libgit2/pygit2/pull/1321)
 
 - Add py.typed

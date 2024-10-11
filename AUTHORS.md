@@ -113,6 +113,7 @@ Authors:
     Kevin KIN-FOO
     Marcel Waldvogel
     Masud Rahman
+    Mathieu Parent
     Michael Sondergaard
     Natanael Arndt
     Ondřej Nový
@@ -184,16 +185,17 @@ Authors:
     Lukas Berk
     Martin von Zweigbergk
     Mathieu Bridon
-    Mathieu Parent
     Mathieu Pillard
     Matthaus Woolard
     Maxwell G
     Michał Górny
+    Na'aman Hirschfeld
     Nicolás Sanguinetti
     Nikita Kartashov
     Nikolai Zujev
     Nils Philippsen
     Noah Fontes
+    Or Hayat
     Óscar San José
     Patrick Lühne
     Paul Wagland
@@ -215,6 +217,7 @@ Authors:
     Steven Winfield
     Tad Hardesty
     Timo Röhling
+    Victor Florea
     Vladimir Rutsky
     Wim Jeantine-Glenn
     Yu Jianjian
