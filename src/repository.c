@@ -1065,7 +1065,8 @@ Repository_create_commit(Repository *self, PyObject *args)
 
     err = git_commit_create(&oid, self->repo, update_ref,
                             py_author->signature, py_committer->signature,
-                            encoding, message, tree, parent_count, parents);
+                            encoding, message, tree, parent_count,
+                            (const git_commit **)parents);
     if (err < 0) {
         Error_set(err);
         goto out;
@@ -1147,7 +1148,8 @@ Repository_create_commit_string(Repository *self, PyObject *args)
 
     err = git_commit_create_buffer(&buf, self->repo,
                                    py_author->signature, py_committer->signature,
-                                   encoding, message, tree, parent_count, parents);
+                                   encoding, message, tree, parent_count,
+                                   (const git_commit **)parents);
     if (err < 0) {
         Error_set(err);
         goto out;
