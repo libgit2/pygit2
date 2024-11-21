@@ -296,6 +296,36 @@ def test_update_tips(emptyrepo):
     assert callbacks.i > 0
 
 
+@utils.requires_network
+def test_ls_remotes_certificate_check():
+    url = 'https://github.com/pygit2/empty.git'
+
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def __init__(self):
+            self.i = 0
+
+        def certificate_check(self, certificate, valid, host):
+            self.i += 1
+
+            assert certificate is None
+            assert valid is True
+            assert host == b'github.com'
+            return True
+
+    # We create an in-memory repository
+    git = pygit2.Repository()
+    remote = git.remotes.create_anonymous(url)
+
+    callbacks = MyCallbacks()
+    refs = remote.ls_remotes(callbacks=callbacks)
+
+    # Sanity check that we indeed got some refs.
+    assert len(refs) > 0
+
+    # Make sure our certificate_check callback triggered.
+    assert callbacks.i > 0
+
+
 @pytest.fixture
 def origin(tmp_path):
     with utils.TemporaryRepository('barerepo.zip', tmp_path) as path:

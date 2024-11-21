@@ -391,6 +391,7 @@ def git_remote_callbacks(payload):
     # Plug callbacks
     cdata.credentials = C._credentials_cb
     cdata.update_tips = C._update_tips_cb
+    cdata.certificate_check = C._certificate_check_cb
     # Payload
     handle = ffi.new_handle(payload)
     cdata.payload = handle
