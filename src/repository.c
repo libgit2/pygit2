@@ -1703,7 +1703,7 @@ PyDoc_STRVAR(Repository_status__doc__,
   "    How to handle untracked files, defaults to \"all\":\n"
   "\n"
   "    - \"no\": do not return untracked files\n"
-  "    - \"normal\": include untracked files/directories but no dot recurse subdirectories\n"
+  "    - \"normal\": include untracked files/directories but do not recurse subdirectories\n"
   "    - \"all\": include all files in untracked directories\n"
   "\n"
   "    Using `untracked_files=\"no\"` or \"normal\"can be faster than \"all\" when the worktree\n"
