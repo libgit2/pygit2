@@ -35,7 +35,7 @@ bstring = b'\xc3master'
 def test_nonunicode_branchname(testrepo):
     folderpath = 'temp_repo_nonutf'
     if os.path.exists(folderpath):
-        shutil.rmdir(folderpath)
+        shutil.rmtree(folderpath)
     newrepo = pygit2.clone_repository(
         path=folderpath, 
         url='https://github.com/pygit2/test_branch_notutf.git'
