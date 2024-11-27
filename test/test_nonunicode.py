@@ -41,7 +41,8 @@ def bstring(request):
 
 
 def test_nonunicode_branchname(testrepo, bstring):
-    testrepo.branches.local.create(bstring.decode("utf8", errors="surrogateescape"),commit=testrepo.head.target)
+    cmd = b"git checkout -b " + bstring
+    subprocess.check_output(cmd.decode('utf8',errors='surrogateescape').split(" "), cwd=testrepo.workdir)
     newrepo = pygit2.clone_repository(
         testrepo.workdir,
         os.path.join(os.path.dirname(testrepo.workdir), "test_nonunicode_repo"),
