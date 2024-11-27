@@ -23,31 +23,24 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Tests for reference objects."""
-
-from pathlib import Path
+"""Tests for non unicode byte strings"""
 
 import pygit2
-import pytest
-import subprocess
 import os
-
-bstring_list = [b"\xc3master"]
-
-
-@pytest.fixture(params=bstring_list)
-def bstring(request):
-    return request.param
+import shutil
 
 
-def test_nonunicode_branchname(testrepo, bstring):
-    cmd = b"git checkout -b " + bstring
-    subprocess.check_output(cmd.decode('utf8',errors='surrogateescape').split(" "), cwd=testrepo.workdir)
+bstring = b'\xc3master'
+
+def test_nonunicode_branchname(testrepo):
+    folderpath = 'temp_repo_nonutf'
+    if os.path.exists(folderpath):
+        shutil.rmdir(folderpath)
     newrepo = pygit2.clone_repository(
-        testrepo.workdir,
-        os.path.join(os.path.dirname(testrepo.workdir), "test_nonunicode_repo"),
-    )
+        path=folderpath, 
+        url='https://github.com/pygit2/test_branch_notutf.git'
+        )
     assert bstring in [
-        branch.encode("utf8", "surrogateescape")
-        for branch in newrepo.listall_branches()
-    ]
+        (ref.split('/')[-1]).encode('utf8', 'surrogateescape')
+        for ref in newrepo.listall_references()
+    ] # Remote branch among references: 'refs/remotes/origin/\udcc3master'
