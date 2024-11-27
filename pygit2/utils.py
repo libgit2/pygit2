@@ -34,16 +34,14 @@ def maybe_string(ptr):
     if not ptr:
         return None
 
-    try:
-        return ffi.string(ptr).decode('utf8')
-    except UnicodeDecodeError:
-        return ffi.string(ptr)
+    return ffi.string(ptr).decode("utf8", errors="surrogateescape")
 
-def to_bytes(s, encoding='utf-8', errors='strict'):
+
+def to_bytes(s, encoding="utf-8", errors="strict"):
     if s == ffi.NULL or s is None:
         return ffi.NULL
 
-    if hasattr(s, '__fspath__'):
+    if hasattr(s, "__fspath__"):
         s = os.fspath(s)
 
     if isinstance(s, bytes):
@@ -53,7 +51,7 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
 
 
 def to_str(s):
-    if hasattr(s, '__fspath__'):
+    if hasattr(s, "__fspath__"):
         s = os.fspath(s)
 
     if type(s) is str:
@@ -71,13 +69,13 @@ def ptr_to_bytes(ptr_cdata):
     to a byte buffer containing the address that the pointer refers to.
     """
 
-    pp = ffi.new('void **', ptr_cdata)
+    pp = ffi.new("void **", ptr_cdata)
     return bytes(ffi.buffer(pp)[:])
 
 
 @contextlib.contextmanager
 def new_git_strarray():
-    strarray = ffi.new('git_strarray *')
+    strarray = ffi.new("git_strarray *")
     yield strarray
     C.git_strarray_dispose(strarray)
 
@@ -90,7 +88,7 @@ def strarray_to_strings(arr):
     calling this function.
     """
     try:
-        return [ffi.string(arr.strings[i]).decode('utf-8') for i in range(arr.count)]
+        return [ffi.string(arr.strings[i]).decode("utf-8") for i in range(arr.count)]
     finally:
         C.git_strarray_dispose(arr)
 
@@ -122,19 +120,19 @@ class StrArray:
             return
 
         if not isinstance(l, (list, tuple)):
-            raise TypeError('Value must be a list')
+            raise TypeError("Value must be a list")
 
         strings = [None] * len(l)
         for i in range(len(l)):
             li = l[i]
-            if not isinstance(li, str) and not hasattr(li, '__fspath__'):
-                raise TypeError('Value must be a string or PathLike object')
+            if not isinstance(li, str) and not hasattr(li, "__fspath__"):
+                raise TypeError("Value must be a string or PathLike object")
 
-            strings[i] = ffi.new('char []', to_bytes(li))
+            strings[i] = ffi.new("char []", to_bytes(li))
 
-        self.__arr = ffi.new('char *[]', strings)
+        self.__arr = ffi.new("char *[]", strings)
         self.__strings = strings
-        self.__array = ffi.new('git_strarray *', [self.__arr, len(strings)])
+        self.__array = ffi.new("git_strarray *", [self.__arr, len(strings)])
 
     def __enter__(self):
         return self
