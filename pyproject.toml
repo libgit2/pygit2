@@ -49,3 +49,7 @@ lint.ignore = [
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.10"
