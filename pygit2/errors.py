@@ -30,7 +30,7 @@ from .ffi import C, ffi
 value_errors = {C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS}
 
 
-def check_error(err, io=False):
+def check_error(err: int, io: bool = False) -> None:
     if err >= 0:
         return
 
@@ -41,7 +41,9 @@ def check_error(err, io=False):
     # Error message
     giterr = C.git_error_last()
     if giterr != ffi.NULL:
-        message = ffi.string(giterr.message).decode('utf8')
+        message = ffi.string(giterr.message)
+        if isinstance(message, bytes):
+            message = message.decode('utf8')
     else:
         message = f'err {err} (no message provided)'
 
@@ -66,6 +68,6 @@ def check_error(err, io=False):
 
 
 # Indicate that we want libgit2 to pretend a function was not set
-class Passthrough(Exception):
+class Passthrough(NotImplementedError):
     def __init__(self):
         super().__init__('The function asked for pass-through')
