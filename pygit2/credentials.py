@@ -23,8 +23,19 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from __future__ import annotations
+
+from typing import Any, Protocol
+
 from .enums import CredentialType
-from .ffi import C
+
+
+class BaseCredentials(Protocol):
+    @property
+    def credential_type(self) -> CredentialType: ...
+    @property
+    def credential_tuple(self) -> tuple[str, ...]: ...
+    def __call__(self, _url: Any, _username: Any, _allowed: Any) -> BaseCredentials: ...
 
 
 class Username:
@@ -34,7 +45,7 @@ class Username:
     callback and for returning from said callback.
     """
 
-    def __init__(self, username):
+    def __init__(self, username: str):
         self._username = username
 
     @property
@@ -45,7 +56,7 @@ class Username:
     def credential_tuple(self):
         return (self._username,)
 
-    def __call__(self, _url, _username, _allowed):
+    def __call__(self, _url: Any, _username: Any, _allowed: Any):
         return self
 
 
@@ -56,7 +67,7 @@ class UserPass:
     callback and for returning from said callback.
     """
 
-    def __init__(self, username, password):
+    def __init__(self, username: str, password: str):
         self._username = username
         self._password = password
 
@@ -68,7 +79,7 @@ class UserPass:
     def credential_tuple(self):
         return (self._username, self._password)
 
-    def __call__(self, _url, _username, _allowed):
+    def __call__(self, _url: Any, _username: Any, _allowed: Any):
         return self
 
 
@@ -95,7 +106,13 @@ class Keypair:
         no passphrase is required.
     """
 
-    def __init__(self, username, pubkey, privkey, passphrase):
+    def __init__(
+        self,
+        username: str,
+        pubkey: str | None,
+        privkey: str | None,
+        passphrase: str | None,
+    ):
         self._username = username
         self._pubkey = pubkey
         self._privkey = privkey
@@ -109,12 +126,12 @@ class Keypair:
     def credential_tuple(self):
         return (self._username, self._pubkey, self._privkey, self._passphrase)
 
-    def __call__(self, _url, _username, _allowed):
+    def __call__(self, _url: Any, _username: Any, _allowed: Any):
         return self
 
 
 class KeypairFromAgent(Keypair):
-    def __init__(self, username):
+    def __init__(self, username: str):
         super().__init__(username, None, None, None)
 
 
