@@ -33,6 +33,18 @@ extend-exclude = [
     "build",
     "venv*",
 ]
+lint.select = ["C", "E", "W", "F", "I", "B", "C4", "ARG", "SIM", "PTH", "PL", "TID"]
+lint.ignore = [
+    "W291",    # Trailing whitespace
+    "E501",    # Line too long
+    "W293",    # Blank line contains whitespace
+    "PLR0912", # Too many branches
+    "PLR2004", # Magic values
+    "PLR0915", # Too many statements
+    "PLW0603", # Global statement
+    "PLR0913", # Too many arguments
+    "B010",    # setattr
+]
 
 [tool.ruff.format]
 quote-style = "single"
