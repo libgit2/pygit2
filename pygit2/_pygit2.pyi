@@ -11,6 +11,8 @@ from .enums import (
     DiffOption,
     DiffStatsFormat,
     FileMode,
+    FilterFlag,
+    FilterMode,
     MergeAnalysis,
     MergePreference,
     ObjectType,
@@ -802,6 +804,14 @@ class Worktree:
     name: str
     path: str
     def prune(self, force: bool = False) -> None: ...
+
+class FilterSource:
+    filemode: int
+    flags: FilterFlag
+    mode: FilterMode
+    oid: Oid | None
+    path: str
+    repo: Repository
 
 def discover_repository(
     path: str, across_fs: bool = False, ceiling_dirs: str = ...
