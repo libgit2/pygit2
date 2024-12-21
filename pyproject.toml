@@ -66,6 +66,7 @@ lint.ignore = [
     "PLW0603", # Global statement
     "PLR0913", # Too many arguments
     "B010",    # setattr
+    "F401"     # unused imports
 ]
 
 [tool.ruff.format]
