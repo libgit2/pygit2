@@ -23,21 +23,33 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from __future__ import annotations
+
 import contextlib
 import os
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 # Import from pygit2
 from .ffi import C, ffi
 
+if TYPE_CHECKING:
+    from _typeshed import SupportsLenAndGetItem
 
-def maybe_string(ptr):
+_T = TypeVar('_T')
+
+
+def maybe_string(ptr: Any) -> str | None:
     if not ptr:
         return None
 
-    return ffi.string(ptr).decode('utf8')
+    out = ffi.string(ptr)
+    if isinstance(out, bytes):
+        out = out.decode('utf8')
+    return out
 
 
-def to_bytes(s, encoding='utf-8', errors='strict'):
+def to_bytes(s: Any, encoding: str = 'utf-8', errors: str = 'strict') -> bytes | Any:
     if s == ffi.NULL or s is None:
         return ffi.NULL
 
@@ -50,27 +62,27 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
     return s.encode(encoding, errors)
 
 
-def to_str(s):
+def to_str(s: Any) -> str:
     if hasattr(s, '__fspath__'):
         s = os.fspath(s)
 
-    if type(s) is str:
+    if isinstance(s, str):
         return s
 
-    if type(s) is bytes:
+    if isinstance(s, bytes):
         return s.decode()
 
     raise TypeError(f'unexpected type "{repr(s)}"')
 
 
-def ptr_to_bytes(ptr_cdata):
+def ptr_to_bytes(ptr_cdata: Any) -> bytes:
     """
     Convert a pointer coming from C code (<cdata 'some_type *'>)
     to a byte buffer containing the address that the pointer refers to.
     """
 
     pp = ffi.new('void **', ptr_cdata)
-    return bytes(ffi.buffer(pp)[:])
+    return bytes(ffi.buffer(pp)[:])  # type: ignore
 
 
 @contextlib.contextmanager
@@ -80,7 +92,7 @@ def new_git_strarray():
     C.git_strarray_dispose(strarray)
 
 
-def strarray_to_strings(arr):
+def strarray_to_strings(arr: Any) -> list[str]:
     """
     Return a list of strings from a git_strarray pointer.
 
@@ -88,7 +100,7 @@ def strarray_to_strings(arr):
     calling this function.
     """
     try:
-        return [ffi.string(arr.strings[i]).decode('utf-8') for i in range(arr.count)]
+        return [ffi.string(arr.strings[i]).decode('utf-8') for i in range(arr.count)]  # type: ignore
     finally:
         C.git_strarray_dispose(arr)
 
@@ -113,18 +125,20 @@ class StrArray:
     contents of 'struct' only remain valid within the StrArray context.
     """
 
-    def __init__(self, l):
+    def __init__(self, listarg: Any):
         # Allow passing in None as lg2 typically considers them the same as empty
-        if l is None:
+        if listarg is None:
             self.__array = ffi.NULL
             return
 
-        if not isinstance(l, (list, tuple)):
+        if not isinstance(listarg, (list, tuple)):
             raise TypeError('Value must be a list')
 
-        strings = [None] * len(l)
-        for i in range(len(l)):
-            li = l[i]
+        listarg = cast(list[Any], listarg)
+
+        strings: list[Any] = [None] * len(listarg)
+        for i in range(len(listarg)):
+            li = listarg[i]
             if not isinstance(li, str) and not hasattr(li, '__fspath__'):
                 raise TypeError('Value must be a string or PathLike object')
 
@@ -137,14 +151,16 @@ class StrArray:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(
+        self, type: type[BaseException], value: BaseException, traceback: TracebackType
+    ) -> None:
         pass
 
     @property
     def ptr(self):
         return self.__array
 
-    def assign_to(self, git_strarray):
+    def assign_to(self, git_strarray: Any):
         if self.__array == ffi.NULL:
             git_strarray.strings = ffi.NULL
             git_strarray.count = 0
@@ -153,22 +169,22 @@ class StrArray:
             git_strarray.count = len(self.__strings)
 
 
-class GenericIterator:
+class GenericIterator(Generic[_T]):
     """Helper to easily implement an iterator.
 
     The constructor gets a container which must implement __len__ and
     __getitem__
     """
 
-    def __init__(self, container):
+    def __init__(self, container: SupportsLenAndGetItem[_T]):
         self.container = container
         self.length = len(container)
         self.idx = 0
 
-    def next(self):
+    def next(self) -> _T:
         return self.__next__()
 
-    def __next__(self):
+    def __next__(self) -> _T:
         idx = self.idx
         if idx >= self.length:
             raise StopIteration
