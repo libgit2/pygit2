@@ -27,12 +27,13 @@
 
 from pathlib import Path
 
-import pygit2
 import pytest
 
-from . import utils
-from pygit2.enums import SubmoduleIgnore as SI, SubmoduleStatus as SS
+import pygit2
+from pygit2.enums import SubmoduleIgnore as SI
+from pygit2.enums import SubmoduleStatus as SS
 
+from . import utils
 
 SUBM_NAME = 'TestGitRepository'
 SUBM_PATH = 'TestGitRepository'
@@ -108,17 +109,17 @@ def test_submodule_open_from_repository_subclass(repo):
 
 def test_name(repo):
     s = repo.submodules[SUBM_PATH]
-    assert SUBM_NAME == s.name
+    assert s.name == SUBM_NAME
 
 
 def test_path(repo):
     s = repo.submodules[SUBM_PATH]
-    assert SUBM_PATH == s.path
+    assert s.path == SUBM_PATH
 
 
 def test_url(repo):
     s = repo.submodules[SUBM_PATH]
-    assert SUBM_URL == s.url
+    assert s.url == SUBM_URL
 
 
 def test_missing_url(repo):
@@ -239,7 +240,7 @@ def test_add_submodule(repo, depth):
 
     sm_repo = sm.open()
     assert sm_repo_path == sm.path
-    assert SUBM_URL == sm.url
+    assert sm.url == SUBM_URL
     assert not sm_repo.is_empty
 
     if depth == 0:

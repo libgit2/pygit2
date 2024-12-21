@@ -30,8 +30,9 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import Repository, Index, Oid
+from pygit2 import Index, Oid, Repository
 from pygit2.enums import FileMode
+
 from . import utils
 
 
@@ -164,7 +165,7 @@ def test_iter(testrepo):
 
     # Compare SHAs, not IndexEntry object identity
     entries = [index[x].id for x in range(n)]
-    assert list(x.id for x in index) == entries
+    assert [x.id for x in index] == entries
 
 
 def test_mode(testrepo):
@@ -224,9 +225,9 @@ def test_change_attributes(testrepo):
     entry.path = 'foo.txt'
     entry.id = ign_entry.id
     entry.mode = FileMode.BLOB_EXECUTABLE
-    assert 'foo.txt' == entry.path
+    assert entry.path == 'foo.txt'
     assert ign_entry.id == entry.id
-    assert FileMode.BLOB_EXECUTABLE == entry.mode
+    assert entry.mode == FileMode.BLOB_EXECUTABLE
 
 
 def test_write_tree_to(testrepo, tmp_path):
@@ -242,7 +243,7 @@ def test_create_entry(testrepo):
     hello_entry = index['hello.txt']
     entry = pygit2.IndexEntry('README.md', hello_entry.id, hello_entry.mode)
     index.add(entry)
-    assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == index.write_tree()
+    assert index.write_tree() == '60e769e57ae1d6a2ab75d8d253139e6260e1f912'
 
 
 def test_create_entry_aspath(testrepo):

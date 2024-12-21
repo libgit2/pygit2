@@ -27,9 +27,8 @@
 
 import pytest
 
-from pygit2 import Tree, Tag
+from pygit2 import Tag, Tree
 from pygit2.enums import ObjectType
-
 
 BLOB_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
 BLOB_CONTENT = """hello world
@@ -48,7 +47,7 @@ def test_equality(testrepo):
 
     assert commit_a is not commit_b
     assert commit_a == commit_b
-    assert not (commit_a != commit_b)
+    assert commit_a == commit_b
 
 
 def test_hashing(testrepo):

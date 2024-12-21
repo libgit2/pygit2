@@ -29,6 +29,7 @@ from pathlib import Path
 
 import pygit2
 from pygit2 import PackBuilder
+
 from . import utils
 
 
@@ -41,7 +42,7 @@ def test_create_packbuilder(testrepo):
 def test_add(testrepo):
     # Add a few objects and confirm that the count is correct
     packbuilder = PackBuilder(testrepo)
-    objects_to_add = [obj for obj in testrepo]
+    objects_to_add = list(testrepo)
     packbuilder.add(objects_to_add[0])
     assert len(packbuilder) == 1
     packbuilder.add(objects_to_add[1])
@@ -98,14 +99,14 @@ def confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate):
 
     # assert that the number of written objects is the same as the number of objects in the repo
     written_objects = testrepo.pack(pack_path, pack_delegate=pack_delegate)
-    assert written_objects == len([obj for obj in testrepo])
+    assert written_objects == len(list(testrepo))
 
     # assert that the number of objects in the pack repo is the same as the original repo
-    orig_objects = [obj for obj in testrepo.odb]
-    packed_objects = [obj for obj in pack_repo.odb]
+    orig_objects = list(testrepo.odb)
+    packed_objects = list(pack_repo.odb)
     assert len(packed_objects) == len(orig_objects)
 
     # assert that the objects in the packed repo are the same objects as the original repo
-    for i, obj in enumerate(orig_objects):
+    for _i, obj in enumerate(orig_objects):
         assert pack_repo[obj].type == testrepo[obj].type
         assert pack_repo[obj].read_raw() == testrepo[obj].read_raw()

@@ -29,8 +29,8 @@ This is an special module, it provides stuff used by by pygit2 at run-time.
 
 # Import from the Standard Library
 import codecs
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Import from cffi
 from cffi import FFI

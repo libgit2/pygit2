@@ -34,8 +34,8 @@ import pytest
 # pygit2
 import pygit2
 from pygit2.enums import ObjectType
-from . import utils
 
+from . import utils
 
 BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
@@ -106,7 +106,7 @@ def proxy(barerepo):
 
 
 def test_iterable(proxy):
-    assert BLOB_HEX in [o for o in proxy]
+    assert BLOB_HEX in list(proxy)
 
 
 def test_read(proxy):
@@ -117,13 +117,13 @@ def test_read(proxy):
     ab = proxy.read(BLOB_OID)
     a = proxy.read(BLOB_HEX)
     assert ab == a
-    assert (ObjectType.BLOB, b'a contents\n') == a
+    assert a == (ObjectType.BLOB, b'a contents\n')
 
 
 def test_read_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
     a3 = proxy.read_prefix(a_hex_prefix)
-    assert (ObjectType.BLOB, b'a contents\n', BLOB_OID) == a3
+    assert a3 == (ObjectType.BLOB, b'a contents\n', BLOB_OID)
 
 
 def test_exists(proxy):
@@ -136,7 +136,7 @@ def test_exists(proxy):
 
 def test_exists_prefix(proxy):
     a_hex_prefix = BLOB_HEX[:4]
-    assert BLOB_HEX == proxy.exists_prefix(a_hex_prefix)
+    assert proxy.exists_prefix(a_hex_prefix) == BLOB_HEX
 
 
 #

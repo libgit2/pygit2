@@ -25,16 +25,16 @@
 
 """Tests for credentials"""
 
-from pathlib import Path
 import platform
+from pathlib import Path
 
 import pytest
 
 import pygit2
-from pygit2 import Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
+from pygit2 import Keypair, KeypairFromAgent, KeypairFromMemory, Username, UserPass
 from pygit2.enums import CredentialType
-from . import utils
 
+from . import utils
 
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'

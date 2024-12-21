@@ -56,10 +56,10 @@ Pc${NM&PdElPvrst3ey5{
 
 def test_binary_diff(repo):
     diff = repo.diff('HEAD', 'HEAD^')
-    assert PATCH_BINARY == diff.patch
+    assert diff.patch == PATCH_BINARY
     diff = repo.diff('HEAD', 'HEAD^', flags=DiffOption.SHOW_BINARY)
-    assert PATCH_BINARY_SHOW == diff.patch
+    assert diff.patch == PATCH_BINARY_SHOW
     diff = repo.diff(b'HEAD', b'HEAD^')
-    assert PATCH_BINARY == diff.patch
+    assert diff.patch == PATCH_BINARY
     diff = repo.diff(b'HEAD', b'HEAD^', flags=DiffOption.SHOW_BINARY)
-    assert PATCH_BINARY_SHOW == diff.patch
+    assert diff.patch == PATCH_BINARY_SHOW

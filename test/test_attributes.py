@@ -38,7 +38,7 @@ def test_no_attr(testrepo):
     assert testrepo.get_attr('file.py', 'foo') is None
     assert testrepo.get_attr('file.py', 'text')
     assert not testrepo.get_attr('file.jpg', 'text')
-    assert 'lf' == testrepo.get_attr('file.sh', 'eol')
+    assert testrepo.get_attr('file.sh', 'eol') == 'lf'
 
 
 def test_no_attr_aspath(testrepo):

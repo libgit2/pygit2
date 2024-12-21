@@ -29,8 +29,10 @@ except ImportError:
     from cached_property import cached_property
 
 # Import from pygit2
+import contextlib
+
 from .errors import check_error
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .utils import to_bytes
 
 
@@ -96,10 +98,8 @@ class Config:
         return config
 
     def __del__(self):
-        try:
+        with contextlib.suppress(AttributeError):
             C.git_config_free(self._config)
-        except AttributeError:
-            pass
 
     def _get(self, key):
         key = str_to_bytes(key, 'key')

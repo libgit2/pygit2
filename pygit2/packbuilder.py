@@ -26,7 +26,7 @@
 
 # Import from pygit2
 from .errors import check_error
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .utils import to_bytes
 
 

@@ -24,8 +24,8 @@
 # Boston, MA 02110-1301, USA.
 
 import pytest
-from pygit2.enums import BranchType
 
+from pygit2.enums import BranchType
 
 ORIGIN_MASTER_COMMIT = '784855caf26449a1914d2cf62d12b9374d76ae78'
 

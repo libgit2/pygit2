@@ -25,24 +25,31 @@
 
 # Standard Library
 import functools
-from os import PathLike
 import typing
-
-# Low level API
-from ._pygit2 import *
-from ._pygit2 import _cache_enums
+from os import PathLike
 
 # High level API
 from . import enums
 from ._build import __version__
+
+# Low level API
+from ._pygit2 import *
+from ._pygit2 import _cache_enums
 from .blame import Blame, BlameHunk
 from .blob import BlobIO
-from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCallbacks
-from .callbacks import git_clone_options, git_fetch_options, get_credentials
+from .callbacks import (
+    CheckoutCallbacks,
+    Payload,
+    RemoteCallbacks,
+    StashApplyCallbacks,
+    get_credentials,
+    git_clone_options,
+    git_fetch_options,
+)
 from .config import Config
 from .credentials import *
-from .errors import check_error, Passthrough
-from .ffi import ffi, C
+from .errors import Passthrough, check_error
+from .ffi import C, ffi
 from .filter import Filter
 from .index import Index, IndexEntry
 from .legacyenums import *
@@ -52,7 +59,6 @@ from .repository import Repository
 from .settings import Settings
 from .submodules import Submodule
 from .utils import to_bytes, to_str
-
 
 # Features
 features = enums.Feature(C.git_libgit2_features())

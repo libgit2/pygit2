@@ -1,5 +1,6 @@
-from typing import Iterator, Literal, Optional, overload
 from io import IOBase
+from typing import Iterator, Literal, Optional, overload
+
 from . import Index
 from .enums import (
     ApplyLocation,

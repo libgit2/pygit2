@@ -24,9 +24,9 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from .ffi import ffi, C
+from ._pygit2 import Oid, Signature
+from .ffi import C, ffi
 from .utils import GenericIterator
-from ._pygit2 import Signature, Oid
 
 
 def wrap_signature(csig):

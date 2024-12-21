@@ -68,12 +68,11 @@ from functools import wraps
 from typing import Optional, Union
 
 # pygit2
-from ._pygit2 import Oid, DiffFile
+from ._pygit2 import DiffFile, Oid
 from .enums import CheckoutNotify, CheckoutStrategy, CredentialType, StashApplyProgress
-from .errors import check_error, Passthrough
-from .ffi import ffi, C
-from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
-
+from .errors import Passthrough, check_error
+from .ffi import C, ffi
+from .utils import StrArray, maybe_string, ptr_to_bytes, to_bytes
 
 #
 # The payload is the way to pass information from the pygit2 API, through
@@ -471,9 +470,7 @@ def _certificate_check_cb(cert_i, valid, host, data):
         if not val:
             return C.GIT_ECERTIFICATE
     except Passthrough:
-        if is_ssh:
-            return 0
-        elif valid:
+        if is_ssh or valid:
             return 0
         else:
             return C.GIT_ECERTIFICATE
@@ -669,10 +666,7 @@ def _git_checkout_options(
     paths=None,
     c_checkout_options_ptr=None,
 ):
-    if callbacks is None:
-        payload = CheckoutCallbacks()
-    else:
-        payload = callbacks
+    payload = CheckoutCallbacks() if callbacks is None else callbacks
 
     # Get handle to payload
     handle = ffi.new_handle(payload)

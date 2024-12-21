@@ -1,5 +1,6 @@
-from io import BytesIO
 import codecs
+from io import BytesIO
+
 import pytest
 
 import pygit2
@@ -75,44 +76,44 @@ def test_filter(testrepo, rot13_filter):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'olr jbeyq\n' == blob.data
+    assert blob.data == b'olr jbeyq\n'
     with pygit2.BlobIO(blob) as reader:
-        assert b'olr jbeyq\n' == reader.read()
+        assert reader.read() == b'olr jbeyq\n'
     with pygit2.BlobIO(blob, as_path='bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
 
 
 def test_filter_buffered(testrepo, buffered_filter):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'olr jbeyq\n' == blob.data
+    assert blob.data == b'olr jbeyq\n'
     with pygit2.BlobIO(blob) as reader:
-        assert b'olr jbeyq\n' == reader.read()
+        assert reader.read() == b'olr jbeyq\n'
     with pygit2.BlobIO(blob, 'bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
 
 
 def test_filter_passthrough(testrepo, passthrough_filter):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'bye world\n' == blob.data
+    assert blob.data == b'bye world\n'
     with pygit2.BlobIO(blob) as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
     with pygit2.BlobIO(blob, 'bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
 
 
 def test_filter_unmatched(testrepo, unmatched_filter):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'bye world\n' == blob.data
+    assert blob.data == b'bye world\n'
     with pygit2.BlobIO(blob) as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
     with pygit2.BlobIO(blob, as_path='bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
 
 
 def test_filter_cleanup(dirtyrepo, rot13_filter):

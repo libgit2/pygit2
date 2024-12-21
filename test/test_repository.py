@@ -23,16 +23,15 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 
 import pytest
 
 # pygit2
 import pygit2
-from pygit2 import init_repository, clone_repository, discover_repository
-from pygit2 import Oid
+from pygit2 import Oid, clone_repository, discover_repository, init_repository
 from pygit2.enums import (
     CheckoutNotify,
     CheckoutStrategy,
@@ -43,6 +42,7 @@ from pygit2.enums import (
     ResetMode,
     StashApplyProgress,
 )
+
 from . import utils
 
 
@@ -151,7 +151,7 @@ def test_checkout_aborted_from_callbacks(testrepo):
     head = testrepo.head
     head = testrepo[head.target]
     assert 'new' not in head.tree
-    assert b'bye world\n' == read_bye_txt()
+    assert read_bye_txt() == b'bye world\n'
     callbacks = MyCheckoutCallbacks()
 
     # checkout i18n with GIT_CHECKOUT_FORCE - callbacks should prevent checkout from completing
@@ -162,7 +162,7 @@ def test_checkout_aborted_from_callbacks(testrepo):
 
     assert callbacks.invoked_times == 2
     assert 'new' not in head.tree
-    assert b'bye world\n' == read_bye_txt()
+    assert read_bye_txt() == b'bye world\n'
 
 
 def test_checkout_branch(testrepo):
@@ -219,7 +219,7 @@ def test_checkout_alternative_dir(testrepo):
     extra_dir.mkdir()
     assert len(list(extra_dir.iterdir())) == 0
     testrepo.checkout(ref_i18n, directory=extra_dir)
-    assert not len(list(extra_dir.iterdir())) == 0
+    assert len(list(extra_dir.iterdir())) != 0
 
 
 def test_checkout_paths(testrepo):
@@ -277,15 +277,15 @@ def test_ahead_behind(testrepo):
         '5ebeeebb320790caf276b9fc8b24546d63316533',
         '4ec4389a8068641da2d6578db0419484972284c8',
     )
-    assert 1 == ahead
-    assert 2 == behind
+    assert ahead == 1
+    assert behind == 2
 
     ahead, behind = testrepo.ahead_behind(
         '4ec4389a8068641da2d6578db0419484972284c8',
         '5ebeeebb320790caf276b9fc8b24546d63316533',
     )
-    assert 2 == ahead
-    assert 1 == behind
+    assert ahead == 2
+    assert behind == 1
 
 
 def test_reset_hard(testrepo):
@@ -360,7 +360,7 @@ def test_stash(testrepo):
     )
 
     # make sure we're starting with no stashes
-    assert [] == testrepo.listall_stashes()
+    assert testrepo.listall_stashes() == []
 
     # some changes to working dir
     with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
@@ -370,7 +370,7 @@ def test_stash(testrepo):
     assert 'hello.txt' not in testrepo.status()
 
     repo_stashes = testrepo.listall_stashes()
-    assert 1 == len(repo_stashes)
+    assert len(repo_stashes) == 1
     assert repr(repo_stashes[0]) == f'<pygit2.Stash{{{stash_hash}}}>'
     assert repo_stashes[0].commit_id == stash_hash
     assert repo_stashes[0].message == 'On master: ' + stash_message
@@ -380,7 +380,7 @@ def test_stash(testrepo):
     assert repo_stashes == testrepo.listall_stashes()  # still the same stashes
 
     testrepo.stash_drop()
-    assert [] == testrepo.listall_stashes()
+    assert testrepo.listall_stashes() == []
 
     with pytest.raises(KeyError):
         testrepo.stash_pop()
@@ -393,7 +393,7 @@ def test_stash_partial(testrepo):
     )
 
     # make sure we're starting with no stashes
-    assert [] == testrepo.listall_stashes()
+    assert testrepo.listall_stashes() == []
 
     # some changes to working dir
     with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
@@ -411,7 +411,7 @@ def test_stash_partial(testrepo):
         )
         stash_commit = testrepo[stash_id].peel(pygit2.Commit)
         stash_diff = testrepo.diff(stash_commit.parents[0], stash_commit)
-        stash_files = set(patch.delta.new_file.path for patch in stash_diff)
+        stash_files = {patch.delta.new_file.path for patch in stash_diff}
         return stash_files == set(paths)
 
     # Stash a modified file
@@ -492,7 +492,7 @@ def test_stash_aborted_from_callbacks(testrepo):
 
     # and since we didn't let stash_pop run to completion, the stash itself should still be here
     repo_stashes = testrepo.listall_stashes()
-    assert 1 == len(repo_stashes)
+    assert len(repo_stashes) == 1
     assert repo_stashes[0].message == 'On master: custom stash message'
 
 
@@ -579,8 +579,8 @@ def test_default_signature(testrepo):
     config['user.email'] = 'rjh@example.com'
 
     sig = testrepo.default_signature
-    assert 'Random J Hacker' == sig.name
-    assert 'rjh@example.com' == sig.email
+    assert sig.name == 'Random J Hacker'
+    assert sig.email == 'rjh@example.com'
 
 
 def test_new_repo(tmp_path):

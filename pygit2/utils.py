@@ -27,7 +27,7 @@ import contextlib
 import os
 
 # Import from pygit2
-from .ffi import ffi, C
+from .ffi import C, ffi
 
 
 def maybe_string(ptr):

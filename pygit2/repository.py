@@ -23,19 +23,28 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import tarfile
+import typing
 from io import BytesIO
 from os import PathLike
 from string import hexdigits
 from time import time
-import tarfile
-import typing
+
+from ._pygit2 import (
+    GIT_OID_HEXSZ,
+    GIT_OID_MINPREFIXLEN,
+    Blob,
+    Commit,
+    InvalidSpecError,
+    Oid,
+    Reference,
+    Signature,
+    Tree,
+    init_file_backend,
+)
 
 # Import from pygit2
-from ._pygit2 import Repository as _Repository, init_file_backend
-from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from ._pygit2 import Reference, Tree, Commit, Blob, Signature
-from ._pygit2 import InvalidSpecError
-
+from ._pygit2 import Repository as _Repository
 from .blame import Blame
 from .branches import Branches
 from .callbacks import git_checkout_options, git_stash_apply_options
@@ -56,13 +65,13 @@ from .enums import (
     RepositoryState,
 )
 from .errors import check_error
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .index import Index, IndexEntry
 from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
-from .utils import to_bytes, StrArray
+from .utils import StrArray, to_bytes
 
 
 class BaseRepository(_Repository):
@@ -167,10 +176,7 @@ class BaseRepository(_Repository):
         """
         c_path = to_bytes(path)
 
-        if as_path is None:
-            c_as_path = ffi.NULL
-        else:
-            c_as_path = to_bytes(as_path)
+        c_as_path = ffi.NULL if as_path is None else to_bytes(as_path)
 
         c_oid = ffi.new('git_oid *')
 
@@ -271,11 +277,11 @@ class BaseRepository(_Repository):
 
     def listall_references(self) -> typing.List[str]:
         """Return a list with all the references in the repository."""
-        return list(x.name for x in self.references.iterator())
+        return [x.name for x in self.references.iterator()]
 
     def listall_reference_objects(self) -> typing.List[Reference]:
         """Return a list with all the reference objects in the repository."""
-        return list(x for x in self.references.iterator())
+        return list(self.references.iterator())
 
     def resolve_refish(self, refish):
         """Convert a reference-like short name "ref-ish" to a valid
@@ -435,7 +441,7 @@ class BaseRepository(_Repository):
             return None
 
         # If it's a string, then it has to be valid revspec
-        if isinstance(obj, str) or isinstance(obj, bytes):
+        if isinstance(obj, (str, bytes)):
             obj = self.revparse_single(obj)
         elif isinstance(obj, Oid):
             obj = self[obj]
@@ -527,7 +533,7 @@ class BaseRepository(_Repository):
 
         # Case 1: Diff tree to tree
         if isinstance(a, Tree) and isinstance(b, Tree):
-            return a.diff_to_tree(b, **dict(zip(opt_keys, opt_values)))
+            return a.diff_to_tree(b, **dict(zip(opt_keys, opt_values, strict=False)))
 
         # Case 2: Index to workdir
         elif a is None and b is None:
@@ -1370,7 +1376,7 @@ class BaseRepository(_Repository):
         elif attr_kind == C.GIT_ATTR_VALUE_STRING:
             return ffi.string(cvalue[0]).decode('utf-8')
 
-        assert False, 'the attribute value from libgit2 is invalid'
+        raise AssertionError('the attribute value from libgit2 is invalid')
 
     #
     # Identity for reference operations

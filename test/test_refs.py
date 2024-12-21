@@ -29,10 +29,16 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import Commit, Signature, Tree, reference_is_valid_name
-from pygit2 import AlreadyExistsError, GitError, InvalidSpecError
+from pygit2 import (
+    AlreadyExistsError,
+    Commit,
+    GitError,
+    InvalidSpecError,
+    Signature,
+    Tree,
+    reference_is_valid_name,
+)
 from pygit2.enums import ReferenceType
-
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
@@ -60,8 +66,8 @@ def test_refs_list(testrepo):
 
 def test_head(testrepo):
     head = testrepo.head
-    assert LAST_COMMIT == testrepo[head.target].id
-    assert LAST_COMMIT == testrepo[head.raw_target].id
+    assert testrepo[head.target].id == LAST_COMMIT
+    assert testrepo[head.raw_target].id == LAST_COMMIT
 
 
 def test_refs_getitem(testrepo):
@@ -150,11 +156,11 @@ def test_refs_delete(testrepo):
 
     # Access the deleted reference
     with pytest.raises(GitError):
-        getattr(reference, 'name')
+        reference.name
     with pytest.raises(GitError):
-        getattr(reference, 'type')
+        reference.type
     with pytest.raises(GitError):
-        getattr(reference, 'target')
+        reference.target
     with pytest.raises(GitError):
         reference.delete()
     with pytest.raises(GitError):
@@ -261,10 +267,10 @@ def test_refs_equality(testrepo):
 
     assert ref1 is not ref2
     assert ref1 == ref2
-    assert not ref1 != ref2
+    assert ref1 == ref2
 
     assert ref1 != ref3
-    assert not ref1 == ref3
+    assert ref1 != ref3
 
 
 def test_refs_compress(testrepo):
@@ -583,11 +589,11 @@ def test_delete(testrepo):
 
     # Access the deleted reference
     with pytest.raises(GitError):
-        getattr(reference, 'name')
+        reference.name
     with pytest.raises(GitError):
-        getattr(reference, 'type')
+        reference.type
     with pytest.raises(GitError):
-        getattr(reference, 'target')
+        reference.target
     with pytest.raises(GitError):
         reference.delete()
     with pytest.raises(GitError):
