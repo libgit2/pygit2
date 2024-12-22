@@ -823,7 +823,7 @@ _cache_enums()
 
 
 def init_repository(
-    path: typing.Union[str, bytes, PathLike, None],
+    path: typing.Union[str, bytes, PathLike[str], PathLike[bytes], None],
     bare: bool = False,
     flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
     mode: typing.Union[
@@ -901,15 +901,15 @@ def init_repository(
 
 
 def clone_repository(
-    url,
-    path,
-    bare=False,
-    repository=None,
-    remote=None,
-    checkout_branch=None,
-    callbacks=None,
-    depth=0,
-):
+    url: str,
+    path: str,
+    bare: bool = False,
+    repository: typing.Callable[[str, bool], Repository] | None = None,
+    remote: typing.Callable[[Repository, str, str], Remote] | None = None,
+    checkout_branch: str | None = None,
+    callbacks: RemoteCallbacks | None = None,
+    depth: int = 0,
+) -> Repository:
     """
     Clones a new Git repository from *url* in the given *path*.
 
