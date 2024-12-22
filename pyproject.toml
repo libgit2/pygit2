@@ -54,6 +54,7 @@ lint.ignore = [
     "B010",    # setattr
     "F401",    # unused imports
     "ARG002",  # unused arguments
+    "SIM105",  # try-except-pass
 ]
 
 [tool.ruff.format]
