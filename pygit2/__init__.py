@@ -33,7 +33,6 @@ from . import enums
 from ._build import __version__
 
 # Low level API
-from ._pygit2 import *
 from ._pygit2 import (
     GIT_APPLY_LOCATION_BOTH,
     GIT_APPLY_LOCATION_INDEX,
