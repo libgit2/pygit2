@@ -28,18 +28,20 @@ from __future__ import annotations
 import contextlib
 import os
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeAlias, TypeVar, cast, overload
 
 # Import from pygit2
 from .ffi import C, ffi
 
 if TYPE_CHECKING:
+    from _cffi_backend import _CDataBase as CData
     from _typeshed import SupportsLenAndGetItem
 
 _T = TypeVar('_T')
+StrOrBytesOrPathLike: TypeAlias = str | bytes | os.PathLike[str] | os.PathLike[bytes]
 
 
-def maybe_string(ptr: Any) -> str | None:
+def maybe_string(ptr: CData | Any) -> str | None:
     if not ptr:
         return None
 
@@ -49,20 +51,33 @@ def maybe_string(ptr: Any) -> str | None:
     return out
 
 
-def to_bytes(s: Any, encoding: str = 'utf-8', errors: str = 'strict') -> bytes | Any:
+# Cannot describe ffi.NULL, so using CData
+
+
+@overload
+def to_bytes(s: CData | None) -> CData: ...
+@overload
+def to_bytes(s: StrOrBytesOrPathLike) -> bytes: ...
+
+
+def to_bytes(
+    s: StrOrBytesOrPathLike | CData | None,
+    encoding: str = 'utf-8',
+    errors: str = 'strict',
+) -> bytes | CData:
     if s == ffi.NULL or s is None:
         return ffi.NULL
 
-    if hasattr(s, '__fspath__'):
+    if isinstance(s, os.PathLike):
         s = os.fspath(s)
 
     if isinstance(s, bytes):
         return s
 
-    return s.encode(encoding, errors)
+    return cast(str, s).encode(encoding, errors)
 
 
-def to_str(s: Any) -> str:
+def to_str(s: StrOrBytesOrPathLike) -> str:
     if hasattr(s, '__fspath__'):
         s = os.fspath(s)
 
@@ -75,14 +90,18 @@ def to_str(s: Any) -> str:
     raise TypeError(f'unexpected type "{repr(s)}"')
 
 
+def buffer_to_bytes(cdata: CData) -> bytes:
+    buf = ffi.buffer(cdata)
+    return cast(bytes, buf[:])
+
+
 def ptr_to_bytes(ptr_cdata: Any) -> bytes:
     """
     Convert a pointer coming from C code (<cdata 'some_type *'>)
     to a byte buffer containing the address that the pointer refers to.
     """
 
-    pp = ffi.new('void **', ptr_cdata)
-    return bytes(ffi.buffer(pp)[:])  # type: ignore
+    return buffer_to_bytes(ffi.new('void **', ptr_cdata))
 
 
 @contextlib.contextmanager
