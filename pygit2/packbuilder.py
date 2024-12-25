@@ -23,17 +23,18 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 # Import from pygit2
-
-from typing import Any
-
 from ._pygit2 import Oid
 from .errors import check_error
 from .ffi import C, ffi
-from .repository import BaseRepository
 from .utils import StrOrBytesOrPathLike, buffer_to_bytes, to_bytes
 
+if TYPE_CHECKING:
+    from .repository import BaseRepository
 
 class PackBuilder:
     def __init__(self, repo: BaseRepository):
