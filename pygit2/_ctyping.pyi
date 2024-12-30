@@ -21,7 +21,15 @@ class _CHunk(CData):
     final_start_line_number: int
     lines_in_hunk: int
     orig_commit_id: _COid
-    orig_path: str
+    orig_path: _CDataBase
     orig_signature: _CSignature
     orig_start_line_number: int
 
+class _CConfigEntry(CData):
+    backend_type: _CDataBase
+    free: _CDataBase
+    include_depth: int
+    level: int
+    name: _CDataBase
+    origin_path: _CDataBase
+    value: _CDataBase
