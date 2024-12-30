@@ -1,4 +1,6 @@
-from io import IOBase
+import queue
+import threading
+from io import DEFAULT_BUFFER_SIZE, IOBase
 from typing import Any, Callable, Iterator, Literal, Optional, TypeAlias, overload
 
 from pygit2.filter import Filter
@@ -6,6 +8,7 @@ from pygit2.filter import Filter
 from . import Index
 from .enums import (
     ApplyLocation,
+    BlobFilter,
     BranchType,
     DeltaStatus,
     DiffFind,
@@ -363,6 +366,16 @@ class Blob(Object):
         old_as_path: str = ...,
         buffer_as_path: str = ...,
     ) -> Patch: ...
+    def _write_to_queue(
+        self,
+        queue: queue.Queue[bytes | None],
+        closed: threading.Event,
+        chunk_size: int = DEFAULT_BUFFER_SIZE,
+        *,
+        as_path: str | None = None,
+        flags: BlobFilter = BlobFilter.CHECK_FOR_BINARY,
+        commit_id: Oid | None = None,
+    ) -> None: ...
 
 class Branch(Reference):
     branch_name: str
