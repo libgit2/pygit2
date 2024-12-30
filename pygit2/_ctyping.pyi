@@ -7,12 +7,12 @@ class _CSignatureTime(CData):
     offset: int
 
 class _CSignature(CData):
-    name: CData
-    email: CData
+    name: _CDataBase
+    email: _CDataBase
     when: _CSignatureTime
 
 class _COid(CData):
-    id: CData
+    id: _CDataBase
 
 class _CHunk(CData):
     boundary: CData
