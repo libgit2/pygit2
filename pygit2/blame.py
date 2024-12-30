@@ -23,19 +23,29 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, cast
+
 # Import from pygit2
 from ._pygit2 import Oid, Signature
 from .ffi import C, ffi
-from .utils import GenericIterator
+from .utils import GenericIterator, buffer_to_bytes, maybe_string
+
+if TYPE_CHECKING:
+    from _cffi_backend import _CDataBase as CData
+
+    from ._ctyping import _CHunk, _CSignature
+    from .repository import BaseRepository
 
 
-def wrap_signature(csig):
+def wrap_signature(csig: _CSignature):
     if not csig:
         return None
 
     return Signature(
-        ffi.string(csig.name).decode('utf-8'),
-        ffi.string(csig.email).decode('utf-8'),
+        cast(str, maybe_string(csig.name)),
+        cast(str, maybe_string(csig.email)),
         csig.when.time,
         csig.when.offset,
         'utf-8',
@@ -43,8 +53,12 @@ def wrap_signature(csig):
 
 
 class BlameHunk:
+    if TYPE_CHECKING:
+        _blame: Blame
+        _hunk: _CHunk
+
     @classmethod
-    def _from_c(cls, blame, ptr):
+    def _from_c(cls, blame: Blame, ptr: _CHunk):
         hunk = cls.__new__(cls)
         hunk._blame = blame
         hunk._hunk = ptr
@@ -73,9 +87,7 @@ class BlameHunk:
 
     @property
     def final_commit_id(self):
-        return Oid(
-            raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'final_commit_id'))[:])
-        )
+        return Oid(raw=buffer_to_bytes(ffi.addressof(self._hunk, 'final_commit_id')))
 
     @property
     def orig_start_line_number(self):
@@ -89,23 +101,17 @@ class BlameHunk:
 
     @property
     def orig_commit_id(self):
-        return Oid(
-            raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'orig_commit_id'))[:])
-        )
+        return Oid(raw=buffer_to_bytes(ffi.addressof(self._hunk, 'orig_commit_id')))
 
     @property
     def orig_path(self):
         """Original path"""
-        path = self._hunk.orig_path
-        if not path:
-            return None
-
-        return ffi.string(path).decode('utf-8')
+        return maybe_string(self._hunk.orig_path)
 
 
 class Blame:
     @classmethod
-    def _from_c(cls, repo, ptr):
+    def _from_c(cls, repo: BaseRepository, ptr: CData):
         blame = cls.__new__(cls)
         blame._repo = repo
         blame._blame = ptr
@@ -117,14 +123,14 @@ class Blame:
     def __len__(self):
         return C.git_blame_get_hunk_count(self._blame)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         chunk = C.git_blame_get_hunk_byindex(self._blame, index)
         if not chunk:
             raise IndexError
 
         return BlameHunk._from_c(self, chunk)
 
-    def for_line(self, line_no):
+    def for_line(self, line_no: int) -> BlameHunk:
         """
         Returns the <BlameHunk> object for a given line given its number in the
         current Blame.
