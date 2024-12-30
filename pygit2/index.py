@@ -466,8 +466,8 @@ class ConflictIterator:
     def __del__(self):
         C.git_index_conflict_iterator_free(self._iter)
 
-    def next(self):
-        return self.__next__()
+    def __iter__(self):
+        return self
 
     def __next__(self):
         cancestor = ffi.new('git_index_entry **')
@@ -485,6 +485,3 @@ class ConflictIterator:
         theirs = IndexEntry._from_c(ctheirs[0])
 
         return ancestor, ours, theirs
-
-    def __iter__(self):
-        return self

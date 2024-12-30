@@ -200,8 +200,8 @@ class GenericIterator(Generic[_T]):
         self.length = len(container)
         self.idx = 0
 
-    def next(self) -> _T:
-        return self.__next__()
+    def __iter__(self):
+        return self
 
     def __next__(self) -> _T:
         idx = self.idx
