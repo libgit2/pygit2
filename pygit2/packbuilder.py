@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING, Any
 from ._pygit2 import Oid
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import StrOrBytesOrPathLike, buffer_to_bytes, to_bytes
+from .utils import StrOrBytesPath, buffer_to_bytes, to_bytes
 
 if TYPE_CHECKING:
     from .repository import BaseRepository
@@ -75,7 +75,7 @@ class PackBuilder:
     def set_threads(self, n_threads: int):
         return C.git_packbuilder_set_threads(self._packbuilder, n_threads)
 
-    def write(self, path: StrOrBytesOrPathLike | None = None):
+    def write(self, path: StrOrBytesPath | None = None):
         resolved_path = ffi.NULL if path is None else to_bytes(path)
         err = C.git_packbuilder_write(
             self._packbuilder, resolved_path, 0, ffi.NULL, ffi.NULL

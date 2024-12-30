@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from _typeshed import SupportsLenAndGetItem
 
 _T = TypeVar('_T')
-StrOrBytesOrPathLike: TypeAlias = str | bytes | os.PathLike[str] | os.PathLike[bytes]
+StrOrBytesPath: TypeAlias = str | bytes | os.PathLike[str] | os.PathLike[bytes]
 
 
 def maybe_string(ptr: CData | Any) -> str | None:
@@ -57,11 +57,11 @@ def maybe_string(ptr: CData | Any) -> str | None:
 @overload
 def to_bytes(s: CData | None) -> CData: ...
 @overload
-def to_bytes(s: StrOrBytesOrPathLike) -> bytes: ...
+def to_bytes(s: StrOrBytesPath) -> bytes: ...
 
 
 def to_bytes(
-    s: StrOrBytesOrPathLike | CData | None,
+    s: StrOrBytesPath | CData | None,
     encoding: str = 'utf-8',
     errors: str = 'strict',
 ) -> bytes | CData:
@@ -77,7 +77,7 @@ def to_bytes(
     return cast(str, s).encode(encoding, errors)
 
 
-def to_str(s: StrOrBytesOrPathLike) -> str:
+def to_str(s: StrOrBytesPath) -> str:
     if hasattr(s, '__fspath__'):
         s = os.fspath(s)
 
