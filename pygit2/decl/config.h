@@ -18,7 +18,6 @@ typedef struct git_config_entry {
 	const char *origin_path;
 	unsigned int include_depth;
 	git_config_level_t level;
-	void (*free)(struct git_config_entry *entry);
 } git_config_entry;
 
 void git_config_entry_free(git_config_entry *);
