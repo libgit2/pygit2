@@ -41,11 +41,16 @@ _T = TypeVar('_T')
 StrOrBytesPath: TypeAlias = str | bytes | os.PathLike[str] | os.PathLike[bytes]
 
 
-def maybe_string(ptr: CData | Any) -> str | None:
+def maybe_bytes(ptr: CData | Any) -> bytes | None:
     if not ptr:
         return None
 
     out = ffi.string(ptr)
+    return cast(bytes, out)
+
+
+def maybe_string(ptr: CData | Any) -> str | None:
+    out = maybe_bytes(ptr)
     if isinstance(out, bytes):
         out = out.decode('utf8')
     return out
