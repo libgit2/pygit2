@@ -42,7 +42,7 @@ def check_error(err, io=False):
     # Error message
     giterr = C.git_error_last()
     if giterr != ffi.NULL:
-        message = ffi.string(giterr.message).decode('utf8',errors='surrogateescape')
+        message = ffi.string(giterr.message).decode('utf8', errors='surrogateescape')
     else:
         message = f'err {err} (no message provided)'
 
