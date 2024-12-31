@@ -33,8 +33,8 @@
 #include <git2.h>
 #include <git2/sys/filter.h>
 
-#if !(LIBGIT2_VER_MAJOR == 1 && LIBGIT2_VER_MINOR == 8)
-#error You need a compatible libgit2 version (1.8.x)
+#if !(LIBGIT2_VER_MAJOR == 1 && LIBGIT2_VER_MINOR == 9)
+#error You need a compatible libgit2 version (1.9.x)
 #endif
 
 /*

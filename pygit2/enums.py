@@ -65,16 +65,16 @@ class BlameFlag(IntFlag):
     'Normal blame, the default'
 
     TRACK_COPIES_SAME_FILE = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_FILE
-    'Not yet implemented and reserved for future use (as of libgit2 1.8.0).'
+    'Not yet implemented and reserved for future use (as of libgit2 1.9.0).'
 
     TRACK_COPIES_SAME_COMMIT_MOVES = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES
-    'Not yet implemented and reserved for future use (as of libgit2 1.8.0).'
+    'Not yet implemented and reserved for future use (as of libgit2 1.9.0).'
 
     TRACK_COPIES_SAME_COMMIT_COPIES = _pygit2.GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES
-    'Not yet implemented and reserved for future use (as of libgit2 1.8.0).'
+    'Not yet implemented and reserved for future use (as of libgit2 1.9.0).'
 
     TRACK_COPIES_ANY_COMMIT_COPIES = _pygit2.GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES
-    'Not yet implemented and reserved for future use (as of libgit2 1.8.0).'
+    'Not yet implemented and reserved for future use (as of libgit2 1.9.0).'
 
     FIRST_PARENT = _pygit2.GIT_BLAME_FIRST_PARENT
     'Restrict the search of commits to those reachable following only the first parents.'

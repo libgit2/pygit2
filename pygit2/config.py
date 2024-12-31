@@ -52,18 +52,15 @@ class ConfigIterator:
     def __iter__(self):
         return self
 
+    def __next__(self):
+        return self._next_entry()
+
     def _next_entry(self):
         centry = ffi.new('git_config_entry **')
         err = C.git_config_next(centry, self._iter)
         check_error(err)
 
         return ConfigEntry._from_c(centry[0], self)
-
-    def next(self):
-        return self.__next__()
-
-    def __next__(self):
-        return self._next_entry()
 
 
 class ConfigMultivarIterator(ConfigIterator):
