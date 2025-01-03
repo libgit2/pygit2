@@ -1,3 +1,20 @@
+# 1.17.0 (UNRELEASED)
+
+- Upgrade to libgit2 1.9
+
+- Add `certificate_check` callback to `Remote.ls_remotes(...)`
+  [#1326](https://github.com/libgit2/pygit2/pull/1326)
+
+- Fix build with GCC 14
+  [#1324](https://github.com/libgit2/pygit2/pull/1324)
+
+- CI: update tests for macOS to use OpenSSL 3
+  [#1335](https://github.com/libgit2/pygit2/pull/1335)
+
+- Documentation: fix typo in `Repository.status(...)` docstring
+  [#1327](https://github.com/libgit2/pygit2/pull/1327)
+
+
 # 1.16.0 (2024-10-11)
 
 - Add support for Python 3.13
