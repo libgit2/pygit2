@@ -24,15 +24,15 @@
 # Boston, MA 02110-1301, USA.
 
 # Import setuptools before distutils to avoid user warning
-from setuptools import setup, Extension
-
+import os
+import sys
+from distutils import log
 from distutils.command.build import build
 from distutils.command.sdist import sdist
-from distutils import log
-import os
 from pathlib import Path
-from subprocess import Popen, PIPE
-import sys
+from subprocess import PIPE, Popen
+
+from setuptools import Extension, setup
 
 # Import stuff from pygit2/_utils.py without loading the whole pygit2 package
 sys.path.insert(0, 'pygit2')

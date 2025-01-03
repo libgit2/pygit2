@@ -25,14 +25,13 @@
 
 """Tests for Diff objects."""
 
-from itertools import chain
 import textwrap
+from itertools import chain
 
 import pytest
 
 import pygit2
 from pygit2.enums import DeltaStatus, DiffFlag, DiffOption, DiffStatsFormat, FileMode
-
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'
@@ -114,11 +113,11 @@ def test_diff_empty_index(dirtyrepo):
 
     diff = head.tree.diff_to_index(repo.index)
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_INDEX_EXPECTED == files
+    assert files == DIFF_HEAD_TO_INDEX_EXPECTED
 
     diff = repo.diff('HEAD', cached=True)
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_INDEX_EXPECTED == files
+    assert files == DIFF_HEAD_TO_INDEX_EXPECTED
 
 
 def test_workdir_to_tree(dirtyrepo):
@@ -127,17 +126,17 @@ def test_workdir_to_tree(dirtyrepo):
 
     diff = head.tree.diff_to_workdir()
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
+    assert files == DIFF_HEAD_TO_WORKDIR_EXPECTED
 
     diff = repo.diff('HEAD')
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
+    assert files == DIFF_HEAD_TO_WORKDIR_EXPECTED
 
 
 def test_index_to_workdir(dirtyrepo):
     diff = dirtyrepo.diff()
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_INDEX_TO_WORK_EXPECTED == files
+    assert files == DIFF_INDEX_TO_WORK_EXPECTED
 
 
 def test_diff_invalid(barerepo):
@@ -172,7 +171,7 @@ def test_diff_tree(barerepo):
 
     def _test(diff):
         assert diff is not None
-        assert 2 == sum(map(lambda x: len(x.hunks), diff))
+        assert sum((len(x.hunks) for x in diff)) == 2
 
         patch = diff[0]
         hunk = patch.hunks[0]
@@ -204,18 +203,18 @@ def test_diff_empty_tree(barerepo):
     diff = commit_a.tree.diff_to_tree()
 
     def get_context_for_lines(diff):
-        hunks = chain.from_iterable(map(lambda x: x.hunks, diff))
-        lines = chain.from_iterable(map(lambda x: x.lines, hunks))
-        return map(lambda x: x.origin, lines)
+        hunks = chain.from_iterable((x.hunks for x in diff))
+        lines = chain.from_iterable((x.lines for x in hunks))
+        return (x.origin for x in lines)
 
     entries = [p.delta.new_file.path for p in diff]
     assert all(commit_a.tree[x] for x in entries)
-    assert all('-' == x for x in get_context_for_lines(diff))
+    assert all(x == '-' for x in get_context_for_lines(diff))
 
     diff_swaped = commit_a.tree.diff_to_tree(swap=True)
     entries = [p.delta.new_file.path for p in diff_swaped]
     assert all(commit_a.tree[x] for x in entries)
-    assert all('+' == x for x in get_context_for_lines(diff_swaped))
+    assert all(x == '+' for x in get_context_for_lines(diff_swaped))
 
 
 def test_diff_revparse(barerepo):
@@ -230,11 +229,11 @@ def test_diff_tree_opts(barerepo):
     for flag in [DiffOption.IGNORE_WHITESPACE, DiffOption.IGNORE_WHITESPACE_EOL]:
         diff = commit_c.tree.diff_to_tree(commit_d.tree, flag)
         assert diff is not None
-        assert 0 == len(diff[0].hunks)
+        assert len(diff[0].hunks) == 0
 
     diff = commit_c.tree.diff_to_tree(commit_d.tree)
     assert diff is not None
-    assert 1 == len(diff[0].hunks)
+    assert len(diff[0].hunks) == 1
 
 
 def test_diff_merge(barerepo):
@@ -270,7 +269,7 @@ def test_diff_patch(barerepo):
 
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     assert diff.patch == PATCH
-    assert len(diff) == len([patch for patch in diff])
+    assert len(diff) == len(list(diff))
 
 
 def test_diff_ids(barerepo):
@@ -296,7 +295,7 @@ def test_hunk_content(barerepo):
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
     hunk = patch.hunks[0]
     lines = (f'{x.origin} {x.content}' for x in hunk.lines)
-    assert HUNK_EXPECTED == ''.join(lines)
+    assert ''.join(lines) == HUNK_EXPECTED
     for line in hunk.lines:
         assert line.content == line.raw_content.decode()
 
@@ -321,13 +320,13 @@ def test_diff_stats(barerepo):
 
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     stats = diff.stats
-    assert 1 == stats.insertions
-    assert 2 == stats.deletions
-    assert 2 == stats.files_changed
+    assert stats.insertions == 1
+    assert stats.deletions == 2
+    assert stats.files_changed == 2
     formatted = stats.format(
         format=DiffStatsFormat.FULL | DiffStatsFormat.INCLUDE_SUMMARY, width=80
     )
-    assert STATS_EXPECTED == formatted
+    assert formatted == STATS_EXPECTED
 
 
 def test_deltas(barerepo):
@@ -357,12 +356,12 @@ def test_diff_parse(barerepo):
     diff = pygit2.Diff.parse_diff(PATCH)
 
     stats = diff.stats
-    assert 2 == stats.deletions
-    assert 1 == stats.insertions
-    assert 2 == stats.files_changed
+    assert stats.deletions == 2
+    assert stats.insertions == 1
+    assert stats.files_changed == 2
 
     deltas = list(diff.deltas)
-    assert 2 == len(deltas)
+    assert len(deltas) == 2
 
 
 def test_parse_diff_null():

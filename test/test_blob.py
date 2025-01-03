@@ -27,15 +27,15 @@
 
 import io
 from pathlib import Path
-from threading import Event
 from queue import Queue
+from threading import Event
 
 import pytest
 
 import pygit2
 from pygit2.enums import ObjectType
-from . import utils
 
+from . import utils
 
 BLOB_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
 BLOB_CONTENT = """hello world
@@ -86,10 +86,10 @@ def test_read_blob(testrepo):
     assert blob.id == BLOB_SHA
     assert isinstance(blob, pygit2.Blob)
     assert not blob.is_binary
-    assert ObjectType.BLOB == blob.type
-    assert BLOB_CONTENT == blob.data
+    assert blob.type == ObjectType.BLOB
+    assert blob.data == BLOB_CONTENT
     assert len(BLOB_CONTENT) == blob.size
-    assert BLOB_CONTENT == blob.read_raw()
+    assert blob.read_raw() == BLOB_CONTENT
 
 
 def test_create_blob(testrepo):
@@ -97,17 +97,17 @@ def test_create_blob(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert blob.type == ObjectType.BLOB
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_NEW_CONTENT) == blob_oid
 
-    assert BLOB_NEW_CONTENT == blob.data
+    assert blob.data == BLOB_NEW_CONTENT
     assert len(BLOB_NEW_CONTENT) == blob.size
-    assert BLOB_NEW_CONTENT == blob.read_raw()
+    assert blob.read_raw() == BLOB_NEW_CONTENT
     blob_buffer = memoryview(blob)
     assert len(BLOB_NEW_CONTENT) == len(blob_buffer)
-    assert BLOB_NEW_CONTENT == blob_buffer
+    assert blob_buffer == BLOB_NEW_CONTENT
 
     def set_content():
         blob_buffer[:2] = b'hi'
@@ -121,14 +121,14 @@ def test_create_blob_fromworkdir(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert blob.type == ObjectType.BLOB
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_FILE_CONTENT) == blob_oid
 
-    assert BLOB_FILE_CONTENT == blob.data
+    assert blob.data == BLOB_FILE_CONTENT
     assert len(BLOB_FILE_CONTENT) == blob.size
-    assert BLOB_FILE_CONTENT == blob.read_raw()
+    assert blob.read_raw() == BLOB_FILE_CONTENT
 
 
 def test_create_blob_fromworkdir_aspath(testrepo):
@@ -148,7 +148,7 @@ def test_create_blob_fromdisk(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert blob.type == ObjectType.BLOB
 
 
 def test_create_blob_fromiobase(testrepo):
@@ -160,10 +160,10 @@ def test_create_blob_fromiobase(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert blob.type == ObjectType.BLOB
 
     assert blob_oid == blob.id
-    assert BLOB_SHA == blob_oid
+    assert blob_oid == BLOB_SHA
 
 
 def test_diff_blob(testrepo):
@@ -220,7 +220,7 @@ def test_blob_write_to_queue(testrepo):
     chunks = []
     while not queue.empty():
         chunks.append(queue.get())
-    assert BLOB_CONTENT == b''.join(chunks)
+    assert b''.join(chunks) == BLOB_CONTENT
 
 
 def test_blob_write_to_queue_filtered(testrepo):
@@ -235,14 +235,14 @@ def test_blob_write_to_queue_filtered(testrepo):
     chunks = []
     while not queue.empty():
         chunks.append(queue.get())
-    assert b'bye world\n' == b''.join(chunks)
+    assert b''.join(chunks) == b'bye world\n'
 
 
 def test_blobio(testrepo):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     with pygit2.BlobIO(blob) as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
     assert not reader.raw._thread.is_alive()
 
 
@@ -250,5 +250,5 @@ def test_blobio_filtered(testrepo):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     with pygit2.BlobIO(blob, as_path='bye.txt') as reader:
-        assert b'bye world\n' == reader.read()
+        assert reader.read() == b'bye world\n'
     assert not reader.raw._thread.is_alive()

@@ -23,26 +23,32 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 # Import from pygit2
+from ._pygit2 import Oid
 from .errors import check_error
-from .ffi import ffi, C
-from .utils import to_bytes
+from .ffi import C, ffi
+from .utils import StrOrBytesPath, buffer_to_bytes, to_bytes
 
+if TYPE_CHECKING:
+    from .repository import BaseRepository
 
 class PackBuilder:
-    def __init__(self, repo):
+    def __init__(self, repo: BaseRepository):
         cpackbuilder = ffi.new('git_packbuilder **')
         err = C.git_packbuilder_new(cpackbuilder, repo._repo)
         check_error(err)
 
         self._repo = repo
-        self._packbuilder = cpackbuilder[0]
+        self._packbuilder: Any = cpackbuilder[0]
         self._cpackbuilder = cpackbuilder
 
     @property
     def _pointer(self):
-        return bytes(ffi.buffer(self._packbuilder)[:])
+        return bytes(buffer_to_bytes(self._packbuilder))
 
     def __del__(self):
         C.git_packbuilder_free(self._packbuilder)
@@ -51,29 +57,31 @@ class PackBuilder:
         return C.git_packbuilder_object_count(self._packbuilder)
 
     @staticmethod
-    def __convert_object_to_oid(oid):
+    def __convert_object_to_oid(oid: Oid):
         git_oid = ffi.new('git_oid *')
         ffi.buffer(git_oid)[:] = oid.raw[:]
         return git_oid
 
-    def add(self, oid):
+    def add(self, oid: Oid):
         git_oid = self.__convert_object_to_oid(oid)
         err = C.git_packbuilder_insert(self._packbuilder, git_oid, ffi.NULL)
         check_error(err)
 
-    def add_recur(self, oid):
+    def add_recur(self, oid: Oid):
         git_oid = self.__convert_object_to_oid(oid)
         err = C.git_packbuilder_insert_recur(self._packbuilder, git_oid, ffi.NULL)
         check_error(err)
 
-    def set_threads(self, n_threads):
+    def set_threads(self, n_threads: int):
         return C.git_packbuilder_set_threads(self._packbuilder, n_threads)
 
-    def write(self, path=None):
-        path = ffi.NULL if path is None else to_bytes(path)
-        err = C.git_packbuilder_write(self._packbuilder, path, 0, ffi.NULL, ffi.NULL)
+    def write(self, path: StrOrBytesPath | None = None):
+        resolved_path = ffi.NULL if path is None else to_bytes(path)
+        err = C.git_packbuilder_write(
+            self._packbuilder, resolved_path, 0, ffi.NULL, ffi.NULL
+        )
         check_error(err)
 
     @property
-    def written_objects_count(self):
+    def written_objects_count(self) -> int:
         return C.git_packbuilder_written(self._packbuilder)

@@ -24,4 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from ._libgit2 import ffi, lib as C
+from ._libgit2 import ffi
+from ._libgit2 import lib as C
+
+__all__ = ['ffi', 'C']

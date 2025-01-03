@@ -25,9 +25,9 @@
 
 """Tests for note objects."""
 
-from pygit2 import Signature
 import pytest
 
+from pygit2 import Signature
 
 NOTE = ('6c8980ba963cad8b25a9bcaf68d4023ee57370d8', 'note message')
 

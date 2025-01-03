@@ -24,10 +24,11 @@
 # Boston, MA 02110-1301, USA.
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
+from ._pygit2 import Branch, Commit, Oid, Reference
 from .enums import BranchType, ReferenceType
-from ._pygit2 import Commit, Oid
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
@@ -36,7 +37,10 @@ if TYPE_CHECKING:
 
 class Branches:
     def __init__(
-        self, repository: BaseRepository, flag: BranchType = BranchType.ALL, commit=None
+        self,
+        repository: BaseRepository,
+        flag: BranchType = BranchType.ALL,
+        commit: Commit | Oid | str | None = None,
     ):
         self._repository = repository
         self._flag = flag
@@ -75,13 +79,13 @@ class Branches:
             if self._commit is None or self.get(branch_name) is not None:
                 yield branch_name
 
-    def create(self, name: str, commit, force=False):
+    def create(self, name: str, commit: Commit, force: bool = False):
         return self._repository.create_branch(name, commit, force)
 
     def delete(self, name: str):
         self[name].delete()
 
-    def _valid(self, branch):
+    def _valid(self, branch: Branch | Reference):
         if branch.type == ReferenceType.SYMBOLIC:
             branch = branch.resolve()
 
@@ -91,9 +95,9 @@ class Branches:
             or self._repository.descendant_of(branch.target, self._commit)
         )
 
-    def with_commit(self, commit):
+    def with_commit(self, commit: Commit | Oid | str | None):
         assert self._commit is None
         return Branches(self._repository, self._flag, commit)
 
-    def __contains__(self, name):
+    def __contains__(self, name: str):
         return self.get(name) is not None
