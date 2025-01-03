@@ -2,7 +2,7 @@
 requires = ["setuptools", "wheel"]
 
 [tool.cibuildwheel]
-skip = "pp3* *musllinux_aarch64 *musllinux_ppc64le"
+skip = "*musllinux_aarch64 *musllinux_ppc64le"
 
 archs = ["auto"]
 build-frontend = "default"
