@@ -29,8 +29,7 @@ LIBSSH2_VERSION = "1.11.1"
 OPENSSL_VERSION = "3.2.3"
 LIBGIT2 = "/Users/runner/work/pygit2/pygit2/ci"
 CFLAGS = "-I/usr/local/include"
-LDFLAGS = "-L/usr/local/lib"
-LDFLAGS_UNIVERSAL2 = "-lz" 
+LDFLAGS = "-L/usr/local/lib -lz"
 
 [tool.ruff]
 target-version = "py310"  # oldest supported Python version
