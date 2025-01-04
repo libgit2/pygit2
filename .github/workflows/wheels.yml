@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - pypy-wheel-macos
     tags:
     - 'v*'
 
