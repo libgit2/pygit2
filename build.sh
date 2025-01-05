@@ -63,6 +63,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         if [ -z "$OPENSSL_VERSION" ]; then
             apt-get install libssl-dev -y
         fi
+        apt-get install libffi-dev -y
     elif [ -f /usr/bin/yum ]; then
         yum install wget zlib-devel -y
         if [ -z "$OPENSSL_VERSION" ]; then
