@@ -7,6 +7,7 @@ skip = "*musllinux_aarch64 *musllinux_ppc64le"
 archs = ["auto"]
 build-frontend = "default"
 dependency-versions = "pinned"
+free-threaded-support = true
 environment = {LIBGIT2_VERSION="1.9.0", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.2.3", LIBGIT2="/project/ci"}
 
 before-all = "sh build.sh"
