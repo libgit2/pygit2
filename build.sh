@@ -66,6 +66,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         apt-get install libffi-dev -y
     elif [ -f /usr/bin/yum ]; then
         yum install wget zlib-devel -y
+        yum install libffi-devel -y
         if [ -z "$OPENSSL_VERSION" ]; then
             yum install openssl-devel -y
         else
