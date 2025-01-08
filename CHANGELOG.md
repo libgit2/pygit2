@@ -1,4 +1,4 @@
-# 1.17.0 (UNRELEASED)
+# 1.17.0 (2025-01-08)
 
 - Upgrade to libgit2 1.9
 
@@ -7,6 +7,10 @@
 
 - Fix build with GCC 14
   [#1324](https://github.com/libgit2/pygit2/pull/1324)
+
+- Release wheels for PyPy
+  [#1336](https://github.com/libgit2/pygit2/pull/1336)
+  [#1339](https://github.com/libgit2/pygit2/pull/1339)
 
 - CI: update tests for macOS to use OpenSSL 3
   [#1335](https://github.com/libgit2/pygit2/pull/1335)
