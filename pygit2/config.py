@@ -67,7 +67,7 @@ class ConfigIterator:
         err = C.git_config_next(centry, self._iter)
         check_error(err)
 
-        return ConfigEntry._from_c(cast(_CConfigEntry, centry[0]), self)
+        return ConfigEntry._from_c(cast("_CConfigEntry", centry[0]), self)
 
 
 class ConfigMultivarIterator(ConfigIterator):
@@ -113,7 +113,7 @@ class Config:
         entry = ffi.new('git_config_entry **')
         err = C.git_config_get_entry(entry, self._config, rkey)
 
-        return err, ConfigEntry._from_c(cast(_CConfigEntry, entry[0]))
+        return err, ConfigEntry._from_c(cast("_CConfigEntry", entry[0]))
 
     def _get_entry(self, key: str | bytes):
         err, entry = self._get(key)
@@ -174,7 +174,7 @@ class Config:
         err = C.git_config_iterator_new(citer, self._config)
         check_error(err)
 
-        ptr = cast(CData, citer[0])
+        ptr = cast("CData", citer[0])
 
         return ConfigIterator(self, ptr)
 
@@ -190,7 +190,7 @@ class Config:
         citer = ffi.new('git_config_iterator **')
         err = C.git_config_multivar_iterator_new(citer, self._config, name, regex)
         check_error(err)
-        cit = cast(CData, citer[0])
+        cit = cast("CData", citer[0])
 
         return ConfigMultivarIterator(self, cit)
 
@@ -263,7 +263,7 @@ class Config:
         err = C.git_config_snapshot(ccfg, self._config)
         check_error(err)
 
-        return Config.from_c(self._repo, cast(CData, ccfg[0]))
+        return Config.from_c(self._repo, cast("CData", ccfg[0]))
 
     #
     # Methods to parse a string according to the git-config rules
@@ -294,7 +294,7 @@ class Config:
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
         err = fn(buf)
         check_error(err, io=True)
-        cpath = maybe_bytes(cast(CData, buf.ptr))
+        cpath = maybe_bytes(cast("CData", buf.ptr))
         assert cpath
         C.git_buf_dispose(buf)
 
