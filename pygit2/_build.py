@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -34,7 +34,7 @@ from pathlib import Path
 #
 # The version number of pygit2
 #
-__version__ = '1.16.0'
+__version__ = '1.17.0'
 
 
 #
