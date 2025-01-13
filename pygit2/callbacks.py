@@ -62,18 +62,23 @@ the inner user defined function, and this can send back results to the pygit2
 API.
 """
 
+from __future__ import annotations
+
 # Standard Library
 from contextlib import contextmanager
 from functools import wraps
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 # pygit2
-from ._pygit2 import Oid, DiffFile
+from ._pygit2 import DiffFile, Oid
 from .enums import CheckoutNotify, CheckoutStrategy, CredentialType, StashApplyProgress
-from .errors import check_error, Passthrough
-from .ffi import ffi, C
-from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
+from .errors import Passthrough, check_error
+from .ffi import C, ffi
+from .utils import StrArray, maybe_string, ptr_to_bytes, to_bytes
 
+if TYPE_CHECKING:
+    from .remotes import Remote, TransferProgress
+    from .repository import Repository
 
 #
 # The payload is the way to pass information from the pygit2 API, through
@@ -82,12 +87,12 @@ from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
 
 
 class Payload:
-    def __init__(self, **kw):
+    def __init__(self, **kw: Any):
         for key, value in kw.items():
             setattr(self, key, value)
-        self._stored_exception = None
+        self._stored_exception: BaseException | None = None
 
-    def check_error(self, error_code):
+    def check_error(self, error_code: int):
         if error_code == C.GIT_EUSER:
             assert self._stored_exception is not None
             raise self._stored_exception
@@ -113,6 +118,10 @@ class RemoteCallbacks(Payload):
     RemoteCallbacks(certificate=certificate).
     """
 
+    if TYPE_CHECKING:
+        repository: Callable[[str, bool], Repository]
+        remote: Callable[[Repository, str, str], Remote]
+
     def __init__(self, credentials=None, certificate_check=None):
         super().__init__()
         if credentials is not None:
@@ -120,7 +129,7 @@ class RemoteCallbacks(Payload):
         if certificate_check is not None:
             self.certificate_check = certificate_check
 
-    def sideband_progress(self, string):
+    def sideband_progress(self, string: str):
         """
         Progress output callback.  Override this function with your own
         progress reporting function
@@ -159,7 +168,7 @@ class RemoteCallbacks(Payload):
         """
         raise Passthrough
 
-    def certificate_check(self, certificate, valid, host):
+    def certificate_check(self, certificate: None, valid: bool, host: str):
         """
         Certificate callback. Override with your own function to determine
         whether to accept the server's certificate.
@@ -181,7 +190,7 @@ class RemoteCallbacks(Payload):
 
         raise Passthrough
 
-    def transfer_progress(self, stats):
+    def transfer_progress(self, stats: TransferProgress):
         """
         Transfer progress callback. Override with your own function to report
         transfer progress.
@@ -192,7 +201,7 @@ class RemoteCallbacks(Payload):
             The progress up to now.
         """
 
-    def update_tips(self, refname, old, new):
+    def update_tips(self, refname: str, old: Oid, new: Oid):
         """
         Update tips callback. Override with your own function to report
         reference updates.
@@ -209,7 +218,7 @@ class RemoteCallbacks(Payload):
             The reference's new value.
         """
 
-    def push_update_reference(self, refname, message):
+    def push_update_reference(self, refname: str, message: str | None):
         """
         Push update reference callback. Override with your own function to
         report the remote's acceptance or rejection of reference updates.
@@ -416,9 +425,9 @@ def git_remote_callbacks(payload):
 #
 
 
-def libgit2_callback(f):
+def libgit2_callback(f: Callable[..., int]):
     @wraps(f)
-    def wrapper(*args):
+    def wrapper(*args: Any) -> int:
         data = ffi.from_handle(args[-1])
         args = args[:-1] + (data,)
         try:
@@ -437,10 +446,10 @@ def libgit2_callback(f):
     return ffi.def_extern()(wrapper)
 
 
-def libgit2_callback_void(f):
+def libgit2_callback_void(f: Callable[..., object]):
     @wraps(f)
-    def wrapper(*args):
-        data = ffi.from_handle(args[-1])
+    def wrapper(*args: Any):
+        data: Payload = ffi.from_handle(args[-1])
         args = args[:-1] + (data,)
         try:
             f(*args)
@@ -458,7 +467,7 @@ def libgit2_callback_void(f):
 
 
 @libgit2_callback
-def _certificate_check_cb(cert_i, valid, host, data):
+def _certificate_check_cb(cert_i, valid: int, host, data: RemoteCallbacks):
     # We want to simulate what should happen if libgit2 supported pass-through
     # for this callback. For SSH, 'valid' is always False, because it doesn't
     # look at known_hosts, but we do want to let it through in order to do what
@@ -471,9 +480,7 @@ def _certificate_check_cb(cert_i, valid, host, data):
         if not val:
             return C.GIT_ECERTIFICATE
     except Passthrough:
-        if is_ssh:
-            return 0
-        elif valid:
+        if is_ssh or valid:
             return 0
         else:
             return C.GIT_ECERTIFICATE
@@ -482,7 +489,7 @@ def _certificate_check_cb(cert_i, valid, host, data):
 
 
 @libgit2_callback
-def _credentials_cb(cred_out, url, username, allowed, data):
+def _credentials_cb(cred_out, url, username, allowed: int, data: RemoteCallbacks):
     credentials = getattr(data, 'credentials', None)
     if not credentials:
         return 0
@@ -496,7 +503,7 @@ def _credentials_cb(cred_out, url, username, allowed, data):
 
 
 @libgit2_callback
-def _push_update_reference_cb(ref, msg, data):
+def _push_update_reference_cb(ref, msg, data: RemoteCallbacks):
     push_update_reference = getattr(data, 'push_update_reference', None)
     if not push_update_reference:
         return 0
@@ -522,7 +529,7 @@ def _remote_create_cb(remote_out, repo, name, url, data):
 
 
 @libgit2_callback
-def _repository_create_cb(repo_out, path, bare, data):
+def _repository_create_cb(repo_out, path, bare: int, data: RemoteCallbacks):
     repository = data.repository(ffi.string(path), bare != 0)
     # we no longer own the C object
     repository._disown()
@@ -532,7 +539,7 @@ def _repository_create_cb(repo_out, path, bare, data):
 
 
 @libgit2_callback
-def _sideband_progress_cb(string, length, data):
+def _sideband_progress_cb(string, length: int, data: RemoteCallbacks):
     sideband_progress = getattr(data, 'sideband_progress', None)
     if not sideband_progress:
         return 0
@@ -543,7 +550,7 @@ def _sideband_progress_cb(string, length, data):
 
 
 @libgit2_callback
-def _transfer_progress_cb(stats_ptr, data):
+def _transfer_progress_cb(stats_ptr, data: RemoteCallbacks):
     from .remotes import TransferProgress
 
     transfer_progress = getattr(data, 'transfer_progress', None)
@@ -555,7 +562,7 @@ def _transfer_progress_cb(stats_ptr, data):
 
 
 @libgit2_callback
-def _update_tips_cb(refname, a, b, data):
+def _update_tips_cb(refname, a, b, data: RemoteCallbacks):
     update_tips = getattr(data, 'update_tips', None)
     if not update_tips:
         return 0
@@ -572,7 +579,7 @@ def _update_tips_cb(refname, a, b, data):
 #
 
 
-def get_credentials(fn, url, username, allowed):
+def get_credentials(fn, url, username, allowed: CredentialType):
     """Call fn and return the credentials object."""
     url_str = maybe_string(url)
     username_str = maybe_string(username)
@@ -636,7 +643,7 @@ def get_credentials(fn, url, username, allowed):
 
 @libgit2_callback
 def _checkout_notify_cb(
-    why, path_cstr, baseline, target, workdir, data: CheckoutCallbacks
+    why: int, path_cstr, baseline, target, workdir, data: CheckoutCallbacks
 ):
     pypath = maybe_string(path_cstr)
     pybaseline = DiffFile.from_c(ptr_to_bytes(baseline))
@@ -663,16 +670,13 @@ def _checkout_progress_cb(path, completed_steps, total_steps, data: CheckoutCall
 
 
 def _git_checkout_options(
-    callbacks=None,
-    strategy=None,
+    callbacks: CheckoutCallbacks | None = None,
+    strategy: CheckoutStrategy | None = None,
     directory=None,
     paths=None,
     c_checkout_options_ptr=None,
 ):
-    if callbacks is None:
-        payload = CheckoutCallbacks()
-    else:
-        payload = callbacks
+    payload = CheckoutCallbacks() if callbacks is None else callbacks
 
     # Get handle to payload
     handle = ffi.new_handle(payload)
@@ -699,7 +703,7 @@ def _git_checkout_options(
 
     if paths:
         strarray = StrArray(paths)
-        refs.append(strarray)
+        refs.append(strarray)  # type: ignore
         opts.paths = strarray.ptr[0]
 
     # If we want to receive any notifications, set up notify_cb in the options
@@ -723,7 +727,12 @@ def _git_checkout_options(
 
 
 @contextmanager
-def git_checkout_options(callbacks=None, strategy=None, directory=None, paths=None):
+def git_checkout_options(
+    callbacks: CheckoutCallbacks | None = None,
+    strategy=None,
+    directory=None,
+    paths=None,
+):
     yield _git_checkout_options(
         callbacks=callbacks, strategy=strategy, directory=directory, paths=paths
     )
@@ -752,7 +761,11 @@ def _stash_apply_progress_cb(progress: StashApplyProgress, data: StashApplyCallb
 
 @contextmanager
 def git_stash_apply_options(
-    callbacks=None, reinstate_index=False, strategy=None, directory=None, paths=None
+    callbacks: StashApplyCallbacks | None = None,
+    reinstate_index: bool = False,
+    strategy=None,
+    directory=None,
+    paths=None,
 ):
     if callbacks is None:
         callbacks = StashApplyCallbacks()

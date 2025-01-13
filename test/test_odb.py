@@ -34,8 +34,8 @@ import pytest
 # pygit2
 from pygit2 import Odb, Oid
 from pygit2.enums import ObjectType
-from . import utils
 
+from . import utils
 
 BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
@@ -74,14 +74,14 @@ def test_read(odb):
     ab = odb.read(BLOB_OID)
     a = odb.read(BLOB_HEX)
     assert ab == a
-    assert (ObjectType.BLOB, b'a contents\n') == a
+    assert a == (ObjectType.BLOB, b'a contents\n')
 
     a2 = odb.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-    assert (ObjectType.BLOB, b'a contents 2\n') == a2
+    assert a2 == (ObjectType.BLOB, b'a contents 2\n')
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = odb.read(a_hex_prefix)
-    assert (ObjectType.BLOB, b'a contents\n') == a3
+    assert a3 == (ObjectType.BLOB, b'a contents\n')
 
 
 def test_write(odb):

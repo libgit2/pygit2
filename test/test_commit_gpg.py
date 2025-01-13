@@ -119,16 +119,16 @@ def test_commit_signing(gpgsigned):
     assert gpgsig_content == commit.read_raw().decode('utf-8')
 
     # perform sanity checks
-    assert ObjectType.COMMIT == commit.type
-    assert '6569fdf71dbd99081891154641869c537784a3ba' == commit.id
+    assert commit.type == ObjectType.COMMIT
+    assert commit.id == '6569fdf71dbd99081891154641869c537784a3ba'
     assert commit.message_encoding is None
     assert message == commit.message
-    assert 1358451456 == commit.commit_time
+    assert commit.commit_time == 1358451456
     assert committer == commit.committer
     assert author == commit.author
     assert tree == commit.tree.id
     assert Oid(hex=tree) == commit.tree_id
-    assert 1 == len(commit.parents)
+    assert len(commit.parents) == 1
     assert parent == commit.parents[0].id
     assert Oid(hex=parent) == commit.parent_ids[0]
 

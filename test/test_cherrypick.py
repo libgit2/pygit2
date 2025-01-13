@@ -26,6 +26,7 @@
 """Tests for merging and information about it."""
 
 from pathlib import Path
+
 import pytest
 
 import pygit2

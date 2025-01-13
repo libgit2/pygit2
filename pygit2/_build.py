@@ -48,7 +48,7 @@ def _get_libgit2_path():
 
     # Default
     if os.name == 'nt':
-        return Path(r'%s\libgit2' % os.getenv('ProgramFiles'))
+        return Path(r'%s\libgit2' % os.getenv('ProgramFiles'))  # noqa: SIM112
     return Path('/usr/local')
 
 

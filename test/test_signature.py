@@ -99,7 +99,7 @@ def test_incorrect_encoding():
     )
 
     # repr() and str() may display junk, but they must not crash
-    assert "pygit2.Signature('(error)', '(error)', 999, 0, '(error)')" == repr(
-        signature
+    assert (
+        repr(signature) == "pygit2.Signature('(error)', '(error)', 999, 0, '(error)')"
     )
-    assert '(error) <(error)>' == str(signature)
+    assert str(signature) == '(error) <(error)>'

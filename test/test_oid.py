@@ -28,9 +28,9 @@
 # Standard Library
 from binascii import unhexlify
 
-from pygit2 import Oid
 import pytest
 
+from pygit2 import Oid
 
 HEX = '15b648aec6ed045b5ca6f57f8b7831a8b4757298'
 RAW = unhexlify(HEX.encode('ascii'))
@@ -85,7 +85,7 @@ def test_cmp():
     # Other
     assert oid1 < oid2
     assert oid1 <= oid2
-    assert not oid1 == oid2
+    assert oid1 != oid2
     assert not oid1 > oid2
     assert not oid1 >= oid2
 

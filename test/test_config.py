@@ -23,13 +23,14 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import contextlib
 from pathlib import Path
 
 import pytest
 
 from pygit2 import Config
-from . import utils
 
+from . import utils
 
 CONFIG_FILENAME = 'test_config'
 
@@ -37,10 +38,8 @@ CONFIG_FILENAME = 'test_config'
 @pytest.fixture
 def config(testrepo):
     yield testrepo.config
-    try:
+    with contextlib.suppress(OSError):
         Path(CONFIG_FILENAME).unlink()
-    except OSError:
-        pass
 
 
 def test_config(config):
@@ -155,23 +154,24 @@ def test_multivar():
     config.add_file(CONFIG_FILENAME, 6)
     assert 'this.that' in config
 
-    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that'))
-    assert ['foobar'] == list(config.get_multivar('this.that', 'bar'))
-    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that', 'foo.*'))
+    assert list(config.get_multivar('this.that')) == ['foobar', 'foobeer']
+    assert list(config.get_multivar('this.that', 'bar')) == ['foobar']
+    assert list(config.get_multivar('this.that', 'foo.*')) == ['foobar', 'foobeer']
 
     config.set_multivar('this.that', '^.*beer', 'fool')
-    assert ['fool'] == list(config.get_multivar('this.that', 'fool'))
+    assert list(config.get_multivar('this.that', 'fool')) == ['fool']
 
     config.set_multivar('this.that', 'foo.*', 'foo-123456')
-    assert ['foo-123456', 'foo-123456'] == list(
-        config.get_multivar('this.that', 'foo.*')
-    )
+    assert list(config.get_multivar('this.that', 'foo.*')) == [
+        'foo-123456',
+        'foo-123456',
+    ]
 
     config.delete_multivar('this.that', 'bar')
-    assert ['foo-123456', 'foo-123456'] == list(config.get_multivar('this.that', ''))
+    assert list(config.get_multivar('this.that', '')) == ['foo-123456', 'foo-123456']
 
     config.delete_multivar('this.that', 'foo-[0-9]+')
-    assert [] == list(config.get_multivar('this.that', ''))
+    assert list(config.get_multivar('this.that', '')) == []
 
 
 def test_iterator(config):
@@ -188,5 +188,5 @@ def test_parsing():
     assert Config.parse_bool('on')
     assert Config.parse_bool('1')
 
-    assert 5 == Config.parse_int('5')
-    assert 1024 == Config.parse_int('1k')
+    assert Config.parse_int('5') == 5
+    assert Config.parse_int('1k') == 1024

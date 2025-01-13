@@ -23,12 +23,13 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pygit2
-from pygit2.enums import ApplyLocation, CheckoutStrategy, FileStatus
-import pytest
-
 import os
 from pathlib import Path
+
+import pytest
+
+import pygit2
+from pygit2.enums import ApplyLocation, CheckoutStrategy, FileStatus
 
 
 def read_content(testrepo):

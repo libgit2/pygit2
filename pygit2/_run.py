@@ -29,8 +29,8 @@ This is an special module, it provides stuff used by by pygit2 at run-time.
 
 # Import from the Standard Library
 import codecs
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Import from cffi
 from cffi import FFI
@@ -45,7 +45,7 @@ except ImportError:
 # C_HEADER_SRC
 if getattr(sys, 'frozen', False):
     if hasattr(sys, '_MEIPASS'):
-        dir_path = Path(sys._MEIPASS)
+        dir_path = Path(sys._MEIPASS)  # type: ignore
     else:
         dir_path = Path(sys.executable).parent
 else:
@@ -83,10 +83,10 @@ h_files = [
     'submodule.h',
     'callbacks.h',  # Bridge from libgit2 to Python
 ]
-h_source = []
+h_source: list[str] = []
 for h_file in h_files:
-    h_file = dir_path / 'decl' / h_file
-    with codecs.open(h_file, 'r', 'utf-8') as f:
+    h_file = dir_path / 'decl' / h_file  # noqa: PLW2901
+    with codecs.open(str(h_file), 'r', 'utf-8') as f:
         h_source.append(f.read())
 
 C_HEADER_SRC = '\n'.join(h_source)
@@ -99,7 +99,7 @@ C_PREAMBLE = """\
 # ffi
 _, libgit2_kw = get_libgit2_paths()
 ffi = FFI()
-ffi.set_source('pygit2._libgit2', C_PREAMBLE, **libgit2_kw)
+ffi.set_source('pygit2._libgit2', C_PREAMBLE, **libgit2_kw)  # type: ignore
 ffi.cdef(C_HEADER_SRC)
 
 
