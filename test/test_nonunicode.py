@@ -32,6 +32,7 @@ import shutil
 
 bstring = b'\xc3master'
 
+
 def test_nonunicode_branchname(testrepo):
     folderpath = 'temp_repo_nonutf'
     if os.path.exists(folderpath):
