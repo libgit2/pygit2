@@ -318,9 +318,9 @@ def test_merge_mergeheads(mergerepo):
     assert mergerepo.listall_mergeheads() == [pygit2.Oid(hex=branch_head_hex)]
 
     mergerepo.state_cleanup()
-    assert (
-        mergerepo.listall_mergeheads() == []
-    ), 'state_cleanup() should wipe the mergeheads'
+    assert mergerepo.listall_mergeheads() == [], (
+        'state_cleanup() should wipe the mergeheads'
+    )
 
 
 def test_merge_message(mergerepo):

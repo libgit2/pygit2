@@ -58,7 +58,7 @@ def test_read_commit(barerepo):
     assert 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c' == parents[0].id
     assert commit.message_encoding is None
     assert commit.message == (
-        'Second test data commit.\n\n' 'This commit has some additional text.\n'
+        'Second test data commit.\n\nThis commit has some additional text.\n'
     )
     commit_time = 1288481576
     assert commit_time == commit.commit_time
