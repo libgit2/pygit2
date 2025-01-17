@@ -135,7 +135,7 @@ def test_lookup_commit(barerepo):
     assert commit_sha == commit.id
     assert ObjectType.COMMIT == commit.type
     assert commit.message == (
-        'Second test data commit.\n\n' 'This commit has some additional text.\n'
+        'Second test data commit.\n\nThis commit has some additional text.\n'
     )
 
 
