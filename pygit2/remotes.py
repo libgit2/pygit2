@@ -376,7 +376,7 @@ class RemoteCollection:
         the standard format and thus could not be remapped.
         """
 
-        if not new_name:
+        if not name:
             raise ValueError('Current remote name must be a non-empty string')
 
         if not new_name:
