@@ -25,14 +25,17 @@
 
 """Tests for non unicode byte strings"""
 
-import pygit2
 import os
 import shutil
+
+import pygit2
+from . import utils
 
 
 bstring = b'\xc3master'
 
-
+@utils.requires_network
+@utils.requires_linux
 def test_nonunicode_branchname(testrepo):
     folderpath = 'temp_repo_nonutf'
     if os.path.exists(folderpath):

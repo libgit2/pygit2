@@ -23,8 +23,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Tests for credentials"""
-
 from pathlib import Path
 import platform
 

@@ -23,16 +23,12 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-"""Tests for Remote objects."""
-
 from unittest.mock import patch
 import sys
 
 import pytest
 
 import pygit2
-from pygit2 import Oid
-from pygit2.ffi import ffi
 from . import utils
 
 
@@ -220,7 +216,7 @@ def test_remote_collection(testrepo):
     assert remote.name in [x.name for x in testrepo.remotes]
 
 
-@utils.refcount
+@utils.requires_refcount
 def test_remote_refcount(testrepo):
     start = sys.getrefcount(testrepo)
     remote = testrepo.remotes[0]
@@ -272,13 +268,13 @@ def test_update_tips(emptyrepo):
     tips = [
         (
             'refs/remotes/origin/master',
-            Oid(hex='0' * 40),
-            Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78'),
+            pygit2.Oid(hex='0' * 40),
+            pygit2.Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78'),
         ),
         (
             'refs/tags/root',
-            Oid(hex='0' * 40),
-            Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'),
+            pygit2.Oid(hex='0' * 40),
+            pygit2.Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'),
         ),
     ]
 

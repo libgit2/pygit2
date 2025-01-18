@@ -23,12 +23,12 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Standard Library
 import binascii
 import os
-from pathlib import Path
+import pathlib
 import sys
 import tempfile
+
 import pytest
 
 import pygit2
@@ -160,7 +160,7 @@ def test_expand_id(barerepo):
     assert commit_sha == expanded
 
 
-@utils.refcount
+@utils.requires_refcount
 def test_lookup_commit_refcount(barerepo):
     start = sys.getrefcount(barerepo)
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -173,7 +173,7 @@ def test_lookup_commit_refcount(barerepo):
 def test_get_path(barerepo_path):
     barerepo, path = barerepo_path
 
-    directory = Path(barerepo.path).resolve()
+    directory = pathlib.Path(barerepo.path).resolve()
     assert directory == path.resolve()
 
 
@@ -199,7 +199,7 @@ def test_hashfile(barerepo):
     with os.fdopen(handle, 'w') as fh:
         fh.write(data)
     hashed_sha1 = pygit2.hashfile(tempfile_path)
-    Path(tempfile_path).unlink()
+    pathlib.Path(tempfile_path).unlink()
     written_sha1 = barerepo.create_blob(data)
     assert hashed_sha1 == written_sha1
 

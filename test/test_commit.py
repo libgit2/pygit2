@@ -40,7 +40,7 @@ COMMIT_SHA_TO_AMEND = (
 )
 
 
-@utils.refcount
+@utils.requires_refcount
 def test_commit_refcount(barerepo):
     commit = barerepo[COMMIT_SHA]
     start = sys.getrefcount(commit)
