@@ -58,23 +58,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 requires_proxy = pytest.mark.skipif(not has_proxy, reason='Requires proxy at port 8888')
 
 requires_ssh = pytest.mark.skipif(
-    pygit2.enums.Feature.SSH not in pygit2.features,
-    reason='Requires SSH'
+    pygit2.enums.Feature.SSH not in pygit2.features, reason='Requires SSH'
 )
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
 
-requires_fspath = pytest.mark.xfail(
-    is_pypy,
-    reason="PyPy doesn't fully support fspath, see https://foss.heptapod.net/pypy/pypy/-/issues/3168",
-)
-
 requires_refcount = pytest.mark.skipif(is_pypy, reason='skip refcounts checks in pypy')
 
 requires_linux = pytest.mark.xfail(
-    sys.platform != 'linux',
-    reason='probably a bug in libgit2 for non-linux platforms'
+    sys.platform != 'linux', reason='probably a bug in libgit2 for non-linux platforms'
 )
 
 

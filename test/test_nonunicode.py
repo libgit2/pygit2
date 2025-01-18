@@ -32,8 +32,6 @@ import pygit2
 from . import utils
 
 
-bstring = b'\xc3master'
-
 @utils.requires_network
 @utils.requires_linux
 def test_nonunicode_branchname(testrepo):
@@ -43,6 +41,7 @@ def test_nonunicode_branchname(testrepo):
     newrepo = pygit2.clone_repository(
         path=folderpath, url='https://github.com/pygit2/test_branch_notutf.git'
     )
+    bstring = b'\xc3master'
     assert bstring in [
         (ref.split('/')[-1]).encode('utf8', 'surrogateescape')
         for ref in newrepo.listall_references()

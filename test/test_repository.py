@@ -629,7 +629,6 @@ def test_discover_repo(tmp_path):
     assert repo.path == discover_repository(str(subdir))
 
 
-@utils.requires_fspath
 def test_discover_repo_aspath(tmp_path):
     repo = init_repository(Path(tmp_path), False)
     subdir = Path(tmp_path) / 'test1' / 'test2'
@@ -811,7 +810,6 @@ def test_worktree(testrepo):
     assert testrepo.list_worktrees() == []
 
 
-@utils.requires_fspath
 def test_worktree_aspath(testrepo):
     worktree_name = 'foo'
     worktree_dir = Path(tempfile.mkdtemp())
