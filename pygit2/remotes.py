@@ -335,7 +335,7 @@ class RemoteCollection:
         for name in self._ffi_names():
             yield maybe_string(name)
 
-    def create(self, name, url, fetch=None):
+    def create(self, name, url, fetch=None) -> Remote:
         """Create a new remote with the given name and url. Returns a <Remote>
         object.
 

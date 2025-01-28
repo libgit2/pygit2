@@ -82,12 +82,12 @@ from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
 
 
 class Payload:
-    def __init__(self, **kw):
+    def __init__(self, **kw: object):
         for key, value in kw.items():
             setattr(self, key, value)
         self._stored_exception = None
 
-    def check_error(self, error_code):
+    def check_error(self, error_code: int) -> None:
         if error_code == C.GIT_EUSER:
             assert self._stored_exception is not None
             raise self._stored_exception
@@ -120,7 +120,7 @@ class RemoteCallbacks(Payload):
         if certificate_check is not None:
             self.certificate_check = certificate_check
 
-    def sideband_progress(self, string):
+    def sideband_progress(self, string: str) -> None:
         """
         Progress output callback.  Override this function with your own
         progress reporting function
@@ -159,7 +159,7 @@ class RemoteCallbacks(Payload):
         """
         raise Passthrough
 
-    def certificate_check(self, certificate, valid, host):
+    def certificate_check(self, certificate: None, valid: bool, host: str) -> bool:
         """
         Certificate callback. Override with your own function to determine
         whether to accept the server's certificate.
