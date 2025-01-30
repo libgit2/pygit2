@@ -43,4 +43,4 @@ quote-style = "single"
 skip = '.git*'
 check-hidden = true
 # ignore-regex = ''
-# ignore-words-list = ''
+ignore-words-list = 'devault,claus'
