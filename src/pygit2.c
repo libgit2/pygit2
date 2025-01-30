@@ -290,7 +290,7 @@ PyDoc_STRVAR(filter_register__doc__,
     "\n"
     "`priority` defaults to GIT_FILTER_DRIVER_PRIORITY which imitates a core\n"
     "Git filter driver that will be run last on checkout (smudge) and first \n"
-    "on checkin (clean).\n"
+    "on check-in (clean).\n"
     "\n"
     "Note that the filter registry is not thread safe. Any registering or\n"
     "deregistering of filters should be done outside of any possible usage\n"
