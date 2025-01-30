@@ -259,7 +259,7 @@ Deprecations:
 -   New `keep_all` and `paths` optional arguments for
     `Repository.stash(...)`
     [#1202](https://github.com/libgit2/pygit2/pull/1202)
--   New `Respository.state()`
+-   New `Repository.state()`
     [#1204](https://github.com/libgit2/pygit2/pull/1204)
 -   Improve `Repository.write_archive(...)` performance
     [#1183](https://github.com/libgit2/pygit2/pull/1183)
@@ -657,7 +657,7 @@ Breaking changes:
 
 Breaking changes:
 
--   Now the Repository has a new attribue `odb` for object database:
+-   Now the Repository has a new attribute `odb` for object database:
 
         # Before
         repository.read(...)
@@ -862,7 +862,7 @@ Other changes:
     [#610](https://github.com/libgit2/pygit2/issues/610)
 -   Fix tests failing in some cases
     [#795](https://github.com/libgit2/pygit2/issues/795)
--   Automatize wheels upload to pypi
+-   Automate wheels upload to pypi
     [#563](https://github.com/libgit2/pygit2/issues/563)
 
 # 0.27.0 (2018-03-30)

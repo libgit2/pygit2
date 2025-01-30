@@ -86,7 +86,7 @@ def init_repository(
 
     The *flags* may be a combination of enums.RepositoryInitFlag constants:
 
-    - BARE (overriden by the *bare* parameter)
+    - BARE (overridden by the *bare* parameter)
     - NO_REINIT
     - NO_DOTGIT_DIR
     - MKDIR

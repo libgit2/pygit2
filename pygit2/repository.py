@@ -987,7 +987,7 @@ class BaseRepository(_Repository):
 
         always_use_long_format : bool
             Always output the long format (the nearest tag, the number of
-            commits, and the abbrevated commit name) even when the committish
+            commits, and the abbreviated commit name) even when the committish
             matches a tag.
 
         dirty_suffix : str

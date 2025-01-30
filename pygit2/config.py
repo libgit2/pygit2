@@ -304,7 +304,7 @@ class Config:
 
 
 class ConfigEntry:
-    """An entry in a configuation object."""
+    """An entry in a configuration object."""
 
     @classmethod
     def _from_c(cls, ptr, iterator=None):
@@ -321,7 +321,7 @@ class ConfigEntry:
         # git_config_iterator_free when we've deleted all ConfigEntry objects.
         # But it's not, to reproduce the error comment the lines below and run
         # the script in https://github.com/libgit2/pygit2/issues/970
-        # So instead we load the Python object immmediately. Ideally we should
+        # So instead we load the Python object immediately. Ideally we should
         # investigate libgit2 source code.
         if iterator is not None:
             entry.raw_name = entry.raw_name

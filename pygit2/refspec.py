@@ -43,7 +43,7 @@ class Refspec:
 
     @property
     def dst(self):
-        """Destinaton or rhs of the refspec"""
+        """Destination or rhs of the refspec"""
         return ffi.string(C.git_refspec_dst(self._refspec)).decode('utf-8')
 
     @property

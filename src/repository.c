@@ -69,7 +69,7 @@ extern PyObject *FileStatusEnum;
 extern PyObject *MergeAnalysisEnum;
 extern PyObject *MergePreferenceEnum;
 
-/* forward-declaration for Repsository._from_c() */
+/* forward-declaration for Repository._from_c() */
 PyTypeObject RepositoryType;
 
 PyObject *
@@ -2078,7 +2078,7 @@ Repository_free(Repository *self)
 PyDoc_STRVAR(Repository_expand_id__doc__,
     "expand_id(hex: str) -> Oid\n"
     "\n"
-    "Expand a string into a full Oid according to the objects in this repsitory.\n");
+    "Expand a string into a full Oid according to the objects in this repository.\n");
 
 PyObject *
 Repository_expand_id(Repository *self, PyObject *py_hex)

@@ -81,7 +81,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 void
 Signature_dealloc(Signature *self)
 {
-    /* self->obj is the owner of the git_signature C structure, so we musn't free it */
+    /* self->obj is the owner of the git_signature C structure, so we mustn't free it */
     if (self->obj) {
         Py_CLEAR(self->obj);
     } else {
