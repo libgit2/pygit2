@@ -439,7 +439,7 @@ Breaking changes:
 
 Breaking changes:
 
--   Remove deprecated `GIT_CREDTYPE_XXX` contants, use
+-   Remove deprecated `GIT_CREDTYPE_XXX` constants, use
     `GIT_CREDENTIAL_XXX` instead.
 -   Remove deprecated `Patch.patch` getter, use `Patch.text` instead.
 
@@ -536,7 +536,7 @@ Deprecations:
 
 -   Deprecate `Repository.create_remote(...)`, use instead
     `Repository.remotes.create(...)`
--   Deprecate `GIT_CREDTYPE_XXX` contants, use `GIT_CREDENTIAL_XXX`
+-   Deprecate `GIT_CREDTYPE_XXX` constants, use `GIT_CREDENTIAL_XXX`
     instead.
 
 # 1.2.0 (2020-04-05)
