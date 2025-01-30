@@ -37,3 +37,10 @@ extend-exclude = [
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git*'
+check-hidden = true
+# ignore-regex = ''
+# ignore-words-list = ''
