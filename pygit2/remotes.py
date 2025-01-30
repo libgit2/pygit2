@@ -246,7 +246,7 @@ class Remote:
         function will return successfully. Thus it is strongly recommended to
         install a callback, that implements
         :py:meth:`RemoteCallbacks.push_update_reference` and check the passed
-        parameters for successfull operations.
+        parameters for successful operations.
 
         Parameters:
 

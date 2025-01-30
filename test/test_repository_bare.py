@@ -60,7 +60,7 @@ def test_head(barerepo):
 
 
 def test_set_head(barerepo):
-    # Test setting a detatched HEAD.
+    # Test setting a detached HEAD.
     barerepo.set_head(pygit2.Oid(hex=PARENT_SHA))
     assert barerepo.head.target == PARENT_SHA
     # And test setting a normal HEAD.

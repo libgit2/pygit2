@@ -230,7 +230,7 @@ Reference_rename(Reference *self, PyObject *py_name)
     if (err)
         return Error_set(err);
 
-    // Upadate reference
+    // Update reference
     git_reference_free(self->reference);
     self->reference = new_reference;
 

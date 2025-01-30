@@ -16,7 +16,7 @@ Object lookup
 
 In the previous chapter we learnt about Object IDs. With an Oid we can ask the
 repository to get the associated object. To do that the ``Repository`` class
-implementes a subset of the mapping interface.
+implements a subset of the mapping interface.
 
 .. autoclass:: pygit2.Repository
    :noindex:
@@ -90,7 +90,7 @@ Blobs
 =================
 
 A blob is just a raw byte string. They are the Git equivalent to files in
-a filesytem.
+a filesystem.
 
 This is their API:
 
@@ -221,7 +221,7 @@ Creating trees
 Commits
 =================
 
-A commit is a snapshot of the working dir with meta informations like author,
+A commit is a snapshot of the working dir with meta information like author,
 committer and others.
 
 .. autoclass:: pygit2.Commit

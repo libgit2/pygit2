@@ -405,10 +405,10 @@ def git_remote_callbacks(payload):
 #
 # C callbacks
 #
-# These functions are called by libgit2. They cannot raise execptions, since
+# These functions are called by libgit2. They cannot raise exceptions, since
 # they return to libgit2, they can only send back error codes.
 #
-# They cannot be overriden, but sometimes the only thing these functions do is
+# They cannot be overridden, but sometimes the only thing these functions do is
 # to proxy the call to a user defined function. If user defined functions
 # raises an exception, the callback must store it somewhere and return
 # GIT_EUSER to libgit2, then the outer Python code will be able to reraise the
