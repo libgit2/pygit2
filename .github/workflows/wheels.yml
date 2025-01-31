@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - free-threaded-wheel
     tags:
     - 'v*'
 
