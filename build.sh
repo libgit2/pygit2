@@ -85,19 +85,6 @@ else
     cd ci
 fi
 
-# Install zlib
-# XXX Build libgit2 with USE_BUNDLED_ZLIB instead?
-if [ -n "$ZLIB_VERSION" ]; then
-    FILENAME=zlib-$ZLIB_VERSION
-    wget https://www.zlib.net/$FILENAME.tar.gz -N
-    tar xf $FILENAME.tar.gz
-    cd $FILENAME
-    ./configure --prefix=$PREFIX
-    make
-    make install
-    cd ..
-fi
-
 # Install openssl
 if [ -n "$OPENSSL_VERSION" ]; then
     FILENAME=openssl-$OPENSSL_VERSION
@@ -189,6 +176,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
                 -DOPENSSL_SSL_LIBRARY="../openssl-universal/$LIBSSL" \
                 -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
                 -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                -DUSE_BUNDLED_ZLIB=ON \
                 -DUSE_SSH=$USE_SSH
     else
         export CFLAGS=-I$PREFIX/include
@@ -197,6 +185,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
                 -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
                 -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                -DUSE_BUNDLED_ZLIB=ON \
                 -DUSE_SSH=$USE_SSH
     fi
     cmake --build . --target install
