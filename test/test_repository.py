@@ -99,6 +99,8 @@ def test_checkout_callbacks(testrepo):
             super().__init__()
             self.conflicting_paths = set()
             self.updated_paths = set()
+            self.completed_steps = -1
+            self.total_steps = -1
 
         def checkout_notify_flags(self) -> CheckoutNotify:
             return CheckoutNotify.CONFLICT | CheckoutNotify.UPDATED
@@ -109,12 +111,17 @@ def test_checkout_callbacks(testrepo):
             elif why == CheckoutNotify.UPDATED:
                 self.updated_paths.add(path)
 
+        def checkout_progress(self, path: str, completed_steps: int, total_steps: int):
+            self.completed_steps = completed_steps
+            self.total_steps = total_steps
+
     # checkout i18n with conflicts and default strategy should not be possible
     callbacks = MyCheckoutCallbacks()
     with pytest.raises(pygit2.GitError):
         testrepo.checkout(ref_i18n, callbacks=callbacks)
     # make sure the callbacks caught that
     assert {'bye.txt'} == callbacks.conflicting_paths
+    assert -1 == callbacks.completed_steps  # shouldn't have done anything
 
     # checkout i18n with GIT_CHECKOUT_FORCE
     head = testrepo.head
@@ -125,6 +132,8 @@ def test_checkout_callbacks(testrepo):
     # make sure the callbacks caught the files affected by the checkout
     assert set() == callbacks.conflicting_paths
     assert {'bye.txt', 'new'} == callbacks.updated_paths
+    assert callbacks.completed_steps > 0
+    assert callbacks.completed_steps == callbacks.total_steps
 
 
 def test_checkout_aborted_from_callbacks(testrepo):
