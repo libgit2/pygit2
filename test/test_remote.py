@@ -439,22 +439,31 @@ def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
         remote.push(['refs/heads/master'])
 
 
-@patch.object(pygit2.callbacks, 'RemoteCallbacks')
-def test_push_options(mock_callbacks, origin, clone, remote):
-    remote.push(['refs/heads/master'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+def test_push_options(origin, clone, remote):
+    from pygit2 import RemoteCallbacks
+
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks)
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 0
 
-    remote.push(['refs/heads/master'], push_options=[])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks, push_options=[])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 0
 
-    remote.push(['refs/heads/master'], push_options=['foo'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    # Local remotes don't support push_options, so pushing will raise an error.
+    # However, push_options should still be set in RemoteCallbacks.
+    with pytest.raises(pygit2.GitError, match='push-options not supported by remote'):
+        remote.push(['refs/heads/master'], callbacks, push_options=['foo'])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 1
     # strings pointed to by remote_push_options.strings[] are already freed
 
-    remote.push(['refs/heads/master'], push_options=['Option A', 'Option B'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    with pytest.raises(pygit2.GitError, match='push-options not supported by remote'):
+        remote.push(['refs/heads/master'], callbacks, push_options=['Opt A', 'Opt B'])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 2
     # strings pointed to by remote_push_options.strings[] are already freed
