@@ -183,13 +183,28 @@ class RemoteCallbacks(Payload):
 
     def transfer_progress(self, stats):
         """
-        Transfer progress callback. Override with your own function to report
-        transfer progress.
+        During the download of new data, this will be regularly called with
+        the indexer's progress.
+
+        Override with your own function to report transfer progress.
 
         Parameters:
 
         stats : TransferProgress
             The progress up to now.
+        """
+
+    def push_transfer_progress(
+        self, objects_pushed: int, total_objects: int, bytes_pushed: int
+    ):
+        """
+        During the upload portion of a push, this will be regularly called
+        with progress information.
+
+        Be aware that this is called inline with pack building operations,
+        so performance may be affected.
+
+        Override with your own function to report push transfer progress.
         """
 
     def update_tips(self, refname, old, new):
@@ -370,6 +385,13 @@ def git_push_options(payload, opts=None):
     opts.callbacks.credentials = C._credentials_cb
     opts.callbacks.certificate_check = C._certificate_check_cb
     opts.callbacks.push_update_reference = C._push_update_reference_cb
+    # Per libgit2 sources, push_transfer_progress may incur a performance hit.
+    # So, set it only if the user has overridden the no-op stub.
+    if (
+        type(payload).push_transfer_progress
+        is not RemoteCallbacks.push_transfer_progress
+    ):
+        opts.callbacks.push_transfer_progress = C._push_transfer_progress_cb
     # Payload
     handle = ffi.new_handle(payload)
     opts.callbacks.payload = handle
@@ -551,6 +573,16 @@ def _transfer_progress_cb(stats_ptr, data):
         return 0
 
     transfer_progress(TransferProgress(stats_ptr))
+    return 0
+
+
+@libgit2_callback
+def _push_transfer_progress_cb(current, total, bytes_pushed, payload):
+    push_transfer_progress = getattr(payload, 'push_transfer_progress', None)
+    if not push_transfer_progress:
+        return 0
+
+    push_transfer_progress(current, total, bytes_pushed)
     return 0
 
 

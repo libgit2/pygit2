@@ -38,6 +38,12 @@ extern "Python" int _transfer_progress_cb(
     const git_indexer_progress *stats,
     void *payload);
 
+extern "Python" int _push_transfer_progress_cb(
+    unsigned int objects_pushed,
+    unsigned int total_objects,
+    size_t bytes_pushed,
+    void *payload);
+
 extern "Python" int _update_tips_cb(
 	const char *refname,
 	const git_oid *a,

@@ -252,8 +252,8 @@ def test_fetch_depth_one(testrepo):
 
 def test_transfer_progress(emptyrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def transfer_progress(emptyrepo, stats):
-            emptyrepo.tp = stats
+        def transfer_progress(self, stats):
+            self.tp = stats
 
     callbacks = MyCallbacks()
     remote = emptyrepo.remotes[0]
@@ -362,6 +362,59 @@ def test_push_when_up_to_date_succeeds(origin, clone, remote):
     assert origin_tip == clone_tip
 
 
+def test_push_transfer_progress(origin, clone, remote):
+    tip = clone[clone.head.target]
+    new_tip_id = clone.create_commit(
+        'refs/heads/master',
+        tip.author,
+        tip.author,
+        'empty commit',
+        tip.tree.id,
+        [tip.id],
+    )
+
+    # NOTE: We're currently not testing bytes_pushed due to a bug in libgit2
+    # 1.9.0: it passes a junk value for bytes_pushed when pushing to a remote
+    # on the local filesystem, as is the case in this unit test. (When pushing
+    # to a remote over the network, the value is correct.)
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+            self.objects_pushed = objects_pushed
+            self.total_objects = total_objects
+
+    assert origin.branches['master'].target == tip.id
+
+    callbacks = MyCallbacks()
+    remote.push(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.objects_pushed == 1
+    assert callbacks.total_objects == 1
+    assert origin.branches['master'].target == new_tip_id
+
+
+def test_push_interrupted_from_callbacks(origin, clone, remote):
+    tip = clone[clone.head.target]
+    clone.create_commit(
+        'refs/heads/master',
+        tip.author,
+        tip.author,
+        'empty commit',
+        tip.tree.id,
+        [tip.id],
+    )
+
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+            raise InterruptedError('retreat! retreat!')
+
+    assert origin.branches['master'].target == tip.id
+
+    callbacks = MyCallbacks()
+    with pytest.raises(InterruptedError, match='retreat! retreat!'):
+        remote.push(['refs/heads/master'], callbacks=callbacks)
+
+    assert origin.branches['master'].target == tip.id
+
+
 def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
     tip = origin[origin.head.target]
     origin.create_commit(
@@ -386,22 +439,31 @@ def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
         remote.push(['refs/heads/master'])
 
 
-@patch.object(pygit2.callbacks, 'RemoteCallbacks')
-def test_push_options(mock_callbacks, origin, clone, remote):
-    remote.push(['refs/heads/master'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+def test_push_options(origin, clone, remote):
+    from pygit2 import RemoteCallbacks
+
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks)
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 0
 
-    remote.push(['refs/heads/master'], push_options=[])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks, push_options=[])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 0
 
-    remote.push(['refs/heads/master'], push_options=['foo'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    # Local remotes don't support push_options, so pushing will raise an error.
+    # However, push_options should still be set in RemoteCallbacks.
+    with pytest.raises(pygit2.GitError, match='push-options not supported by remote'):
+        remote.push(['refs/heads/master'], callbacks, push_options=['foo'])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 1
     # strings pointed to by remote_push_options.strings[] are already freed
 
-    remote.push(['refs/heads/master'], push_options=['Option A', 'Option B'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    with pytest.raises(pygit2.GitError, match='push-options not supported by remote'):
+        remote.push(['refs/heads/master'], callbacks, push_options=['Opt A', 'Opt B'])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 2
     # strings pointed to by remote_push_options.strings[] are already freed
