@@ -69,6 +69,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
             yum install openssl-devel -y
         else
             yum install perl-IPC-Cmd -y
+            yum install perl-Pod-Html -y
         fi
     elif [ -f /sbin/apk ]; then
         apk add wget

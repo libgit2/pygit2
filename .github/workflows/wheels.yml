@@ -4,17 +4,18 @@ on:
   push:
     branches:
     - master
+    - wheels-*
     tags:
     - 'v*'
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels for ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-        - name: linux
+        - name: linux-amd
           os: ubuntu-24.04
         - name: linux-arm
           os: ubuntu-24.04-arm
@@ -33,6 +34,11 @@ jobs:
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
+          CIBW_MANYLINUX_PYPY_X86_64_IMAGE: "manylinux_2_28"
+          CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: "manylinux_2_28"
 
       - uses: actions/upload-artifact@v4
         with:
