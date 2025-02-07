@@ -56,9 +56,9 @@ The Oid type
      >>> raw = unhexlify("cff3ceaefc955f0dbe1957017db181bc49913781")
      >>> oid2 = Oid(raw=raw)
 
-And the other way around, from an Oid object we can get the hexadecimal and raw
-forms. You can use the built-in `str()` (or `unicode()` in python 2) to get the
-hexadecimal representation of the Oid.
+And the other way around, from an Oid object we can get the raw form via
+`oid.raw`. You can use `str(oid)` to get the hexadecimal representation of the
+Oid.
 
 .. method:: Oid.__str__()
 .. autoattribute:: pygit2.Oid.raw
@@ -72,6 +72,7 @@ The Oid type supports:
 
 - `bool(oid)`, returning False if the Oid is a null SHA-1 (all zeros).
 
+- `str(oid)`, returning the hexadecimal representation of the Oid.
 
 Constants
 =========
