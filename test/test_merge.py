@@ -344,3 +344,20 @@ def test_merge_remove_message(mergerepo):
     assert mergerepo.message.startswith(f"Merge commit '{branch_head_hex}'")
     mergerepo.remove_message()
     assert not mergerepo.message
+
+
+def test_merge_commit(mergerepo):
+    commit = mergerepo['1b2bae55ac95a4be3f8983b86cd579226d0eb247']
+    mergerepo.merge(commit)
+
+    assert mergerepo.message.startswith(f"Merge commit '{str(commit.id)}'")
+    assert mergerepo.listall_mergeheads() == [commit.id]
+
+
+def test_merge_reference(mergerepo):
+    branch = mergerepo.branches.local['branch-conflicts']
+    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    mergerepo.merge(branch)
+
+    assert mergerepo.message.startswith("Merge branch 'branch-conflicts'")
+    assert mergerepo.listall_mergeheads() == [pygit2.Oid(hex=branch_head_hex)]
