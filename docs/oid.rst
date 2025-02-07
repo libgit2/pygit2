@@ -68,7 +68,9 @@ The Oid type supports:
 - rich comparisons, not just for equality, also: lesser-than, lesser-or-equal,
   etc.
 
-- hashing, so Oid objects can be used as keys in a dictionary.
+- `hash(oid)`, so Oid objects can be used as keys in a dictionary.
+
+- `bool(oid)`, returning False if the Oid is a null SHA-1 (all zeros).
 
 
 Constants
