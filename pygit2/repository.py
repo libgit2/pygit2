@@ -22,7 +22,7 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
-
+import warnings
 from io import BytesIO
 from os import PathLike
 from string import hexdigits
@@ -43,7 +43,6 @@ from .config import Config
 from .enums import (
     AttrCheck,
     BlameFlag,
-    BranchType,
     CheckoutStrategy,
     DescribeStrategy,
     DiffOption,
@@ -879,15 +878,18 @@ class BaseRepository(_Repository):
             # Annotated commit from commit id
             if isinstance(source, str):
                 # For backwards compatibility, parse a string as a partial commit hash
+                warnings.warn(
+                    'Passing str to Repository.merge is deprecated. '
+                    'Pass Commit, Oid, or a Reference (such as a Branch) instead.',
+                    DeprecationWarning,
+                )
                 oid = self[source].peel(Commit).id
             elif isinstance(source, Commit):
                 oid = source.id
             elif isinstance(source, Oid):
                 oid = source
             else:
-                raise TypeError(
-                    'expected Reference, Commit, Oid, or commit hash string'
-                )
+                raise TypeError('expected Reference, Commit, or Oid')
             c_id = ffi.new('git_oid *')
             ffi.buffer(c_id)[:] = oid.raw[:]
             commit_ptr = ffi.new('git_annotated_commit **')

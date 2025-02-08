@@ -39,6 +39,16 @@ def test_merge_invalid_type(mergerepo, id):
         mergerepo.merge(id)
 
 
+# TODO: Once Repository.merge drops support for str arguments,
+#       add an extra parameter to test_merge_invalid_type above
+#       to make sure we cover legacy code.
+def test_merge_string_argument_deprecated(mergerepo):
+    branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
+
+    with pytest.warns(DeprecationWarning, match=r'Pass Commit.+instead'):
+        mergerepo.merge(branch_head_hex)
+
+
 def test_merge_analysis_uptodate(mergerepo):
     branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
     branch_id = mergerepo.get(branch_head_hex).id
@@ -82,7 +92,10 @@ def test_merge_no_fastforward_no_conflicts(mergerepo):
 
 def test_merge_invalid_hex(mergerepo):
     branch_head_hex = '12345678'
-    with pytest.raises(KeyError):
+    with (
+        pytest.raises(KeyError),
+        pytest.warns(DeprecationWarning, match=r'Pass Commit.+instead'),
+    ):
         mergerepo.merge(branch_head_hex)
 
 
@@ -132,7 +145,7 @@ def test_merge_no_fastforward_conflicts(mergerepo):
 
 
 def test_merge_remove_conflicts(mergerepo):
-    other_branch_tip = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    other_branch_tip = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
     mergerepo.merge(other_branch_tip)
     idx = mergerepo.index
     conflicts = idx.conflicts
@@ -158,30 +171,29 @@ def test_merge_remove_conflicts(mergerepo):
     ],
 )
 def test_merge_favor(mergerepo, favor):
-    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
-    mergerepo.merge(branch_head_hex, favor=favor)
+    branch_head = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
+    mergerepo.merge(branch_head, favor=favor)
 
     assert mergerepo.index.conflicts is None
 
 
 def test_merge_fail_on_conflict(mergerepo):
-    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    branch_head = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
 
-    with pytest.raises(pygit2.GitError):
+    with pytest.raises(pygit2.GitError, match=r'merge conflicts exist'):
         mergerepo.merge(
-            branch_head_hex, flags=MergeFlag.FIND_RENAMES | MergeFlag.FAIL_ON_CONFLICT
+            branch_head, flags=MergeFlag.FIND_RENAMES | MergeFlag.FAIL_ON_CONFLICT
         )
 
 
 def test_merge_commits(mergerepo):
-    branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
-    branch_id = mergerepo.get(branch_head_hex).id
+    branch_head = pygit2.Oid(hex='03490f16b15a09913edb3a067a3dc67fbb8d41f1')
 
-    merge_index = mergerepo.merge_commits(mergerepo.head.target, branch_head_hex)
+    merge_index = mergerepo.merge_commits(mergerepo.head.target, branch_head)
     assert merge_index.conflicts is None
     merge_commits_tree = merge_index.write_tree(mergerepo)
 
-    mergerepo.merge(branch_id)
+    mergerepo.merge(branch_head)
     index = mergerepo.index
     assert index.conflicts is None
     merge_tree = index.write_tree()
@@ -190,26 +202,23 @@ def test_merge_commits(mergerepo):
 
 
 def test_merge_commits_favor(mergerepo):
-    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
+    branch_head = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
 
     merge_index = mergerepo.merge_commits(
-        mergerepo.head.target, branch_head_hex, favor=MergeFavor.OURS
+        mergerepo.head.target, branch_head, favor=MergeFavor.OURS
     )
     assert merge_index.conflicts is None
 
     # Incorrect favor value
-    with pytest.raises(TypeError):
-        mergerepo.merge_commits(mergerepo.head.target, branch_head_hex, favor='foo')
+    with pytest.raises(TypeError, match=r'favor argument must be MergeFavor'):
+        mergerepo.merge_commits(mergerepo.head.target, branch_head, favor='foo')
 
 
 def test_merge_trees(mergerepo):
-    branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
-    branch_id = mergerepo.get(branch_head_hex).id
+    branch_id = pygit2.Oid(hex='03490f16b15a09913edb3a067a3dc67fbb8d41f1')
     ancestor_id = mergerepo.merge_base(mergerepo.head.target, branch_id)
 
-    merge_index = mergerepo.merge_trees(
-        ancestor_id, mergerepo.head.target, branch_head_hex
-    )
+    merge_index = mergerepo.merge_trees(ancestor_id, mergerepo.head.target, branch_id)
     assert merge_index.conflicts is None
     merge_commits_tree = merge_index.write_tree(mergerepo)
 
@@ -312,10 +321,10 @@ def test_merge_octopus(mergerepo):
 def test_merge_mergeheads(mergerepo):
     assert mergerepo.listall_mergeheads() == []
 
-    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
-    mergerepo.merge(branch_head_hex)
+    branch_head = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
+    mergerepo.merge(branch_head)
 
-    assert mergerepo.listall_mergeheads() == [pygit2.Oid(hex=branch_head_hex)]
+    assert mergerepo.listall_mergeheads() == [branch_head]
 
     mergerepo.state_cleanup()
     assert mergerepo.listall_mergeheads() == [], (
@@ -327,10 +336,10 @@ def test_merge_message(mergerepo):
     assert not mergerepo.message
     assert not mergerepo.raw_message
 
-    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
-    mergerepo.merge(branch_head_hex)
+    branch_head = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
+    mergerepo.merge(branch_head)
 
-    assert mergerepo.message.startswith(f"Merge commit '{branch_head_hex}'")
+    assert mergerepo.message.startswith(f"Merge commit '{branch_head}'")
     assert mergerepo.message.encode('utf-8') == mergerepo.raw_message
 
     mergerepo.state_cleanup()
@@ -338,16 +347,17 @@ def test_merge_message(mergerepo):
 
 
 def test_merge_remove_message(mergerepo):
-    branch_head_hex = '1b2bae55ac95a4be3f8983b86cd579226d0eb247'
-    mergerepo.merge(branch_head_hex)
+    branch_head = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
+    mergerepo.merge(branch_head)
 
-    assert mergerepo.message.startswith(f"Merge commit '{branch_head_hex}'")
+    assert mergerepo.message.startswith(f"Merge commit '{branch_head}'")
     mergerepo.remove_message()
     assert not mergerepo.message
 
 
 def test_merge_commit(mergerepo):
     commit = mergerepo['1b2bae55ac95a4be3f8983b86cd579226d0eb247']
+    assert isinstance(commit, pygit2.Commit)
     mergerepo.merge(commit)
 
     assert mergerepo.message.startswith(f"Merge commit '{str(commit.id)}'")
