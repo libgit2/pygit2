@@ -1,3 +1,31 @@
+# 1.17.1 (UNRELEASED)
+
+- Drop PowerPC wheels
+
+- Upgrade Linux Glibc wheels to `manylinux_2_28`
+
+- Add `RemoteCallbacks.push_transfer_progress(...)` callback
+  [#1345](https://github.com/libgit2/pygit2/pull/1345)
+
+- New `bool(oid)` and some doc/typing fixes
+  [#1347](https://github.com/libgit2/pygit2/pull/1347)
+
+- Now `Repository.merge(...)` accepts a commit or reference object
+  [#1348](https://github.com/libgit2/pygit2/pull/1348)
+
+- Fix when a reference name has non UTF-8 chars
+  [#1329](https://github.com/libgit2/pygit2/pull/1329)
+
+- Fix condition check in `Repository.remotes.rename(...)`
+  [#1342](https://github.com/libgit2/pygit2/pull/1342)
+
+- Add codespell workflow, fix a number of typos
+  [#1344](https://github.com/libgit2/pygit2/pull/1344)
+
+- CI: Use ARM runner for tests and wheels
+  [#1346](https://github.com/libgit2/pygit2/pull/1346)
+
+
 # 1.17.0 (2025-01-08)
 
 - Upgrade to libgit2 1.9
