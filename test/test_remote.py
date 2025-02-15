@@ -23,7 +23,6 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from unittest.mock import patch
 import sys
 
 import pytest
@@ -50,7 +49,7 @@ def test_remote_create(testrepo):
 
     remote = testrepo.remotes.create(name, url)
 
-    assert type(remote) == pygit2.Remote
+    assert type(remote) is pygit2.Remote
     assert name == remote.name
     assert url == remote.url
     assert remote.push_url is None
@@ -66,7 +65,7 @@ def test_remote_create_with_refspec(testrepo):
 
     remote = testrepo.remotes.create(name, url, fetch)
 
-    assert type(remote) == pygit2.Remote
+    assert type(remote) is pygit2.Remote
     assert name == remote.name
     assert url == remote.url
     assert [fetch] == remote.fetch_refspecs
@@ -140,7 +139,7 @@ def test_refspec(testrepo):
     assert refspec.force is True
     assert ORIGIN_REFSPEC == refspec.string
 
-    assert list == type(remote.fetch_refspecs)
+    assert list is type(remote.fetch_refspecs)
     assert 1 == len(remote.fetch_refspecs)
     assert ORIGIN_REFSPEC == remote.fetch_refspecs[0]
 
@@ -149,18 +148,18 @@ def test_refspec(testrepo):
     assert 'refs/remotes/origin/master' == refspec.transform('refs/heads/master')
     assert 'refs/heads/master' == refspec.rtransform('refs/remotes/origin/master')
 
-    assert list == type(remote.push_refspecs)
+    assert list is type(remote.push_refspecs)
     assert 0 == len(remote.push_refspecs)
 
     push_specs = remote.push_refspecs
-    assert list == type(push_specs)
+    assert list is type(push_specs)
     assert 0 == len(push_specs)
 
     testrepo.remotes.add_fetch('origin', '+refs/test/*:refs/test/remotes/*')
     remote = testrepo.remotes['origin']
 
     fetch_specs = remote.fetch_refspecs
-    assert list == type(fetch_specs)
+    assert list is type(fetch_specs)
     assert 2 == len(fetch_specs)
     assert [
         '+refs/heads/*:refs/remotes/origin/*',

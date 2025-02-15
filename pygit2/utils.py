@@ -113,18 +113,18 @@ class StrArray:
     contents of 'struct' only remain valid within the StrArray context.
     """
 
-    def __init__(self, l):
+    def __init__(self, lst):
         # Allow passing in None as lg2 typically considers them the same as empty
-        if l is None:
+        if lst is None:
             self.__array = ffi.NULL
             return
 
-        if not isinstance(l, (list, tuple)):
+        if not isinstance(lst, (list, tuple)):
             raise TypeError('Value must be a list')
 
-        strings = [None] * len(l)
-        for i in range(len(l)):
-            li = l[i]
+        strings = [None] * len(lst)
+        for i in range(len(lst)):
+            li = lst[i]
             if not isinstance(li, str) and not hasattr(li, '__fspath__'):
                 raise TypeError('Value must be a string or PathLike object')
 

@@ -596,7 +596,7 @@ def test_new_repo(tmp_path):
     repo = init_repository(tmp_path, False)
 
     oid = repo.write(ObjectType.BLOB, 'Test')
-    assert type(oid) == Oid
+    assert type(oid) is Oid
 
     assert (tmp_path / '.git').exists()
 

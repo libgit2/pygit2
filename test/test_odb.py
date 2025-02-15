@@ -91,4 +91,4 @@ def test_write(odb):
         odb.write(ObjectType.ANY, data)
 
     oid = odb.write(ObjectType.BLOB, data)
-    assert type(oid) == Oid
+    assert type(oid) is Oid

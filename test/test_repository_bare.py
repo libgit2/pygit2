@@ -54,7 +54,7 @@ def test_is_bare(barerepo):
 def test_head(barerepo):
     head = barerepo.head
     assert HEAD_SHA == head.target
-    assert type(head) == pygit2.Reference
+    assert type(head) is pygit2.Reference
     assert not barerepo.head_is_unborn
     assert not barerepo.head_is_detached
 
@@ -94,7 +94,7 @@ def test_write(barerepo):
         barerepo.write(ObjectType.ANY, data)
 
     oid = barerepo.write(ObjectType.BLOB, data)
-    assert type(oid) == pygit2.Oid
+    assert type(oid) is pygit2.Oid
 
 
 def test_contains(barerepo):
