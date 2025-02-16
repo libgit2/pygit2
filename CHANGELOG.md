@@ -1,7 +1,5 @@
 # 1.17.1 (UNRELEASED)
 
-- Drop PowerPC wheels
-
 - Upgrade Linux Glibc wheels to `manylinux_2_28`
 
 - Add `RemoteCallbacks.push_transfer_progress(...)` callback
@@ -22,8 +20,16 @@
 - Add codespell workflow, fix a number of typos
   [#1344](https://github.com/libgit2/pygit2/pull/1344)
 
+- More typing
+  [#1343](https://github.com/libgit2/pygit2/pull/1343)
+
 - CI: Use ARM runner for tests and wheels
   [#1346](https://github.com/libgit2/pygit2/pull/1346)
+
+Deprecations:
+
+- Passing str to `Repository.merge(...)` is deprecated,
+  instead pass an oid object (or a commit, or a reference)
 
 
 # 1.17.0 (2025-01-08)
