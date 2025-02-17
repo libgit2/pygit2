@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -99,3 +99,10 @@ def test_hash():
     s.add(Oid(hex='0000000000000000000000000000000000000000'))
     s.add(Oid(hex='0000000000000000000000000000000000000001'))
     assert len(s) == 3
+
+
+def test_bool():
+    assert Oid(raw=RAW)
+    assert Oid(hex=HEX)
+    assert not Oid(raw=b'')
+    assert not Oid(hex='0000000000000000000000000000000000000000')

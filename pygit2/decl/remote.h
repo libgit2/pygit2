@@ -48,6 +48,7 @@ struct git_remote_callbacks {
 	git_remote_ready_cb remote_ready;
 	void *payload;
 	git_url_resolve_cb resolve_url;
+	int (*update_refs)(const char *refname, const git_oid *a, const git_oid *b, git_refspec *spec, void *data);
 };
 
 typedef struct {

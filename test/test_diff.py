@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -220,7 +220,7 @@ def test_diff_empty_tree(barerepo):
 
 def test_diff_revparse(barerepo):
     diff = barerepo.diff('HEAD', 'HEAD~6')
-    assert type(diff) == pygit2.Diff
+    assert type(diff) is pygit2.Diff
 
 
 def test_diff_tree_opts(barerepo):

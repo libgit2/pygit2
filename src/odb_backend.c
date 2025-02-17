@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 The pygit2 contributors
+ * Copyright 2010-2025 The pygit2 contributors
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2,
@@ -103,7 +103,7 @@ pgit_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz, git_objec
     if (result == NULL)
         return git_error_for_exc();
 
-    // Parse output from calback
+    // Parse output from callback
     PyObject *py_oid_out;
     Py_ssize_t type_value;
     const char *bytes;

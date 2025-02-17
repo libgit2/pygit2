@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -91,4 +91,4 @@ def test_write(odb):
         odb.write(ObjectType.ANY, data)
 
     oid = odb.write(ObjectType.BLOB, data)
-    assert type(oid) == Oid
+    assert type(oid) is Oid

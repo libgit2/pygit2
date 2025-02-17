@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -43,7 +43,7 @@ class Refspec:
 
     @property
     def dst(self):
-        """Destinaton or rhs of the refspec"""
+        """Destination or rhs of the refspec"""
         return ffi.string(C.git_refspec_dst(self._refspec)).decode('utf-8')
 
     @property

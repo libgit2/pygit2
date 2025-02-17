@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -22,7 +22,7 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
-
+import warnings
 from io import BytesIO
 from os import PathLike
 from string import hexdigits
@@ -43,7 +43,6 @@ from .config import Config
 from .enums import (
     AttrCheck,
     BlameFlag,
-    BranchType,
     CheckoutStrategy,
     DescribeStrategy,
     DiffOption,
@@ -834,23 +833,28 @@ class BaseRepository(_Repository):
 
     def merge(
         self,
-        id: typing.Union[Oid, str],
+        source: typing.Union[Reference, Commit, Oid, str],
         favor=MergeFavor.NORMAL,
         flags=MergeFlag.FIND_RENAMES,
         file_flags=MergeFileFlag.DEFAULT,
     ):
         """
-        Merges the given id into HEAD.
+        Merges the given Reference or Commit into HEAD.
 
-        Merges the given commit(s) into HEAD, writing the results into the working directory.
+        Merges the given commit into HEAD, writing the results into the working directory.
         Any changes are staged for commit and any conflicts are written to the index.
         Callers should inspect the repository's index after this completes,
         resolve any conflicts and prepare a commit.
 
         Parameters:
 
-        id
-            The id to merge into HEAD
+        source
+            The Reference, Commit, or commit Oid to merge into HEAD.
+            It is preferable to pass in a Reference, because this enriches the
+            merge with additional information (for example, Repository.message will
+            specify the name of the branch being merged).
+            Previous versions of pygit2 allowed passing in a partial commit
+            hash as a string; this is deprecated.
 
         favor
             An enums.MergeFavor constant specifying how to deal with file-level conflicts.
@@ -862,12 +866,35 @@ class BaseRepository(_Repository):
         file_flags
             A combination of enums.MergeFileFlag constants.
         """
-        if not isinstance(id, (str, Oid)):
-            raise TypeError(f'expected oid (string or <Oid>) got {type(id)}')
 
-        id = self[id].id
-        c_id = ffi.new('git_oid *')
-        ffi.buffer(c_id)[:] = id.raw[:]
+        if isinstance(source, Reference):
+            # Annotated commit from ref
+            cptr = ffi.new('struct git_reference **')
+            ffi.buffer(cptr)[:] = source._pointer[:]
+            commit_ptr = ffi.new('git_annotated_commit **')
+            err = C.git_annotated_commit_from_ref(commit_ptr, self._repo, cptr[0])
+            check_error(err)
+        else:
+            # Annotated commit from commit id
+            if isinstance(source, str):
+                # For backwards compatibility, parse a string as a partial commit hash
+                warnings.warn(
+                    'Passing str to Repository.merge is deprecated. '
+                    'Pass Commit, Oid, or a Reference (such as a Branch) instead.',
+                    DeprecationWarning,
+                )
+                oid = self[source].peel(Commit).id
+            elif isinstance(source, Commit):
+                oid = source.id
+            elif isinstance(source, Oid):
+                oid = source
+            else:
+                raise TypeError('expected Reference, Commit, or Oid')
+            c_id = ffi.new('git_oid *')
+            ffi.buffer(c_id)[:] = oid.raw[:]
+            commit_ptr = ffi.new('git_annotated_commit **')
+            err = C.git_annotated_commit_lookup(commit_ptr, self._repo, c_id)
+            check_error(err)
 
         merge_opts = self._merge_options(favor, flags, file_flags)
 
@@ -876,10 +903,6 @@ class BaseRepository(_Repository):
         checkout_opts.checkout_strategy = int(
             CheckoutStrategy.SAFE | CheckoutStrategy.RECREATE_MISSING
         )
-
-        commit_ptr = ffi.new('git_annotated_commit **')
-        err = C.git_annotated_commit_lookup(commit_ptr, self._repo, c_id)
-        check_error(err)
 
         err = C.git_merge(self._repo, commit_ptr, 1, merge_opts, checkout_opts)
         C.git_annotated_commit_free(commit_ptr[0])
@@ -987,7 +1010,7 @@ class BaseRepository(_Repository):
 
         always_use_long_format : bool
             Always output the long format (the nearest tag, the number of
-            commits, and the abbrevated commit name) even when the committish
+            commits, and the abbreviated commit name) even when the committish
             matches a tag.
 
         dirty_suffix : str

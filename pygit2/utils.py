@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -34,7 +34,7 @@ def maybe_string(ptr):
     if not ptr:
         return None
 
-    return ffi.string(ptr).decode('utf8')
+    return ffi.string(ptr).decode('utf8', errors='surrogateescape')
 
 
 def to_bytes(s, encoding='utf-8', errors='strict'):
@@ -113,18 +113,18 @@ class StrArray:
     contents of 'struct' only remain valid within the StrArray context.
     """
 
-    def __init__(self, l):
+    def __init__(self, lst):
         # Allow passing in None as lg2 typically considers them the same as empty
-        if l is None:
+        if lst is None:
             self.__array = ffi.NULL
             return
 
-        if not isinstance(l, (list, tuple)):
+        if not isinstance(lst, (list, tuple)):
             raise TypeError('Value must be a list')
 
-        strings = [None] * len(l)
-        for i in range(len(l)):
-            li = l[i]
+        strings = [None] * len(lst)
+        for i in range(len(lst)):
+            li = lst[i]
             if not isinstance(li, str) and not hasattr(li, '__fspath__'):
                 raise TypeError('Value must be a string or PathLike object')
 
@@ -165,8 +165,8 @@ class GenericIterator:
         self.length = len(container)
         self.idx = 0
 
-    def next(self):
-        return self.__next__()
+    def __iter__(self):
+        return self
 
     def __next__(self):
         idx = self.idx

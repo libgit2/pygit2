@@ -18,12 +18,15 @@ typedef struct git_blame_hunk {
 	git_oid final_commit_id;
 	size_t final_start_line_number;
 	git_signature *final_signature;
+	git_signature *final_committer;
 
 	git_oid orig_commit_id;
 	const char *orig_path;
 	size_t orig_start_line_number;
 	git_signature *orig_signature;
+	git_signature *orig_committer;
 
+	const char *summary;
 	char boundary;
 } git_blame_hunk;
 

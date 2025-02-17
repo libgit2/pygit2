@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -246,7 +246,7 @@ class Remote:
         function will return successfully. Thus it is strongly recommended to
         install a callback, that implements
         :py:meth:`RemoteCallbacks.push_update_reference` and check the passed
-        parameters for successfull operations.
+        parameters for successful operations.
 
         Parameters:
 
@@ -335,7 +335,7 @@ class RemoteCollection:
         for name in self._ffi_names():
             yield maybe_string(name)
 
-    def create(self, name, url, fetch=None):
+    def create(self, name, url, fetch=None) -> Remote:
         """Create a new remote with the given name and url. Returns a <Remote>
         object.
 
@@ -376,7 +376,7 @@ class RemoteCollection:
         the standard format and thus could not be remapped.
         """
 
-        if not new_name:
+        if not name:
             raise ValueError('Current remote name must be a non-empty string')
 
         if not new_name:

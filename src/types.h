@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 The pygit2 contributors
+ * Copyright 2010-2025 The pygit2 contributors
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2,
@@ -33,8 +33,8 @@
 #include <git2.h>
 #include <git2/sys/filter.h>
 
-#if !(LIBGIT2_VER_MAJOR == 1 && LIBGIT2_VER_MINOR == 8)
-#error You need a compatible libgit2 version (1.8.x)
+#if !(LIBGIT2_VER_MAJOR == 1 && LIBGIT2_VER_MINOR == 9)
+#error You need a compatible libgit2 version (1.9.x)
 #endif
 
 /*

@@ -111,6 +111,7 @@ Authors:
     Kaarel Kitsemets
     Ken Dreyer
     Kevin KIN-FOO
+    Kyle Gottfried
     Marcel Waldvogel
     Masud Rahman
     Mathieu Parent
@@ -174,10 +175,12 @@ Authors:
     Jasper Lievisse Adriaanse
     Jimisola Laursen
     Jiri Benc
+    Johann Miller
     Jonathan Robson
     Josh Bleecher Snyder
     Julia Evans
     Justin Clift
+    Kevin Valk
     Konstantinos Smanis
     Kyriakos Oikonomakos
     Lance Eftink
@@ -187,6 +190,7 @@ Authors:
     Mathieu Bridon
     Mathieu Pillard
     Matthaus Woolard
+    Matěj Cepl
     Maxwell G
     Michał Górny
     Na'aman Hirschfeld
@@ -208,6 +212,7 @@ Authors:
     Rodrigo Bistolfi
     Ross Nicoll
     Rui Abreu Ferreira
+    Rui Chen
     Sandro Jäckel
     Saul Pwanson
     Shane Turner

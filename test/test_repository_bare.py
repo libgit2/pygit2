@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -23,12 +23,12 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Standard Library
 import binascii
 import os
-from pathlib import Path
+import pathlib
 import sys
 import tempfile
+
 import pytest
 
 import pygit2
@@ -54,13 +54,13 @@ def test_is_bare(barerepo):
 def test_head(barerepo):
     head = barerepo.head
     assert HEAD_SHA == head.target
-    assert type(head) == pygit2.Reference
+    assert type(head) is pygit2.Reference
     assert not barerepo.head_is_unborn
     assert not barerepo.head_is_detached
 
 
 def test_set_head(barerepo):
-    # Test setting a detatched HEAD.
+    # Test setting a detached HEAD.
     barerepo.set_head(pygit2.Oid(hex=PARENT_SHA))
     assert barerepo.head.target == PARENT_SHA
     # And test setting a normal HEAD.
@@ -94,7 +94,7 @@ def test_write(barerepo):
         barerepo.write(ObjectType.ANY, data)
 
     oid = barerepo.write(ObjectType.BLOB, data)
-    assert type(oid) == pygit2.Oid
+    assert type(oid) is pygit2.Oid
 
 
 def test_contains(barerepo):
@@ -135,7 +135,7 @@ def test_lookup_commit(barerepo):
     assert commit_sha == commit.id
     assert ObjectType.COMMIT == commit.type
     assert commit.message == (
-        'Second test data commit.\n\n' 'This commit has some additional text.\n'
+        'Second test data commit.\n\nThis commit has some additional text.\n'
     )
 
 
@@ -160,7 +160,7 @@ def test_expand_id(barerepo):
     assert commit_sha == expanded
 
 
-@utils.refcount
+@utils.requires_refcount
 def test_lookup_commit_refcount(barerepo):
     start = sys.getrefcount(barerepo)
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -173,7 +173,7 @@ def test_lookup_commit_refcount(barerepo):
 def test_get_path(barerepo_path):
     barerepo, path = barerepo_path
 
-    directory = Path(barerepo.path).resolve()
+    directory = pathlib.Path(barerepo.path).resolve()
     assert directory == path.resolve()
 
 
@@ -199,7 +199,7 @@ def test_hashfile(barerepo):
     with os.fdopen(handle, 'w') as fh:
         fh.write(data)
     hashed_sha1 = pygit2.hashfile(tempfile_path)
-    Path(tempfile_path).unlink()
+    pathlib.Path(tempfile_path).unlink()
     written_sha1 = barerepo.create_blob(data)
     assert hashed_sha1 == written_sha1
 

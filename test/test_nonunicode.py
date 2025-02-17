@@ -1,4 +1,4 @@
-# Copyright 2010-2025 The pygit2 contributors
+# Copyright 2010-2024 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -23,26 +23,26 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Standard Library
-from pathlib import Path
+"""Tests for non unicode byte strings"""
+
+import os
+import shutil
+
+import pygit2
+from . import utils
 
 
-def test_no_attr(testrepo):
-    assert testrepo.get_attr('file', 'foo') is None
-
-    with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
-        print('*.py  text\n', file=f)
-        print('*.jpg -text\n', file=f)
-        print('*.sh  eol=lf\n', file=f)
-
-    assert testrepo.get_attr('file.py', 'foo') is None
-    assert testrepo.get_attr('file.py', 'text')
-    assert not testrepo.get_attr('file.jpg', 'text')
-    assert 'lf' == testrepo.get_attr('file.sh', 'eol')
-
-
-def test_no_attr_aspath(testrepo):
-    with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
-        print('*.py  text\n', file=f)
-
-    assert testrepo.get_attr(Path('file.py'), 'text')
+@utils.requires_network
+@utils.requires_linux
+def test_nonunicode_branchname(testrepo):
+    folderpath = 'temp_repo_nonutf'
+    if os.path.exists(folderpath):
+        shutil.rmtree(folderpath)
+    newrepo = pygit2.clone_repository(
+        path=folderpath, url='https://github.com/pygit2/test_branch_notutf.git'
+    )
+    bstring = b'\xc3master'
+    assert bstring in [
+        (ref.split('/')[-1]).encode('utf8', 'surrogateescape')
+        for ref in newrepo.listall_references()
+    ]  # Remote branch among references: 'refs/remotes/origin/\udcc3master'

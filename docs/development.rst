@@ -82,7 +82,7 @@ Step 3. Build pygit2 with debug symbols::
 Step 4. Install requirements::
 
   $ $PYTHONBIN/python3 setup.py install
-  $ pip insall pytest
+  $ pip install pytest
 
 Step 4. Run valgrind::
 

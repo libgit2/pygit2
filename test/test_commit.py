@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -40,7 +40,7 @@ COMMIT_SHA_TO_AMEND = (
 )
 
 
-@utils.refcount
+@utils.requires_refcount
 def test_commit_refcount(barerepo):
     commit = barerepo[COMMIT_SHA]
     start = sys.getrefcount(commit)
@@ -58,7 +58,7 @@ def test_read_commit(barerepo):
     assert 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c' == parents[0].id
     assert commit.message_encoding is None
     assert commit.message == (
-        'Second test data commit.\n\n' 'This commit has some additional text.\n'
+        'Second test data commit.\n\nThis commit has some additional text.\n'
     )
     commit_time = 1288481576
     assert commit_time == commit.commit_time

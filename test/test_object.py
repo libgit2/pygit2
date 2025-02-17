@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -88,7 +88,7 @@ def test_peel_commit(testrepo):
     # and peel to the tree
     tree = commit.peel(ObjectType.TREE)
 
-    assert type(tree) == Tree
+    assert type(tree) is Tree
     assert tree.id == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
@@ -97,7 +97,7 @@ def test_peel_commit_type(testrepo):
     commit = testrepo[commit_id]
     tree = commit.peel(Tree)
 
-    assert type(tree) == Tree
+    assert type(tree) is Tree
     assert tree.id == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 

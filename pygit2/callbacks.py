@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -82,12 +82,12 @@ from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
 
 
 class Payload:
-    def __init__(self, **kw):
+    def __init__(self, **kw: object):
         for key, value in kw.items():
             setattr(self, key, value)
         self._stored_exception = None
 
-    def check_error(self, error_code):
+    def check_error(self, error_code: int) -> None:
         if error_code == C.GIT_EUSER:
             assert self._stored_exception is not None
             raise self._stored_exception
@@ -120,7 +120,7 @@ class RemoteCallbacks(Payload):
         if certificate_check is not None:
             self.certificate_check = certificate_check
 
-    def sideband_progress(self, string):
+    def sideband_progress(self, string: str) -> None:
         """
         Progress output callback.  Override this function with your own
         progress reporting function
@@ -159,7 +159,7 @@ class RemoteCallbacks(Payload):
         """
         raise Passthrough
 
-    def certificate_check(self, certificate, valid, host):
+    def certificate_check(self, certificate: None, valid: bool, host: str) -> bool:
         """
         Certificate callback. Override with your own function to determine
         whether to accept the server's certificate.
@@ -183,13 +183,28 @@ class RemoteCallbacks(Payload):
 
     def transfer_progress(self, stats):
         """
-        Transfer progress callback. Override with your own function to report
-        transfer progress.
+        During the download of new data, this will be regularly called with
+        the indexer's progress.
+
+        Override with your own function to report transfer progress.
 
         Parameters:
 
         stats : TransferProgress
             The progress up to now.
+        """
+
+    def push_transfer_progress(
+        self, objects_pushed: int, total_objects: int, bytes_pushed: int
+    ):
+        """
+        During the upload portion of a push, this will be regularly called
+        with progress information.
+
+        Be aware that this is called inline with pack building operations,
+        so performance may be affected.
+
+        Override with your own function to report push transfer progress.
         """
 
     def update_tips(self, refname, old, new):
@@ -370,6 +385,13 @@ def git_push_options(payload, opts=None):
     opts.callbacks.credentials = C._credentials_cb
     opts.callbacks.certificate_check = C._certificate_check_cb
     opts.callbacks.push_update_reference = C._push_update_reference_cb
+    # Per libgit2 sources, push_transfer_progress may incur a performance hit.
+    # So, set it only if the user has overridden the no-op stub.
+    if (
+        type(payload).push_transfer_progress
+        is not RemoteCallbacks.push_transfer_progress
+    ):
+        opts.callbacks.push_transfer_progress = C._push_transfer_progress_cb
     # Payload
     handle = ffi.new_handle(payload)
     opts.callbacks.payload = handle
@@ -405,10 +427,10 @@ def git_remote_callbacks(payload):
 #
 # C callbacks
 #
-# These functions are called by libgit2. They cannot raise execptions, since
+# These functions are called by libgit2. They cannot raise exceptions, since
 # they return to libgit2, they can only send back error codes.
 #
-# They cannot be overriden, but sometimes the only thing these functions do is
+# They cannot be overridden, but sometimes the only thing these functions do is
 # to proxy the call to a user defined function. If user defined functions
 # raises an exception, the callback must store it somewhere and return
 # GIT_EUSER to libgit2, then the outer Python code will be able to reraise the
@@ -551,6 +573,16 @@ def _transfer_progress_cb(stats_ptr, data):
         return 0
 
     transfer_progress(TransferProgress(stats_ptr))
+    return 0
+
+
+@libgit2_callback
+def _push_transfer_progress_cb(current, total, bytes_pushed, payload):
+    push_transfer_progress = getattr(payload, 'push_transfer_progress', None)
+    if not push_transfer_progress:
+        return 0
+
+    push_transfer_progress(current, total, bytes_pushed)
     return 0
 
 

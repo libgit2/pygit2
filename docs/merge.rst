@@ -66,7 +66,7 @@ The following methods perform the calculation for a base to an n-way merge.
 .. automethod:: pygit2.Repository.merge_base_many
 .. automethod:: pygit2.Repository.merge_base_octopus
 
-With this base at hand one can do repeated invokations of
+With this base at hand one can do repeated invocations of
 :py:meth:`.Repository.merge_commits` and :py:meth:`.Repository.merge_trees`
 to perform the actual merge into one tree (and deal with conflicts along the
 way).

@@ -57,10 +57,10 @@ Python requirements (these are specified in ``setup.py``):
 
 - cffi 1.17.0 or later
 
-Libgit2 **v1.8.x**; binary wheels already include libgit2, so you only need to
+Libgit2 **v1.9.x**; binary wheels already include libgit2, so you only need to
 worry about this if you install the source package.
 
-Optional libgit2 dependecies to support ssh and https:
+Optional libgit2 dependencies to support ssh and https:
 
 - https: WinHTTP (Windows), SecureTransport (OS X) or OpenSSL.
 - ssh: libssh2 1.9.0 or later, pkg-config
@@ -85,6 +85,10 @@ of Python and the required libgit2 version.
 
 +-----------+----------------+------------+
 | pygit2    | Python         | libgit2    |
++-----------+----------------+------------+
+| 1.17      | 3.10 - 3.13    | 1.9        |
++-----------+----------------+------------+
+| 1.16      | 3.10 - 3.13    | 1.8        |
 +-----------+----------------+------------+
 | 1.15      | 3.9 - 3.12     | 1.8        |
 +-----------+----------------+------------+
@@ -143,9 +147,9 @@ directory, do:
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.1.tar.gz -O libgit2-1.8.1.tar.gz
-   $ tar xzf libgit2-1.8.1.tar.gz
-   $ cd libgit2-1.8.1/
+   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.0.tar.gz -O libgit2-1.9.0.tar.gz
+   $ tar xzf libgit2-1.9.0.tar.gz
+   $ cd libgit2-1.9.0/
    $ cmake .
    $ make
    $ sudo make install
@@ -210,7 +214,7 @@ libgit2 within a virtual environment
 
 This is how to install both libgit2 and pygit2 within a virtual environment.
 
-This is useful if you don't have root acces to install libgit2 system wide.
+This is useful if you don't have root access to install libgit2 system wide.
 Or if you wish to have different versions of libgit2/pygit2 installed in
 different virtual environments, isolated from each other.
 
@@ -227,9 +231,9 @@ Install libgit2 (see we define the installation prefix):
 
 .. code-block:: sh
 
-   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.1.tar.gz -O libgit2-1.8.1.tar.gz
-   $ tar xzf libgit2-1.8.1.tar.gz
-   $ cd libgit2-1.8.1/
+   $ wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.0.tar.gz -O libgit2-1.9.0.tar.gz
+   $ tar xzf libgit2-1.9.0.tar.gz
+   $ cd libgit2-1.9.0/
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    $ cmake --build . --target install
 
@@ -261,7 +265,7 @@ So you need to either set ``LD_LIBRARY_PATH`` before using pygit2, like:
 Or, like we have done in the instructions above, use the `rpath
 <http://en.wikipedia.org/wiki/Rpath>`_, it hard-codes extra search paths within
 the pygit2 extension modules, so you don't need to set ``LD_LIBRARY_PATH``
-everytime. Verify yourself if curious:
+every time. Verify yourself if curious:
 
 .. code-block:: sh
 
@@ -286,7 +290,7 @@ variable.  The following recipe shows you how to do it from a bash shell:
 .. code-block:: sh
 
    $ export LIBGIT2=C:/Dev/libgit2
-   $ git clone --depth=1 -b v1.8.1 https://github.com/libgit2/libgit2.git
+   $ git clone --depth=1 -b v1.9.0 https://github.com/libgit2/libgit2.git
    $ cd libgit2
    $ cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2 -G "Visual Studio 14 Win64"
    $ cmake --build . --config release --target install
@@ -313,7 +317,7 @@ source package.
 
 The easiest way is to first install libgit2 with the `Homebrew <http://brew.sh>`_
 package manager and then use pip3 for pygit2. The following example assumes that
-XCode and Hombrew are already installed.
+XCode and Homebrew are already installed.
 
 .. code-block:: sh
 

@@ -2,18 +2,18 @@
 requires = ["setuptools", "wheel"]
 
 [tool.cibuildwheel]
-skip = "pp3* *musllinux_aarch64 *musllinux_ppc64le"
+enable = ["pypy"]
+skip = "*musllinux_aarch64 *musllinux_ppc64le"
 
-archs = ["auto"]
+archs = ["native"]
 build-frontend = "default"
 dependency-versions = "pinned"
-environment = { LIBGIT2_VERSION = "1.8.4", LIBSSH2_VERSION = "1.11.1", OPENSSL_VERSION = "3.2.3", LIBGIT2 = "/project/ci" }
+environment = {LIBGIT2_VERSION="1.9.0", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.2.3", LIBGIT2="/project/ci"}
 
 before-all = "sh build.sh"
 
 [tool.cibuildwheel.linux]
 repair-wheel-command = "LD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
-archs = ["x86_64", "aarch64", "ppc64le"]
 
 [[tool.cibuildwheel.overrides]]
 select = "*-musllinux*"
@@ -21,13 +21,13 @@ repair-wheel-command = "LD_LIBRARY_PATH=/project/ci/lib auditwheel repair -w {de
 
 [tool.cibuildwheel.macos]
 archs = ["universal2"]
-environment = { LIBGIT2_VERSION = "1.8.4", LIBSSH2_VERSION = "1.11.1", OPENSSL_VERSION = "3.2.3", LIBGIT2 = "/Users/runner/work/pygit2/pygit2/ci" }
+environment = {LIBGIT2_VERSION="1.9.0", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.2.3", LIBGIT2="/Users/runner/work/pygit2/pygit2/ci"}
 repair-wheel-command = "DYLD_LIBRARY_PATH=/Users/runner/work/pygit2/pygit2/ci/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
 
 [tool.ruff]
 target-version = "py310" # oldest supported Python version
 fix = true
-extend-exclude = [".cache", ".coverage", "build", "venv*"]
+extend-exclude = [ ".cache", ".coverage", "build", "site-packages", "venv*"]
 lint.select = [
     "E",
     "W",
@@ -55,19 +55,6 @@ lint.ignore = [
     "ARG002",  # unused arguments
     "SIM105",  # try-except-pass
 ]
-lint.select = ["C", "E", "W", "F", "I", "B", "C4", "ARG", "SIM", "PTH", "PL", "TID"]
-lint.ignore = [
-    "W291",    # Trailing whitespace
-    "E501",    # Line too long
-    "W293",    # Blank line contains whitespace
-    "PLR0912", # Too many branches
-    "PLR2004", # Magic values
-    "PLR0915", # Too many statements
-    "PLW0603", # Global statement
-    "PLR0913", # Too many arguments
-    "B010",    # setattr
-    "F401"     # unused imports
-]
 
 [tool.ruff.format]
 quote-style = "single"
@@ -80,3 +67,11 @@ reportAttributeAccessIssue = "none"
 reportUnknownMemberType = "none"
 reportUnusedFunction = "none"
 reportUnnecessaryIsInstance = "none"
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git*'
+check-hidden = true
+# ignore-regex = ''
+ignore-words-list = 'devault,claus'
+

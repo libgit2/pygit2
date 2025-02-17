@@ -1,3 +1,58 @@
+# 1.17.1 (UNRELEASED)
+
+- Upgrade Linux Glibc wheels to `manylinux_2_28`
+
+- Add `RemoteCallbacks.push_transfer_progress(...)` callback
+  [#1345](https://github.com/libgit2/pygit2/pull/1345)
+
+- New `bool(oid)` and some doc/typing fixes
+  [#1347](https://github.com/libgit2/pygit2/pull/1347)
+
+- Now `Repository.merge(...)` accepts a commit or reference object
+  [#1348](https://github.com/libgit2/pygit2/pull/1348)
+
+- Fix when a reference name has non UTF-8 chars
+  [#1329](https://github.com/libgit2/pygit2/pull/1329)
+
+- Fix condition check in `Repository.remotes.rename(...)`
+  [#1342](https://github.com/libgit2/pygit2/pull/1342)
+
+- Add codespell workflow, fix a number of typos
+  [#1344](https://github.com/libgit2/pygit2/pull/1344)
+
+- More typing
+  [#1343](https://github.com/libgit2/pygit2/pull/1343)
+
+- CI: Use ARM runner for tests and wheels
+  [#1346](https://github.com/libgit2/pygit2/pull/1346)
+
+Deprecations:
+
+- Passing str to `Repository.merge(...)` is deprecated,
+  instead pass an oid object (or a commit, or a reference)
+
+
+# 1.17.0 (2025-01-08)
+
+- Upgrade to libgit2 1.9
+
+- Add `certificate_check` callback to `Remote.ls_remotes(...)`
+  [#1326](https://github.com/libgit2/pygit2/pull/1326)
+
+- Fix build with GCC 14
+  [#1324](https://github.com/libgit2/pygit2/pull/1324)
+
+- Release wheels for PyPy
+  [#1336](https://github.com/libgit2/pygit2/pull/1336)
+  [#1339](https://github.com/libgit2/pygit2/pull/1339)
+
+- CI: update tests for macOS to use OpenSSL 3
+  [#1335](https://github.com/libgit2/pygit2/pull/1335)
+
+- Documentation: fix typo in `Repository.status(...)` docstring
+  [#1327](https://github.com/libgit2/pygit2/pull/1327)
+
+
 # 1.16.0 (2024-10-11)
 
 - Add support for Python 3.13
@@ -238,7 +293,7 @@ Deprecations:
 -   New `keep_all` and `paths` optional arguments for
     `Repository.stash(...)`
     [#1202](https://github.com/libgit2/pygit2/pull/1202)
--   New `Respository.state()`
+-   New `Repository.state()`
     [#1204](https://github.com/libgit2/pygit2/pull/1204)
 -   Improve `Repository.write_archive(...)` performance
     [#1183](https://github.com/libgit2/pygit2/pull/1183)
@@ -418,7 +473,7 @@ Breaking changes:
 
 Breaking changes:
 
--   Remove deprecated `GIT_CREDTYPE_XXX` contants, use
+-   Remove deprecated `GIT_CREDTYPE_XXX` constants, use
     `GIT_CREDENTIAL_XXX` instead.
 -   Remove deprecated `Patch.patch` getter, use `Patch.text` instead.
 
@@ -515,7 +570,7 @@ Deprecations:
 
 -   Deprecate `Repository.create_remote(...)`, use instead
     `Repository.remotes.create(...)`
--   Deprecate `GIT_CREDTYPE_XXX` contants, use `GIT_CREDENTIAL_XXX`
+-   Deprecate `GIT_CREDTYPE_XXX` constants, use `GIT_CREDENTIAL_XXX`
     instead.
 
 # 1.2.0 (2020-04-05)
@@ -636,7 +691,7 @@ Breaking changes:
 
 Breaking changes:
 
--   Now the Repository has a new attribue `odb` for object database:
+-   Now the Repository has a new attribute `odb` for object database:
 
         # Before
         repository.read(...)
@@ -841,7 +896,7 @@ Other changes:
     [#610](https://github.com/libgit2/pygit2/issues/610)
 -   Fix tests failing in some cases
     [#795](https://github.com/libgit2/pygit2/issues/795)
--   Automatize wheels upload to pypi
+-   Automate wheels upload to pypi
     [#563](https://github.com/libgit2/pygit2/issues/563)
 
 # 0.27.0 (2018-03-30)

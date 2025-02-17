@@ -4,7 +4,8 @@
 # list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
-import os, sys
+import os
+import sys
 
 # -- Path setup --------------------------------------------------------------
 
@@ -18,11 +19,11 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'pygit2'
-copyright = '2010-2024 The pygit2 contributors'
+copyright = '2010-2025 The pygit2 contributors'
 # author = ''
 
 # The full version, including alpha/beta/rc tags
-release = '1.16.0'
+release = '1.17.0'
 
 
 # -- General configuration ---------------------------------------------------

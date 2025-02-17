@@ -1,4 +1,4 @@
-# Copyright 2010-2024 The pygit2 contributors
+# Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2,
@@ -52,18 +52,15 @@ class ConfigIterator:
     def __iter__(self):
         return self
 
+    def __next__(self):
+        return self._next_entry()
+
     def _next_entry(self):
         centry = ffi.new('git_config_entry **')
         err = C.git_config_next(centry, self._iter)
         check_error(err)
 
         return ConfigEntry._from_c(centry[0], self)
-
-    def next(self):
-        return self.__next__()
-
-    def __next__(self):
-        return self._next_entry()
 
 
 class ConfigMultivarIterator(ConfigIterator):
@@ -307,7 +304,7 @@ class Config:
 
 
 class ConfigEntry:
-    """An entry in a configuation object."""
+    """An entry in a configuration object."""
 
     @classmethod
     def _from_c(cls, ptr, iterator=None):
@@ -324,7 +321,7 @@ class ConfigEntry:
         # git_config_iterator_free when we've deleted all ConfigEntry objects.
         # But it's not, to reproduce the error comment the lines below and run
         # the script in https://github.com/libgit2/pygit2/issues/970
-        # So instead we load the Python object immmediately. Ideally we should
+        # So instead we load the Python object immediately. Ideally we should
         # investigate libgit2 source code.
         if iterator is not None:
             entry.raw_name = entry.raw_name

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 The pygit2 contributors
+ * Copyright 2010-2025 The pygit2 contributors
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2,
@@ -81,7 +81,7 @@ Signature_init(Signature *self, PyObject *args, PyObject *kwds)
 void
 Signature_dealloc(Signature *self)
 {
-    /* self->obj is the owner of the git_signature C structure, so we musn't free it */
+    /* self->obj is the owner of the git_signature C structure, so we mustn't free it */
     if (self->obj) {
         Py_CLEAR(self->obj);
     } else {
