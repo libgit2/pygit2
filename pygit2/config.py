@@ -373,9 +373,6 @@ class ConfigEntry:
     if TYPE_CHECKING:
         _entry: _CConfigEntry
 
-    if TYPE_CHECKING:
-        _entry: _CConfigEntry
-
     @classmethod
     def _from_c(cls, ptr: _CConfigEntry, iterator: ConfigIterator | None = None):
     def _from_c(cls, ptr: _CConfigEntry, iterator: ConfigIterator | None = None):

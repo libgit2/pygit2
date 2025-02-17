@@ -54,8 +54,8 @@ def test_is_bare(barerepo):
 
 def test_head(barerepo):
     head = barerepo.head
-    assert head.target == HEAD_SHA
-    assert type(head) == pygit2.Reference
+    assert HEAD_SHA == head.target
+    assert type(head) is pygit2.Reference
     assert not barerepo.head_is_unborn
     assert not barerepo.head_is_detached
 
@@ -235,10 +235,9 @@ def test_conflicts_in_bare_repository(barerepo):
     diff = barerepo.merge_file_from_index(a, t, o)
     assert (
         diff
-        == """<<<<<<< conflict
+        == """
 ASCII - abc
 =======
 Unicode - äüö
->>>>>>> conflict
 """
     )

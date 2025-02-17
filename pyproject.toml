@@ -75,7 +75,3 @@ skip = '.git*'
 check-hidden = true
 # ignore-regex = ''
 ignore-words-list = 'devault,claus'
-
-[tool.pyright]
-typeCheckingMode = "strict"
-pythonVersion = "3.10"

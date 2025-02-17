@@ -25,10 +25,9 @@
 
 from __future__ import annotations
 
-from __future__ import annotations
-
 import tarfile
 import typing
+import warnings
 from io import BytesIO
 from os import PathLike
 from string import hexdigits

@@ -25,12 +25,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
-
-from typing import Any, Protocol
+from typing import Any, Protocol, TYPE_CHECKING
 
 from .enums import CredentialType
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 class BaseCredentials(Protocol):
     @property
@@ -48,7 +48,6 @@ class Username:
     """
 
     def __init__(self, username: str):
-    def __init__(self, username: str):
         self._username = username
 
     @property
@@ -59,7 +58,9 @@ class Username:
     def credential_tuple(self):
         return (self._username,)
 
-    def __call__(self, _url: Any, _username: Any, _allowed: Any):
+    def __call__(
+        self, _url: str, _username: str | None, _allowed: CredentialType
+    ) -> Username:
         return self
 
 
@@ -70,7 +71,6 @@ class UserPass:
     callback and for returning from said callback.
     """
 
-    def __init__(self, username: str, password: str):
     def __init__(self, username: str, password: str):
         self._username = username
         self._password = password
@@ -83,7 +83,9 @@ class UserPass:
     def credential_tuple(self):
         return (self._username, self._password)
 
-    def __call__(self, _url: Any, _username: Any, _allowed: Any):
+    def __call__(
+        self, _url: str, _username: str | None, _allowed: CredentialType
+    ) -> UserPass:
         return self
 
 
@@ -111,11 +113,7 @@ class Keypair:
     """
 
     def __init__(
-        self,
-        username: str,
-        pubkey: str | None,
-        privkey: str | None,
-        passphrase: str | None,
+        self, username: str, pubkey: str | Path, privkey: str | Path, passphrase: str
     ):
         self._username = username
         self._pubkey = pubkey
@@ -130,12 +128,13 @@ class Keypair:
     def credential_tuple(self):
         return (self._username, self._pubkey, self._privkey, self._passphrase)
 
-    def __call__(self, _url: Any, _username: Any, _allowed: Any):
+    def __call__(
+        self, _url: str, _username: str | None, _allowed: CredentialType
+    ) -> Keypair:
         return self
 
 
 class KeypairFromAgent(Keypair):
-    def __init__(self, username: str):
     def __init__(self, username: str):
         super().__init__(username, None, None, None)
 

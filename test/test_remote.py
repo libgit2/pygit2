@@ -153,9 +153,6 @@ def test_refspec(testrepo):
     assert refspec.string == ORIGIN_REFSPEC
     assert refspec.string == ORIGIN_REFSPEC
 
-    assert list == type(remote.fetch_refspecs)
-    assert len(remote.fetch_refspecs) == 1
-    assert remote.fetch_refspecs[0] == ORIGIN_REFSPEC
     assert list is type(remote.fetch_refspecs)
     assert 1 == len(remote.fetch_refspecs)
     assert ORIGIN_REFSPEC == remote.fetch_refspecs[0]
@@ -167,14 +164,10 @@ def test_refspec(testrepo):
     assert refspec.transform('refs/heads/master') == 'refs/remotes/origin/master'
     assert refspec.rtransform('refs/remotes/origin/master') == 'refs/heads/master'
 
-    assert list == type(remote.push_refspecs)
-    assert len(remote.push_refspecs) == 0
     assert list is type(remote.push_refspecs)
     assert 0 == len(remote.push_refspecs)
 
     push_specs = remote.push_refspecs
-    assert list == type(push_specs)
-    assert len(push_specs) == 0
     assert list is type(push_specs)
     assert 0 == len(push_specs)
 
@@ -182,9 +175,6 @@ def test_refspec(testrepo):
     remote = testrepo.remotes['origin']
 
     fetch_specs = remote.fetch_refspecs
-    assert list == type(fetch_specs)
-    assert len(fetch_specs) == 2
-    assert fetch_specs == [
     assert list is type(fetch_specs)
     assert 2 == len(fetch_specs)
     assert [

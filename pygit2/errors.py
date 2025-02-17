@@ -43,7 +43,7 @@ def check_error(err: int, io: bool = False) -> None:
     if giterr != ffi.NULL:
         message = ffi.string(giterr.message)
         if isinstance(message, bytes):
-            message = message.decode('utf8')
+            message = message.decode('utf8', errors='surrogateescape')
     else:
         message = f'err {err} (no message provided)'
 

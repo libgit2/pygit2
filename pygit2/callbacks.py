@@ -87,12 +87,12 @@ if TYPE_CHECKING:
 
 
 class Payload:
-    def __init__(self, **kw: Any):
+    def __init__(self, **kw: object):
         for key, value in kw.items():
             setattr(self, key, value)
         self._stored_exception: BaseException | None = None
 
-    def check_error(self, error_code: int):
+    def check_error(self, error_code: int) -> None:
         if error_code == C.GIT_EUSER:
             assert self._stored_exception is not None
             raise self._stored_exception
@@ -129,7 +129,7 @@ class RemoteCallbacks(Payload):
         if certificate_check is not None:
             self.certificate_check = certificate_check
 
-    def sideband_progress(self, string: str):
+    def sideband_progress(self, string: str) -> None:
         """
         Progress output callback.  Override this function with your own
         progress reporting function
@@ -168,7 +168,7 @@ class RemoteCallbacks(Payload):
         """
         raise Passthrough
 
-    def certificate_check(self, certificate: None, valid: bool, host: str):
+    def certificate_check(self, certificate: None, valid: bool, host: str) -> bool:
         """
         Certificate callback. Override with your own function to determine
         whether to accept the server's certificate.
@@ -203,6 +203,18 @@ class RemoteCallbacks(Payload):
             The progress up to now.
         """
 
+    def push_transfer_progress(
+        self, objects_pushed: int, total_objects: int, bytes_pushed: int
+    ):
+        """
+        During the upload portion of a push, this will be regularly called
+        with progress information.
+
+        Be aware that this is called inline with pack building operations,
+        so performance may be affected.
+
+        Override with your own function to report push transfer progress.
+        """
     def update_tips(self, refname: str, old: Oid, new: Oid):
         """
         Update tips callback. Override with your own function to report
@@ -567,6 +579,16 @@ def _transfer_progress_cb(stats_ptr, data: RemoteCallbacks):
         return 0
 
     transfer_progress(TransferProgress(stats_ptr))
+    return 0
+
+
+
+def _push_transfer_progress_cb(current, total, bytes_pushed, payload):
+    push_transfer_progress = getattr(payload, 'push_transfer_progress', None)
+    if not push_transfer_progress:
+        return 0
+
+    push_transfer_progress(current, total, bytes_pushed)
     return 0
 
 

@@ -47,7 +47,7 @@ def maybe_bytes(ptr: CData | Any) -> bytes | None:
 
     out = ffi.string(ptr)
     if isinstance(out, bytes):
-        out = out.decode('utf8')
+        out = out.decode('utf8', errors='surrogateescape')
     return out
 
 
