@@ -230,7 +230,7 @@ Reference_rename(Reference *self, PyObject *py_name)
     if (err)
         return Error_set(err);
 
-    // Upadate reference
+    // Update reference
     git_reference_free(self->reference);
     self->reference = new_reference;
 
@@ -440,6 +440,14 @@ Reference_type__get__(Reference *self)
     return pygit2_enum(ReferenceTypeEnum, c_type);
 }
 
+PyDoc_STRVAR(Reference__pointer__doc__, "Get the reference's pointer. For internal use only.");
+
+PyObject *
+Reference__pointer__get__(Reference *self)
+{
+    /* Bytes means a raw buffer */
+    return PyBytes_FromStringAndSize((char *) &self->reference, sizeof(git_reference *));
+}
 
 PyDoc_STRVAR(Reference_log__doc__,
   "log() -> RefLogIter\n"
@@ -668,6 +676,7 @@ PyGetSetDef Reference_getseters[] = {
     GETTER(Reference, target),
     GETTER(Reference, raw_target),
     GETTER(Reference, type),
+    GETTER(Reference, _pointer),
     {NULL}
 };
 

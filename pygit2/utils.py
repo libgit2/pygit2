@@ -46,6 +46,13 @@ def maybe_bytes(ptr: CData | Any) -> bytes | None:
         return None
 
     out = ffi.string(ptr)
+    if isinstance(out, bytes):
+        out = out.decode('utf8')
+    return out
+
+
+def to_bytes(s, encoding='utf-8', errors='strict'):
+    out = ffi.string(ptr)
     return cast(bytes, out)
 
 
@@ -205,8 +212,8 @@ class GenericIterator(Generic[_T]):
         self.length = len(container)
         self.idx = 0
 
-    def __iter__(self):
-        return self
+    def next(self) -> _T:
+        return self.__next__()
 
     def __next__(self) -> _T:
         idx = self.idx

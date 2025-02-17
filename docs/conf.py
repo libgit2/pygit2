@@ -4,7 +4,8 @@
 # list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
-import os, sys
+import os
+import sys
 
 # -- Path setup --------------------------------------------------------------
 

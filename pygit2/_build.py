@@ -38,7 +38,7 @@ __version__ = '1.17.0'
 
 
 #
-# Utility functions to get the paths required for bulding extensions
+# Utility functions to get the paths required for building extensions
 #
 def _get_libgit2_path():
     # LIBGIT2 environment variable takes precedence

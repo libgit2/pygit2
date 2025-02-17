@@ -192,8 +192,10 @@ class RemoteCallbacks(Payload):
 
     def transfer_progress(self, stats: TransferProgress):
         """
-        Transfer progress callback. Override with your own function to report
-        transfer progress.
+        During the download of new data, this will be regularly called with
+        the indexer's progress.
+
+        Override with your own function to report transfer progress.
 
         Parameters:
 
@@ -379,6 +381,13 @@ def git_push_options(payload, opts=None):
     opts.callbacks.credentials = C._credentials_cb
     opts.callbacks.certificate_check = C._certificate_check_cb
     opts.callbacks.push_update_reference = C._push_update_reference_cb
+    # Per libgit2 sources, push_transfer_progress may incur a performance hit.
+    # So, set it only if the user has overridden the no-op stub.
+    if (
+        type(payload).push_transfer_progress
+        is not RemoteCallbacks.push_transfer_progress
+    ):
+        opts.callbacks.push_transfer_progress = C._push_transfer_progress_cb
     # Payload
     handle = ffi.new_handle(payload)
     opts.callbacks.payload = handle
@@ -414,10 +423,10 @@ def git_remote_callbacks(payload):
 #
 # C callbacks
 #
-# These functions are called by libgit2. They cannot raise execptions, since
+# These functions are called by libgit2. They cannot raise exceptions, since
 # they return to libgit2, they can only send back error codes.
 #
-# They cannot be overriden, but sometimes the only thing these functions do is
+# They cannot be overridden, but sometimes the only thing these functions do is
 # to proxy the call to a user defined function. If user defined functions
 # raises an exception, the callback must store it somewhere and return
 # GIT_EUSER to libgit2, then the outer Python code will be able to reraise the

@@ -38,7 +38,8 @@ import pytest
 # Pygit2
 import pygit2
 
-requires_future_libgit2 = pytest.mark.skipif(
+
+requires_future_libgit2 = pytest.mark.xfail(
     pygit2.LIBGIT2_VER < (2, 0, 0),
     reason='This test may work with a future version of libgit2',
 )
@@ -63,12 +64,11 @@ requires_ssh = pytest.mark.skipif(
 
 is_pypy = '__pypy__' in sys.builtin_module_names
 
-fspath = pytest.mark.skipif(
-    is_pypy,
-    reason="PyPy doesn't fully support fspath, see https://foss.heptapod.net/pypy/pypy/-/issues/3168",
-)
+requires_refcount = pytest.mark.skipif(is_pypy, reason='skip refcounts checks in pypy')
 
-refcount = pytest.mark.skipif(is_pypy, reason='skip refcounts checks in pypy')
+requires_linux = pytest.mark.xfail(
+    sys.platform != 'linux', reason='probably a bug in libgit2 for non-linux platforms'
+)
 
 
 def gen_blob_sha1(data):

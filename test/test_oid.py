@@ -99,3 +99,10 @@ def test_hash():
     s.add(Oid(hex='0000000000000000000000000000000000000000'))
     s.add(Oid(hex='0000000000000000000000000000000000000001'))
     assert len(s) == 3
+
+
+def test_bool():
+    assert Oid(raw=RAW)
+    assert Oid(hex=HEX)
+    assert not Oid(raw=b'')
+    assert not Oid(hex='0000000000000000000000000000000000000000')

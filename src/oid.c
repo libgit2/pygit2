@@ -34,6 +34,8 @@
 
 PyTypeObject OidType;
 
+static const git_oid oid_zero = GIT_OID_SHA1_ZERO;
+
 
 PyObject *
 git_oid_to_python(const git_oid *oid)
@@ -255,6 +257,13 @@ Oid__str__(Oid *self)
     return git_oid_to_py_str(&self->oid);
 }
 
+int
+Oid__bool(PyObject *self)
+{
+    git_oid *oid = &((Oid*)self)->oid;
+    return !git_oid_equal(oid, &oid_zero);
+}
+
 PyDoc_STRVAR(Oid_raw__doc__, "Raw oid, a 20 bytes string.");
 
 PyObject *
@@ -267,6 +276,45 @@ Oid_raw__get__(Oid *self)
 PyGetSetDef Oid_getseters[] = {
     GETTER(Oid, raw),
     {NULL},
+};
+
+PyNumberMethods Oid_as_number = {
+     0,                          /* nb_add */
+     0,                          /* nb_subtract */
+     0,                          /* nb_multiply */
+     0,                          /* nb_remainder */
+     0,                          /* nb_divmod */
+     0,                          /* nb_power */
+     0,                          /* nb_negative */
+     0,                          /* nb_positive */
+     0,                          /* nb_absolute */
+     Oid__bool,                  /* nb_bool */
+     0,                          /* nb_invert */
+     0,                          /* nb_lshift */
+     0,                          /* nb_rshift */
+     0,                          /* nb_and */
+     0,                          /* nb_xor */
+     0,                          /* nb_or */
+     0,                          /* nb_int */
+     0,                          /* nb_reserved */
+     0,                          /* nb_float */
+     0,                          /* nb_inplace_add */
+     0,                          /* nb_inplace_subtract */
+     0,                          /* nb_inplace_multiply */
+     0,                          /* nb_inplace_remainder */
+     0,                          /* nb_inplace_power */
+     0,                          /* nb_inplace_lshift */
+     0,                          /* nb_inplace_rshift */
+     0,                          /* nb_inplace_and */
+     0,                          /* nb_inplace_xor */
+     0,                          /* nb_inplace_or */
+     0,                          /* nb_floor_divide */
+     0,                          /* nb_true_divide */
+     0,                          /* nb_inplace_floor_divide */
+     0,                          /* nb_inplace_true_divide */
+     0,                          /* nb_index */
+     0,                          /* nb_matrix_multiply */
+     0,                          /* nb_inplace_matrix_multiply */
 };
 
 PyDoc_STRVAR(Oid__doc__, "Object id.");
@@ -282,7 +330,7 @@ PyTypeObject OidType = {
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
     (reprfunc)Oid__str__,                      /* tp_repr           */
-    0,                                         /* tp_as_number      */
+    &Oid_as_number,                            /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
     (hashfunc)Oid_hash,                        /* tp_hash           */

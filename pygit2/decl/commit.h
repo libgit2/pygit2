@@ -13,4 +13,9 @@ int git_annotated_commit_lookup(
 	git_repository *repo,
 	const git_oid *id);
 
+int git_annotated_commit_from_ref(
+	git_annotated_commit **out,
+	git_repository *repo,
+	const struct git_reference *ref);
+
 void git_annotated_commit_free(git_annotated_commit *commit);

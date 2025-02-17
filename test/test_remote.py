@@ -54,7 +54,7 @@ def test_remote_create(testrepo):
 
     remote = testrepo.remotes.create(name, url)
 
-    assert type(remote) == pygit2.Remote
+    assert type(remote) is pygit2.Remote
     assert name == remote.name
     assert url == remote.url
     assert remote.push_url is None
@@ -70,7 +70,7 @@ def test_remote_create_with_refspec(testrepo):
 
     remote = testrepo.remotes.create(name, url, fetch)
 
-    assert type(remote) == pygit2.Remote
+    assert type(remote) is pygit2.Remote
     assert name == remote.name
     assert url == remote.url
     assert [fetch] == remote.fetch_refspecs
@@ -86,6 +86,8 @@ def test_remote_create_anonymous(testrepo):
     assert remote.push_url is None
     assert remote.fetch_refspecs == []
     assert remote.push_refspecs == []
+    assert remote.fetch_refspecs == []
+    assert remote.push_refspecs == []
 
 
 def test_remote_delete(testrepo):
@@ -94,10 +96,12 @@ def test_remote_delete(testrepo):
 
     testrepo.remotes.create(name, url)
     assert len(testrepo.remotes) == 2
+    assert len(testrepo.remotes) == 2
     remote = testrepo.remotes[1]
 
     assert name == remote.name
     testrepo.remotes.delete(remote.name)
+    assert len(testrepo.remotes) == 1
     assert len(testrepo.remotes) == 1
 
 
@@ -105,7 +109,10 @@ def test_remote_rename(testrepo):
     remote = testrepo.remotes[0]
 
     assert remote.name == REMOTE_NAME
+    assert remote.name == REMOTE_NAME
     problems = testrepo.remotes.rename(remote.name, 'new')
+    assert problems == []
+    assert remote.name != 'new'
     assert problems == []
     assert remote.name != 'new'
 
@@ -117,6 +124,7 @@ def test_remote_rename(testrepo):
 
 def test_remote_set_url(testrepo):
     remote = testrepo.remotes['origin']
+    assert remote.url == REMOTE_URL
     assert remote.url == REMOTE_URL
 
     new_url = 'https://github.com/cholin/pygit2.git'
@@ -143,22 +151,32 @@ def test_refspec(testrepo):
     assert refspec.dst == REMOTE_FETCHSPEC_DST
     assert refspec.force is True
     assert refspec.string == ORIGIN_REFSPEC
+    assert refspec.string == ORIGIN_REFSPEC
 
     assert list == type(remote.fetch_refspecs)
     assert len(remote.fetch_refspecs) == 1
     assert remote.fetch_refspecs[0] == ORIGIN_REFSPEC
+    assert list is type(remote.fetch_refspecs)
+    assert 1 == len(remote.fetch_refspecs)
+    assert ORIGIN_REFSPEC == remote.fetch_refspecs[0]
 
     assert refspec.src_matches('refs/heads/master')
     assert refspec.dst_matches('refs/remotes/origin/master')
     assert refspec.transform('refs/heads/master') == 'refs/remotes/origin/master'
     assert refspec.rtransform('refs/remotes/origin/master') == 'refs/heads/master'
+    assert refspec.transform('refs/heads/master') == 'refs/remotes/origin/master'
+    assert refspec.rtransform('refs/remotes/origin/master') == 'refs/heads/master'
 
     assert list == type(remote.push_refspecs)
     assert len(remote.push_refspecs) == 0
+    assert list is type(remote.push_refspecs)
+    assert 0 == len(remote.push_refspecs)
 
     push_specs = remote.push_refspecs
     assert list == type(push_specs)
     assert len(push_specs) == 0
+    assert list is type(push_specs)
+    assert 0 == len(push_specs)
 
     testrepo.remotes.add_fetch('origin', '+refs/test/*:refs/test/remotes/*')
     remote = testrepo.remotes['origin']
@@ -167,8 +185,12 @@ def test_refspec(testrepo):
     assert list == type(fetch_specs)
     assert len(fetch_specs) == 2
     assert fetch_specs == [
+    assert list is type(fetch_specs)
+    assert 2 == len(fetch_specs)
+    assert [
         '+refs/heads/*:refs/remotes/origin/*',
         '+refs/test/*:refs/test/remotes/*',
+    ]
     ]
 
     testrepo.remotes.add_push('origin', '+refs/test/*:refs/test/remotes/*')
@@ -178,11 +200,15 @@ def test_refspec(testrepo):
 
     remote = testrepo.remotes['origin']
     assert remote.push_refspecs == ['+refs/test/*:refs/test/remotes/*']
+    assert remote.push_refspecs == ['+refs/test/*:refs/test/remotes/*']
 
 
 def test_remote_list(testrepo):
     assert len(testrepo.remotes) == 1
+    assert len(testrepo.remotes) == 1
     remote = testrepo.remotes[0]
+    assert remote.name == REMOTE_NAME
+    assert remote.url == REMOTE_URL
     assert remote.name == REMOTE_NAME
     assert remote.url == REMOTE_URL
 
@@ -195,6 +221,7 @@ def test_remote_list(testrepo):
 
 @utils.requires_network
 def test_ls_remotes(testrepo):
+    assert len(testrepo.remotes) == 1
     assert len(testrepo.remotes) == 1
     remote = testrepo.remotes[0]
 
@@ -209,6 +236,8 @@ def test_remote_collection(testrepo):
     remote = testrepo.remotes['origin']
     assert remote.name == REMOTE_NAME
     assert remote.url == REMOTE_URL
+    assert remote.name == REMOTE_NAME
+    assert remote.url == REMOTE_URL
 
     with pytest.raises(KeyError):
         testrepo.remotes['upstream']
@@ -220,7 +249,7 @@ def test_remote_collection(testrepo):
     assert remote.name in [x.name for x in testrepo.remotes]
 
 
-@utils.refcount
+@utils.requires_refcount
 def test_remote_refcount(testrepo):
     start = sys.getrefcount(testrepo)
     remote = testrepo.remotes[0]
@@ -256,8 +285,8 @@ def test_fetch_depth_one(testrepo):
 
 def test_transfer_progress(emptyrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def transfer_progress(emptyrepo, stats):
-            emptyrepo.tp = stats
+        def transfer_progress(self, stats):
+            self.tp = stats
 
     callbacks = MyCallbacks()
     remote = emptyrepo.remotes[0]
@@ -272,13 +301,13 @@ def test_update_tips(emptyrepo):
     tips = [
         (
             'refs/remotes/origin/master',
-            Oid(hex='0' * 40),
-            Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78'),
+            pygit2.Oid(hex='0' * 40),
+            pygit2.Oid(hex='784855caf26449a1914d2cf62d12b9374d76ae78'),
         ),
         (
             'refs/tags/root',
-            Oid(hex='0' * 40),
-            Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'),
+            pygit2.Oid(hex='0' * 40),
+            pygit2.Oid(hex='3d2962987c695a29f1f80b6c3aa4ec046ef44369'),
         ),
     ]
 
@@ -366,6 +395,59 @@ def test_push_when_up_to_date_succeeds(origin, clone, remote):
     assert origin_tip == clone_tip
 
 
+def test_push_transfer_progress(origin, clone, remote):
+    tip = clone[clone.head.target]
+    new_tip_id = clone.create_commit(
+        'refs/heads/master',
+        tip.author,
+        tip.author,
+        'empty commit',
+        tip.tree.id,
+        [tip.id],
+    )
+
+    # NOTE: We're currently not testing bytes_pushed due to a bug in libgit2
+    # 1.9.0: it passes a junk value for bytes_pushed when pushing to a remote
+    # on the local filesystem, as is the case in this unit test. (When pushing
+    # to a remote over the network, the value is correct.)
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+            self.objects_pushed = objects_pushed
+            self.total_objects = total_objects
+
+    assert origin.branches['master'].target == tip.id
+
+    callbacks = MyCallbacks()
+    remote.push(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.objects_pushed == 1
+    assert callbacks.total_objects == 1
+    assert origin.branches['master'].target == new_tip_id
+
+
+def test_push_interrupted_from_callbacks(origin, clone, remote):
+    tip = clone[clone.head.target]
+    clone.create_commit(
+        'refs/heads/master',
+        tip.author,
+        tip.author,
+        'empty commit',
+        tip.tree.id,
+        [tip.id],
+    )
+
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+            raise InterruptedError('retreat! retreat!')
+
+    assert origin.branches['master'].target == tip.id
+
+    callbacks = MyCallbacks()
+    with pytest.raises(InterruptedError, match='retreat! retreat!'):
+        remote.push(['refs/heads/master'], callbacks=callbacks)
+
+    assert origin.branches['master'].target == tip.id
+
+
 def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
     tip = origin[origin.head.target]
     origin.create_commit(
@@ -390,22 +472,31 @@ def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
         remote.push(['refs/heads/master'])
 
 
-@patch.object(pygit2.callbacks, 'RemoteCallbacks')
-def test_push_options(mock_callbacks, origin, clone, remote):
-    remote.push(['refs/heads/master'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+def test_push_options(origin, clone, remote):
+    from pygit2 import RemoteCallbacks
+
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks)
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 0
 
-    remote.push(['refs/heads/master'], push_options=[])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks, push_options=[])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 0
 
-    remote.push(['refs/heads/master'], push_options=['foo'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    # Local remotes don't support push_options, so pushing will raise an error.
+    # However, push_options should still be set in RemoteCallbacks.
+    with pytest.raises(pygit2.GitError, match='push-options not supported by remote'):
+        remote.push(['refs/heads/master'], callbacks, push_options=['foo'])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 1
     # strings pointed to by remote_push_options.strings[] are already freed
 
-    remote.push(['refs/heads/master'], push_options=['Option A', 'Option B'])
-    remote_push_options = mock_callbacks.return_value.push_options.remote_push_options
+    callbacks = RemoteCallbacks()
+    with pytest.raises(pygit2.GitError, match='push-options not supported by remote'):
+        remote.push(['refs/heads/master'], callbacks, push_options=['Opt A', 'Opt B'])
+    remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 2
     # strings pointed to by remote_push_options.strings[] are already freed

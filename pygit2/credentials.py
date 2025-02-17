@@ -27,6 +27,8 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
+from typing import Any, Protocol
+
 from .enums import CredentialType
 
 
@@ -45,6 +47,7 @@ class Username:
     callback and for returning from said callback.
     """
 
+    def __init__(self, username: str):
     def __init__(self, username: str):
         self._username = username
 
@@ -67,6 +70,7 @@ class UserPass:
     callback and for returning from said callback.
     """
 
+    def __init__(self, username: str, password: str):
     def __init__(self, username: str, password: str):
         self._username = username
         self._password = password
@@ -131,6 +135,7 @@ class Keypair:
 
 
 class KeypairFromAgent(Keypair):
+    def __init__(self, username: str):
     def __init__(self, username: str):
         super().__init__(username, None, None, None)
 

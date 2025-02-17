@@ -169,7 +169,7 @@ def test_modify_tree(barerepo):
 def test_iterate_tree(barerepo):
     """
     Testing that we're able to iterate of a Tree object and that the
-    resulting sha strings are consitent with the sha strings we could
+    resulting sha strings are consistent with the sha strings we could
     get with other Tree access methods.
     """
     tree = barerepo[TREE_SHA]

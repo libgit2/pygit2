@@ -28,6 +28,11 @@ from __future__ import annotations
 import contextlib
 from functools import cached_property
 from typing import TYPE_CHECKING, Callable, cast
+from __future__ import annotations
+
+import contextlib
+from functools import cached_property
+from typing import TYPE_CHECKING, Callable, cast
 
 # Import from pygit2
 from .errors import check_error
@@ -39,8 +44,16 @@ if TYPE_CHECKING:
 
     from ._ctyping import _CConfigEntry
     from .repository import BaseRepository
+from .utils import StrOrBytesPath, maybe_bytes, to_bytes
+
+if TYPE_CHECKING:
+    from _cffi_backend import _CDataBase as CData
+
+    from ._ctyping import _CConfigEntry
+    from .repository import BaseRepository
 
 
+def str_to_bytes(value: StrOrBytesPath, name: str):
 def str_to_bytes(value: StrOrBytesPath, name: str):
     if not isinstance(value, str):
         raise TypeError(f'{name} must be a string')
@@ -49,6 +62,7 @@ def str_to_bytes(value: StrOrBytesPath, name: str):
 
 
 class ConfigIterator:
+    def __init__(self, config: Config, ptr: CData):
     def __init__(self, config: Config, ptr: CData):
         self._iter = ptr
         self._config = config
@@ -67,7 +81,7 @@ class ConfigIterator:
         err = C.git_config_next(centry, self._iter)
         check_error(err)
 
-        return ConfigEntry._from_c(cast("_CConfigEntry", centry[0]), self)
+        return ConfigEntry._from_c(cast(_CConfigEntry, centry[0]), self)
 
 
 class ConfigMultivarIterator(ConfigIterator):
@@ -79,6 +93,11 @@ class ConfigMultivarIterator(ConfigIterator):
 class Config:
     """Git configuration management."""
 
+    if TYPE_CHECKING:
+        _repo: BaseRepository
+        _config: CData
+
+    def __init__(self, path: StrOrBytesPath | None = None):
     if TYPE_CHECKING:
         _repo: BaseRepository
         _config: CData
@@ -97,6 +116,7 @@ class Config:
 
     @classmethod
     def from_c(cls, repo: BaseRepository, ptr: CData):
+    def from_c(cls, repo: BaseRepository, ptr: CData):
         config = cls.__new__(cls)
         config._repo = repo
         config._config = ptr
@@ -109,12 +129,16 @@ class Config:
 
     def _get(self, key: str | bytes):
         rkey = str_to_bytes(key, 'key')
+    def _get(self, key: str | bytes):
+        rkey = str_to_bytes(key, 'key')
 
         entry = ffi.new('git_config_entry **')
         err = C.git_config_get_entry(entry, self._config, rkey)
+        err = C.git_config_get_entry(entry, self._config, rkey)
 
-        return err, ConfigEntry._from_c(cast("_CConfigEntry", entry[0]))
+        return err, ConfigEntry._from_c(cast(_CConfigEntry, entry[0]))
 
+    def _get_entry(self, key: str | bytes):
     def _get_entry(self, key: str | bytes):
         err, entry = self._get(key)
 
@@ -126,6 +150,8 @@ class Config:
 
     def __contains__(self, key: str):
         err, _ = self._get(key)
+    def __contains__(self, key: str):
+        err, _ = self._get(key)
 
         if err == C.GIT_ENOTFOUND:
             return False
@@ -134,6 +160,7 @@ class Config:
 
         return True
 
+    def __getitem__(self, key: str):
     def __getitem__(self, key: str):
         """
         When using the mapping interface, the value is returned as a string. In
@@ -146,20 +173,28 @@ class Config:
 
     def __setitem__(self, key: str, value: int | bool | str):
         rkey = str_to_bytes(key, 'key')
+    def __setitem__(self, key: str, value: int | bool | str):
+        rkey = str_to_bytes(key, 'key')
 
         err = 0
         if isinstance(value, bool):
             err = C.git_config_set_bool(self._config, rkey, value)
+            err = C.git_config_set_bool(self._config, rkey, value)
         elif isinstance(value, int):
             err = C.git_config_set_int64(self._config, rkey, value)
+            err = C.git_config_set_int64(self._config, rkey, value)
         else:
+            err = C.git_config_set_string(self._config, rkey, to_bytes(value))
             err = C.git_config_set_string(self._config, rkey, to_bytes(value))
 
         check_error(err)
 
     def __delitem__(self, key: str):
         rkey = str_to_bytes(key, 'key')
+    def __delitem__(self, key: str):
+        rkey = str_to_bytes(key, 'key')
 
+        err = C.git_config_delete_entry(self._config, rkey)
         err = C.git_config_delete_entry(self._config, rkey)
         check_error(err)
 
@@ -174,10 +209,11 @@ class Config:
         err = C.git_config_iterator_new(citer, self._config)
         check_error(err)
 
-        ptr = cast("CData", citer[0])
+        ptr = cast(CData, citer[0])
 
         return ConfigIterator(self, ptr)
 
+    def get_multivar(self, name: str | bytes, regex: CData | str | bytes | None = None):
     def get_multivar(self, name: str | bytes, regex: CData | str | bytes | None = None):
         """Get each value of a multivar ''name'' as a list of strings.
 
@@ -186,14 +222,17 @@ class Config:
         """
         name = str_to_bytes(name, 'name')
         regex = to_bytes(regex)
+        regex = to_bytes(regex)
 
         citer = ffi.new('git_config_iterator **')
         err = C.git_config_multivar_iterator_new(citer, self._config, name, regex)
         check_error(err)
-        cit = cast("CData", citer[0])
+        cit = cast(CData, citer[0])
 
         return ConfigMultivarIterator(self, cit)
+        return ConfigMultivarIterator(self, cit)
 
+    def set_multivar(self, name: str | bytes, regex: str | bytes, value: str | bytes):
     def set_multivar(self, name: str | bytes, regex: str | bytes, value: str | bytes):
         """Set a multivar ''name'' to ''value''. ''regexp'' is a regular
         expression to indicate which values to replace.
@@ -206,6 +245,7 @@ class Config:
         check_error(err)
 
     def delete_multivar(self, name: str | bytes, regex: str | bytes):
+    def delete_multivar(self, name: str | bytes, regex: str | bytes):
         """Delete a multivar ''name''. ''regexp'' is a regular expression to
         indicate which values to delete.
         """
@@ -215,6 +255,7 @@ class Config:
         err = C.git_config_delete_multivar(self._config, name, regex)
         check_error(err)
 
+    def get_bool(self, key: str | bytes):
     def get_bool(self, key: str | bytes):
         """Look up *key* and parse its value as a boolean as per the git-config
         rules. Return a boolean value (True or False).
@@ -229,7 +270,9 @@ class Config:
         check_error(err)
 
         return cast(int, res[0]) != 0
+        return cast(int, res[0]) != 0
 
+    def get_int(self, key: str | bytes):
     def get_int(self, key: str | bytes):
         """Look up *key* and parse its value as an integer as per the git-config
         rules. Return an integer.
@@ -244,7 +287,9 @@ class Config:
         check_error(err)
 
         return cast(int, res[0])
+        return cast(int, res[0])
 
+    def add_file(self, path: StrOrBytesPath, level: int = 0, force: int = 0):
     def add_file(self, path: StrOrBytesPath, level: int = 0, force: int = 0):
         """Add a config file instance to an existing config."""
 
@@ -263,7 +308,7 @@ class Config:
         err = C.git_config_snapshot(ccfg, self._config)
         check_error(err)
 
-        return Config.from_c(self._repo, cast("CData", ccfg[0]))
+        return Config.from_c(self._repo, cast(CData, ccfg[0]))
 
     #
     # Methods to parse a string according to the git-config rules
@@ -271,18 +316,22 @@ class Config:
 
     @staticmethod
     def parse_bool(text: str):
+    def parse_bool(text: str):
         res = ffi.new('int *')
         err = C.git_config_parse_bool(res, to_bytes(text))
         check_error(err)
 
         return cast(int, res[0]) != 0
+        return cast(int, res[0]) != 0
 
     @staticmethod
+    def parse_int(text: str):
     def parse_int(text: str):
         res = ffi.new('int64_t *')
         err = C.git_config_parse_int64(res, to_bytes(text))
         check_error(err)
 
+        return cast(int, res[0])
         return cast(int, res[0])
 
     #
@@ -291,13 +340,15 @@ class Config:
 
     @staticmethod
     def _from_found_config(fn: Callable[[CData], int]):
+    def _from_found_config(fn: Callable[[CData], int]):
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
         err = fn(buf)
         check_error(err, io=True)
-        cpath = maybe_bytes(cast("CData", buf.ptr))
+        cpath = maybe_bytes(cast(CData, buf.ptr))
         assert cpath
         C.git_buf_dispose(buf)
 
+        return Config(cpath.decode('utf-8'))
         return Config(cpath.decode('utf-8'))
 
     @staticmethod
@@ -317,12 +368,16 @@ class Config:
 
 
 class ConfigEntry:
-    """An entry in a configuation object."""
+    """An entry in a configuration object."""
+
+    if TYPE_CHECKING:
+        _entry: _CConfigEntry
 
     if TYPE_CHECKING:
         _entry: _CConfigEntry
 
     @classmethod
+    def _from_c(cls, ptr: _CConfigEntry, iterator: ConfigIterator | None = None):
     def _from_c(cls, ptr: _CConfigEntry, iterator: ConfigIterator | None = None):
         """Builds the entry from a ``git_config_entry`` pointer.
 
@@ -337,7 +392,7 @@ class ConfigEntry:
         # git_config_iterator_free when we've deleted all ConfigEntry objects.
         # But it's not, to reproduce the error comment the lines below and run
         # the script in https://github.com/libgit2/pygit2/issues/970
-        # So instead we load the Python object immmediately. Ideally we should
+        # So instead we load the Python object immediately. Ideally we should
         # investigate libgit2 source code.
         if iterator is not None:
             entry.raw_name = entry.raw_name
@@ -358,9 +413,11 @@ class ConfigEntry:
     @cached_property
     def raw_name(self):
         return cast(bytes, maybe_bytes(self._entry.name))
+        return cast(bytes, maybe_bytes(self._entry.name))
 
     @cached_property
     def raw_value(self):
+        return cast(bytes, maybe_bytes(self.c_value))
         return cast(bytes, maybe_bytes(self.c_value))
 
     @cached_property
