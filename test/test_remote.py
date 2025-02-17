@@ -466,3 +466,19 @@ def test_push_options(origin, clone, remote):
     remote_push_options = callbacks.push_options.remote_push_options
     assert remote_push_options.count == 2
     # strings pointed to by remote_push_options.strings[] are already freed
+
+
+def test_push_threads(origin, clone, remote):
+    from pygit2 import RemoteCallbacks
+
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks)
+    assert callbacks.push_options.pb_parallelism == 1
+
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks, threads=0)
+    assert callbacks.push_options.pb_parallelism == 0
+
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks, threads=1)
+    assert callbacks.push_options.pb_parallelism == 1
