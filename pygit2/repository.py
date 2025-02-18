@@ -22,23 +22,58 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
+
+from __future__ import annotations
+
+import tarfile
+import typing
 import warnings
 from io import BytesIO
 from os import PathLike
 from string import hexdigits
 from time import time
-import tarfile
-import typing
+
+from ._pygit2 import (
+    GIT_OID_HEXSZ,
+    GIT_OID_MINPREFIXLEN,
+    Blob,
+    Commit,
+    InvalidSpecError,
+    Object,
+    Oid,
+    Reference,
+    Signature,
+    Tree,
+    init_file_backend,
+)
 
 # Import from pygit2
-from ._pygit2 import Repository as _Repository, init_file_backend
-from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
-from ._pygit2 import Reference, Tree, Commit, Blob, Signature
-from ._pygit2 import InvalidSpecError
+from ._pygit2 import Repository as _Repository
 
+from ._pygit2 import (
+    GIT_OID_HEXSZ,
+    GIT_OID_MINPREFIXLEN,
+    Blob,
+    Commit,
+    InvalidSpecError,
+    Object,
+    Oid,
+    Reference,
+    Signature,
+    Tree,
+    init_file_backend,
+)
+
+# Import from pygit2
+from ._pygit2 import Repository as _Repository
 from .blame import Blame
 from .branches import Branches
-from .callbacks import git_checkout_options, git_stash_apply_options
+from .callbacks import (
+    CheckoutCallbacks,
+    StashApplyCallbacks,
+    git_checkout_options,
+    git_stash_apply_options,
+)
 from .config import Config
 from .enums import (
     AttrCheck,
@@ -55,17 +90,22 @@ from .enums import (
     RepositoryState,
 )
 from .errors import check_error
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .index import Index, IndexEntry
 from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
-from .utils import to_bytes, StrArray
+from .utils import StrArray, to_bytes
+from .utils import StrArray, to_bytes
+
+T = typing.TypeVar('T')
+
+T = typing.TypeVar('T')
 
 
 class BaseRepository(_Repository):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super().__init__(*args, **kwargs)
         self._common_init()
 
@@ -82,22 +122,28 @@ class BaseRepository(_Repository):
         self._repo = repo_cptr[0]
 
     # Backwards compatible ODB access
-    def read(self, *args, **kwargs):
+    # def read(self, *args, **kwargs):
+    def read(self, oid: Oid | str) -> tuple[int, int, bytes]:
         """read(oid) -> type, data, size
 
         Read raw object data from the repository.
         """
-        return self.odb.read(*args, **kwargs)
+        return self.odb.read(oid)
 
-    def write(self, *args, **kwargs):
+    def write(self, type: int, data: bytes) -> Oid:
         """write(type, data) -> Oid
 
         Write raw object data into the repository. First arg is the object
         type, the second one a buffer with data. Return the Oid of the created
         object."""
-        return self.odb.write(*args, **kwargs)
+        return self.odb.write(type, data)
 
-    def pack(self, path=None, pack_delegate=None, n_threads=None):
+    def pack(
+        self,
+        path: str | bytes | PathLike[str] | PathLike[bytes] | None = None,
+        pack_delegate: typing.Callable[[PackBuilder], object] | None = None,
+        n_threads: int | None = None,
+    ) -> int:
         """Pack the objects in the odb chosen by the pack_delegate function
         and write `.pack` and `.idx` files for them.
 
@@ -115,7 +161,7 @@ class BaseRepository(_Repository):
             The number of threads the `PackBuilder` will spawn. If set to 0, libgit2 will autodetect the number of CPUs.
         """
 
-        def pack_all_objects(pack_builder):
+        def pack_all_objects(pack_builder: PackBuilder) -> None:
             for obj in self.odb:
                 pack_builder.add(obj)
 
@@ -131,10 +177,10 @@ class BaseRepository(_Repository):
 
     def hashfile(
         self,
-        path: str,
+        path: str | bytes | PathLike[str] | PathLike[bytes],
         object_type: ObjectType = ObjectType.BLOB,
-        as_path: typing.Optional[str] = None,
-    ):
+        as_path: typing.Optional[str | bytes | PathLike[str] | PathLike[bytes]] = None,
+    ) -> Oid:
         """Calculate the hash of a file using repository filtering rules.
 
         If you simply want to calculate the hash of a file on disk with no filters,
@@ -166,10 +212,7 @@ class BaseRepository(_Repository):
         """
         c_path = to_bytes(path)
 
-        if as_path is None:
-            c_as_path = ffi.NULL
-        else:
-            c_as_path = to_bytes(as_path)
+        c_as_path = ffi.NULL if as_path is None else to_bytes(as_path)
 
         c_oid = ffi.new('git_oid *')
 
@@ -178,8 +221,7 @@ class BaseRepository(_Repository):
         )
         check_error(err)
 
-        oid = Oid(raw=bytes(ffi.buffer(c_oid.id)[:]))
-        return oid
+        return Oid(raw=bytes(ffi.buffer(c_oid.id)[:]))
 
     def __iter__(self):
         return iter(self.odb)
@@ -187,27 +229,30 @@ class BaseRepository(_Repository):
     #
     # Mapping interface
     #
-    def get(self, key, default=None):
+    def get(self, key: Oid | str, default: T = None) -> Object | T:
         value = self.git_object_lookup_prefix(key)
         return value if (value is not None) else default
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Object | Oid | str) -> Object:
+        # Maybe either returns itself or lookup????
+        if isinstance(key, Object):
+            key = key.id
         value = self.git_object_lookup_prefix(key)
         if value is None:
             raise KeyError(key)
         return value
 
-    def __contains__(self, key):
+    def __contains__(self, key: Oid | str) -> bool:
         return self.git_object_lookup_prefix(key) is not None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'pygit2.Repository({repr(self.path)})'
 
     #
     # Configuration
     #
     @property
-    def config(self):
+    def config(self) -> Config:
         """The configuration file for this repository.
 
         If a the configuration hasn't been set yet, the default config for
@@ -221,7 +266,7 @@ class BaseRepository(_Repository):
         return Config.from_c(self, cconfig[0])
 
     @property
-    def config_snapshot(self):
+    def config_snapshot(self) -> Config:
         """A snapshot for this repositiory's configuration
 
         This allows reads over multiple values to use the same version
@@ -236,7 +281,13 @@ class BaseRepository(_Repository):
     #
     # References
     #
-    def create_reference(self, name, target, force=False, message=None):
+    def create_reference(
+        self,
+        name: str,
+        target: Oid | str,
+        force: bool = False,
+        message: str | None = None,
+    ) -> Reference:
         """Create a new reference "name" which points to an object or to
         another reference.
 
@@ -258,7 +309,7 @@ class BaseRepository(_Repository):
             repo.create_reference('refs/tags/foo', 'refs/heads/master')
             repo.create_reference('refs/tags/foo', 'bbb78a9cec580')
         """
-        direct = type(target) is Oid or (
+        direct = isinstance(target, Oid) or (
             all(c in hexdigits for c in target)
             and GIT_OID_MINPREFIXLEN <= len(target) <= GIT_OID_HEXSZ
         )
@@ -268,15 +319,15 @@ class BaseRepository(_Repository):
 
         return self.create_reference_symbolic(name, target, force, message=message)
 
-    def listall_references(self) -> typing.List[str]:
+    def listall_references(self) -> list[str]:
         """Return a list with all the references in the repository."""
-        return list(x.name for x in self.references.iterator())
+        return [x.name for x in self.references.iterator()]
 
-    def listall_reference_objects(self) -> typing.List[Reference]:
+    def listall_reference_objects(self) -> list[Reference]:
         """Return a list with all the reference objects in the repository."""
-        return list(x for x in self.references.iterator())
+        return list(self.references.iterator())
 
-    def resolve_refish(self, refish):
+    def resolve_refish(self, refish: str) -> tuple[Commit, Reference | None]:
         """Convert a reference-like short name "ref-ish" to a valid
         (commit, reference) pair.
 
@@ -294,7 +345,7 @@ class BaseRepository(_Repository):
             reference = self.lookup_reference_dwim(refish)
         except (KeyError, InvalidSpecError):
             reference = None
-            commit = self.revparse_single(refish)
+            commit: Commit = self.revparse_single(refish)
         else:
             commit = reference.peel(Commit)
 
@@ -304,21 +355,36 @@ class BaseRepository(_Repository):
     # Checkout
     #
 
-    def checkout_head(self, **kwargs):
+    def checkout_head(
+        self,
+        strategy: CheckoutStrategy = CheckoutStrategy.SAFE
+        | CheckoutStrategy.RECREATE_MISSING,
+        directory: str | None = None,
+        paths: list[str] | None = None,
+        callbacks: CheckoutCallbacks | None = None,
+    ):
         """Checkout HEAD
 
         For arguments, see Repository.checkout().
         """
-        with git_checkout_options(**kwargs) as payload:
+        with git_checkout_options(callbacks, strategy, directory, paths) as payload:
             err = C.git_checkout_head(self._repo, payload.checkout_options)
             payload.check_error(err)
 
-    def checkout_index(self, index=None, **kwargs):
+    def checkout_index(
+        self,
+        index: Index | None = None,
+        strategy: CheckoutStrategy = CheckoutStrategy.SAFE
+        | CheckoutStrategy.RECREATE_MISSING,
+        directory: str | None = None,
+        paths: list[str] | None = None,
+        callbacks: CheckoutCallbacks | None = None,
+    ) -> None:
         """Checkout the given index or the repository's index
 
         For arguments, see Repository.checkout().
         """
-        with git_checkout_options(**kwargs) as payload:
+        with git_checkout_options(callbacks, strategy, directory, paths) as payload:
             err = C.git_checkout_index(
                 self._repo,
                 index._index if index else ffi.NULL,
@@ -326,18 +392,34 @@ class BaseRepository(_Repository):
             )
             payload.check_error(err)
 
-    def checkout_tree(self, treeish, **kwargs):
+    def checkout_tree(
+        self,
+        treeish: typing.Any,
+        strategy: CheckoutStrategy = CheckoutStrategy.SAFE
+        | CheckoutStrategy.RECREATE_MISSING,
+        directory: str | None = None,
+        paths: list[str] | None = None,
+        callbacks: CheckoutCallbacks | None = None,
+    ) -> None:
         """Checkout the given treeish
 
         For arguments, see Repository.checkout().
         """
-        with git_checkout_options(**kwargs) as payload:
+        with git_checkout_options(callbacks, strategy, directory, paths) as payload:
             cptr = ffi.new('git_object **')
             ffi.buffer(cptr)[:] = treeish._pointer[:]
             err = C.git_checkout_tree(self._repo, cptr[0], payload.checkout_options)
             payload.check_error(err)
 
-    def checkout(self, refname=None, **kwargs):
+    def checkout(
+        self,
+        refname: str | Reference | None = None,
+        strategy: CheckoutStrategy = CheckoutStrategy.SAFE
+        | CheckoutStrategy.RECREATE_MISSING,
+        directory: str | None = None,
+        paths: list[str] | None = None,
+        callbacks: CheckoutCallbacks | None = None,
+    ):
         """
         Checkout the given reference using the given strategy, and update the
         HEAD.
@@ -382,11 +464,15 @@ class BaseRepository(_Repository):
 
         # Case 1: Checkout index
         if refname is None:
-            return self.checkout_index(**kwargs)
+            return self.checkout_index(
+                strategy=strategy, directory=directory, paths=paths, callbacks=callbacks
+            )
 
         # Case 2: Checkout head
         if refname == 'HEAD':
-            return self.checkout_head(**kwargs)
+            return self.checkout_head(
+                strategy=strategy, directory=directory, paths=paths, callbacks=callbacks
+            )
 
         # Case 3: Reference
         if isinstance(refname, Reference):
@@ -397,15 +483,21 @@ class BaseRepository(_Repository):
 
         oid = reference.resolve().target
         treeish = self[oid]
-        self.checkout_tree(treeish, **kwargs)
+        self.checkout_tree(
+            treeish,
+            strategy=strategy,
+            directory=directory,
+            paths=paths,
+            callbacks=callbacks,
+        )
 
-        if 'paths' not in kwargs:
+        if paths is None:
             self.set_head(refname)
 
     #
     # Setting HEAD
     #
-    def set_head(self, target):
+    def set_head(self, target: str | Oid) -> None:
         """
         Set HEAD to point to the given target.
 
@@ -429,34 +521,34 @@ class BaseRepository(_Repository):
     #
     # Diff
     #
-    def __whatever_to_tree_or_blob(self, obj):
+    def __whatever_to_tree_or_blob(self, obj: str | bytes | Oid | None):
         if obj is None:
             return None
 
         # If it's a string, then it has to be valid revspec
-        if isinstance(obj, str) or isinstance(obj, bytes):
-            obj = self.revparse_single(obj)
-        elif isinstance(obj, Oid):
-            obj = self[obj]
+        if isinstance(obj, (str, bytes)):  # noqa: SIM108
+            robj = self.revparse_single(obj)
+        else:
+            robj = self[obj]
 
         # First we try to get to a blob
         try:
-            obj = obj.peel(Blob)
+            robj = robj.peel(Blob)
         except Exception:
             # And if that failed, try to get a tree, raising a type
             # error if that still doesn't work
             try:
-                obj = obj.peel(Tree)
+                robj = robj.peel(Tree)
             except Exception:
-                raise TypeError(f'unexpected "{type(obj)}"')
+                raise TypeError(f'unexpected "{type(obj)}"') from None
 
-        return obj
+        return robj
 
     def diff(
         self,
-        a=None,
-        b=None,
-        cached=False,
+        a: str | Reference | None = None,
+        b: str | Reference | None = None,
+        cached: bool = False,
         flags: DiffOption = DiffOption.NORMAL,
         context_lines: int = 3,
         interhunk_lines: int = 0,
@@ -518,30 +610,34 @@ class BaseRepository(_Repository):
         API (Tree.diff_to_tree()) directly.
         """
 
-        a = self.__whatever_to_tree_or_blob(a)
-        b = self.__whatever_to_tree_or_blob(b)
-
-        opt_keys = ['flags', 'context_lines', 'interhunk_lines']
-        opt_values = [int(flags), context_lines, interhunk_lines]
+        resolved_a = self.__whatever_to_tree_or_blob(a)
+        resolved_b = self.__whatever_to_tree_or_blob(b)
 
         # Case 1: Diff tree to tree
-        if isinstance(a, Tree) and isinstance(b, Tree):
-            return a.diff_to_tree(b, **dict(zip(opt_keys, opt_values)))
+        if isinstance(resolved_a, Tree) and isinstance(resolved_b, Tree):
+            return resolved_a.diff_to_tree(
+                resolved_b,
+                flags=flags,
+                context_lines=context_lines,
+                interhunk_lines=interhunk_lines,
+            )
 
         # Case 2: Index to workdir
-        elif a is None and b is None:
-            return self.index.diff_to_workdir(*opt_values)
+        elif resolved_a is None and resolved_b is None:
+            return self.index.diff_to_workdir(flags, context_lines, interhunk_lines)
 
         # Case 3: Diff tree to index or workdir
-        elif isinstance(a, Tree) and b is None:
+        elif isinstance(resolved_a, Tree) and resolved_b is None:
             if cached:
-                return a.diff_to_index(self.index, *opt_values)
+                return resolved_a.diff_to_index(
+                    self.index, flags, context_lines, interhunk_lines
+                )
             else:
-                return a.diff_to_workdir(*opt_values)
+                return resolved_a.diff_to_workdir(flags, context_lines, interhunk_lines)
 
         # Case 4: Diff blob to blob
-        if isinstance(a, Blob) and isinstance(b, Blob):
-            return a.diff(b)
+        if isinstance(resolved_a, Blob) and isinstance(resolved_b, Blob):
+            return resolved_a.diff(resolved_b)
 
         raise ValueError('Only blobs and treeish can be diffed')
 
@@ -556,7 +652,7 @@ class BaseRepository(_Repository):
             return RepositoryState(cstate)
         except ValueError:
             # Some value not in the IntEnum - newer libgit2 version?
-            return cstate
+            raise
 
     def state_cleanup(self):
         """Remove all the metadata associated with an ongoing command like
@@ -570,13 +666,13 @@ class BaseRepository(_Repository):
     #
     def blame(
         self,
-        path,
+        path: str,
         flags: BlameFlag = BlameFlag.NORMAL,
-        min_match_characters=None,
-        newest_commit=None,
-        oldest_commit=None,
-        min_line=None,
-        max_line=None,
+        min_match_characters: int | None = None,
+        newest_commit: Oid | str | None = None,
+        oldest_commit: Oid | str | None = None,
+        min_line: int | None = None,
+        max_line: int | None = None,
     ):
         """
         Return a Blame object for a single file.
@@ -693,13 +789,11 @@ class BaseRepository(_Repository):
         """
         cmergeresult = ffi.new('git_merge_file_result *')
 
-        cancestor, ancestor_str_ref = (
+        cancestor, _ = (
             ancestor._to_c() if ancestor is not None else (ffi.NULL, ffi.NULL)
         )
-        cours, ours_str_ref = ours._to_c() if ours is not None else (ffi.NULL, ffi.NULL)
-        ctheirs, theirs_str_ref = (
-            theirs._to_c() if theirs is not None else (ffi.NULL, ffi.NULL)
-        )
+        cours, _ = ours._to_c() if ours is not None else (ffi.NULL, ffi.NULL)
+        ctheirs, _ = theirs._to_c() if theirs is not None else (ffi.NULL, ffi.NULL)
 
         err = C.git_merge_file_from_index(
             cmergeresult, self._repo, cancestor, cours, ctheirs, ffi.NULL
@@ -715,9 +809,9 @@ class BaseRepository(_Repository):
         self,
         ours: typing.Union[str, Oid, Commit],
         theirs: typing.Union[str, Oid, Commit],
-        favor=MergeFavor.NORMAL,
-        flags=MergeFlag.FIND_RENAMES,
-        file_flags=MergeFileFlag.DEFAULT,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
     ) -> Index:
         """
         Merge two arbitrary commits.
@@ -749,18 +843,20 @@ class BaseRepository(_Repository):
         theirs_ptr = ffi.new('git_commit **')
         cindex = ffi.new('git_index **')
 
-        if isinstance(ours, (str, Oid)):
-            ours = self[ours]
-        if isinstance(theirs, (str, Oid)):
-            theirs = self[theirs]
+        object_ours, object_theirs = ours, theirs
 
-        ours = ours.peel(Commit)
-        theirs = theirs.peel(Commit)
+        if isinstance(ours, (str, Oid)):
+            object_ours = self[ours]
+        if isinstance(theirs, (str, Oid)):
+            object_theirs = self[theirs]
+
+        cours = object_ours.peel(Commit)  # type: ignore
+        ctheirs = object_theirs.peel(Commit)  # type: ignore
 
         opts = self._merge_options(favor, flags, file_flags)
 
-        ffi.buffer(ours_ptr)[:] = ours._pointer[:]
-        ffi.buffer(theirs_ptr)[:] = theirs._pointer[:]
+        ffi.buffer(ours_ptr)[:] = cours._pointer[:]
+        ffi.buffer(theirs_ptr)[:] = ctheirs._pointer[:]
 
         err = C.git_merge_commits(cindex, self._repo, ours_ptr[0], theirs_ptr[0], opts)
         check_error(err)
@@ -772,10 +868,10 @@ class BaseRepository(_Repository):
         ancestor: typing.Union[str, Oid, Tree],
         ours: typing.Union[str, Oid, Tree],
         theirs: typing.Union[str, Oid, Tree],
-        favor=MergeFavor.NORMAL,
-        flags=MergeFlag.FIND_RENAMES,
-        file_flags=MergeFileFlag.DEFAULT,
-    ):
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> Index:
         """
         Merge two trees.
 
@@ -808,15 +904,15 @@ class BaseRepository(_Repository):
         cindex = ffi.new('git_index **')
 
         if isinstance(ancestor, (str, Oid)):
-            ancestor = self[ancestor]
+            object_ancestor = self[ancestor]
         if isinstance(ours, (str, Oid)):
-            ours = self[ours]
+            object_ours = self[ours]
         if isinstance(theirs, (str, Oid)):
-            theirs = self[theirs]
+            object_theirs = self[theirs]
 
-        ancestor = ancestor.peel(Tree)
-        ours = ours.peel(Tree)
-        theirs = theirs.peel(Tree)
+        ancestor = object_ancestor.peel(Tree)  # type: ignore
+        ours = object_ours.peel(Tree)  # type: ignore
+        theirs = object_theirs.peel(Tree)  # type: ignore
 
         opts = self._merge_options(favor, flags, file_flags)
 
@@ -834,10 +930,10 @@ class BaseRepository(_Repository):
     def merge(
         self,
         source: typing.Union[Reference, Commit, Oid, str],
-        favor=MergeFavor.NORMAL,
-        flags=MergeFlag.FIND_RENAMES,
-        file_flags=MergeFileFlag.DEFAULT,
-    ):
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> None:
         """
         Merges the given Reference or Commit into HEAD.
 
@@ -923,7 +1019,7 @@ class BaseRepository(_Repository):
             if err == C.GIT_ENOTFOUND:
                 return b''
             check_error(err)
-            return ffi.string(buf.ptr)
+            return ffi.string(buf.ptr)  # type: ignore
         finally:
             C.git_buf_dispose(buf)
 
@@ -958,16 +1054,16 @@ class BaseRepository(_Repository):
     #
     def describe(
         self,
-        committish=None,
-        max_candidates_tags=None,
+        committish: str | Reference | Commit | None = None,
+        max_candidates_tags: int | None = None,
         describe_strategy: DescribeStrategy = DescribeStrategy.DEFAULT,
-        pattern=None,
-        only_follow_first_parent=None,
-        show_commit_oid_as_fallback=None,
-        abbreviated_size=None,
-        always_use_long_format=None,
-        dirty_suffix=None,
-    ):
+        pattern: str | None = None,
+        only_follow_first_parent: bool | None = None,
+        show_commit_oid_as_fallback: bool | None = None,
+        abbreviated_size: int | None = None,
+        always_use_long_format: bool | None = None,
+        dirty_suffix: str | None = None,
+    ) -> str:
         """
         Describe a commit-ish or the current working tree.
 
@@ -1093,7 +1189,7 @@ class BaseRepository(_Repository):
         include_ignored: bool = False,
         keep_all: bool = False,
         paths: typing.Optional[typing.List[str]] = None,
-    ):
+    ) -> Oid:
         """
         Save changes to the working directory to the stash.
 
@@ -1157,7 +1253,13 @@ class BaseRepository(_Repository):
 
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
-    def stash_apply(self, index=0, **kwargs):
+    def stash_apply(
+        self,
+        index: int = 0,
+        strategy: CheckoutStrategy | None = None,
+        reinstate_index: bool = False,
+        callbacks: StashApplyCallbacks | None = None,
+    ) -> None:
         """
         Apply a stashed state in the stash list to the working directory.
 
@@ -1191,11 +1293,11 @@ class BaseRepository(_Repository):
             >>> repo.stash(repo.default_signature(), 'WIP: stashing')
             >>> repo.stash_apply(strategy=CheckoutStrategy.ALLOW_CONFLICTS)
         """
-        with git_stash_apply_options(**kwargs) as payload:
+        with git_stash_apply_options(callbacks, reinstate_index, strategy) as payload:
             err = C.git_stash_apply(self._repo, index, payload.stash_apply_options)
             payload.check_error(err)
 
-    def stash_drop(self, index=0):
+    def stash_drop(self, index: int = 0) -> None:
         """
         Remove a stashed state from the stash list.
 
@@ -1393,7 +1495,7 @@ class BaseRepository(_Repository):
         elif attr_kind == C.GIT_ATTR_VALUE_STRING:
             return ffi.string(cvalue[0]).decode('utf-8')
 
-        assert False, 'the attribute value from libgit2 is invalid'
+        raise AssertionError('the attribute value from libgit2 is invalid')
 
     #
     # Identity for reference operations
@@ -1633,7 +1735,7 @@ class Repository(BaseRepository):
             super().__init__()
 
     @classmethod
-    def _from_c(cls, ptr, owned):
+    def _from_c(cls, ptr, owned: bool) -> Repository:
         cptr = ffi.new('git_repository **')
         cptr[0] = ptr
         repo = cls.__new__(cls)

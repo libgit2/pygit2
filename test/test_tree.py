@@ -24,13 +24,13 @@
 # Boston, MA 02110-1301, USA.
 
 import operator
+
 import pytest
 
 import pygit2
 from pygit2.enums import FileMode, ObjectType
 
 from . import utils
-
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 SUBTREE_SHA = '614fd9a3094bf618ea938fffc00e7d1a54f89ad0'
@@ -54,7 +54,7 @@ def test_read_tree(barerepo):
     utils.assertRaisesWithArg(IndexError, 3, lambda: tree[3])
     utils.assertRaisesWithArg(KeyError, 'abcd', lambda: tree / 'abcd')
 
-    assert 3 == len(tree)
+    assert len(tree) == 3
     sha = '7f129fd57e31e935c6d60a0c794efe4e6927664b'
     assert 'a' in tree
     assertTreeEntryEqual(tree[0], sha, 'a', 0o0100644)
@@ -93,7 +93,7 @@ def test_equality(barerepo):
 
 def test_sorting(barerepo):
     tree_a = barerepo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
-    assert list(tree_a) == sorted(reversed(list(tree_a)), key=pygit2.tree_entry_key)
+    assert list(tree_a) == sorted(tree_a, key=pygit2.tree_entry_key)
     assert list(tree_a) != reversed(list(tree_a))
 
 
@@ -111,7 +111,7 @@ def test_read_subtree(barerepo):
     assert subtree_entry.type_str == 'tree'
 
     subtree = barerepo[subtree_entry.id]
-    assert 1 == len(subtree)
+    assert len(subtree) == 1
     sha = '297efb891a47de80be0cfe9c639e4b8c9b450989'
     assertTreeEntryEqual(subtree[0], sha, 'd', 0o0100644)
 
@@ -185,7 +185,7 @@ def test_iterate_tree_nested(barerepo):
     tree = barerepo[TREE_SHA]
     for tree_entry in tree:
         if isinstance(tree_entry, pygit2.Tree):
-            for tree_entry2 in tree_entry:
+            for _tree_entry2 in tree_entry:
                 pass
 
 

@@ -25,12 +25,12 @@
 
 # Standard library
 import hashlib
-from pathlib import Path
 import shutil
 import socket
 import stat
 import sys
 import zipfile
+from pathlib import Path
 
 # Requirements
 import pytest

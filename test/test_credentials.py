@@ -23,16 +23,18 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
+"""Tests for credentials"""
+
 import platform
+from pathlib import Path
 
 import pytest
 
 import pygit2
-from pygit2 import Username, UserPass, Keypair, KeypairFromAgent, KeypairFromMemory
+from pygit2 import Keypair, KeypairFromAgent, KeypairFromMemory, Username, UserPass
 from pygit2.enums import CredentialType
-from . import utils
 
+from . import utils
 
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'git://github.com/libgit2/pygit2.git'

@@ -28,13 +28,14 @@ import os
 import pathlib
 import sys
 import tempfile
+from pathlib import Path
 
 import pytest
 
 import pygit2
 from pygit2.enums import FileMode, ObjectType
-from . import utils
 
+from . import utils
 
 HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
 PARENT_SHA = 'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87'  # HEAD^
@@ -77,14 +78,14 @@ def test_read(barerepo):
     ab = barerepo.read(BLOB_OID)
     a = barerepo.read(BLOB_HEX)
     assert ab == a
-    assert (ObjectType.BLOB, b'a contents\n') == a
+    assert a == (ObjectType.BLOB, b'a contents\n')
 
     a2 = barerepo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-    assert (ObjectType.BLOB, b'a contents 2\n') == a2
+    assert a2 == (ObjectType.BLOB, b'a contents 2\n')
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = barerepo.read(a_hex_prefix)
-    assert (ObjectType.BLOB, b'a contents\n') == a3
+    assert a3 == (ObjectType.BLOB, b'a contents\n')
 
 
 def test_write(barerepo):
@@ -109,7 +110,7 @@ def test_contains(barerepo):
 
 def test_iterable(barerepo):
     oid = pygit2.Oid(hex=BLOB_HEX)
-    assert oid in [obj for obj in barerepo]
+    assert oid in list(barerepo)
 
 
 def test_lookup_blob(barerepo):
@@ -117,23 +118,23 @@ def test_lookup_blob(barerepo):
         barerepo[123]
     assert barerepo[BLOB_OID].id == BLOB_HEX
     a = barerepo[BLOB_HEX]
-    assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == a.id
-    assert ObjectType.BLOB == a.type
+    assert a.read_raw() == b'a contents\n'
+    assert a.id == BLOB_HEX
+    assert a.type == ObjectType.BLOB
 
 
 def test_lookup_blob_prefix(barerepo):
     a = barerepo[BLOB_HEX[:5]]
-    assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == a.id
-    assert ObjectType.BLOB == a.type
+    assert a.read_raw() == b'a contents\n'
+    assert a.id == BLOB_HEX
+    assert a.type == ObjectType.BLOB
 
 
 def test_lookup_commit(barerepo):
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit = barerepo[commit_sha]
     assert commit_sha == commit.id
-    assert ObjectType.COMMIT == commit.type
+    assert commit.type == ObjectType.COMMIT
     assert commit.message == (
         'Second test data commit.\n\nThis commit has some additional text.\n'
     )
@@ -145,10 +146,10 @@ def test_lookup_commit_prefix(barerepo):
     too_short_prefix = commit_sha[:3]
     commit = barerepo[commit_sha_prefix]
     assert commit_sha == commit.id
-    assert ObjectType.COMMIT == commit.type
+    assert commit.type == ObjectType.COMMIT
     assert (
-        'Second test data commit.\n\n'
-        'This commit has some additional text.\n' == commit.message
+        commit.message == 'Second test data commit.\n\n'
+        'This commit has some additional text.\n'
     )
     with pytest.raises(ValueError):
         barerepo.__getitem__(too_short_prefix)
@@ -234,10 +235,9 @@ def test_conflicts_in_bare_repository(barerepo):
     diff = barerepo.merge_file_from_index(a, t, o)
     assert (
         diff
-        == """<<<<<<< conflict
+        == """
 ASCII - abc
 =======
 Unicode - äüö
->>>>>>> conflict
 """
     )

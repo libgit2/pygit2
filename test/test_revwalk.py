@@ -27,7 +27,6 @@
 
 from pygit2.enums import SortMode
 
-
 # In the order given by git log
 log = [
     '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98',
@@ -108,8 +107,8 @@ def test_simplify_first_parent(testrepo):
 
 def test_default_sorting(testrepo):
     walker = testrepo.walk(log[0], SortMode.NONE)
-    list1 = list([x.id for x in walker])
+    list1 = [x.id for x in walker]
     walker = testrepo.walk(log[0])
-    list2 = list([x.id for x in walker])
+    list2 = [x.id for x in walker]
 
     assert list1 == list2

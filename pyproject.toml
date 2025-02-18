@@ -27,9 +27,46 @@ repair-wheel-command = "DYLD_LIBRARY_PATH=/Users/runner/work/pygit2/pygit2/ci/li
 [tool.ruff]
 extend-exclude = [ ".cache", ".coverage", "build", "site-packages", "venv*"]
 target-version = "py310"  # oldest supported Python version
+fix = true
+lint.select = [
+    "C",
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "ARG",
+    "SIM",
+    "PTH",
+    "PL",
+    "TID",
+]
+lint.ignore = [
+    "W291",    # Trailing whitespace
+    "E501",    # Line too long
+    "W293",    # Blank line contains whitespace
+    "PLR0912", # Too many branches
+    "PLR2004", # Magic values
+    "PLR0915", # Too many statements
+    "PLW0603", # Global statement
+    "PLR0913", # Too many arguments
+    "B010",    # setattr
+    "F401",    # unused imports
+    "ARG002",  # unused arguments
+]
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.10"
+reportPrivateUsage = "none"
+reportAttributeAccessIssue = "none"
+reportUnknownMemberType = "none"
+reportUnusedFunction = "none"
+reportUnnecessaryIsInstance = "none"
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file

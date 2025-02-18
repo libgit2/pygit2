@@ -25,13 +25,19 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any, Protocol, TYPE_CHECKING
 
 from .enums import CredentialType
 
-
 if TYPE_CHECKING:
     from pathlib import Path
+
+class BaseCredentials(Protocol):
+    @property
+    def credential_type(self) -> CredentialType: ...
+    @property
+    def credential_tuple(self) -> tuple[str, ...]: ...
+    def __call__(self, _url: Any, _username: Any, _allowed: Any) -> BaseCredentials: ...
 
 
 class Username:

@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 import io
 import threading
 import time
 from contextlib import AbstractContextManager
-from typing import Optional
 from queue import Queue
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Optional, overload
 
 from ._pygit2 import Blob, Oid
 from .enums import BlobFilter
+
+if TYPE_CHECKING:
+    from _typeshed import WriteableBuffer
 
 
 class _BlobIO(io.RawIOBase):
@@ -26,7 +32,7 @@ class _BlobIO(io.RawIOBase):
     ):
         super().__init__()
         self._blob = blob
-        self._queue = Queue(maxsize=1)
+        self._queue: Queue[bytes | None] | None = Queue(maxsize=1)
         self._ready = threading.Event()
         self._writer_closed = threading.Event()
         self._chunk: Optional[bytes] = None
@@ -42,10 +48,15 @@ class _BlobIO(io.RawIOBase):
         )
         self._thread.start()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.close()
 
-    def isatty():
+    def isatty(self):
         return False
 
     def readable(self):
@@ -57,7 +68,14 @@ class _BlobIO(io.RawIOBase):
     def seekable(self):
         return False
 
-    def readinto(self, b, /):
+    # workaround for type checking
+    if TYPE_CHECKING:
+        @overload
+        def readinto(self, b: WriteableBuffer, /) -> int: ...  # type: ignore
+
+    def readinto(self, b: Any, /) -> int:
+        if not self._queue:
+            raise RuntimeError('Blob I/O is closed')
         try:
             while self._chunk is None:
                 self._ready.wait()
@@ -96,7 +114,7 @@ class _BlobIO(io.RawIOBase):
         self._queue = None
 
 
-class BlobIO(io.BufferedReader, AbstractContextManager):
+class BlobIO(io.BufferedReader, AbstractContextManager['BlobIO']):
     """Read-only wrapper for streaming blob content.
 
     Supports reading both raw and filtered blob content.
@@ -147,7 +165,12 @@ class BlobIO(io.BufferedReader, AbstractContextManager):
         raw = _BlobIO(blob, as_path=as_path, flags=flags, commit_id=commit_id)
         super().__init__(raw)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.close()
 
 

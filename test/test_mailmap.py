@@ -27,7 +27,6 @@
 
 from pygit2 import Mailmap
 
-
 TEST_MAILMAP = """\
 # Simple Comment line
 <cto@company.xx>                       <cto@coompany.xx>

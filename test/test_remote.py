@@ -23,13 +23,18 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+"""Tests for Remote objects."""
+
 import sys
+from unittest.mock import patch
 
 import pytest
 
 import pygit2
-from . import utils
+from pygit2 import Oid
+from pygit2.ffi import ffi
 
+from . import utils
 
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'https://github.com/libgit2/pygit2.git'
@@ -79,8 +84,10 @@ def test_remote_create_anonymous(testrepo):
     assert remote.name is None
     assert url == remote.url
     assert remote.push_url is None
-    assert [] == remote.fetch_refspecs
-    assert [] == remote.push_refspecs
+    assert remote.fetch_refspecs == []
+    assert remote.push_refspecs == []
+    assert remote.fetch_refspecs == []
+    assert remote.push_refspecs == []
 
 
 def test_remote_delete(testrepo):
@@ -88,21 +95,26 @@ def test_remote_delete(testrepo):
     url = 'https://github.com/libgit2/pygit2.git'
 
     testrepo.remotes.create(name, url)
-    assert 2 == len(testrepo.remotes)
+    assert len(testrepo.remotes) == 2
+    assert len(testrepo.remotes) == 2
     remote = testrepo.remotes[1]
 
     assert name == remote.name
     testrepo.remotes.delete(remote.name)
-    assert 1 == len(testrepo.remotes)
+    assert len(testrepo.remotes) == 1
+    assert len(testrepo.remotes) == 1
 
 
 def test_remote_rename(testrepo):
     remote = testrepo.remotes[0]
 
-    assert REMOTE_NAME == remote.name
+    assert remote.name == REMOTE_NAME
+    assert remote.name == REMOTE_NAME
     problems = testrepo.remotes.rename(remote.name, 'new')
-    assert [] == problems
-    assert 'new' != remote.name
+    assert problems == []
+    assert remote.name != 'new'
+    assert problems == []
+    assert remote.name != 'new'
 
     with pytest.raises(ValueError):
         testrepo.remotes.rename('', '')
@@ -112,7 +124,8 @@ def test_remote_rename(testrepo):
 
 def test_remote_set_url(testrepo):
     remote = testrepo.remotes['origin']
-    assert REMOTE_URL == remote.url
+    assert remote.url == REMOTE_URL
+    assert remote.url == REMOTE_URL
 
     new_url = 'https://github.com/cholin/pygit2.git'
     testrepo.remotes.set_url('origin', new_url)
@@ -137,7 +150,8 @@ def test_refspec(testrepo):
     assert refspec.src == REMOTE_FETCHSPEC_SRC
     assert refspec.dst == REMOTE_FETCHSPEC_DST
     assert refspec.force is True
-    assert ORIGIN_REFSPEC == refspec.string
+    assert refspec.string == ORIGIN_REFSPEC
+    assert refspec.string == ORIGIN_REFSPEC
 
     assert list is type(remote.fetch_refspecs)
     assert 1 == len(remote.fetch_refspecs)
@@ -145,8 +159,10 @@ def test_refspec(testrepo):
 
     assert refspec.src_matches('refs/heads/master')
     assert refspec.dst_matches('refs/remotes/origin/master')
-    assert 'refs/remotes/origin/master' == refspec.transform('refs/heads/master')
-    assert 'refs/heads/master' == refspec.rtransform('refs/remotes/origin/master')
+    assert refspec.transform('refs/heads/master') == 'refs/remotes/origin/master'
+    assert refspec.rtransform('refs/remotes/origin/master') == 'refs/heads/master'
+    assert refspec.transform('refs/heads/master') == 'refs/remotes/origin/master'
+    assert refspec.rtransform('refs/remotes/origin/master') == 'refs/heads/master'
 
     assert list is type(remote.push_refspecs)
     assert 0 == len(remote.push_refspecs)
@@ -164,7 +180,8 @@ def test_refspec(testrepo):
     assert [
         '+refs/heads/*:refs/remotes/origin/*',
         '+refs/test/*:refs/test/remotes/*',
-    ] == fetch_specs
+    ]
+    ]
 
     testrepo.remotes.add_push('origin', '+refs/test/*:refs/test/remotes/*')
 
@@ -172,14 +189,18 @@ def test_refspec(testrepo):
         testrepo.remotes.add_fetch(['+refs/*:refs/*', 5])
 
     remote = testrepo.remotes['origin']
-    assert ['+refs/test/*:refs/test/remotes/*'] == remote.push_refspecs
+    assert remote.push_refspecs == ['+refs/test/*:refs/test/remotes/*']
+    assert remote.push_refspecs == ['+refs/test/*:refs/test/remotes/*']
 
 
 def test_remote_list(testrepo):
-    assert 1 == len(testrepo.remotes)
+    assert len(testrepo.remotes) == 1
+    assert len(testrepo.remotes) == 1
     remote = testrepo.remotes[0]
-    assert REMOTE_NAME == remote.name
-    assert REMOTE_URL == remote.url
+    assert remote.name == REMOTE_NAME
+    assert remote.url == REMOTE_URL
+    assert remote.name == REMOTE_NAME
+    assert remote.url == REMOTE_URL
 
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'
@@ -190,7 +211,8 @@ def test_remote_list(testrepo):
 
 @utils.requires_network
 def test_ls_remotes(testrepo):
-    assert 1 == len(testrepo.remotes)
+    assert len(testrepo.remotes) == 1
+    assert len(testrepo.remotes) == 1
     remote = testrepo.remotes[0]
 
     refs = remote.ls_remotes()
@@ -202,8 +224,10 @@ def test_ls_remotes(testrepo):
 
 def test_remote_collection(testrepo):
     remote = testrepo.remotes['origin']
-    assert REMOTE_NAME == remote.name
-    assert REMOTE_URL == remote.url
+    assert remote.name == REMOTE_NAME
+    assert remote.url == REMOTE_URL
+    assert remote.name == REMOTE_NAME
+    assert remote.url == REMOTE_URL
 
     with pytest.raises(KeyError):
         testrepo.remotes['upstream']

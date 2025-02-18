@@ -27,12 +27,11 @@ import warnings
 import weakref
 
 # Import from pygit2
-from ._pygit2 import Oid, Tree, Diff
+from ._pygit2 import Diff, Oid, Tree
 from .enums import DiffOption, FileMode
 from .errors import check_error
-from .ffi import ffi, C
-from .utils import to_bytes, to_str
-from .utils import GenericIterator, StrArray
+from .ffi import C, ffi
+from .utils import GenericIterator, StrArray, to_bytes, to_str
 
 
 class Index:
@@ -367,7 +366,7 @@ class IndexEntry:
     @property
     def hex(self):
         """The id of the referenced object as a hex string"""
-        warnings.warn('Use str(entry.id)', DeprecationWarning)
+        warnings.warn('Use str(entry.id)', DeprecationWarning, stacklevel=2)
         return str(self.id)
 
     def __str__(self):

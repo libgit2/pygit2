@@ -30,7 +30,7 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2.enums import FileStatus, MergeAnalysis, MergeFavor, MergeFlag, MergeFileFlag
+from pygit2.enums import FileStatus, MergeAnalysis, MergeFavor, MergeFileFlag, MergeFlag
 
 
 @pytest.mark.parametrize('id', [None, 42])
@@ -56,12 +56,12 @@ def test_merge_analysis_uptodate(mergerepo):
     analysis, preference = mergerepo.merge_analysis(branch_id)
     assert analysis & MergeAnalysis.UP_TO_DATE
     assert not analysis & MergeAnalysis.FASTFORWARD
-    assert {} == mergerepo.status()
+    assert mergerepo.status() == {}
 
     analysis, preference = mergerepo.merge_analysis(branch_id, 'refs/heads/ff-branch')
     assert analysis & MergeAnalysis.UP_TO_DATE
     assert not analysis & MergeAnalysis.FASTFORWARD
-    assert {} == mergerepo.status()
+    assert mergerepo.status() == {}
 
 
 def test_merge_analysis_fastforward(mergerepo):
@@ -71,12 +71,12 @@ def test_merge_analysis_fastforward(mergerepo):
     analysis, preference = mergerepo.merge_analysis(branch_id)
     assert not analysis & MergeAnalysis.UP_TO_DATE
     assert analysis & MergeAnalysis.FASTFORWARD
-    assert {} == mergerepo.status()
+    assert mergerepo.status() == {}
 
     analysis, preference = mergerepo.merge_analysis(branch_id, 'refs/heads/master')
     assert not analysis & MergeAnalysis.UP_TO_DATE
     assert analysis & MergeAnalysis.FASTFORWARD
-    assert {} == mergerepo.status()
+    assert mergerepo.status() == {}
 
 
 def test_merge_no_fastforward_no_conflicts(mergerepo):
@@ -86,8 +86,8 @@ def test_merge_no_fastforward_no_conflicts(mergerepo):
     assert not analysis & MergeAnalysis.UP_TO_DATE
     assert not analysis & MergeAnalysis.FASTFORWARD
     # Asking twice to assure the reference counting is correct
-    assert {} == mergerepo.status()
-    assert {} == mergerepo.status()
+    assert mergerepo.status() == {}
+    assert mergerepo.status() == {}
 
 
 def test_merge_invalid_hex(mergerepo):
@@ -126,22 +126,22 @@ def test_merge_no_fastforward_conflicts(mergerepo):
 
     status = FileStatus.CONFLICTED
     # Asking twice to assure the reference counting is correct
-    assert {'.gitignore': status} == mergerepo.status()
-    assert {'.gitignore': status} == mergerepo.status()
+    assert mergerepo.status() == {'.gitignore': status}
+    assert mergerepo.status() == {'.gitignore': status}
 
     ancestor, ours, theirs = mergerepo.index.conflicts['.gitignore']
     assert ancestor is None
     assert ours is not None
     assert theirs is not None
-    assert '.gitignore' == ours.path
-    assert '.gitignore' == theirs.path
-    assert 1 == len(list(mergerepo.index.conflicts))
+    assert ours.path == '.gitignore'
+    assert theirs.path == '.gitignore'
+    assert len(list(mergerepo.index.conflicts)) == 1
 
     # Checking the index works as expected
     mergerepo.index.add('.gitignore')
     mergerepo.index.write()
     assert mergerepo.index.conflicts is None
-    assert {'.gitignore': FileStatus.INDEX_MODIFIED} == mergerepo.status()
+    assert mergerepo.status() == {'.gitignore': FileStatus.INDEX_MODIFIED}
 
 
 def test_merge_remove_conflicts(mergerepo):

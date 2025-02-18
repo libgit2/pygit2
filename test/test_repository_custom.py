@@ -24,6 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 from pathlib import Path
+
 import pytest
 
 import pygit2
@@ -58,4 +59,4 @@ def test_references(repo):
 
 def test_objects(repo):
     a = repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')
-    assert (ObjectType.BLOB, b'foobar\n') == a
+    assert a == (ObjectType.BLOB, b'foobar\n')
