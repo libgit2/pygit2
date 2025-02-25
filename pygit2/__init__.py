@@ -23,14 +23,15 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+# ruff: noqa: F401 F403 F405
+
 # Standard Library
 import functools
-from os import PathLike
+import os
 import typing
 
 # Low level API
 from ._pygit2 import *
-from ._pygit2 import _cache_enums
 
 # High level API
 from . import enums
@@ -66,7 +67,7 @@ _cache_enums()
 
 
 def init_repository(
-    path: typing.Union[str, bytes, PathLike, None],
+    path: typing.Union[str, bytes, os.PathLike, None],
     bare: bool = False,
     flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
     mode: typing.Union[
