@@ -22,7 +22,7 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
-import warnings
+import warnings  # noqa: I001
 from io import BytesIO
 from os import PathLike
 from string import hexdigits
@@ -113,7 +113,7 @@ class BaseRepository(_Repository):
 
         n_threads
             The number of threads the `PackBuilder` will spawn. If set to 0, libgit2 will autodetect the number of CPUs.
-        """
+        """  # noqa: E501
 
         def pack_all_objects(pack_builder):
             for obj in self.odb:
@@ -166,7 +166,7 @@ class BaseRepository(_Repository):
         """
         c_path = to_bytes(path)
 
-        if as_path is None:
+        if as_path is None:  # noqa: SIM108
             c_as_path = ffi.NULL
         else:
             c_as_path = to_bytes(as_path)
@@ -270,11 +270,11 @@ class BaseRepository(_Repository):
 
     def listall_references(self) -> typing.List[str]:
         """Return a list with all the references in the repository."""
-        return list(x.name for x in self.references.iterator())
+        return list(x.name for x in self.references.iterator())  # noqa: C400
 
     def listall_reference_objects(self) -> typing.List[Reference]:
         """Return a list with all the reference objects in the repository."""
-        return list(x for x in self.references.iterator())
+        return list(x for x in self.references.iterator())  # noqa: C400
 
     def resolve_refish(self, refish):
         """Convert a reference-like short name "ref-ish" to a valid
@@ -434,7 +434,7 @@ class BaseRepository(_Repository):
             return None
 
         # If it's a string, then it has to be valid revspec
-        if isinstance(obj, str) or isinstance(obj, bytes):
+        if isinstance(obj, str) or isinstance(obj, bytes):  # noqa: SIM101
             obj = self.revparse_single(obj)
         elif isinstance(obj, Oid):
             obj = self[obj]
@@ -448,11 +448,11 @@ class BaseRepository(_Repository):
             try:
                 obj = obj.peel(Tree)
             except Exception:
-                raise TypeError(f'unexpected "{type(obj)}"')
+                raise TypeError(f'unexpected "{type(obj)}"')  # noqa: B904
 
         return obj
 
-    def diff(
+    def diff(  # noqa: PLR0913
         self,
         a=None,
         b=None,
@@ -526,7 +526,7 @@ class BaseRepository(_Repository):
 
         # Case 1: Diff tree to tree
         if isinstance(a, Tree) and isinstance(b, Tree):
-            return a.diff_to_tree(b, **dict(zip(opt_keys, opt_values)))
+            return a.diff_to_tree(b, **dict(zip(opt_keys, opt_values)))  # noqa: B905
 
         # Case 2: Index to workdir
         elif a is None and b is None:
@@ -568,7 +568,7 @@ class BaseRepository(_Repository):
     #
     # blame
     #
-    def blame(
+    def blame(  # noqa: PLR0913
         self,
         path,
         flags: BlameFlag = BlameFlag.NORMAL,
@@ -744,7 +744,7 @@ class BaseRepository(_Repository):
 
         Both "ours" and "theirs" can be any object which peels to a commit or
         the id (string or Oid) of an object which peels to a commit.
-        """
+        """  # noqa: E501
         ours_ptr = ffi.new('git_commit **')
         theirs_ptr = ffi.new('git_commit **')
         cindex = ffi.new('git_index **')
@@ -767,7 +767,7 @@ class BaseRepository(_Repository):
 
         return Index.from_c(self, cindex)
 
-    def merge_trees(
+    def merge_trees(  # noqa: PLR0913
         self,
         ancestor: typing.Union[str, Oid, Tree],
         ours: typing.Union[str, Oid, Tree],
@@ -801,7 +801,7 @@ class BaseRepository(_Repository):
 
         file_flags
             A combination of enums.MergeFileFlag constants.
-        """
+        """  # noqa: E501
         ancestor_ptr = ffi.new('git_tree **')
         ours_ptr = ffi.new('git_tree **')
         theirs_ptr = ffi.new('git_tree **')
@@ -865,7 +865,7 @@ class BaseRepository(_Repository):
 
         file_flags
             A combination of enums.MergeFileFlag constants.
-        """
+        """  # noqa: E501
 
         if isinstance(source, Reference):
             # Annotated commit from ref
@@ -878,7 +878,7 @@ class BaseRepository(_Repository):
             # Annotated commit from commit id
             if isinstance(source, str):
                 # For backwards compatibility, parse a string as a partial commit hash
-                warnings.warn(
+                warnings.warn(  # noqa: B028
                     'Passing str to Repository.merge is deprecated. '
                     'Pass Commit, Oid, or a Reference (such as a Branch) instead.',
                     DeprecationWarning,
@@ -956,7 +956,7 @@ class BaseRepository(_Repository):
     #
     # Describe
     #
-    def describe(
+    def describe(  # noqa: PLR0912, PLR0913
         self,
         committish=None,
         max_candidates_tags=None,
@@ -1084,7 +1084,7 @@ class BaseRepository(_Repository):
     #
     # Stash
     #
-    def stash(
+    def stash(  # noqa: PLR0913
         self,
         stasher: Signature,
         message: typing.Optional[str] = None,
@@ -1393,7 +1393,7 @@ class BaseRepository(_Repository):
         elif attr_kind == C.GIT_ATTR_VALUE_STRING:
             return ffi.string(cvalue[0]).decode('utf-8')
 
-        assert False, 'the attribute value from libgit2 is invalid'
+        assert False, 'the attribute value from libgit2 is invalid'  # noqa: B011
 
     #
     # Identity for reference operations
@@ -1471,7 +1471,7 @@ class BaseRepository(_Repository):
     #
     # Amend commit
     #
-    def amend_commit(
+    def amend_commit(  # noqa: PLR0912, PLR0913
         self,
         commit,
         refname,

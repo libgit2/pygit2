@@ -1,4 +1,4 @@
-from io import BytesIO
+from io import BytesIO  # noqa: I001
 import codecs
 import pytest
 
@@ -25,7 +25,7 @@ class _BufferedFilter(pygit2.Filter):
         super().__init__()
         self.buf = BytesIO()
 
-    def write(self, data, src, write_next):
+    def write(self, data, src, write_next):  # noqa: ARG002
         self.buf.write(data)
 
     def close(self, write_next):
@@ -71,51 +71,51 @@ def unmatched_filter():
     pygit2.filter_unregister('unmatched-rot13')
 
 
-def test_filter(testrepo, rot13_filter):
+def test_filter(testrepo, rot13_filter):  # noqa: ARG001
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'olr jbeyq\n' == blob.data
+    assert b'olr jbeyq\n' == blob.data  # noqa: SIM300
     with pygit2.BlobIO(blob) as reader:
-        assert b'olr jbeyq\n' == reader.read()
+        assert b'olr jbeyq\n' == reader.read()  # noqa: SIM300
     with pygit2.BlobIO(blob, as_path='bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
 
 
-def test_filter_buffered(testrepo, buffered_filter):
+def test_filter_buffered(testrepo, buffered_filter):  # noqa: ARG001
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'olr jbeyq\n' == blob.data
+    assert b'olr jbeyq\n' == blob.data  # noqa: SIM300
     with pygit2.BlobIO(blob) as reader:
-        assert b'olr jbeyq\n' == reader.read()
+        assert b'olr jbeyq\n' == reader.read()  # noqa: SIM300
     with pygit2.BlobIO(blob, 'bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
 
 
-def test_filter_passthrough(testrepo, passthrough_filter):
+def test_filter_passthrough(testrepo, passthrough_filter):  # noqa: ARG001
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'bye world\n' == blob.data
+    assert b'bye world\n' == blob.data  # noqa: SIM300
     with pygit2.BlobIO(blob) as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
     with pygit2.BlobIO(blob, 'bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
 
 
-def test_filter_unmatched(testrepo, unmatched_filter):
+def test_filter_unmatched(testrepo, unmatched_filter):  # noqa: ARG001
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     flags = BlobFilter.CHECK_FOR_BINARY | BlobFilter.ATTRIBUTES_FROM_HEAD
-    assert b'bye world\n' == blob.data
+    assert b'bye world\n' == blob.data  # noqa: SIM300
     with pygit2.BlobIO(blob) as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
     with pygit2.BlobIO(blob, as_path='bye.txt', flags=flags) as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
 
 
-def test_filter_cleanup(dirtyrepo, rot13_filter):
+def test_filter_cleanup(dirtyrepo, rot13_filter):  # noqa: ARG001
     # Indirectly test that pygit2_filter_cleanup has the GIL
     # before calling pygit2_filter_payload_free.
     dirtyrepo.diff()

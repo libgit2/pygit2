@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Union
 
 from ._pygit2 import Oid
@@ -227,7 +227,7 @@ class SubmoduleCollection:
         depth
             Number of commits to fetch.
             The default is 0 (full commit history).
-        """
+        """  # noqa: E501
         csub = ffi.new('git_submodule **')
         curl = ffi.new('char[]', to_bytes(url))
         cpath = ffi.new('char[]', to_bytes(path))
@@ -338,7 +338,7 @@ class SubmoduleCollection:
 
         ignore
             A SubmoduleIgnore value indicating how deeply to examine the working directory.
-        """
+        """  # noqa: E501
         cstatus = ffi.new('unsigned int *')
         err = C.git_submodule_status(
             cstatus, self._repository._repo, to_bytes(name), ignore

@@ -25,7 +25,7 @@
 
 """Tests for Tag objects."""
 
-import pytest
+import pytest  # noqa: I001
 
 import pygit2
 from pygit2.enums import ObjectType
@@ -39,11 +39,11 @@ def test_read_tag(barerepo):
     tag = repo[TAG_SHA]
     target = repo[tag.target]
     assert isinstance(tag, pygit2.Tag)
-    assert ObjectType.TAG == tag.type
-    assert ObjectType.COMMIT == target.type
-    assert 'root' == tag.name
-    assert 'Tagged root commit.\n' == tag.message
-    assert 'Initial test data commit.\n' == target.message
+    assert ObjectType.TAG == tag.type  # noqa: SIM300
+    assert ObjectType.COMMIT == target.type  # noqa: SIM300
+    assert 'root' == tag.name  # noqa: SIM300
+    assert 'Tagged root commit.\n' == tag.message  # noqa: SIM300
+    assert 'Initial test data commit.\n' == target.message  # noqa: SIM300
     assert tag.tagger == pygit2.Signature(
         'Dave Borowitz', 'dborowitz@google.com', 1288724692, -420
     )
@@ -63,7 +63,7 @@ def test_new_tag(barerepo):
     sha = barerepo.create_tag(name, target_prefix, ObjectType.BLOB, tagger, message)
     tag = barerepo[sha]
 
-    assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.id
+    assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.id  # noqa: SIM300
     assert name == tag.name
     assert target == tag.target
     assert tagger == tag.tagger
@@ -79,13 +79,13 @@ def test_modify_tag(barerepo):
 
     tag = barerepo[TAG_SHA]
     with pytest.raises(AttributeError):
-        setattr(tag, 'name', name)
+        setattr(tag, 'name', name)  # noqa: B010
     with pytest.raises(AttributeError):
-        setattr(tag, 'target', target)
+        setattr(tag, 'target', target)  # noqa: B010
     with pytest.raises(AttributeError):
-        setattr(tag, 'tagger', tagger)
+        setattr(tag, 'tagger', tagger)  # noqa: B010
     with pytest.raises(AttributeError):
-        setattr(tag, 'message', message)
+        setattr(tag, 'message', message)  # noqa: B010
 
 
 def test_get_object(barerepo):

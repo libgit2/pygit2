@@ -25,11 +25,36 @@ environment = {LIBGIT2_VERSION="1.9.0", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSIO
 repair-wheel-command = "DYLD_LIBRARY_PATH=/Users/runner/work/pygit2/pygit2/ci/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
 
 [tool.ruff]
+target-version = "py310" # oldest supported Python version
 extend-exclude = [ ".cache", ".coverage", "build", "site-packages", "venv*"]
-target-version = "py310"  # oldest supported Python version
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "ARG",
+    "SIM",
+    "PTH",
+    "PL",
+    "TID",
+]
+ignore = [] # To be added
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.10"
+reportPrivateUsage = "none"
+reportAttributeAccessIssue = "none"
+reportUnknownMemberType = "none"
+reportUnusedFunction = "none"
+reportUnnecessaryIsInstance = "none"
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
@@ -37,3 +62,4 @@ skip = '.git*'
 check-hidden = true
 # ignore-regex = ''
 ignore-words-list = 'devault,claus'
+

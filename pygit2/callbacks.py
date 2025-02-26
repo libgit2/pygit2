@@ -63,7 +63,7 @@ API.
 """
 
 # Standard Library
-from contextlib import contextmanager
+from contextlib import contextmanager  # noqa: I001
 from functools import wraps
 from typing import Optional, Union
 
@@ -133,9 +133,9 @@ class RemoteCallbacks(Payload):
 
     def credentials(
         self,
-        url: str,
-        username_from_url: Union[str, None],
-        allowed_types: CredentialType,
+        url: str,  # noqa: ARG002
+        username_from_url: Union[str, None],  # noqa: ARG002
+        allowed_types: CredentialType,  # noqa: ARG002
     ):
         """
         Credentials callback.  If the remote server requires authentication,
@@ -159,7 +159,7 @@ class RemoteCallbacks(Payload):
         """
         raise Passthrough
 
-    def certificate_check(self, certificate: None, valid: bool, host: str) -> bool:
+    def certificate_check(self, certificate: None, valid: bool, host: str) -> bool:  # noqa: ARG002
         """
         Certificate callback. Override with your own function to determine
         whether to accept the server's certificate.
@@ -493,7 +493,7 @@ def _certificate_check_cb(cert_i, valid, host, data):
         if not val:
             return C.GIT_ECERTIFICATE
     except Passthrough:
-        if is_ssh:
+        if is_ssh:  # noqa: SIM114
             return 0
         elif valid:
             return 0
@@ -667,7 +667,7 @@ def get_credentials(fn, url, username, allowed):
 
 
 @libgit2_callback
-def _checkout_notify_cb(
+def _checkout_notify_cb(  # noqa: PLR0913
     why, path_cstr, baseline, target, workdir, data: CheckoutCallbacks
 ):
     pypath = maybe_string(path_cstr)
@@ -675,7 +675,7 @@ def _checkout_notify_cb(
     pytarget = DiffFile.from_c(ptr_to_bytes(target))
     pyworkdir = DiffFile.from_c(ptr_to_bytes(workdir))
 
-    try:
+    try:  # noqa: SIM105
         data.checkout_notify(why, pypath, pybaseline, pytarget, pyworkdir)
     except Passthrough:
         # Unlike most other operations with optional callbacks, checkout
@@ -701,7 +701,7 @@ def _git_checkout_options(
     paths=None,
     c_checkout_options_ptr=None,
 ):
-    if callbacks is None:
+    if callbacks is None:  # noqa: SIM108
         payload = CheckoutCallbacks()
     else:
         payload = callbacks
@@ -768,7 +768,7 @@ def git_checkout_options(callbacks=None, strategy=None, directory=None, paths=No
 
 @libgit2_callback
 def _stash_apply_progress_cb(progress: StashApplyProgress, data: StashApplyCallbacks):
-    try:
+    try:  # noqa: SIM105
         data.stash_apply_progress(progress)
     except Passthrough:
         # Unlike most other operations with optional callbacks, stash apply

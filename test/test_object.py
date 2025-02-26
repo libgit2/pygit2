@@ -25,7 +25,7 @@
 
 """Tests for Object objects."""
 
-import pytest
+import pytest  # noqa: I001
 
 from pygit2 import Tree, Tag
 from pygit2.enums import ObjectType
@@ -48,7 +48,7 @@ def test_equality(testrepo):
 
     assert commit_a is not commit_b
     assert commit_a == commit_b
-    assert not (commit_a != commit_b)
+    assert not (commit_a != commit_b)  # noqa: SIM202
 
 
 def test_hashing(testrepo):

@@ -28,7 +28,7 @@ This is an special module, it provides stuff used by by pygit2 at run-time.
 """
 
 # Import from the Standard Library
-import codecs
+import codecs  # noqa: I001
 from pathlib import Path
 import sys
 
@@ -85,7 +85,7 @@ h_files = [
 ]
 h_source = []
 for h_file in h_files:
-    h_file = dir_path / 'decl' / h_file
+    h_file = dir_path / 'decl' / h_file  # noqa: PLW2901
     with codecs.open(h_file, 'r', 'utf-8') as f:
         h_source.append(f.read())
 

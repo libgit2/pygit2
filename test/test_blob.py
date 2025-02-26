@@ -25,7 +25,7 @@
 
 """Tests for Blob objects."""
 
-import io
+import io  # noqa: I001
 from pathlib import Path
 from threading import Event
 from queue import Queue
@@ -86,10 +86,10 @@ def test_read_blob(testrepo):
     assert blob.id == BLOB_SHA
     assert isinstance(blob, pygit2.Blob)
     assert not blob.is_binary
-    assert ObjectType.BLOB == blob.type
-    assert BLOB_CONTENT == blob.data
+    assert ObjectType.BLOB == blob.type  # noqa: SIM300
+    assert BLOB_CONTENT == blob.data  # noqa: SIM300
     assert len(BLOB_CONTENT) == blob.size
-    assert BLOB_CONTENT == blob.read_raw()
+    assert BLOB_CONTENT == blob.read_raw()  # noqa: SIM300
 
 
 def test_create_blob(testrepo):
@@ -97,17 +97,17 @@ def test_create_blob(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert ObjectType.BLOB == blob.type  # noqa: SIM300
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_NEW_CONTENT) == blob_oid
 
-    assert BLOB_NEW_CONTENT == blob.data
+    assert BLOB_NEW_CONTENT == blob.data  # noqa: SIM300
     assert len(BLOB_NEW_CONTENT) == blob.size
-    assert BLOB_NEW_CONTENT == blob.read_raw()
+    assert BLOB_NEW_CONTENT == blob.read_raw()  # noqa: SIM300
     blob_buffer = memoryview(blob)
     assert len(BLOB_NEW_CONTENT) == len(blob_buffer)
-    assert BLOB_NEW_CONTENT == blob_buffer
+    assert BLOB_NEW_CONTENT == blob_buffer  # noqa: SIM300
 
     def set_content():
         blob_buffer[:2] = b'hi'
@@ -121,14 +121,14 @@ def test_create_blob_fromworkdir(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert ObjectType.BLOB == blob.type  # noqa: SIM300
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_FILE_CONTENT) == blob_oid
 
-    assert BLOB_FILE_CONTENT == blob.data
+    assert BLOB_FILE_CONTENT == blob.data  # noqa: SIM300
     assert len(BLOB_FILE_CONTENT) == blob.size
-    assert BLOB_FILE_CONTENT == blob.read_raw()
+    assert BLOB_FILE_CONTENT == blob.read_raw()  # noqa: SIM300
 
 
 def test_create_blob_fromworkdir_aspath(testrepo):
@@ -148,7 +148,7 @@ def test_create_blob_fromdisk(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert ObjectType.BLOB == blob.type  # noqa: SIM300
 
 
 def test_create_blob_fromiobase(testrepo):
@@ -160,10 +160,10 @@ def test_create_blob_fromiobase(testrepo):
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert ObjectType.BLOB == blob.type  # noqa: SIM300
 
     assert blob_oid == blob.id
-    assert BLOB_SHA == blob_oid
+    assert BLOB_SHA == blob_oid  # noqa: SIM300
 
 
 def test_diff_blob(testrepo):
@@ -220,7 +220,7 @@ def test_blob_write_to_queue(testrepo):
     chunks = []
     while not queue.empty():
         chunks.append(queue.get())
-    assert BLOB_CONTENT == b''.join(chunks)
+    assert BLOB_CONTENT == b''.join(chunks)  # noqa: SIM300
 
 
 def test_blob_write_to_queue_filtered(testrepo):
@@ -235,14 +235,14 @@ def test_blob_write_to_queue_filtered(testrepo):
     chunks = []
     while not queue.empty():
         chunks.append(queue.get())
-    assert b'bye world\n' == b''.join(chunks)
+    assert b'bye world\n' == b''.join(chunks)  # noqa: SIM300
 
 
 def test_blobio(testrepo):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     with pygit2.BlobIO(blob) as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
     assert not reader.raw._thread.is_alive()
 
 
@@ -250,5 +250,5 @@ def test_blobio_filtered(testrepo):
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
     with pygit2.BlobIO(blob, as_path='bye.txt') as reader:
-        assert b'bye world\n' == reader.read()
+        assert b'bye world\n' == reader.read()  # noqa: SIM300
     assert not reader.raw._thread.is_alive()

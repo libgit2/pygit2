@@ -25,7 +25,7 @@
 
 """Tests for Blame objects."""
 
-import pytest
+import pytest  # noqa: I001
 
 from pygit2 import Signature, Oid
 from pygit2.enums import BlameFlag
@@ -64,7 +64,7 @@ HUNKS = [
 def test_blame_index(testrepo):
     blame = testrepo.blame(PATH)
 
-    assert len(blame) == 3
+    assert len(blame) == 3  # noqa: PLR2004
 
     for i, hunk in enumerate(blame):
         assert hunk.lines_in_hunk == 1
@@ -81,7 +81,7 @@ def test_blame_index(testrepo):
 def test_blame_flags(blameflagsrepo):
     blame = blameflagsrepo.blame(PATH, flags=BlameFlag.IGNORE_WHITESPACE)
 
-    assert len(blame) == 3
+    assert len(blame) == 3  # noqa: PLR2004
 
     for i, hunk in enumerate(blame):
         assert hunk.lines_in_hunk == 1
@@ -109,7 +109,7 @@ def test_blame_with_invalid_index(testrepo):
 def test_blame_for_line(testrepo):
     blame = testrepo.blame(PATH)
 
-    for i, line in zip(range(0, 2), range(1, 3)):
+    for i, line in zip(range(0, 2), range(1, 3)):  # noqa: B905
         hunk = blame.for_line(line)
 
         assert hunk.lines_in_hunk == 1

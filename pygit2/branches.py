@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 from typing import TYPE_CHECKING
 
 from .enums import BranchType, ReferenceType

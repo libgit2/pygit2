@@ -25,7 +25,7 @@
 
 """Tests for Mailmap."""
 
-from pygit2 import Mailmap
+from pygit2 import Mailmap  # noqa: I001
 
 
 TEST_MAILMAP = """\

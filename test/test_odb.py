@@ -26,7 +26,7 @@
 """Tests for Odb objects."""
 
 # Standard Library
-import binascii
+import binascii  # noqa: I001
 from pathlib import Path
 
 import pytest
@@ -74,14 +74,14 @@ def test_read(odb):
     ab = odb.read(BLOB_OID)
     a = odb.read(BLOB_HEX)
     assert ab == a
-    assert (ObjectType.BLOB, b'a contents\n') == a
+    assert (ObjectType.BLOB, b'a contents\n') == a  # noqa: SIM300
 
     a2 = odb.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-    assert (ObjectType.BLOB, b'a contents 2\n') == a2
+    assert (ObjectType.BLOB, b'a contents 2\n') == a2  # noqa: SIM300
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = odb.read(a_hex_prefix)
-    assert (ObjectType.BLOB, b'a contents\n') == a3
+    assert (ObjectType.BLOB, b'a contents\n') == a3  # noqa: SIM300
 
 
 def test_write(odb):

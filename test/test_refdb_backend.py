@@ -25,7 +25,7 @@
 
 """Tests for Refdb objects."""
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 
 import pygit2
 import pytest
@@ -46,7 +46,7 @@ class ProxyRefdbBackend(pygit2.RefdbBackend):
     def lookup(testrepo, ref):
         return testrepo.source.lookup(ref)
 
-    def write(testrepo, ref, force, who, message, old, old_target):
+    def write(testrepo, ref, force, who, message, old, old_target):  # noqa: PLR0913
         return testrepo.source.write(ref, force, who, message, old, old_target)
 
     def rename(testrepo, old_name, new_name, force, who, message):
@@ -108,7 +108,7 @@ def test_delete(repo):
 
 
 def test_compress(repo):
-    repo = repo
+    repo = repo  # noqa: PLW0127
     packed_refs_file = Path(repo.path) / 'packed-refs'
     assert not packed_refs_file.exists()
     repo.backend.compress()

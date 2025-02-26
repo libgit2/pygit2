@@ -25,7 +25,7 @@
 
 """Tests for Index files."""
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 
 import pytest
 
@@ -45,7 +45,7 @@ def test_index(testrepo):
 
 def test_read(testrepo):
     index = testrepo.index
-    assert len(index) == 2
+    assert len(index) == 2  # noqa: PLR2004
 
     with pytest.raises(TypeError):
         index[()]
@@ -66,7 +66,7 @@ def test_add(testrepo):
     assert 'bye.txt' not in index
     index.add('bye.txt')
     assert 'bye.txt' in index
-    assert len(index) == 3
+    assert len(index) == 3  # noqa: PLR2004
     assert index['bye.txt'].id == sha
 
 
@@ -123,7 +123,7 @@ def test_add_all_aspath(testrepo):
 
 def clear(repo):
     index = repo.index
-    assert len(index) == 2
+    assert len(index) == 2  # noqa: PLR2004
     index.clear()
     assert len(index) == 0
 
@@ -143,14 +143,14 @@ def test_read_tree(testrepo):
     tree_oid = '68aba62e560c0ebc3396e8ae9335232cd93a3f60'
     # Test reading first tree
     index = testrepo.index
-    assert len(index) == 2
+    assert len(index) == 2  # noqa: PLR2004
     index.read_tree(tree_oid)
     assert len(index) == 1
     # Test read-write returns the same oid
     assert index.write_tree() == tree_oid
     # Test the index is only modified in memory
     index.read()
-    assert len(index) == 2
+    assert len(index) == 2  # noqa: PLR2004
 
 
 def test_write_tree(testrepo):
@@ -164,7 +164,7 @@ def test_iter(testrepo):
 
     # Compare SHAs, not IndexEntry object identity
     entries = [index[x].id for x in range(n)]
-    assert list(x.id for x in index) == entries
+    assert list(x.id for x in index) == entries  # noqa: C400
 
 
 def test_mode(testrepo):
@@ -174,7 +174,7 @@ def test_mode(testrepo):
     index = testrepo.index
 
     hello_mode = index['hello.txt'].mode
-    assert hello_mode == 33188
+    assert hello_mode == 33188  # noqa: PLR2004
 
 
 def test_bare_index(testrepo):
@@ -224,9 +224,9 @@ def test_change_attributes(testrepo):
     entry.path = 'foo.txt'
     entry.id = ign_entry.id
     entry.mode = FileMode.BLOB_EXECUTABLE
-    assert 'foo.txt' == entry.path
+    assert 'foo.txt' == entry.path  # noqa: SIM300
     assert ign_entry.id == entry.id
-    assert FileMode.BLOB_EXECUTABLE == entry.mode
+    assert FileMode.BLOB_EXECUTABLE == entry.mode  # noqa: SIM300
 
 
 def test_write_tree_to(testrepo, tmp_path):
@@ -242,7 +242,7 @@ def test_create_entry(testrepo):
     hello_entry = index['hello.txt']
     entry = pygit2.IndexEntry('README.md', hello_entry.id, hello_entry.mode)
     index.add(entry)
-    assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == index.write_tree()
+    assert '60e769e57ae1d6a2ab75d8d253139e6260e1f912' == index.write_tree()  # noqa: SIM300
 
 
 def test_create_entry_aspath(testrepo):
@@ -275,7 +275,7 @@ def test_entry_repr(testrepo):
     hello_entry = index['hello.txt']
     assert (
         repr(hello_entry)
-        == '<pygit2.index.IndexEntry path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>'
+        == '<pygit2.index.IndexEntry path=hello.txt id=a520c24d85fbfc815d385957eed41406ca5a860b mode=33188>'  # noqa: E501
     )
     assert (
         str(hello_entry)

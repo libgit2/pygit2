@@ -25,7 +25,7 @@
 
 """Tests for reference objects."""
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 
 import pytest
 
@@ -60,8 +60,8 @@ def test_refs_list(testrepo):
 
 def test_head(testrepo):
     head = testrepo.head
-    assert LAST_COMMIT == testrepo[head.target].id
-    assert LAST_COMMIT == testrepo[head.raw_target].id
+    assert LAST_COMMIT == testrepo[head.target].id  # noqa: SIM300
+    assert LAST_COMMIT == testrepo[head.raw_target].id  # noqa: SIM300
 
 
 def test_refs_getitem(testrepo):
@@ -150,11 +150,11 @@ def test_refs_delete(testrepo):
 
     # Access the deleted reference
     with pytest.raises(GitError):
-        getattr(reference, 'name')
+        getattr(reference, 'name')  # noqa: B009
     with pytest.raises(GitError):
-        getattr(reference, 'type')
+        getattr(reference, 'type')  # noqa: B009
     with pytest.raises(GitError):
-        getattr(reference, 'target')
+        getattr(reference, 'target')  # noqa: B009
     with pytest.raises(GitError):
         reference.delete()
     with pytest.raises(GitError):
@@ -261,10 +261,10 @@ def test_refs_equality(testrepo):
 
     assert ref1 is not ref2
     assert ref1 == ref2
-    assert not ref1 != ref2
+    assert not ref1 != ref2  # noqa: SIM202
 
     assert ref1 != ref3
-    assert not ref1 == ref3
+    assert not ref1 == ref3  # noqa: SIM201
 
 
 def test_refs_compress(testrepo):
@@ -583,11 +583,11 @@ def test_delete(testrepo):
 
     # Access the deleted reference
     with pytest.raises(GitError):
-        getattr(reference, 'name')
+        getattr(reference, 'name')  # noqa: B009
     with pytest.raises(GitError):
-        getattr(reference, 'type')
+        getattr(reference, 'type')  # noqa: B009
     with pytest.raises(GitError):
-        getattr(reference, 'target')
+        getattr(reference, 'target')  # noqa: B009
     with pytest.raises(GitError):
         reference.delete()
     with pytest.raises(GitError):

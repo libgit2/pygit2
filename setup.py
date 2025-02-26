@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 # Import setuptools before distutils to avoid user warning
-from setuptools import setup, Extension
+from setuptools import setup, Extension  # noqa: I001
 
 from distutils.command.build import build
 from distutils.command.sdist import sdist

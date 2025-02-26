@@ -25,7 +25,7 @@
 
 """Tests for Index files."""
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 
 import pygit2
 from pygit2 import PackBuilder
@@ -41,15 +41,15 @@ def test_create_packbuilder(testrepo):
 def test_add(testrepo):
     # Add a few objects and confirm that the count is correct
     packbuilder = PackBuilder(testrepo)
-    objects_to_add = [obj for obj in testrepo]
+    objects_to_add = [obj for obj in testrepo]  # noqa: C416
     packbuilder.add(objects_to_add[0])
     assert len(packbuilder) == 1
     packbuilder.add(objects_to_add[1])
-    assert len(packbuilder) == 2
+    assert len(packbuilder) == 2  # noqa: PLR2004
 
 
 def test_add_recursively(testrepo):
-    # Add the head object and referenced objects recursively and confirm that the count is correct
+    # Add the head object and referenced objects recursively and confirm that the count is correct  # noqa: E501
     packbuilder = PackBuilder(testrepo)
     packbuilder.add_recur(testrepo.head.target)
 
@@ -59,7 +59,7 @@ def test_add_recursively(testrepo):
     # Blob: hello.txt
     # Blob: .gitignore
 
-    assert len(packbuilder) == 4
+    assert len(packbuilder) == 4  # noqa: PLR2004
 
 
 def test_repo_pack(testrepo, tmp_path):
@@ -96,16 +96,16 @@ def confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate):
     pack_path = objects_dir / 'pack'
     pack_path.mkdir(parents=True)
 
-    # assert that the number of written objects is the same as the number of objects in the repo
+    # assert that the number of written objects is the same as the number of objects in the repo  # noqa: E501
     written_objects = testrepo.pack(pack_path, pack_delegate=pack_delegate)
-    assert written_objects == len([obj for obj in testrepo])
+    assert written_objects == len([obj for obj in testrepo])  # noqa: C416
 
-    # assert that the number of objects in the pack repo is the same as the original repo
-    orig_objects = [obj for obj in testrepo.odb]
-    packed_objects = [obj for obj in pack_repo.odb]
+    # assert that the number of objects in the pack repo is the same as the original repo  # noqa: E501
+    orig_objects = [obj for obj in testrepo.odb]  # noqa: C416
+    packed_objects = [obj for obj in pack_repo.odb]  # noqa: C416
     assert len(packed_objects) == len(orig_objects)
 
-    # assert that the objects in the packed repo are the same objects as the original repo
-    for i, obj in enumerate(orig_objects):
+    # assert that the objects in the packed repo are the same objects as the original repo  # noqa: E501
+    for i, obj in enumerate(orig_objects):  # noqa: B007
         assert pack_repo[obj].type == testrepo[obj].type
         assert pack_repo[obj].read_raw() == testrepo[obj].read_raw()

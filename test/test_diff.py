@@ -25,7 +25,7 @@
 
 """Tests for Diff objects."""
 
-from itertools import chain
+from itertools import chain  # noqa: I001
 import textwrap
 
 import pytest
@@ -114,11 +114,11 @@ def test_diff_empty_index(dirtyrepo):
 
     diff = head.tree.diff_to_index(repo.index)
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_INDEX_EXPECTED == files
+    assert DIFF_HEAD_TO_INDEX_EXPECTED == files  # noqa: SIM300
 
     diff = repo.diff('HEAD', cached=True)
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_INDEX_EXPECTED == files
+    assert DIFF_HEAD_TO_INDEX_EXPECTED == files  # noqa: SIM300
 
 
 def test_workdir_to_tree(dirtyrepo):
@@ -127,17 +127,17 @@ def test_workdir_to_tree(dirtyrepo):
 
     diff = head.tree.diff_to_workdir()
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
+    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files  # noqa: SIM300
 
     diff = repo.diff('HEAD')
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
+    assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files  # noqa: SIM300
 
 
 def test_index_to_workdir(dirtyrepo):
     diff = dirtyrepo.diff()
     files = [patch.delta.new_file.path for patch in diff]
-    assert DIFF_INDEX_TO_WORK_EXPECTED == files
+    assert DIFF_INDEX_TO_WORK_EXPECTED == files  # noqa: SIM300
 
 
 def test_diff_invalid(barerepo):
@@ -172,7 +172,7 @@ def test_diff_tree(barerepo):
 
     def _test(diff):
         assert diff is not None
-        assert 2 == sum(map(lambda x: len(x.hunks), diff))
+        assert 2 == sum(map(lambda x: len(x.hunks), diff))  # noqa: C417, SIM300, PLR2004
 
         patch = diff[0]
         hunk = patch.hunks[0]
@@ -204,18 +204,18 @@ def test_diff_empty_tree(barerepo):
     diff = commit_a.tree.diff_to_tree()
 
     def get_context_for_lines(diff):
-        hunks = chain.from_iterable(map(lambda x: x.hunks, diff))
-        lines = chain.from_iterable(map(lambda x: x.lines, hunks))
-        return map(lambda x: x.origin, lines)
+        hunks = chain.from_iterable(map(lambda x: x.hunks, diff))  # noqa: C417
+        lines = chain.from_iterable(map(lambda x: x.lines, hunks))  # noqa: C417
+        return map(lambda x: x.origin, lines)  # noqa: C417
 
     entries = [p.delta.new_file.path for p in diff]
     assert all(commit_a.tree[x] for x in entries)
-    assert all('-' == x for x in get_context_for_lines(diff))
+    assert all('-' == x for x in get_context_for_lines(diff))  # noqa: SIM300
 
     diff_swaped = commit_a.tree.diff_to_tree(swap=True)
     entries = [p.delta.new_file.path for p in diff_swaped]
     assert all(commit_a.tree[x] for x in entries)
-    assert all('+' == x for x in get_context_for_lines(diff_swaped))
+    assert all('+' == x for x in get_context_for_lines(diff_swaped))  # noqa: SIM300
 
 
 def test_diff_revparse(barerepo):
@@ -230,11 +230,11 @@ def test_diff_tree_opts(barerepo):
     for flag in [DiffOption.IGNORE_WHITESPACE, DiffOption.IGNORE_WHITESPACE_EOL]:
         diff = commit_c.tree.diff_to_tree(commit_d.tree, flag)
         assert diff is not None
-        assert 0 == len(diff[0].hunks)
+        assert 0 == len(diff[0].hunks)  # noqa: SIM300
 
     diff = commit_c.tree.diff_to_tree(commit_d.tree)
     assert diff is not None
-    assert 1 == len(diff[0].hunks)
+    assert 1 == len(diff[0].hunks)  # noqa: SIM300
 
 
 def test_diff_merge(barerepo):
@@ -270,7 +270,7 @@ def test_diff_patch(barerepo):
 
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     assert diff.patch == PATCH
-    assert len(diff) == len([patch for patch in diff])
+    assert len(diff) == len([patch for patch in diff])  # noqa: C416
 
 
 def test_diff_ids(barerepo):
@@ -296,7 +296,7 @@ def test_hunk_content(barerepo):
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
     hunk = patch.hunks[0]
     lines = (f'{x.origin} {x.content}' for x in hunk.lines)
-    assert HUNK_EXPECTED == ''.join(lines)
+    assert HUNK_EXPECTED == ''.join(lines)  # noqa: SIM300
     for line in hunk.lines:
         assert line.content == line.raw_content.decode()
 
@@ -321,13 +321,13 @@ def test_diff_stats(barerepo):
 
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     stats = diff.stats
-    assert 1 == stats.insertions
-    assert 2 == stats.deletions
-    assert 2 == stats.files_changed
+    assert 1 == stats.insertions  # noqa: SIM300
+    assert 2 == stats.deletions  # noqa: SIM300, PLR2004
+    assert 2 == stats.files_changed  # noqa: SIM300, PLR2004
     formatted = stats.format(
         format=DiffStatsFormat.FULL | DiffStatsFormat.INCLUDE_SUMMARY, width=80
     )
-    assert STATS_EXPECTED == formatted
+    assert STATS_EXPECTED == formatted  # noqa: SIM300
 
 
 def test_deltas(barerepo):
@@ -353,16 +353,16 @@ def test_deltas(barerepo):
         # assert delta.flags == patch_delta.flags
 
 
-def test_diff_parse(barerepo):
+def test_diff_parse(barerepo):  # noqa: ARG001
     diff = pygit2.Diff.parse_diff(PATCH)
 
     stats = diff.stats
-    assert 2 == stats.deletions
-    assert 1 == stats.insertions
-    assert 2 == stats.files_changed
+    assert 2 == stats.deletions  # noqa: SIM300, PLR2004
+    assert 1 == stats.insertions  # noqa: SIM300
+    assert 2 == stats.files_changed  # noqa: SIM300, PLR2004
 
     deltas = list(diff.deltas)
-    assert 2 == len(deltas)
+    assert 2 == len(deltas)  # noqa: SIM300, PLR2004
 
 
 def test_parse_diff_null():

@@ -29,6 +29,6 @@
 import os
 import sys
 
-cwd = os.getcwd()
+cwd = os.getcwd()  # noqa: PTH109
 sys.path.remove(cwd)
 sys.path.append(cwd)

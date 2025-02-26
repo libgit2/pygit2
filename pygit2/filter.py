@@ -76,7 +76,7 @@ class Filter:
         """
 
     def write(
-        self, data: bytes, src: FilterSource, write_next: Callable[[bytes], None]
+        self, data: bytes, src: FilterSource, write_next: Callable[[bytes], None]  # noqa: ARG002
     ):
         """
         Write input `data` to this filter.

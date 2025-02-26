@@ -1,4 +1,4 @@
-from typing import Iterator, Literal, Optional, overload
+from typing import Iterator, Literal, Optional, overload  # noqa: I001
 from io import IOBase
 from . import Index
 from .enums import (
@@ -42,7 +42,7 @@ class Object:
     oid: Oid
     raw_name: bytes | None
     short_id: str
-    type: 'Literal[GIT_OBJ_COMMIT] | Literal[GIT_OBJ_TREE] | Literal[GIT_OBJ_TAG] | Literal[GIT_OBJ_BLOB]'
+    type: 'Literal[GIT_OBJ_COMMIT] | Literal[GIT_OBJ_TREE] | Literal[GIT_OBJ_TAG] | Literal[GIT_OBJ_BLOB]'  # noqa: E501
     type_str: "Literal['commit'] | Literal['tree'] | Literal['tag'] | Literal['blob']"
     @overload
     def peel(self, target_type: 'Literal[GIT_OBJ_COMMIT]') -> 'Commit': ...

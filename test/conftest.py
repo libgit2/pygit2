@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 import platform
 
 import pytest

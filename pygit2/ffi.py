@@ -24,4 +24,5 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from ._libgit2 import ffi, lib as C  # noqa: F401
+
+from ._libgit2 import ffi, lib as C  # noqa: I001, F401

@@ -25,7 +25,7 @@
 
 """Tests for note objects."""
 
-from pygit2 import Signature
+from pygit2 import Signature  # noqa: I001
 import pytest
 
 

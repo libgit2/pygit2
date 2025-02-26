@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pygit2
+import pygit2  # noqa: I001
 import pytest
 from . import utils
 

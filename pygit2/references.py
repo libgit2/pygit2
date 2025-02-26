@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 from typing import TYPE_CHECKING
 
 from .enums import ReferenceFilter
@@ -74,7 +74,7 @@ class References:
         TODO: Add support for filtering by reference types notes and remotes.
         """
 
-        # Enforce ReferenceFilter type - raises ValueError if we're given an invalid value
+        # Enforce ReferenceFilter type - raises ValueError if we're given an invalid value  # noqa: E501
         references_return_type = ReferenceFilter(references_return_type)
 
         iter = self._repository.references_iterator_init()

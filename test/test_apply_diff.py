@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pygit2
+import pygit2  # noqa: I001
 from pygit2.enums import ApplyLocation, CheckoutStrategy, FileStatus
 import pytest
 
@@ -151,7 +151,7 @@ def test_diff_applies_to_both(testrepo, old_content, patch_diff):
     assert not testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
 
-def test_applies_error(testrepo, old_content, patch_diff, foreign_patch_diff):
+def test_applies_error(testrepo, old_content, patch_diff, foreign_patch_diff):  # noqa: ARG001
     # Try to apply a "foreign" patch that affects files that aren't in the repo;
     # ensure we get OSError about the missing file (due to raise_error)
     with pytest.raises(OSError):
@@ -160,6 +160,6 @@ def test_applies_error(testrepo, old_content, patch_diff, foreign_patch_diff):
     # Apply a valid patch
     testrepo.apply(patch_diff, ApplyLocation.BOTH)
 
-    # Ensure it can't be applied again and we get an exception about it (due to raise_error)
+    # Ensure it can't be applied again and we get an exception about it (due to raise_error)  # noqa: E501
     with pytest.raises(pygit2.GitError):
         testrepo.applies(patch_diff, ApplyLocation.BOTH, raise_error=True)
