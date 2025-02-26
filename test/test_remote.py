@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import sys
+import sys  # noqa: I001
 
 import pytest
 
@@ -79,8 +79,8 @@ def test_remote_create_anonymous(testrepo):
     assert remote.name is None
     assert url == remote.url
     assert remote.push_url is None
-    assert [] == remote.fetch_refspecs
-    assert [] == remote.push_refspecs
+    assert [] == remote.fetch_refspecs  # noqa: SIM300
+    assert [] == remote.push_refspecs  # noqa: SIM300
 
 
 def test_remote_delete(testrepo):
@@ -88,21 +88,21 @@ def test_remote_delete(testrepo):
     url = 'https://github.com/libgit2/pygit2.git'
 
     testrepo.remotes.create(name, url)
-    assert 2 == len(testrepo.remotes)
+    assert 2 == len(testrepo.remotes)  # noqa: SIM300, PLR2004
     remote = testrepo.remotes[1]
 
     assert name == remote.name
     testrepo.remotes.delete(remote.name)
-    assert 1 == len(testrepo.remotes)
+    assert 1 == len(testrepo.remotes)  # noqa: SIM300
 
 
 def test_remote_rename(testrepo):
     remote = testrepo.remotes[0]
 
-    assert REMOTE_NAME == remote.name
+    assert REMOTE_NAME == remote.name  # noqa: SIM300
     problems = testrepo.remotes.rename(remote.name, 'new')
-    assert [] == problems
-    assert 'new' != remote.name
+    assert [] == problems  # noqa: SIM300
+    assert 'new' != remote.name  # noqa: SIM300
 
     with pytest.raises(ValueError):
         testrepo.remotes.rename('', '')
@@ -112,7 +112,7 @@ def test_remote_rename(testrepo):
 
 def test_remote_set_url(testrepo):
     remote = testrepo.remotes['origin']
-    assert REMOTE_URL == remote.url
+    assert REMOTE_URL == remote.url  # noqa: SIM300
 
     new_url = 'https://github.com/cholin/pygit2.git'
     testrepo.remotes.set_url('origin', new_url)
@@ -137,31 +137,31 @@ def test_refspec(testrepo):
     assert refspec.src == REMOTE_FETCHSPEC_SRC
     assert refspec.dst == REMOTE_FETCHSPEC_DST
     assert refspec.force is True
-    assert ORIGIN_REFSPEC == refspec.string
+    assert ORIGIN_REFSPEC == refspec.string  # noqa: SIM300
 
     assert list is type(remote.fetch_refspecs)
-    assert 1 == len(remote.fetch_refspecs)
-    assert ORIGIN_REFSPEC == remote.fetch_refspecs[0]
+    assert 1 == len(remote.fetch_refspecs)  # noqa: SIM300
+    assert ORIGIN_REFSPEC == remote.fetch_refspecs[0]  # noqa: SIM300
 
     assert refspec.src_matches('refs/heads/master')
     assert refspec.dst_matches('refs/remotes/origin/master')
-    assert 'refs/remotes/origin/master' == refspec.transform('refs/heads/master')
-    assert 'refs/heads/master' == refspec.rtransform('refs/remotes/origin/master')
+    assert 'refs/remotes/origin/master' == refspec.transform('refs/heads/master')  # noqa: SIM300
+    assert 'refs/heads/master' == refspec.rtransform('refs/remotes/origin/master')  # noqa: SIM300
 
     assert list is type(remote.push_refspecs)
-    assert 0 == len(remote.push_refspecs)
+    assert 0 == len(remote.push_refspecs)  # noqa: SIM300
 
     push_specs = remote.push_refspecs
     assert list is type(push_specs)
-    assert 0 == len(push_specs)
+    assert 0 == len(push_specs)  # noqa: SIM300
 
     testrepo.remotes.add_fetch('origin', '+refs/test/*:refs/test/remotes/*')
     remote = testrepo.remotes['origin']
 
     fetch_specs = remote.fetch_refspecs
     assert list is type(fetch_specs)
-    assert 2 == len(fetch_specs)
-    assert [
+    assert 2 == len(fetch_specs)  # noqa: SIM300, PLR2004
+    assert [  # noqa: SIM300
         '+refs/heads/*:refs/remotes/origin/*',
         '+refs/test/*:refs/test/remotes/*',
     ] == fetch_specs
@@ -172,14 +172,14 @@ def test_refspec(testrepo):
         testrepo.remotes.add_fetch(['+refs/*:refs/*', 5])
 
     remote = testrepo.remotes['origin']
-    assert ['+refs/test/*:refs/test/remotes/*'] == remote.push_refspecs
+    assert ['+refs/test/*:refs/test/remotes/*'] == remote.push_refspecs  # noqa: SIM300
 
 
 def test_remote_list(testrepo):
-    assert 1 == len(testrepo.remotes)
+    assert 1 == len(testrepo.remotes)  # noqa: SIM300
     remote = testrepo.remotes[0]
-    assert REMOTE_NAME == remote.name
-    assert REMOTE_URL == remote.url
+    assert REMOTE_NAME == remote.name  # noqa: SIM300
+    assert REMOTE_URL == remote.url  # noqa: SIM300
 
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'
@@ -190,7 +190,7 @@ def test_remote_list(testrepo):
 
 @utils.requires_network
 def test_ls_remotes(testrepo):
-    assert 1 == len(testrepo.remotes)
+    assert 1 == len(testrepo.remotes)  # noqa: SIM300
     remote = testrepo.remotes[0]
 
     refs = remote.ls_remotes()
@@ -202,8 +202,8 @@ def test_ls_remotes(testrepo):
 
 def test_remote_collection(testrepo):
     remote = testrepo.remotes['origin']
-    assert REMOTE_NAME == remote.name
-    assert REMOTE_URL == remote.url
+    assert REMOTE_NAME == remote.name  # noqa: SIM300
+    assert REMOTE_URL == remote.url  # noqa: SIM300
 
     with pytest.raises(KeyError):
         testrepo.remotes['upstream']
@@ -227,8 +227,8 @@ def test_remote_refcount(testrepo):
 def test_fetch(emptyrepo):
     remote = emptyrepo.remotes[0]
     stats = remote.fetch()
-    assert stats.received_bytes > 2700
-    assert stats.received_bytes < 3100
+    assert stats.received_bytes > 2700  # noqa: PLR2004
+    assert stats.received_bytes < 3100  # noqa: PLR2004
     assert stats.indexed_objects == REMOTE_REPO_OBJECTS
     assert stats.received_objects == REMOTE_REPO_OBJECTS
 
@@ -377,7 +377,7 @@ def test_push_transfer_progress(origin, clone, remote):
     # on the local filesystem, as is the case in this unit test. (When pushing
     # to a remote over the network, the value is correct.)
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):  # noqa: ARG002
             self.objects_pushed = objects_pushed
             self.total_objects = total_objects
 
@@ -402,7 +402,7 @@ def test_push_interrupted_from_callbacks(origin, clone, remote):
     )
 
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):  # noqa: ARG002
             raise InterruptedError('retreat! retreat!')
 
     assert origin.branches['master'].target == tip.id
@@ -438,7 +438,7 @@ def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
         remote.push(['refs/heads/master'])
 
 
-def test_push_options(origin, clone, remote):
+def test_push_options(origin, clone, remote):  # noqa: ARG001
     from pygit2 import RemoteCallbacks
 
     callbacks = RemoteCallbacks()
@@ -464,5 +464,5 @@ def test_push_options(origin, clone, remote):
     with pytest.raises(pygit2.GitError, match='push-options not supported by remote'):
         remote.push(['refs/heads/master'], callbacks, push_options=['Opt A', 'Opt B'])
     remote_push_options = callbacks.push_options.remote_push_options
-    assert remote_push_options.count == 2
+    assert remote_push_options.count == 2  # noqa: PLR2004
     # strings pointed to by remote_push_options.strings[] are already freed

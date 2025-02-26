@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 from typing import TYPE_CHECKING
 
 # Import from pygit2
@@ -116,7 +116,7 @@ class Remote:
             )
             payload.check_error(err)
 
-    def fetch(
+    def fetch(  # noqa: PLR0913
         self,
         refspecs=None,
         message=None,
@@ -185,7 +185,7 @@ class Remote:
         for i in range(int(refs_len[0])):
             ref = refs[0][i]
             local = bool(ref.local)
-            if local:
+            if local:  # noqa: SIM108
                 loid = Oid(raw=bytes(ffi.buffer(ref.loid.id)[:]))
             else:
                 loid = None
@@ -393,7 +393,7 @@ class RemoteCollection:
         """Remove a remote from the configuration
 
         All remote-tracking branches and configuration settings for the remote will be removed.
-        """
+        """  # noqa: E501
         err = C.git_remote_delete(self._repo._repo, to_bytes(name))
         check_error(err)
 

@@ -26,7 +26,7 @@
 """Tests for Object ids."""
 
 # Standard Library
-from binascii import unhexlify
+from binascii import unhexlify  # noqa: I001
 
 from pygit2 import Oid
 import pytest
@@ -85,7 +85,7 @@ def test_cmp():
     # Other
     assert oid1 < oid2
     assert oid1 <= oid2
-    assert not oid1 == oid2
+    assert not oid1 == oid2  # noqa: SIM201
     assert not oid1 > oid2
     assert not oid1 >= oid2
 
@@ -98,7 +98,7 @@ def test_hash():
 
     s.add(Oid(hex='0000000000000000000000000000000000000000'))
     s.add(Oid(hex='0000000000000000000000000000000000000001'))
-    assert len(s) == 3
+    assert len(s) == 3  # noqa: PLR2004
 
 
 def test_bool():

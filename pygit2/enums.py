@@ -77,7 +77,7 @@ class BlameFlag(IntFlag):
     'Not yet implemented and reserved for future use (as of libgit2 1.9.0).'
 
     FIRST_PARENT = _pygit2.GIT_BLAME_FIRST_PARENT
-    'Restrict the search of commits to those reachable following only the first parents.'
+    'Restrict the search of commits to those reachable following only the first parents.'  # noqa: E501
 
     USE_MAILMAP = _pygit2.GIT_BLAME_USE_MAILMAP
     """
@@ -95,7 +95,7 @@ class BlobFilter(IntFlag):
     'Do not apply filters to binary files.'
 
     NO_SYSTEM_ATTRIBUTES = _pygit2.GIT_BLOB_FILTER_NO_SYSTEM_ATTRIBUTES
-    'Filters will not load configuration from the system-wide `gitattributes` in `/etc` (or system equivalent).'
+    'Filters will not load configuration from the system-wide `gitattributes` in `/etc` (or system equivalent).'  # noqa: E501
 
     ATTRIBUTES_FROM_HEAD = _pygit2.GIT_BLOB_FILTER_ATTRIBUTES_FROM_HEAD
     'Load filters from a `.gitattributes` file in the HEAD commit.'
@@ -246,7 +246,7 @@ class ConfigLevel(IntEnum):
     'XDG compatible configuration file; typically ~/.config/git/config'
 
     GLOBAL = _pygit2.GIT_CONFIG_LEVEL_GLOBAL
-    'User-specific configuration file (also called Global configuration file); typically ~/.gitconfig'
+    'User-specific configuration file (also called Global configuration file); typically ~/.gitconfig'  # noqa: E501
 
     LOCAL = _pygit2.GIT_CONFIG_LEVEL_LOCAL
     'Repository specific configuration file; $WORK_DIR/.git/config on non-bare repos'
@@ -642,7 +642,7 @@ class DiffStatsFormat(IntFlag):
     'Number statistics, equivalent of `--numstat`'
 
     INCLUDE_SUMMARY = _pygit2.GIT_DIFF_STATS_INCLUDE_SUMMARY
-    'Extended header information such as creations, renames and mode changes, equivalent of `--summary`'
+    'Extended header information such as creations, renames and mode changes, equivalent of `--summary`'  # noqa: E501
 
 
 class Feature(IntFlag):
@@ -726,7 +726,7 @@ class FilterFlag(IntFlag):
     'Load attributes from `.gitattributes` in the root of HEAD'
 
     ATTRIBUTES_FROM_COMMIT = _pygit2.GIT_FILTER_ATTRIBUTES_FROM_COMMIT
-    'Load attributes from `.gitattributes` in a given commit. This can only be specified in a `git_filter_options`.'
+    'Load attributes from `.gitattributes` in a given commit. This can only be specified in a `git_filter_options`.'  # noqa: E501
 
 
 class FilterMode(IntEnum):
@@ -947,7 +947,7 @@ class ObjectType(IntEnum):
 class Option(IntEnum):
     """Global libgit2 library options"""
 
-    # Commented out values --> exists in libgit2 but not supported in pygit2's options.c yet
+    # Commented out values --> exists in libgit2 but not supported in pygit2's options.c yet  # noqa: E501
     GET_MWINDOW_SIZE = _pygit2.GIT_OPT_GET_MWINDOW_SIZE
     SET_MWINDOW_SIZE = _pygit2.GIT_OPT_SET_MWINDOW_SIZE
     GET_MWINDOW_MAPPED_LIMIT = _pygit2.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT
@@ -1293,7 +1293,7 @@ class SubmoduleStatus(IntFlag):
     'submodule workdir index is dirty (flag available if ignore is NONE or UNTRACKED)'
 
     WD_WD_MODIFIED = _pygit2.GIT_SUBMODULE_STATUS_WD_WD_MODIFIED
-    'submodule workdir has modified files (flag available if ignore is NONE or UNTRACKED)'
+    'submodule workdir has modified files (flag available if ignore is NONE or UNTRACKED)'  # noqa: E501
 
     WD_UNTRACKED = _pygit2.GIT_SUBMODULE_STATUS_WD_UNTRACKED
     'submodule workdir contains untracked files (flag available if ignore is NONE)'

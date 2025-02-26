@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 import platform
 
 import pytest
@@ -117,10 +117,10 @@ def test_keypair_from_memory(tmp_path, pygit2_empty_key):
         pygit2.clone_repository(url, tmp_path)
 
     prv, pub, secret = pygit2_empty_key
-    with open(prv) as f:
+    with open(prv) as f:  # noqa: PTH123
         prv_mem = f.read()
 
-    with open(pub) as f:
+    with open(pub) as f:  # noqa: PTH123
         pub_mem = f.read()
 
     keypair = pygit2.KeypairFromMemory('git', pub_mem, prv_mem, secret)
@@ -130,20 +130,20 @@ def test_keypair_from_memory(tmp_path, pygit2_empty_key):
 
 def test_callback(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def credentials(testrepo, url, username, allowed):
+        def credentials(testrepo, url, username, allowed):  # noqa: ARG002
             assert allowed & CredentialType.USERPASS_PLAINTEXT
             raise Exception("I don't know the password")
 
     url = 'https://github.com/github/github'
     remote = testrepo.remotes.create('github', url)
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         remote.fetch(callbacks=MyCallbacks())
 
 
 @utils.requires_network
 def test_bad_cred_type(testrepo):
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def credentials(testrepo, url, username, allowed):
+        def credentials(testrepo, url, username, allowed):  # noqa: ARG002
             assert allowed & CredentialType.USERPASS_PLAINTEXT
             return Keypair('git', 'foo.pub', 'foo', 'sekkrit')
 

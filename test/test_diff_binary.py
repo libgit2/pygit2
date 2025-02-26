@@ -51,15 +51,15 @@ Pc${NM%FIhFs^kIy3n&7R
 literal 8
 Pc${NM&PdElPvrst3ey5{
 
-"""
+"""  # noqa: E501
 
 
 def test_binary_diff(repo):
     diff = repo.diff('HEAD', 'HEAD^')
-    assert PATCH_BINARY == diff.patch
+    assert PATCH_BINARY == diff.patch  # noqa: SIM300
     diff = repo.diff('HEAD', 'HEAD^', flags=DiffOption.SHOW_BINARY)
-    assert PATCH_BINARY_SHOW == diff.patch
+    assert PATCH_BINARY_SHOW == diff.patch  # noqa: SIM300
     diff = repo.diff(b'HEAD', b'HEAD^')
-    assert PATCH_BINARY == diff.patch
+    assert PATCH_BINARY == diff.patch  # noqa: SIM300
     diff = repo.diff(b'HEAD', b'HEAD^', flags=DiffOption.SHOW_BINARY)
-    assert PATCH_BINARY_SHOW == diff.patch
+    assert PATCH_BINARY_SHOW == diff.patch  # noqa: SIM300

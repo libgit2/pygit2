@@ -25,7 +25,7 @@
 
 """Tests for revision parsing."""
 
-from pygit2 import InvalidSpecError
+from pygit2 import InvalidSpecError  # noqa: I001
 from pygit2.enums import RevSpecFlag
 from pytest import raises
 
@@ -88,5 +88,5 @@ def test_revparse_repr(testrepo):
     s = testrepo.revparse('HEAD...i18n')
     assert (
         repr(s)
-        == '<pygit2.RevSpec{from=<pygit2.Object{commit:2be5719152d4f82c7302b1c0932d8e5f0a4a0e98}>,to=<pygit2.Object{commit:5470a671a80ac3789f1a6a8cefbcf43ce7af0563}>}>'
+        == '<pygit2.RevSpec{from=<pygit2.Object{commit:2be5719152d4f82c7302b1c0932d8e5f0a4a0e98}>,to=<pygit2.Object{commit:5470a671a80ac3789f1a6a8cefbcf43ce7af0563}>}>'  # noqa: E501
     )

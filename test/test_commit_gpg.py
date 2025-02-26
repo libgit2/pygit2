@@ -79,7 +79,7 @@ gpgsig -----BEGIN PGP SIGNATURE-----
  -----END PGP SIGNATURE-----
 
 a simple commit which works\
-"""
+"""  # noqa: W293
 # NOTE: ^^^ mind the gap (space must exist after GnuPG header) ^^^
 # XXX: seems macos wants the space while linux does not
 
@@ -119,16 +119,16 @@ def test_commit_signing(gpgsigned):
     assert gpgsig_content == commit.read_raw().decode('utf-8')
 
     # perform sanity checks
-    assert ObjectType.COMMIT == commit.type
-    assert '6569fdf71dbd99081891154641869c537784a3ba' == commit.id
+    assert ObjectType.COMMIT == commit.type  # noqa: SIM300
+    assert '6569fdf71dbd99081891154641869c537784a3ba' == commit.id  # noqa: SIM300
     assert commit.message_encoding is None
     assert message == commit.message
-    assert 1358451456 == commit.commit_time
+    assert 1358451456 == commit.commit_time  # noqa: SIM300, PLR2004
     assert committer == commit.committer
     assert author == commit.author
     assert tree == commit.tree.id
     assert Oid(hex=tree) == commit.tree_id
-    assert 1 == len(commit.parents)
+    assert 1 == len(commit.parents)  # noqa: SIM300
     assert parent == commit.parents[0].id
     assert Oid(hex=parent) == commit.parent_ids[0]
 

@@ -1,4 +1,4 @@
-import io
+import io  # noqa: I001
 import threading
 import time
 from contextlib import AbstractContextManager

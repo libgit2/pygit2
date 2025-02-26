@@ -29,7 +29,7 @@ except ImportError:
     from cached_property import cached_property
 
 # Import from pygit2
-from .errors import check_error
+from .errors import check_error  # noqa: I001
 from .ffi import ffi, C
 from .utils import to_bytes
 
@@ -93,7 +93,7 @@ class Config:
         return config
 
     def __del__(self):
-        try:
+        try:  # noqa: SIM105
             C.git_config_free(self._config)
         except AttributeError:
             pass

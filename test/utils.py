@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 # Standard library
-import hashlib
+import hashlib  # noqa: I001
 from pathlib import Path
 import shutil
 import socket
@@ -79,7 +79,7 @@ def gen_blob_sha1(data):
     return m.hexdigest()
 
 
-def force_rm_handle(remove_path, path, excinfo):
+def force_rm_handle(remove_path, path, excinfo):  # noqa: ARG001
     path = Path(path)
     path.chmod(path.stat().st_mode | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
     remove_path(path)

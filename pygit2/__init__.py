@@ -24,33 +24,33 @@
 # Boston, MA 02110-1301, USA.
 
 # Standard Library
-import functools
+import functools  # noqa: I001
 from os import PathLike
 import typing
 
 # Low level API
-from ._pygit2 import *
+from ._pygit2 import *  # noqa: F403
 from ._pygit2 import _cache_enums
 
 # High level API
 from . import enums
-from ._build import __version__
-from .blame import Blame, BlameHunk
-from .blob import BlobIO
-from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCallbacks
-from .callbacks import git_clone_options, git_fetch_options, get_credentials
-from .config import Config
-from .credentials import *
-from .errors import check_error, Passthrough
+from ._build import __version__  # noqa: F401
+from .blame import Blame, BlameHunk  # noqa: F401
+from .blob import BlobIO  # noqa: F401
+from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCallbacks  # noqa: F401
+from .callbacks import git_clone_options, git_fetch_options, get_credentials  # noqa: F401
+from .config import Config  # noqa: F401
+from .credentials import *  # noqa: F403
+from .errors import check_error, Passthrough  # noqa: F401
 from .ffi import ffi, C
-from .filter import Filter
-from .index import Index, IndexEntry
-from .legacyenums import *
-from .packbuilder import PackBuilder
-from .remotes import Remote
+from .filter import Filter  # noqa: F401
+from .index import Index, IndexEntry  # noqa: F401
+from .legacyenums import *  # noqa: F403
+from .packbuilder import PackBuilder  # noqa: F401
+from .remotes import Remote  # noqa: F401
 from .repository import Repository
 from .settings import Settings
-from .submodules import Submodule
+from .submodules import Submodule  # noqa: F401
 from .utils import to_bytes, to_str
 
 
@@ -58,14 +58,14 @@ from .utils import to_bytes, to_str
 features = enums.Feature(C.git_libgit2_features())
 
 # libgit version tuple
-LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)
+LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)  # noqa: F405
 
 # Let _pygit2 cache references to Python enum types.
 # This is separate from PyInit__pygit2() to avoid a circular import.
 _cache_enums()
 
 
-def init_repository(
+def init_repository(  # noqa: PLR0913
     path: typing.Union[str, bytes, PathLike, None],
     bare: bool = False,
     flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
@@ -143,7 +143,7 @@ def init_repository(
     return Repository(to_str(path))
 
 
-def clone_repository(
+def clone_repository(  # noqa: PLR0913
     url,
     path,
     bare=False,
@@ -220,6 +220,6 @@ def clone_repository(
     return Repository._from_c(crepo[0], owned=True)
 
 
-tree_entry_key = functools.cmp_to_key(tree_entry_cmp)
+tree_entry_key = functools.cmp_to_key(tree_entry_cmp)  # noqa: F405
 
 settings = Settings()

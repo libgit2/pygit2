@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 
 import pytest
 
@@ -37,7 +37,7 @@ CONFIG_FILENAME = 'test_config'
 @pytest.fixture
 def config(testrepo):
     yield testrepo.config
-    try:
+    try:  # noqa: SIM105
         Path(CONFIG_FILENAME).unlink()
     except OSError:
         pass
@@ -48,7 +48,7 @@ def test_config(config):
 
 
 def test_global_config():
-    try:
+    try:  # noqa: SIM105
         assert Config.get_global_config() is not None
     except IOError:
         # There is no user config
@@ -56,7 +56,7 @@ def test_global_config():
 
 
 def test_system_config():
-    try:
+    try:  # noqa: SIM105
         assert Config.get_system_config() is not None
     except IOError:
         # There is no system config
@@ -65,7 +65,7 @@ def test_system_config():
 
 def test_new():
     # Touch file
-    open(CONFIG_FILENAME, 'w').close()
+    open(CONFIG_FILENAME, 'w').close()  # noqa: PTH123
 
     config_write = Config(CONFIG_FILENAME)
     assert config_write is not None
@@ -81,7 +81,7 @@ def test_new():
 
 
 def test_add():
-    with open(CONFIG_FILENAME, 'w') as new_file:
+    with open(CONFIG_FILENAME, 'w') as new_file:  # noqa: PTH123
         new_file.write('[this]\n\tthat = true\n')
         new_file.write('[something "other"]\n\there = false')
 
@@ -94,7 +94,7 @@ def test_add():
 
 
 def test_add_aspath():
-    with open(CONFIG_FILENAME, 'w') as new_file:
+    with open(CONFIG_FILENAME, 'w') as new_file:  # noqa: PTH123
         new_file.write('[this]\n\tthat = true\n')
 
     config = Config()
@@ -127,7 +127,7 @@ def test_write(config):
     assert 'core.dummy1' not in config
     config['core.dummy1'] = 42
     assert 'core.dummy1' in config
-    assert config.get_int('core.dummy1') == 42
+    assert config.get_int('core.dummy1') == 42  # noqa: PLR2004
 
     assert 'core.dummy2' not in config
     config['core.dummy2'] = 'foobar'
@@ -148,30 +148,30 @@ def test_write(config):
 
 
 def test_multivar():
-    with open(CONFIG_FILENAME, 'w') as new_file:
+    with open(CONFIG_FILENAME, 'w') as new_file:  # noqa: PTH123
         new_file.write('[this]\n\tthat = foobar\n\tthat = foobeer\n')
 
     config = Config()
     config.add_file(CONFIG_FILENAME, 6)
     assert 'this.that' in config
 
-    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that'))
-    assert ['foobar'] == list(config.get_multivar('this.that', 'bar'))
-    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that', 'foo.*'))
+    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that'))  # noqa: SIM300
+    assert ['foobar'] == list(config.get_multivar('this.that', 'bar'))  # noqa: SIM300
+    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that', 'foo.*'))  # noqa: SIM300
 
     config.set_multivar('this.that', '^.*beer', 'fool')
-    assert ['fool'] == list(config.get_multivar('this.that', 'fool'))
+    assert ['fool'] == list(config.get_multivar('this.that', 'fool'))  # noqa: SIM300
 
     config.set_multivar('this.that', 'foo.*', 'foo-123456')
-    assert ['foo-123456', 'foo-123456'] == list(
+    assert ['foo-123456', 'foo-123456'] == list(  # noqa: SIM300
         config.get_multivar('this.that', 'foo.*')
     )
 
     config.delete_multivar('this.that', 'bar')
-    assert ['foo-123456', 'foo-123456'] == list(config.get_multivar('this.that', ''))
+    assert ['foo-123456', 'foo-123456'] == list(config.get_multivar('this.that', ''))  # noqa: SIM300
 
     config.delete_multivar('this.that', 'foo-[0-9]+')
-    assert [] == list(config.get_multivar('this.that', ''))
+    assert [] == list(config.get_multivar('this.that', ''))  # noqa: SIM300
 
 
 def test_iterator(config):
@@ -188,5 +188,5 @@ def test_parsing():
     assert Config.parse_bool('on')
     assert Config.parse_bool('1')
 
-    assert 5 == Config.parse_int('5')
-    assert 1024 == Config.parse_int('1k')
+    assert 5 == Config.parse_int('5')  # noqa: SIM300, PLR2004
+    assert 1024 == Config.parse_int('1k')  # noqa: SIM300, PLR2004

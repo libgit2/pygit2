@@ -25,7 +25,7 @@
 
 """Tests for merging and information about it."""
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 import pytest
 
 import pygit2

@@ -44,7 +44,7 @@ def __assert(signature, encoding):
 def test_encoding(encoding):
     signature = pygit2.Signature('Foo Ibáñez', 'foo@example.com', encoding=encoding)
     __assert(signature, encoding)
-    assert abs(signature.time - time.time()) < 5
+    assert abs(signature.time - time.time()) < 5  # noqa: PLR2004
     assert str(signature) == 'Foo Ibáñez <foo@example.com>'
 
 
@@ -63,7 +63,7 @@ def test_repr(encoding):
     signature = pygit2.Signature(
         'Foo Ibáñez', 'foo@bar.com', 1322174594, 60, encoding=encoding
     )
-    expected = f"pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, {repr(encoding)})"
+    expected = f"pygit2.Signature('Foo Ibáñez', 'foo@bar.com', 1322174594, 60, {repr(encoding)})"  # noqa: E501
     assert repr(signature) == expected
     assert signature == eval(expected)
 
@@ -99,7 +99,7 @@ def test_incorrect_encoding():
     )
 
     # repr() and str() may display junk, but they must not crash
-    assert "pygit2.Signature('(error)', '(error)', 999, 0, '(error)')" == repr(
+    assert "pygit2.Signature('(error)', '(error)', 999, 0, '(error)')" == repr(  # noqa: SIM300
         signature
     )
-    assert '(error) <(error)>' == str(signature)
+    assert '(error) <(error)>' == str(signature)  # noqa: SIM300

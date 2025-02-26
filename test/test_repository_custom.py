@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 import pytest
 
 import pygit2
@@ -58,4 +58,4 @@ def test_references(repo):
 
 def test_objects(repo):
     a = repo.read('323fae03f4606ea9991df8befbb2fca795e648fa')
-    assert (ObjectType.BLOB, b'foobar\n') == a
+    assert (ObjectType.BLOB, b'foobar\n') == a  # noqa: SIM300

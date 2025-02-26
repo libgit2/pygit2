@@ -25,7 +25,7 @@
 
 """Tests for Submodule objects."""
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 
 import pygit2
 import pytest
@@ -108,22 +108,22 @@ def test_submodule_open_from_repository_subclass(repo):
 
 def test_name(repo):
     s = repo.submodules[SUBM_PATH]
-    assert SUBM_NAME == s.name
+    assert SUBM_NAME == s.name  # noqa: SIM300
 
 
 def test_path(repo):
     s = repo.submodules[SUBM_PATH]
-    assert SUBM_PATH == s.path
+    assert SUBM_PATH == s.path  # noqa: SIM300
 
 
 def test_url(repo):
     s = repo.submodules[SUBM_PATH]
-    assert SUBM_URL == s.url
+    assert SUBM_URL == s.url  # noqa: SIM300
 
 
 def test_missing_url(repo):
     # Remove "url" from .gitmodules
-    with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:
+    with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:  # noqa: PTH123
         f.write('[submodule "TestGitRepository"]\n')
         f.write('\tpath = TestGitRepository\n')
     s = repo.submodules[SUBM_PATH]
@@ -219,7 +219,7 @@ def test_head_id_null(repo):
         '    url = https://github.com/libgit2/pygit2\n'
         '\n'
     )
-    with open(Path(repo.workdir, '.gitmodules'), 'a') as f:
+    with open(Path(repo.workdir, '.gitmodules'), 'a') as f:  # noqa: PTH123
         f.write(gitmodules_newlines)
 
     subm = repo.submodules['uncommitted_submodule']
@@ -239,7 +239,7 @@ def test_add_submodule(repo, depth):
 
     sm_repo = sm.open()
     assert sm_repo_path == sm.path
-    assert SUBM_URL == sm.url
+    assert SUBM_URL == sm.url  # noqa: SIM300
     assert not sm_repo.is_empty
 
     if depth == 0:
@@ -278,7 +278,7 @@ def test_submodule_status(repo):
     sm_repo.checkout('refs/heads/master')
 
     # Touch some file in the submodule's workdir (WD_WD_MODIFIED)
-    with open(Path(repo.workdir, SUBM_PATH, 'master.txt'), 'wt') as f:
+    with open(Path(repo.workdir, SUBM_PATH, 'master.txt'), 'wt') as f:  # noqa: PTH123
         f.write('modifying master.txt')
     assert (
         repo.submodules.status(SUBM_PATH)
@@ -286,7 +286,7 @@ def test_submodule_status(repo):
     )
 
     # Add an untracked file in the submodule's workdir (WD_UNTRACKED)
-    with open(Path(repo.workdir, SUBM_PATH, 'some_untracked_file.txt'), 'wt') as f:
+    with open(Path(repo.workdir, SUBM_PATH, 'some_untracked_file.txt'), 'wt') as f:  # noqa: PTH123
         f.write('hi')
     assert (
         repo.submodules.status(SUBM_PATH)
@@ -303,7 +303,7 @@ def test_submodule_status(repo):
 
 
 def test_submodule_cache(repo):
-    # When the cache is turned on, looking up the same submodule twice must return the same git_submodule object
+    # When the cache is turned on, looking up the same submodule twice must return the same git_submodule object  # noqa: E501
     repo.submodules.cache_all()
     sm1 = repo.submodules[SUBM_NAME]
     sm2 = repo.submodules[SUBM_NAME]
@@ -322,7 +322,7 @@ def test_submodule_reload(repo):
     assert sm.url == 'https://github.com/libgit2/TestGitRepository'
 
     # Doctor the config file outside of libgit2
-    with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:
+    with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:  # noqa: PTH123
         f.write('[submodule "TestGitRepository"]\n')
         f.write('\tpath = TestGitRepository\n')
         f.write('\turl = https://github.com/libgit2/pygit2\n')

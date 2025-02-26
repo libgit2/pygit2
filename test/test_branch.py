@@ -25,7 +25,7 @@
 
 """Tests for branch methods."""
 
-import pygit2
+import pygit2  # noqa: I001
 import pytest
 import os
 from pygit2.enums import BranchType

@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from .errors import check_error
+from .errors import check_error  # noqa: I001
 from .ffi import ffi, C
 from .utils import to_bytes
 

@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 import tarfile
 
 from pygit2 import Index, Oid, Tree, Object
@@ -34,7 +34,7 @@ COMMIT_HASH = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 
 def check_writing(repo, treeish, timestamp=None):
-    archive = tarfile.open('foo.tar', mode='w')
+    archive = tarfile.open('foo.tar', mode='w')  # noqa: SIM115
     repo.write_archive(treeish, archive)
 
     index = Index()

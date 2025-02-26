@@ -25,7 +25,7 @@
 
 """Tests for non unicode byte strings"""
 
-import os
+import os  # noqa: I001
 import shutil
 
 import pygit2
@@ -34,9 +34,9 @@ from . import utils
 
 @utils.requires_network
 @utils.requires_linux
-def test_nonunicode_branchname(testrepo):
+def test_nonunicode_branchname(testrepo):  # noqa: ARG001
     folderpath = 'temp_repo_nonutf'
-    if os.path.exists(folderpath):
+    if os.path.exists(folderpath):  # noqa: PTH110
         shutil.rmtree(folderpath)
     newrepo = pygit2.clone_repository(
         path=folderpath, url='https://github.com/pygit2/test_branch_notutf.git'

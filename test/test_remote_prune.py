@@ -58,7 +58,7 @@ def test_remote_prune(clonerepo):
     pruned = []
 
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def update_tips(self, name, old, new):
+        def update_tips(self, name, old, new):  # noqa: ARG002
             pruned.append(name)
 
     callbacks = MyCallbacks()

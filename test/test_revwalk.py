@@ -25,7 +25,7 @@
 
 """Tests for revision walk."""
 
-from pygit2.enums import SortMode
+from pygit2.enums import SortMode  # noqa: I001
 
 
 # In the order given by git log
@@ -71,13 +71,13 @@ def test_reverse(testrepo):
 def test_hide(testrepo):
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
-    assert len(list(walker)) == 2
+    assert len(list(walker)) == 2  # noqa: PLR2004
 
 
 def test_hide_prefix(testrepo):
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.hide('4ec4389a')
-    assert len(list(walker)) == 2
+    assert len(list(walker)) == 2  # noqa: PLR2004
 
 
 def test_reset(testrepo):
@@ -103,13 +103,13 @@ def test_sort(testrepo):
 def test_simplify_first_parent(testrepo):
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.simplify_first_parent()
-    assert len(list(walker)) == 3
+    assert len(list(walker)) == 3  # noqa: PLR2004
 
 
 def test_default_sorting(testrepo):
     walker = testrepo.walk(log[0], SortMode.NONE)
-    list1 = list([x.id for x in walker])
+    list1 = list([x.id for x in walker])  # noqa: C411
     walker = testrepo.walk(log[0])
-    list2 = list([x.id for x in walker])
+    list2 = list([x.id for x in walker])  # noqa: C411
 
     assert list1 == list2

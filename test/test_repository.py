@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 import shutil
 import tempfile
 
@@ -105,13 +105,13 @@ def test_checkout_callbacks(testrepo):
         def checkout_notify_flags(self) -> CheckoutNotify:
             return CheckoutNotify.CONFLICT | CheckoutNotify.UPDATED
 
-        def checkout_notify(self, why, path, baseline, target, workdir):
+        def checkout_notify(self, why, path, baseline, target, workdir):  # noqa: ARG002
             if why == CheckoutNotify.CONFLICT:
                 self.conflicting_paths.add(path)
             elif why == CheckoutNotify.UPDATED:
                 self.updated_paths.add(path)
 
-        def checkout_progress(self, path: str, completed_steps: int, total_steps: int):
+        def checkout_progress(self, path: str, completed_steps: int, total_steps: int):  # noqa: ARG002
             self.completed_steps = completed_steps
             self.total_steps = total_steps
 
@@ -121,7 +121,7 @@ def test_checkout_callbacks(testrepo):
         testrepo.checkout(ref_i18n, callbacks=callbacks)
     # make sure the callbacks caught that
     assert {'bye.txt'} == callbacks.conflicting_paths
-    assert -1 == callbacks.completed_steps  # shouldn't have done anything
+    assert -1 == callbacks.completed_steps  # shouldn't have done anything  # noqa: SIM300
 
     # checkout i18n with GIT_CHECKOUT_FORCE
     head = testrepo.head
@@ -150,28 +150,28 @@ def test_checkout_aborted_from_callbacks(testrepo):
             super().__init__()
             self.invoked_times = 0
 
-        def checkout_notify(self, why, path, baseline, target, workdir):
+        def checkout_notify(self, why, path, baseline, target, workdir):  # noqa: ARG002
             self.invoked_times += 1
             # skip one file so we're certain that NO files are affected,
             # even if aborting the checkout from the second file
-            if self.invoked_times == 2:
+            if self.invoked_times == 2:  # noqa: PLR2004
                 raise InterruptedError('Stop the checkout!')
 
     head = testrepo.head
     head = testrepo[head.target]
     assert 'new' not in head.tree
-    assert b'bye world\n' == read_bye_txt()
+    assert b'bye world\n' == read_bye_txt()  # noqa: SIM300
     callbacks = MyCheckoutCallbacks()
 
-    # checkout i18n with GIT_CHECKOUT_FORCE - callbacks should prevent checkout from completing
+    # checkout i18n with GIT_CHECKOUT_FORCE - callbacks should prevent checkout from completing  # noqa: E501
     with pytest.raises(InterruptedError):
         testrepo.checkout(
             ref_i18n, strategy=CheckoutStrategy.FORCE, callbacks=callbacks
         )
 
-    assert callbacks.invoked_times == 2
+    assert callbacks.invoked_times == 2  # noqa: PLR2004
     assert 'new' not in head.tree
-    assert b'bye world\n' == read_bye_txt()
+    assert b'bye world\n' == read_bye_txt()  # noqa: SIM300
 
 
 def test_checkout_branch(testrepo):
@@ -228,7 +228,7 @@ def test_checkout_alternative_dir(testrepo):
     extra_dir.mkdir()
     assert len(list(extra_dir.iterdir())) == 0
     testrepo.checkout(ref_i18n, directory=extra_dir)
-    assert not len(list(extra_dir.iterdir())) == 0
+    assert not len(list(extra_dir.iterdir())) == 0  # noqa: SIM201
 
 
 def test_checkout_paths(testrepo):
@@ -286,15 +286,15 @@ def test_ahead_behind(testrepo):
         '5ebeeebb320790caf276b9fc8b24546d63316533',
         '4ec4389a8068641da2d6578db0419484972284c8',
     )
-    assert 1 == ahead
-    assert 2 == behind
+    assert 1 == ahead  # noqa: SIM300
+    assert 2 == behind  # noqa: SIM300, PLR2004
 
     ahead, behind = testrepo.ahead_behind(
         '4ec4389a8068641da2d6578db0419484972284c8',
         '5ebeeebb320790caf276b9fc8b24546d63316533',
     )
-    assert 2 == ahead
-    assert 1 == behind
+    assert 2 == ahead  # noqa: SIM300, PLR2004
+    assert 1 == behind  # noqa: SIM300
 
 
 def test_reset_hard(testrepo):
@@ -369,7 +369,7 @@ def test_stash(testrepo):
     )
 
     # make sure we're starting with no stashes
-    assert [] == testrepo.listall_stashes()
+    assert [] == testrepo.listall_stashes()  # noqa: SIM300
 
     # some changes to working dir
     with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
@@ -379,7 +379,7 @@ def test_stash(testrepo):
     assert 'hello.txt' not in testrepo.status()
 
     repo_stashes = testrepo.listall_stashes()
-    assert 1 == len(repo_stashes)
+    assert 1 == len(repo_stashes)  # noqa: SIM300
     assert repr(repo_stashes[0]) == f'<pygit2.Stash{{{stash_hash}}}>'
     assert repo_stashes[0].commit_id == stash_hash
     assert repo_stashes[0].message == 'On master: ' + stash_message
@@ -389,7 +389,7 @@ def test_stash(testrepo):
     assert repo_stashes == testrepo.listall_stashes()  # still the same stashes
 
     testrepo.stash_drop()
-    assert [] == testrepo.listall_stashes()
+    assert [] == testrepo.listall_stashes()  # noqa: SIM300
 
     with pytest.raises(KeyError):
         testrepo.stash_pop()
@@ -402,7 +402,7 @@ def test_stash_partial(testrepo):
     )
 
     # make sure we're starting with no stashes
-    assert [] == testrepo.listall_stashes()
+    assert [] == testrepo.listall_stashes()  # noqa: SIM300
 
     # some changes to working dir
     with (Path(testrepo.workdir) / 'hello.txt').open('w') as f:
@@ -420,7 +420,7 @@ def test_stash_partial(testrepo):
         )
         stash_commit = testrepo[stash_id].peel(pygit2.Commit)
         stash_diff = testrepo.diff(stash_commit.parents[0], stash_commit)
-        stash_files = set(patch.delta.new_file.path for patch in stash_diff)
+        stash_files = set(patch.delta.new_file.path for patch in stash_diff)  # noqa: C401
         return stash_files == set(paths)
 
     # Stash a modified file
@@ -499,9 +499,9 @@ def test_stash_aborted_from_callbacks(testrepo):
     with (Path(testrepo.workdir) / 'hello.txt').open('r') as f:
         assert f.read() == 'hello world\nhola mundo\nbonjour le monde\n'
 
-    # and since we didn't let stash_pop run to completion, the stash itself should still be here
+    # and since we didn't let stash_pop run to completion, the stash itself should still be here  # noqa: E501
     repo_stashes = testrepo.listall_stashes()
-    assert 1 == len(repo_stashes)
+    assert 1 == len(repo_stashes)  # noqa: SIM300
     assert repo_stashes[0].message == 'On master: custom stash message'
 
 
@@ -521,7 +521,7 @@ def test_stash_apply_checkout_options(testrepo):
 
     # define callbacks that raise an InterruptedError when checkout detects a conflict
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
-        def checkout_notify(self, why, path, baseline, target, workdir):
+        def checkout_notify(self, why, path, baseline, target, workdir):  # noqa: ARG002
             if why == CheckoutNotify.CONFLICT:
                 raise InterruptedError('Applying the stash would create a conflict')
 
@@ -578,7 +578,7 @@ def test_revert(testrepo):
     assert testrepo.state() == RepositoryState.REVERT
     assert (
         testrepo.message
-        == f'Revert "Say hello in French"\n\nThis reverts commit {commit_to_revert.id}.\n'
+        == f'Revert "Say hello in French"\n\nThis reverts commit {commit_to_revert.id}.\n'  # noqa: E501
     )
 
 
@@ -588,8 +588,8 @@ def test_default_signature(testrepo):
     config['user.email'] = 'rjh@example.com'
 
     sig = testrepo.default_signature
-    assert 'Random J Hacker' == sig.name
-    assert 'rjh@example.com' == sig.email
+    assert 'Random J Hacker' == sig.name  # noqa: SIM300
+    assert 'rjh@example.com' == sig.email  # noqa: SIM300
 
 
 def test_new_repo(tmp_path):
@@ -690,7 +690,7 @@ def test_clone_repository_and_remote_callbacks(barerepo, tmp_path):
         return init_repository(path, bare)
 
     # here we override the name
-    def create_remote(repo, name, url):
+    def create_remote(repo, name, url):  # noqa: ARG001
         return repo.remotes.create('custom_remote', url)
 
     repo = clone_repository(
@@ -715,7 +715,7 @@ def test_clone_with_credentials(tmp_path):
 @utils.requires_network
 def test_clone_bad_credentials(tmp_path):
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def credentials(self, url, username, allowed):
+        def credentials(self, url, username, allowed):  # noqa: ARG002
             raise RuntimeError('Unexpected error')
 
     url = 'https://github.com/github/github'
@@ -933,7 +933,7 @@ def test_repository_hashfile(testrepo):
 def test_repository_hashfile_filter(testrepo):
     original_hash = testrepo.index['hello.txt'].id
 
-    with open(Path(testrepo.workdir, 'hello.txt'), 'rb') as f:
+    with open(Path(testrepo.workdir, 'hello.txt'), 'rb') as f:  # noqa: PTH123
         original_text = f.read()
 
     crlf_data = original_text.replace(b'\n', b'\r\n')
@@ -941,12 +941,12 @@ def test_repository_hashfile_filter(testrepo):
     assert crlf_hash != original_hash
 
     # Write hellocrlf.txt as a copy of hello.txt with CRLF line endings
-    with open(Path(testrepo.workdir, 'hellocrlf.txt'), 'wb') as f:
+    with open(Path(testrepo.workdir, 'hellocrlf.txt'), 'wb') as f:  # noqa: PTH123
         f.write(crlf_data)
 
     # Set up a CRLF filter
     testrepo.config['core.autocrlf'] = True
-    with open(Path(testrepo.workdir, '.gitattributes'), 'wt') as f:
+    with open(Path(testrepo.workdir, '.gitattributes'), 'wt') as f:  # noqa: PTH123
         f.write('*.txt text\n*.bin binary\n\n')
 
     # By default, hellocrlf.txt should have the same hash as the original,

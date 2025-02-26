@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from .ffi import ffi, C
+from .ffi import ffi, C  # noqa: I001
 from .utils import GenericIterator
 from ._pygit2 import Signature, Oid
 

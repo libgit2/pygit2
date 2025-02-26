@@ -24,11 +24,11 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from .ffi import ffi, C
+from .ffi import ffi, C  # noqa: I001
 from ._pygit2 import GitError
 
 
-value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
+value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])  # noqa: C405
 
 
 def check_error(err, io=False):
@@ -36,7 +36,7 @@ def check_error(err, io=False):
         return
 
     # These are special error codes, they should never reach here
-    test = err != C.GIT_EUSER and err != C.GIT_PASSTHROUGH
+    test = err != C.GIT_EUSER and err != C.GIT_PASSTHROUGH  # noqa: PLR1714
     assert test, f'Unexpected error code {err}'
 
     # Error message

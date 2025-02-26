@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import binascii
+import binascii  # noqa: I001
 import os
 import pathlib
 import sys
@@ -53,7 +53,7 @@ def test_is_bare(barerepo):
 
 def test_head(barerepo):
     head = barerepo.head
-    assert HEAD_SHA == head.target
+    assert HEAD_SHA == head.target  # noqa: SIM300
     assert type(head) is pygit2.Reference
     assert not barerepo.head_is_unborn
     assert not barerepo.head_is_detached
@@ -77,14 +77,14 @@ def test_read(barerepo):
     ab = barerepo.read(BLOB_OID)
     a = barerepo.read(BLOB_HEX)
     assert ab == a
-    assert (ObjectType.BLOB, b'a contents\n') == a
+    assert (ObjectType.BLOB, b'a contents\n') == a  # noqa: SIM300
 
     a2 = barerepo.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
-    assert (ObjectType.BLOB, b'a contents 2\n') == a2
+    assert (ObjectType.BLOB, b'a contents 2\n') == a2  # noqa: SIM300
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = barerepo.read(a_hex_prefix)
-    assert (ObjectType.BLOB, b'a contents\n') == a3
+    assert (ObjectType.BLOB, b'a contents\n') == a3  # noqa: SIM300
 
 
 def test_write(barerepo):
@@ -99,7 +99,7 @@ def test_write(barerepo):
 
 def test_contains(barerepo):
     with pytest.raises(TypeError):
-        123 in barerepo
+        123 in barerepo  # noqa: B015, PLR2004
     assert BLOB_OID in barerepo
     assert BLOB_HEX in barerepo
     assert BLOB_HEX[:10] in barerepo
@@ -109,7 +109,7 @@ def test_contains(barerepo):
 
 def test_iterable(barerepo):
     oid = pygit2.Oid(hex=BLOB_HEX)
-    assert oid in [obj for obj in barerepo]
+    assert oid in [obj for obj in barerepo]  # noqa: C416
 
 
 def test_lookup_blob(barerepo):
@@ -117,23 +117,23 @@ def test_lookup_blob(barerepo):
         barerepo[123]
     assert barerepo[BLOB_OID].id == BLOB_HEX
     a = barerepo[BLOB_HEX]
-    assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == a.id
-    assert ObjectType.BLOB == a.type
+    assert b'a contents\n' == a.read_raw()  # noqa: SIM300
+    assert BLOB_HEX == a.id  # noqa: SIM300
+    assert ObjectType.BLOB == a.type  # noqa: SIM300
 
 
 def test_lookup_blob_prefix(barerepo):
     a = barerepo[BLOB_HEX[:5]]
-    assert b'a contents\n' == a.read_raw()
-    assert BLOB_HEX == a.id
-    assert ObjectType.BLOB == a.type
+    assert b'a contents\n' == a.read_raw()  # noqa: SIM300
+    assert BLOB_HEX == a.id  # noqa: SIM300
+    assert ObjectType.BLOB == a.type  # noqa: SIM300
 
 
 def test_lookup_commit(barerepo):
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit = barerepo[commit_sha]
     assert commit_sha == commit.id
-    assert ObjectType.COMMIT == commit.type
+    assert ObjectType.COMMIT == commit.type  # noqa: SIM300
     assert commit.message == (
         'Second test data commit.\n\nThis commit has some additional text.\n'
     )
@@ -145,9 +145,9 @@ def test_lookup_commit_prefix(barerepo):
     too_short_prefix = commit_sha[:3]
     commit = barerepo[commit_sha_prefix]
     assert commit_sha == commit.id
-    assert ObjectType.COMMIT == commit.type
+    assert ObjectType.COMMIT == commit.type  # noqa: SIM300
     assert (
-        'Second test data commit.\n\n'
+        'Second test data commit.\n\n'  # noqa: SIM300
         'This commit has some additional text.\n' == commit.message
     )
     with pytest.raises(ValueError):
