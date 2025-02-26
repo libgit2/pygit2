@@ -26,7 +26,6 @@ repair-wheel-command = "DYLD_LIBRARY_PATH=/Users/runner/work/pygit2/pygit2/ci/li
 
 [tool.ruff]
 target-version = "py310" # oldest supported Python version
-fix = true
 extend-exclude = [ ".cache", ".coverage", "build", "site-packages", "venv*"]
 lint.select = [
     "E",
