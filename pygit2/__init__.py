@@ -23,14 +23,15 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+# ruff: noqa: F401 F403 F405
+
 # Standard Library
-import functools  # noqa: I001
-from os import PathLike
+import functools
+import os
 import typing
 
 # Low level API
-from ._pygit2 import *  # noqa: F403
-from ._pygit2 import _cache_enums
+from ._pygit2 import *
 
 # High level API
 from . import enums
@@ -65,8 +66,9 @@ LIBGIT2_VER = (LIBGIT2_VER_MAJOR, LIBGIT2_VER_MINOR, LIBGIT2_VER_REVISION)  # no
 _cache_enums()
 
 
+
 def init_repository(  # noqa: PLR0913
-    path: typing.Union[str, bytes, PathLike, None],
+    path: typing.Union[str, bytes, os.PathLike, None],
     bare: bool = False,
     flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
     mode: typing.Union[
