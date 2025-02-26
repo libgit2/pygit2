@@ -27,7 +27,9 @@ repair-wheel-command = "DYLD_LIBRARY_PATH=/Users/runner/work/pygit2/pygit2/ci/li
 [tool.ruff]
 target-version = "py310" # oldest supported Python version
 extend-exclude = [ ".cache", ".coverage", "build", "site-packages", "venv*"]
-lint.select = [
+
+[tool.ruff.lint]
+select = [
     "E",
     "W",
     "F",
@@ -40,20 +42,7 @@ lint.select = [
     "PL",
     "TID",
 ]
-lint.ignore = [
-    "W291",    # Trailing whitespace
-    "E501",    # Line too long
-    "W293",    # Blank line contains whitespace
-    "PLR0912", # Too many branches
-    "PLR2004", # Magic values
-    "PLR0915", # Too many statements
-    "PLW0603", # Global statement
-    "PLR0913", # Too many arguments
-    "B010",    # setattr
-    "F401",    # unused imports
-    "ARG002",  # unused arguments
-    "SIM105",  # try-except-pass
-]
+ignore = [] # To be added
 
 [tool.ruff.format]
 quote-style = "single"
