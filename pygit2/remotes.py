@@ -28,7 +28,12 @@ from typing import TYPE_CHECKING
 
 # Import from pygit2
 from ._pygit2 import Oid
-from .callbacks import git_fetch_options, git_push_options, git_remote_callbacks
+from .callbacks import (
+    git_fetch_options,
+    git_push_options,
+    git_proxy_options,
+    git_remote_callbacks,
+)
 from .enums import FetchPrune
 from .errors import check_error
 from .ffi import ffi, C
@@ -107,14 +112,16 @@ class Remote:
             * `True` to enable automatic proxy detection
             * an url to a proxy (`http://proxy.example.org:3128/`)
         """
-        proxy_opts = ffi.new('git_proxy_options *')
-        C.git_proxy_options_init(proxy_opts, C.GIT_PROXY_OPTIONS_VERSION)
-        self.__set_proxy(proxy_opts, proxy)
-        with git_remote_callbacks(callbacks) as payload:
-            err = C.git_remote_connect(
-                self._remote, direction, payload.remote_callbacks, proxy_opts, ffi.NULL
-            )
-            payload.check_error(err)
+        with git_proxy_options(self, proxy=proxy) as proxy_opts:
+            with git_remote_callbacks(callbacks) as payload:
+                err = C.git_remote_connect(
+                    self._remote,
+                    direction,
+                    payload.remote_callbacks,
+                    proxy_opts,
+                    ffi.NULL,
+                )
+                payload.check_error(err)
 
     def fetch(
         self,
@@ -154,10 +161,12 @@ class Remote:
             opts = payload.fetch_options
             opts.prune = prune
             opts.depth = depth
-            self.__set_proxy(opts.proxy_opts, proxy)
-            with StrArray(refspecs) as arr:
-                err = C.git_remote_fetch(self._remote, arr.ptr, opts, to_bytes(message))
-                payload.check_error(err)
+            with git_proxy_options(self, payload.fetch_options.proxy_opts, proxy):
+                with StrArray(refspecs) as arr:
+                    err = C.git_remote_fetch(
+                        self._remote, arr.ptr, opts, to_bytes(message)
+                    )
+                    payload.check_error(err)
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
@@ -276,24 +285,11 @@ class Remote:
         with git_push_options(callbacks) as payload:
             opts = payload.push_options
             opts.pb_parallelism = threads
-            self.__set_proxy(opts.proxy_opts, proxy)
-            with StrArray(specs) as refspecs, StrArray(push_options) as pushopts:
-                pushopts.assign_to(opts.remote_push_options)
-                err = C.git_remote_push(self._remote, refspecs.ptr, opts)
-                payload.check_error(err)
-
-    def __set_proxy(self, proxy_opts, proxy):
-        if proxy is None:
-            proxy_opts.type = C.GIT_PROXY_NONE
-        elif proxy is True:
-            proxy_opts.type = C.GIT_PROXY_AUTO
-        elif type(proxy) is str:
-            proxy_opts.type = C.GIT_PROXY_SPECIFIED
-            # Keep url in memory, otherwise memory is freed and bad things happen
-            self.__url = ffi.new('char[]', to_bytes(proxy))
-            proxy_opts.url = self.__url
-        else:
-            raise TypeError('Proxy must be None, True, or a string')
+            with git_proxy_options(self, payload.push_options.proxy_opts, proxy):
+                with StrArray(specs) as refspecs, StrArray(push_options) as pushopts:
+                    pushopts.assign_to(opts.remote_push_options)
+                    err = C.git_remote_push(self._remote, refspecs.ptr, opts)
+                    payload.check_error(err)
 
 
 class RemoteCollection:

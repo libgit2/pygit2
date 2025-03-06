@@ -29,6 +29,7 @@ Functions
      >>> repo_path = '/path/to/create/repository'
      >>> repo = clone_repository(repo_url, repo_path) # Clones a non-bare repository
      >>> repo = clone_repository(repo_url, repo_path, bare=True) # Clones a bare repository
+     >>> repo = clone_repository(repo_url, repo_path, proxy=True) # Enable automatic proxy detection
 
 
 .. autofunction:: pygit2.discover_repository

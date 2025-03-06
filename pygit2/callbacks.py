@@ -371,6 +371,29 @@ def git_fetch_options(payload, opts=None):
 
 
 @contextmanager
+def git_proxy_options(
+    payload: object,
+    opts: object | None = None,
+    proxy: None | bool | str = None,
+):
+    if opts is None:
+        opts = ffi.new('git_proxy_options *')
+        C.git_proxy_options_init(opts, C.GIT_PROXY_OPTIONS_VERSION)
+    if proxy is None:
+        opts.type = C.GIT_PROXY_NONE
+    elif proxy is True:
+        opts.type = C.GIT_PROXY_AUTO
+    elif type(proxy) is str:
+        opts.type = C.GIT_PROXY_SPECIFIED
+        # Keep url in memory, otherwise memory is freed and bad things happen
+        payload.__proxy_url = ffi.new('char[]', to_bytes(proxy))
+        opts.url = payload.__proxy_url
+    else:
+        raise TypeError('Proxy must be None, True, or a string')
+    yield opts
+
+
+@contextmanager
 def git_push_options(payload, opts=None):
     if payload is None:
         payload = RemoteCallbacks()

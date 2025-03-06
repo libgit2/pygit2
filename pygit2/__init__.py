@@ -40,7 +40,12 @@ from ._build import __version__
 from .blame import Blame, BlameHunk
 from .blob import BlobIO
 from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCallbacks
-from .callbacks import git_clone_options, git_fetch_options, get_credentials
+from .callbacks import (
+    git_clone_options,
+    git_fetch_options,
+    git_proxy_options,
+    get_credentials,
+)
 from .config import Config
 from .credentials import *
 from .errors import check_error, Passthrough
@@ -146,14 +151,15 @@ def init_repository(
 
 
 def clone_repository(
-    url,
-    path,
-    bare=False,
-    repository=None,
-    remote=None,
-    checkout_branch=None,
-    callbacks=None,
-    depth=0,
+    url: str,
+    path: str,
+    bare: bool = False,
+    repository: typing.Callable | None = None,
+    remote: typing.Callable | None = None,
+    checkout_branch: str | None = None,
+    callbacks: RemoteCallbacks | None = None,
+    depth: int = 0,
+    proxy: None | bool | str = None,
 ):
     """
     Clones a new Git repository from *url* in the given *path*.
@@ -194,6 +200,12 @@ def clone_repository(
         If greater than 0, creates a shallow clone with a history truncated to
         the specified number of commits.
         The default is 0 (full commit history).
+    proxy : None or True or str
+        Proxy configuration. Can be one of:
+
+        * `None` (the default) to disable proxy usage
+        * `True` to enable automatic proxy detection
+        * an url to a proxy (`http://proxy.example.org:3128/`)
     """
 
     if callbacks is None:
@@ -214,9 +226,10 @@ def clone_repository(
             opts.checkout_branch = checkout_branch_ref
 
         with git_fetch_options(payload, opts=opts.fetch_opts):
-            crepo = ffi.new('git_repository **')
-            err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
-            payload.check_error(err)
+            with git_proxy_options(payload, opts.fetch_opts.proxy_opts, proxy):
+                crepo = ffi.new('git_repository **')
+                err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
+                payload.check_error(err)
 
     # Ok
     return Repository._from_c(crepo[0], owned=True)

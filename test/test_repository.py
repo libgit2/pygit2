@@ -736,6 +736,18 @@ def test_clone_with_checkout_branch(barerepo, tmp_path):
     assert repo.lookup_reference('HEAD').target == 'refs/heads/test'
 
 
+@utils.requires_proxy
+@utils.requires_network
+def test_clone_with_proxy(tmp_path):
+    url = 'https://github.com/libgit2/TestGitRepository'
+    repo = clone_repository(
+        url,
+        tmp_path / 'testrepo-orig.git',
+        proxy=True,
+    )
+    assert not repo.is_empty
+
+
 # FIXME The tests below are commented because they are broken:
 #
 # - test_clone_push_url: Passes, but does nothing useful.
