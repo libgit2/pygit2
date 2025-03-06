@@ -32,6 +32,7 @@ import typing
 
 # Low level API
 from ._pygit2 import *
+from ._pygit2 import _cache_enums
 
 # High level API
 from . import enums
