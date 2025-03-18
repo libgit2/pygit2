@@ -106,6 +106,10 @@ def init_repository(
     The *workdir_path*, *description*, *template_path*, *initial_head* and
     *origin_url* are all strings.
 
+    If a repository already exists at *path*, it may be opened successfully but
+    you must not rely on that behavior and should use the Repository
+    constructor directly instead.
+
     See libgit2's documentation on git_repository_init_ext for further details.
     """
     # Pre-process input parameters
