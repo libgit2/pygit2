@@ -5,11 +5,17 @@
 - Add `RemoteCallbacks.push_transfer_progress(...)` callback
   [#1345](https://github.com/libgit2/pygit2/pull/1345)
 
-- New `bool(oid)` and some doc/typing fixes
+- New `bool(oid)`
   [#1347](https://github.com/libgit2/pygit2/pull/1347)
 
 - Now `Repository.merge(...)` accepts a commit or reference object
   [#1348](https://github.com/libgit2/pygit2/pull/1348)
+
+- New `threads` optional argument in `Remote.push(...)`
+  [#1352](https://github.com/libgit2/pygit2/pull/1352)
+
+- New `proxy` optional argument in `clone_repository(...)`
+  [#1354](https://github.com/libgit2/pygit2/pull/1354)
 
 - Fix when a reference name has non UTF-8 chars
   [#1329](https://github.com/libgit2/pygit2/pull/1329)
@@ -20,8 +26,10 @@
 - Add codespell workflow, fix a number of typos
   [#1344](https://github.com/libgit2/pygit2/pull/1344)
 
-- More typing
+- Documentation and typing
   [#1343](https://github.com/libgit2/pygit2/pull/1343)
+  [#1347](https://github.com/libgit2/pygit2/pull/1347)
+  [#1356](https://github.com/libgit2/pygit2/pull/1356)
 
 - CI: Use ARM runner for tests and wheels
   [#1346](https://github.com/libgit2/pygit2/pull/1346)
@@ -30,6 +38,7 @@ Deprecations:
 
 - Passing str to `Repository.merge(...)` is deprecated,
   instead pass an oid object (or a commit, or a reference)
+  [#1349](https://github.com/libgit2/pygit2/pull/1349)
 
 
 # 1.17.0 (2025-01-08)
