@@ -43,7 +43,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build & test
-      uses: uraimo/run-on-arch-action@v2
+      uses: uraimo/run-on-arch-action@v3
       with:
         arch: s390x
         distro: ubuntu22.04
