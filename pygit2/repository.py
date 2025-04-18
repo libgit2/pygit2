@@ -541,7 +541,9 @@ class BaseRepository(_Repository):
 
         # Case 4: Diff blob to blob
         if isinstance(a, Blob) and isinstance(b, Blob):
-            return a.diff(b)
+            opt_values.insert(1, 'file')
+            opt_values.insert(1, 'file')
+            return a.diff(b, *opt_values)
 
         raise ValueError('Only blobs and treeish can be diffed')
 

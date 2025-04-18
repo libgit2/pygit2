@@ -107,6 +107,68 @@ STATS_EXPECTED = """ a   | 2 +-
  delete mode 100644 c/d
 """
 
+TEXT_BLOB1 = """Common header of the file
+Blob 1 line 1
+Common middle line 1
+Common middle line 2
+Common middle line 3
+Blob 1 line 2
+Common footer of the file
+"""
+
+TEXT_BLOB2 = """Common header of the file
+Blob 2 line 1
+Common middle line 1
+Common middle line 2
+Common middle line 3
+Blob 2 line 2
+Common footer of the file
+"""
+
+PATCH_BLOBS_DEFAULT = """diff --git a/file b/file
+index 0b5ac93..ddfdbcc 100644
+--- a/file
++++ b/file
+@@ -1,7 +1,7 @@
+ Common header of the file
+-Blob 1 line 1
++Blob 2 line 1
+ Common middle line 1
+ Common middle line 2
+ Common middle line 3
+-Blob 1 line 2
++Blob 2 line 2
+ Common footer of the file
+"""
+
+PATCH_BLOBS_NO_LEEWAY = """diff --git a/file b/file
+index 0b5ac93..ddfdbcc 100644
+--- a/file
++++ b/file
+@@ -2 +2 @@ Common header of the file
+-Blob 1 line 1
++Blob 2 line 1
+@@ -6 +6 @@ Common middle line 3
+-Blob 1 line 2
++Blob 2 line 2
+"""
+
+PATCH_BLOBS_ONE_CONTEXT_LINE = """diff --git a/file b/file
+index 0b5ac93..ddfdbcc 100644
+--- a/file
++++ b/file
+@@ -1,3 +1,3 @@
+ Common header of the file
+-Blob 1 line 1
++Blob 2 line 1
+ Common middle line 1
+@@ -5,3 +5,3 @@ Common middle line 2
+ Common middle line 3
+-Blob 1 line 2
++Blob 2 line 2
+ Common footer of the file
+"""
+
 
 def test_diff_empty_index(dirtyrepo):
     repo = dirtyrepo
@@ -382,3 +444,17 @@ def test_parse_diff_bad():
     )
     with pytest.raises(pygit2.GitError):
         pygit2.Diff.parse_diff(diff)
+
+
+def test_diff_blobs(emptyrepo):
+    repo = emptyrepo
+    blob1 = repo.create_blob(TEXT_BLOB1.encode())
+    blob2 = repo.create_blob(TEXT_BLOB2.encode())
+    diff_default = repo.diff(blob1, blob2)
+    assert diff_default.text == PATCH_BLOBS_DEFAULT
+    diff_no_leeway = repo.diff(blob1, blob2, context_lines=0)
+    assert diff_no_leeway.text == PATCH_BLOBS_NO_LEEWAY
+    diff_one_context_line = repo.diff(blob1, blob2, context_lines=1)
+    assert diff_one_context_line.text == PATCH_BLOBS_ONE_CONTEXT_LINE
+    diff_all_together = repo.diff(blob1, blob2, context_lines=1, interhunk_lines=1)
+    assert diff_all_together.text == PATCH_BLOBS_DEFAULT

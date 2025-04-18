@@ -60,7 +60,15 @@ PyDoc_STRVAR(Blob_diff__doc__,
   "    Treat old blob as if it had this filename.\n"
   "\n"
   "new_as_path : str\n"
-  "    Treat new blob as if it had this filename.\n");
+  "    Treat new blob as if it had this filename.\n"
+  "\n"
+  "context_lines: int\n"
+  "    Number of unchanged lines that define the boundary of a hunk\n"
+  "    (and to display before and after).\n"
+  "\n"
+  "interhunk_lines: int\n"
+  "    Maximum number of unchanged lines between hunk boundaries\n"
+  "    before the hunks will be merged into one.\n");
 
 PyObject *
 Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
@@ -70,11 +78,12 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
     char *old_as_path = NULL, *new_as_path = NULL;
     Blob *other = NULL;
     int err;
-    char *keywords[] = {"blob", "flag", "old_as_path", "new_as_path", NULL};
+    char *keywords[] = {"blob", "flag", "old_as_path", "new_as_path", "context_lines", "interhunk_lines", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!Iss", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!IssHH", keywords,
                                      &BlobType, &other, &opts.flags,
-                                     &old_as_path, &new_as_path))
+                                     &old_as_path, &new_as_path,
+                                     &opts.context_lines, &opts.interhunk_lines))
         return NULL;
 
     if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
