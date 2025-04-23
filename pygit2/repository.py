@@ -521,29 +521,30 @@ class BaseRepository(_Repository):
         a = self.__whatever_to_tree_or_blob(a)
         b = self.__whatever_to_tree_or_blob(b)
 
-        opt_keys = ['flags', 'context_lines', 'interhunk_lines']
-        opt_values = [int(flags), context_lines, interhunk_lines]
+        options = {
+            'flags': int(flags),
+            'context_lines': context_lines,
+            'interhunk_lines': interhunk_lines,
+        }
 
         # Case 1: Diff tree to tree
         if isinstance(a, Tree) and isinstance(b, Tree):
-            return a.diff_to_tree(b, **dict(zip(opt_keys, opt_values)))
+            return a.diff_to_tree(b, **options)
 
         # Case 2: Index to workdir
         elif a is None and b is None:
-            return self.index.diff_to_workdir(*opt_values)
+            return self.index.diff_to_workdir(**options)
 
         # Case 3: Diff tree to index or workdir
         elif isinstance(a, Tree) and b is None:
             if cached:
-                return a.diff_to_index(self.index, *opt_values)
+                return a.diff_to_index(self.index, **options)
             else:
-                return a.diff_to_workdir(*opt_values)
+                return a.diff_to_workdir(**options)
 
         # Case 4: Diff blob to blob
         if isinstance(a, Blob) and isinstance(b, Blob):
-            opt_values.insert(1, 'file')
-            opt_values.insert(1, 'file')
-            return a.diff(b, *opt_values)
+            return a.diff(b, **options)
 
         raise ValueError('Only blobs and treeish can be diffed')
 

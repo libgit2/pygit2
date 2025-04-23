@@ -41,7 +41,7 @@ extern PyObject *GitError;
 extern PyTypeObject BlobType;
 
 PyDoc_STRVAR(Blob_diff__doc__,
-  "diff([blob: Blob, flag: int = GIT_DIFF_NORMAL, old_as_path: str, new_as_path: str]) -> Patch\n"
+  "diff([blob: Blob, flags: int = GIT_DIFF_NORMAL, old_as_path: str, new_as_path: str]) -> Patch\n"
   "\n"
   "Directly generate a :py:class:`pygit2.Patch` from the difference\n"
   "between two blobs.\n"
@@ -53,8 +53,8 @@ PyDoc_STRVAR(Blob_diff__doc__,
   "blob : Blob\n"
   "    The :py:class:`~pygit2.Blob` to diff.\n"
   "\n"
-  "flag\n"
-  "    A GIT_DIFF_* constant.\n"
+  "flags\n"
+  "    A combination of GIT_DIFF_* constant.\n"
   "\n"
   "old_as_path : str\n"
   "    Treat old blob as if it had this filename.\n"
@@ -78,7 +78,7 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
     char *old_as_path = NULL, *new_as_path = NULL;
     Blob *other = NULL;
     int err;
-    char *keywords[] = {"blob", "flag", "old_as_path", "new_as_path", "context_lines", "interhunk_lines", NULL};
+    char *keywords[] = {"blob", "flags", "old_as_path", "new_as_path", "context_lines", "interhunk_lines", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!IssHH", keywords,
                                      &BlobType, &other, &opts.flags,
@@ -100,7 +100,7 @@ Blob_diff(Blob *self, PyObject *args, PyObject *kwds)
 
 
 PyDoc_STRVAR(Blob_diff_to_buffer__doc__,
-  "diff_to_buffer(buffer: bytes = None, flag: int = GIT_DIFF_NORMAL[, old_as_path: str, buffer_as_path: str]) -> Patch\n"
+  "diff_to_buffer(buffer: bytes = None, flags: int = GIT_DIFF_NORMAL[, old_as_path: str, buffer_as_path: str]) -> Patch\n"
   "\n"
   "Directly generate a :py:class:`~pygit2.Patch` from the difference\n"
   "between a blob and a buffer.\n"
@@ -112,8 +112,8 @@ PyDoc_STRVAR(Blob_diff_to_buffer__doc__,
   "buffer : bytes\n"
   "    Raw data for new side of diff.\n"
   "\n"
-  "flag\n"
-  "    A GIT_DIFF_* constant.\n"
+  "flags\n"
+  "    A combination of GIT_DIFF_* constants.\n"
   "\n"
   "old_as_path : str\n"
   "    Treat old blob as if it had this filename.\n"
@@ -130,8 +130,7 @@ Blob_diff_to_buffer(Blob *self, PyObject *args, PyObject *kwds)
     const char *buffer = NULL;
     Py_ssize_t buffer_len;
     int err;
-    char *keywords[] = {"buffer", "flag", "old_as_path", "buffer_as_path",
-                        NULL};
+    char *keywords[] = {"buffer", "flags", "old_as_path", "buffer_as_path", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|z#Iss", keywords,
                                      &buffer, &buffer_len, &opts.flags,

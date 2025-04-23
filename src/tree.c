@@ -222,14 +222,16 @@ PyDoc_STRVAR(Tree_diff_to_workdir__doc__,
   "    the hunks will be merged into a one.\n");
 
 PyObject *
-Tree_diff_to_workdir(Tree *self, PyObject *args)
+Tree_diff_to_workdir(Tree *self, PyObject *args, PyObject *kwds)
 {
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     git_diff *diff;
     int err;
 
-    if (!PyArg_ParseTuple(args, "|IHH", &opts.flags, &opts.context_lines,
-                                        &opts.interhunk_lines))
+    char *keywords[] = {"flags", "context_lines", "interhunk_lines", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|IHH", keywords, &opts.flags,
+                                     &opts.context_lines, &opts.interhunk_lines))
         return NULL;
 
     if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
@@ -354,8 +356,7 @@ Tree_diff_to_tree(Tree *self, PyObject *args, PyObject *kwds)
     git_diff *diff;
     git_tree *from, *to = NULL, *tmp;
     int err, swap = 0;
-    char *keywords[] = {"obj", "flags", "context_lines", "interhunk_lines",
-                        "swap", NULL};
+    char *keywords[] = {"obj", "flags", "context_lines", "interhunk_lines", "swap", NULL};
 
     Tree *other = NULL;
 
@@ -406,7 +407,7 @@ PyMappingMethods Tree_as_mapping = {
 
 PyMethodDef Tree_methods[] = {
     METHOD(Tree, diff_to_tree, METH_VARARGS | METH_KEYWORDS),
-    METHOD(Tree, diff_to_workdir, METH_VARARGS),
+    METHOD(Tree, diff_to_workdir, METH_VARARGS | METH_KEYWORDS),
     METHOD(Tree, diff_to_index, METH_VARARGS | METH_KEYWORDS),
     {NULL}
 };

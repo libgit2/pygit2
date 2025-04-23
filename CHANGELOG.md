@@ -1,4 +1,4 @@
-# 1.17.1 (UNRELEASED)
+# 1.18.0 (UNRELEASED)
 
 - Upgrade Linux Glibc wheels to `manylinux_2_28`
 
@@ -17,6 +17,12 @@
 - New `proxy` optional argument in `clone_repository(...)`
   [#1354](https://github.com/libgit2/pygit2/pull/1354)
 
+- New optional arguments `context_lines` and `interhunk_lines` in `Blob.diff(...)` ; and
+  now `Repository.diff(...)` honors these two arguments when the objects diffed are blobs.
+  [#1360](https://github.com/libgit2/pygit2/pull/1360)
+
+- Now `Tree.diff_to_workdir(...)` accepts keyword arguments, not just positional.
+
 - Fix when a reference name has non UTF-8 chars
   [#1329](https://github.com/libgit2/pygit2/pull/1329)
 
@@ -34,11 +40,19 @@
 - CI: Use ARM runner for tests and wheels
   [#1346](https://github.com/libgit2/pygit2/pull/1346)
 
+- Build and CI updates
+  [#1363](https://github.com/libgit2/pygit2/pull/1363)
+
 Deprecations:
 
 - Passing str to `Repository.merge(...)` is deprecated,
   instead pass an oid object (or a commit, or a reference)
   [#1349](https://github.com/libgit2/pygit2/pull/1349)
+
+Breaking changes:
+
+- Keyword argument `flag` has been renamed to `flags` in `Blob.diff(...)` and
+  `Blob.diff_to_buffer(...)`
 
 
 # 1.17.0 (2025-01-08)
