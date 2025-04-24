@@ -1,4 +1,4 @@
-# 1.18.0 (UNRELEASED)
+# 1.18.0 (2025-04-24)
 
 - Upgrade Linux Glibc wheels to `manylinux_2_28`
 
@@ -42,6 +42,7 @@
 
 - Build and CI updates
   [#1363](https://github.com/libgit2/pygit2/pull/1363)
+  [#1365](https://github.com/libgit2/pygit2/pull/1365)
 
 Deprecations:
 

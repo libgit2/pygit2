@@ -43,14 +43,16 @@ Authors:
     Chad Dombrova
     Lukas Fleischer
     Mathias Leppich
+    Mathieu Parent
+    Michał Kępień
     Nicolas Dandrimont
     Raphael Medaer (Escaux)
+    Yaroslav Halchenko
     Anatoly Techtonik
     Andrew Olsen
     Dan Sully
     David Versmisse
     Grégory Herrero
-    Michał Kępień
     Mikhail Yushkovskiy
     Robin Stocker
     Rohit Sanjay
@@ -89,6 +91,7 @@ Authors:
     Andrey Devyatkin
     Arno van Lumig
     Ben Davis
+    CJ Steiner
     Colin Watson
     Dan Yeaw
     Dustin Raimondi
@@ -114,7 +117,6 @@ Authors:
     Kyle Gottfried
     Marcel Waldvogel
     Masud Rahman
-    Mathieu Parent
     Michael Sondergaard
     Natanael Arndt
     Ondřej Nový
@@ -127,6 +129,7 @@ Authors:
     nikitalita
     Adam Gausmann
     Adam Spiers
+    Adrien Nader
     Albin Söderström
     Alexandru Fikl
     Andrew Chin
@@ -160,6 +163,7 @@ Authors:
     David Six
     Dennis Schwertel
     Devaev Maxim
+    Edmundo Carmona Antoranz
     Eric Davis
     Erik Meusel
     Erik van Zijst
@@ -180,6 +184,7 @@ Authors:
     Josh Bleecher Snyder
     Julia Evans
     Justin Clift
+    Karl Malmros
     Kevin Valk
     Konstantinos Smanis
     Kyriakos Oikonomakos
@@ -224,6 +229,7 @@ Authors:
     Timo Röhling
     Victor Florea
     Vladimir Rutsky
+    William Schueller
     Wim Jeantine-Glenn
     Yu Jianjian
     buhl
