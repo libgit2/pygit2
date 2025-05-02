@@ -155,12 +155,12 @@ def init_repository(
 
 
 def clone_repository(
-    url: str,
-    path: str,
+    url: str | bytes | os.PathLike,
+    path: str | bytes | os.PathLike,
     bare: bool = False,
     repository: typing.Callable | None = None,
     remote: typing.Callable | None = None,
-    checkout_branch: str | None = None,
+    checkout_branch: str | bytes | None = None,
     callbacks: RemoteCallbacks | None = None,
     depth: int = 0,
     proxy: None | bool | str = None,
@@ -172,9 +172,9 @@ def clone_repository(
 
     Parameters:
 
-    url : str
+    url : str or bytes or pathlike object
         URL of the repository to clone.
-    path : str
+    path : str or bytes or pathlike object
         Local path to clone into.
     bare : bool
         Whether the local repository should be bare.
@@ -190,7 +190,7 @@ def clone_repository(
         The repository callback has `(path, bare) -> Repository` as a
         signature. The Repository it returns will be used instead of creating a
         new one.
-    checkout_branch : str
+    checkout_branch : str or bytes
         Branch to checkout after the clone. The default is to use the remote's
         default branch.
     callbacks : RemoteCallbacks
