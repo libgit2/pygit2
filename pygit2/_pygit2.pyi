@@ -36,10 +36,8 @@ LIBGIT2_VER_REVISION: int
 class Object:
     _pointer: bytes
     filemode: FileMode
-    hex: str
     id: Oid
     name: str | None
-    oid: Oid
     raw_name: bytes | None
     short_id: str
     type: 'Literal[GIT_OBJ_COMMIT] | Literal[GIT_OBJ_TREE] | Literal[GIT_OBJ_TAG] | Literal[GIT_OBJ_BLOB]'
