@@ -20,10 +20,10 @@ from .enums import (
     SortMode,
 )
 
-GIT_OBJ_BLOB: Literal[3]
-GIT_OBJ_COMMIT: Literal[1]
-GIT_OBJ_TAG: Literal[4]
-GIT_OBJ_TREE: Literal[2]
+GIT_OBJ_BLOB = Literal[3]
+GIT_OBJ_COMMIT = Literal[1]
+GIT_OBJ_TAG = Literal[4]
+GIT_OBJ_TREE = Literal[2]
 GIT_OID_HEXSZ: int
 GIT_OID_HEX_ZERO: str
 GIT_OID_MINPREFIXLEN: int
