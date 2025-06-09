@@ -33,7 +33,7 @@ jobs:
     - name: Linux
       run: |
         sudo apt install tinyproxy
-        LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.0 /bin/sh build.sh test
+        LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.1 /bin/sh build.sh test
 
   linux-s390x:
     runs-on: ubuntu-24.04
@@ -51,7 +51,7 @@ jobs:
           apt-get update -q -y
           apt-get install -q -y cmake libssl-dev python3-dev python3-venv wget
         run: |
-          LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.0 /bin/sh build.sh test
+          LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.1 /bin/sh build.sh test
       continue-on-error: true # Tests are expected to fail, see issue #812
 
   macos-arm64:
@@ -68,4 +68,4 @@ jobs:
     - name: macOS
       run: |
         export OPENSSL_PREFIX=`brew --prefix openssl@3`
-        LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.0 /bin/sh build.sh test
+        LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.1 /bin/sh build.sh test

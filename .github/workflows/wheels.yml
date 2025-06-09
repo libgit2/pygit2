@@ -67,7 +67,7 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS: ppc64le
-          CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.0 LIBGIT2=/project/ci
+          CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.1 LIBGIT2=/project/ci
           CIBW_MANYLINUX_PPC64LE_IMAGE: "manylinux_2_28"
 
       - uses: actions/upload-artifact@v4
