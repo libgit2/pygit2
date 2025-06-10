@@ -682,9 +682,15 @@ class BaseRepository(_Repository):
         ancestor: typing.Union[None, IndexEntry],
         ours: typing.Union[None, IndexEntry],
         theirs: typing.Union[None, IndexEntry],
-    ) -> str:
-        """Merge files from index. Return a string with the merge result
-        containing possible conflicts.
+        return_full: bool = False,
+    ) -> typing.Union[str, tuple[bool, str, int, typing.Union[str, None]]]:
+        """Merge files from index.
+
+        Returns: A string with the content of the file containing
+        possible conflicts.
+        If return_full then it returns a tuple containing
+        whether the file is automergeable, the content of the file,
+        the filemode and the path.
 
         ancestor
             The index entry which will be used as a common
@@ -693,6 +699,8 @@ class BaseRepository(_Repository):
             The index entry to take as "ours" or base.
         theirs
             The index entry which will be merged into "ours"
+        return_full
+            Whether to return the full output of the low-level call.
         """
         cmergeresult = ffi.new('git_merge_file_result *')
 
@@ -709,10 +717,16 @@ class BaseRepository(_Repository):
         )
         check_error(err)
 
-        ret = ffi.string(cmergeresult.ptr, cmergeresult.len).decode('utf-8')
+        automergeable = cmergeresult.automergeable != 0
+        content = ffi.string(cmergeresult.ptr, cmergeresult.len).decode('utf-8')
+        filemode = cmergeresult.mode
+        path = cmergeresult.path
         C.git_merge_file_result_free(cmergeresult)
 
-        return ret
+        if not return_full:
+            return content
+
+        return automergeable, content, filemode, path
 
     def merge_commits(
         self,
