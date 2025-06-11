@@ -18,9 +18,10 @@ Iterate over all entries of the index::
 
 Index write::
 
-    >>> index.add('path/to/file')          # git add
-    >>> index.remove('path/to/file')       # git rm
-    >>> index.write()                      # don't forget to save the changes
+    >>> index.add('path/to/file')                    # git add
+    >>> index.remove('path/to/file')                 # git rm
+    >>> index.remove_directory('path/to/directory/') # git rm -r
+    >>> index.write()                                # don't forget to save the changes
 
 Custom entries::
    >>> entry = pygit2.IndexEntry('README.md', blob_id, blob_filemode)
