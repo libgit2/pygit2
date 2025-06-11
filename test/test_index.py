@@ -192,6 +192,13 @@ def test_remove(testrepo):
     assert 'hello.txt' not in index
 
 
+def test_remove_directory(dirtyrepo):
+    index = dirtyrepo.index
+    assert 'subdir/current_file' in index
+    index.remove_directory('subdir')
+    assert 'subdir/current_file' not in index
+
+
 def test_remove_all(testrepo):
     index = testrepo.index
     assert 'hello.txt' in index
@@ -206,6 +213,13 @@ def test_remove_aspath(testrepo):
     assert 'hello.txt' in index
     index.remove(Path('hello.txt'))
     assert 'hello.txt' not in index
+
+
+def test_remove_directory_aspath(dirtyrepo):
+    index = dirtyrepo.index
+    assert 'subdir/current_file' in index
+    index.remove_directory(Path('subdir'))
+    assert 'subdir/current_file' not in index
 
 
 def test_remove_all_aspath(testrepo):

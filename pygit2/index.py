@@ -177,6 +177,11 @@ class Index:
         err = C.git_index_remove(self._index, to_bytes(path), level)
         check_error(err, io=True)
 
+    def remove_directory(self, path, level=0):
+        """Remove a directory from the Index."""
+        err = C.git_index_remove_directory(self._index, to_bytes(path), level)
+        check_error(err, io=True)
+
     def remove_all(self, pathspecs):
         """Remove all index entries matching pathspecs."""
         with StrArray(pathspecs) as arr:
