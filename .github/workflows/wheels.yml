@@ -30,15 +30,10 @@ jobs:
           python-version: '3.13'
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.23.1
+        run: python -m pip install cibuildwheel==3.0.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
-          CIBW_MANYLINUX_PYPY_X86_64_IMAGE: "manylinux_2_28"
-          CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: "manylinux_2_28"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -61,14 +56,13 @@ jobs:
           platforms: linux/ppc64le
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.23.1
+        run: python -m pip install cibuildwheel==3.0.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS: ppc64le
           CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.1 LIBGIT2=/project/ci
-          CIBW_MANYLINUX_PPC64LE_IMAGE: "manylinux_2_28"
 
       - uses: actions/upload-artifact@v4
         with:
