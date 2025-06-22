@@ -56,7 +56,7 @@ from .enums import (
 )
 from .errors import check_error
 from .ffi import ffi, C
-from .index import Index, IndexEntry
+from .index import Index, IndexEntry, MergeFileResult
 from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
@@ -682,9 +682,13 @@ class BaseRepository(_Repository):
         ancestor: typing.Union[None, IndexEntry],
         ours: typing.Union[None, IndexEntry],
         theirs: typing.Union[None, IndexEntry],
-    ) -> str:
-        """Merge files from index. Return a string with the merge result
-        containing possible conflicts.
+        use_deprecated: bool = True,
+    ) -> typing.Union[str, typing.Union[MergeFileResult, None]]:
+        """Merge files from index.
+
+        Returns: A string with the content of the file containing
+        possible conflicts if use_deprecated==True.
+        If use_deprecated==False then it returns an instance of MergeFileResult.
 
         ancestor
             The index entry which will be used as a common
@@ -693,6 +697,10 @@ class BaseRepository(_Repository):
             The index entry to take as "ours" or base.
         theirs
             The index entry which will be merged into "ours"
+        use_deprecated
+            This controls what will be returned. If use_deprecated==True (default),
+            a string with the contents of the file will be returned.
+            An instance of MergeFileResult will be returned otherwise.
         """
         cmergeresult = ffi.new('git_merge_file_result *')
 
@@ -709,10 +717,19 @@ class BaseRepository(_Repository):
         )
         check_error(err)
 
-        ret = ffi.string(cmergeresult.ptr, cmergeresult.len).decode('utf-8')
+        mergeFileResult = MergeFileResult._from_c(cmergeresult)
         C.git_merge_file_result_free(cmergeresult)
 
-        return ret
+        if use_deprecated:
+            warnings.warn(
+                'Getting an str from Repository.merge_file_from_index is deprecated. '
+                'The method will later return an instance of MergeFileResult by default, instead. '
+                'Check parameter use_deprecated.',
+                DeprecationWarning,
+            )
+            return mergeFileResult.contents if mergeFileResult else ''
+
+        return mergeFileResult
 
     def merge_commits(
         self,

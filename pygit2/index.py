@@ -23,8 +23,10 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import typing
 import warnings
 import weakref
+from dataclasses import dataclass
 
 # Import from pygit2
 from ._pygit2 import Oid, Tree, Diff
@@ -347,6 +349,46 @@ class Index:
             return conflicts
 
         return self._conflicts()
+
+
+@dataclass
+class MergeFileResult:
+    automergeable: bool
+    'True if the output was automerged, false if the output contains conflict markers'
+
+    path: typing.Union[str, None]
+    'The path that the resultant merge file should use, or None if a filename conflict would occur'
+
+    mode: FileMode
+    'The mode that the resultant merge file should use'
+
+    contents: str
+    'Contents of the file, which might include conflict markers'
+
+    def __repr__(self):
+        t = type(self)
+        contents = (
+            self.contents if len(self.contents) <= 20 else f'{self.contents[:20]}...'
+        )
+        return (
+            f'<{t.__module__}.{t.__qualname__} "'
+            f'automergeable={self.automergeable} "'
+            f'path={self.path} '
+            f'mode={self.mode} '
+            f'contents={contents}>'
+        )
+
+    @classmethod
+    def _from_c(cls, centry):
+        if centry == ffi.NULL:
+            return None
+
+        automergeable = centry.automergeable != 0
+        path = to_str(ffi.string(centry.path)) if centry.path else None
+        mode = FileMode(centry.mode)
+        contents = ffi.string(centry.ptr, centry.len).decode('utf-8')
+
+        return MergeFileResult(automergeable, path, mode, contents)
 
 
 class IndexEntry:

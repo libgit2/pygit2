@@ -31,7 +31,7 @@ import pytest
 
 # pygit2
 import pygit2
-from pygit2 import init_repository, clone_repository, discover_repository
+from pygit2 import init_repository, clone_repository, discover_repository, IndexEntry
 from pygit2 import Oid
 from pygit2.enums import (
     CheckoutNotify,
@@ -42,7 +42,9 @@ from pygit2.enums import (
     RepositoryState,
     ResetMode,
     StashApplyProgress,
+    FileMode,
 )
+from pygit2.index import MergeFileResult
 from . import utils
 
 
@@ -985,3 +987,144 @@ def test_repository_hashfile_filter(testrepo):
     testrepo.config['core.safecrlf'] = 'fail'
     with pytest.raises(pygit2.GitError):
         h = testrepo.hashfile('hello.txt')
+
+
+def test_merge_file_from_index_deprecated(testrepo):
+    hello_txt = testrepo.index['hello.txt']
+    hello_txt_executable = IndexEntry(
+        hello_txt.path, hello_txt.id, FileMode.BLOB_EXECUTABLE
+    )
+    hello_world = IndexEntry('hello_world.txt', hello_txt.id, hello_txt.mode)
+
+    # no change
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_txt)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # executable switch on ours
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt_executable, hello_txt)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # executable switch on theirs
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_txt_executable)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # executable switch on both
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_txt_executable, hello_txt_executable
+    )
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # path switch on ours
+    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_txt)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # path switch on theirs
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_world)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # path switch on both
+    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_world)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # path switch on ours, executable flag switch on theirs
+    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_txt_executable)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+    # path switch on theirs, executable flag switch on ours
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt_executable, hello_world)
+    assert res == testrepo.get(hello_txt.id).data.decode()
+
+
+def test_merge_file_from_index_non_deprecated(testrepo):
+    hello_txt = testrepo.index['hello.txt']
+    hello_txt_executable = IndexEntry(
+        hello_txt.path, hello_txt.id, FileMode.BLOB_EXECUTABLE
+    )
+    hello_world = IndexEntry('hello_world.txt', hello_txt.id, hello_txt.mode)
+
+    # no change
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_txt, hello_txt, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True, hello_txt.path, hello_txt.mode, testrepo.get(hello_txt.id).data.decode()
+    )
+
+    # executable switch on ours
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_txt_executable, hello_txt, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True,
+        hello_txt.path,
+        hello_txt_executable.mode,
+        testrepo.get(hello_txt.id).data.decode(),
+    )
+
+    # executable switch on theirs
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_txt, hello_txt_executable, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True,
+        hello_txt.path,
+        hello_txt_executable.mode,
+        testrepo.get(hello_txt.id).data.decode(),
+    )
+
+    # executable switch on both
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_txt_executable, hello_txt_executable, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True,
+        hello_txt.path,
+        hello_txt_executable.mode,
+        testrepo.get(hello_txt.id).data.decode(),
+    )
+
+    # path switch on ours
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_world, hello_txt, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True, hello_world.path, hello_txt.mode, testrepo.get(hello_txt.id).data.decode()
+    )
+
+    # path switch on theirs
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_txt, hello_world, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True, hello_world.path, hello_txt.mode, testrepo.get(hello_txt.id).data.decode()
+    )
+
+    # path switch on both
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_world, hello_world, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True, None, hello_txt.mode, testrepo.get(hello_txt.id).data.decode()
+    )
+
+    # path switch on ours, executable flag switch on theirs
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_world, hello_txt_executable, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True,
+        hello_world.path,
+        hello_txt_executable.mode,
+        testrepo.get(hello_txt.id).data.decode(),
+    )
+
+    # path switch on theirs, executable flag switch on ours
+    res = testrepo.merge_file_from_index(
+        hello_txt, hello_txt_executable, hello_world, use_deprecated=False
+    )
+    assert res == MergeFileResult(
+        True,
+        hello_world.path,
+        hello_txt_executable.mode,
+        testrepo.get(hello_txt.id).data.decode(),
+    )
