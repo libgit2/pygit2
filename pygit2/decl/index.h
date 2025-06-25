@@ -60,6 +60,11 @@ void git_index_conflict_iterator_free(
 int git_index_conflict_iterator_new(
 	git_index_conflict_iterator **iterator_out,
 	git_index *index);
+int git_index_conflict_add(
+    git_index *index,
+    const git_index_entry *ancestor_entry,
+    const git_index_entry *our_entry,
+    const git_index_entry *their_entry);
 int git_index_conflict_get(
 	const git_index_entry **ancestor_out,
 	const git_index_entry **our_out,

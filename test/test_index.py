@@ -30,7 +30,7 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import Repository, Index, Oid
+from pygit2 import Repository, Index, Oid, IndexEntry
 from pygit2.enums import FileMode
 from . import utils
 
@@ -311,3 +311,25 @@ def test_create_empty_read_tree_as_string():
 def test_create_empty_read_tree(testrepo):
     index = Index()
     index.read_tree(testrepo['fd937514cb799514d4b81bb24c5fcfeb6472b245'])
+
+
+def test_add_conflict(testrepo):
+    ancestor_blob_id = testrepo.create_blob('ancestor')
+    ancestor = IndexEntry('conflict.txt', ancestor_blob_id, FileMode.BLOB_EXECUTABLE)
+
+    ours_blob_id = testrepo.create_blob('ours')
+    ours = IndexEntry('conflict.txt', ours_blob_id, FileMode.BLOB)
+
+    index = Index()
+    assert index.conflicts is None
+
+    index.add_conflict(ancestor, ours, None)
+
+    assert index.conflicts is not None
+    assert 'conflict.txt' in index.conflicts
+    conflict = index.conflicts['conflict.txt']
+    assert conflict[0].id == ancestor_blob_id
+    assert conflict[0].mode == FileMode.BLOB_EXECUTABLE
+    assert conflict[1].id == ours_blob_id
+    assert conflict[1].mode == FileMode.BLOB
+    assert conflict[2] is None
