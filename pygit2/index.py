@@ -223,6 +223,41 @@ class Index:
 
         check_error(err, io=True)
 
+    def add_conflict(self, ancestor, ours, theirs):
+        """
+        Add or update index entries to represent a conflict. Any staged entries that
+        exist at the given paths will be removed.
+
+        Parameters:
+
+        ancestor
+            ancestor of the conflict
+        ours
+            ours side of the conflict
+        theirs
+            their side of the conflict
+        """
+
+        if ancestor and not isinstance(ancestor, IndexEntry):
+            raise TypeError('ancestor has to be an instance of IndexEntry or None')
+        if ours and not isinstance(ours, IndexEntry):
+            raise TypeError('ours has to be an instance of IndexEntry or None')
+        if theirs and not isinstance(theirs, IndexEntry):
+            raise TypeError('theirs has to be an instance of IndexEntry or None')
+
+        centry_ancestor = centry_ours = centry_theirs = ffi.NULL
+        if ancestor is not None:
+            centry_ancestor, _ = ancestor._to_c()
+        if ours is not None:
+            centry_ours, _ = ours._to_c()
+        if theirs is not None:
+            centry_theirs, _ = theirs._to_c()
+        err = C.git_index_conflict_add(
+            self._index, centry_ancestor, centry_ours, centry_theirs
+        )
+
+        check_error(err, io=True)
+
     def diff_to_workdir(
         self,
         flags: DiffOption = DiffOption.NORMAL,
