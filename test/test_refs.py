@@ -29,7 +29,7 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import Commit, Signature, Tree, reference_is_valid_name
+from pygit2 import Commit, Signature, Tree, reference_is_valid_name, Repository
 from pygit2 import AlreadyExistsError, GitError, InvalidSpecError
 from pygit2.enums import ReferenceType
 
@@ -45,7 +45,7 @@ def test_refs_list_objects(testrepo):
     ]
 
 
-def test_refs_list(testrepo):
+def test_refs_list(testrepo: Repository) -> None:
     # Without argument
     assert sorted(testrepo.references) == ['refs/heads/i18n', 'refs/heads/master']
 
@@ -58,13 +58,13 @@ def test_refs_list(testrepo):
     ]
 
 
-def test_head(testrepo):
+def test_head(testrepo: Repository) -> None:
     head = testrepo.head
     assert LAST_COMMIT == testrepo[head.target].id
     assert LAST_COMMIT == testrepo[head.raw_target].id
 
 
-def test_refs_getitem(testrepo):
+def test_refs_getitem(testrepo: Repository) -> None:
     refname = 'refs/foo'
     # Raise KeyError ?
     with pytest.raises(KeyError):
@@ -78,37 +78,37 @@ def test_refs_getitem(testrepo):
     assert reference.name == 'refs/heads/master'
 
 
-def test_refs_get_sha(testrepo):
+def test_refs_get_sha(testrepo: Repository) -> None:
     reference = testrepo.references['refs/heads/master']
     assert reference.target == LAST_COMMIT
 
 
-def test_refs_set_sha(testrepo):
+def test_refs_set_sha(testrepo: Repository) -> None:
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.references.get('refs/heads/master')
     reference.set_target(NEW_COMMIT)
     assert reference.target == NEW_COMMIT
 
 
-def test_refs_set_sha_prefix(testrepo):
+def test_refs_set_sha_prefix(testrepo: Repository) -> None:
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.references.get('refs/heads/master')
     reference.set_target(NEW_COMMIT[0:6])
     assert reference.target == NEW_COMMIT
 
 
-def test_refs_get_type(testrepo):
+def test_refs_get_type(testrepo: Repository) -> None:
     reference = testrepo.references.get('refs/heads/master')
     assert reference.type == ReferenceType.DIRECT
 
 
-def test_refs_get_target(testrepo):
+def test_refs_get_target(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
 
 
-def test_refs_set_target(testrepo):
+def test_refs_set_target(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
@@ -117,14 +117,14 @@ def test_refs_set_target(testrepo):
     assert reference.raw_target == b'refs/heads/i18n'
 
 
-def test_refs_get_shorthand(testrepo):
+def test_refs_get_shorthand(testrepo: Repository) -> None:
     reference = testrepo.references.get('refs/heads/master')
     assert reference.shorthand == 'master'
     reference = testrepo.references.create('refs/remotes/origin/master', LAST_COMMIT)
     assert reference.shorthand == 'origin/master'
 
 
-def test_refs_set_target_with_message(testrepo):
+def test_refs_set_target_with_message(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
@@ -139,7 +139,7 @@ def test_refs_set_target_with_message(testrepo):
     assert first.committer == sig
 
 
-def test_refs_delete(testrepo):
+def test_refs_delete(testrepo: Repository) -> None:
     # We add a tag as a new reference that points to "origin/master"
     reference = testrepo.references.create('refs/tags/version1', LAST_COMMIT)
     assert 'refs/tags/version1' in testrepo.references
@@ -163,7 +163,7 @@ def test_refs_delete(testrepo):
         reference.rename('refs/tags/version2')
 
 
-def test_refs_rename(testrepo):
+def test_refs_rename(testrepo: Repository) -> None:
     # We add a tag as a new reference that points to "origin/master"
     reference = testrepo.references.create('refs/tags/version1', LAST_COMMIT)
     assert reference.name == 'refs/tags/version1'
@@ -177,7 +177,7 @@ def test_refs_rename(testrepo):
         reference.rename('b1')
 
 
-# def test_reload(testrepo):
+# def test_reload(testrepo: Repository) -> None:
 #    name = 'refs/tags/version1'
 #    ref = testrepo.create_reference(name, "refs/heads/master", symbolic=True)
 #    ref2 = testrepo.lookup_reference(name)
@@ -187,7 +187,7 @@ def test_refs_rename(testrepo):
 #    with pytest.raises(GitError): getattr(ref2, 'name')
 
 
-def test_refs_resolve(testrepo):
+def test_refs_resolve(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
     assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
@@ -195,13 +195,13 @@ def test_refs_resolve(testrepo):
     assert reference.target == LAST_COMMIT
 
 
-def test_refs_resolve_identity(testrepo):
+def test_refs_resolve_identity(testrepo: Repository) -> None:
     head = testrepo.references.get('HEAD')
     ref = head.resolve()
     assert ref.resolve() is ref
 
 
-def test_refs_create(testrepo):
+def test_refs_create(testrepo: Repository) -> None:
     # We add a tag as a new reference that points to "origin/master"
     reference = testrepo.references.create('refs/tags/version1', LAST_COMMIT)
     refs = testrepo.references
@@ -220,7 +220,7 @@ def test_refs_create(testrepo):
     assert reference.target == LAST_COMMIT
 
 
-def test_refs_create_symbolic(testrepo):
+def test_refs_create_symbolic(testrepo: Repository) -> None:
     # We add a tag as a new symbolic reference that always points to
     # "refs/heads/master"
     reference = testrepo.references.create('refs/tags/beta', 'refs/heads/master')
@@ -241,11 +241,11 @@ def test_refs_create_symbolic(testrepo):
     assert reference.raw_target == b'refs/heads/master'
 
 
-# def test_packall_references(testrepo):
+# def test_packall_references(testrepo: Repository) -> None:
 #    testrepo.packall_references()
 
 
-def test_refs_peel(testrepo):
+def test_refs_peel(testrepo: Repository) -> None:
     ref = testrepo.references.get('refs/heads/master')
     assert testrepo[ref.target].id == ref.peel().id
     assert testrepo[ref.raw_target].id == ref.peel().id
@@ -254,7 +254,7 @@ def test_refs_peel(testrepo):
     assert commit.tree.id == ref.peel(Tree).id
 
 
-def test_refs_equality(testrepo):
+def test_refs_equality(testrepo: Repository) -> None:
     ref1 = testrepo.references.get('refs/heads/master')
     ref2 = testrepo.references.get('refs/heads/master')
     ref3 = testrepo.references.get('refs/heads/i18n')
@@ -267,7 +267,7 @@ def test_refs_equality(testrepo):
     assert not ref1 == ref3
 
 
-def test_refs_compress(testrepo):
+def test_refs_compress(testrepo: Repository) -> None:
     packed_refs_file = Path(testrepo.path) / 'packed-refs'
     assert not packed_refs_file.exists()
     old_refs = [(ref.name, ref.target) for ref in testrepo.references.objects]
