@@ -1,4 +1,4 @@
-from typing import Iterator, Literal, Optional, overload, Type
+from typing import Iterator, Literal, Optional, overload, Type, TypedDict
 from io import IOBase
 from . import Index
 from .enums import (
@@ -19,8 +19,10 @@ from .enums import (
     ResetMode,
     SortMode,
 )
+from collections.abc import Generator
 
 from .repository import BaseRepository
+from .remotes import Remote
 
 GIT_OBJ_BLOB = Literal[3]
 GIT_OBJ_COMMIT = Literal[1]
@@ -346,6 +348,48 @@ class References:
     def objects(self) -> list[Reference]: ...
     def compress(self) -> None: ...
 
+_Proxy = None | Literal[True] | str
+
+class _StrArray:
+    # incomplete
+    count: int
+
+class ProxyOpts:
+    # incomplete
+    type: object
+    url: str
+
+class PushOptions:
+    version: int
+    pb_parallelism: int
+    callbacks: object  # TODO
+    proxy_opts: ProxyOpts
+    follow_redirects: object  # TODO
+    custom_headers: _StrArray
+    remote_push_options: _StrArray
+
+class _LsRemotesDict(TypedDict):
+    local: bool
+    loid: Oid | None
+    name: str | None
+    symref_target: str | None
+    oid: Oid
+
+class RemoteCollection:
+    def __init__(self, repo: BaseRepository) -> None: ...
+    def __len__(self) -> int: ...
+    def __iter__(self): ...
+    def __getitem__(self, name: str | int) -> Remote: ...
+    def names(self) -> Generator[str, None, None]: ...
+    def create(self, name: str, url: str, fetch: str | None = None) -> Remote: ...
+    def create_anonymous(self, url: str) -> Remote: ...
+    def rename(self, name: str, new_name: str) -> list[str]: ...
+    def delete(self, name: str) -> None: ...
+    def set_url(self, name: str, url: str) -> None: ...
+    def set_push_url(self, name: str, url: str) -> None: ...
+    def add_fetch(self, name: str, refspec: str) -> None: ...
+    def add_push(self, name: str, refspec: str) -> None: ...
+
 class Repository:
     _pointer: bytes
     default_signature: Signature
@@ -360,6 +404,7 @@ class Repository:
     refdb: Refdb
     workdir: str
     references: References
+    remotes: RemoteCollection
     def __init__(self, *args, **kwargs) -> None: ...
     def TreeBuilder(self, src: Tree | _OidArg = ...) -> TreeBuilder: ...
     def _disown(self, *args, **kwargs) -> None: ...

@@ -24,7 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Import from pygit2
 from ._pygit2 import Oid
@@ -49,7 +49,15 @@ if TYPE_CHECKING:
 class TransferProgress:
     """Progress downloading and indexing data during a fetch."""
 
-    def __init__(self, tp):
+    total_objects: int
+    indexed_objects: int
+    received_objects: int
+    local_objects: int
+    total_deltas: int
+    indexed_deltas: int
+    received_bytes: int
+
+    def __init__(self, tp: Any) -> None:
         self.total_objects = tp.total_objects
         """Total number of objects to download"""
 

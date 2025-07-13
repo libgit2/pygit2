@@ -49,7 +49,7 @@ class Username:
         return CredentialType.USERNAME
 
     @property
-    def credential_tuple(self):
+    def credential_tuple(self) -> tuple[str]:
         return (self._username,)
 
     def __call__(
@@ -74,7 +74,7 @@ class UserPass:
         return CredentialType.USERPASS_PLAINTEXT
 
     @property
-    def credential_tuple(self):
+    def credential_tuple(self) -> tuple[str, str]:
         return (self._username, self._password)
 
     def __call__(
@@ -107,7 +107,11 @@ class Keypair:
     """
 
     def __init__(
-        self, username: str, pubkey: str | Path, privkey: str | Path, passphrase: str
+        self,
+        username: str,
+        pubkey: str | Path | None,
+        privkey: str | Path | None,
+        passphrase: str | None,
     ):
         self._username = username
         self._pubkey = pubkey
@@ -119,7 +123,9 @@ class Keypair:
         return CredentialType.SSH_KEY
 
     @property
-    def credential_tuple(self):
+    def credential_tuple(
+        self,
+    ) -> tuple[str, str | Path | None, str | Path | None, str | None]:
         return (self._username, self._pubkey, self._privkey, self._passphrase)
 
     def __call__(

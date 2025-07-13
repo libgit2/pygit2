@@ -24,10 +24,14 @@
 # Boston, MA 02110-1301, USA.
 
 import sys
+from pathlib import Path
+from collections.abc import Generator
 
 import pytest
 
 import pygit2
+from pygit2 import Repository, Remote
+from pygit2.remotes import TransferProgress
 from . import utils
 
 
@@ -43,7 +47,7 @@ REMOTE_REPO_FETCH_HEAD_COMMIT_OBJECTS = 238
 ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
 
-def test_remote_create(testrepo):
+def test_remote_create(testrepo: Repository) -> None:
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'
 
@@ -58,7 +62,7 @@ def test_remote_create(testrepo):
         testrepo.remotes.create(*(name, url))
 
 
-def test_remote_create_with_refspec(testrepo):
+def test_remote_create_with_refspec(testrepo: Repository) -> None:
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'
     fetch = '+refs/*:refs/*'
@@ -72,7 +76,7 @@ def test_remote_create_with_refspec(testrepo):
     assert remote.push_url is None
 
 
-def test_remote_create_anonymous(testrepo):
+def test_remote_create_anonymous(testrepo: Repository) -> None:
     url = 'https://github.com/libgit2/pygit2.git'
 
     remote = testrepo.remotes.create_anonymous(url)
@@ -83,7 +87,7 @@ def test_remote_create_anonymous(testrepo):
     assert [] == remote.push_refspecs
 
 
-def test_remote_delete(testrepo):
+def test_remote_delete(testrepo: Repository) -> None:
     name = 'upstream'
     url = 'https://github.com/libgit2/pygit2.git'
 
@@ -96,7 +100,7 @@ def test_remote_delete(testrepo):
     assert 1 == len(testrepo.remotes)
 
 
-def test_remote_rename(testrepo):
+def test_remote_rename(testrepo: Repository) -> None:
     remote = testrepo.remotes[0]
 
     assert REMOTE_NAME == remote.name
@@ -107,10 +111,10 @@ def test_remote_rename(testrepo):
     with pytest.raises(ValueError):
         testrepo.remotes.rename('', '')
     with pytest.raises(ValueError):
-        testrepo.remotes.rename(None, None)
+        testrepo.remotes.rename(None, None)  # type: ignore
 
 
-def test_remote_set_url(testrepo):
+def test_remote_set_url(testrepo: Repository) -> None:
     remote = testrepo.remotes['origin']
     assert REMOTE_URL == remote.url
 
@@ -129,7 +133,7 @@ def test_remote_set_url(testrepo):
         testrepo.remotes.set_push_url('origin', '')
 
 
-def test_refspec(testrepo):
+def test_refspec(testrepo: Repository) -> None:
     remote = testrepo.remotes['origin']
 
     assert remote.refspec_count == 1
@@ -169,13 +173,13 @@ def test_refspec(testrepo):
     testrepo.remotes.add_push('origin', '+refs/test/*:refs/test/remotes/*')
 
     with pytest.raises(TypeError):
-        testrepo.remotes.add_fetch(['+refs/*:refs/*', 5])
+        testrepo.remotes.add_fetch(['+refs/*:refs/*', 5])  # type: ignore
 
     remote = testrepo.remotes['origin']
     assert ['+refs/test/*:refs/test/remotes/*'] == remote.push_refspecs
 
 
-def test_remote_list(testrepo):
+def test_remote_list(testrepo: Repository) -> None:
     assert 1 == len(testrepo.remotes)
     remote = testrepo.remotes[0]
     assert REMOTE_NAME == remote.name
@@ -189,7 +193,7 @@ def test_remote_list(testrepo):
 
 
 @utils.requires_network
-def test_ls_remotes(testrepo):
+def test_ls_remotes(testrepo: Repository) -> None:
     assert 1 == len(testrepo.remotes)
     remote = testrepo.remotes[0]
 
@@ -200,7 +204,7 @@ def test_ls_remotes(testrepo):
     assert next(iter(r for r in refs if r['name'] == 'refs/tags/v0.28.2'))
 
 
-def test_remote_collection(testrepo):
+def test_remote_collection(testrepo: Repository) -> None:
     remote = testrepo.remotes['origin']
     assert REMOTE_NAME == remote.name
     assert REMOTE_URL == remote.url
@@ -216,7 +220,7 @@ def test_remote_collection(testrepo):
 
 
 @utils.requires_refcount
-def test_remote_refcount(testrepo):
+def test_remote_refcount(testrepo: Repository) -> None:
     start = sys.getrefcount(testrepo)
     remote = testrepo.remotes[0]
     del remote
@@ -224,7 +228,7 @@ def test_remote_refcount(testrepo):
     assert start == end
 
 
-def test_fetch(emptyrepo):
+def test_fetch(emptyrepo: Repository) -> None:
     remote = emptyrepo.remotes[0]
     stats = remote.fetch()
     assert stats.received_bytes > 2700
@@ -234,7 +238,7 @@ def test_fetch(emptyrepo):
 
 
 @utils.requires_network
-def test_fetch_depth_zero(testrepo):
+def test_fetch_depth_zero(testrepo: Repository) -> None:
     remote = testrepo.remotes[0]
     stats = remote.fetch(REMOTE_FETCHTEST_FETCHSPECS, depth=0)
     assert stats.indexed_objects == REMOTE_REPO_FETCH_ALL_OBJECTS
@@ -242,16 +246,16 @@ def test_fetch_depth_zero(testrepo):
 
 
 @utils.requires_network
-def test_fetch_depth_one(testrepo):
+def test_fetch_depth_one(testrepo: Repository) -> None:
     remote = testrepo.remotes[0]
     stats = remote.fetch(REMOTE_FETCHTEST_FETCHSPECS, depth=1)
     assert stats.indexed_objects == REMOTE_REPO_FETCH_HEAD_COMMIT_OBJECTS
     assert stats.received_objects == REMOTE_REPO_FETCH_HEAD_COMMIT_OBJECTS
 
 
-def test_transfer_progress(emptyrepo):
+def test_transfer_progress(emptyrepo: Repository) -> None:
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def transfer_progress(self, stats):
+        def transfer_progress(self, stats: TransferProgress) -> None:
             self.tp = stats
 
     callbacks = MyCallbacks()
@@ -262,7 +266,7 @@ def test_transfer_progress(emptyrepo):
     assert stats.received_objects == callbacks.tp.received_objects
 
 
-def test_update_tips(emptyrepo):
+def test_update_tips(emptyrepo: Repository) -> None:
     remote = emptyrepo.remotes[0]
     tips = [
         (
@@ -292,14 +296,16 @@ def test_update_tips(emptyrepo):
 
 
 @utils.requires_network
-def test_ls_remotes_certificate_check():
+def test_ls_remotes_certificate_check() -> None:
     url = 'https://github.com/pygit2/empty.git'
 
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def __init__(self):
+        def __init__(self) -> None:
             self.i = 0
 
-        def certificate_check(self, certificate, valid, host):
+        def certificate_check(
+            self, certificate: None, valid: bool, host: str | bytes
+        ) -> bool:
             self.i += 1
 
             assert certificate is None
@@ -322,13 +328,13 @@ def test_ls_remotes_certificate_check():
 
 
 @pytest.fixture
-def origin(tmp_path):
+def origin(tmp_path: Path) -> Generator[Repository, None, None]:
     with utils.TemporaryRepository('barerepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
 @pytest.fixture
-def clone(tmp_path):
+def clone(tmp_path: Path) -> Generator[Repository, None, None]:
     clone = tmp_path / 'clone'
     clone.mkdir()
     with utils.TemporaryRepository('barerepo.zip', clone) as path:
@@ -340,7 +346,9 @@ def remote(origin, clone):
     yield clone.remotes.create('origin', origin.path)
 
 
-def test_push_fast_forward_commits_to_remote_succeeds(origin, clone, remote):
+def test_push_fast_forward_commits_to_remote_succeeds(
+    origin: Repository, clone: Repository, remote: Remote
+) -> None:
     tip = clone[clone.head.target]
     oid = clone.create_commit(
         'refs/heads/master',
@@ -354,14 +362,18 @@ def test_push_fast_forward_commits_to_remote_succeeds(origin, clone, remote):
     assert origin[origin.head.target].id == oid
 
 
-def test_push_when_up_to_date_succeeds(origin, clone, remote):
+def test_push_when_up_to_date_succeeds(
+    origin: Repository, clone: Repository, remote: Remote
+) -> None:
     remote.push(['refs/heads/master'])
     origin_tip = origin[origin.head.target].id
     clone_tip = clone[clone.head.target].id
     assert origin_tip == clone_tip
 
 
-def test_push_transfer_progress(origin, clone, remote):
+def test_push_transfer_progress(
+    origin: Repository, clone: Repository, remote: Remote
+) -> None:
     tip = clone[clone.head.target]
     new_tip_id = clone.create_commit(
         'refs/heads/master',
@@ -377,7 +389,9 @@ def test_push_transfer_progress(origin, clone, remote):
     # on the local filesystem, as is the case in this unit test. (When pushing
     # to a remote over the network, the value is correct.)
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+        def push_transfer_progress(
+            self, objects_pushed: int, total_objects: int, bytes_pushed: int
+        ) -> None:
             self.objects_pushed = objects_pushed
             self.total_objects = total_objects
 
@@ -390,7 +404,9 @@ def test_push_transfer_progress(origin, clone, remote):
     assert origin.branches['master'].target == new_tip_id
 
 
-def test_push_interrupted_from_callbacks(origin, clone, remote):
+def test_push_interrupted_from_callbacks(
+    origin: Repository, clone: Repository, remote: Remote
+) -> None:
     tip = clone[clone.head.target]
     clone.create_commit(
         'refs/heads/master',
@@ -402,7 +418,9 @@ def test_push_interrupted_from_callbacks(origin, clone, remote):
     )
 
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def push_transfer_progress(self, objects_pushed, total_objects, bytes_pushed):
+        def push_transfer_progress(
+            self, objects_pushed: int, total_objects: int, bytes_pushed: int
+        ) -> None:
             raise InterruptedError('retreat! retreat!')
 
     assert origin.branches['master'].target == tip.id
@@ -414,7 +432,9 @@ def test_push_interrupted_from_callbacks(origin, clone, remote):
     assert origin.branches['master'].target == tip.id
 
 
-def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
+def test_push_non_fast_forward_commits_to_remote_fails(
+    origin: Repository, clone: Repository, remote: Remote
+) -> None:
     tip = origin[origin.head.target]
     origin.create_commit(
         'refs/heads/master',
@@ -438,7 +458,7 @@ def test_push_non_fast_forward_commits_to_remote_fails(origin, clone, remote):
         remote.push(['refs/heads/master'])
 
 
-def test_push_options(origin, clone, remote):
+def test_push_options(origin: Repository, clone: Repository, remote: Remote) -> None:
     from pygit2 import RemoteCallbacks
 
     callbacks = RemoteCallbacks()
@@ -468,7 +488,7 @@ def test_push_options(origin, clone, remote):
     # strings pointed to by remote_push_options.strings[] are already freed
 
 
-def test_push_threads(origin, clone, remote):
+def test_push_threads(origin: Repository, clone: Repository, remote: Remote) -> None:
     from pygit2 import RemoteCallbacks
 
     callbacks = RemoteCallbacks()

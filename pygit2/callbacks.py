@@ -65,7 +65,7 @@ API.
 # Standard Library
 from contextlib import contextmanager
 from functools import wraps
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING, Callable, Generator
 
 # pygit2
 from ._pygit2 import Oid, DiffFile
@@ -73,8 +73,13 @@ from .enums import CheckoutNotify, CheckoutStrategy, CredentialType, StashApplyP
 from .errors import check_error, Passthrough
 from .ffi import ffi, C
 from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
+from .credentials import Username, UserPass, Keypair
 
+_Credentials = Username | UserPass | Keypair
 
+if TYPE_CHECKING:
+    from .remotes import TransferProgress
+    from ._pygit2 import ProxyOpts, PushOptions
 #
 # The payload is the way to pass information from the pygit2 API, through
 # libgit2, to the Python callbacks. And back.
@@ -82,7 +87,7 @@ from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
 
 
 class Payload:
-    def __init__(self, **kw: object):
+    def __init__(self, **kw: object) -> None:
         for key, value in kw.items():
             setattr(self, key, value)
         self._stored_exception = None
@@ -113,12 +118,18 @@ class RemoteCallbacks(Payload):
     RemoteCallbacks(certificate=certificate).
     """
 
-    def __init__(self, credentials=None, certificate_check=None):
+    push_options: 'PushOptions'
+
+    def __init__(
+        self,
+        credentials: _Credentials | None = None,
+        certificate_check: Callable[[None, bool, bytes], bool] | None = None,
+    ) -> None:
         super().__init__()
         if credentials is not None:
-            self.credentials = credentials
+            self.credentials = credentials  # type: ignore[method-assign, assignment]
         if certificate_check is not None:
-            self.certificate_check = certificate_check
+            self.certificate_check = certificate_check  # type: ignore[method-assign, assignment]
 
     def sideband_progress(self, string: str) -> None:
         """
@@ -136,7 +147,7 @@ class RemoteCallbacks(Payload):
         url: str,
         username_from_url: Union[str, None],
         allowed_types: CredentialType,
-    ):
+    ) -> _Credentials:
         """
         Credentials callback.  If the remote server requires authentication,
         this function will be called and its return value used for
@@ -159,7 +170,7 @@ class RemoteCallbacks(Payload):
         """
         raise Passthrough
 
-    def certificate_check(self, certificate: None, valid: bool, host: str) -> bool:
+    def certificate_check(self, certificate: None, valid: bool, host: bytes) -> bool:
         """
         Certificate callback. Override with your own function to determine
         whether to accept the server's certificate.
@@ -181,7 +192,7 @@ class RemoteCallbacks(Payload):
 
         raise Passthrough
 
-    def transfer_progress(self, stats):
+    def transfer_progress(self, stats: 'TransferProgress') -> None:
         """
         During the download of new data, this will be regularly called with
         the indexer's progress.
@@ -196,7 +207,7 @@ class RemoteCallbacks(Payload):
 
     def push_transfer_progress(
         self, objects_pushed: int, total_objects: int, bytes_pushed: int
-    ):
+    ) -> None:
         """
         During the upload portion of a push, this will be regularly called
         with progress information.
@@ -207,7 +218,7 @@ class RemoteCallbacks(Payload):
         Override with your own function to report push transfer progress.
         """
 
-    def update_tips(self, refname, old, new):
+    def update_tips(self, refname: str, old: Oid, new: Oid) -> None:
         """
         Update tips callback. Override with your own function to report
         reference updates.
@@ -224,7 +235,7 @@ class RemoteCallbacks(Payload):
             The reference's new value.
         """
 
-    def push_update_reference(self, refname, message):
+    def push_update_reference(self, refname: str, message: str) -> None:
         """
         Push update reference callback. Override with your own function to
         report the remote's acceptance or rejection of reference updates.
@@ -244,7 +255,7 @@ class CheckoutCallbacks(Payload):
     in your class, which you can then pass to checkout operations.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def checkout_notify_flags(self) -> CheckoutNotify:
@@ -275,7 +286,7 @@ class CheckoutCallbacks(Payload):
         baseline: Optional[DiffFile],
         target: Optional[DiffFile],
         workdir: Optional[DiffFile],
-    ):
+    ) -> None:
         """
         Checkout will invoke an optional notification callback for
         certain cases - you pick which ones via `checkout_notify_flags`.
@@ -290,7 +301,9 @@ class CheckoutCallbacks(Payload):
         """
         pass
 
-    def checkout_progress(self, path: str, completed_steps: int, total_steps: int):
+    def checkout_progress(
+        self, path: str, completed_steps: int, total_steps: int
+    ) -> None:
         """
         Optional callback to notify the consumer of checkout progress.
         """
@@ -304,7 +317,7 @@ class StashApplyCallbacks(CheckoutCallbacks):
     in your class, which you can then pass to stash apply or pop operations.
     """
 
-    def stash_apply_progress(self, progress: StashApplyProgress):
+    def stash_apply_progress(self, progress: StashApplyProgress) -> None:
         """
         Stash application progress notification function.
 
@@ -373,9 +386,9 @@ def git_fetch_options(payload, opts=None):
 @contextmanager
 def git_proxy_options(
     payload: object,
-    opts: object | None = None,
+    opts: Optional['ProxyOpts'] = None,
     proxy: None | bool | str = None,
-):
+) -> Generator['ProxyOpts', None, None]:
     if opts is None:
         opts = ffi.new('git_proxy_options *')
         C.git_proxy_options_init(opts, C.GIT_PROXY_OPTIONS_VERSION)
@@ -386,8 +399,8 @@ def git_proxy_options(
     elif type(proxy) is str:
         opts.type = C.GIT_PROXY_SPECIFIED
         # Keep url in memory, otherwise memory is freed and bad things happen
-        payload.__proxy_url = ffi.new('char[]', to_bytes(proxy))
-        opts.url = payload.__proxy_url
+        payload.__proxy_url = ffi.new('char[]', to_bytes(proxy))  # type: ignore[attr-defined, no-untyped-call]
+        opts.url = payload.__proxy_url  # type: ignore[attr-defined]
     else:
         raise TypeError('Proxy must be None, True, or a string')
     yield opts
