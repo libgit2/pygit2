@@ -29,6 +29,7 @@ import pygit2
 import pytest
 import os
 from pygit2.enums import BranchType
+from pygit2 import Repository
 
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -38,7 +39,7 @@ EXCLUSIVE_MASTER_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
 SHARED_COMMIT = '4ec4389a8068641da2d6578db0419484972284c8'
 
 
-def test_branches_getitem(testrepo):
+def test_branches_getitem(testrepo: Repository) -> None:
     branch = testrepo.branches['master']
     assert branch.target == LAST_COMMIT
 
@@ -49,12 +50,12 @@ def test_branches_getitem(testrepo):
         testrepo.branches['not-exists']
 
 
-def test_branches(testrepo):
+def test_branches(testrepo: Repository) -> None:
     branches = sorted(testrepo.branches)
     assert branches == ['i18n', 'master']
 
 
-def test_branches_create(testrepo):
+def test_branches_create(testrepo: Repository) -> None:
     commit = testrepo[LAST_COMMIT]
     reference = testrepo.branches.create('version1', commit)
     assert 'version1' in testrepo.branches
@@ -70,27 +71,27 @@ def test_branches_create(testrepo):
     assert reference.target == LAST_COMMIT
 
 
-def test_branches_delete(testrepo):
+def test_branches_delete(testrepo: Repository) -> None:
     testrepo.branches.delete('i18n')
     assert testrepo.branches.get('i18n') is None
 
 
-def test_branches_delete_error(testrepo):
+def test_branches_delete_error(testrepo: Repository) -> None:
     with pytest.raises(pygit2.GitError):
         testrepo.branches.delete('master')
 
 
-def test_branches_is_head(testrepo):
+def test_branches_is_head(testrepo: Repository) -> None:
     branch = testrepo.branches.get('master')
     assert branch.is_head()
 
 
-def test_branches_is_not_head(testrepo):
+def test_branches_is_not_head(testrepo: Repository) -> None:
     branch = testrepo.branches.get('i18n')
     assert not branch.is_head()
 
 
-def test_branches_rename(testrepo):
+def test_branches_rename(testrepo: Repository) -> None:
     new_branch = testrepo.branches['i18n'].rename('new-branch')
     assert new_branch.target == I18N_LAST_COMMIT
 
@@ -98,25 +99,25 @@ def test_branches_rename(testrepo):
     assert new_branch_2.target == I18N_LAST_COMMIT
 
 
-def test_branches_rename_error(testrepo):
+def test_branches_rename_error(testrepo: Repository) -> None:
     original_branch = testrepo.branches.get('i18n')
     with pytest.raises(ValueError):
         original_branch.rename('master')
 
 
-def test_branches_rename_force(testrepo):
+def test_branches_rename_force(testrepo: Repository) -> None:
     original_branch = testrepo.branches.get('master')
     new_branch = original_branch.rename('i18n', True)
     assert new_branch.target == LAST_COMMIT
 
 
-def test_branches_rename_invalid(testrepo):
+def test_branches_rename_invalid(testrepo: Repository) -> None:
     original_branch = testrepo.branches.get('i18n')
     with pytest.raises(ValueError):
         original_branch.rename('abc@{123')
 
 
-def test_branches_name(testrepo):
+def test_branches_name(testrepo: Repository) -> None:
     branch = testrepo.branches.get('master')
     assert branch.branch_name == 'master'
     assert branch.name == 'refs/heads/master'
@@ -128,7 +129,7 @@ def test_branches_name(testrepo):
     assert branch.raw_branch_name == branch.branch_name.encode('utf-8')
 
 
-def test_branches_with_commit(testrepo):
+def test_branches_with_commit(testrepo: Repository) -> None:
     branches = testrepo.branches.with_commit(EXCLUSIVE_MASTER_COMMIT)
     assert sorted(branches) == ['master']
     assert branches.get('i18n') is None
