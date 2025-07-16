@@ -1,3 +1,35 @@
+# 1.18.1 (UNRELEASED)
+
+- Update wheels to libgit2 1.9.1 and OpenSSL 3.3
+
+- New `Index.remove_directory(...)`
+  [#1377](https://github.com/libgit2/pygit2/pull/1377)
+
+- Now `Repository.merge_file_from_index(...)` returns a `MergeFileResult` object when
+  called with `use_deprecated=False`
+  [#1376](https://github.com/libgit2/pygit2/pull/1376)
+
+- Typing improvements
+  [#1369](https://github.com/libgit2/pygit2/pull/1369)
+  [#1370](https://github.com/libgit2/pygit2/pull/1370)
+  [#1371](https://github.com/libgit2/pygit2/pull/1371)
+  [#1373](https://github.com/libgit2/pygit2/pull/1373)
+  [#1384](https://github.com/libgit2/pygit2/pull/1384)
+
+Deprecations:
+
+- Update your code:
+
+      # Before
+      contents = Repository.merge_file_from_index(...)
+
+      # Now
+      result = Repository.merge_file_from_index(..., use_deprecated=False)
+      contents = result.contents
+
+  At some point in the future `use_deprecated=False` will be the default.
+
+
 # 1.18.0 (2025-04-24)
 
 - Upgrade Linux Glibc wheels to `manylinux_2_28`
