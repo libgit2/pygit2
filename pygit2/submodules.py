@@ -39,6 +39,9 @@ if TYPE_CHECKING:
 
 
 class Submodule:
+    _repo: BaseRepository
+    _subm: object
+
     @classmethod
     def _from_c(cls, repo: BaseRepository, cptr):
         subm = cls.__new__(cls)
@@ -74,7 +77,10 @@ class Submodule:
         check_error(err)
 
     def update(
-        self, init: bool = False, callbacks: RemoteCallbacks = None, depth: int = 0
+        self,
+        init: bool = False,
+        callbacks: Optional[RemoteCallbacks] = None,
+        depth: int = 0,
     ):
         """
         Update a submodule. This will clone a missing submodule and checkout
