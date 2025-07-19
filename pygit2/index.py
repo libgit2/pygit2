@@ -25,7 +25,6 @@
 
 import typing
 import warnings
-import weakref
 from dataclasses import dataclass
 
 # Import from pygit2
@@ -353,7 +352,6 @@ class Index:
     #
     # Conflicts
     #
-    _conflicts = None
 
     @property
     def conflicts(self):
@@ -375,15 +373,9 @@ class Index:
         the particular conflict.
         """
         if not C.git_index_has_conflicts(self._index):
-            self._conflicts = None
             return None
 
-        if self._conflicts is None or self._conflicts() is None:
-            conflicts = ConflictCollection(self)
-            self._conflicts = weakref.ref(conflicts)
-            return conflicts
-
-        return self._conflicts()
+        return ConflictCollection(self)
 
 
 @dataclass
