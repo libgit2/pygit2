@@ -27,13 +27,23 @@
 
 import os
 import shutil
+import sys
+
+import pytest
 
 import pygit2
 from . import utils
 
 
+# FIXME Detect the filesystem rather than the operating system
+works_in_linux = pytest.mark.xfail(
+    sys.platform != 'linux',
+    reason='fails in macOS/Windows, and also in Linux with the FAT filesystem',
+)
+
+
 @utils.requires_network
-@utils.requires_linux
+@works_in_linux
 def test_nonunicode_branchname(testrepo):
     folderpath = 'temp_repo_nonutf'
     if os.path.exists(folderpath):

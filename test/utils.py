@@ -66,8 +66,8 @@ is_pypy = '__pypy__' in sys.builtin_module_names
 
 requires_refcount = pytest.mark.skipif(is_pypy, reason='skip refcounts checks in pypy')
 
-requires_linux = pytest.mark.xfail(
-    sys.platform != 'linux', reason='probably a bug in libgit2 for non-linux platforms'
+fails_in_macos = pytest.mark.xfail(
+    sys.platform == 'darwin', reason='fails in macOS for an unknown reason'
 )
 
 

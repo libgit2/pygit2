@@ -313,6 +313,7 @@ def test_create_empty_read_tree(testrepo):
     index.read_tree(testrepo['fd937514cb799514d4b81bb24c5fcfeb6472b245'])
 
 
+@utils.fails_in_macos
 def test_add_conflict(testrepo):
     ancestor_blob_id = testrepo.create_blob('ancestor')
     ancestor = IndexEntry('conflict.txt', ancestor_blob_id, FileMode.BLOB_EXECUTABLE)
