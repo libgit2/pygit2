@@ -327,9 +327,9 @@ def test_add_conflict(testrepo):
 
     assert index.conflicts is not None
     assert 'conflict.txt' in index.conflicts
-    conflict = index.conflicts['conflict.txt']
-    assert conflict[0].id == ancestor_blob_id
-    assert conflict[0].mode == FileMode.BLOB_EXECUTABLE
-    assert conflict[1].id == ours_blob_id
-    assert conflict[1].mode == FileMode.BLOB
-    assert conflict[2] is None
+    conflict_ancestor, conflict_ours, conflict_theirs = index.conflicts['conflict.txt']
+    assert conflict_ancestor.id == ancestor_blob_id
+    assert conflict_ancestor.mode == FileMode.BLOB_EXECUTABLE
+    assert conflict_ours.id == ours_blob_id
+    assert conflict_ours.mode == FileMode.BLOB
+    assert conflict_theirs is None
