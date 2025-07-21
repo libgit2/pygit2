@@ -29,10 +29,11 @@ from string import hexdigits
 from time import time
 import tarfile
 import typing
+from typing import Optional
 
 # Import from pygit2
 from ._pygit2 import Repository as _Repository, init_file_backend
-from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
+from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN, Object
 from ._pygit2 import Reference, Tree, Commit, Blob, Signature
 from ._pygit2 import InvalidSpecError
 
@@ -187,20 +188,20 @@ class BaseRepository(_Repository):
     #
     # Mapping interface
     #
-    def get(self, key, default=None):
+    def get(self, key: str, default: Optional[Commit] = None) -> Object:
         value = self.git_object_lookup_prefix(key)
         return value if (value is not None) else default
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str | Oid) -> Object:
         value = self.git_object_lookup_prefix(key)
         if value is None:
             raise KeyError(key)
         return value
 
-    def __contains__(self, key):
+    def __contains__(self, key: str | Oid) -> bool:
         return self.git_object_lookup_prefix(key) is not None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'pygit2.Repository({repr(self.path)})'
 
     #
@@ -529,22 +530,22 @@ class BaseRepository(_Repository):
 
         # Case 1: Diff tree to tree
         if isinstance(a, Tree) and isinstance(b, Tree):
-            return a.diff_to_tree(b, **options)
+            return a.diff_to_tree(b, **options)  # type: ignore[arg-type]
 
         # Case 2: Index to workdir
         elif a is None and b is None:
-            return self.index.diff_to_workdir(**options)
+            return self.index.diff_to_workdir(**options)  # type: ignore[arg-type]
 
         # Case 3: Diff tree to index or workdir
         elif isinstance(a, Tree) and b is None:
             if cached:
-                return a.diff_to_index(self.index, **options)
+                return a.diff_to_index(self.index, **options)  # type: ignore[arg-type]
             else:
-                return a.diff_to_workdir(**options)
+                return a.diff_to_workdir(**options)  # type: ignore[arg-type]
 
         # Case 4: Diff blob to blob
         if isinstance(a, Blob) and isinstance(b, Blob):
-            return a.diff(b, **options)
+            return a.diff(b, **options)  # type: ignore[arg-type]
 
         raise ValueError('Only blobs and treeish can be diffed')
 
@@ -559,7 +560,7 @@ class BaseRepository(_Repository):
             return RepositoryState(cstate)
         except ValueError:
             # Some value not in the IntEnum - newer libgit2 version?
-            return cstate
+            return cstate  # type: ignore[return-value]
 
     def state_cleanup(self):
         """Remove all the metadata associated with an ongoing command like
@@ -770,9 +771,15 @@ class BaseRepository(_Repository):
         cindex = ffi.new('git_index **')
 
         if isinstance(ours, (str, Oid)):
-            ours = self[ours]
+            ours_object = self[ours]
+            if not isinstance(ours_object, Commit):
+                raise TypeError(f'expected Commit, got {type(ours_object)}')
+            ours = ours_object
         if isinstance(theirs, (str, Oid)):
-            theirs = self[theirs]
+            theirs_object = self[theirs]
+            if not isinstance(theirs_object, Commit):
+                raise TypeError(f'expected Commit, got {type(theirs_object)}')
+            theirs = theirs_object
 
         ours = ours.peel(Commit)
         theirs = theirs.peel(Commit)
@@ -827,16 +834,9 @@ class BaseRepository(_Repository):
         theirs_ptr = ffi.new('git_tree **')
         cindex = ffi.new('git_index **')
 
-        if isinstance(ancestor, (str, Oid)):
-            ancestor = self[ancestor]
-        if isinstance(ours, (str, Oid)):
-            ours = self[ours]
-        if isinstance(theirs, (str, Oid)):
-            theirs = self[theirs]
-
-        ancestor = ancestor.peel(Tree)
-        ours = ours.peel(Tree)
-        theirs = theirs.peel(Tree)
+        ancestor = self.__ensure_tree(ancestor)
+        ours = self.__ensure_tree(ours)
+        theirs = self.__ensure_tree(theirs)
 
         opts = self._merge_options(favor, flags, file_flags)
 
@@ -890,7 +890,7 @@ class BaseRepository(_Repository):
         if isinstance(source, Reference):
             # Annotated commit from ref
             cptr = ffi.new('struct git_reference **')
-            ffi.buffer(cptr)[:] = source._pointer[:]
+            ffi.buffer(cptr)[:] = source._pointer[:]  # type: ignore[attr-defined]
             commit_ptr = ffi.new('git_annotated_commit **')
             err = C.git_annotated_commit_from_ref(commit_ptr, self._repo, cptr[0])
             check_error(err)
@@ -1614,6 +1614,11 @@ class BaseRepository(_Repository):
         check_error(err)
 
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
+
+    def __ensure_tree(self, maybe_tree: str | Oid | Tree) -> Tree:
+        if isinstance(maybe_tree, Tree):
+            return maybe_tree
+        return self[maybe_tree].peel(Tree)
 
 
 class Repository(BaseRepository):

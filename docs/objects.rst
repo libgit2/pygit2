@@ -33,7 +33,7 @@ implements a subset of the mapping interface.
         >>> repo = Repository('path/to/pygit2')
         >>> obj = repo.get("101715bf37440d32291bde4f58c3142bcf7d8adb")
         >>> obj
-        <_pygit2.Commit object at 0x7ff27a6b60f0>
+        <pygit2.Object{commit:101715bf37440d32291bde4f58c3142bcf7d8adb}>
 
    .. method:: Repository.__getitem__(id)
 
