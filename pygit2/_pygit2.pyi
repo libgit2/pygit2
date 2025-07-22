@@ -1,9 +1,12 @@
 from typing import Iterator, Literal, Optional, overload, Type, TypedDict
-from io import IOBase
+from io import IOBase, DEFAULT_BUFFER_SIZE
+from queue import Queue
+from threading import Event
 from . import Index
 from .enums import (
     ApplyLocation,
     BranchType,
+    BlobFilter,
     DeltaStatus,
     DiffFind,
     DiffFlag,
@@ -355,6 +358,15 @@ class Blob(Object):
         old_as_path: str = ...,
         buffer_as_path: str = ...,
     ) -> Patch: ...
+    def _write_to_queue(
+        self,
+        queue: Queue,
+        closed: Event,
+        chunk_size: int = DEFAULT_BUFFER_SIZE,
+        as_path: Optional[str] = None,
+        flags: BlobFilter = BlobFilter.CHECK_FOR_BINARY,
+        commit_id: Optional[Oid] = None,
+    ) -> None: ...
 
 class Branch(Reference):
     branch_name: str

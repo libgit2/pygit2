@@ -26,7 +26,7 @@ class _BlobIO(io.RawIOBase):
     ):
         super().__init__()
         self._blob = blob
-        self._queue = Queue(maxsize=1)
+        self._queue: Optional[Queue] = Queue(maxsize=1)
         self._ready = threading.Event()
         self._writer_closed = threading.Event()
         self._chunk: Optional[bytes] = None
@@ -45,7 +45,7 @@ class _BlobIO(io.RawIOBase):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def isatty():
+    def isatty(self):
         return False
 
     def readable(self):
