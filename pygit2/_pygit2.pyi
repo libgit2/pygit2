@@ -379,6 +379,24 @@ class Branch(Reference):
     def is_head(self) -> bool: ...
     def rename(self, name: str, force: bool = False) -> 'Branch': ...  # type: ignore[override]
 
+class FetchOptions:
+    # incomplete
+    depth: int
+    proxy_opts: ProxyOpts
+
+class CloneOptions:
+    # incomplete
+    version: int
+    checkout_opts: object
+    fetch_opts: FetchOptions
+    bare: int
+    local: object
+    checkout_branch: object
+    repository_cb: object
+    repository_cb_payload: object
+    remote_cb: object
+    remote_cb_payload: object
+
 class Commit(Object):
     author: Signature
     commit_time: int
@@ -904,5 +922,6 @@ def init_file_backend(path: str, flags: int = 0) -> object: ...
 def option(opt: Option, *args) -> None: ...
 def reference_is_valid_name(refname: str) -> bool: ...
 def tree_entry_cmp(a: Object, b: Object) -> int: ...
+def _cache_enums() -> None: ...
 
 _OidArg = str | Oid

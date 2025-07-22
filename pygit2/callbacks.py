@@ -79,7 +79,7 @@ _Credentials = Username | UserPass | Keypair
 
 if TYPE_CHECKING:
     from .remotes import TransferProgress
-    from ._pygit2 import ProxyOpts, PushOptions
+    from ._pygit2 import ProxyOpts, PushOptions, CloneOptions
 #
 # The payload is the way to pass information from the pygit2 API, through
 # libgit2, to the Python callbacks. And back.
@@ -87,6 +87,10 @@ if TYPE_CHECKING:
 
 
 class Payload:
+    repository: Callable | None
+    remote: Callable | None
+    clone_options: 'CloneOptions'
+
     def __init__(self, **kw: object) -> None:
         for key, value in kw.items():
             setattr(self, key, value)
