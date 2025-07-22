@@ -262,6 +262,16 @@ if [ "$1" = "test" ]; then
     $PREFIX/bin/pytest --cov=pygit2
 fi
 
+# Type checking
+if [ "$1" = "mypy" ]; then
+    shift
+    if [ -n "$WHEELDIR" ]; then
+        $PREFIX/bin/pip install $WHEELDIR/pygit2*-$PYTHON_TAG-*.whl
+    fi
+    $PREFIX/bin/pip install -r requirements-test.txt
+    $PREFIX/bin/mypy pygit2
+fi
+
 # Test .pyi stub file
 if [ "$1" = "stubtest" ]; then
     shift
