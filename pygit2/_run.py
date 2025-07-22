@@ -33,11 +33,11 @@ from pathlib import Path
 import sys
 
 # Import from cffi
-from cffi import FFI
+from cffi import FFI  # type: ignore
 
 # Import from pygit2
 try:
-    from _build import get_libgit2_paths
+    from _build import get_libgit2_paths  # type: ignore
 except ImportError:
     from ._build import get_libgit2_paths
 
@@ -85,7 +85,7 @@ h_files = [
 ]
 h_source = []
 for h_file in h_files:
-    h_file = dir_path / 'decl' / h_file
+    h_file = dir_path / 'decl' / h_file  # type: ignore
     with codecs.open(h_file, 'r', 'utf-8') as f:
         h_source.append(f.read())
 
