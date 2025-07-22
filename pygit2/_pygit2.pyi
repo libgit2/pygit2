@@ -448,6 +448,10 @@ class DiffStats:
     insertions: int
     def format(self, format: DiffStatsFormat, width: int) -> str: ...
 
+class FilterSource:
+    # probably incomplete
+    pass
+
 class GitError(Exception): ...
 class InvalidSpecError(ValueError): ...
 
