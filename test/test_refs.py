@@ -61,6 +61,7 @@ def test_refs_list(testrepo: Repository) -> None:
 def test_head(testrepo: Repository) -> None:
     head = testrepo.head
     assert LAST_COMMIT == testrepo[head.target].id
+    assert not isinstance(head.raw_target, bytes)
     assert LAST_COMMIT == testrepo[head.raw_target].id
 
 
@@ -248,6 +249,7 @@ def test_refs_create_symbolic(testrepo: Repository) -> None:
 def test_refs_peel(testrepo: Repository) -> None:
     ref = testrepo.references.get('refs/heads/master')
     assert testrepo[ref.target].id == ref.peel().id
+    assert not isinstance(ref.raw_target, bytes)
     assert testrepo[ref.raw_target].id == ref.peel().id
 
     commit = ref.peel(Commit)
