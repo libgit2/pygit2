@@ -1,6 +1,7 @@
 from typing import Iterator, Literal, Optional, overload, Type, TypedDict
 from io import IOBase, DEFAULT_BUFFER_SIZE
 from queue import Queue
+import tarfile
 from threading import Event
 from . import Index
 from .enums import (
@@ -290,6 +291,7 @@ class Object:
     type: 'Literal[GIT_OBJ_COMMIT] | Literal[GIT_OBJ_TREE] | Literal[GIT_OBJ_TAG] | Literal[GIT_OBJ_BLOB]'
     type_str: "Literal['commit'] | Literal['tree'] | Literal['tag'] | Literal['blob']"
     author: Signature
+    committer: Signature
     tree: Tree
     @overload
     def peel(
@@ -838,6 +840,13 @@ class Repository:
     def walk(
         self, oid: _OidArg | None, sort_mode: SortMode = SortMode.NONE
     ) -> Walker: ...
+    def write_archive(
+        self,
+        treeish: str | Tree | Object | Oid,
+        archive: tarfile.TarFile,
+        timestamp: int | None = None,
+        prefix: str = '',
+    ) -> None: ...
 
 class RevSpec:
     flags: int
