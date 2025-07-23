@@ -7,6 +7,7 @@ from .enums import (
     ApplyLocation,
     BranchType,
     BlobFilter,
+    CheckoutStrategy,
     DeltaStatus,
     DiffFind,
     DiffFlag,
@@ -25,7 +26,9 @@ from .enums import (
 from collections.abc import Generator
 
 from .repository import BaseRepository
+from .submodules import SubmoduleCollection, Submodule
 from .remotes import Remote
+from .callbacks import CheckoutCallbacks
 
 GIT_OBJ_BLOB = Literal[3]
 GIT_OBJ_COMMIT = Literal[1]
@@ -700,10 +703,12 @@ class Repository:
     references: References
     remotes: RemoteCollection
     branches: Branches
+    submodules: SubmoduleCollection
+    index: Index
     def __init__(self, *args, **kwargs) -> None: ...
     def TreeBuilder(self, src: Tree | _OidArg = ...) -> TreeBuilder: ...
     def _disown(self, *args, **kwargs) -> None: ...
-    def _from_c(self, *args, **kwargs) -> None: ...
+    def _from_c(self, *args, **kwargs) -> 'Repository': ...
     def __getitem__(self, key: str | Oid) -> Object: ...
     def add_worktree(self, name: str, path: str, ref: Reference = ...) -> Worktree: ...
     def applies(
@@ -714,6 +719,15 @@ class Repository:
     ) -> bool: ...
     def apply(
         self, diff: Diff, location: ApplyLocation = ApplyLocation.WORKDIR
+    ) -> None: ...
+    def checkout(
+        self,
+        refname: Optional[_OidArg],
+        *,
+        strategy: CheckoutStrategy | None = None,
+        directory: str | None = None,
+        paths: list[str] | None = None,
+        callbacks: CheckoutCallbacks | None = None,
     ) -> None: ...
     def cherrypick(self, id: _OidArg) -> None: ...
     def compress_references(self) -> None: ...

@@ -31,6 +31,8 @@ import socket
 import stat
 import sys
 import zipfile
+from typing import Optional
+from types import TracebackType
 
 # Requirements
 import pytest
@@ -94,11 +96,11 @@ def rmtree(path):
 
 
 class TemporaryRepository:
-    def __init__(self, name, tmp_path):
+    def __init__(self, name: str, tmp_path: Path) -> None:
         self.name = name
         self.tmp_path = tmp_path
 
-    def __enter__(self):
+    def __enter__(self) -> Path:
         path = Path(__file__).parent / 'data' / self.name
         temp_repo_path = Path(self.tmp_path) / path.stem
         if path.suffix == '.zip':
@@ -111,7 +113,12 @@ class TemporaryRepository:
 
         return temp_repo_path
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
         pass
 
 

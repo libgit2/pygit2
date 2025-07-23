@@ -25,6 +25,7 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Union
+from pathlib import Path
 
 from ._pygit2 import Oid
 from .callbacks import git_fetch_options, RemoteCallbacks
@@ -36,6 +37,7 @@ from .utils import to_bytes, maybe_string
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
     from .repository import BaseRepository
+    from pygit2 import Repository
 
 
 class Submodule:
@@ -51,10 +53,10 @@ class Submodule:
 
         return subm
 
-    def __del__(self):
+    def __del__(self) -> None:
         C.git_submodule_free(self._subm)
 
-    def open(self):
+    def open(self) -> Repository:
         """Open the repository for a submodule."""
         crepo = ffi.new('git_repository **')
         err = C.git_submodule_open(crepo, self._subm)
@@ -62,7 +64,7 @@ class Submodule:
 
         return self._repo._from_c(crepo[0], True)
 
-    def init(self, overwrite: bool = False):
+    def init(self, overwrite: bool = False) -> None:
         """
         Just like "git submodule init", this copies information about the submodule
         into ".git/config".
@@ -173,7 +175,7 @@ class SubmoduleCollection:
     def __init__(self, repository: BaseRepository):
         self._repository = repository
 
-    def __getitem__(self, name: str) -> Submodule:
+    def __getitem__(self, name: str | Path) -> Submodule:
         """
         Look up submodule information by name or path.
         Raises KeyError if there is no such submodule.
