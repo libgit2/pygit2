@@ -10,6 +10,7 @@ from .enums import (
     ApplyLocation,
     BranchType,
     BlobFilter,
+    BlameFlag,
     CheckoutStrategy,
     DeltaStatus,
     DiffFind,
@@ -28,10 +29,13 @@ from .enums import (
 )
 from collections.abc import Generator
 
+from ._pygit2_c import GitSignatureC, _Pointer
+
 from .repository import BaseRepository
 from .submodules import SubmoduleCollection, Submodule
 from .remotes import Remote
 from .callbacks import CheckoutCallbacks
+from .blame import Blame
 
 GIT_OBJ_BLOB = Literal[3]
 GIT_OBJ_COMMIT = Literal[1]
@@ -724,6 +728,16 @@ class Repository:
     def apply(
         self, diff: Diff, location: ApplyLocation = ApplyLocation.WORKDIR
     ) -> None: ...
+    def blame(
+        self,
+        path: str,
+        flags: BlameFlag = BlameFlag.NORMAL,
+        min_match_characters: int | None = None,
+        newest_commit: _OidArg | None = None,
+        oldest_commit: _OidArg | None = None,
+        min_line: int | None = None,
+        max_line: int | None = None,
+    ) -> Blame: ...
     def checkout(
         self,
         refname: Optional[_OidArg],
@@ -864,7 +878,7 @@ class RevSpec:
 
 class Signature:
     _encoding: str | None
-    _pointer: bytes
+    _pointer: _Pointer[GitSignatureC]
     email: str
     name: str
     offset: int

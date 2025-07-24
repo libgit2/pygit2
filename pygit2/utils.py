@@ -29,6 +29,8 @@ import os
 # Import from pygit2
 from .ffi import ffi, C
 
+from typing import Protocol, Iterator, TypeVar, Generic
+
 
 def maybe_string(ptr):
     if not ptr:
@@ -153,22 +155,31 @@ class StrArray:
             git_strarray.count = len(self.__strings)
 
 
-class GenericIterator:
+T = TypeVar('T')
+U = TypeVar('U', covariant=True)
+
+
+class SequenceProtocol(Protocol[U]):
+    def __len__(self) -> int: ...
+    def __getitem__(self, index: int) -> U: ...
+
+
+class GenericIterator(Generic[T]):
     """Helper to easily implement an iterator.
 
     The constructor gets a container which must implement __len__ and
     __getitem__
     """
 
-    def __init__(self, container):
+    def __init__(self, container: SequenceProtocol[T]) -> None:
         self.container = container
         self.length = len(container)
         self.idx = 0
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         return self
 
-    def __next__(self):
+    def __next__(self) -> T:
         idx = self.idx
         if idx >= self.length:
             raise StopIteration
