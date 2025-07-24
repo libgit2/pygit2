@@ -1,10 +1,12 @@
 from typing import Iterator, Literal, Optional, overload, Type, TypedDict
 from io import IOBase, DEFAULT_BUFFER_SIZE
+from pathlib import Path
 from queue import Queue
 import tarfile
 from threading import Event
 from . import Index
 from .enums import (
+    AttrCheck,
     ApplyLocation,
     BranchType,
     BlobFilter,
@@ -793,6 +795,13 @@ class Repository:
     def descendant_of(self, oid1: _OidArg, oid2: _OidArg) -> bool: ...
     def expand_id(self, hex: str) -> Oid: ...
     def free(self) -> None: ...
+    def get_attr(
+        self,
+        path: str | bytes | Path,
+        name: str | bytes,
+        flags: AttrCheck = AttrCheck.FILE_THEN_INDEX,
+        commit: _OidArg | None = None,
+    ) -> bool | None | str: ...
     def git_object_lookup_prefix(self, oid: _OidArg) -> Object: ...
     def list_worktrees(self) -> list[str]: ...
     def listall_branches(self, flag: BranchType = BranchType.LOCAL) -> list[str]: ...

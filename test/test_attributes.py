@@ -26,8 +26,10 @@
 # Standard Library
 from pathlib import Path
 
+from pygit2 import Repository
 
-def test_no_attr(testrepo):
+
+def test_no_attr(testrepo: Repository) -> None:
     assert testrepo.get_attr('file', 'foo') is None
 
     with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
@@ -41,7 +43,7 @@ def test_no_attr(testrepo):
     assert 'lf' == testrepo.get_attr('file.sh', 'eol')
 
 
-def test_no_attr_aspath(testrepo):
+def test_no_attr_aspath(testrepo: Repository) -> None:
     with (Path(testrepo.workdir) / '.gitattributes').open('w+') as f:
         print('*.py  text\n', file=f)
 
