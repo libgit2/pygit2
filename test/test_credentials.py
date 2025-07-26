@@ -29,7 +29,14 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import Keypair, KeypairFromAgent, KeypairFromMemory, Username, UserPass
+from pygit2 import (
+    Keypair,
+    KeypairFromAgent,
+    KeypairFromMemory,
+    Repository,
+    Username,
+    UserPass,
+)
 from pygit2.enums import CredentialType
 
 from . import utils
@@ -44,13 +51,13 @@ REMOTE_REPO_BYTES = 2758
 ORIGIN_REFSPEC = '+refs/heads/*:refs/remotes/origin/*'
 
 
-def test_username():
+def test_username() -> None:
     username = 'git'
     cred = Username(username)
     assert (username,) == cred.credential_tuple
 
 
-def test_userpass():
+def test_userpass() -> None:
     username = 'git'
     password = 'sekkrit'
 
@@ -58,7 +65,7 @@ def test_userpass():
     assert (username, password) == cred.credential_tuple
 
 
-def test_ssh_key():
+def test_ssh_key() -> None:
     username = 'git'
     pubkey = 'id_rsa.pub'
     privkey = 'id_rsa'
@@ -68,7 +75,7 @@ def test_ssh_key():
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
 
-def test_ssh_key_aspath():
+def test_ssh_key_aspath() -> None:
     username = 'git'
     pubkey = Path('id_rsa.pub')
     privkey = Path('id_rsa')
@@ -78,14 +85,14 @@ def test_ssh_key_aspath():
     assert (username, pubkey, privkey, passphrase) == cred.credential_tuple
 
 
-def test_ssh_agent():
+def test_ssh_agent() -> None:
     username = 'git'
 
     cred = KeypairFromAgent(username)
     assert (username, None, None, None) == cred.credential_tuple
 
 
-def test_ssh_from_memory():
+def test_ssh_from_memory() -> None:
     username = 'git'
     pubkey = 'public key data'
     privkey = 'private key data'
@@ -97,7 +104,7 @@ def test_ssh_from_memory():
 
 @utils.requires_network
 @utils.requires_ssh
-def test_keypair(tmp_path, pygit2_empty_key):
+def test_keypair(tmp_path: Path, pygit2_empty_key: tuple[Path, str, str]) -> None:
     url = 'ssh://git@github.com/pygit2/empty'
     with pytest.raises(pygit2.GitError):
         pygit2.clone_repository(url, tmp_path)
@@ -111,7 +118,9 @@ def test_keypair(tmp_path, pygit2_empty_key):
 
 @utils.requires_network
 @utils.requires_ssh
-def test_keypair_from_memory(tmp_path, pygit2_empty_key):
+def test_keypair_from_memory(
+    tmp_path: Path, pygit2_empty_key: tuple[Path, str, str]
+) -> None:
     url = 'ssh://git@github.com/pygit2/empty'
     with pytest.raises(pygit2.GitError):
         pygit2.clone_repository(url, tmp_path)
@@ -128,7 +137,7 @@ def test_keypair_from_memory(tmp_path, pygit2_empty_key):
     pygit2.clone_repository(url, tmp_path, callbacks=callbacks)
 
 
-def test_callback(testrepo):
+def test_callback(testrepo: Repository):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(testrepo, url, username, allowed):
             assert allowed & CredentialType.USERPASS_PLAINTEXT
@@ -141,7 +150,7 @@ def test_callback(testrepo):
 
 
 @utils.requires_network
-def test_bad_cred_type(testrepo):
+def test_bad_cred_type(testrepo: Repository):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def credentials(testrepo, url, username, allowed):
             assert allowed & CredentialType.USERPASS_PLAINTEXT
@@ -154,7 +163,7 @@ def test_bad_cred_type(testrepo):
 
 
 @utils.requires_network
-def test_fetch_certificate_check(testrepo):
+def test_fetch_certificate_check(testrepo: Repository):
     class MyCallbacks(pygit2.RemoteCallbacks):
         def certificate_check(testrepo, certificate, valid, host):
             assert certificate is None
@@ -179,7 +188,7 @@ def test_fetch_certificate_check(testrepo):
 
 
 @utils.requires_network
-def test_user_pass(testrepo):
+def test_user_pass(testrepo: Repository):
     credentials = UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
@@ -191,7 +200,7 @@ def test_user_pass(testrepo):
 @utils.requires_proxy
 @utils.requires_network
 @utils.requires_future_libgit2
-def test_proxy(testrepo):
+def test_proxy(testrepo: Repository):
     credentials = UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
