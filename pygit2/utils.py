@@ -29,7 +29,7 @@ import os
 # Import from pygit2
 from .ffi import ffi, C
 
-from typing import Protocol, Iterator, TypeVar, Generic
+from typing import Protocol, Iterator, TypeVar, Generic, Union
 
 
 def maybe_string(ptr):
@@ -39,7 +39,11 @@ def maybe_string(ptr):
     return ffi.string(ptr).decode('utf8', errors='surrogateescape')
 
 
-def to_bytes(s, encoding='utf-8', errors='strict'):
+def to_bytes(
+    s: Union[str, bytes, 'ffi.NULL_TYPE', os.PathLike[str], None],
+    encoding: str = 'utf-8',
+    errors: str = 'strict',
+) -> Union[bytes, 'ffi.NULL_TYPE']:
     if s == ffi.NULL or s is None:
         return ffi.NULL
 
@@ -49,7 +53,7 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
     if isinstance(s, bytes):
         return s
 
-    return s.encode(encoding, errors)
+    return s.encode(encoding, errors)  # type: ignore[union-attr]
 
 
 def to_str(s):

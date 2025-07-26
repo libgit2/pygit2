@@ -1,4 +1,13 @@
-from typing import Iterator, Literal, Optional, overload, Type, TypedDict
+from typing import (
+    Iterator,
+    Literal,
+    Optional,
+    overload,
+    Type,
+    TypedDict,
+    TypeVar,
+    Generic,
+)
 from io import IOBase, DEFAULT_BUFFER_SIZE
 from pathlib import Path
 from queue import Queue
@@ -29,7 +38,14 @@ from .enums import (
 )
 from collections.abc import Generator
 
-from ._pygit2_c import GitSignatureC, _Pointer
+from ._libgit2.ffi import (
+    _Pointer,
+    GitObjectC,
+    GitCommitC,
+    GitRepositoryC,
+    GitProxyOptionsC,
+    GitSignatureC,
+)
 
 from .repository import BaseRepository
 from .submodules import SubmoduleCollection, Submodule
@@ -287,8 +303,10 @@ GIT_FILTER_NO_SYSTEM_ATTRIBUTES: int
 GIT_FILTER_ATTRIBUTES_FROM_HEAD: int
 GIT_FILTER_ATTRIBUTES_FROM_COMMIT: int
 
-class Object:
-    _pointer: bytes
+T = TypeVar('T')
+
+class _ObjectBase(Generic[T]):
+    _pointer: _Pointer[T]
     filemode: FileMode
     id: Oid
     name: str | None
@@ -319,6 +337,9 @@ class Object:
     def __le__(self, other) -> bool: ...
     def __lt__(self, other) -> bool: ...
     def __ne__(self, other) -> bool: ...
+
+class Object(_ObjectBase[GitObjectC]):
+    pass
 
 class Reference:
     name: str
@@ -395,7 +416,7 @@ class Branch(Reference):
 class FetchOptions:
     # incomplete
     depth: int
-    proxy_opts: ProxyOpts
+    proxy_opts: GitProxyOptionsC
 
 class CloneOptions:
     # incomplete
@@ -410,7 +431,8 @@ class CloneOptions:
     remote_cb: object
     remote_cb_payload: object
 
-class Commit(Object):
+class Commit(_ObjectBase[GitCommitC]):
+    _pointer: _Pointer[GitCommitC]
     author: Signature
     commit_time: int
     commit_time_offset: int
@@ -640,16 +662,11 @@ class _StrArray:
     # incomplete
     count: int
 
-class ProxyOpts:
-    # incomplete
-    type: object
-    url: str
-
 class PushOptions:
     version: int
     pb_parallelism: int
     callbacks: object  # TODO
-    proxy_opts: ProxyOpts
+    proxy_opts: GitProxyOptionsC
     follow_redirects: object  # TODO
     custom_headers: _StrArray
     remote_push_options: _StrArray
@@ -696,7 +713,7 @@ class Branches:
     def __contains__(self, name: _OidArg) -> bool: ...
 
 class Repository:
-    _pointer: bytes
+    _pointer: GitRepositoryC
     default_signature: Signature
     head: Reference
     head_is_detached: bool
@@ -716,7 +733,8 @@ class Repository:
     def __init__(self, *args, **kwargs) -> None: ...
     def TreeBuilder(self, src: Tree | _OidArg = ...) -> TreeBuilder: ...
     def _disown(self, *args, **kwargs) -> None: ...
-    def _from_c(self, *args, **kwargs) -> 'Repository': ...
+    @classmethod
+    def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
     def __getitem__(self, key: str | Oid) -> Object: ...
     def add_worktree(self, name: str, path: str, ref: Reference = ...) -> Worktree: ...
     def applies(

@@ -29,7 +29,7 @@ from string import hexdigits
 from time import time
 import tarfile
 import typing
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 # Import from pygit2
 from ._pygit2 import Repository as _Repository, init_file_backend
@@ -63,6 +63,9 @@ from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
 from .utils import to_bytes, StrArray
+
+if TYPE_CHECKING:
+    from pygit2._libgit2.ffi import GitRepositoryC
 
 
 class BaseRepository(_Repository):
@@ -167,6 +170,7 @@ class BaseRepository(_Repository):
         """
         c_path = to_bytes(path)
 
+        c_as_path: ffi.NULL_TYPE | bytes
         if as_path is None:
             c_as_path = ffi.NULL
         else:
@@ -615,6 +619,7 @@ class BaseRepository(_Repository):
         """
 
         options = ffi.new('git_blame_options *')
+
         C.git_blame_options_init(options, C.GIT_BLAME_OPTIONS_VERSION)
         if flags:
             options.flags = int(flags)
@@ -1658,10 +1663,10 @@ class Repository(BaseRepository):
             super().__init__()
 
     @classmethod
-    def _from_c(cls, ptr, owned):
+    def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository':
         cptr = ffi.new('git_repository **')
         cptr[0] = ptr
         repo = cls.__new__(cls)
-        BaseRepository._from_c(repo, bytes(ffi.buffer(cptr)[:]), owned)
+        BaseRepository._from_c(repo, bytes(ffi.buffer(cptr)[:]), owned)  # type: ignore
         repo._common_init()
         return repo

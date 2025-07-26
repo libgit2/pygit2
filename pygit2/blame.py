@@ -31,7 +31,7 @@ from .utils import GenericIterator
 from ._pygit2 import Signature, Oid, Repository
 
 if TYPE_CHECKING:
-    from ._pygit2_c import GitSignatureC, GitHunkC, GitBlameC
+    from ._libgit2.ffi import GitSignatureC, GitHunkC, GitBlameC
 
 
 def wrap_signature(csig: 'GitSignatureC') -> None | Signature:
@@ -108,7 +108,7 @@ class BlameHunk:
         if not path:
             return None
 
-        return ffi.string(path).decode('utf-8')  # type: ignore[no-any-return]
+        return ffi.string(path).decode('utf-8')
 
 
 class Blame:

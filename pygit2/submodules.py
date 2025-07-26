@@ -38,14 +38,15 @@ from .utils import to_bytes, maybe_string
 if TYPE_CHECKING:
     from .repository import BaseRepository
     from pygit2 import Repository
+    from pygit2._libgit2.ffi import GitSubmoduleC
 
 
 class Submodule:
     _repo: BaseRepository
-    _subm: object
+    _subm: 'GitSubmoduleC'
 
     @classmethod
-    def _from_c(cls, repo: BaseRepository, cptr):
+    def _from_c(cls, repo: BaseRepository, cptr: 'GitSubmoduleC') -> 'Submodule':
         subm = cls.__new__(cls)
 
         subm._repo = repo

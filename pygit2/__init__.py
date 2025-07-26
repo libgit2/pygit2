@@ -164,7 +164,7 @@ def clone_repository(
     callbacks: RemoteCallbacks | None = None,
     depth: int = 0,
     proxy: None | bool | str = None,
-):
+) -> Repository:
     """
     Clones a new Git repository from *url* in the given *path*.
 

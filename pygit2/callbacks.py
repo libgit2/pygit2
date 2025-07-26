@@ -79,7 +79,8 @@ _Credentials = Username | UserPass | Keypair
 
 if TYPE_CHECKING:
     from .remotes import TransferProgress
-    from ._pygit2 import ProxyOpts, PushOptions, CloneOptions
+    from ._pygit2 import PushOptions, CloneOptions
+    from pygit2._libgit2.ffi import GitProxyOptionsC
 #
 # The payload is the way to pass information from the pygit2 API, through
 # libgit2, to the Python callbacks. And back.
@@ -390,9 +391,9 @@ def git_fetch_options(payload, opts=None):
 @contextmanager
 def git_proxy_options(
     payload: object,
-    opts: Optional['ProxyOpts'] = None,
+    opts: Optional['GitProxyOptionsC'] = None,
     proxy: None | bool | str = None,
-) -> Generator['ProxyOpts', None, None]:
+) -> Generator['GitProxyOptionsC', None, None]:
     if opts is None:
         opts = ffi.new('git_proxy_options *')
         C.git_proxy_options_init(opts, C.GIT_PROXY_OPTIONS_VERSION)
