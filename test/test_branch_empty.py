@@ -23,37 +23,40 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from typing import Generator
+
 import pytest
 
+from pygit2 import Commit, Repository
 from pygit2.enums import BranchType
 
 ORIGIN_MASTER_COMMIT = '784855caf26449a1914d2cf62d12b9374d76ae78'
 
 
 @pytest.fixture
-def repo(emptyrepo):
+def repo(emptyrepo: Repository) -> Generator[Repository, None, None]:
     remote = emptyrepo.remotes[0]
     remote.fetch()
     yield emptyrepo
 
 
-def test_branches_remote_get(repo):
+def test_branches_remote_get(repo: Repository) -> None:
     branch = repo.branches.remote.get('origin/master')
     assert branch.target == ORIGIN_MASTER_COMMIT
     assert repo.branches.remote.get('origin/not-exists') is None
 
 
-def test_branches_remote(repo):
+def test_branches_remote(repo: Repository) -> None:
     branches = sorted(repo.branches.remote)
     assert branches == ['origin/master']
 
 
-def test_branches_remote_getitem(repo):
+def test_branches_remote_getitem(repo: Repository) -> None:
     branch = repo.branches.remote['origin/master']
     assert branch.remote_name == 'origin'
 
 
-def test_branches_upstream(repo):
+def test_branches_upstream(repo: Repository) -> None:
     remote_master = repo.branches.remote['origin/master']
     master = repo.branches.create('master', repo[remote_master.target])
 
@@ -71,7 +74,7 @@ def test_branches_upstream(repo):
     assert master.upstream is None
 
 
-def test_branches_upstream_name(repo):
+def test_branches_upstream_name(repo: Repository) -> None:
     remote_master = repo.branches.remote['origin/master']
     master = repo.branches.create('master', repo[remote_master.target])
 
@@ -84,28 +87,30 @@ def test_branches_upstream_name(repo):
 #
 
 
-def test_lookup_branch_remote(repo):
+def test_lookup_branch_remote(repo: Repository) -> None:
     branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
     assert branch.target == ORIGIN_MASTER_COMMIT
     assert repo.lookup_branch('origin/not-exists', BranchType.REMOTE) is None
 
 
-def test_listall_branches(repo):
+def test_listall_branches(repo: Repository) -> None:
     branches = sorted(repo.listall_branches(BranchType.REMOTE))
     assert branches == ['origin/master']
 
-    branches = sorted(repo.raw_listall_branches(BranchType.REMOTE))
-    assert branches == [b'origin/master']
+    branches_raw = sorted(repo.raw_listall_branches(BranchType.REMOTE))
+    assert branches_raw == [b'origin/master']
 
 
-def test_branch_remote_name(repo):
+def test_branch_remote_name(repo: Repository) -> None:
     branch = repo.lookup_branch('origin/master', BranchType.REMOTE)
     assert branch.remote_name == 'origin'
 
 
-def test_branch_upstream(repo):
+def test_branch_upstream(repo: Repository) -> None:
     remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
-    master = repo.create_branch('master', repo[remote_master.target])
+    commit = repo[remote_master.target]
+    assert isinstance(commit, Commit)
+    master = repo.create_branch('master', commit)
 
     assert master.upstream is None
     master.upstream = remote_master
@@ -121,9 +126,11 @@ def test_branch_upstream(repo):
     assert master.upstream is None
 
 
-def test_branch_upstream_name(repo):
+def test_branch_upstream_name(repo: Repository) -> None:
     remote_master = repo.lookup_branch('origin/master', BranchType.REMOTE)
-    master = repo.create_branch('master', repo[remote_master.target])
+    commit = repo[remote_master.target]
+    assert isinstance(commit, Commit)
+    master = repo.create_branch('master', commit)
 
     master.upstream = remote_master
     assert master.upstream_name == 'refs/remotes/origin/master'
