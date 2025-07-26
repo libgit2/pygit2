@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pygit2 import Oid, Signature
+from pygit2 import Commit, Oid, Repository, Signature
 from pygit2.enums import ObjectType
 
 content = """\
@@ -84,7 +84,7 @@ a simple commit which works\
 # XXX: seems macos wants the space while linux does not
 
 
-def test_commit_signing(gpgsigned):
+def test_commit_signing(gpgsigned: Repository) -> None:
     repo = gpgsigned
     message = 'a simple commit which works'
     author = Signature(
@@ -111,6 +111,7 @@ def test_commit_signing(gpgsigned):
     # create/retrieve signed commit
     oid = repo.create_commit_with_signature(content, gpgsig)
     commit = repo.get(oid)
+    assert isinstance(commit, Commit)
     signature, payload = commit.gpg_signature
 
     # validate signed commit
@@ -133,11 +134,12 @@ def test_commit_signing(gpgsigned):
     assert Oid(hex=parent) == commit.parent_ids[0]
 
 
-def test_get_gpg_signature_when_unsigned(gpgsigned):
+def test_get_gpg_signature_when_unsigned(gpgsigned: Repository) -> None:
     unhash = '5b5b025afb0b4c913b4c338a42934a3863bf3644'
 
     repo = gpgsigned
     commit = repo.get(unhash)
+    assert isinstance(commit, Commit)
     signature, payload = commit.gpg_signature
 
     assert signature is None

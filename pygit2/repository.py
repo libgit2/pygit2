@@ -202,7 +202,7 @@ class BaseRepository(_Repository):
     #
     # Mapping interface
     #
-    def get(self, key: str, default: Optional[Commit] = None) -> Object:
+    def get(self, key: str | Oid, default: Optional[Commit] = None) -> Object:
         value = self.git_object_lookup_prefix(key)
         return value if (value is not None) else default
 
