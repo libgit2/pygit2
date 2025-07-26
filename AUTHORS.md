@@ -16,6 +16,7 @@ Authors:
     Richo Healey
     Christian Boos
     Julien Miotte
+    Benedikt Seidl
     Nick Hynes
     Richard Möhn
     Xu Tao
@@ -34,6 +35,7 @@ Authors:
     Xavier Delannoy
     Michael Jones
     Saugat Pachhai
+    Andrej730
     Bernardo Heynemann
     John Szakmeister
     Nabijacz Leweli
@@ -66,6 +68,7 @@ Authors:
     Assaf Nativ
     Bob Carroll
     Christian Häggström
+    Edmundo Carmona Antoranz
     Erik Johnson
     Filip Rindler
     Fraser Tweedale
@@ -133,6 +136,7 @@ Authors:
     Albin Söderström
     Alexandru Fikl
     Andrew Chin
+    Andrew McNulty
     Andrey Trubachev
     András Veres-Szentkirályi
     Ash Berlin
@@ -163,7 +167,6 @@ Authors:
     David Six
     Dennis Schwertel
     Devaev Maxim
-    Edmundo Carmona Antoranz
     Eric Davis
     Erik Meusel
     Erik van Zijst
@@ -220,6 +223,7 @@ Authors:
     Rui Chen
     Sandro Jäckel
     Saul Pwanson
+    Sebastian Hamann
     Shane Turner
     Sheeo
     Simone Mosciatti

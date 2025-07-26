@@ -1,9 +1,12 @@
-# 1.18.1 (UNRELEASED)
+# 1.18.1 (2025-07-26)
 
 - Update wheels to libgit2 1.9.1 and OpenSSL 3.3
 
 - New `Index.remove_directory(...)`
   [#1377](https://github.com/libgit2/pygit2/pull/1377)
+
+- New `Index.add_conflict(...)`
+  [#1382](https://github.com/libgit2/pygit2/pull/1382)
 
 - Now `Repository.merge_file_from_index(...)` returns a `MergeFileResult` object when
   called with `use_deprecated=False`
@@ -15,6 +18,7 @@
   [#1371](https://github.com/libgit2/pygit2/pull/1371)
   [#1373](https://github.com/libgit2/pygit2/pull/1373)
   [#1384](https://github.com/libgit2/pygit2/pull/1384)
+  [#1386](https://github.com/libgit2/pygit2/pull/1386)
 
 Deprecations:
 
