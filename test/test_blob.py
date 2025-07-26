@@ -33,6 +33,7 @@ from threading import Event
 import pytest
 
 import pygit2
+from pygit2 import Repository
 from pygit2.enums import ObjectType
 
 from . import utils
@@ -80,7 +81,7 @@ index a520c24..0000000
 """
 
 
-def test_read_blob(testrepo):
+def test_read_blob(testrepo: Repository) -> None:
     blob = testrepo[BLOB_SHA]
     assert blob.id == BLOB_SHA
     assert blob.id == BLOB_SHA
@@ -92,7 +93,7 @@ def test_read_blob(testrepo):
     assert BLOB_CONTENT == blob.read_raw()
 
 
-def test_create_blob(testrepo):
+def test_create_blob(testrepo: Repository) -> None:
     blob_oid = testrepo.create_blob(BLOB_NEW_CONTENT)
     blob = testrepo[blob_oid]
 
@@ -116,7 +117,7 @@ def test_create_blob(testrepo):
         set_content()
 
 
-def test_create_blob_fromworkdir(testrepo):
+def test_create_blob_fromworkdir(testrepo: Repository) -> None:
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
 
@@ -131,19 +132,19 @@ def test_create_blob_fromworkdir(testrepo):
     assert BLOB_FILE_CONTENT == blob.read_raw()
 
 
-def test_create_blob_fromworkdir_aspath(testrepo):
+def test_create_blob_fromworkdir_aspath(testrepo: Repository) -> None:
     blob_oid = testrepo.create_blob_fromworkdir(Path('bye.txt'))
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
 
 
-def test_create_blob_outside_workdir(testrepo):
+def test_create_blob_outside_workdir(testrepo: Repository) -> None:
     with pytest.raises(KeyError):
         testrepo.create_blob_fromworkdir(__file__)
 
 
-def test_create_blob_fromdisk(testrepo):
+def test_create_blob_fromdisk(testrepo: Repository) -> None:
     blob_oid = testrepo.create_blob_fromdisk(__file__)
     blob = testrepo[blob_oid]
 
@@ -151,9 +152,9 @@ def test_create_blob_fromdisk(testrepo):
     assert ObjectType.BLOB == blob.type
 
 
-def test_create_blob_fromiobase(testrepo):
+def test_create_blob_fromiobase(testrepo: Repository) -> None:
     with pytest.raises(TypeError):
-        testrepo.create_blob_fromiobase('bad type')
+        testrepo.create_blob_fromiobase('bad type')  # type: ignore
 
     f = io.BytesIO(BLOB_CONTENT)
     blob_oid = testrepo.create_blob_fromiobase(f)
@@ -166,54 +167,64 @@ def test_create_blob_fromiobase(testrepo):
     assert BLOB_SHA == blob_oid
 
 
-def test_diff_blob(testrepo):
+def test_diff_blob(testrepo: Repository) -> None:
     blob = testrepo[BLOB_SHA]
+    assert isinstance(blob, pygit2.Blob)
     old_blob = testrepo['3b18e512dba79e4c8300dd08aeb37f8e728b8dad']
+    assert isinstance(old_blob, pygit2.Blob)
     patch = blob.diff(old_blob, old_as_path='hello.txt')
     assert len(patch.hunks) == 1
 
 
-def test_diff_blob_to_buffer(testrepo):
+def test_diff_blob_to_buffer(testrepo: Repository) -> None:
     blob = testrepo[BLOB_SHA]
+    assert isinstance(blob, pygit2.Blob)
     patch = blob.diff_to_buffer('hello world')
     assert len(patch.hunks) == 1
 
 
-def test_diff_blob_to_buffer_patch_patch(testrepo):
+def test_diff_blob_to_buffer_patch_patch(testrepo: Repository) -> None:
     blob = testrepo[BLOB_SHA]
+    assert isinstance(blob, pygit2.Blob)
     patch = blob.diff_to_buffer('hello world')
     assert patch.text == BLOB_PATCH
 
 
-def test_diff_blob_to_buffer_delete(testrepo):
+def test_diff_blob_to_buffer_delete(testrepo: Repository) -> None:
     blob = testrepo[BLOB_SHA]
+    assert isinstance(blob, pygit2.Blob)
     patch = blob.diff_to_buffer(None)
     assert patch.text == BLOB_PATCH_DELETED
 
 
-def test_diff_blob_create(testrepo):
+def test_diff_blob_create(testrepo: Repository) -> None:
     old = testrepo[testrepo.create_blob(BLOB_CONTENT)]
     new = testrepo[testrepo.create_blob(BLOB_NEW_CONTENT)]
+    assert isinstance(old, pygit2.Blob)
+    assert isinstance(new, pygit2.Blob)
 
     patch = old.diff(new)
     assert patch.text == BLOB_PATCH_2
 
 
-def test_blob_from_repo(testrepo):
+def test_blob_from_repo(testrepo: Repository) -> None:
     blob = testrepo[BLOB_SHA]
+    assert isinstance(blob, pygit2.Blob)
     patch_one = blob.diff_to_buffer(None)
 
     blob = testrepo[BLOB_SHA]
+    assert isinstance(blob, pygit2.Blob)
     patch_two = blob.diff_to_buffer(None)
 
     assert patch_one.text == patch_two.text
 
 
-def test_blob_write_to_queue(testrepo):
-    queue = Queue()
+def test_blob_write_to_queue(testrepo: Repository) -> None:
+    queue: Queue[bytes] = Queue()
     ready = Event()
     done = Event()
     blob = testrepo[BLOB_SHA]
+    assert isinstance(blob, pygit2.Blob)
     blob._write_to_queue(queue, ready, done)
     assert ready.wait()
     assert done.wait()
@@ -223,12 +234,13 @@ def test_blob_write_to_queue(testrepo):
     assert BLOB_CONTENT == b''.join(chunks)
 
 
-def test_blob_write_to_queue_filtered(testrepo):
-    queue = Queue()
+def test_blob_write_to_queue_filtered(testrepo: Repository) -> None:
+    queue: Queue[bytes] = Queue()
     ready = Event()
     done = Event()
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
+    assert isinstance(blob, pygit2.Blob)
     blob._write_to_queue(queue, ready, done, as_path='bye.txt')
     assert ready.wait()
     assert done.wait()
@@ -238,17 +250,19 @@ def test_blob_write_to_queue_filtered(testrepo):
     assert b'bye world\n' == b''.join(chunks)
 
 
-def test_blobio(testrepo):
+def test_blobio(testrepo: Repository) -> None:
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
+    assert isinstance(blob, pygit2.Blob)
     with pygit2.BlobIO(blob) as reader:
         assert b'bye world\n' == reader.read()
-    assert not reader.raw._thread.is_alive()
+    assert not reader.raw._thread.is_alive()  # type: ignore[attr-defined]
 
 
-def test_blobio_filtered(testrepo):
+def test_blobio_filtered(testrepo: Repository) -> None:
     blob_oid = testrepo.create_blob_fromworkdir('bye.txt')
     blob = testrepo[blob_oid]
+    assert isinstance(blob, pygit2.Blob)
     with pygit2.BlobIO(blob, as_path='bye.txt') as reader:
         assert b'bye world\n' == reader.read()
-    assert not reader.raw._thread.is_alive()
+    assert not reader.raw._thread.is_alive()  # type: ignore[attr-defined]

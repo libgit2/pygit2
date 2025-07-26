@@ -235,7 +235,7 @@ static void blob_filter_stream_free(git_writestream *s)
 
 
 PyDoc_STRVAR(Blob__write_to_queue__doc__,
-  "_write_to_queue(queue: queue.Queue, closed: threading.Event, chunk_size: int = io.DEFAULT_BUFFER_SIZE, [as_path: str = None, flags: enums.BlobFilter = enums.BlobFilter.CHECK_FOR_BINARY, commit_id: oid = None]) -> None\n"
+  "_write_to_queue(queue: queue.Queue, ready: threading.Event, done: threading.Event, chunk_size: int = io.DEFAULT_BUFFER_SIZE, [as_path: str = None, flags: enums.BlobFilter = enums.BlobFilter.CHECK_FOR_BINARY, commit_id: oid = None]) -> None\n"
   "\n"
   "Write the contents of the blob in chunks to `queue`.\n"
   "If `as_path` is None, the raw contents of blob will be written to the queue,\n"
