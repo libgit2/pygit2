@@ -30,23 +30,26 @@ from pathlib import Path
 import pytest
 
 import pygit2
+from pygit2 import Repository
 from pygit2.enums import RepositoryState
 
 
-def test_cherrypick_none(mergerepo):
+def test_cherrypick_none(mergerepo: Repository) -> None:
     with pytest.raises(TypeError):
-        mergerepo.cherrypick(None)
+        mergerepo.cherrypick(None)  # type: ignore
 
 
-def test_cherrypick_invalid_hex(mergerepo):
+def test_cherrypick_invalid_hex(mergerepo: Repository) -> None:
     branch_head_hex = '12345678'
     with pytest.raises(KeyError):
         mergerepo.cherrypick(branch_head_hex)
 
 
-def test_cherrypick_already_something_in_index(mergerepo):
+def test_cherrypick_already_something_in_index(mergerepo: Repository) -> None:
     branch_head_hex = '03490f16b15a09913edb3a067a3dc67fbb8d41f1'
-    branch_oid = mergerepo.get(branch_head_hex).id
+    branch_object = mergerepo.get(branch_head_hex)
+    assert branch_object is not None
+    branch_oid = branch_object.id
     with (Path(mergerepo.workdir) / 'inindex.txt').open('w') as f:
         f.write('new content')
     mergerepo.index.add('inindex.txt')
@@ -54,7 +57,7 @@ def test_cherrypick_already_something_in_index(mergerepo):
         mergerepo.cherrypick(branch_oid)
 
 
-def test_cherrypick_remove_conflicts(mergerepo):
+def test_cherrypick_remove_conflicts(mergerepo: Repository) -> None:
     assert mergerepo.state() == RepositoryState.NONE
     assert not mergerepo.message
 
