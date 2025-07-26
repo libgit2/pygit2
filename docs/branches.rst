@@ -26,14 +26,14 @@ Example::
     >>> remote_branches = list(repo.branches.remote)
 
     >>> # Get a branch
-    >>> branch = repo.branches['master']
+    >>> master_branch = repo.branches['master']
     >>> other_branch = repo.branches['does-not-exist']  # Will raise a KeyError
     >>> other_branch = repo.branches.get('does-not-exist')  # Returns None
 
     >>> remote_branch = repo.branches.remote['upstream/feature']
 
-    >>> # Create a local branch
-    >>> new_branch = repo.branches.local.create('new-branch')
+    >>> # Create a local branch, branching from master
+    >>> new_branch = repo.branches.local.create('new-branch', repo[master_branch.target])
 
     >>> And delete it
     >>> repo.branches.delete('new-branch')
