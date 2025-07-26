@@ -25,7 +25,7 @@
 
 import contextlib
 import os
-from typing import Generic, Iterator, Protocol, TypeVar, Union
+from typing import Generic, Iterator, Protocol, TypeVar, Union, overload
 
 # Import from pygit2
 from .ffi import C, ffi
@@ -38,6 +38,18 @@ def maybe_string(ptr):
     return ffi.string(ptr).decode('utf8', errors='surrogateescape')
 
 
+@overload
+def to_bytes(
+    s: Union[str, bytes, os.PathLike[str]],
+    encoding: str = 'utf-8',
+    errors: str = 'strict',
+) -> bytes: ...
+@overload
+def to_bytes(
+    s: Union['ffi.NULL_TYPE', None],
+    encoding: str = 'utf-8',
+    errors: str = 'strict',
+) -> Union['ffi.NULL_TYPE']: ...
 def to_bytes(
     s: Union[str, bytes, 'ffi.NULL_TYPE', os.PathLike[str], None],
     encoding: str = 'utf-8',

@@ -23,6 +23,9 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from os import PathLike
+from typing import TYPE_CHECKING
+
 try:
     from functools import cached_property
 except ImportError:
@@ -33,8 +36,11 @@ from .errors import check_error
 from .ffi import C, ffi
 from .utils import to_bytes
 
+if TYPE_CHECKING:
+    from ._libgit2.ffi import GitConfigC, GitConfigEntryC, GitRepositoryC
 
-def str_to_bytes(value, name):
+
+def str_to_bytes(value: str | PathLike[str] | bytes, name: str) -> bytes:
     if not isinstance(value, str):
         raise TypeError(f'{name} must be a string')
 
@@ -72,33 +78,36 @@ class ConfigMultivarIterator(ConfigIterator):
 class Config:
     """Git configuration management."""
 
-    def __init__(self, path=None):
+    _repo: 'GitRepositoryC'
+    _config: 'GitConfigC'
+
+    def __init__(self, path: str | None = None) -> None:
         cconfig = ffi.new('git_config **')
 
         if not path:
             err = C.git_config_new(cconfig)
         else:
-            path = str_to_bytes(path, 'path')
-            err = C.git_config_open_ondisk(cconfig, path)
+            path_bytes = str_to_bytes(path, 'path')
+            err = C.git_config_open_ondisk(cconfig, path_bytes)
 
         check_error(err, io=True)
         self._config = cconfig[0]
 
     @classmethod
-    def from_c(cls, repo, ptr):
+    def from_c(cls, repo: 'GitRepositoryC', ptr: 'GitConfigC') -> 'Config':
         config = cls.__new__(cls)
         config._repo = repo
         config._config = ptr
 
         return config
 
-    def __del__(self):
+    def __del__(self) -> None:
         try:
             C.git_config_free(self._config)
         except AttributeError:
             pass
 
-    def _get(self, key):
+    def _get(self, key: str | bytes) -> tuple[object, 'ConfigEntry']:
         key = str_to_bytes(key, 'key')
 
         entry = ffi.new('git_config_entry **')
@@ -106,7 +115,7 @@ class Config:
 
         return err, ConfigEntry._from_c(entry[0])
 
-    def _get_entry(self, key):
+    def _get_entry(self, key: str | bytes) -> 'ConfigEntry':
         err, entry = self._get(key)
 
         if err == C.GIT_ENOTFOUND:
@@ -306,8 +315,13 @@ class Config:
 class ConfigEntry:
     """An entry in a configuration object."""
 
+    _entry: 'GitConfigEntryC'
+    iterator: ConfigIterator | None
+
     @classmethod
-    def _from_c(cls, ptr, iterator=None):
+    def _from_c(
+        cls, ptr: 'GitConfigEntryC', iterator: ConfigIterator | None = None
+    ) -> 'ConfigEntry':
         """Builds the entry from a ``git_config_entry`` pointer.
 
         ``iterator`` must be a ``ConfigIterator`` instance if the entry was
@@ -330,7 +344,7 @@ class ConfigEntry:
 
         return entry
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.iterator is None:
             C.git_config_entry_free(self._entry)
 
@@ -340,24 +354,24 @@ class ConfigEntry:
         return self._entry.value
 
     @cached_property
-    def raw_name(self):
+    def raw_name(self) -> bytes:
         return ffi.string(self._entry.name)
 
     @cached_property
-    def raw_value(self):
+    def raw_value(self) -> bytes:
         return ffi.string(self.c_value)
 
     @cached_property
-    def level(self):
+    def level(self) -> int:
         """The entry's ``git_config_level_t`` value."""
         return self._entry.level
 
     @property
-    def name(self):
+    def name(self) -> str:
         """The entry's name."""
         return self.raw_name.decode('utf-8')
 
     @property
-    def value(self):
+    def value(self) -> str:
         """The entry's value as a string."""
         return self.raw_value.decode('utf-8')

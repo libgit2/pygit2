@@ -120,7 +120,13 @@ class GitCommitC:
     pass
 
 class GitConfigC:
+    # incomplete
     pass
+
+class GitConfigEntryC:
+    # incomplete
+    name: char_pointer
+    level: int
 
 class GitDescribeFormatOptionsC:
     version: int
@@ -228,6 +234,10 @@ def new(a: Literal['git_checkout_options *']) -> GitCheckoutOptionsC: ...
 def new(a: Literal['git_commit **']) -> _Pointer[GitCommitC]: ...
 @overload
 def new(a: Literal['git_config *']) -> GitConfigC: ...
+@overload
+def new(a: Literal['git_config **']) -> _Pointer[GitConfigC]: ...
+@overload
+def new(a: Literal['git_config_entry **']) -> _Pointer[GitConfigEntryC]: ...
 @overload
 def new(a: Literal['git_describe_format_options *']) -> GitDescribeFormatOptionsC: ...
 @overload

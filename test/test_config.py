@@ -24,10 +24,11 @@
 # Boston, MA 02110-1301, USA.
 
 from pathlib import Path
+from typing import Generator
 
 import pytest
 
-from pygit2 import Config
+from pygit2 import Config, Repository
 
 from . import utils
 
@@ -35,7 +36,7 @@ CONFIG_FILENAME = 'test_config'
 
 
 @pytest.fixture
-def config(testrepo):
+def config(testrepo: Repository) -> Generator[object, None, None]:
     yield testrepo.config
     try:
         Path(CONFIG_FILENAME).unlink()
