@@ -22,8 +22,11 @@ jobs:
     - name: Install ruff
       run: pip install ruff
 
-    - name: Check code style with ruff
+    - name: Format code with ruff
       run: ruff format --diff
+
+    - name: Check code style with ruff
+      run: ruff check
 
     - name: Check typing with mypy
       run: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.1 /bin/sh build.sh mypy

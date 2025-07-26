@@ -50,7 +50,7 @@ from .enums import (
 )
 from .remotes import Remote
 from .repository import BaseRepository
-from .submodules import Submodule, SubmoduleCollection
+from .submodules import SubmoduleCollection
 
 GIT_OBJ_BLOB = Literal[3]
 GIT_OBJ_COMMIT = Literal[1]
