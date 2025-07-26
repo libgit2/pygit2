@@ -30,7 +30,7 @@ import os
 import pytest
 
 import pygit2
-from pygit2 import Repository
+from pygit2 import Commit, Repository
 from pygit2.enums import BranchType
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -154,7 +154,7 @@ def test_branches_with_commit(testrepo: Repository) -> None:
 #
 
 
-def test_lookup_branch_local(testrepo):
+def test_lookup_branch_local(testrepo: Repository) -> None:
     assert testrepo.lookup_branch('master').target == LAST_COMMIT
     assert testrepo.lookup_branch(b'master').target == LAST_COMMIT
 
@@ -167,16 +167,17 @@ def test_lookup_branch_local(testrepo):
         assert testrepo.lookup_branch(b'\xb1') is None
 
 
-def test_listall_branches(testrepo):
+def test_listall_branches(testrepo: Repository) -> None:
     branches = sorted(testrepo.listall_branches())
     assert branches == ['i18n', 'master']
 
-    branches = sorted(testrepo.raw_listall_branches())
-    assert branches == [b'i18n', b'master']
+    branches_raw = sorted(testrepo.raw_listall_branches())
+    assert branches_raw == [b'i18n', b'master']
 
 
-def test_create_branch(testrepo):
+def test_create_branch(testrepo: Repository) -> None:
     commit = testrepo[LAST_COMMIT]
+    assert isinstance(commit, Commit)
     testrepo.create_branch('version1', commit)
     refs = testrepo.listall_branches()
     assert 'version1' in refs
@@ -191,64 +192,72 @@ def test_create_branch(testrepo):
     assert testrepo.create_branch('version1', commit, True).target == LAST_COMMIT
 
 
-def test_delete(testrepo):
+def test_delete(testrepo: Repository) -> None:
     branch = testrepo.lookup_branch('i18n')
     branch.delete()
 
     assert testrepo.lookup_branch('i18n') is None
 
 
-def test_cant_delete_master(testrepo):
+def test_cant_delete_master(testrepo: Repository) -> None:
     branch = testrepo.lookup_branch('master')
 
     with pytest.raises(pygit2.GitError):
         branch.delete()
 
 
-def test_branch_is_head_returns_true_if_branch_is_head(testrepo):
+def test_branch_is_head_returns_true_if_branch_is_head(testrepo: Repository) -> None:
     branch = testrepo.lookup_branch('master')
     assert branch.is_head()
 
 
-def test_branch_is_head_returns_false_if_branch_is_not_head(testrepo):
+def test_branch_is_head_returns_false_if_branch_is_not_head(
+    testrepo: Repository,
+) -> None:
     branch = testrepo.lookup_branch('i18n')
     assert not branch.is_head()
 
 
-def test_branch_is_checked_out_returns_true_if_branch_is_checked_out(testrepo):
+def test_branch_is_checked_out_returns_true_if_branch_is_checked_out(
+    testrepo: Repository,
+) -> None:
     branch = testrepo.lookup_branch('master')
     assert branch.is_checked_out()
 
 
-def test_branch_is_checked_out_returns_false_if_branch_is_not_checked_out(testrepo):
+def test_branch_is_checked_out_returns_false_if_branch_is_not_checked_out(
+    testrepo: Repository,
+) -> None:
     branch = testrepo.lookup_branch('i18n')
     assert not branch.is_checked_out()
 
 
-def test_branch_rename_succeeds(testrepo):
+def test_branch_rename_succeeds(testrepo: Repository) -> None:
     branch = testrepo.lookup_branch('i18n')
     assert branch.rename('new-branch').target == I18N_LAST_COMMIT
     assert testrepo.lookup_branch('new-branch').target == I18N_LAST_COMMIT
 
 
-def test_branch_rename_fails_if_destination_already_exists(testrepo):
+def test_branch_rename_fails_if_destination_already_exists(
+    testrepo: Repository,
+) -> None:
     original_branch = testrepo.lookup_branch('i18n')
     with pytest.raises(ValueError):
         original_branch.rename('master')
 
 
-def test_branch_rename_not_fails_if_force_is_true(testrepo):
+def test_branch_rename_not_fails_if_force_is_true(testrepo: Repository) -> None:
     branch = testrepo.lookup_branch('master')
     assert branch.rename('i18n', True).target == LAST_COMMIT
 
 
-def test_branch_rename_fails_with_invalid_names(testrepo):
+def test_branch_rename_fails_with_invalid_names(testrepo: Repository) -> None:
     original_branch = testrepo.lookup_branch('i18n')
     with pytest.raises(ValueError):
         original_branch.rename('abc@{123')
 
 
-def test_branch_name(testrepo):
+def test_branch_name(testrepo: Repository) -> None:
     branch = testrepo.lookup_branch('master')
     assert branch.branch_name == 'master'
     assert branch.name == 'refs/heads/master'
