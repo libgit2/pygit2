@@ -23,26 +23,31 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from pathlib import Path
+from typing import Generator
+
 import pytest
 
 import pygit2
+from pygit2 import Commit, Repository
 
 from . import utils
 
 
 @pytest.fixture
-def repo(tmp_path):
+def repo(tmp_path: Path) -> Generator[Repository, None, None]:
     with utils.TemporaryRepository('trailerrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
-def test_get_trailers_array(repo):
+def test_get_trailers_array(repo: Repository) -> None:
     commit_hash = '010231b2fdaee6b21da4f06058cf6c6a3392dd12'
     expected_trailers = {
         'Bug': '1234',
         'Signed-off-by': 'Tyler Cipriani <tyler@tylercipriani.com>',
     }
     commit = repo.get(commit_hash)
+    assert isinstance(commit, Commit)
     trailers = commit.message_trailers
 
     assert trailers['Bug'] == expected_trailers['Bug']
