@@ -23,28 +23,34 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 
 import pytest
 
 # pygit2
 import pygit2
-from pygit2 import init_repository, clone_repository, discover_repository, IndexEntry
-from pygit2 import Oid
+from pygit2 import (
+    IndexEntry,
+    Oid,
+    clone_repository,
+    discover_repository,
+    init_repository,
+)
 from pygit2.enums import (
     CheckoutNotify,
     CheckoutStrategy,
+    FileMode,
     FileStatus,
     ObjectType,
     RepositoryOpenFlag,
     RepositoryState,
     ResetMode,
     StashApplyProgress,
-    FileMode,
 )
 from pygit2.index import MergeFileResult
+
 from . import utils
 
 

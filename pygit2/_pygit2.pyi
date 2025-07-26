@@ -1,25 +1,37 @@
+import tarfile
+from collections.abc import Generator
+from io import DEFAULT_BUFFER_SIZE, IOBase
+from pathlib import Path
+from queue import Queue
+from threading import Event
 from typing import (
+    Generic,
     Iterator,
     Literal,
     Optional,
-    overload,
     Type,
     TypedDict,
     TypeVar,
-    Generic,
+    overload,
 )
-from io import IOBase, DEFAULT_BUFFER_SIZE
-from pathlib import Path
-from queue import Queue
-import tarfile
-from threading import Event
+
 from . import Index
+from ._libgit2.ffi import (
+    GitCommitC,
+    GitObjectC,
+    GitProxyOptionsC,
+    GitRepositoryC,
+    GitSignatureC,
+    _Pointer,
+)
+from .blame import Blame
+from .callbacks import CheckoutCallbacks
 from .enums import (
-    AttrCheck,
     ApplyLocation,
-    BranchType,
-    BlobFilter,
+    AttrCheck,
     BlameFlag,
+    BlobFilter,
+    BranchType,
     CheckoutStrategy,
     DeltaStatus,
     DiffFind,
@@ -36,22 +48,9 @@ from .enums import (
     ResetMode,
     SortMode,
 )
-from collections.abc import Generator
-
-from ._libgit2.ffi import (
-    _Pointer,
-    GitObjectC,
-    GitCommitC,
-    GitRepositoryC,
-    GitProxyOptionsC,
-    GitSignatureC,
-)
-
-from .repository import BaseRepository
-from .submodules import SubmoduleCollection, Submodule
 from .remotes import Remote
-from .callbacks import CheckoutCallbacks
-from .blame import Blame
+from .repository import BaseRepository
+from .submodules import Submodule, SubmoduleCollection
 
 GIT_OBJ_BLOB = Literal[3]
 GIT_OBJ_COMMIT = Literal[1]

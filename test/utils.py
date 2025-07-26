@@ -25,21 +25,20 @@
 
 # Standard library
 import hashlib
-from pathlib import Path
 import shutil
 import socket
 import stat
 import sys
 import zipfile
-from typing import Optional
+from pathlib import Path
 from types import TracebackType
+from typing import Optional
 
 # Requirements
 import pytest
 
 # Pygit2
 import pygit2
-
 
 requires_future_libgit2 = pytest.mark.xfail(
     pygit2.LIBGIT2_VER < (2, 0, 0),

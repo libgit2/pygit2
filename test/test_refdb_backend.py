@@ -27,8 +27,9 @@
 
 from pathlib import Path
 
-import pygit2
 import pytest
+
+import pygit2
 
 
 # Note: the refdb abstraction from libgit2 is meant to provide information

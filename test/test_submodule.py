@@ -28,13 +28,14 @@
 from pathlib import Path
 from typing import Generator
 
-import pygit2
-from pygit2 import Repository, Submodule
 import pytest
 
-from . import utils
-from pygit2.enums import SubmoduleIgnore as SI, SubmoduleStatus as SS
+import pygit2
+from pygit2 import Repository, Submodule
+from pygit2.enums import SubmoduleIgnore as SI
+from pygit2.enums import SubmoduleStatus as SS
 
+from . import utils
 
 SUBM_NAME = 'TestGitRepository'
 SUBM_PATH = 'TestGitRepository'

@@ -65,22 +65,23 @@ API.
 # Standard Library
 from contextlib import contextmanager
 from functools import wraps
-from typing import Optional, Union, TYPE_CHECKING, Callable, Generator
+from typing import TYPE_CHECKING, Callable, Generator, Optional, Union
 
 # pygit2
-from ._pygit2 import Oid, DiffFile
+from ._pygit2 import DiffFile, Oid
+from .credentials import Keypair, Username, UserPass
 from .enums import CheckoutNotify, CheckoutStrategy, CredentialType, StashApplyProgress
-from .errors import check_error, Passthrough
-from .ffi import ffi, C
-from .utils import maybe_string, to_bytes, ptr_to_bytes, StrArray
-from .credentials import Username, UserPass, Keypair
+from .errors import Passthrough, check_error
+from .ffi import C, ffi
+from .utils import StrArray, maybe_string, ptr_to_bytes, to_bytes
 
 _Credentials = Username | UserPass | Keypair
 
 if TYPE_CHECKING:
-    from .remotes import TransferProgress
-    from ._pygit2 import PushOptions, CloneOptions
     from pygit2._libgit2.ffi import GitProxyOptionsC
+
+    from ._pygit2 import CloneOptions, PushOptions
+    from .remotes import TransferProgress
 #
 # The payload is the way to pass information from the pygit2 API, through
 # libgit2, to the Python callbacks. And back.

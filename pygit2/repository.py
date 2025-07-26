@@ -22,21 +22,31 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
+import tarfile
+import typing
 import warnings
 from io import BytesIO
 from os import PathLike
 from string import hexdigits
 from time import time
-import tarfile
-import typing
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
+from ._pygit2 import (
+    GIT_OID_HEXSZ,
+    GIT_OID_MINPREFIXLEN,
+    Blob,
+    Commit,
+    InvalidSpecError,
+    Object,
+    Oid,
+    Reference,
+    Signature,
+    Tree,
+    init_file_backend,
+)
 
 # Import from pygit2
-from ._pygit2 import Repository as _Repository, init_file_backend
-from ._pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN, Object
-from ._pygit2 import Reference, Tree, Commit, Blob, Signature
-from ._pygit2 import InvalidSpecError
-
+from ._pygit2 import Repository as _Repository
 from .blame import Blame
 from .branches import Branches
 from .callbacks import git_checkout_options, git_stash_apply_options
@@ -56,13 +66,13 @@ from .enums import (
     RepositoryState,
 )
 from .errors import check_error
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .index import Index, IndexEntry, MergeFileResult
 from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
-from .utils import to_bytes, StrArray
+from .utils import StrArray, to_bytes
 
 if TYPE_CHECKING:
     from pygit2._libgit2.ffi import GitRepositoryC

@@ -25,7 +25,6 @@
 
 import pygit2
 
-
 expected_diff = b"""diff --git a/iso-8859-1.txt b/iso-8859-1.txt
 index e84e339..201e0c9 100644
 --- a/iso-8859-1.txt

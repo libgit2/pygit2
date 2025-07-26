@@ -25,11 +25,10 @@
 
 import contextlib
 import os
+from typing import Generic, Iterator, Protocol, TypeVar, Union
 
 # Import from pygit2
-from .ffi import ffi, C
-
-from typing import Protocol, Iterator, TypeVar, Generic, Union
+from .ffi import C, ffi
 
 
 def maybe_string(ptr):

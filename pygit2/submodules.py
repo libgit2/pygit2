@@ -24,21 +24,23 @@
 # Boston, MA 02110-1301, USA.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Union
+
 from pathlib import Path
+from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Union
 
 from ._pygit2 import Oid
-from .callbacks import git_fetch_options, RemoteCallbacks
+from .callbacks import RemoteCallbacks, git_fetch_options
 from .enums import SubmoduleIgnore, SubmoduleStatus
 from .errors import check_error
-from .ffi import ffi, C
-from .utils import to_bytes, maybe_string
+from .ffi import C, ffi
+from .utils import maybe_string, to_bytes
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
-    from .repository import BaseRepository
     from pygit2 import Repository
     from pygit2._libgit2.ffi import GitSubmoduleC
+
+    from .repository import BaseRepository
 
 
 class Submodule:

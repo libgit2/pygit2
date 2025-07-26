@@ -27,7 +27,6 @@
 
 from pygit2.enums import SortMode
 
-
 # In the order given by git log
 log = [
     '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98',

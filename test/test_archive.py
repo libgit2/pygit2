@@ -23,11 +23,10 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
 import tarfile
+from pathlib import Path
 
-from pygit2 import Index, Oid, Tree, Object, Repository
-
+from pygit2 import Index, Object, Oid, Repository, Tree
 
 TREE_HASH = 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 COMMIT_HASH = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'

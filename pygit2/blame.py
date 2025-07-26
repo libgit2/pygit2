@@ -23,15 +23,16 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from typing import Iterator, TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
+
+from ._pygit2 import Oid, Repository, Signature
 
 # Import from pygit2
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .utils import GenericIterator
-from ._pygit2 import Signature, Oid, Repository
 
 if TYPE_CHECKING:
-    from ._libgit2.ffi import GitSignatureC, GitHunkC, GitBlameC
+    from ._libgit2.ffi import GitBlameC, GitHunkC, GitSignatureC
 
 
 def wrap_signature(csig: 'GitSignatureC') -> None | Signature:

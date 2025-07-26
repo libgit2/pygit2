@@ -23,8 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from typing import Literal, overload, NewType, TypeVar, Generic, Any, SupportsIndex
-from typing import NewType, Literal, TypeVar, Generic, overload
+from typing import Any, Generic, Literal, NewType, SupportsIndex, TypeVar, overload
+
 from pygit2._pygit2 import Repository
 
 T = TypeVar('T')
