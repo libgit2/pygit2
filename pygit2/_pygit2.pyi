@@ -9,6 +9,7 @@ from typing import (
     Iterator,
     Literal,
     Optional,
+    Sequence,
     Type,
     TypedDict,
     TypeVar,
@@ -740,6 +741,16 @@ class Repository:
     def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
     def __getitem__(self, key: str | Oid) -> Object: ...
     def add_worktree(self, name: str, path: str, ref: Reference = ...) -> Worktree: ...
+    def amend_commit(
+        self,
+        commit: Commit | Oid | str,
+        refname: Reference | str | None,
+        author: Signature | None = None,
+        committer: Signature | None = None,
+        message: str | None = None,
+        tree: Tree | Oid | str | None = None,
+        encoding: str = 'UTF-8',
+    ) -> Oid: ...
     def applies(
         self,
         diff: Diff,
@@ -782,7 +793,7 @@ class Repository:
         committer: Signature,
         message: str | bytes,
         tree: _OidArg,
-        parents: list[_OidArg],
+        parents: Sequence[_OidArg],
         encoding: str = ...,
     ) -> Oid: ...
     def create_commit_string(

@@ -29,7 +29,7 @@ import sys
 
 import pytest
 
-from pygit2 import GitError, Oid, Signature
+from pygit2 import Commit, GitError, Oid, Repository, Signature, Tree
 from pygit2.enums import ObjectType
 
 from . import utils
@@ -41,7 +41,7 @@ COMMIT_SHA_TO_AMEND = (
 
 
 @utils.requires_refcount
-def test_commit_refcount(barerepo):
+def test_commit_refcount(barerepo: Repository) -> None:
     commit = barerepo[COMMIT_SHA]
     start = sys.getrefcount(commit)
     tree = commit.tree
@@ -50,8 +50,9 @@ def test_commit_refcount(barerepo):
     assert start == end
 
 
-def test_read_commit(barerepo):
+def test_read_commit(barerepo: Repository) -> None:
     commit = barerepo[COMMIT_SHA]
+    assert isinstance(commit, Commit)
     assert COMMIT_SHA == commit.id
     parents = commit.parents
     assert 1 == len(parents)
@@ -71,7 +72,7 @@ def test_read_commit(barerepo):
     assert '967fce8df97cc71722d3c2a5930ef3e6f1d27b12' == commit.tree.id
 
 
-def test_new_commit(barerepo):
+def test_new_commit(barerepo: Repository) -> None:
     repo = barerepo
     message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
     committer = Signature('John Doe', 'jdoe@example.com', 12346, 0)
@@ -88,8 +89,9 @@ def test_new_commit(barerepo):
 
     sha = repo.create_commit(None, author, committer, message, tree_prefix, parents)
     commit = repo[sha]
+    assert isinstance(commit, Commit)
 
-    assert ObjectType.COMMIT == commit.type
+    assert ObjectType.COMMIT.value == commit.type
     assert '98286caaab3f1fde5bf52c8369b2b0423bad743b' == commit.id
     assert commit.message_encoding is None
     assert message == commit.message
@@ -103,7 +105,7 @@ def test_new_commit(barerepo):
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
 
-def test_new_commit_encoding(barerepo):
+def test_new_commit_encoding(barerepo: Repository) -> None:
     repo = barerepo
     encoding = 'iso-8859-1'
     message = 'New commit.\n\nMessage with non-ascii chars: ééé.\n'
@@ -117,8 +119,9 @@ def test_new_commit_encoding(barerepo):
         None, author, committer, message, tree_prefix, parents, encoding
     )
     commit = repo[sha]
+    assert isinstance(commit, Commit)
 
-    assert ObjectType.COMMIT == commit.type
+    assert ObjectType.COMMIT.value == commit.type
     assert 'iso-8859-1' == commit.message_encoding
     assert message.encode(encoding) == commit.raw_message
     assert 12346 == commit.commit_time
@@ -131,7 +134,7 @@ def test_new_commit_encoding(barerepo):
     assert Oid(hex=COMMIT_SHA) == commit.parent_ids[0]
 
 
-def test_modify_commit(barerepo):
+def test_modify_commit(barerepo: Repository) -> None:
     message = 'New commit.\n\nMessage.\n'
     committer = ('John Doe', 'jdoe@example.com', 12346)
     author = ('Jane Doe', 'jdoe2@example.com', 12345)
@@ -150,9 +153,10 @@ def test_modify_commit(barerepo):
         setattr(commit, 'parents', None)
 
 
-def test_amend_commit_metadata(barerepo):
+def test_amend_commit_metadata(barerepo: Repository) -> None:
     repo = barerepo
     commit = repo[COMMIT_SHA_TO_AMEND]
+    assert isinstance(commit, Commit)
     assert commit.id == repo.head.target
 
     encoding = 'iso-8859-1'
@@ -173,9 +177,10 @@ def test_amend_commit_metadata(barerepo):
         encoding=encoding,
     )
     amended_commit = repo[amended_oid]
+    assert isinstance(amended_commit, Commit)
 
     assert repo.head.target == amended_oid
-    assert ObjectType.COMMIT == amended_commit.type
+    assert ObjectType.COMMIT.value == amended_commit.type
     assert amended_committer == amended_commit.committer
     assert amended_author == amended_commit.author
     assert amended_message.encode(encoding) == amended_commit.raw_message
@@ -184,9 +189,10 @@ def test_amend_commit_metadata(barerepo):
     assert commit.tree == amended_commit.tree  # we didn't touch the tree
 
 
-def test_amend_commit_tree(barerepo):
+def test_amend_commit_tree(barerepo: Repository) -> None:
     repo = barerepo
     commit = repo[COMMIT_SHA_TO_AMEND]
+    assert isinstance(commit, Commit)
     assert commit.id == repo.head.target
 
     tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
@@ -194,9 +200,11 @@ def test_amend_commit_tree(barerepo):
 
     amended_oid = repo.amend_commit(commit, 'HEAD', tree=tree_prefix)
     amended_commit = repo[amended_oid]
+    assert isinstance(amended_commit, Commit)
+    assert isinstance(commit, Commit)
 
     assert repo.head.target == amended_oid
-    assert ObjectType.COMMIT == amended_commit.type
+    assert ObjectType.COMMIT.value == amended_commit.type
     assert commit.message == amended_commit.message
     assert commit.author == amended_commit.author
     assert commit.committer == amended_commit.committer
@@ -204,11 +212,12 @@ def test_amend_commit_tree(barerepo):
     assert Oid(hex=tree) == amended_commit.tree_id
 
 
-def test_amend_commit_not_tip_of_branch(barerepo):
+def test_amend_commit_not_tip_of_branch(barerepo: Repository) -> None:
     repo = barerepo
 
     # This commit isn't at the tip of the branch.
     commit = repo['5fe808e8953c12735680c257f56600cb0de44b10']
+    assert isinstance(commit, Commit)
     assert commit.id != repo.head.target
 
     # Can't update HEAD to the rewritten commit because it's not the tip of the branch.
@@ -219,16 +228,17 @@ def test_amend_commit_not_tip_of_branch(barerepo):
     repo.amend_commit(commit, None, message='this will work')
 
 
-def test_amend_commit_no_op(barerepo):
+def test_amend_commit_no_op(barerepo: Repository) -> None:
     repo = barerepo
     commit = repo[COMMIT_SHA_TO_AMEND]
+    assert isinstance(commit, Commit)
     assert commit.id == repo.head.target
 
     amended_oid = repo.amend_commit(commit, None)
     assert amended_oid == commit.id
 
 
-def test_amend_commit_argument_types(barerepo):
+def test_amend_commit_argument_types(barerepo: Repository) -> None:
     repo = barerepo
 
     some_tree = repo['967fce8df97cc71722d3c2a5930ef3e6f1d27b12']
@@ -236,33 +246,34 @@ def test_amend_commit_argument_types(barerepo):
     alt_commit1 = Oid(hex=COMMIT_SHA_TO_AMEND)
     alt_commit2 = COMMIT_SHA_TO_AMEND
     alt_tree = some_tree
+    assert isinstance(alt_tree, Tree)
     alt_refname = (
         repo.head
     )  # try this one last, because it'll change the commit at the tip
 
     # Pass bad values/types for the commit
     with pytest.raises(ValueError):
-        repo.amend_commit(None, None)
+        repo.amend_commit(None, None)  # type: ignore
     with pytest.raises(TypeError):
-        repo.amend_commit(some_tree, None)
+        repo.amend_commit(some_tree, None)  # type: ignore
 
     # Pass bad types for signatures
     with pytest.raises(TypeError):
-        repo.amend_commit(commit, None, author='Toto')
+        repo.amend_commit(commit, None, author='Toto')  # type: ignore
     with pytest.raises(TypeError):
-        repo.amend_commit(commit, None, committer='Toto')
+        repo.amend_commit(commit, None, committer='Toto')  # type: ignore
 
     # Pass bad refnames
     with pytest.raises(ValueError):
-        repo.amend_commit(commit, 'this-ref-doesnt-exist')
+        repo.amend_commit(commit, 'this-ref-doesnt-exist')  # type: ignore
     with pytest.raises(TypeError):
-        repo.amend_commit(commit, repo)
+        repo.amend_commit(commit, repo)  # type: ignore
 
     # Pass bad trees
     with pytest.raises(ValueError):
-        repo.amend_commit(commit, None, tree="can't parse this")
+        repo.amend_commit(commit, None, tree="can't parse this")  # type: ignore
     with pytest.raises(KeyError):
-        repo.amend_commit(commit, None, tree='baaaaad')
+        repo.amend_commit(commit, None, tree='baaaaad')  # type: ignore
 
     # Pass an Oid for the commit
     amended_oid = repo.amend_commit(alt_commit1, None, message='Hello')
@@ -273,7 +284,8 @@ def test_amend_commit_argument_types(barerepo):
     # Pass a str for the commit
     amended_oid = repo.amend_commit(alt_commit2, None, message='Hello', tree=alt_tree)
     amended_commit = repo[amended_oid]
-    assert ObjectType.COMMIT == amended_commit.type
+    assert isinstance(amended_commit, Commit)
+    assert ObjectType.COMMIT.value == amended_commit.type
     assert amended_oid != COMMIT_SHA_TO_AMEND
     assert repo[COMMIT_SHA_TO_AMEND].tree != amended_commit.tree
     assert alt_tree.id == amended_commit.tree_id
