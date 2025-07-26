@@ -25,9 +25,10 @@
 
 import contextlib
 import os
+from typing import Generic, Iterator, Protocol, TypeVar, Union
 
 # Import from pygit2
-from .ffi import ffi, C
+from .ffi import C, ffi
 
 
 def maybe_string(ptr):
@@ -37,7 +38,11 @@ def maybe_string(ptr):
     return ffi.string(ptr).decode('utf8', errors='surrogateescape')
 
 
-def to_bytes(s, encoding='utf-8', errors='strict'):
+def to_bytes(
+    s: Union[str, bytes, 'ffi.NULL_TYPE', os.PathLike[str], None],
+    encoding: str = 'utf-8',
+    errors: str = 'strict',
+) -> Union[bytes, 'ffi.NULL_TYPE']:
     if s == ffi.NULL or s is None:
         return ffi.NULL
 
@@ -47,7 +52,7 @@ def to_bytes(s, encoding='utf-8', errors='strict'):
     if isinstance(s, bytes):
         return s
 
-    return s.encode(encoding, errors)
+    return s.encode(encoding, errors)  # type: ignore[union-attr]
 
 
 def to_str(s):
@@ -153,22 +158,31 @@ class StrArray:
             git_strarray.count = len(self.__strings)
 
 
-class GenericIterator:
+T = TypeVar('T')
+U = TypeVar('U', covariant=True)
+
+
+class SequenceProtocol(Protocol[U]):
+    def __len__(self) -> int: ...
+    def __getitem__(self, index: int) -> U: ...
+
+
+class GenericIterator(Generic[T]):
     """Helper to easily implement an iterator.
 
     The constructor gets a container which must implement __len__ and
     __getitem__
     """
 
-    def __init__(self, container):
+    def __init__(self, container: SequenceProtocol[T]) -> None:
         self.container = container
         self.length = len(container)
         self.idx = 0
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         return self
 
-    def __next__(self):
+    def __next__(self) -> T:
         idx = self.idx
         if idx >= self.length:
             raise StopIteration

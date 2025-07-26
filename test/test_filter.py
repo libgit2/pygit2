@@ -1,5 +1,6 @@
-from io import BytesIO
 import codecs
+from io import BytesIO
+
 import pytest
 
 import pygit2

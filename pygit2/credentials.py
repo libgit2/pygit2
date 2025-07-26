@@ -29,7 +29,6 @@ from typing import TYPE_CHECKING
 
 from .enums import CredentialType
 
-
 if TYPE_CHECKING:
     from pathlib import Path
 

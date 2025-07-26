@@ -1,12 +1,38 @@
-from typing import Iterator, Literal, Optional, overload, Type, TypedDict
-from io import IOBase, DEFAULT_BUFFER_SIZE
+import tarfile
+from collections.abc import Generator
+from io import DEFAULT_BUFFER_SIZE, IOBase
+from pathlib import Path
 from queue import Queue
 from threading import Event
+from typing import (
+    Generic,
+    Iterator,
+    Literal,
+    Optional,
+    Type,
+    TypedDict,
+    TypeVar,
+    overload,
+)
+
 from . import Index
+from ._libgit2.ffi import (
+    GitCommitC,
+    GitObjectC,
+    GitProxyOptionsC,
+    GitRepositoryC,
+    GitSignatureC,
+    _Pointer,
+)
+from .blame import Blame
+from .callbacks import CheckoutCallbacks
 from .enums import (
     ApplyLocation,
-    BranchType,
+    AttrCheck,
+    BlameFlag,
     BlobFilter,
+    BranchType,
+    CheckoutStrategy,
     DeltaStatus,
     DiffFind,
     DiffFlag,
@@ -22,10 +48,9 @@ from .enums import (
     ResetMode,
     SortMode,
 )
-from collections.abc import Generator
-
-from .repository import BaseRepository
 from .remotes import Remote
+from .repository import BaseRepository
+from .submodules import SubmoduleCollection
 
 GIT_OBJ_BLOB = Literal[3]
 GIT_OBJ_COMMIT = Literal[1]
@@ -277,8 +302,10 @@ GIT_FILTER_NO_SYSTEM_ATTRIBUTES: int
 GIT_FILTER_ATTRIBUTES_FROM_HEAD: int
 GIT_FILTER_ATTRIBUTES_FROM_COMMIT: int
 
-class Object:
-    _pointer: bytes
+T = TypeVar('T')
+
+class _ObjectBase(Generic[T]):
+    _pointer: _Pointer[T]
     filemode: FileMode
     id: Oid
     name: str | None
@@ -286,6 +313,9 @@ class Object:
     short_id: str
     type: 'Literal[GIT_OBJ_COMMIT] | Literal[GIT_OBJ_TREE] | Literal[GIT_OBJ_TAG] | Literal[GIT_OBJ_BLOB]'
     type_str: "Literal['commit'] | Literal['tree'] | Literal['tag'] | Literal['blob']"
+    author: Signature
+    committer: Signature
+    tree: Tree
     @overload
     def peel(
         self, target_type: 'Literal[GIT_OBJ_COMMIT] | Type[Commit]'
@@ -306,6 +336,9 @@ class Object:
     def __le__(self, other) -> bool: ...
     def __lt__(self, other) -> bool: ...
     def __ne__(self, other) -> bool: ...
+
+class Object(_ObjectBase[GitObjectC]):
+    pass
 
 class Reference:
     name: str
@@ -382,7 +415,7 @@ class Branch(Reference):
 class FetchOptions:
     # incomplete
     depth: int
-    proxy_opts: ProxyOpts
+    proxy_opts: GitProxyOptionsC
 
 class CloneOptions:
     # incomplete
@@ -397,7 +430,8 @@ class CloneOptions:
     remote_cb: object
     remote_cb_payload: object
 
-class Commit(Object):
+class Commit(_ObjectBase[GitCommitC]):
+    _pointer: _Pointer[GitCommitC]
     author: Signature
     commit_time: int
     commit_time_offset: int
@@ -627,16 +661,11 @@ class _StrArray:
     # incomplete
     count: int
 
-class ProxyOpts:
-    # incomplete
-    type: object
-    url: str
-
 class PushOptions:
     version: int
     pb_parallelism: int
     callbacks: object  # TODO
-    proxy_opts: ProxyOpts
+    proxy_opts: GitProxyOptionsC
     follow_redirects: object  # TODO
     custom_headers: _StrArray
     remote_push_options: _StrArray
@@ -675,13 +704,15 @@ class Branches:
     def __getitem__(self, name: str) -> Branch: ...
     def get(self, key: str) -> Branch: ...
     def __iter__(self) -> Iterator[str]: ...
-    def create(self, name: str, commit: Commit, force: bool = False) -> Branch: ...
+    def create(
+        self, name: str, commit: Object | Commit, force: bool = False
+    ) -> Branch: ...
     def delete(self, name: str) -> None: ...
-    def with_commit(self, commit: Commit | _OidArg | None) -> 'Branches': ...
+    def with_commit(self, commit: Object | Commit | _OidArg | None) -> 'Branches': ...
     def __contains__(self, name: _OidArg) -> bool: ...
 
 class Repository:
-    _pointer: bytes
+    _pointer: GitRepositoryC
     default_signature: Signature
     head: Reference
     head_is_detached: bool
@@ -696,10 +727,13 @@ class Repository:
     references: References
     remotes: RemoteCollection
     branches: Branches
+    submodules: SubmoduleCollection
+    index: Index
     def __init__(self, *args, **kwargs) -> None: ...
     def TreeBuilder(self, src: Tree | _OidArg = ...) -> TreeBuilder: ...
     def _disown(self, *args, **kwargs) -> None: ...
-    def _from_c(self, *args, **kwargs) -> None: ...
+    @classmethod
+    def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
     def __getitem__(self, key: str | Oid) -> Object: ...
     def add_worktree(self, name: str, path: str, ref: Reference = ...) -> Worktree: ...
     def applies(
@@ -710,6 +744,25 @@ class Repository:
     ) -> bool: ...
     def apply(
         self, diff: Diff, location: ApplyLocation = ApplyLocation.WORKDIR
+    ) -> None: ...
+    def blame(
+        self,
+        path: str,
+        flags: BlameFlag = BlameFlag.NORMAL,
+        min_match_characters: int | None = None,
+        newest_commit: _OidArg | None = None,
+        oldest_commit: _OidArg | None = None,
+        min_line: int | None = None,
+        max_line: int | None = None,
+    ) -> Blame: ...
+    def checkout(
+        self,
+        refname: Optional[_OidArg],
+        *,
+        strategy: CheckoutStrategy | None = None,
+        directory: str | None = None,
+        paths: list[str] | None = None,
+        callbacks: CheckoutCallbacks | None = None,
     ) -> None: ...
     def cherrypick(self, id: _OidArg) -> None: ...
     def compress_references(self) -> None: ...
@@ -761,9 +814,25 @@ class Repository:
     def create_tag(
         self, name: str, oid: _OidArg, type: ObjectType, tagger: Signature, message: str
     ) -> Oid: ...
+    def diff(
+        self,
+        a: None | str | Reference = None,
+        b: None | str | Reference = None,
+        cached: bool = False,
+        flags: DiffOption = DiffOption.NORMAL,
+        context_lines: int = 3,
+        interhunk_lines: int = 0,
+    ) -> Diff: ...
     def descendant_of(self, oid1: _OidArg, oid2: _OidArg) -> bool: ...
     def expand_id(self, hex: str) -> Oid: ...
     def free(self) -> None: ...
+    def get_attr(
+        self,
+        path: str | bytes | Path,
+        name: str | bytes,
+        flags: AttrCheck = AttrCheck.FILE_THEN_INDEX,
+        commit: _OidArg | None = None,
+    ) -> bool | None | str: ...
     def git_object_lookup_prefix(self, oid: _OidArg) -> Object: ...
     def list_worktrees(self) -> list[str]: ...
     def listall_branches(self, flag: BranchType = BranchType.LOCAL) -> list[str]: ...
@@ -811,6 +880,13 @@ class Repository:
     def walk(
         self, oid: _OidArg | None, sort_mode: SortMode = SortMode.NONE
     ) -> Walker: ...
+    def write_archive(
+        self,
+        treeish: str | Tree | Object | Oid,
+        archive: tarfile.TarFile,
+        timestamp: int | None = None,
+        prefix: str = '',
+    ) -> None: ...
 
 class RevSpec:
     flags: int
@@ -819,7 +895,7 @@ class RevSpec:
 
 class Signature:
     _encoding: str | None
-    _pointer: bytes
+    _pointer: _Pointer[GitSignatureC]
     email: str
     name: str
     offset: int

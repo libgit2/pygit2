@@ -30,8 +30,9 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import Repository, Index, Oid, IndexEntry
+from pygit2 import Index, IndexEntry, Oid, Repository
 from pygit2.enums import FileMode
+
 from . import utils
 
 

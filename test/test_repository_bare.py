@@ -33,8 +33,8 @@ import pytest
 
 import pygit2
 from pygit2.enums import FileMode, ObjectType
-from . import utils
 
+from . import utils
 
 HEAD_SHA = '784855caf26449a1914d2cf62d12b9374d76ae78'
 PARENT_SHA = 'f5e5aa4e36ab0fe62ee1ccc6eb8f79b866863b87'  # HEAD^

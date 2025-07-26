@@ -29,10 +29,17 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import Commit, Signature, Tree, reference_is_valid_name, Repository
-from pygit2 import AlreadyExistsError, GitError, InvalidSpecError
+from pygit2 import (
+    AlreadyExistsError,
+    Commit,
+    GitError,
+    InvalidSpecError,
+    Repository,
+    Signature,
+    Tree,
+    reference_is_valid_name,
+)
 from pygit2.enums import ReferenceType
-
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
@@ -61,6 +68,7 @@ def test_refs_list(testrepo: Repository) -> None:
 def test_head(testrepo: Repository) -> None:
     head = testrepo.head
     assert LAST_COMMIT == testrepo[head.target].id
+    assert not isinstance(head.raw_target, bytes)
     assert LAST_COMMIT == testrepo[head.raw_target].id
 
 
@@ -248,6 +256,7 @@ def test_refs_create_symbolic(testrepo: Repository) -> None:
 def test_refs_peel(testrepo: Repository) -> None:
     ref = testrepo.references.get('refs/heads/master')
     assert testrepo[ref.target].id == ref.peel().id
+    assert not isinstance(ref.raw_target, bytes)
     assert testrepo[ref.raw_target].id == ref.peel().id
 
     commit = ref.peel(Commit)

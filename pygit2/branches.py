@@ -24,10 +24,11 @@
 # Boston, MA 02110-1301, USA.
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-from .enums import BranchType, ReferenceType
 from ._pygit2 import Commit, Oid
+from .enums import BranchType, ReferenceType
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:

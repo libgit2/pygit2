@@ -23,39 +23,42 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-import pygit2
-from pygit2.enums import ApplyLocation, CheckoutStrategy, FileStatus
-import pytest
-
 import os
 from pathlib import Path
 
+import pytest
 
-def read_content(testrepo):
+import pygit2
+from pygit2 import Diff, Repository
+from pygit2.enums import ApplyLocation, CheckoutStrategy, FileStatus
+
+
+def read_content(testrepo: Repository) -> str:
     with (Path(testrepo.workdir) / 'hello.txt').open('rb') as f:
         return f.read().decode('utf-8')
 
 
 @pytest.fixture
-def new_content():
-    content = ['bye world', 'adiós', 'au revoir monde']
-    content = ''.join(x + os.linesep for x in content)
+def new_content() -> str:
+    content_list = ['bye world', 'adiós', 'au revoir monde']
+    content = ''.join(x + os.linesep for x in content_list)
     return content
 
 
 @pytest.fixture
-def old_content(testrepo):
+def old_content(testrepo: Repository) -> str:
     with (Path(testrepo.workdir) / 'hello.txt').open('rb') as f:
         return f.read().decode('utf-8')
 
 
 @pytest.fixture
-def patch_diff(testrepo, new_content):
+def patch_diff(testrepo: Repository, new_content: str) -> Diff:
     # Create the patch
     with (Path(testrepo.workdir) / 'hello.txt').open('wb') as f:
         f.write(new_content.encode('utf-8'))
 
     patch = testrepo.diff().patch
+    assert patch is not None
 
     # Rollback all changes
     testrepo.checkout('HEAD', strategy=CheckoutStrategy.FORCE)
@@ -65,7 +68,7 @@ def patch_diff(testrepo, new_content):
 
 
 @pytest.fixture
-def foreign_patch_diff():
+def foreign_patch_diff() -> Diff:
     patch_contents = """diff --git a/this_file_does_not_exist b/this_file_does_not_exist
 index 7f129fd..af431f2 100644
 --- a/this_file_does_not_exist
@@ -77,13 +80,15 @@ index 7f129fd..af431f2 100644
     return pygit2.Diff.parse_diff(patch_contents)
 
 
-def test_apply_type_error(testrepo):
+def test_apply_type_error(testrepo: Repository) -> None:
     # Check apply type error
     with pytest.raises(TypeError):
-        testrepo.apply('HEAD')
+        testrepo.apply('HEAD')  # type: ignore
 
 
-def test_apply_diff_to_workdir(testrepo, new_content, patch_diff):
+def test_apply_diff_to_workdir(
+    testrepo: Repository, new_content: str, patch_diff: Diff
+) -> None:
     # Apply the patch and compare
     testrepo.apply(patch_diff, ApplyLocation.WORKDIR)
 
@@ -91,7 +96,9 @@ def test_apply_diff_to_workdir(testrepo, new_content, patch_diff):
     assert testrepo.status_file('hello.txt') == FileStatus.WT_MODIFIED
 
 
-def test_apply_diff_to_index(testrepo, old_content, patch_diff):
+def test_apply_diff_to_index(
+    testrepo: Repository, old_content: str, patch_diff: Diff
+) -> None:
     # Apply the patch and compare
     testrepo.apply(patch_diff, ApplyLocation.INDEX)
 
@@ -99,7 +106,9 @@ def test_apply_diff_to_index(testrepo, old_content, patch_diff):
     assert testrepo.status_file('hello.txt') & FileStatus.INDEX_MODIFIED
 
 
-def test_apply_diff_to_both(testrepo, new_content, patch_diff):
+def test_apply_diff_to_both(
+    testrepo: Repository, new_content: str, patch_diff: Diff
+) -> None:
     # Apply the patch and compare
     testrepo.apply(patch_diff, ApplyLocation.BOTH)
 
@@ -107,7 +116,9 @@ def test_apply_diff_to_both(testrepo, new_content, patch_diff):
     assert testrepo.status_file('hello.txt') & FileStatus.INDEX_MODIFIED
 
 
-def test_diff_applies_to_workdir(testrepo, old_content, patch_diff):
+def test_diff_applies_to_workdir(
+    testrepo: Repository, old_content: str, patch_diff: Diff
+) -> None:
     # See if patch applies
     assert testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
 
@@ -122,7 +133,9 @@ def test_diff_applies_to_workdir(testrepo, old_content, patch_diff):
     assert testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
 
-def test_diff_applies_to_index(testrepo, old_content, patch_diff):
+def test_diff_applies_to_index(
+    testrepo: Repository, old_content: str, patch_diff: Diff
+) -> None:
     # See if patch applies
     assert testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
@@ -137,7 +150,9 @@ def test_diff_applies_to_index(testrepo, old_content, patch_diff):
     assert testrepo.applies(patch_diff, ApplyLocation.WORKDIR)
 
 
-def test_diff_applies_to_both(testrepo, old_content, patch_diff):
+def test_diff_applies_to_both(
+    testrepo: Repository, old_content: str, patch_diff: Diff
+) -> None:
     # See if patch applies
     assert testrepo.applies(patch_diff, ApplyLocation.BOTH)
 
@@ -151,7 +166,9 @@ def test_diff_applies_to_both(testrepo, old_content, patch_diff):
     assert not testrepo.applies(patch_diff, ApplyLocation.INDEX)
 
 
-def test_applies_error(testrepo, old_content, patch_diff, foreign_patch_diff):
+def test_applies_error(
+    testrepo: Repository, old_content: str, patch_diff: Diff, foreign_patch_diff: Diff
+) -> None:
     # Try to apply a "foreign" patch that affects files that aren't in the repo;
     # ensure we get OSError about the missing file (due to raise_error)
     with pytest.raises(OSError):

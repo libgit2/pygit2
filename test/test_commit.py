@@ -29,10 +29,10 @@ import sys
 
 import pytest
 
-from pygit2 import Signature, Oid, GitError
+from pygit2 import GitError, Oid, Signature
 from pygit2.enums import ObjectType
-from . import utils
 
+from . import utils
 
 COMMIT_SHA = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA_TO_AMEND = (

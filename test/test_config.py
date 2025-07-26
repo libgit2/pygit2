@@ -28,8 +28,8 @@ from pathlib import Path
 import pytest
 
 from pygit2 import Config
-from . import utils
 
+from . import utils
 
 CONFIG_FILENAME = 'test_config'
 

@@ -24,22 +24,24 @@
 # Boston, MA 02110-1301, USA.
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
+
+from . import utils
 
 # Import from pygit2
 from ._pygit2 import Oid
 from .callbacks import (
     git_fetch_options,
-    git_push_options,
     git_proxy_options,
+    git_push_options,
     git_remote_callbacks,
 )
 from .enums import FetchPrune
 from .errors import check_error
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .refspec import Refspec
-from . import utils
-from .utils import maybe_string, to_bytes, strarray_to_strings, StrArray
+from .utils import StrArray, maybe_string, strarray_to_strings, to_bytes
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:

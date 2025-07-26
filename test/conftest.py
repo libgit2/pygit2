@@ -1,8 +1,10 @@
-from pathlib import Path
 import platform
+from pathlib import Path
 
 import pytest
+
 import pygit2
+
 from . import utils
 
 

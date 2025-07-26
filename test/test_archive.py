@@ -23,17 +23,18 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from pathlib import Path
 import tarfile
+from pathlib import Path
 
-from pygit2 import Index, Oid, Tree, Object
-
+from pygit2 import Index, Object, Oid, Repository, Tree
 
 TREE_HASH = 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 COMMIT_HASH = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 
-def check_writing(repo, treeish, timestamp=None):
+def check_writing(
+    repo: Repository, treeish: str | Tree | Oid | Object, timestamp: int | None = None
+) -> None:
     archive = tarfile.open('foo.tar', mode='w')
     repo.write_archive(treeish, archive)
 
@@ -55,13 +56,13 @@ def check_writing(repo, treeish, timestamp=None):
     path.unlink()
 
 
-def test_write_tree(testrepo):
+def test_write_tree(testrepo: Repository) -> None:
     check_writing(testrepo, TREE_HASH)
     check_writing(testrepo, Oid(hex=TREE_HASH))
     check_writing(testrepo, testrepo[TREE_HASH])
 
 
-def test_write_commit(testrepo):
+def test_write_commit(testrepo: Repository) -> None:
     commit_timestamp = testrepo[COMMIT_HASH].committer.time
     check_writing(testrepo, COMMIT_HASH, commit_timestamp)
     check_writing(testrepo, Oid(hex=COMMIT_HASH), commit_timestamp)

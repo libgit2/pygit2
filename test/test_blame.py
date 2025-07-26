@@ -27,9 +27,8 @@
 
 import pytest
 
-from pygit2 import Signature, Oid
+from pygit2 import Oid, Repository, Signature
 from pygit2.enums import BlameFlag
-
 
 PATH = 'hello.txt'
 
@@ -61,7 +60,7 @@ HUNKS = [
 ]
 
 
-def test_blame_index(testrepo):
+def test_blame_index(testrepo: Repository) -> None:
     blame = testrepo.blame(PATH)
 
     assert len(blame) == 3
@@ -78,7 +77,7 @@ def test_blame_index(testrepo):
         assert HUNKS[i][3] == hunk.boundary
 
 
-def test_blame_flags(blameflagsrepo):
+def test_blame_flags(blameflagsrepo: Repository) -> None:
     blame = blameflagsrepo.blame(PATH, flags=BlameFlag.IGNORE_WHITESPACE)
 
     assert len(blame) == 3
@@ -95,7 +94,7 @@ def test_blame_flags(blameflagsrepo):
         assert HUNKS[i][3] == hunk.boundary
 
 
-def test_blame_with_invalid_index(testrepo):
+def test_blame_with_invalid_index(testrepo: Repository) -> None:
     blame = testrepo.blame(PATH)
 
     def test():
@@ -106,7 +105,7 @@ def test_blame_with_invalid_index(testrepo):
         test()
 
 
-def test_blame_for_line(testrepo):
+def test_blame_for_line(testrepo: Repository) -> None:
     blame = testrepo.blame(PATH)
 
     for i, line in zip(range(0, 2), range(1, 3)):
@@ -123,19 +122,18 @@ def test_blame_for_line(testrepo):
         assert HUNKS[i][3] == hunk.boundary
 
 
-def test_blame_with_invalid_line(testrepo):
+def test_blame_with_invalid_line(testrepo: Repository) -> None:
     blame = testrepo.blame(PATH)
 
-    def test():
+    with pytest.raises(IndexError):
         blame.for_line(0)
+    with pytest.raises(IndexError):
         blame.for_line(100000)
+    with pytest.raises(IndexError):
         blame.for_line(-1)
 
-    with pytest.raises(IndexError):
-        test()
 
-
-def test_blame_newest(testrepo):
+def test_blame_newest(testrepo: Repository) -> None:
     revs = [
         ('master^2', 3),
         ('master^2^', 2),

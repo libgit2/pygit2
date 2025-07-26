@@ -27,8 +27,8 @@
 
 import pytest
 
-from pygit2.enums import DescribeStrategy, ObjectType
 import pygit2
+from pygit2.enums import DescribeStrategy, ObjectType
 
 
 def add_tag(repo, name, target):

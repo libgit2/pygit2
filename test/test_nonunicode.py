@@ -32,8 +32,8 @@ import sys
 import pytest
 
 import pygit2
-from . import utils
 
+from . import utils
 
 # FIXME Detect the filesystem rather than the operating system
 works_in_linux = pytest.mark.xfail(

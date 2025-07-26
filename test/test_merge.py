@@ -30,7 +30,7 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2.enums import FileStatus, MergeAnalysis, MergeFavor, MergeFlag, MergeFileFlag
+from pygit2.enums import FileStatus, MergeAnalysis, MergeFavor, MergeFileFlag, MergeFlag
 
 
 @pytest.mark.parametrize('id', [None, 42])
