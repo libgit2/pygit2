@@ -835,8 +835,8 @@ class Repository:
     ) -> Oid: ...
     def diff(
         self,
-        a: None | str | Reference = None,
-        b: None | str | Reference = None,
+        a: None | str | bytes | Reference = None,
+        b: None | str | bytes | Reference = None,
         cached: bool = False,
         flags: DiffOption = DiffOption.NORMAL,
         context_lines: int = 3,
