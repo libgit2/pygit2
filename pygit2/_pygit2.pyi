@@ -36,6 +36,7 @@ from .enums import (
     BranchType,
     CheckoutStrategy,
     DeltaStatus,
+    DescribeStrategy,
     DiffFind,
     DiffFlag,
     DiffOption,
@@ -842,6 +843,18 @@ class Repository:
         interhunk_lines: int = 0,
     ) -> Diff: ...
     def descendant_of(self, oid1: _OidArg, oid2: _OidArg) -> bool: ...
+    def describe(
+        self,
+        committish: str | Reference | Commit | None = None,
+        max_candidates_tags: int | None = None,
+        describe_strategy: DescribeStrategy = DescribeStrategy.DEFAULT,
+        pattern: str | None = None,
+        only_follow_first_parent: bool | None = None,
+        show_commit_oid_as_fallback: bool | None = None,
+        abbreviated_size: object | None = None,
+        always_use_long_format: bool | None = None,
+        dirty_suffix: str | None = None,
+    ) -> str: ...
     def expand_id(self, hex: str) -> Oid: ...
     def free(self) -> None: ...
     def get(self, key: _OidArg, default: Optional[Commit] = None) -> None | Object: ...
