@@ -52,6 +52,7 @@ from .enums import (
     ResetMode,
     SortMode,
 )
+from .filter import Filter
 from .remotes import Remote
 from .repository import BaseRepository
 from .submodules import SubmoduleCollection
@@ -522,6 +523,7 @@ class DiffStats:
 
 class FilterSource:
     # probably incomplete
+    repo: object
     pass
 
 class GitError(Exception): ...
@@ -1036,5 +1038,7 @@ def option(opt: Option, *args) -> None: ...
 def reference_is_valid_name(refname: str) -> bool: ...
 def tree_entry_cmp(a: Object, b: Object) -> int: ...
 def _cache_enums() -> None: ...
+def filter_register(name: str, filter: type[Filter]) -> None: ...
+def filter_unregister(name: str) -> None: ...
 
 _OidArg = str | Oid
