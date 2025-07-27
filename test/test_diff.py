@@ -25,14 +25,13 @@
 
 """Tests for Diff objects."""
 
-from itertools import chain
 import textwrap
+from itertools import chain
 
 import pytest
 
 import pygit2
 from pygit2.enums import DeltaStatus, DiffFlag, DiffOption, DiffStatsFormat, FileMode
-
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'

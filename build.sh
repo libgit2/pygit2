@@ -269,7 +269,7 @@ if [ "$1" = "mypy" ]; then
         $PREFIX/bin/pip install $WHEELDIR/pygit2*-$PYTHON_TAG-*.whl
     fi
     $PREFIX/bin/pip install -r requirements-test.txt
-    $PREFIX/bin/mypy pygit2
+    $PREFIX/bin/mypy pygit2 test
 fi
 
 # Test .pyi stub file

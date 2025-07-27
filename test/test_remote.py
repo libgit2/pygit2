@@ -24,16 +24,16 @@
 # Boston, MA 02110-1301, USA.
 
 import sys
-from pathlib import Path
 from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 
 import pygit2
-from pygit2 import Repository, Remote
+from pygit2 import Remote, Repository
 from pygit2.remotes import TransferProgress
-from . import utils
 
+from . import utils
 
 REMOTE_NAME = 'origin'
 REMOTE_URL = 'https://github.com/libgit2/pygit2.git'

@@ -27,15 +27,15 @@
 
 import io
 from pathlib import Path
-from threading import Event
 from queue import Queue
+from threading import Event
 
 import pytest
 
 import pygit2
 from pygit2.enums import ObjectType
-from . import utils
 
+from . import utils
 
 BLOB_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
 BLOB_CONTENT = """hello world

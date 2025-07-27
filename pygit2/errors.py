@@ -24,9 +24,8 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from .ffi import ffi, C
 from ._pygit2 import GitError
-
+from .ffi import C, ffi
 
 value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
 

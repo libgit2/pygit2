@@ -34,8 +34,8 @@ import pytest
 # pygit2
 from pygit2 import Odb, Oid
 from pygit2.enums import ObjectType
-from . import utils
 
+from . import utils
 
 BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))

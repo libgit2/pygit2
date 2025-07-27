@@ -30,26 +30,29 @@ import functools
 import os
 import typing
 
-# Low level API
-from ._pygit2 import *
-from ._pygit2 import _cache_enums
-
 # High level API
 from . import enums
 from ._build import __version__
+
+# Low level API
+from ._pygit2 import *
+from ._pygit2 import _cache_enums
 from .blame import Blame, BlameHunk
 from .blob import BlobIO
-from .callbacks import Payload, RemoteCallbacks, CheckoutCallbacks, StashApplyCallbacks
 from .callbacks import (
+    CheckoutCallbacks,
+    Payload,
+    RemoteCallbacks,
+    StashApplyCallbacks,
+    get_credentials,
     git_clone_options,
     git_fetch_options,
     git_proxy_options,
-    get_credentials,
 )
 from .config import Config
 from .credentials import *
-from .errors import check_error, Passthrough
-from .ffi import ffi, C
+from .errors import Passthrough, check_error
+from .ffi import C, ffi
 from .filter import Filter
 from .index import Index, IndexEntry
 from .legacyenums import *
@@ -59,7 +62,6 @@ from .repository import Repository
 from .settings import Settings
 from .submodules import Submodule
 from .utils import to_bytes, to_str
-
 
 # Features
 features = enums.Feature(C.git_libgit2_features())
@@ -164,7 +166,7 @@ def clone_repository(
     callbacks: RemoteCallbacks | None = None,
     depth: int = 0,
     proxy: None | bool | str = None,
-):
+) -> Repository:
     """
     Clones a new Git repository from *url* in the given *path*.
 

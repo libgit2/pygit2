@@ -23,13 +23,19 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from typing import TYPE_CHECKING, Iterator
+
+from ._pygit2 import Oid, Repository, Signature
+
 # Import from pygit2
-from .ffi import ffi, C
+from .ffi import C, ffi
 from .utils import GenericIterator
-from ._pygit2 import Signature, Oid
+
+if TYPE_CHECKING:
+    from ._libgit2.ffi import GitBlameC, GitHunkC, GitSignatureC
 
 
-def wrap_signature(csig):
+def wrap_signature(csig: 'GitSignatureC') -> None | Signature:
     if not csig:
         return None
 
@@ -43,58 +49,61 @@ def wrap_signature(csig):
 
 
 class BlameHunk:
+    _blame: 'Blame'
+    _hunk: 'GitHunkC'
+
     @classmethod
-    def _from_c(cls, blame, ptr):
+    def _from_c(cls, blame: 'Blame', ptr: 'GitHunkC') -> 'BlameHunk':
         hunk = cls.__new__(cls)
         hunk._blame = blame
         hunk._hunk = ptr
         return hunk
 
     @property
-    def lines_in_hunk(self):
+    def lines_in_hunk(self) -> int:
         """Number of lines"""
         return self._hunk.lines_in_hunk
 
     @property
-    def boundary(self):
+    def boundary(self) -> bool:
         """Tracked to a boundary commit"""
         # Casting directly to bool via cffi does not seem to work
         return int(ffi.cast('int', self._hunk.boundary)) != 0
 
     @property
-    def final_start_line_number(self):
+    def final_start_line_number(self) -> int:
         """Final start line number"""
         return self._hunk.final_start_line_number
 
     @property
-    def final_committer(self):
+    def final_committer(self) -> None | Signature:
         """Final committer"""
         return wrap_signature(self._hunk.final_signature)
 
     @property
-    def final_commit_id(self):
+    def final_commit_id(self) -> Oid:
         return Oid(
             raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'final_commit_id'))[:])
         )
 
     @property
-    def orig_start_line_number(self):
+    def orig_start_line_number(self) -> int:
         """Origin start line number"""
         return self._hunk.orig_start_line_number
 
     @property
-    def orig_committer(self):
+    def orig_committer(self) -> None | Signature:
         """Original committer"""
         return wrap_signature(self._hunk.orig_signature)
 
     @property
-    def orig_commit_id(self):
+    def orig_commit_id(self) -> Oid:
         return Oid(
             raw=bytes(ffi.buffer(ffi.addressof(self._hunk, 'orig_commit_id'))[:])
         )
 
     @property
-    def orig_path(self):
+    def orig_path(self) -> None | str:
         """Original path"""
         path = self._hunk.orig_path
         if not path:
@@ -104,27 +113,30 @@ class BlameHunk:
 
 
 class Blame:
+    _repo: Repository
+    _blame: 'GitBlameC'
+
     @classmethod
-    def _from_c(cls, repo, ptr):
+    def _from_c(cls, repo: Repository, ptr: 'GitBlameC') -> 'Blame':
         blame = cls.__new__(cls)
         blame._repo = repo
         blame._blame = ptr
         return blame
 
-    def __del__(self):
+    def __del__(self) -> None:
         C.git_blame_free(self._blame)
 
-    def __len__(self):
-        return C.git_blame_get_hunk_count(self._blame)
+    def __len__(self) -> int:
+        return C.git_blame_get_hunk_count(self._blame)  # type: ignore[no-any-return]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> BlameHunk:
         chunk = C.git_blame_get_hunk_byindex(self._blame, index)
         if not chunk:
             raise IndexError
 
         return BlameHunk._from_c(self, chunk)
 
-    def for_line(self, line_no):
+    def for_line(self, line_no: int) -> BlameHunk:
         """
         Returns the <BlameHunk> object for a given line given its number in the
         current Blame.
@@ -143,5 +155,5 @@ class Blame:
 
         return BlameHunk._from_c(self, chunk)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[BlameHunk]:
         return GenericIterator(self)

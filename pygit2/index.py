@@ -28,12 +28,11 @@ import warnings
 from dataclasses import dataclass
 
 # Import from pygit2
-from ._pygit2 import Oid, Tree, Diff
+from ._pygit2 import Diff, Oid, Tree
 from .enums import DiffOption, FileMode
 from .errors import check_error
-from .ffi import ffi, C
-from .utils import to_bytes, to_str
-from .utils import GenericIterator, StrArray
+from .ffi import C, ffi
+from .utils import GenericIterator, StrArray, to_bytes, to_str
 
 
 class Index:
@@ -42,7 +41,7 @@ class Index:
     # a proper implementation in some places: e.g. checking the index type
     # from C code (see Tree_diff_to_index)
 
-    def __init__(self, path=None):
+    def __init__(self, path: str | None = None) -> None:
         """Create a new Index
 
         If path is supplied, the read and write methods will use that path
@@ -69,13 +68,13 @@ class Index:
     def _pointer(self):
         return bytes(ffi.buffer(self._cindex)[:])
 
-    def __del__(self):
+    def __del__(self) -> None:
         C.git_index_free(self._index)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return C.git_index_entrycount(self._index)
 
-    def __contains__(self, path):
+    def __contains__(self, path) -> bool:
         err = C.git_index_find(ffi.NULL, self._index, to_bytes(path))
         if err == C.GIT_ENOTFOUND:
             return False

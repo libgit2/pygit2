@@ -26,13 +26,16 @@
 """Tests for Submodule objects."""
 
 from pathlib import Path
+from typing import Generator
 
-import pygit2
 import pytest
 
-from . import utils
-from pygit2.enums import SubmoduleIgnore as SI, SubmoduleStatus as SS
+import pygit2
+from pygit2 import Repository, Submodule
+from pygit2.enums import SubmoduleIgnore as SI
+from pygit2.enums import SubmoduleStatus as SS
 
+from . import utils
 
 SUBM_NAME = 'TestGitRepository'
 SUBM_PATH = 'TestGitRepository'
@@ -42,48 +45,48 @@ SUBM_BOTTOM_SHA = '6c8b137b1c652731597c89668f417b8695f28dd7'
 
 
 @pytest.fixture
-def repo(tmp_path):
+def repo(tmp_path: Path) -> Generator[Repository, None, None]:
     with utils.TemporaryRepository('submodulerepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
-def test_lookup_submodule(repo):
-    s = repo.submodules[SUBM_PATH]
+def test_lookup_submodule(repo: Repository) -> None:
+    s: Submodule | None = repo.submodules[SUBM_PATH]
     assert s is not None
     s = repo.submodules.get(SUBM_PATH)
     assert s is not None
 
 
-def test_lookup_submodule_aspath(repo):
+def test_lookup_submodule_aspath(repo: Repository) -> None:
     s = repo.submodules[Path(SUBM_PATH)]
     assert s is not None
 
 
-def test_lookup_missing_submodule(repo):
+def test_lookup_missing_submodule(repo: Repository) -> None:
     with pytest.raises(KeyError):
         repo.submodules['does-not-exist']
     assert repo.submodules.get('does-not-exist') is None
 
 
-def test_listall_submodules(repo):
+def test_listall_submodules(repo: Repository) -> None:
     submodules = repo.listall_submodules()
     assert len(submodules) == 1
     assert submodules[0] == SUBM_PATH
 
 
-def test_contains_submodule(repo):
+def test_contains_submodule(repo: Repository) -> None:
     assert SUBM_PATH in repo.submodules
     assert 'does-not-exist' not in repo.submodules
 
 
-def test_submodule_iterator(repo):
+def test_submodule_iterator(repo: Repository) -> None:
     for s in repo.submodules:
         assert isinstance(s, pygit2.Submodule)
         assert s.path == repo.submodules[s.path].path
 
 
 @utils.requires_network
-def test_submodule_open(repo):
+def test_submodule_open(repo: Repository) -> None:
     s = repo.submodules[SUBM_PATH]
     repo.submodules.init()
     repo.submodules.update()
@@ -93,7 +96,7 @@ def test_submodule_open(repo):
 
 
 @utils.requires_network
-def test_submodule_open_from_repository_subclass(repo):
+def test_submodule_open_from_repository_subclass(repo: Repository) -> None:
     class CustomRepoClass(pygit2.Repository):
         pass
 
@@ -106,22 +109,22 @@ def test_submodule_open_from_repository_subclass(repo):
     assert r.head.target == SUBM_HEAD_SHA
 
 
-def test_name(repo):
+def test_name(repo: Repository) -> None:
     s = repo.submodules[SUBM_PATH]
     assert SUBM_NAME == s.name
 
 
-def test_path(repo):
+def test_path(repo: Repository) -> None:
     s = repo.submodules[SUBM_PATH]
     assert SUBM_PATH == s.path
 
 
-def test_url(repo):
+def test_url(repo: Repository) -> None:
     s = repo.submodules[SUBM_PATH]
     assert SUBM_URL == s.url
 
 
-def test_missing_url(repo):
+def test_missing_url(repo: Repository) -> None:
     # Remove "url" from .gitmodules
     with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:
         f.write('[submodule "TestGitRepository"]\n')
@@ -131,7 +134,7 @@ def test_missing_url(repo):
 
 
 @utils.requires_network
-def test_init_and_update(repo):
+def test_init_and_update(repo: Repository) -> None:
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
 
@@ -148,7 +151,7 @@ def test_init_and_update(repo):
 
 
 @utils.requires_network
-def test_specified_update(repo):
+def test_specified_update(repo: Repository) -> None:
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     repo.submodules.init(submodules=['TestGitRepository'])
@@ -157,7 +160,7 @@ def test_specified_update(repo):
 
 
 @utils.requires_network
-def test_update_instance(repo):
+def test_update_instance(repo: Repository) -> None:
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     sm = repo.submodules['TestGitRepository']
@@ -168,7 +171,7 @@ def test_update_instance(repo):
 
 @utils.requires_network
 @pytest.mark.parametrize('depth', [0, 1])
-def test_oneshot_update(repo, depth):
+def test_oneshot_update(repo: Repository, depth: int) -> None:
     status = repo.submodules.status(SUBM_NAME)
     assert status == (SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG | SS.WD_UNINITIALIZED)
 
@@ -190,7 +193,7 @@ def test_oneshot_update(repo, depth):
 
 @utils.requires_network
 @pytest.mark.parametrize('depth', [0, 1])
-def test_oneshot_update_instance(repo, depth):
+def test_oneshot_update_instance(repo: Repository, depth: int) -> None:
     subrepo_file_path = Path(repo.workdir) / SUBM_PATH / 'master.txt'
     assert not subrepo_file_path.exists()
     sm = repo.submodules[SUBM_NAME]
@@ -206,12 +209,12 @@ def test_oneshot_update_instance(repo, depth):
 
 
 @utils.requires_network
-def test_head_id(repo):
+def test_head_id(repo: Repository) -> None:
     assert repo.submodules[SUBM_PATH].head_id == SUBM_HEAD_SHA
 
 
 @utils.requires_network
-def test_head_id_null(repo):
+def test_head_id_null(repo: Repository) -> None:
     gitmodules_newlines = (
         '\n'
         '[submodule "uncommitted_submodule"]\n'
@@ -230,7 +233,7 @@ def test_head_id_null(repo):
 
 @utils.requires_network
 @pytest.mark.parametrize('depth', [0, 1])
-def test_add_submodule(repo, depth):
+def test_add_submodule(repo: Repository, depth: int) -> None:
     sm_repo_path = 'test/testrepo'
     sm = repo.submodules.add(SUBM_URL, sm_repo_path, depth=depth)
 
@@ -250,7 +253,7 @@ def test_add_submodule(repo, depth):
 
 
 @utils.requires_network
-def test_submodule_status(repo):
+def test_submodule_status(repo: Repository) -> None:
     common_status = SS.IN_HEAD | SS.IN_INDEX | SS.IN_CONFIG
 
     # Submodule needs initializing
@@ -302,7 +305,7 @@ def test_submodule_status(repo):
     )
 
 
-def test_submodule_cache(repo):
+def test_submodule_cache(repo: Repository) -> None:
     # When the cache is turned on, looking up the same submodule twice must return the same git_submodule object
     repo.submodules.cache_all()
     sm1 = repo.submodules[SUBM_NAME]
@@ -317,7 +320,7 @@ def test_submodule_cache(repo):
     assert sm3._subm != sm4._subm
 
 
-def test_submodule_reload(repo):
+def test_submodule_reload(repo: Repository) -> None:
     sm = repo.submodules[SUBM_NAME]
     assert sm.url == 'https://github.com/libgit2/TestGitRepository'
 
