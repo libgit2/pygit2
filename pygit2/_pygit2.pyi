@@ -458,6 +458,7 @@ class Diff:
     patch: str | None
     patchid: Oid
     stats: DiffStats
+    text: str
     def find_similar(
         self,
         flags: DiffFind = DiffFind.FIND_BY_CONFIG,
@@ -835,8 +836,8 @@ class Repository:
     ) -> Oid: ...
     def diff(
         self,
-        a: None | str | bytes | Reference = None,
-        b: None | str | bytes | Reference = None,
+        a: None | str | bytes | Oid | Reference = None,
+        b: None | str | bytes | Oid | Reference = None,
         cached: bool = False,
         flags: DiffOption = DiffOption.NORMAL,
         context_lines: int = 3,
