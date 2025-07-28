@@ -25,10 +25,24 @@
 
 import contextlib
 import os
-from typing import Generic, Iterator, Protocol, TypeVar, Union, overload
+from types import TracebackType
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    Iterator,
+    Optional,
+    Protocol,
+    Sequence,
+    TypeVar,
+    Union,
+    overload,
+)
 
 # Import from pygit2
 from .ffi import C, ffi
+
+if TYPE_CHECKING:
+    from ._libgit2.ffi import ArrayC, GitStrrayC, char
 
 
 def maybe_string(ptr):
@@ -130,7 +144,11 @@ class StrArray:
     contents of 'struct' only remain valid within the StrArray context.
     """
 
-    def __init__(self, lst):
+    __array: 'GitStrrayC | ffi.NULL_TYPE'
+    __strings: list['None | ArrayC[char]']
+    __arr: 'ArrayC[char]'
+
+    def __init__(self, lst: None | Sequence[str | os.PathLike[str]]):
         # Allow passing in None as lg2 typically considers them the same as empty
         if lst is None:
             self.__array = ffi.NULL
@@ -139,7 +157,7 @@ class StrArray:
         if not isinstance(lst, (list, tuple)):
             raise TypeError('Value must be a list')
 
-        strings = [None] * len(lst)
+        strings: list[None | 'ArrayC[char]'] = [None] * len(lst)
         for i in range(len(lst)):
             li = lst[i]
             if not isinstance(li, str) and not hasattr(li, '__fspath__'):
@@ -147,21 +165,26 @@ class StrArray:
 
             strings[i] = ffi.new('char []', to_bytes(li))
 
-        self.__arr = ffi.new('char *[]', strings)
+        self.__arr = ffi.new('char *[]', strings)  # type: ignore[call-overload]
         self.__strings = strings
-        self.__array = ffi.new('git_strarray *', [self.__arr, len(strings)])
+        self.__array = ffi.new('git_strarray *', [self.__arr, len(strings)])  # type: ignore[call-overload]
 
-    def __enter__(self):
+    def __enter__(self) -> 'StrArray':
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
         pass
 
     @property
-    def ptr(self):
+    def ptr(self) -> 'GitStrrayC | ffi.NULL_TYPE':
         return self.__array
 
-    def assign_to(self, git_strarray):
+    def assign_to(self, git_strarray: 'GitStrrayC') -> None:
         if self.__array == ffi.NULL:
             git_strarray.strings = ffi.NULL
             git_strarray.count = 0

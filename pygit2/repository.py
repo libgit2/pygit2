@@ -1183,7 +1183,7 @@ class BaseRepository(_Repository):
 
         if paths:
             arr = StrArray(paths)
-            opts.paths = arr.ptr[0]
+            opts.paths = arr.ptr[0]  # type: ignore[index]
 
         coid = ffi.new('git_oid *')
         err = C.git_stash_save_with_opts(coid, self._repo, opts)

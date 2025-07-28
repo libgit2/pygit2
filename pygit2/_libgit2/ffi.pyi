@@ -42,6 +42,11 @@ class _Pointer(Generic[T]):
     @overload
     def __getitem__(self, item: slice[None, None, None]) -> bytes: ...
 
+class ArrayC(Generic[T]):
+    # incomplete!
+    # def _len(self, ?) -> ?: ...
+    pass
+
 class GitTimeC:
     # incomplete
     time: int
@@ -132,13 +137,13 @@ class GitDescribeFormatOptionsC:
     version: int
     abbreviated_size: int
     always_use_long_format: int
-    dirty_suffix: char_pointer
+    dirty_suffix: ArrayC[char]
 
 class GitDescribeOptionsC:
     version: int
     max_candidates_tags: int
     describe_strategy: int
-    pattern: char_pointer
+    pattern: ArrayC[char]
     only_follow_first_parent: int
     show_commit_oid_as_fallback: int
 
@@ -147,6 +152,11 @@ class GitDescribeResultC:
 
 class GitIndexC:
     pass
+
+class GitIndexEntryC:
+    # incomplete?
+    mode: int
+    path: ArrayC[char]
 
 class GitMergeFileResultC:
     pass
@@ -158,11 +168,13 @@ class GitStashSaveOptionsC:
     version: int
     flags: int
     stasher: GitSignatureC
-    message: char_pointer
+    message: ArrayC[char]
     paths: GitStrrayC
 
 class GitStrrayC:
-    pass
+    # incomplete?
+    strings: NULL_TYPE | ArrayC[char]
+    count: int
 
 class GitTreeC:
     pass
@@ -171,11 +183,11 @@ class GitRepositoryInitOptionsC:
     version: int
     flags: int
     mode: int
-    workdir_path: char_pointer
-    description: char_pointer
-    template_path: char_pointer
-    initial_head: char_pointer
-    origin_url: char_pointer
+    workdir_path: ArrayC[char]
+    description: ArrayC[char]
+    template_path: ArrayC[char]
+    initial_head: ArrayC[char]
+    origin_url: ArrayC[char]
 
 class GitCloneOptionsC:
     pass
@@ -229,6 +241,10 @@ def new(a: Literal['git_attr_options *']) -> GitAttrOptionsC: ...
 @overload
 def new(a: Literal['git_buf *']) -> GitBufC: ...
 @overload
+def new(a: Literal['char *'], b: bytes) -> char_pointer: ...
+@overload
+def new(a: Literal['char *[]'], b: list[char_pointer]) -> ArrayC[char_pointer]: ...
+@overload
 def new(a: Literal['git_checkout_options *']) -> GitCheckoutOptionsC: ...
 @overload
 def new(a: Literal['git_commit **']) -> _Pointer[GitCommitC]: ...
@@ -251,6 +267,8 @@ def new(a: Literal['struct git_reference **']) -> _Pointer[GitReferenceC]: ...
 @overload
 def new(a: Literal['git_index **']) -> _Pointer[GitIndexC]: ...
 @overload
+def new(a: Literal['git_index_entry *']) -> GitIndexEntryC: ...
+@overload
 def new(a: Literal['git_merge_file_result *']) -> GitMergeFileResultC: ...
 @overload
 def new(a: Literal['git_object *']) -> GitObjectC: ...
@@ -263,13 +281,15 @@ def new(a: Literal['git_signature **']) -> _Pointer[GitSignatureC]: ...
 @overload
 def new(a: Literal['git_stash_save_options *']) -> GitStashSaveOptionsC: ...
 @overload
+def new(a: Literal['git_strarray *']) -> GitStrrayC: ...
+@overload
 def new(a: Literal['git_tree **']) -> _Pointer[GitTreeC]: ...
 @overload
 def new(a: Literal['git_buf *'], b: tuple[NULL_TYPE, Literal[0]]) -> GitBufC: ...
 @overload
 def new(a: Literal['char **']) -> _Pointer[char_pointer]: ...
 @overload
-def new(a: Literal['char[]', 'char []'], b: bytes | NULL_TYPE) -> char_pointer: ...
+def new(a: Literal['char[]', 'char []'], b: bytes | NULL_TYPE) -> ArrayC[char]: ...
 def addressof(a: object, attribute: str) -> _Pointer[object]: ...
 
 class buffer(bytes):
