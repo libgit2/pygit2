@@ -670,7 +670,9 @@ class BaseRepository(_Repository):
     # Merging
     #
     @staticmethod
-    def _merge_options(favor: MergeFavor, flags: MergeFlag, file_flags: MergeFileFlag):
+    def _merge_options(
+        favor: int | MergeFavor, flags: int | MergeFlag, file_flags: int | MergeFileFlag
+    ):
         """Return a 'git_merge_opts *'"""
 
         # Check arguments type

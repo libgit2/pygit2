@@ -19,6 +19,7 @@ from typing import (
 from . import Index
 from ._libgit2.ffi import (
     GitCommitC,
+    GitMergeOptionsC,
     GitObjectC,
     GitProxyOptionsC,
     GitRepositoryC,
@@ -43,6 +44,9 @@ from .enums import (
     DiffStatsFormat,
     FileMode,
     MergeAnalysis,
+    MergeFavor,
+    MergeFileFlag,
+    MergeFlag,
     MergePreference,
     ObjectType,
     Option,
@@ -884,12 +888,40 @@ class Repository:
     def lookup_reference(self, name: str) -> Reference: ...
     def lookup_reference_dwim(self, name: str) -> Reference: ...
     def lookup_worktree(self, name: str) -> Worktree: ...
+    def merge(
+        self,
+        source: Reference | Commit | Oid | str,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> None: ...
     def merge_analysis(
         self, their_head: _OidArg, our_ref: str = 'HEAD'
     ) -> tuple[MergeAnalysis, MergePreference]: ...
     def merge_base(self, oid1: _OidArg, oid2: _OidArg) -> Oid: ...
     def merge_base_many(self, oids: list[_OidArg]) -> Oid: ...
     def merge_base_octopus(self, oids: list[_OidArg]) -> Oid: ...
+    def merge_commits(
+        self,
+        ours: str | Oid | Commit,
+        theirs: str | Oid | Commit,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> Index: ...
+    @staticmethod
+    def _merge_options(
+        favor: int | MergeFavor, flags: int | MergeFlag, file_flags: int | MergeFileFlag
+    ) -> GitMergeOptionsC: ...
+    def merge_trees(
+        self,
+        ancestor: str | Oid | Tree,
+        ours: str | Oid | Tree,
+        theirs: str | Oid | Tree,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> Index: ...
     @property
     def message(self) -> str: ...
     def notes(self) -> Iterator[Note]: ...
@@ -898,6 +930,9 @@ class Repository:
         self, flag: BranchType = BranchType.LOCAL
     ) -> list[bytes]: ...
     def raw_listall_references(self) -> list[bytes]: ...
+    @property
+    def raw_message(self) -> bytes: ...
+    def remove_message(self) -> None: ...
     def references_iterator_init(self) -> Iterator[Reference]: ...
     def references_iterator_next(
         self,
