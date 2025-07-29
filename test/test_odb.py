@@ -28,11 +28,12 @@
 # Standard Library
 import binascii
 from pathlib import Path
+from typing import Generator
 
 import pytest
 
 # pygit2
-from pygit2 import Odb, Oid
+from pygit2 import Odb, Oid, Repository
 from pygit2.enums import ObjectType
 
 from . import utils
@@ -42,7 +43,7 @@ BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
 BLOB_OID = Oid(raw=BLOB_RAW)
 
 
-def test_emptyodb(barerepo):
+def test_emptyodb(barerepo: Repository) -> None:
     odb = Odb()
 
     assert len(list(odb)) == 0
@@ -53,22 +54,22 @@ def test_emptyodb(barerepo):
 
 
 @pytest.fixture
-def odb(barerepo):
+def odb(barerepo: Repository) -> Generator[Odb, None, None]:
     odb = barerepo.odb
     yield odb
 
 
-def test_iterable(odb):
+def test_iterable(odb: Odb) -> None:
     assert BLOB_HEX in odb
 
 
-def test_contains(odb):
+def test_contains(odb: Odb) -> None:
     assert BLOB_HEX in odb
 
 
-def test_read(odb):
+def test_read(odb: Odb) -> None:
     with pytest.raises(TypeError):
-        odb.read(123)
+        odb.read(123)  # type: ignore
     utils.assertRaisesWithArg(KeyError, '1' * 40, odb.read, '1' * 40)
 
     ab = odb.read(BLOB_OID)
@@ -84,7 +85,7 @@ def test_read(odb):
     assert (ObjectType.BLOB, b'a contents\n') == a3
 
 
-def test_write(odb):
+def test_write(odb: Odb) -> None:
     data = b'hello world'
     # invalid object type
     with pytest.raises(ValueError):
