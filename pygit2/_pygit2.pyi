@@ -553,6 +553,7 @@ class Note:
     annotated_id: Oid
     id: Oid
     message: str
+    data: bytes
     def remove(
         self, author: Signature, committer: Signature, ref: str = 'refs/notes/commits'
     ) -> None: ...
