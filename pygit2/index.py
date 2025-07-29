@@ -26,9 +26,10 @@
 import typing
 import warnings
 from dataclasses import dataclass
+from os import PathLike
 
 # Import from pygit2
-from ._pygit2 import Diff, Oid, Tree
+from ._pygit2 import Diff, Oid, Repository, Tree
 from .enums import DiffOption, FileMode
 from .errors import check_error
 from .ffi import C, ffi
@@ -41,7 +42,7 @@ class Index:
     # a proper implementation in some places: e.g. checking the index type
     # from C code (see Tree_diff_to_index)
 
-    def __init__(self, path: str | None = None) -> None:
+    def __init__(self, path: str | PathLike[str] | None = None) -> None:
         """Create a new Index
 
         If path is supplied, the read and write methods will use that path
@@ -116,16 +117,16 @@ class Index:
         err = C.git_index_read(self._index, force)
         check_error(err, io=True)
 
-    def write(self):
+    def write(self) -> None:
         """Write the contents of the Index to disk."""
         err = C.git_index_write(self._index)
         check_error(err, io=True)
 
-    def clear(self):
+    def clear(self) -> None:
         err = C.git_index_clear(self._index)
         check_error(err)
 
-    def read_tree(self, tree):
+    def read_tree(self, tree: Oid | Tree | str) -> None:
         """Replace the contents of the Index with those of the given tree,
         expressed either as a <Tree> object or as an oid (string or <Oid>).
 
@@ -134,6 +135,8 @@ class Index:
         """
         repo = self._repo
         if isinstance(tree, str):
+            if repo is None:
+                raise TypeError('id given but no associated repository')
             tree = repo[tree]
 
         if isinstance(tree, Oid):
@@ -142,14 +145,14 @@ class Index:
 
             tree = repo[tree]
         elif not isinstance(tree, Tree):
-            raise TypeError('argument must be Oid or Tree')
+            raise TypeError('argument must be Oid, Tree or str')
 
         tree_cptr = ffi.new('git_tree **')
         ffi.buffer(tree_cptr)[:] = tree._pointer[:]
         err = C.git_index_read_tree(self._index, tree_cptr[0])
         check_error(err)
 
-    def write_tree(self, repo=None):
+    def write_tree(self, repo: Repository | None = None) -> Oid:
         """Create a tree out of the Index. Return the <Oid> object of the
         written tree.
 
@@ -172,23 +175,23 @@ class Index:
         check_error(err)
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 
-    def remove(self, path, level=0):
+    def remove(self, path: PathLike[str] | str, level: int = 0) -> None:
         """Remove an entry from the Index."""
         err = C.git_index_remove(self._index, to_bytes(path), level)
         check_error(err, io=True)
 
-    def remove_directory(self, path, level=0):
+    def remove_directory(self, path: PathLike[str] | str, level: int = 0) -> None:
         """Remove a directory from the Index."""
         err = C.git_index_remove_directory(self._index, to_bytes(path), level)
         check_error(err, io=True)
 
-    def remove_all(self, pathspecs):
+    def remove_all(self, pathspecs: typing.Sequence[str | PathLike[str]]) -> None:
         """Remove all index entries matching pathspecs."""
         with StrArray(pathspecs) as arr:
             err = C.git_index_remove_all(self._index, arr.ptr, ffi.NULL, ffi.NULL)
             check_error(err, io=True)
 
-    def add_all(self, pathspecs=None):
+    def add_all(self, pathspecs: None | list[str | PathLike[str]] = None) -> None:
         """Add or update index entries matching files in the working directory.
 
         If pathspecs are specified, only files matching those pathspecs will
@@ -199,7 +202,7 @@ class Index:
             err = C.git_index_add_all(self._index, arr.ptr, 0, ffi.NULL, ffi.NULL)
             check_error(err, io=True)
 
-    def add(self, path_or_entry):
+    def add(self, path_or_entry: 'IndexEntry | str | PathLike[str]') -> None:
         """Add or update an entry in the Index.
 
         If a path is given, that file will be added. The path must be relative
@@ -217,11 +220,13 @@ class Index:
             path = path_or_entry
             err = C.git_index_add_bypath(self._index, to_bytes(path))
         else:
-            raise TypeError('argument must be string or IndexEntry')
+            raise TypeError('argument must be string, Path or IndexEntry')
 
         check_error(err, io=True)
 
-    def add_conflict(self, ancestor, ours, theirs):
+    def add_conflict(
+        self, ancestor: 'IndexEntry', ours: 'IndexEntry', theirs: 'IndexEntry | None'
+    ) -> None:
         """
         Add or update index entries to represent a conflict. Any staged entries that
         exist at the given paths will be removed.
@@ -243,7 +248,9 @@ class Index:
         if theirs and not isinstance(theirs, IndexEntry):
             raise TypeError('theirs has to be an instance of IndexEntry or None')
 
-        centry_ancestor = centry_ours = centry_theirs = ffi.NULL
+        centry_ancestor: ffi.NULL_TYPE | ffi.GitIndexEntryC = ffi.NULL
+        centry_ours: ffi.NULL_TYPE | ffi.GitIndexEntryC = ffi.NULL
+        centry_theirs: ffi.NULL_TYPE | ffi.GitIndexEntryC = ffi.NULL
         if ancestor is not None:
             centry_ancestor, _ = ancestor._to_c()
         if ours is not None:
@@ -418,7 +425,7 @@ class MergeFileResult:
 
 
 class IndexEntry:
-    path: str
+    path: str | PathLike[str]
     'The path of this entry'
 
     id: Oid
@@ -427,7 +434,9 @@ class IndexEntry:
     mode: FileMode
     'The mode of this entry, a FileMode value'
 
-    def __init__(self, path, object_id: Oid, mode: FileMode):
+    def __init__(
+        self, path: str | PathLike[str], object_id: Oid, mode: FileMode
+    ) -> None:
         self.path = path
         self.id = object_id
         self.mode = mode
@@ -459,7 +468,7 @@ class IndexEntry:
             self.path == other.path and self.id == other.id and self.mode == other.mode
         )
 
-    def _to_c(self):
+    def _to_c(self) -> tuple['ffi.GitIndexEntryC', 'ffi.ArrayC[ffi.char]']:
         """Convert this entry into the C structure
 
         The first returned arg is the pointer, the second is the reference to

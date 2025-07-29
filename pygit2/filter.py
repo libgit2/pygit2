@@ -58,7 +58,7 @@ class Filter:
     def nattrs(cls) -> int:
         return len(cls.attributes.split())
 
-    def check(self, src: FilterSource, attr_values: List[Optional[str]]):
+    def check(self, src: FilterSource, attr_values: List[Optional[str]]) -> None:
         """
         Check whether this filter should be applied to the given source.
 
@@ -77,7 +77,7 @@ class Filter:
 
     def write(
         self, data: bytes, src: FilterSource, write_next: Callable[[bytes], None]
-    ):
+    ) -> None:
         """
         Write input `data` to this filter.
 
@@ -95,7 +95,7 @@ class Filter:
         """
         write_next(data)
 
-    def close(self, write_next: Callable[[bytes], None]):
+    def close(self, write_next: Callable[[bytes], None]) -> None:
         """
         Close this filter.
 

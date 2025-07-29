@@ -23,16 +23,20 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from pathlib import Path
+from typing import Generator
+
 import pytest
 
 import pygit2
+from pygit2 import Repository
 from pygit2.enums import DiffOption
 
 from . import utils
 
 
 @pytest.fixture
-def repo(tmp_path):
+def repo(tmp_path: Path) -> Generator[Repository, None, None]:
     with utils.TemporaryRepository('binaryfilerepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
@@ -54,7 +58,7 @@ Pc${NM&PdElPvrst3ey5{
 """
 
 
-def test_binary_diff(repo):
+def test_binary_diff(repo: Repository) -> None:
     diff = repo.diff('HEAD', 'HEAD^')
     assert PATCH_BINARY == diff.patch
     diff = repo.diff('HEAD', 'HEAD^', flags=DiffOption.SHOW_BINARY)

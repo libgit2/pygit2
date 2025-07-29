@@ -32,13 +32,16 @@ import sys
 import zipfile
 from pathlib import Path
 from types import TracebackType
-from typing import Optional
+from typing import Callable, Optional, ParamSpec, TypeVar
 
 # Requirements
 import pytest
 
 # Pygit2
 import pygit2
+
+T = TypeVar('T')
+P = ParamSpec('P')
 
 requires_future_libgit2 = pytest.mark.xfail(
     pygit2.LIBGIT2_VER < (2, 0, 0),
@@ -121,7 +124,13 @@ class TemporaryRepository:
         pass
 
 
-def assertRaisesWithArg(exc_class, arg, func, *args, **kwargs):
+def assertRaisesWithArg(
+    exc_class: type[Exception],
+    arg: object,
+    func: Callable[P, T],
+    *args: P.args,
+    **kwargs: P.kwargs,
+) -> None:
     with pytest.raises(exc_class) as excinfo:
         func(*args, **kwargs)
     assert excinfo.value.args == (arg,)

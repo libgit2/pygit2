@@ -27,10 +27,12 @@
 
 import textwrap
 from itertools import chain
+from typing import Iterator
 
 import pytest
 
 import pygit2
+from pygit2 import Diff, Repository
 from pygit2.enums import DeltaStatus, DiffFlag, DiffOption, DiffStatsFormat, FileMode
 
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
@@ -169,7 +171,7 @@ index 0b5ac93..ddfdbcc 100644
 """
 
 
-def test_diff_empty_index(dirtyrepo):
+def test_diff_empty_index(dirtyrepo: Repository) -> None:
     repo = dirtyrepo
     head = repo[repo.lookup_reference('HEAD').resolve().target]
 
@@ -182,7 +184,7 @@ def test_diff_empty_index(dirtyrepo):
     assert DIFF_HEAD_TO_INDEX_EXPECTED == files
 
 
-def test_workdir_to_tree(dirtyrepo):
+def test_workdir_to_tree(dirtyrepo: Repository) -> None:
     repo = dirtyrepo
     head = repo[repo.lookup_reference('HEAD').resolve().target]
 
@@ -195,22 +197,22 @@ def test_workdir_to_tree(dirtyrepo):
     assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
 
 
-def test_index_to_workdir(dirtyrepo):
+def test_index_to_workdir(dirtyrepo: Repository) -> None:
     diff = dirtyrepo.diff()
     files = [patch.delta.new_file.path for patch in diff]
     assert DIFF_INDEX_TO_WORK_EXPECTED == files
 
 
-def test_diff_invalid(barerepo):
+def test_diff_invalid(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     with pytest.raises(TypeError):
-        commit_a.tree.diff_to_tree(commit_b)
+        commit_a.tree.diff_to_tree(commit_b)  # type: ignore
     with pytest.raises(TypeError):
-        commit_a.tree.diff_to_index(commit_b)
+        commit_a.tree.diff_to_index(commit_b)  # type: ignore
 
 
-def test_diff_empty_index_bare(barerepo):
+def test_diff_empty_index_bare(barerepo: Repository) -> None:
     repo = barerepo
     head = repo[repo.lookup_reference('HEAD').resolve().target]
 
@@ -227,11 +229,11 @@ def test_diff_empty_index_bare(barerepo):
     assert [x.name for x in head.tree] == files
 
 
-def test_diff_tree(barerepo):
+def test_diff_tree(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
 
-    def _test(diff):
+    def _test(diff: Diff) -> None:
         assert diff is not None
         assert 2 == sum(map(lambda x: len(x.hunks), diff))
 
@@ -260,11 +262,11 @@ def test_diff_tree(barerepo):
     _test(barerepo.diff(COMMIT_SHA1_1, COMMIT_SHA1_2))
 
 
-def test_diff_empty_tree(barerepo):
+def test_diff_empty_tree(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     diff = commit_a.tree.diff_to_tree()
 
-    def get_context_for_lines(diff):
+    def get_context_for_lines(diff: Diff) -> Iterator[str]:
         hunks = chain.from_iterable(map(lambda x: x.hunks, diff))
         lines = chain.from_iterable(map(lambda x: x.lines, hunks))
         return map(lambda x: x.origin, lines)
@@ -279,12 +281,12 @@ def test_diff_empty_tree(barerepo):
     assert all('+' == x for x in get_context_for_lines(diff_swaped))
 
 
-def test_diff_revparse(barerepo):
+def test_diff_revparse(barerepo: Repository) -> None:
     diff = barerepo.diff('HEAD', 'HEAD~6')
     assert type(diff) is pygit2.Diff
 
 
-def test_diff_tree_opts(barerepo):
+def test_diff_tree_opts(barerepo: Repository) -> None:
     commit_c = barerepo[COMMIT_SHA1_3]
     commit_d = barerepo[COMMIT_SHA1_4]
 
@@ -298,7 +300,7 @@ def test_diff_tree_opts(barerepo):
     assert 1 == len(diff[0].hunks)
 
 
-def test_diff_merge(barerepo):
+def test_diff_merge(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     commit_c = barerepo[COMMIT_SHA1_3]
@@ -325,7 +327,7 @@ def test_diff_merge(barerepo):
     assert patch.delta.new_file.path == 'a'
 
 
-def test_diff_patch(barerepo):
+def test_diff_patch(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
 
@@ -334,7 +336,7 @@ def test_diff_patch(barerepo):
     assert len(diff) == len([patch for patch in diff])
 
 
-def test_diff_ids(barerepo):
+def test_diff_ids(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
@@ -343,7 +345,7 @@ def test_diff_ids(barerepo):
     assert delta.new_file.id == 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 
 
-def test_diff_patchid(barerepo):
+def test_diff_patchid(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
@@ -351,7 +353,7 @@ def test_diff_patchid(barerepo):
     assert diff.patchid == PATCHID
 
 
-def test_hunk_content(barerepo):
+def test_hunk_content(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
@@ -362,7 +364,7 @@ def test_hunk_content(barerepo):
         assert line.content == line.raw_content.decode()
 
 
-def test_find_similar(barerepo):
+def test_find_similar(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_6]
     commit_b = barerepo[COMMIT_SHA1_7]
 
@@ -376,7 +378,7 @@ def test_find_similar(barerepo):
     assert any(x.delta.status_char() == 'R' for x in diff)
 
 
-def test_diff_stats(barerepo):
+def test_diff_stats(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
 
@@ -391,7 +393,7 @@ def test_diff_stats(barerepo):
     assert STATS_EXPECTED == formatted
 
 
-def test_deltas(barerepo):
+def test_deltas(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
@@ -414,7 +416,7 @@ def test_deltas(barerepo):
         # assert delta.flags == patch_delta.flags
 
 
-def test_diff_parse(barerepo):
+def test_diff_parse(barerepo: Repository) -> None:
     diff = pygit2.Diff.parse_diff(PATCH)
 
     stats = diff.stats
@@ -426,9 +428,9 @@ def test_diff_parse(barerepo):
     assert 2 == len(deltas)
 
 
-def test_parse_diff_null():
+def test_parse_diff_null() -> None:
     with pytest.raises(TypeError):
-        pygit2.Diff.parse_diff(None)
+        pygit2.Diff.parse_diff(None)  # type: ignore
 
 
 def test_parse_diff_bad():
@@ -445,7 +447,7 @@ def test_parse_diff_bad():
         pygit2.Diff.parse_diff(diff)
 
 
-def test_diff_blobs(emptyrepo):
+def test_diff_blobs(emptyrepo: Repository) -> None:
     repo = emptyrepo
     blob1 = repo.create_blob(TEXT_BLOB1.encode())
     blob2 = repo.create_blob(TEXT_BLOB2.encode())

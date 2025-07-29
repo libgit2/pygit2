@@ -19,6 +19,7 @@ from typing import (
 from . import Index
 from ._libgit2.ffi import (
     GitCommitC,
+    GitMergeOptionsC,
     GitObjectC,
     GitProxyOptionsC,
     GitRepositoryC,
@@ -36,12 +37,16 @@ from .enums import (
     BranchType,
     CheckoutStrategy,
     DeltaStatus,
+    DescribeStrategy,
     DiffFind,
     DiffFlag,
     DiffOption,
     DiffStatsFormat,
     FileMode,
     MergeAnalysis,
+    MergeFavor,
+    MergeFileFlag,
+    MergeFlag,
     MergePreference,
     ObjectType,
     Option,
@@ -51,6 +56,7 @@ from .enums import (
     ResetMode,
     SortMode,
 )
+from .filter import Filter
 from .remotes import Remote
 from .repository import BaseRepository
 from .submodules import SubmoduleCollection
@@ -457,6 +463,7 @@ class Diff:
     patch: str | None
     patchid: Oid
     stats: DiffStats
+    text: str
     def find_similar(
         self,
         flags: DiffFind = DiffFind.FIND_BY_CONFIG,
@@ -520,6 +527,7 @@ class DiffStats:
 
 class FilterSource:
     # probably incomplete
+    repo: object
     pass
 
 class GitError(Exception): ...
@@ -529,9 +537,9 @@ class Mailmap:
     def __init__(self, *args) -> None: ...
     def add_entry(
         self,
-        real_name: str = ...,
-        real_email: str = ...,
-        replace_name: str = ...,
+        real_name: str | None = ...,
+        real_email: str | None = ...,
+        replace_name: str | None = ...,
         replace_email: str = ...,
     ) -> None: ...
     @staticmethod
@@ -719,6 +727,7 @@ class Branches:
 
 class Repository:
     _pointer: GitRepositoryC
+    _repo: GitRepositoryC
     default_signature: Signature
     head: Reference
     head_is_detached: bool
@@ -784,7 +793,7 @@ class Repository:
     def compress_references(self) -> None: ...
     @property
     def config(self) -> Config: ...
-    def create_blob(self, data: bytes) -> Oid: ...
+    def create_blob(self, data: str | bytes) -> Oid: ...
     def create_blob_fromdisk(self, path: str) -> Oid: ...
     def create_blob_fromiobase(self, iobase: IOBase) -> Oid: ...
     def create_blob_fromworkdir(self, path: str | Path) -> Oid: ...
@@ -834,14 +843,26 @@ class Repository:
     ) -> Oid: ...
     def diff(
         self,
-        a: None | str | Reference = None,
-        b: None | str | Reference = None,
+        a: None | str | bytes | Oid | Reference = None,
+        b: None | str | bytes | Oid | Reference = None,
         cached: bool = False,
         flags: DiffOption = DiffOption.NORMAL,
         context_lines: int = 3,
         interhunk_lines: int = 0,
     ) -> Diff: ...
     def descendant_of(self, oid1: _OidArg, oid2: _OidArg) -> bool: ...
+    def describe(
+        self,
+        committish: str | Reference | Commit | None = None,
+        max_candidates_tags: int | None = None,
+        describe_strategy: DescribeStrategy = DescribeStrategy.DEFAULT,
+        pattern: str | None = None,
+        only_follow_first_parent: bool | None = None,
+        show_commit_oid_as_fallback: bool | None = None,
+        abbreviated_size: object | None = None,
+        always_use_long_format: bool | None = None,
+        dirty_suffix: str | None = None,
+    ) -> str: ...
     def expand_id(self, hex: str) -> Oid: ...
     def free(self) -> None: ...
     def get(self, key: _OidArg, default: Optional[Commit] = None) -> None | Object: ...
@@ -867,12 +888,40 @@ class Repository:
     def lookup_reference(self, name: str) -> Reference: ...
     def lookup_reference_dwim(self, name: str) -> Reference: ...
     def lookup_worktree(self, name: str) -> Worktree: ...
+    def merge(
+        self,
+        source: Reference | Commit | Oid | str,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> None: ...
     def merge_analysis(
         self, their_head: _OidArg, our_ref: str = 'HEAD'
     ) -> tuple[MergeAnalysis, MergePreference]: ...
     def merge_base(self, oid1: _OidArg, oid2: _OidArg) -> Oid: ...
     def merge_base_many(self, oids: list[_OidArg]) -> Oid: ...
     def merge_base_octopus(self, oids: list[_OidArg]) -> Oid: ...
+    def merge_commits(
+        self,
+        ours: str | Oid | Commit,
+        theirs: str | Oid | Commit,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> Index: ...
+    @staticmethod
+    def _merge_options(
+        favor: int | MergeFavor, flags: int | MergeFlag, file_flags: int | MergeFileFlag
+    ) -> GitMergeOptionsC: ...
+    def merge_trees(
+        self,
+        ancestor: str | Oid | Tree,
+        ours: str | Oid | Tree,
+        theirs: str | Oid | Tree,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+    ) -> Index: ...
     @property
     def message(self) -> str: ...
     def notes(self) -> Iterator[Note]: ...
@@ -881,6 +930,9 @@ class Repository:
         self, flag: BranchType = BranchType.LOCAL
     ) -> list[bytes]: ...
     def raw_listall_references(self) -> list[bytes]: ...
+    @property
+    def raw_message(self) -> bytes: ...
+    def remove_message(self) -> None: ...
     def references_iterator_init(self) -> Iterator[Reference]: ...
     def references_iterator_next(
         self,
@@ -1022,5 +1074,7 @@ def option(opt: Option, *args) -> None: ...
 def reference_is_valid_name(refname: str) -> bool: ...
 def tree_entry_cmp(a: Object, b: Object) -> int: ...
 def _cache_enums() -> None: ...
+def filter_register(name: str, filter: type[Filter]) -> None: ...
+def filter_unregister(name: str) -> None: ...
 
 _OidArg = str | Oid
