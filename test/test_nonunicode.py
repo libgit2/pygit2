@@ -32,6 +32,7 @@ import sys
 import pytest
 
 import pygit2
+from pygit2 import Repository
 
 from . import utils
 
@@ -44,7 +45,7 @@ works_in_linux = pytest.mark.xfail(
 
 @utils.requires_network
 @works_in_linux
-def test_nonunicode_branchname(testrepo):
+def test_nonunicode_branchname(testrepo: Repository) -> None:
     folderpath = 'temp_repo_nonutf'
     if os.path.exists(folderpath):
         shutil.rmtree(folderpath)
