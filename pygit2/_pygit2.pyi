@@ -533,9 +533,9 @@ class Mailmap:
     def __init__(self, *args) -> None: ...
     def add_entry(
         self,
-        real_name: str = ...,
-        real_email: str = ...,
-        replace_name: str = ...,
+        real_name: str | None = ...,
+        real_email: str | None = ...,
+        replace_name: str | None = ...,
         replace_email: str = ...,
     ) -> None: ...
     @staticmethod

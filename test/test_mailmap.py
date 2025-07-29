@@ -62,14 +62,14 @@ TEST_RESOLVE = [
 ]
 
 
-def test_empty():
+def test_empty() -> None:
     mailmap = Mailmap()
 
     for _, _, name, email in TEST_RESOLVE:
         assert mailmap.resolve(name, email) == (name, email)
 
 
-def test_new():
+def test_new() -> None:
     mailmap = Mailmap()
 
     # Add entries to the mailmap
@@ -80,7 +80,7 @@ def test_new():
         assert mailmap.resolve(name, email) == (real_name, real_email)
 
 
-def test_parsed():
+def test_parsed() -> None:
     mailmap = Mailmap.from_buffer(TEST_MAILMAP)
 
     for real_name, real_email, name, email in TEST_RESOLVE:
