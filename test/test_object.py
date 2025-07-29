@@ -27,7 +27,7 @@
 
 import pytest
 
-from pygit2 import Tag, Tree
+from pygit2 import Commit, Object, Oid, Repository, Tag, Tree
 from pygit2.enums import ObjectType
 
 BLOB_SHA = 'a520c24d85fbfc815d385957eed41406ca5a860b'
@@ -39,7 +39,7 @@ BLOB_NEW_CONTENT = b'foo bar\n'
 BLOB_FILE_CONTENT = b'bye world\n'
 
 
-def test_equality(testrepo):
+def test_equality(testrepo: Repository) -> None:
     # get a commit object twice and see if it equals ittestrepo
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit_a = testrepo[commit_id]
@@ -50,7 +50,7 @@ def test_equality(testrepo):
     assert not (commit_a != commit_b)
 
 
-def test_hashing(testrepo):
+def test_hashing(testrepo: Repository) -> None:
     # get a commit object twice and compare hashes
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit_a = testrepo[commit_id]
@@ -80,7 +80,7 @@ def test_hashing(testrepo):
     assert commit_b == commit_a
 
 
-def test_peel_commit(testrepo):
+def test_peel_commit(testrepo: Repository) -> None:
     # start by looking up the commit
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
@@ -91,7 +91,7 @@ def test_peel_commit(testrepo):
     assert tree.id == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
-def test_peel_commit_type(testrepo):
+def test_peel_commit_type(testrepo: Repository) -> None:
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
     tree = commit.peel(Tree)
@@ -100,7 +100,7 @@ def test_peel_commit_type(testrepo):
     assert tree.id == 'fd937514cb799514d4b81bb24c5fcfeb6472b245'
 
 
-def test_invalid(testrepo):
+def test_invalid(testrepo: Repository) -> None:
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
 
@@ -108,7 +108,7 @@ def test_invalid(testrepo):
         commit.peel(ObjectType.TAG)
 
 
-def test_invalid_type(testrepo):
+def test_invalid_type(testrepo: Repository) -> None:
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit = testrepo[commit_id]
 
@@ -116,10 +116,10 @@ def test_invalid_type(testrepo):
         commit.peel(Tag)
 
 
-def test_short_id(testrepo):
-    seen = {}  # from short_id to full hex id
+def test_short_id(testrepo: Repository) -> None:
+    seen: dict[str, Oid] = {}  # from short_id to full hex id
 
-    def test_obj(obj, msg):
+    def test_obj(obj: Object | Commit, msg: str) -> None:
         short_id = obj.short_id
         msg = msg + f' short_id={short_id}'
         already = seen.get(short_id)
@@ -138,7 +138,7 @@ def test_short_id(testrepo):
             test_obj(testrepo[entry.id], f'entry={entry.name}#{entry.id}')
 
 
-def test_repr(testrepo):
+def test_repr(testrepo: Repository) -> None:
     commit_id = testrepo.lookup_reference('refs/heads/master').target
     commit_a = testrepo[commit_id]
     assert repr(commit_a) == '<pygit2.Object{commit:%s}>' % commit_id
