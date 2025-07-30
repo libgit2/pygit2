@@ -89,7 +89,7 @@ def force_rm_handle(remove_path, path, excinfo):
     remove_path(path)
 
 
-def rmtree(path):
+def rmtree(path: str | Path) -> None:
     """In Windows a read-only file cannot be removed, and shutil.rmtree fails.
     So we implement our own version of rmtree to address this issue.
     """

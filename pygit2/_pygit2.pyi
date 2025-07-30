@@ -5,6 +5,7 @@ from pathlib import Path
 from queue import Queue
 from threading import Event
 from typing import (
+    Callable,
     Generic,
     Iterator,
     Literal,
@@ -58,6 +59,7 @@ from .enums import (
     SortMode,
 )
 from .filter import Filter
+from .packbuilder import PackBuilder
 from .remotes import Remote
 from .repository import BaseRepository
 from .submodules import SubmoduleCollection
@@ -757,6 +759,7 @@ class Repository:
     def _disown(self, *args, **kwargs) -> None: ...
     @classmethod
     def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
+    def __iter__(self) -> Iterator[Oid]: ...
     def __getitem__(self, key: str | Oid) -> Object: ...
     def add_worktree(self, name: str, path: str, ref: Reference = ...) -> Worktree: ...
     def amend_commit(
@@ -934,6 +937,12 @@ class Repository:
     @property
     def message(self) -> str: ...
     def notes(self) -> Iterator[Note]: ...
+    def pack(
+        self,
+        path: str | Path | None = None,
+        pack_delegate: Callable[[PackBuilder], None] | None = None,
+        n_threads: int | None = None,
+    ) -> bool: ...
     def path_is_ignored(self, path: str) -> bool: ...
     def raw_listall_branches(
         self, flag: BranchType = BranchType.LOCAL

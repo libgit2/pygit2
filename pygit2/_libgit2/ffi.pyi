@@ -192,6 +192,9 @@ class GitRepositoryInitOptionsC:
 class GitCloneOptionsC:
     pass
 
+class GitPackbuilderC:
+    pass
+
 class GitProxyTC:
     pass
 
@@ -274,6 +277,8 @@ def new(a: Literal['git_merge_file_result *']) -> GitMergeFileResultC: ...
 def new(a: Literal['git_object *']) -> GitObjectC: ...
 @overload
 def new(a: Literal['git_object **']) -> _Pointer[GitObjectC]: ...
+@overload
+def new(a: Literal['git_packbuilder **']) -> _Pointer[GitPackbuilderC]: ...
 @overload
 def new(a: Literal['git_signature *']) -> GitSignatureC: ...
 @overload

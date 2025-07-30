@@ -26,20 +26,21 @@
 """Tests for Index files."""
 
 from pathlib import Path
+from typing import Callable
 
 import pygit2
-from pygit2 import PackBuilder
+from pygit2 import Oid, PackBuilder, Repository
 
 from . import utils
 
 
-def test_create_packbuilder(testrepo):
+def test_create_packbuilder(testrepo: Repository) -> None:
     # simple test of PackBuilder creation
     packbuilder = PackBuilder(testrepo)
     assert len(packbuilder) == 0
 
 
-def test_add(testrepo):
+def test_add(testrepo: Repository) -> None:
     # Add a few objects and confirm that the count is correct
     packbuilder = PackBuilder(testrepo)
     objects_to_add = [obj for obj in testrepo]
@@ -49,9 +50,10 @@ def test_add(testrepo):
     assert len(packbuilder) == 2
 
 
-def test_add_recursively(testrepo):
+def test_add_recursively(testrepo: Repository) -> None:
     # Add the head object and referenced objects recursively and confirm that the count is correct
     packbuilder = PackBuilder(testrepo)
+    assert isinstance(testrepo.head.target, Oid)
     packbuilder.add_recur(testrepo.head.target)
 
     # expect a count of 4 made up of the following referenced objects:
@@ -63,14 +65,14 @@ def test_add_recursively(testrepo):
     assert len(packbuilder) == 4
 
 
-def test_repo_pack(testrepo, tmp_path):
+def test_repo_pack(testrepo: Repository, tmp_path: Path) -> None:
     # pack the repo with the default strategy
     confirm_same_repo_after_packing(testrepo, tmp_path, None)
 
 
-def test_pack_with_delegate(testrepo, tmp_path):
+def test_pack_with_delegate(testrepo: Repository, tmp_path: Path) -> None:
     # loop through all branches and add each commit to the packbuilder
-    def pack_delegate(pb):
+    def pack_delegate(pb: PackBuilder) -> None:
         for branch in pb._repo.branches:
             br = pb._repo.branches.get(branch)
             for commit in br.log():
@@ -79,7 +81,7 @@ def test_pack_with_delegate(testrepo, tmp_path):
     confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate)
 
 
-def setup_second_repo(tmp_path):
+def setup_second_repo(tmp_path: Path) -> Repository:
     # helper method to set up a second repo for comparison
     tmp_path_2 = tmp_path / 'test_repo2'
     with utils.TemporaryRepository('testrepo.zip', tmp_path_2) as path:
@@ -87,7 +89,11 @@ def setup_second_repo(tmp_path):
     return testrepo
 
 
-def confirm_same_repo_after_packing(testrepo, tmp_path, pack_delegate):
+def confirm_same_repo_after_packing(
+    testrepo: Repository,
+    tmp_path: Path,
+    pack_delegate: Callable[[PackBuilder], None] | None,
+) -> None:
     # Helper method to confirm the contents of two repos before and after packing
     pack_repo = setup_second_repo(tmp_path)
     pack_repo_path = Path(pack_repo.path)
