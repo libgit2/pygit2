@@ -24,6 +24,7 @@
 # Boston, MA 02110-1301, USA.
 
 import pygit2
+from pygit2 import Blob, Repository
 
 expected_diff = b"""diff --git a/iso-8859-1.txt b/iso-8859-1.txt
 index e84e339..201e0c9 100644
@@ -35,7 +36,7 @@ index e84e339..201e0c9 100644
 """
 
 
-def test_patch_from_non_utf8():
+def test_patch_from_non_utf8() -> None:
     # blobs encoded in ISO-8859-1
     old_content = b'Kristian H\xf8gsberg\n'
     new_content = old_content + b'foo\n'
@@ -54,10 +55,14 @@ def test_patch_from_non_utf8():
     assert patch.text.encode('utf-8') != expected_diff
 
 
-def test_patch_create_from_blobs(encodingrepo):
+def test_patch_create_from_blobs(encodingrepo: Repository) -> None:
+    old_content = encodingrepo['e84e339ac7fcc823106efa65a6972d7a20016c85']
+    new_content = encodingrepo['201e0c908e3d9f526659df3e556c3d06384ef0df']
+    assert isinstance(old_content, Blob)
+    assert isinstance(new_content, Blob)
     patch = pygit2.Patch.create_from(
-        encodingrepo['e84e339ac7fcc823106efa65a6972d7a20016c85'],
-        encodingrepo['201e0c908e3d9f526659df3e556c3d06384ef0df'],
+        old_content,
+        new_content,
         old_as_path='iso-8859-1.txt',
         new_as_path='iso-8859-1.txt',
     )
