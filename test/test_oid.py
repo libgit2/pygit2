@@ -36,42 +36,42 @@ HEX = '15b648aec6ed045b5ca6f57f8b7831a8b4757298'
 RAW = unhexlify(HEX.encode('ascii'))
 
 
-def test_raw():
+def test_raw() -> None:
     oid = Oid(raw=RAW)
     assert oid.raw == RAW
     assert oid == HEX
 
 
-def test_hex():
+def test_hex() -> None:
     oid = Oid(hex=HEX)
     assert oid.raw == RAW
     assert oid == HEX
 
 
-def test_hex_bytes():
+def test_hex_bytes() -> None:
     hex = bytes(HEX, 'ascii')
     with pytest.raises(TypeError):
-        Oid(hex=hex)
+        Oid(hex=hex)  # type: ignore
 
 
-def test_none():
+def test_none() -> None:
     with pytest.raises(ValueError):
         Oid()
 
 
-def test_both():
+def test_both() -> None:
     with pytest.raises(ValueError):
         Oid(raw=RAW, hex=HEX)
 
 
-def test_long():
+def test_long() -> None:
     with pytest.raises(ValueError):
         Oid(raw=RAW + b'a')
     with pytest.raises(ValueError):
         Oid(hex=HEX + 'a')
 
 
-def test_cmp():
+def test_cmp() -> None:
     oid1 = Oid(raw=RAW)
 
     # Equal
@@ -90,7 +90,7 @@ def test_cmp():
     assert not oid1 >= oid2
 
 
-def test_hash():
+def test_hash() -> None:
     s = set()
     s.add(Oid(raw=RAW))
     s.add(Oid(hex=HEX))
@@ -101,7 +101,7 @@ def test_hash():
     assert len(s) == 3
 
 
-def test_bool():
+def test_bool() -> None:
     assert Oid(raw=RAW)
     assert Oid(hex=HEX)
     assert not Oid(raw=b'')
