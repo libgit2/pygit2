@@ -27,20 +27,21 @@
 Settings mapping.
 """
 
-from ssl import get_default_verify_paths
+from ssl import DefaultVerifyPaths, get_default_verify_paths
+from typing import overload
 
 import pygit2.enums
 
 from ._pygit2 import option
-from .enums import Option
+from .enums import ConfigLevel, Option
 from .errors import GitError
 
 
 class SearchPathList:
-    def __getitem__(self, key):
+    def __getitem__(self, key: ConfigLevel) -> str:
         return option(Option.GET_SEARCH_PATH, key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: ConfigLevel, value: str) -> None:
         option(Option.SET_SEARCH_PATH, key, value)
 
 
@@ -50,12 +51,15 @@ class Settings:
     __slots__ = '_default_tls_verify_paths', '_ssl_cert_dir', '_ssl_cert_file'
 
     _search_path = SearchPathList()
+    _default_tls_verify_paths: DefaultVerifyPaths | None
+    _ssl_cert_file: str | bytes | None
+    _ssl_cert_dir: str | bytes | None
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize global pygit2 and libgit2 settings."""
         self._initialize_tls_certificate_locations()
 
-    def _initialize_tls_certificate_locations(self):
+    def _initialize_tls_certificate_locations(self) -> None:
         """Set up initial TLS file and directory lookup locations."""
         self._default_tls_verify_paths = get_default_verify_paths()
         try:
@@ -72,7 +76,7 @@ class Settings:
             self._ssl_cert_dir = None
 
     @property
-    def search_path(self):
+    def search_path(self) -> SearchPathList:
         """Configuration file search path.
 
         This behaves like an array whose indices correspond to ConfigLevel values.
@@ -81,16 +85,16 @@ class Settings:
         return self._search_path
 
     @property
-    def mwindow_size(self):
+    def mwindow_size(self) -> int:
         """Get or set the maximum mmap window size"""
         return option(Option.GET_MWINDOW_SIZE)
 
     @mwindow_size.setter
-    def mwindow_size(self, value):
+    def mwindow_size(self, value: int) -> None:
         option(Option.SET_MWINDOW_SIZE, value)
 
     @property
-    def mwindow_mapped_limit(self):
+    def mwindow_mapped_limit(self) -> int:
         """
         Get or set the maximum memory that will be mapped in total by the
         library
@@ -98,18 +102,18 @@ class Settings:
         return option(Option.GET_MWINDOW_MAPPED_LIMIT)
 
     @mwindow_mapped_limit.setter
-    def mwindow_mapped_limit(self, value):
+    def mwindow_mapped_limit(self, value: int) -> None:
         option(Option.SET_MWINDOW_MAPPED_LIMIT, value)
 
     @property
-    def cached_memory(self):
+    def cached_memory(self) -> tuple[int, int]:
         """
         Get the current bytes in cache and the maximum that would be
         allowed in the cache.
         """
         return option(Option.GET_CACHED_MEMORY)
 
-    def enable_caching(self, value=True):
+    def enable_caching(self, value: bool = True) -> None:
         """
         Enable or disable caching completely.
 
@@ -119,7 +123,7 @@ class Settings:
         """
         return option(Option.ENABLE_CACHING, value)
 
-    def disable_pack_keep_file_checks(self, value=True):
+    def disable_pack_keep_file_checks(self, value: bool = True) -> None:
         """
         This will cause .keep file existence checks to be skipped when
         accessing packfiles, which can help performance with remote
@@ -127,7 +131,7 @@ class Settings:
         """
         return option(Option.DISABLE_PACK_KEEP_FILE_CHECKS, value)
 
-    def cache_max_size(self, value):
+    def cache_max_size(self, value: int) -> None:
         """
         Set the maximum total data size that will be cached in memory
         across all repositories before libgit2 starts evicting objects
@@ -137,7 +141,9 @@ class Settings:
         """
         return option(Option.SET_CACHE_MAX_SIZE, value)
 
-    def cache_object_limit(self, object_type: pygit2.enums.ObjectType, value):
+    def cache_object_limit(
+        self, object_type: pygit2.enums.ObjectType, value: int
+    ) -> None:
         """
         Set the maximum data size for the given type of object to be
         considered eligible for caching in memory.  Setting to value to
@@ -148,36 +154,46 @@ class Settings:
         return option(Option.SET_CACHE_OBJECT_LIMIT, object_type, value)
 
     @property
-    def ssl_cert_file(self):
+    def ssl_cert_file(self) -> str | bytes | None:
         """TLS certificate file path."""
         return self._ssl_cert_file
 
     @ssl_cert_file.setter
-    def ssl_cert_file(self, value):
+    def ssl_cert_file(self, value: str | bytes) -> None:
         """Set the TLS cert file path."""
         self.set_ssl_cert_locations(value, self._ssl_cert_dir)
 
     @ssl_cert_file.deleter
-    def ssl_cert_file(self):
+    def ssl_cert_file(self) -> None:
         """Reset the TLS cert file path."""
-        self.ssl_cert_file = self._default_tls_verify_paths.cafile
+        self.ssl_cert_file = self._default_tls_verify_paths.cafile  # type: ignore[union-attr]
 
     @property
-    def ssl_cert_dir(self):
+    def ssl_cert_dir(self) -> str | bytes | None:
         """TLS certificates lookup directory path."""
         return self._ssl_cert_dir
 
     @ssl_cert_dir.setter
-    def ssl_cert_dir(self, value):
+    def ssl_cert_dir(self, value: str | bytes) -> None:
         """Set the TLS certificate lookup folder."""
         self.set_ssl_cert_locations(self._ssl_cert_file, value)
 
     @ssl_cert_dir.deleter
-    def ssl_cert_dir(self):
+    def ssl_cert_dir(self) -> None:
         """Reset the TLS certificate lookup folder."""
-        self.ssl_cert_dir = self._default_tls_verify_paths.capath
+        self.ssl_cert_dir = self._default_tls_verify_paths.capath  # type: ignore[union-attr]
 
-    def set_ssl_cert_locations(self, cert_file, cert_dir):
+    @overload
+    def set_ssl_cert_locations(
+        self, cert_file: str | bytes | None, cert_dir: str | bytes
+    ) -> None: ...
+    @overload
+    def set_ssl_cert_locations(
+        self, cert_file: str | bytes, cert_dir: str | bytes | None
+    ) -> None: ...
+    def set_ssl_cert_locations(
+        self, cert_file: str | bytes | None, cert_dir: str | bytes | None
+    ) -> None:
         """
         Set the SSL certificate-authority locations.
 

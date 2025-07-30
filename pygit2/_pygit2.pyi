@@ -36,6 +36,7 @@ from .enums import (
     BlobFilter,
     BranchType,
     CheckoutStrategy,
+    ConfigLevel,
     DeltaStatus,
     DescribeStrategy,
     DiffFind,
@@ -1078,7 +1079,79 @@ def discover_repository(
 def hash(data: bytes) -> Oid: ...
 def hashfile(path: str) -> Oid: ...
 def init_file_backend(path: str, flags: int = 0) -> object: ...
-def option(opt: Option, *args) -> None: ...
+@overload
+def option(
+    opt: Literal[
+        Option.GET_MWINDOW_FILE_LIMIT,
+        Option.GET_MWINDOW_MAPPED_LIMIT,
+        Option.GET_MWINDOW_SIZE,
+    ],
+) -> int: ...
+@overload
+def option(
+    opt: Literal[
+        Option.SET_MWINDOW_FILE_LIMIT,
+        Option.SET_MWINDOW_MAPPED_LIMIT,
+        Option.SET_MWINDOW_SIZE,
+    ],
+    value: int,
+) -> None: ...
+@overload
+def option(opt: Literal[Option.GET_SEARCH_PATH], level: ConfigLevel) -> str: ...
+@overload
+def option(
+    opt: Literal[Option.SET_SEARCH_PATH], level: ConfigLevel, value: str
+) -> None: ...
+@overload
+def option(
+    opt: Literal[Option.SET_CACHE_OBJECT_LIMIT], object_type: ObjectType, limit: int
+) -> None: ...
+@overload
+def option(opt: Literal[Option.SET_CACHE_MAX_SIZE], max_size: int) -> None: ...
+@overload
+def option(opt: Literal[Option.GET_CACHED_MEMORY]) -> tuple[int, int]: ...
+
+# not implemented:
+# Option.GET_TEMPLATE_PATH
+# Option.SET_TEMPLATE_PATH
+
+@overload
+def option(
+    opt: Literal[Option.SET_SSL_CERT_LOCATIONS],
+    file: str | bytes | None,
+    dir: str | bytes | None,
+) -> None: ...
+
+# not implemented:
+# Option.SET_USER_AGENT
+
+@overload
+def option(
+    opt: Literal[
+        Option.ENABLE_CACHING,
+        Option.ENABLE_STRICT_OBJECT_CREATION,
+        Option.ENABLE_STRICT_SYMBOLIC_REF_CREATION,
+        Option.ENABLE_OFS_DELTA,
+        Option.ENABLE_FSYNC_GITDIR,
+        Option.ENABLE_STRICT_HASH_VERIFICATION,
+        Option.ENABLE_UNSAVED_INDEX_SAFETY,
+        Option.DISABLE_PACK_KEEP_FILE_CHECKS,
+        Option.SET_OWNER_VALIDATION,
+    ],
+    value: bool,
+) -> None: ...
+@overload
+def option(opt: Literal[Option.GET_OWNER_VALIDATION]) -> int: ...
+
+# not implemented:
+# Option.SET_SSL_CIPHERS
+# Option.GET_USER_AGENT
+# Option.GET_WINDOWS_SHAREMODE
+# Option.SET_WINDOWS_SHAREMODE
+# Option.SET_ALLOCATOR
+# Option.GET_PACK_MAX_OBJECTS
+# Option.SET_PACK_MAX_OBJECTS
+
 def reference_is_valid_name(refname: str) -> bool: ...
 def tree_entry_cmp(a: Object, b: Object) -> int: ...
 def _cache_enums() -> None: ...

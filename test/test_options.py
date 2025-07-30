@@ -28,15 +28,15 @@ from pygit2 import option
 from pygit2.enums import ConfigLevel, ObjectType, Option
 
 
-def __option(getter, setter, value):
-    old_value = option(getter)
-    option(setter, value)
-    assert value == option(getter)
+def __option(getter: Option, setter: Option, value: object) -> None:
+    old_value = option(getter)  # type: ignore[call-overload]
+    option(setter, value)  # type: ignore[call-overload]
+    assert value == option(getter)  # type: ignore[call-overload]
     # Reset to avoid side effects in later tests
-    option(setter, old_value)
+    option(setter, old_value)  # type: ignore[call-overload]
 
 
-def __proxy(name, value):
+def __proxy(name: str, value: object) -> None:
     old_value = getattr(pygit2.settings, name)
     setattr(pygit2.settings, name, value)
     assert value == getattr(pygit2.settings, name)
@@ -44,44 +44,44 @@ def __proxy(name, value):
     setattr(pygit2.settings, name, old_value)
 
 
-def test_mwindow_size():
+def test_mwindow_size() -> None:
     __option(Option.GET_MWINDOW_SIZE, Option.SET_MWINDOW_SIZE, 200 * 1024)
 
 
-def test_mwindow_size_proxy():
+def test_mwindow_size_proxy() -> None:
     __proxy('mwindow_size', 300 * 1024)
 
 
-def test_mwindow_mapped_limit_200():
+def test_mwindow_mapped_limit_200() -> None:
     __option(
         Option.GET_MWINDOW_MAPPED_LIMIT, Option.SET_MWINDOW_MAPPED_LIMIT, 200 * 1024
     )
 
 
-def test_mwindow_mapped_limit_300():
+def test_mwindow_mapped_limit_300() -> None:
     __proxy('mwindow_mapped_limit', 300 * 1024)
 
 
-def test_cache_object_limit():
+def test_cache_object_limit() -> None:
     new_limit = 2 * 1024
     option(Option.SET_CACHE_OBJECT_LIMIT, ObjectType.BLOB, new_limit)
 
 
-def test_cache_object_limit_proxy():
+def test_cache_object_limit_proxy() -> None:
     new_limit = 4 * 1024
     pygit2.settings.cache_object_limit(ObjectType.BLOB, new_limit)
 
 
-def test_cached_memory():
+def test_cached_memory() -> None:
     value = option(Option.GET_CACHED_MEMORY)
     assert value[1] == 256 * 1024**2
 
 
-def test_cached_memory_proxy():
+def test_cached_memory_proxy() -> None:
     assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
 
-def test_enable_caching():
+def test_enable_caching() -> None:
     pygit2.settings.enable_caching(False)
     pygit2.settings.enable_caching(True)
     # Lower level API
@@ -89,7 +89,7 @@ def test_enable_caching():
     option(Option.ENABLE_CACHING, True)
 
 
-def test_disable_pack_keep_file_checks():
+def test_disable_pack_keep_file_checks() -> None:
     pygit2.settings.disable_pack_keep_file_checks(False)
     pygit2.settings.disable_pack_keep_file_checks(True)
     # Lower level API
@@ -97,14 +97,14 @@ def test_disable_pack_keep_file_checks():
     option(Option.DISABLE_PACK_KEEP_FILE_CHECKS, True)
 
 
-def test_cache_max_size_proxy():
+def test_cache_max_size_proxy() -> None:
     pygit2.settings.cache_max_size(128 * 1024**2)
     assert pygit2.settings.cached_memory[1] == 128 * 1024**2
     pygit2.settings.cache_max_size(256 * 1024**2)
     assert pygit2.settings.cached_memory[1] == 256 * 1024**2
 
 
-def test_search_path():
+def test_search_path() -> None:
     paths = [
         (ConfigLevel.GLOBAL, '/tmp/global'),
         (ConfigLevel.XDG, '/tmp/xdg'),
@@ -116,7 +116,7 @@ def test_search_path():
         assert path == option(Option.GET_SEARCH_PATH, level)
 
 
-def test_search_path_proxy():
+def test_search_path_proxy() -> None:
     paths = [
         (ConfigLevel.GLOBAL, '/tmp2/global'),
         (ConfigLevel.XDG, '/tmp2/xdg'),
@@ -128,5 +128,5 @@ def test_search_path_proxy():
         assert path == pygit2.settings.search_path[level]
 
 
-def test_owner_validation():
+def test_owner_validation() -> None:
     __option(Option.GET_OWNER_VALIDATION, Option.SET_OWNER_VALIDATION, 0)
