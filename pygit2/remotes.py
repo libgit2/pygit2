@@ -234,7 +234,7 @@ class Remote:
 
         return results
 
-    def prune(self, callbacks=None):
+    def prune(self, callbacks: RemoteCallbacks | None = None) -> None:
         """Perform a prune against this remote."""
         with git_remote_callbacks(callbacks) as payload:
             err = C.git_remote_prune(self._remote, payload.remote_callbacks)

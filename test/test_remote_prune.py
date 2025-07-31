@@ -23,14 +23,20 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from pathlib import Path
+from typing import Generator
+
 import pytest
 
 import pygit2
+from pygit2 import Oid, Repository
 from pygit2.enums import FetchPrune
 
 
 @pytest.fixture
-def clonerepo(testrepo, tmp_path):
+def clonerepo(
+    testrepo: Repository, tmp_path: Path
+) -> Generator[Repository, None, None]:
     cloned_repo_path = tmp_path / 'test_remote_prune'
 
     pygit2.clone_repository(testrepo.workdir, cloned_repo_path)
@@ -39,26 +45,26 @@ def clonerepo(testrepo, tmp_path):
     yield clonerepo
 
 
-def test_fetch_remote_default(clonerepo):
+def test_fetch_remote_default(clonerepo: Repository) -> None:
     clonerepo.remotes[0].fetch()
     assert 'origin/i18n' in clonerepo.branches
 
 
-def test_fetch_remote_prune(clonerepo):
+def test_fetch_remote_prune(clonerepo: Repository) -> None:
     clonerepo.remotes[0].fetch(prune=FetchPrune.PRUNE)
     assert 'origin/i18n' not in clonerepo.branches
 
 
-def test_fetch_no_prune(clonerepo):
+def test_fetch_no_prune(clonerepo: Repository) -> None:
     clonerepo.remotes[0].fetch(prune=FetchPrune.NO_PRUNE)
     assert 'origin/i18n' in clonerepo.branches
 
 
-def test_remote_prune(clonerepo):
+def test_remote_prune(clonerepo: Repository) -> None:
     pruned = []
 
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def update_tips(self, name, old, new):
+        def update_tips(self, name: str, old: Oid, new: Oid) -> None:
             pruned.append(name)
 
     callbacks = MyCallbacks()
