@@ -34,17 +34,18 @@ from pygit2 import (
     Commit,
     GitError,
     InvalidSpecError,
+    Oid,
     Repository,
     Signature,
     Tree,
     reference_is_valid_name,
 )
-from pygit2.enums import ReferenceType
+from pygit2.enums import ReferenceFilter, ReferenceType
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 
-def test_refs_list_objects(testrepo):
+def test_refs_list_objects(testrepo: Repository) -> None:
     refs = [(ref.name, ref.target) for ref in testrepo.references.objects]
     assert sorted(refs) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
@@ -292,7 +293,7 @@ def test_refs_compress(testrepo: Repository) -> None:
 #
 
 
-def test_list_all_reference_objects(testrepo):
+def test_list_all_reference_objects(testrepo: Repository) -> None:
     repo = testrepo
     refs = [(ref.name, ref.target) for ref in repo.listall_reference_objects()]
 
@@ -302,7 +303,7 @@ def test_list_all_reference_objects(testrepo):
     ]
 
 
-def test_list_all_references(testrepo):
+def test_list_all_references(testrepo: Repository) -> None:
     repo = testrepo
 
     # Without argument
@@ -326,14 +327,14 @@ def test_list_all_references(testrepo):
     ]
 
 
-def test_references_iterator_init(testrepo):
+def test_references_iterator_init(testrepo: Repository) -> None:
     repo = testrepo
     iter = repo.references_iterator_init()
 
     assert iter.__class__.__name__ == 'RefsIterator'
 
 
-def test_references_iterator_next(testrepo):
+def test_references_iterator_next(testrepo: Repository) -> None:
     repo = testrepo
     repo.create_reference(
         'refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -359,7 +360,9 @@ def test_references_iterator_next(testrepo):
     iter_branches = repo.references_iterator_init()
     all_branches = []
     for _ in range(4):
-        curr_ref = repo.references_iterator_next(iter_branches, 1)
+        curr_ref = repo.references_iterator_next(
+            iter_branches, ReferenceFilter.BRANCHES
+        )
         if curr_ref:
             all_branches.append((curr_ref.name, curr_ref.target))
 
@@ -371,7 +374,7 @@ def test_references_iterator_next(testrepo):
     iter_tags = repo.references_iterator_init()
     all_tags = []
     for _ in range(4):
-        curr_ref = repo.references_iterator_next(iter_tags, 2)
+        curr_ref = repo.references_iterator_next(iter_tags, ReferenceFilter.TAGS)
         if curr_ref:
             all_tags.append((curr_ref.name, curr_ref.target))
 
@@ -381,7 +384,7 @@ def test_references_iterator_next(testrepo):
     ]
 
 
-def test_references_iterator_next_python(testrepo):
+def test_references_iterator_next_python(testrepo: Repository) -> None:
     repo = testrepo
     repo.create_reference(
         'refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
@@ -398,41 +401,43 @@ def test_references_iterator_next_python(testrepo):
         ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
     ]
 
-    branches = [(x.name, x.target) for x in repo.references.iterator(1)]
+    branches = [
+        (x.name, x.target) for x in repo.references.iterator(ReferenceFilter.BRANCHES)
+    ]
     assert sorted(branches) == [
         ('refs/heads/i18n', '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'),
         ('refs/heads/master', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
     ]
 
-    tags = [(x.name, x.target) for x in repo.references.iterator(2)]
+    tags = [(x.name, x.target) for x in repo.references.iterator(ReferenceFilter.TAGS)]
     assert sorted(tags) == [
         ('refs/tags/version1', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
         ('refs/tags/version2', '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'),
     ]
 
 
-def test_references_iterator_invalid_filter(testrepo):
+def test_references_iterator_invalid_filter(testrepo: Repository) -> None:
     repo = testrepo
     iter_all = repo.references_iterator_init()
 
     all_refs = []
     for _ in range(4):
-        curr_ref = repo.references_iterator_next(iter_all, 5)
+        curr_ref = repo.references_iterator_next(iter_all, 5)  # type: ignore
         if curr_ref:
             all_refs.append((curr_ref.name, curr_ref.target))
 
     assert all_refs == []
 
 
-def test_references_iterator_invalid_filter_python(testrepo):
+def test_references_iterator_invalid_filter_python(testrepo: Repository) -> None:
     repo = testrepo
     refs = []
     with pytest.raises(ValueError):
-        for ref in repo.references.iterator(5):
+        for ref in repo.references.iterator(5):  # type: ignore
             refs.append((ref.name, ref.target))
 
 
-def test_lookup_reference(testrepo):
+def test_lookup_reference(testrepo: Repository) -> None:
     repo = testrepo
 
     # Raise KeyError ?
@@ -444,7 +449,7 @@ def test_lookup_reference(testrepo):
     assert reference.name == 'refs/heads/master'
 
 
-def test_lookup_reference_dwim(testrepo):
+def test_lookup_reference_dwim(testrepo: Repository) -> None:
     repo = testrepo
 
     # remote ref
@@ -474,7 +479,7 @@ def test_lookup_reference_dwim(testrepo):
     assert reference.name == 'refs/tags/version1'
 
 
-def test_resolve_refish(testrepo):
+def test_resolve_refish(testrepo: Repository) -> None:
     repo = testrepo
 
     # remote ref
@@ -516,37 +521,37 @@ def test_resolve_refish(testrepo):
     assert commit.id == '5ebeeebb320790caf276b9fc8b24546d63316533'
 
 
-def test_reference_get_sha(testrepo):
+def test_reference_get_sha(testrepo: Repository) -> None:
     reference = testrepo.lookup_reference('refs/heads/master')
     assert reference.target == LAST_COMMIT
 
 
-def test_reference_set_sha(testrepo):
+def test_reference_set_sha(testrepo: Repository) -> None:
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.lookup_reference('refs/heads/master')
     reference.set_target(NEW_COMMIT)
     assert reference.target == NEW_COMMIT
 
 
-def test_reference_set_sha_prefix(testrepo):
+def test_reference_set_sha_prefix(testrepo: Repository) -> None:
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.lookup_reference('refs/heads/master')
     reference.set_target(NEW_COMMIT[0:6])
     assert reference.target == NEW_COMMIT
 
 
-def test_reference_get_type(testrepo):
+def test_reference_get_type(testrepo: Repository) -> None:
     reference = testrepo.lookup_reference('refs/heads/master')
     assert reference.type == ReferenceType.DIRECT
 
 
-def test_get_target(testrepo):
+def test_get_target(testrepo: Repository) -> None:
     reference = testrepo.lookup_reference('HEAD')
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
 
 
-def test_set_target(testrepo):
+def test_set_target(testrepo: Repository) -> None:
     reference = testrepo.lookup_reference('HEAD')
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
@@ -555,14 +560,14 @@ def test_set_target(testrepo):
     assert reference.raw_target == b'refs/heads/i18n'
 
 
-def test_get_shorthand(testrepo):
+def test_get_shorthand(testrepo: Repository) -> None:
     reference = testrepo.lookup_reference('refs/heads/master')
     assert reference.shorthand == 'master'
     reference = testrepo.create_reference('refs/remotes/origin/master', LAST_COMMIT)
     assert reference.shorthand == 'origin/master'
 
 
-def test_set_target_with_message(testrepo):
+def test_set_target_with_message(testrepo: Repository) -> None:
     reference = testrepo.lookup_reference('HEAD')
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
@@ -577,7 +582,7 @@ def test_set_target_with_message(testrepo):
     assert first.committer == sig
 
 
-def test_delete(testrepo):
+def test_delete(testrepo: Repository) -> None:
     repo = testrepo
 
     # We add a tag as a new reference that points to "origin/master"
@@ -605,7 +610,7 @@ def test_delete(testrepo):
         reference.rename('refs/tags/version2')
 
 
-def test_rename(testrepo):
+def test_rename(testrepo: Repository) -> None:
     # We add a tag as a new reference that points to "origin/master"
     reference = testrepo.create_reference('refs/tags/version1', LAST_COMMIT)
     assert reference.name == 'refs/tags/version1'
@@ -613,7 +618,7 @@ def test_rename(testrepo):
     assert reference.name == 'refs/tags/version2'
 
 
-#   def test_reload(testrepo):
+#   def test_reload(testrepo: Repository) -> None:
 #       name = 'refs/tags/version1'
 
 #       repo = testrepo
@@ -625,7 +630,7 @@ def test_rename(testrepo):
 #       with pytest.raises(GitError): getattr(ref2, 'name')
 
 
-def test_reference_resolve(testrepo):
+def test_reference_resolve(testrepo: Repository) -> None:
     reference = testrepo.lookup_reference('HEAD')
     assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
@@ -633,13 +638,13 @@ def test_reference_resolve(testrepo):
     assert reference.target == LAST_COMMIT
 
 
-def test_reference_resolve_identity(testrepo):
+def test_reference_resolve_identity(testrepo: Repository) -> None:
     head = testrepo.lookup_reference('HEAD')
     ref = head.resolve()
     assert ref.resolve() is ref
 
 
-def test_create_reference(testrepo):
+def test_create_reference(testrepo: Repository) -> None:
     # We add a tag as a new reference that points to "origin/master"
     reference = testrepo.create_reference('refs/tags/version1', LAST_COMMIT)
     assert 'refs/tags/version1' in testrepo.listall_references()
@@ -660,7 +665,7 @@ def test_create_reference(testrepo):
     assert reference.target == LAST_COMMIT
 
 
-def test_create_reference_with_message(testrepo):
+def test_create_reference_with_message(testrepo: Repository) -> None:
     sig = Signature('foo', 'bar')
     testrepo.set_ident('foo', 'bar')
     msg = 'Hello log'
@@ -672,7 +677,7 @@ def test_create_reference_with_message(testrepo):
     assert first.committer == sig
 
 
-def test_create_symbolic_reference(testrepo):
+def test_create_symbolic_reference(testrepo: Repository) -> None:
     repo = testrepo
     # We add a tag as a new symbolic reference that always points to
     # "refs/heads/master"
@@ -693,7 +698,7 @@ def test_create_symbolic_reference(testrepo):
     assert reference.raw_target == b'refs/heads/master'
 
 
-def test_create_symbolic_reference_with_message(testrepo):
+def test_create_symbolic_reference_with_message(testrepo: Repository) -> None:
     sig = Signature('foo', 'bar')
     testrepo.set_ident('foo', 'bar')
     msg = 'Hello log'
@@ -705,7 +710,7 @@ def test_create_symbolic_reference_with_message(testrepo):
     assert first.committer == sig
 
 
-def test_create_invalid_reference(testrepo):
+def test_create_invalid_reference(testrepo: Repository) -> None:
     repo = testrepo
 
     # try to create a reference with an invalid name
@@ -714,14 +719,15 @@ def test_create_invalid_reference(testrepo):
     assert isinstance(error.value, ValueError)
 
 
-#   def test_packall_references(testrepo):
+#   def test_packall_references(testrepo: Repository) -> None:
 #       testrepo.packall_references()
 
 
-def test_peel(testrepo):
+def test_peel(testrepo: Repository) -> None:
     repo = testrepo
     ref = repo.lookup_reference('refs/heads/master')
     assert repo[ref.target].id == ref.peel().id
+    assert isinstance(ref.raw_target, Oid)
     assert repo[ref.raw_target].id == ref.peel().id
 
     commit = ref.peel(Commit)
