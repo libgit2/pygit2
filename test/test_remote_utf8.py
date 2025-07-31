@@ -23,6 +23,9 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from pathlib import Path
+from typing import Generator
+
 import pytest
 
 import pygit2
@@ -31,11 +34,11 @@ from . import utils
 
 
 @pytest.fixture
-def repo(tmp_path):
+def repo(tmp_path: Path) -> Generator[pygit2.Repository, None, None]:
     with utils.TemporaryRepository('utf8branchrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path)
 
 
-def test_fetch(repo):
+def test_fetch(repo: pygit2.Repository) -> None:
     remote = repo.remotes.create('origin', repo.workdir)
     remote.fetch()
