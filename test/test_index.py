@@ -49,8 +49,8 @@ def test_read(testrepo: Repository) -> None:
     assert len(index) == 2
 
     with pytest.raises(TypeError):
-        index[()]
-    utils.assertRaisesWithArg(ValueError, -4, lambda: index[-4])
+        index[()]  # type: ignore
+    utils.assertRaisesWithArg(ValueError, -4, lambda: index[-4])  # type: ignore
     utils.assertRaisesWithArg(KeyError, 'abc', lambda: index['abc'])
 
     sha = 'a520c24d85fbfc815d385957eed41406ca5a860b'

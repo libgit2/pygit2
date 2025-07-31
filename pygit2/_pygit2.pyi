@@ -17,7 +17,7 @@ from typing import (
     overload,
 )
 
-from . import Index
+from . import Index, IndexEntry
 from ._libgit2.ffi import (
     GitCommitC,
     GitMergeOptionsC,
@@ -28,7 +28,7 @@ from ._libgit2.ffi import (
     _Pointer,
 )
 from .blame import Blame
-from .callbacks import CheckoutCallbacks
+from .callbacks import CheckoutCallbacks, StashApplyCallbacks
 from .config import Config
 from .enums import (
     ApplyLocation,
@@ -59,6 +59,7 @@ from .enums import (
     SortMode,
 )
 from .filter import Filter
+from .index import MergeFileResult
 from .packbuilder import PackBuilder
 from .remotes import Remote
 from .repository import BaseRepository
@@ -765,7 +766,9 @@ class Repository:
     def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
     def __iter__(self) -> Iterator[Oid]: ...
     def __getitem__(self, key: str | Oid) -> Object: ...
-    def add_worktree(self, name: str, path: str, ref: Reference = ...) -> Worktree: ...
+    def add_worktree(
+        self, name: str, path: str | Path, ref: Reference = ...
+    ) -> Worktree: ...
     def amend_commit(
         self,
         commit: Commit | Oid | str,
@@ -797,13 +800,14 @@ class Repository:
     ) -> Blame: ...
     def checkout(
         self,
-        refname: Optional[_OidArg],
+        refname: _OidArg | None | Reference = None,
         *,
         strategy: CheckoutStrategy | None = None,
-        directory: str | None = None,
+        directory: str | Path | None = None,
         paths: list[str] | None = None,
         callbacks: CheckoutCallbacks | None = None,
     ) -> None: ...
+    def ahead_behind(self, local: _OidArg, upstream: _OidArg) -> tuple[int, int]: ...
     def cherrypick(self, id: _OidArg) -> None: ...
     def compress_references(self) -> None: ...
     @property
@@ -893,6 +897,12 @@ class Repository:
         commit: _OidArg | None = None,
     ) -> bool | None | str: ...
     def git_object_lookup_prefix(self, oid: _OidArg) -> Object: ...
+    def hashfile(
+        self,
+        path: str,
+        object_type: ObjectType = ObjectType.BLOB,
+        as_path: str | None = None,
+    ) -> Oid: ...
     def list_worktrees(self) -> list[str]: ...
     def listall_branches(self, flag: BranchType = BranchType.LOCAL) -> list[str]: ...
     def listall_mergeheads(self) -> list[Oid]: ...
@@ -930,6 +940,13 @@ class Repository:
         flags: MergeFlag = MergeFlag.FIND_RENAMES,
         file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
     ) -> Index: ...
+    def merge_file_from_index(
+        self,
+        ancestor: IndexEntry | None,
+        ours: IndexEntry | None,
+        theirs: IndexEntry | None,
+        use_deprecated: bool = True,
+    ) -> str | MergeFileResult | None: ...
     @staticmethod
     def _merge_options(
         favor: int | MergeFavor, flags: int | MergeFlag, file_flags: int | MergeFileFlag
@@ -971,12 +988,45 @@ class Repository:
     def revparse(self, revspec: str) -> RevSpec: ...
     def revparse_ext(self, revision: str) -> tuple[Object, Reference]: ...
     def revparse_single(self, revision: str) -> Object: ...
+    def revert(self, commit: Commit) -> None: ...
+    def revert_commit(
+        self, revert_commit: Commit, our_commit: Commit, mainline: int = 0
+    ) -> Index: ...
     def set_ident(self, name: str, email: str) -> None: ...
     def set_odb(self, odb: Odb) -> None: ...
     def set_refdb(self, refdb: Refdb) -> None: ...
     def status(
         self, untracked_files: str = 'all', ignored: bool = False
     ) -> dict[str, int]: ...
+    def stash(
+        self,
+        stasher: Signature,
+        message: str | None = None,
+        keep_index: bool = False,
+        include_untracked: bool = False,
+        include_ignored: bool = False,
+        keep_all: bool = False,
+        paths: list[str] | None = None,
+    ) -> None: ...
+    def stash_apply(
+        self,
+        index: int = 0,
+        reinstate_index: bool | None = None,
+        include_untracked: bool | None = None,
+        message: str | None = None,
+        strategy: CheckoutStrategy | None = None,
+        callbacks: StashApplyCallbacks | None = None,
+    ) -> None: ...
+    def stash_pop(
+        self,
+        index: int = 0,
+        reinstate_index: bool | None = None,
+        include_untracked: bool | None = None,
+        message: str | None = None,
+        strategy: CheckoutStrategy | None = None,
+        callbacks: StashApplyCallbacks | None = None,
+    ) -> None: ...
+    def stash_drop(self, index: int = 0) -> None: ...
     def status_file(self, path: str) -> int: ...
     def state(self) -> RepositoryState: ...
     def state_cleanup(self) -> None: ...

@@ -83,7 +83,7 @@ class Index:
         check_error(err)
         return True
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str | int | PathLike[str]) -> 'IndexEntry':
         centry = ffi.NULL
         if isinstance(key, str) or hasattr(key, '__fspath__'):
             centry = C.git_index_get_bypath(self._index, to_bytes(key), 0)
@@ -389,7 +389,7 @@ class MergeFileResult:
     automergeable: bool
     'True if the output was automerged, false if the output contains conflict markers'
 
-    path: typing.Union[str, None]
+    path: typing.Union[str, None, PathLike[str]]
     'The path that the resultant merge file should use, or None if a filename conflict would occur'
 
     mode: FileMode
