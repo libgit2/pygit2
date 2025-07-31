@@ -25,11 +25,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-
-from . import utils
+from typing import TYPE_CHECKING, Any, TypedDict
 
 # Import from pygit2
+from pygit2 import RemoteCallbacks
+
+from . import utils
 from ._pygit2 import Oid
 from .callbacks import (
     git_fetch_options,
@@ -46,6 +47,14 @@ from .utils import StrArray, maybe_string, strarray_to_strings, to_bytes
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
     from .repository import BaseRepository
+
+
+class LsRemotesDict(TypedDict):
+    local: bool
+    loid: None | Oid
+    name: str | None
+    symref_target: str | None
+    oid: Oid
 
 
 class TransferProgress:
@@ -180,7 +189,9 @@ class Remote:
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
-    def ls_remotes(self, callbacks=None, proxy=None):
+    def ls_remotes(
+        self, callbacks: RemoteCallbacks | None = None, proxy: str | None | bool = None
+    ) -> list[LsRemotesDict]:
         """
         Return a list of dicts that maps to `git_remote_head` from a
         `ls_remotes` call.
@@ -209,13 +220,15 @@ class Remote:
             else:
                 loid = None
 
-            remote = {
-                'local': local,
-                'loid': loid,
-                'name': maybe_string(ref.name),
-                'symref_target': maybe_string(ref.symref_target),
-                'oid': Oid(raw=bytes(ffi.buffer(ref.oid.id)[:])),
-            }
+            remote = LsRemotesDict(
+                {
+                    'local': local,
+                    'loid': loid,
+                    'name': maybe_string(ref.name),
+                    'symref_target': maybe_string(ref.symref_target),
+                    'oid': Oid(raw=bytes(ffi.buffer(ref.oid.id)[:])),
+                }
+            )
 
             results.append(remote)
 
@@ -256,7 +269,14 @@ class Remote:
         check_error(err)
         return strarray_to_strings(specs)
 
-    def push(self, specs, callbacks=None, proxy=None, push_options=None, threads=1):
+    def push(
+        self,
+        specs: list[str],
+        callbacks: RemoteCallbacks | None = None,
+        proxy: None | bool | str = None,
+        push_options: None | list[str] = None,
+        threads: int = 1,
+    ) -> None:
         """
         Push the given refspec to the remote. Raises ``GitError`` on protocol
         error or unpack failure.
@@ -271,6 +291,8 @@ class Remote:
 
         specs : [str]
             Push refspecs to use.
+
+        callbacks :
 
         proxy : None or True or str
             Proxy configuration. Can be one of:

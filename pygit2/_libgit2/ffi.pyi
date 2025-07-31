@@ -35,12 +35,18 @@ NULL: NULL_TYPE = ...
 char = NewType('char', object)
 char_pointer = NewType('char_pointer', object)
 
+class size_t:
+    def __getitem__(self, item: Literal[0]) -> int: ...
+
 class _Pointer(Generic[T]):
     def __setitem__(self, item: Literal[0], a: T) -> None: ...
     @overload
     def __getitem__(self, item: Literal[0]) -> T: ...
     @overload
     def __getitem__(self, item: slice[None, None, None]) -> bytes: ...
+
+class _MultiPointer(Generic[T]):
+    def __getitem__(self, item: int) -> T: ...
 
 class ArrayC(Generic[T]):
     # incomplete!
@@ -82,6 +88,13 @@ class GitSubmoduleC:
 
 class GitSubmoduleUpdateOptionsC:
     fetch_opts: GitFetchOptionsC
+
+class GitRemoteHeadC:
+    local: int
+    oid: GitOidC
+    loid: GitOidC
+    name: char_pointer
+    symref_target: char_pointer
 
 class UnsignedIntC:
     def __getitem__(self, item: Literal[0]) -> int: ...
@@ -283,6 +296,12 @@ def new(a: Literal['git_packbuilder **']) -> _Pointer[GitPackbuilderC]: ...
 def new(a: Literal['git_signature *']) -> GitSignatureC: ...
 @overload
 def new(a: Literal['git_signature **']) -> _Pointer[GitSignatureC]: ...
+@overload
+def new(
+    a: Literal['git_remote_head ***'],
+) -> _Pointer[_MultiPointer[GitRemoteHeadC]]: ...
+@overload
+def new(a: Literal['size_t *']) -> size_t: ...
 @overload
 def new(a: Literal['git_stash_save_options *']) -> GitStashSaveOptionsC: ...
 @overload

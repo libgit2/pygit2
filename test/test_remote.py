@@ -282,11 +282,13 @@ def test_update_tips(emptyrepo: Repository) -> None:
     ]
 
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def __init__(self, tips):
+        tips: list[tuple[str, pygit2.Oid, pygit2.Oid]]
+
+        def __init__(self, tips: list[tuple[str, pygit2.Oid, pygit2.Oid]]) -> None:
             self.tips = tips
             self.i = 0
 
-        def update_tips(self, name, old, new):
+        def update_tips(self, name: str, old: pygit2.Oid, new: pygit2.Oid) -> None:
             assert self.tips[self.i] == (name, old, new)
             self.i += 1
 
@@ -342,7 +344,7 @@ def clone(tmp_path: Path) -> Generator[Repository, None, None]:
 
 
 @pytest.fixture
-def remote(origin, clone):
+def remote(origin: Repository, clone: Repository) -> Generator[Remote, None, None]:
     yield clone.remotes.create('origin', origin.path)
 
 
