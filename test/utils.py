@@ -32,7 +32,7 @@ import sys
 import zipfile
 from pathlib import Path
 from types import TracebackType
-from typing import Callable, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, Optional, ParamSpec, TypeVar
 
 # Requirements
 import pytest
@@ -75,7 +75,7 @@ fails_in_macos = pytest.mark.xfail(
 )
 
 
-def gen_blob_sha1(data):
+def gen_blob_sha1(data: bytes) -> str:
     # http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
     m = hashlib.sha1()
     m.update(f'blob {len(data)}\0'.encode())
@@ -83,8 +83,13 @@ def gen_blob_sha1(data):
     return m.hexdigest()
 
 
-def force_rm_handle(remove_path, path, excinfo):
-    path = Path(path)
+def force_rm_handle(
+    # Callable[..., Any], str, , object
+    remove_path: Callable[..., Any],
+    path_str: str,
+    excinfo: tuple[type[BaseException], BaseException, TracebackType],
+) -> None:
+    path = Path(path_str)
     path.chmod(path.stat().st_mode | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
     remove_path(path)
 
