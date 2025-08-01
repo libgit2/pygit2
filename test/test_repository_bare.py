@@ -28,10 +28,12 @@ import os
 import pathlib
 import sys
 import tempfile
+from pathlib import Path
 
 import pytest
 
 import pygit2
+from pygit2 import Branch, Commit, Oid, Repository
 from pygit2.enums import FileMode, ObjectType
 
 from . import utils
@@ -43,15 +45,15 @@ BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
 BLOB_OID = pygit2.Oid(raw=BLOB_RAW)
 
 
-def test_is_empty(barerepo):
+def test_is_empty(barerepo: Repository) -> None:
     assert not barerepo.is_empty
 
 
-def test_is_bare(barerepo):
+def test_is_bare(barerepo: Repository) -> None:
     assert barerepo.is_bare
 
 
-def test_head(barerepo):
+def test_head(barerepo: Repository) -> None:
     head = barerepo.head
     assert HEAD_SHA == head.target
     assert type(head) is pygit2.Reference
@@ -59,7 +61,7 @@ def test_head(barerepo):
     assert not barerepo.head_is_detached
 
 
-def test_set_head(barerepo):
+def test_set_head(barerepo: Repository) -> None:
     # Test setting a detached HEAD.
     barerepo.set_head(pygit2.Oid(hex=PARENT_SHA))
     assert barerepo.head.target == PARENT_SHA
@@ -69,9 +71,9 @@ def test_set_head(barerepo):
     assert barerepo.head.target == HEAD_SHA
 
 
-def test_read(barerepo):
+def test_read(barerepo: Repository) -> None:
     with pytest.raises(TypeError):
-        barerepo.read(123)
+        barerepo.read(123)  # type: ignore
     utils.assertRaisesWithArg(KeyError, '1' * 40, barerepo.read, '1' * 40)
 
     ab = barerepo.read(BLOB_OID)
@@ -87,7 +89,7 @@ def test_read(barerepo):
     assert (ObjectType.BLOB, b'a contents\n') == a3
 
 
-def test_write(barerepo):
+def test_write(barerepo: Repository) -> None:
     data = b'hello world'
     # invalid object type
     with pytest.raises(ValueError):
@@ -97,9 +99,9 @@ def test_write(barerepo):
     assert type(oid) is pygit2.Oid
 
 
-def test_contains(barerepo):
+def test_contains(barerepo: Repository) -> None:
     with pytest.raises(TypeError):
-        123 in barerepo
+        123 in barerepo  # type: ignore
     assert BLOB_OID in barerepo
     assert BLOB_HEX in barerepo
     assert BLOB_HEX[:10] in barerepo
@@ -107,45 +109,47 @@ def test_contains(barerepo):
     assert ('a' * 20) not in barerepo
 
 
-def test_iterable(barerepo):
+def test_iterable(barerepo: Repository) -> None:
     oid = pygit2.Oid(hex=BLOB_HEX)
     assert oid in [obj for obj in barerepo]
 
 
-def test_lookup_blob(barerepo):
+def test_lookup_blob(barerepo: Repository) -> None:
     with pytest.raises(TypeError):
-        barerepo[123]
+        barerepo[123]  # type: ignore
     assert barerepo[BLOB_OID].id == BLOB_HEX
     a = barerepo[BLOB_HEX]
     assert b'a contents\n' == a.read_raw()
     assert BLOB_HEX == a.id
-    assert ObjectType.BLOB == a.type
+    assert int(ObjectType.BLOB) == a.type
 
 
-def test_lookup_blob_prefix(barerepo):
+def test_lookup_blob_prefix(barerepo: Repository) -> None:
     a = barerepo[BLOB_HEX[:5]]
     assert b'a contents\n' == a.read_raw()
     assert BLOB_HEX == a.id
-    assert ObjectType.BLOB == a.type
+    assert int(ObjectType.BLOB) == a.type
 
 
-def test_lookup_commit(barerepo):
+def test_lookup_commit(barerepo: Repository) -> None:
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit = barerepo[commit_sha]
     assert commit_sha == commit.id
-    assert ObjectType.COMMIT == commit.type
+    assert int(ObjectType.COMMIT) == commit.type
+    assert isinstance(commit, Commit)
     assert commit.message == (
         'Second test data commit.\n\nThis commit has some additional text.\n'
     )
 
 
-def test_lookup_commit_prefix(barerepo):
+def test_lookup_commit_prefix(barerepo: Repository) -> None:
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit_sha_prefix = commit_sha[:7]
     too_short_prefix = commit_sha[:3]
     commit = barerepo[commit_sha_prefix]
     assert commit_sha == commit.id
-    assert ObjectType.COMMIT == commit.type
+    assert int(ObjectType.COMMIT) == commit.type
+    assert isinstance(commit, Commit)
     assert (
         'Second test data commit.\n\n'
         'This commit has some additional text.\n' == commit.message
@@ -154,14 +158,14 @@ def test_lookup_commit_prefix(barerepo):
         barerepo.__getitem__(too_short_prefix)
 
 
-def test_expand_id(barerepo):
+def test_expand_id(barerepo: Repository) -> None:
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     expanded = barerepo.expand_id(commit_sha[:7])
     assert commit_sha == expanded
 
 
 @utils.requires_refcount
-def test_lookup_commit_refcount(barerepo):
+def test_lookup_commit_refcount(barerepo: Repository) -> None:
     start = sys.getrefcount(barerepo)
     commit_sha = '5fe808e8953c12735680c257f56600cb0de44b10'
     commit = barerepo[commit_sha]
@@ -170,30 +174,30 @@ def test_lookup_commit_refcount(barerepo):
     assert start == end
 
 
-def test_get_path(barerepo_path):
+def test_get_path(barerepo_path: tuple[Repository, Path]) -> None:
     barerepo, path = barerepo_path
 
     directory = pathlib.Path(barerepo.path).resolve()
     assert directory == path.resolve()
 
 
-def test_get_workdir(barerepo):
+def test_get_workdir(barerepo: Repository) -> None:
     assert barerepo.workdir is None
 
 
-def test_revparse_single(barerepo):
+def test_revparse_single(barerepo: Repository) -> None:
     parent = barerepo.revparse_single('HEAD^')
     assert parent.id == PARENT_SHA
 
 
-def test_hash(barerepo):
+def test_hash(barerepo: Repository) -> None:
     data = 'foobarbaz'
     hashed_sha1 = pygit2.hash(data)
     written_sha1 = barerepo.create_blob(data)
     assert hashed_sha1 == written_sha1
 
 
-def test_hashfile(barerepo):
+def test_hashfile(barerepo: Repository) -> None:
     data = 'bazbarfoo'
     handle, tempfile_path = tempfile.mkstemp()
     with os.fdopen(handle, 'w') as fh:
@@ -204,8 +208,8 @@ def test_hashfile(barerepo):
     assert hashed_sha1 == written_sha1
 
 
-def test_conflicts_in_bare_repository(barerepo):
-    def create_conflict_file(repo, branch, content):
+def test_conflicts_in_bare_repository(barerepo: Repository) -> None:
+    def create_conflict_file(repo: Repository, branch: Branch, content: str) -> Oid:
         oid = repo.create_blob(content.encode('utf-8'))
         tb = repo.TreeBuilder()
         tb.insert('conflict', oid, FileMode.BLOB)
@@ -218,9 +222,13 @@ def test_conflicts_in_bare_repository(barerepo):
         assert commit is not None
         return commit
 
-    b1 = barerepo.create_branch('b1', barerepo.head.peel())
+    head_peeled = barerepo.head.peel()
+    assert isinstance(head_peeled, Commit)
+    b1 = barerepo.create_branch('b1', head_peeled)
     c1 = create_conflict_file(barerepo, b1, 'ASCII - abc')
-    b2 = barerepo.create_branch('b2', barerepo.head.peel())
+    head_peeled = barerepo.head.peel()
+    assert isinstance(head_peeled, Commit)
+    b2 = barerepo.create_branch('b2', head_peeled)
     c2 = create_conflict_file(barerepo, b2, 'Unicode - äüö')
 
     index = barerepo.merge_commits(c1, c2)
