@@ -103,7 +103,7 @@ class Index:
     def __iter__(self):
         return GenericIterator(self)
 
-    def read(self, force=True):
+    def read(self, force: bool = True) -> None:
         """
         Update the contents of the Index by reading from a file.
 

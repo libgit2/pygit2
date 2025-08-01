@@ -38,6 +38,12 @@ char_pointer = NewType('char_pointer', object)
 class size_t:
     def __getitem__(self, item: Literal[0]) -> int: ...
 
+class int_c:
+    def __getitem__(self, item: Literal[0]) -> int: ...
+
+class int64_t:
+    def __getitem__(self, item: Literal[0]) -> int: ...
+
 class _Pointer(Generic[T]):
     def __setitem__(self, item: Literal[0], a: T) -> None: ...
     @overload
@@ -141,9 +147,14 @@ class GitConfigC:
     # incomplete
     pass
 
+class GitConfigIteratorC:
+    # incomplete
+    pass
+
 class GitConfigEntryC:
     # incomplete
     name: char_pointer
+    value: char_pointer
     level: int
 
 class GitDescribeFormatOptionsC:
@@ -269,6 +280,8 @@ def new(a: Literal['git_config *']) -> GitConfigC: ...
 @overload
 def new(a: Literal['git_config **']) -> _Pointer[GitConfigC]: ...
 @overload
+def new(a: Literal['git_config_iterator **']) -> _Pointer[GitConfigIteratorC]: ...
+@overload
 def new(a: Literal['git_config_entry **']) -> _Pointer[GitConfigEntryC]: ...
 @overload
 def new(a: Literal['git_describe_format_options *']) -> GitDescribeFormatOptionsC: ...
@@ -296,6 +309,10 @@ def new(a: Literal['git_packbuilder **']) -> _Pointer[GitPackbuilderC]: ...
 def new(a: Literal['git_signature *']) -> GitSignatureC: ...
 @overload
 def new(a: Literal['git_signature **']) -> _Pointer[GitSignatureC]: ...
+@overload
+def new(a: Literal['int *']) -> int_c: ...
+@overload
+def new(a: Literal['int64_t *']) -> int64_t: ...
 @overload
 def new(
     a: Literal['git_remote_head ***'],

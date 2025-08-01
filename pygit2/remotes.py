@@ -246,7 +246,7 @@ class Remote:
 
         return C.git_remote_refspec_count(self._remote)
 
-    def get_refspec(self, n):
+    def get_refspec(self, n: int) -> Refspec:
         """Return the <Refspec> object at the given position."""
         spec = C.git_remote_get_refspec(self._remote, n)
         return Refspec(self, spec)

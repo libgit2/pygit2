@@ -86,7 +86,7 @@ class Submodule:
         init: bool = False,
         callbacks: Optional[RemoteCallbacks] = None,
         depth: int = 0,
-    ):
+    ) -> None:
         """
         Update a submodule. This will clone a missing submodule and checkout
         the subrepository to the commit specified in the index of the
@@ -119,7 +119,7 @@ class Submodule:
             err = C.git_submodule_update(self._subm, int(init), opts)
             payload.check_error(err)
 
-    def reload(self, force: bool = False):
+    def reload(self, force: bool = False) -> None:
         """
         Reread submodule info from config, index, and HEAD.
 
@@ -272,7 +272,9 @@ class SubmoduleCollection:
         check_error(err)
         return submodule_instance
 
-    def init(self, submodules: Optional[Iterable[str]] = None, overwrite: bool = False):
+    def init(
+        self, submodules: Optional[Iterable[str]] = None, overwrite: bool = False
+    ) -> None:
         """
         Initialize submodules in the repository. Just like "git submodule init",
         this copies information about the submodules into ".git/config".
@@ -300,7 +302,7 @@ class SubmoduleCollection:
         init: bool = False,
         callbacks: Optional[RemoteCallbacks] = None,
         depth: int = 0,
-    ):
+    ) -> None:
         """
         Update submodules. This will clone a missing submodule and checkout
         the subrepository to the commit specified in the index of the
@@ -357,7 +359,7 @@ class SubmoduleCollection:
         check_error(err)
         return SubmoduleStatus(cstatus[0])
 
-    def cache_all(self):
+    def cache_all(self) -> None:
         """
         Load and cache all submodules in the repository.
 
@@ -370,7 +372,7 @@ class SubmoduleCollection:
         err = C.git_repository_submodule_cache_all(self._repository._repo)
         check_error(err)
 
-    def cache_clear(self):
+    def cache_clear(self) -> None:
         """
         Clear the submodule cache populated by `submodule_cache_all`.
         If there is no cache, do nothing.

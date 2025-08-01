@@ -105,9 +105,9 @@ def test_add_aspath() -> None:
 
 def test_read(config: Config) -> None:
     with pytest.raises(TypeError):
-        config[()]
+        config[()]  # type: ignore
     with pytest.raises(TypeError):
-        config[-4]
+        config[-4]  # type: ignore
     utils.assertRaisesWithArg(
         ValueError, "invalid config item name 'abc'", lambda: config['abc']
     )
@@ -123,7 +123,7 @@ def test_read(config: Config) -> None:
 
 def test_write(config: Config) -> None:
     with pytest.raises(TypeError):
-        config.__setitem__((), 'This should not work')
+        config.__setitem__((), 'This should not work')  # type: ignore
 
     assert 'core.dummy1' not in config
     config['core.dummy1'] = 42

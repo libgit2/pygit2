@@ -24,7 +24,8 @@
 # Boston, MA 02110-1301, USA.
 
 from os import PathLike
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Callable, Iterator
 
 try:
     from functools import cached_property
@@ -48,20 +49,20 @@ def str_to_bytes(value: str | PathLike[str] | bytes, name: str) -> bytes:
 
 
 class ConfigIterator:
-    def __init__(self, config, ptr):
+    def __init__(self, config, ptr) -> None:
         self._iter = ptr
         self._config = config
 
-    def __del__(self):
+    def __del__(self) -> None:
         C.git_config_iterator_free(self._iter)
 
-    def __iter__(self):
+    def __iter__(self) -> 'ConfigIterator':
         return self
 
-    def __next__(self):
+    def __next__(self) -> 'ConfigEntry':
         return self._next_entry()
 
-    def _next_entry(self):
+    def _next_entry(self) -> 'ConfigEntry':
         centry = ffi.new('git_config_entry **')
         err = C.git_config_next(centry, self._iter)
         check_error(err)
@@ -70,7 +71,7 @@ class ConfigIterator:
 
 
 class ConfigMultivarIterator(ConfigIterator):
-    def __next__(self):
+    def __next__(self) -> str:  # type: ignore[override]
         entry = self._next_entry()
         return entry.value
 
@@ -124,7 +125,7 @@ class Config:
         check_error(err)
         return entry
 
-    def __contains__(self, key):
+    def __contains__(self, key: str | bytes) -> bool:
         err, cstr = self._get(key)
 
         if err == C.GIT_ENOTFOUND:
@@ -134,7 +135,7 @@ class Config:
 
         return True
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str | bytes) -> str:
         """
         When using the mapping interface, the value is returned as a string. In
         order to apply the git-config parsing rules, you can use
@@ -144,7 +145,7 @@ class Config:
 
         return entry.value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str | bytes, value: bool | int | str | bytes) -> None:
         key = str_to_bytes(key, 'key')
 
         err = 0
@@ -157,13 +158,13 @@ class Config:
 
         check_error(err)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str | bytes) -> None:
         key = str_to_bytes(key, 'key')
 
         err = C.git_config_delete_entry(self._config, key)
         check_error(err)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['ConfigEntry']:
         """
         Iterate over configuration entries, returning a ``ConfigEntry``
         objects. These contain the name, level, and value of each configuration
@@ -176,22 +177,26 @@ class Config:
 
         return ConfigIterator(self, citer[0])
 
-    def get_multivar(self, name, regex=None):
+    def get_multivar(
+        self, name: str | bytes, regex: str | None = None
+    ) -> ConfigMultivarIterator:
         """Get each value of a multivar ''name'' as a list of strings.
 
         The optional ''regex'' parameter is expected to be a regular expression
         to filter the variables we're interested in.
         """
         name = str_to_bytes(name, 'name')
-        regex = to_bytes(regex or None)
+        regex_bytes = to_bytes(regex or None)
 
         citer = ffi.new('git_config_iterator **')
-        err = C.git_config_multivar_iterator_new(citer, self._config, name, regex)
+        err = C.git_config_multivar_iterator_new(citer, self._config, name, regex_bytes)
         check_error(err)
 
         return ConfigMultivarIterator(self, citer[0])
 
-    def set_multivar(self, name, regex, value):
+    def set_multivar(
+        self, name: str | bytes, regex: str | bytes, value: str | bytes
+    ) -> None:
         """Set a multivar ''name'' to ''value''. ''regexp'' is a regular
         expression to indicate which values to replace.
         """
@@ -202,7 +207,7 @@ class Config:
         err = C.git_config_set_multivar(self._config, name, regex, value)
         check_error(err)
 
-    def delete_multivar(self, name, regex):
+    def delete_multivar(self, name: str | bytes, regex: str | bytes) -> None:
         """Delete a multivar ''name''. ''regexp'' is a regular expression to
         indicate which values to delete.
         """
@@ -212,7 +217,7 @@ class Config:
         err = C.git_config_delete_multivar(self._config, name, regex)
         check_error(err)
 
-    def get_bool(self, key):
+    def get_bool(self, key: str | bytes) -> bool:
         """Look up *key* and parse its value as a boolean as per the git-config
         rules. Return a boolean value (True or False).
 
@@ -227,7 +232,7 @@ class Config:
 
         return res[0] != 0
 
-    def get_int(self, key):
+    def get_int(self, key: bytes | str) -> int:
         """Look up *key* and parse its value as an integer as per the git-config
         rules. Return an integer.
 
@@ -242,7 +247,7 @@ class Config:
 
         return res[0]
 
-    def add_file(self, path, level=0, force=0):
+    def add_file(self, path: str | Path, level: int = 0, force: int = 0) -> None:
         """Add a config file instance to an existing config."""
 
         err = C.git_config_add_file_ondisk(
@@ -250,7 +255,7 @@ class Config:
         )
         check_error(err)
 
-    def snapshot(self):
+    def snapshot(self) -> 'Config':
         """Create a snapshot from this Config object.
 
         This means that looking up multiple values will use the same version
@@ -267,7 +272,7 @@ class Config:
     #
 
     @staticmethod
-    def parse_bool(text):
+    def parse_bool(text: str) -> bool:
         res = ffi.new('int *')
         err = C.git_config_parse_bool(res, to_bytes(text))
         check_error(err)
@@ -275,7 +280,7 @@ class Config:
         return res[0] != 0
 
     @staticmethod
-    def parse_int(text):
+    def parse_int(text: str) -> int:
         res = ffi.new('int64_t *')
         err = C.git_config_parse_int64(res, to_bytes(text))
         check_error(err)
@@ -287,7 +292,7 @@ class Config:
     #
 
     @staticmethod
-    def _from_found_config(fn):
+    def _from_found_config(fn: Callable) -> 'Config':
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
         err = fn(buf)
         check_error(err, io=True)
@@ -297,17 +302,17 @@ class Config:
         return Config(cpath)
 
     @staticmethod
-    def get_system_config():
+    def get_system_config() -> 'Config':
         """Return a <Config> object representing the system configuration file."""
         return Config._from_found_config(C.git_config_find_system)
 
     @staticmethod
-    def get_global_config():
+    def get_global_config() -> 'Config':
         """Return a <Config> object representing the global configuration file."""
         return Config._from_found_config(C.git_config_find_global)
 
     @staticmethod
-    def get_xdg_config():
+    def get_xdg_config() -> 'Config':
         """Return a <Config> object representing the global configuration file."""
         return Config._from_found_config(C.git_config_find_xdg)
 
@@ -349,7 +354,7 @@ class ConfigEntry:
             C.git_config_entry_free(self._entry)
 
     @property
-    def c_value(self):
+    def c_value(self) -> 'ffi.char_pointer':
         """The raw ``cData`` entry value."""
         return self._entry.value
 

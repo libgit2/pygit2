@@ -23,6 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from typing import Callable
+
 # Import from pygit2
 from .errors import check_error
 from .ffi import C, ffi
@@ -37,22 +39,22 @@ class Refspec:
         self._refspec = ptr
 
     @property
-    def src(self):
+    def src(self) -> str:
         """Source or lhs of the refspec"""
         return ffi.string(C.git_refspec_src(self._refspec)).decode('utf-8')
 
     @property
-    def dst(self):
+    def dst(self) -> str:
         """Destination or rhs of the refspec"""
         return ffi.string(C.git_refspec_dst(self._refspec)).decode('utf-8')
 
     @property
-    def force(self):
+    def force(self) -> bool:
         """Whether this refspeca llows non-fast-forward updates"""
         return bool(C.git_refspec_force(self._refspec))
 
     @property
-    def string(self):
+    def string(self) -> str:
         """String which was used to create this refspec"""
         return ffi.string(C.git_refspec_string(self._refspec)).decode('utf-8')
 
@@ -61,18 +63,18 @@ class Refspec:
         """Direction of this refspec (fetch or push)"""
         return C.git_refspec_direction(self._refspec)
 
-    def src_matches(self, ref):
+    def src_matches(self, ref: str) -> bool:
         """Return True if the given string matches the source of this refspec,
         False otherwise.
         """
         return bool(C.git_refspec_src_matches(self._refspec, to_bytes(ref)))
 
-    def dst_matches(self, ref):
+    def dst_matches(self, ref: str) -> bool:
         """Return True if the given string matches the destination of this
         refspec, False otherwise."""
         return bool(C.git_refspec_dst_matches(self._refspec, to_bytes(ref)))
 
-    def _transform(self, ref, fn):
+    def _transform(self, ref: str, fn: Callable) -> str:
         buf = ffi.new('git_buf *', (ffi.NULL, 0))
         err = fn(buf, self._refspec, to_bytes(ref))
         check_error(err)
@@ -82,13 +84,13 @@ class Refspec:
         finally:
             C.git_buf_dispose(buf)
 
-    def transform(self, ref):
+    def transform(self, ref: str) -> str:
         """Transform a reference name according to this refspec from the lhs to
         the rhs. Return an string.
         """
         return self._transform(ref, C.git_refspec_transform)
 
-    def rtransform(self, ref):
+    def rtransform(self, ref: str) -> str:
         """Transform a reference name according to this refspec from the lhs to
         the rhs. Return an string.
         """
