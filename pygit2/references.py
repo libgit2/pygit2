@@ -25,29 +25,32 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
+
+from pygit2 import Oid
 
 from .enums import ReferenceFilter
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
+    from ._pygit2 import Reference
     from .repository import BaseRepository
 
 
 class References:
-    def __init__(self, repository: BaseRepository):
+    def __init__(self, repository: BaseRepository) -> None:
         self._repository = repository
 
-    def __getitem__(self, name: str):
+    def __getitem__(self, name: str) -> 'Reference':
         return self._repository.lookup_reference(name)
 
-    def get(self, key: str):
+    def get(self, key: str) -> 'Reference':
         try:
             return self[key]
         except KeyError:
-            return None
+            return None  # type: ignore # will be corrected in next commit!
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         iter = self._repository.references_iterator_init()
         while True:
             ref = self._repository.references_iterator_next(iter)
@@ -56,7 +59,9 @@ class References:
             else:
                 return
 
-    def iterator(self, references_return_type: ReferenceFilter = ReferenceFilter.ALL):
+    def iterator(
+        self, references_return_type: ReferenceFilter = ReferenceFilter.ALL
+    ) -> Iterator['Reference']:
         """Creates a new iterator and fetches references for a given repository.
 
         Can also filter and pass all refs or only branches or only tags.
@@ -88,18 +93,18 @@ class References:
             else:
                 return
 
-    def create(self, name, target, force=False):
+    def create(self, name: str, target: Oid | str, force: bool = False) -> 'Reference':
         return self._repository.create_reference(name, target, force)
 
-    def delete(self, name: str):
+    def delete(self, name: str) -> None:
         self[name].delete()
 
-    def __contains__(self, name: str):
+    def __contains__(self, name: str) -> bool:
         return self.get(name) is not None
 
     @property
-    def objects(self):
+    def objects(self) -> list['Reference']:
         return self._repository.listall_reference_objects()
 
-    def compress(self):
+    def compress(self) -> None:
         return self._repository.compress_references()

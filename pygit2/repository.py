@@ -251,7 +251,13 @@ class BaseRepository(_Repository):
     #
     # References
     #
-    def create_reference(self, name, target, force=False, message=None):
+    def create_reference(
+        self,
+        name: str,
+        target: Oid | str,
+        force: bool = False,
+        message: str | None = None,
+    ) -> 'Reference':
         """Create a new reference "name" which points to an object or to
         another reference.
 
@@ -273,12 +279,13 @@ class BaseRepository(_Repository):
             repo.create_reference('refs/tags/foo', 'refs/heads/master')
             repo.create_reference('refs/tags/foo', 'bbb78a9cec580')
         """
-        direct = type(target) is Oid or (
+        direct = isinstance(target, Oid) or (
             all(c in hexdigits for c in target)
             and GIT_OID_MINPREFIXLEN <= len(target) <= GIT_OID_HEXSZ
         )
 
-        if direct:
+        # duplicate isinstance call for mypy
+        if direct or isinstance(target, Oid):
             return self.create_reference_direct(name, target, force, message=message)
 
         return self.create_reference_symbolic(name, target, force, message=message)
