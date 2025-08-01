@@ -29,9 +29,10 @@ import time
 import pytest
 
 import pygit2
+from pygit2 import Repository, Signature
 
 
-def __assert(signature, encoding):
+def __assert(signature: Signature, encoding: None | str) -> None:
     encoding = encoding or 'utf-8'
     assert signature._encoding == encoding
     assert signature.name == signature.raw_name.decode(encoding)
@@ -41,25 +42,25 @@ def __assert(signature, encoding):
 
 
 @pytest.mark.parametrize('encoding', [None, 'utf-8', 'iso-8859-1'])
-def test_encoding(encoding):
+def test_encoding(encoding: None | str) -> None:
     signature = pygit2.Signature('Foo Ibáñez', 'foo@example.com', encoding=encoding)
     __assert(signature, encoding)
     assert abs(signature.time - time.time()) < 5
     assert str(signature) == 'Foo Ibáñez <foo@example.com>'
 
 
-def test_default_encoding():
+def test_default_encoding() -> None:
     signature = pygit2.Signature('Foo Ibáñez', 'foo@example.com', 1322174594, 60)
     __assert(signature, 'utf-8')
 
 
-def test_ascii():
+def test_ascii() -> None:
     with pytest.raises(UnicodeEncodeError):
         pygit2.Signature('Foo Ibáñez', 'foo@example.com', encoding='ascii')
 
 
 @pytest.mark.parametrize('encoding', [None, 'utf-8', 'iso-8859-1'])
-def test_repr(encoding):
+def test_repr(encoding: str | None) -> None:
     signature = pygit2.Signature(
         'Foo Ibáñez', 'foo@bar.com', 1322174594, 60, encoding=encoding
     )
@@ -68,7 +69,7 @@ def test_repr(encoding):
     assert signature == eval(expected)
 
 
-def test_repr_from_commit(barerepo):
+def test_repr_from_commit(barerepo: Repository) -> None:
     repo = barerepo
     signature = pygit2.Signature('Foo Ibáñez', 'foo@example.com', encoding=None)
     tree = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
@@ -80,7 +81,7 @@ def test_repr_from_commit(barerepo):
     assert repr(signature) == repr(commit.committer)
 
 
-def test_incorrect_encoding():
+def test_incorrect_encoding() -> None:
     gbk_bytes = 'Café'.encode('GBK')
 
     # deliberately specifying a mismatching encoding (mojibake)

@@ -1061,7 +1061,7 @@ class Signature:
     time: int
     def __init__(
         self,
-        name: str,
+        name: str | bytes,
         email: str,
         time: int = -1,
         offset: int = 0,
