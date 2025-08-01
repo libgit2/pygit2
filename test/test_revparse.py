@@ -27,21 +27,21 @@
 
 from pytest import raises
 
-from pygit2 import InvalidSpecError
+from pygit2 import InvalidSpecError, Repository
 from pygit2.enums import RevSpecFlag
 
 HEAD_SHA = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 PARENT_SHA = '5ebeeebb320790caf276b9fc8b24546d63316533'  # HEAD^
 
 
-def test_revparse_single(testrepo):
+def test_revparse_single(testrepo: Repository) -> None:
     assert testrepo.revparse_single('HEAD').id == HEAD_SHA
     assert testrepo.revparse_single('HEAD^').id == PARENT_SHA
     o = testrepo.revparse_single('@{-1}')
     assert o.id == '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 
 
-def test_revparse_ext(testrepo):
+def test_revparse_ext(testrepo: Repository) -> None:
     o, r = testrepo.revparse_ext('master')
     assert o.id == HEAD_SHA
     assert r == testrepo.references['refs/heads/master']
@@ -55,21 +55,21 @@ def test_revparse_ext(testrepo):
     assert r == testrepo.references['refs/heads/i18n']
 
 
-def test_revparse_1(testrepo):
+def test_revparse_1(testrepo: Repository) -> None:
     s = testrepo.revparse('master')
     assert s.from_object.id == HEAD_SHA
     assert s.to_object is None
     assert s.flags == RevSpecFlag.SINGLE
 
 
-def test_revparse_range_1(testrepo):
+def test_revparse_range_1(testrepo: Repository) -> None:
     s = testrepo.revparse('HEAD^1..acecd5e')
     assert s.from_object.id == PARENT_SHA
     assert str(s.to_object.id).startswith('acecd5e')
     assert s.flags == RevSpecFlag.RANGE
 
 
-def test_revparse_range_2(testrepo):
+def test_revparse_range_2(testrepo: Repository) -> None:
     s = testrepo.revparse('HEAD...i18n')
     assert str(s.from_object.id).startswith('2be5719')
     assert str(s.to_object.id).startswith('5470a67')
@@ -77,7 +77,7 @@ def test_revparse_range_2(testrepo):
     assert testrepo.merge_base(s.from_object.id, s.to_object.id) is not None
 
 
-def test_revparse_range_errors(testrepo):
+def test_revparse_range_errors(testrepo: Repository) -> None:
     with raises(KeyError):
         testrepo.revparse('nope..2be571915')
 
@@ -85,7 +85,7 @@ def test_revparse_range_errors(testrepo):
         testrepo.revparse('master............2be571915')
 
 
-def test_revparse_repr(testrepo):
+def test_revparse_repr(testrepo: Repository) -> None:
     s = testrepo.revparse('HEAD...i18n')
     assert (
         repr(s)

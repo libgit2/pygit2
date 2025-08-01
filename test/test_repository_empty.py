@@ -23,15 +23,17 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from pygit2 import Repository
 
-def test_is_empty(emptyrepo):
+
+def test_is_empty(emptyrepo: Repository) -> None:
     assert emptyrepo.is_empty
 
 
-def test_is_base(emptyrepo):
+def test_is_base(emptyrepo: Repository) -> None:
     assert not emptyrepo.is_bare
 
 
-def test_head(emptyrepo):
+def test_head(emptyrepo: Repository) -> None:
     assert emptyrepo.head_is_unborn
     assert not emptyrepo.head_is_detached

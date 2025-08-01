@@ -28,18 +28,20 @@
 import pytest
 
 import pygit2
+from pygit2 import Repository
 from pygit2.enums import ObjectType
 
 TAG_SHA = '3d2962987c695a29f1f80b6c3aa4ec046ef44369'
 
 
-def test_read_tag(barerepo):
+def test_read_tag(barerepo: Repository) -> None:
     repo = barerepo
     tag = repo[TAG_SHA]
-    target = repo[tag.target]
     assert isinstance(tag, pygit2.Tag)
-    assert ObjectType.TAG == tag.type
-    assert ObjectType.COMMIT == target.type
+    target = repo[tag.target]
+    assert isinstance(target, pygit2.Commit)
+    assert int(ObjectType.TAG) == tag.type
+    assert int(ObjectType.COMMIT) == target.type
     assert 'root' == tag.name
     assert 'Tagged root commit.\n' == tag.message
     assert 'Initial test data commit.\n' == target.message
@@ -48,7 +50,7 @@ def test_read_tag(barerepo):
     )
 
 
-def test_new_tag(barerepo):
+def test_new_tag(barerepo: Repository) -> None:
     name = 'thetag'
     target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
     message = 'Tag a blob.\n'
@@ -57,10 +59,11 @@ def test_new_tag(barerepo):
     target_prefix = target[:5]
     too_short_prefix = target[:3]
     with pytest.raises(ValueError):
-        barerepo.create_tag(name, too_short_prefix, ObjectType.BLOB, tagger, message)
+        barerepo.create_tag(name, too_short_prefix, ObjectType.BLOB, tagger, message)  # type: ignore
 
     sha = barerepo.create_tag(name, target_prefix, ObjectType.BLOB, tagger, message)
     tag = barerepo[sha]
+    assert isinstance(tag, pygit2.Tag)
 
     assert '3ee44658fd11660e828dfc96b9b5c5f38d5b49bb' == tag.id
     assert name == tag.name
@@ -70,7 +73,7 @@ def test_new_tag(barerepo):
     assert name == barerepo[tag.id].name
 
 
-def test_modify_tag(barerepo):
+def test_modify_tag(barerepo: Repository) -> None:
     name = 'thetag'
     target = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
     message = 'Tag a blob.\n'
@@ -87,7 +90,8 @@ def test_modify_tag(barerepo):
         setattr(tag, 'message', message)
 
 
-def test_get_object(barerepo):
+def test_get_object(barerepo: Repository) -> None:
     repo = barerepo
     tag = repo[TAG_SHA]
+    assert isinstance(tag, pygit2.Tag)
     assert repo[tag.target].id == tag.get_object().id

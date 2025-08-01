@@ -25,6 +25,7 @@
 
 """Tests for revision walk."""
 
+from pygit2 import Repository
 from pygit2.enums import SortMode
 
 # In the order given by git log
@@ -50,42 +51,42 @@ REVLOGS = [
 ]
 
 
-def test_log(testrepo):
+def test_log(testrepo: Repository) -> None:
     ref = testrepo.lookup_reference('HEAD')
     for i, entry in enumerate(ref.log()):
         assert entry.committer.name == REVLOGS[i][0]
         assert entry.message == REVLOGS[i][1]
 
 
-def test_walk(testrepo):
+def test_walk(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.TIME)
     assert [x.id for x in walker] == log
 
 
-def test_reverse(testrepo):
+def test_reverse(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.TIME | SortMode.REVERSE)
     assert [x.id for x in walker] == list(reversed(log))
 
 
-def test_hide(testrepo):
+def test_hide(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.hide('4ec4389a8068641da2d6578db0419484972284c8')
     assert len(list(walker)) == 2
 
 
-def test_hide_prefix(testrepo):
+def test_hide_prefix(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.hide('4ec4389a')
     assert len(list(walker)) == 2
 
 
-def test_reset(testrepo):
+def test_reset(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.reset()
     assert list(walker) == []
 
 
-def test_push(testrepo):
+def test_push(testrepo: Repository) -> None:
     walker = testrepo.walk(log[-1], SortMode.TIME)
     assert [x.id for x in walker] == log[-1:]
     walker.reset()
@@ -93,19 +94,19 @@ def test_push(testrepo):
     assert [x.id for x in walker] == log
 
 
-def test_sort(testrepo):
+def test_sort(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.sort(SortMode.TIME | SortMode.REVERSE)
     assert [x.id for x in walker] == list(reversed(log))
 
 
-def test_simplify_first_parent(testrepo):
+def test_simplify_first_parent(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.TIME)
     walker.simplify_first_parent()
     assert len(list(walker)) == 3
 
 
-def test_default_sorting(testrepo):
+def test_default_sorting(testrepo: Repository) -> None:
     walker = testrepo.walk(log[0], SortMode.NONE)
     list1 = list([x.id for x in walker])
     walker = testrepo.walk(log[0])

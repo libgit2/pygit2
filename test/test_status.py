@@ -25,10 +25,11 @@
 
 import pytest
 
+from pygit2 import Repository
 from pygit2.enums import FileStatus
 
 
-def test_status(dirtyrepo):
+def test_status(dirtyrepo: Repository) -> None:
     """
     For every file in the status, check that the flags are correct.
     """
@@ -38,7 +39,7 @@ def test_status(dirtyrepo):
         assert status == git_status[filepath]
 
 
-def test_status_untracked_no(dirtyrepo):
+def test_status_untracked_no(dirtyrepo: Repository) -> None:
     git_status = dirtyrepo.status(untracked_files='no')
     assert not any(status & FileStatus.WT_NEW for status in git_status.values())
 
@@ -67,7 +68,9 @@ def test_status_untracked_no(dirtyrepo):
         ),
     ],
 )
-def test_status_untracked_normal(dirtyrepo, untracked_files, expected):
+def test_status_untracked_normal(
+    dirtyrepo: Repository, untracked_files: str, expected: set[str]
+) -> None:
     git_status = dirtyrepo.status(untracked_files=untracked_files)
     assert {
         file for file, status in git_status.items() if status & FileStatus.WT_NEW
@@ -75,7 +78,9 @@ def test_status_untracked_normal(dirtyrepo, untracked_files, expected):
 
 
 @pytest.mark.parametrize('ignored,expected', [(True, {'ignored'}), (False, set())])
-def test_status_ignored(dirtyrepo, ignored, expected):
+def test_status_ignored(
+    dirtyrepo: Repository, ignored: bool, expected: set[str]
+) -> None:
     git_status = dirtyrepo.status(ignored=ignored)
     assert {
         file for file, status in git_status.items() if status & FileStatus.IGNORED

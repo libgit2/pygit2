@@ -23,16 +23,18 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from pygit2 import Repository, Tree
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
 
-def test_new_empty_treebuilder(barerepo):
+def test_new_empty_treebuilder(barerepo: Repository) -> None:
     barerepo.TreeBuilder()
 
 
-def test_noop_treebuilder(barerepo):
+def test_noop_treebuilder(barerepo: Repository) -> None:
     tree = barerepo[TREE_SHA]
+    assert isinstance(tree, Tree)
     bld = barerepo.TreeBuilder(TREE_SHA)
     result = bld.write()
 
@@ -40,8 +42,9 @@ def test_noop_treebuilder(barerepo):
     assert tree.id == result
 
 
-def test_noop_treebuilder_from_tree(barerepo):
+def test_noop_treebuilder_from_tree(barerepo: Repository) -> None:
     tree = barerepo[TREE_SHA]
+    assert isinstance(tree, Tree)
     bld = barerepo.TreeBuilder(tree)
     result = bld.write()
 
@@ -49,11 +52,13 @@ def test_noop_treebuilder_from_tree(barerepo):
     assert tree.id == result
 
 
-def test_rebuild_treebuilder(barerepo):
+def test_rebuild_treebuilder(barerepo: Repository) -> None:
     tree = barerepo[TREE_SHA]
+    assert isinstance(tree, Tree)
     bld = barerepo.TreeBuilder()
     for entry in tree:
         name = entry.name
+        assert name is not None
         assert bld.get(name) is None
         bld.insert(name, entry.id, entry.filemode)
         assert bld.get(name).id == entry.id
