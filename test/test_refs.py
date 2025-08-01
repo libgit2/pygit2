@@ -35,6 +35,7 @@ from pygit2 import (
     GitError,
     InvalidSpecError,
     Oid,
+    Reference,
     Repository,
     Signature,
     Tree,
@@ -84,17 +85,20 @@ def test_refs_getitem(testrepo: Repository) -> None:
 
     # Test a lookup
     reference = testrepo.references.get('refs/heads/master')
+    assert reference is not None
     assert reference.name == 'refs/heads/master'
 
 
 def test_refs_get_sha(testrepo: Repository) -> None:
     reference = testrepo.references['refs/heads/master']
+    assert reference is not None
     assert reference.target == LAST_COMMIT
 
 
 def test_refs_set_sha(testrepo: Repository) -> None:
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.references.get('refs/heads/master')
+    assert reference is not None
     reference.set_target(NEW_COMMIT)
     assert reference.target == NEW_COMMIT
 
@@ -102,23 +106,27 @@ def test_refs_set_sha(testrepo: Repository) -> None:
 def test_refs_set_sha_prefix(testrepo: Repository) -> None:
     NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
     reference = testrepo.references.get('refs/heads/master')
+    assert reference is not None
     reference.set_target(NEW_COMMIT[0:6])
     assert reference.target == NEW_COMMIT
 
 
 def test_refs_get_type(testrepo: Repository) -> None:
     reference = testrepo.references.get('refs/heads/master')
+    assert reference is not None
     assert reference.type == ReferenceType.DIRECT
 
 
 def test_refs_get_target(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
+    assert reference is not None
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
 
 
 def test_refs_set_target(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
+    assert reference is not None
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
     reference.set_target('refs/heads/i18n')
@@ -128,6 +136,7 @@ def test_refs_set_target(testrepo: Repository) -> None:
 
 def test_refs_get_shorthand(testrepo: Repository) -> None:
     reference = testrepo.references.get('refs/heads/master')
+    assert reference is not None
     assert reference.shorthand == 'master'
     reference = testrepo.references.create('refs/remotes/origin/master', LAST_COMMIT)
     assert reference.shorthand == 'origin/master'
@@ -135,6 +144,7 @@ def test_refs_get_shorthand(testrepo: Repository) -> None:
 
 def test_refs_set_target_with_message(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
+    assert reference is not None
     assert reference.target == 'refs/heads/master'
     assert reference.raw_target == b'refs/heads/master'
     sig = Signature('foo', 'bar')
@@ -198,6 +208,7 @@ def test_refs_rename(testrepo: Repository) -> None:
 
 def test_refs_resolve(testrepo: Repository) -> None:
     reference = testrepo.references.get('HEAD')
+    assert reference is not None
     assert reference.type == ReferenceType.SYMBOLIC
     reference = reference.resolve()
     assert reference.type == ReferenceType.DIRECT
@@ -206,16 +217,20 @@ def test_refs_resolve(testrepo: Repository) -> None:
 
 def test_refs_resolve_identity(testrepo: Repository) -> None:
     head = testrepo.references.get('HEAD')
+    assert head is not None
     ref = head.resolve()
     assert ref.resolve() is ref
 
 
 def test_refs_create(testrepo: Repository) -> None:
     # We add a tag as a new reference that points to "origin/master"
-    reference = testrepo.references.create('refs/tags/version1', LAST_COMMIT)
+    reference: Reference | None = testrepo.references.create(
+        'refs/tags/version1', LAST_COMMIT
+    )
     refs = testrepo.references
     assert 'refs/tags/version1' in refs
     reference = testrepo.references.get('refs/tags/version1')
+    assert reference is not None
     assert reference.target == LAST_COMMIT
 
     # try to create existing reference
@@ -256,6 +271,7 @@ def test_refs_create_symbolic(testrepo: Repository) -> None:
 
 def test_refs_peel(testrepo: Repository) -> None:
     ref = testrepo.references.get('refs/heads/master')
+    assert ref is not None
     assert testrepo[ref.target].id == ref.peel().id
     assert not isinstance(ref.raw_target, bytes)
     assert testrepo[ref.raw_target].id == ref.peel().id

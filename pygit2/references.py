@@ -44,11 +44,11 @@ class References:
     def __getitem__(self, name: str) -> 'Reference':
         return self._repository.lookup_reference(name)
 
-    def get(self, key: str) -> 'Reference':
+    def get(self, key: str) -> 'Reference' | None:
         try:
             return self[key]
         except KeyError:
-            return None  # type: ignore # will be corrected in next commit!
+            return None
 
     def __iter__(self) -> Iterator[str]:
         iter = self._repository.references_iterator_init()
