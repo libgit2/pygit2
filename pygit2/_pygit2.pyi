@@ -867,8 +867,8 @@ class Repository:
     ) -> Oid: ...
     def diff(
         self,
-        a: None | str | bytes | Oid | Reference = None,
-        b: None | str | bytes | Oid | Reference = None,
+        a: None | str | bytes | Commit | Oid | Reference = None,
+        b: None | str | bytes | Commit | Oid | Reference = None,
         cached: bool = False,
         flags: DiffOption = DiffOption.NORMAL,
         context_lines: int = 3,
@@ -1010,7 +1010,7 @@ class Repository:
         include_ignored: bool = False,
         keep_all: bool = False,
         paths: list[str] | None = None,
-    ) -> None: ...
+    ) -> Oid: ...
     def stash_apply(
         self,
         index: int = 0,
@@ -1036,7 +1036,7 @@ class Repository:
     def walk(
         self, oid: _OidArg | None, sort_mode: SortMode = SortMode.NONE
     ) -> Walker: ...
-    def write(self, type: int, data: bytes) -> Oid: ...
+    def write(self, type: int, data: bytes | str) -> Oid: ...
     def write_archive(
         self,
         treeish: str | Tree | Object | Oid,
@@ -1147,7 +1147,7 @@ class Worktree:
     def prune(self, force=False) -> None: ...
 
 def discover_repository(
-    path: str, across_fs: bool = False, ceiling_dirs: str = ...
+    path: str | Path, across_fs: bool = False, ceiling_dirs: str = ...
 ) -> str | None: ...
 def hash(data: bytes | str) -> Oid: ...
 def hashfile(path: str) -> Oid: ...
@@ -1211,7 +1211,7 @@ def option(
         Option.DISABLE_PACK_KEEP_FILE_CHECKS,
         Option.SET_OWNER_VALIDATION,
     ],
-    value: bool,
+    value: bool | Literal[0, 1],
 ) -> None: ...
 @overload
 def option(opt: Literal[Option.GET_OWNER_VALIDATION]) -> int: ...

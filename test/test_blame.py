@@ -97,12 +97,11 @@ def test_blame_flags(blameflagsrepo: Repository) -> None:
 def test_blame_with_invalid_index(testrepo: Repository) -> None:
     blame = testrepo.blame(PATH)
 
-    def test():
-        blame[100000]
-        blame[-1]
-
     with pytest.raises(IndexError):
-        test()
+        blame[100000]
+
+    with pytest.raises(OverflowError):
+        blame[-1]
 
 
 def test_blame_for_line(testrepo: Repository) -> None:

@@ -137,10 +137,15 @@ def test_keypair_from_memory(
     pygit2.clone_repository(url, tmp_path, callbacks=callbacks)
 
 
-def test_callback(testrepo: Repository):
+def test_callback(testrepo: Repository) -> None:
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def credentials(testrepo, url, username, allowed):
-            assert allowed & CredentialType.USERPASS_PLAINTEXT
+        def credentials(
+            self,
+            url: str,
+            username_from_url: str | None,
+            allowed_types: CredentialType,
+        ) -> Username | UserPass | Keypair:
+            assert allowed_types & CredentialType.USERPASS_PLAINTEXT
             raise Exception("I don't know the password")
 
     url = 'https://github.com/github/github'
@@ -150,10 +155,15 @@ def test_callback(testrepo: Repository):
 
 
 @utils.requires_network
-def test_bad_cred_type(testrepo: Repository):
+def test_bad_cred_type(testrepo: Repository) -> None:
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def credentials(testrepo, url, username, allowed):
-            assert allowed & CredentialType.USERPASS_PLAINTEXT
+        def credentials(
+            self,
+            url: str,
+            username_from_url: str | None,
+            allowed_types: CredentialType,
+        ) -> Username | UserPass | Keypair:
+            assert allowed_types & CredentialType.USERPASS_PLAINTEXT
             return Keypair('git', 'foo.pub', 'foo', 'sekkrit')
 
     url = 'https://github.com/github/github'
@@ -163,9 +173,11 @@ def test_bad_cred_type(testrepo: Repository):
 
 
 @utils.requires_network
-def test_fetch_certificate_check(testrepo: Repository):
+def test_fetch_certificate_check(testrepo: Repository) -> None:
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def certificate_check(testrepo, certificate, valid, host):
+        def certificate_check(
+            self, certificate: None, valid: bool, host: bytes
+        ) -> bool:
             assert certificate is None
             assert valid is True
             assert host == b'github.com'
@@ -188,7 +200,7 @@ def test_fetch_certificate_check(testrepo: Repository):
 
 
 @utils.requires_network
-def test_user_pass(testrepo: Repository):
+def test_user_pass(testrepo: Repository) -> None:
     credentials = UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
@@ -200,7 +212,7 @@ def test_user_pass(testrepo: Repository):
 @utils.requires_proxy
 @utils.requires_network
 @utils.requires_future_libgit2
-def test_proxy(testrepo: Repository):
+def test_proxy(testrepo: Repository) -> None:
     credentials = UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 

@@ -433,7 +433,7 @@ def test_parse_diff_null() -> None:
         pygit2.Diff.parse_diff(None)  # type: ignore
 
 
-def test_parse_diff_bad():
+def test_parse_diff_bad() -> None:
     diff = textwrap.dedent(
         """
     diff --git a/file1 b/file1

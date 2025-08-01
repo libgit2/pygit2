@@ -734,7 +734,7 @@ def test_peel(testrepo: Repository) -> None:
     assert commit.tree.id == ref.peel(Tree).id
 
 
-def test_valid_reference_names_ascii():
+def test_valid_reference_names_ascii() -> None:
     assert reference_is_valid_name('HEAD')
     assert reference_is_valid_name('refs/heads/master')
     assert reference_is_valid_name('refs/heads/perfectly/valid')
@@ -742,12 +742,12 @@ def test_valid_reference_names_ascii():
     assert reference_is_valid_name('refs/special/ref')
 
 
-def test_valid_reference_names_unicode():
+def test_valid_reference_names_unicode() -> None:
     assert reference_is_valid_name('refs/heads/ünicöde')
     assert reference_is_valid_name('refs/tags/😀')
 
 
-def test_invalid_reference_names():
+def test_invalid_reference_names() -> None:
     assert not reference_is_valid_name('')
     assert not reference_is_valid_name(' refs/heads/master')
     assert not reference_is_valid_name('refs/heads/in..valid')
@@ -762,12 +762,12 @@ def test_invalid_reference_names():
     assert not reference_is_valid_name('refs/heads/foo//bar')
 
 
-def test_invalid_arguments():
+def test_invalid_arguments() -> None:
     with pytest.raises(TypeError):
-        reference_is_valid_name()
+        reference_is_valid_name()  # type: ignore
     with pytest.raises(TypeError):
-        reference_is_valid_name(None)
+        reference_is_valid_name(None)  # type: ignore
     with pytest.raises(TypeError):
-        reference_is_valid_name(1)
+        reference_is_valid_name(1)  # type: ignore
     with pytest.raises(TypeError):
-        reference_is_valid_name('too', 'many')
+        reference_is_valid_name('too', 'many')  # type: ignore

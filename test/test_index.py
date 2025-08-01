@@ -298,11 +298,11 @@ def test_entry_repr(testrepo: Repository) -> None:
     )
 
 
-def test_create_empty():
+def test_create_empty() -> None:
     Index()
 
 
-def test_create_empty_read_tree_as_string():
+def test_create_empty_read_tree_as_string() -> None:
     index = Index()
     # no repo associated, so we don't know where to read from
     with pytest.raises(TypeError):

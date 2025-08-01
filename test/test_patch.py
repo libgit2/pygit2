@@ -81,7 +81,7 @@ index a520c24..0000000
 """
 
 
-def test_patch_create_from_buffers():
+def test_patch_create_from_buffers() -> None:
     patch = pygit2.Patch.create_from(
         BLOB_OLD_CONTENT,
         BLOB_NEW_CONTENT,

@@ -110,7 +110,7 @@ def test_create_blob(testrepo: Repository) -> None:
     assert len(BLOB_NEW_CONTENT) == len(blob_buffer)
     assert BLOB_NEW_CONTENT == blob_buffer
 
-    def set_content():
+    def set_content() -> None:
         blob_buffer[:2] = b'hi'
 
     with pytest.raises(TypeError):

@@ -38,14 +38,18 @@ from pygit2 import (
     DiffFile,
     IndexEntry,
     Oid,
+    Remote,
     Repository,
+    Worktree,
     clone_repository,
     discover_repository,
     init_repository,
 )
+from pygit2.credentials import Keypair, Username, UserPass
 from pygit2.enums import (
     CheckoutNotify,
     CheckoutStrategy,
+    CredentialType,
     FileMode,
     FileStatus,
     ObjectType,
@@ -446,7 +450,7 @@ def test_stash_partial(testrepo: Repository) -> None:
     assert testrepo.status()['bye.txt'] == FileStatus.WT_NEW
     assert testrepo.status()['untracked2.txt'] == FileStatus.WT_NEW
 
-    def stash_pathspecs(paths):
+    def stash_pathspecs(paths: list[str]) -> bool:
         stash_id = testrepo.stash(
             sig, message=stash_message, keep_all=True, paths=paths
         )
@@ -480,7 +484,7 @@ def test_stash_progress_callback(testrepo: Repository) -> None:
     progress_sequence = []
 
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
-        def stash_apply_progress(self, progress: StashApplyProgress):
+        def stash_apply_progress(self, progress: StashApplyProgress) -> None:
             progress_sequence.append(progress)
 
     # apply the stash
@@ -515,7 +519,7 @@ def test_stash_aborted_from_callbacks(testrepo: Repository) -> None:
     # define callbacks that will abort the unstash process
     # just as libgit2 is ready to write the files to disk
     class MyStashApplyCallbacks(pygit2.StashApplyCallbacks):
-        def stash_apply_progress(self, progress: StashApplyProgress):
+        def stash_apply_progress(self, progress: StashApplyProgress) -> None:
             if progress == StashApplyProgress.CHECKOUT_UNTRACKED:
                 raise InterruptedError('Stop applying the stash!')
 
@@ -635,7 +639,7 @@ def test_default_signature(testrepo: Repository) -> None:
     assert 'rjh@example.com' == sig.email
 
 
-def test_new_repo(tmp_path):
+def test_new_repo(tmp_path: Path) -> None:
     repo = init_repository(tmp_path, False)
 
     oid = repo.write(ObjectType.BLOB, 'Test')
@@ -644,55 +648,57 @@ def test_new_repo(tmp_path):
     assert (tmp_path / '.git').exists()
 
 
-def test_no_arg(tmp_path):
+def test_no_arg(tmp_path: Path) -> None:
     repo = init_repository(tmp_path)
     assert not repo.is_bare
 
 
-def test_no_arg_aspath(tmp_path):
+def test_no_arg_aspath(tmp_path: Path) -> None:
     repo = init_repository(Path(tmp_path))
     assert not repo.is_bare
 
 
-def test_pos_arg_false(tmp_path):
+def test_pos_arg_false(tmp_path: Path) -> None:
     repo = init_repository(tmp_path, False)
     assert not repo.is_bare
 
 
-def test_pos_arg_true(tmp_path):
+def test_pos_arg_true(tmp_path: Path) -> None:
     repo = init_repository(tmp_path, True)
     assert repo.is_bare
 
 
-def test_keyword_arg_false(tmp_path):
+def test_keyword_arg_false(tmp_path: Path) -> None:
     repo = init_repository(tmp_path, bare=False)
     assert not repo.is_bare
 
 
-def test_keyword_arg_true(tmp_path):
+def test_keyword_arg_true(tmp_path: Path) -> None:
     repo = init_repository(tmp_path, bare=True)
     assert repo.is_bare
 
 
-def test_discover_repo(tmp_path):
+def test_discover_repo(tmp_path: Path) -> None:
     repo = init_repository(tmp_path, False)
     subdir = tmp_path / 'test1' / 'test2'
     subdir.mkdir(parents=True)
     assert repo.path == discover_repository(str(subdir))
 
 
-def test_discover_repo_aspath(tmp_path):
+def test_discover_repo_aspath(tmp_path: Path) -> None:
     repo = init_repository(Path(tmp_path), False)
     subdir = Path(tmp_path) / 'test1' / 'test2'
     subdir.mkdir(parents=True)
     assert repo.path == discover_repository(subdir)
 
 
-def test_discover_repo_not_found():
-    assert discover_repository(tempfile.tempdir) is None
+def test_discover_repo_not_found() -> None:
+    tempdir = tempfile.tempdir
+    assert tempdir is not None
+    assert discover_repository(tempdir) is None
 
 
-def test_repository_init(barerepo_path):
+def test_repository_init(barerepo_path: tuple[Repository, Path]) -> None:
     barerepo, path = barerepo_path
     assert isinstance(path, Path)
     pygit2.Repository(path)
@@ -700,7 +706,7 @@ def test_repository_init(barerepo_path):
     pygit2.Repository(bytes(path))
 
 
-def test_clone_repository(barerepo, tmp_path):
+def test_clone_repository(barerepo: Repository, tmp_path: Path) -> None:
     assert barerepo.is_bare
     repo = clone_repository(Path(barerepo.path), tmp_path / 'clonepath')
     assert not repo.is_empty
@@ -710,14 +716,14 @@ def test_clone_repository(barerepo, tmp_path):
     assert not repo.is_bare
 
 
-def test_clone_bare_repository(barerepo, tmp_path):
+def test_clone_bare_repository(barerepo: Repository, tmp_path: Path) -> None:
     repo = clone_repository(barerepo.path, tmp_path / 'clone', bare=True)
     assert not repo.is_empty
     assert repo.is_bare
 
 
 @utils.requires_network
-def test_clone_shallow_repository(tmp_path):
+def test_clone_shallow_repository(tmp_path: Path) -> None:
     # shallow cloning currently only works with remote repositories
     url = 'https://github.com/libgit2/TestGitRepository'
     repo = clone_repository(url, tmp_path / 'clone-shallow', depth=1)
@@ -725,15 +731,17 @@ def test_clone_shallow_repository(tmp_path):
     assert repo.is_shallow
 
 
-def test_clone_repository_and_remote_callbacks(barerepo, tmp_path):
+def test_clone_repository_and_remote_callbacks(
+    barerepo: Repository, tmp_path: Path
+) -> None:
     url = Path(barerepo.path).resolve().as_uri()
     repo_path = tmp_path / 'clone-into'
 
-    def create_repository(path, bare):
+    def create_repository(path: Path, bare: bool) -> Repository:
         return init_repository(path, bare)
 
     # here we override the name
-    def create_remote(repo, name, url):
+    def create_remote(repo: Repository, name: str, url: str) -> Remote:
         return repo.remotes.create('custom_remote', url)
 
     repo = clone_repository(
@@ -746,7 +754,7 @@ def test_clone_repository_and_remote_callbacks(barerepo, tmp_path):
 
 
 @utils.requires_network
-def test_clone_with_credentials(tmp_path):
+def test_clone_with_credentials(tmp_path: Path) -> None:
     url = 'https://github.com/libgit2/TestGitRepository'
     credentials = pygit2.UserPass('libgit2', 'libgit2')
     callbacks = pygit2.RemoteCallbacks(credentials=credentials)
@@ -756,9 +764,14 @@ def test_clone_with_credentials(tmp_path):
 
 
 @utils.requires_network
-def test_clone_bad_credentials(tmp_path):
+def test_clone_bad_credentials(tmp_path: Path) -> None:
     class MyCallbacks(pygit2.RemoteCallbacks):
-        def credentials(self, url, username, allowed):
+        def credentials(
+            self,
+            url: str,
+            username_from_url: str | None,
+            allowed_types: CredentialType,
+        ) -> Username | UserPass | Keypair:
             raise RuntimeError('Unexpected error')
 
     url = 'https://github.com/github/github'
@@ -767,12 +780,14 @@ def test_clone_bad_credentials(tmp_path):
     assert str(exc.value) == 'Unexpected error'
 
 
-def test_clone_with_checkout_branch(barerepo, tmp_path):
+def test_clone_with_checkout_branch(barerepo: Repository, tmp_path: Path) -> None:
     # create a test case which isolates the remote
     test_repo = clone_repository(
         barerepo.path, tmp_path / 'testrepo-orig.git', bare=True
     )
-    test_repo.create_branch('test', test_repo[test_repo.head.target])
+    commit = test_repo[test_repo.head.target]
+    assert isinstance(commit, Commit)
+    test_repo.create_branch('test', commit)
     repo = clone_repository(
         test_repo.path, tmp_path / 'testrepo.git', checkout_branch='test', bare=True
     )
@@ -781,7 +796,7 @@ def test_clone_with_checkout_branch(barerepo, tmp_path):
 
 @utils.requires_proxy
 @utils.requires_network
-def test_clone_with_proxy(tmp_path):
+def test_clone_with_proxy(tmp_path: Path) -> None:
     url = 'https://github.com/libgit2/TestGitRepository'
     repo = clone_repository(
         url,
@@ -839,7 +854,7 @@ def test_worktree(testrepo: Repository) -> None:
     # worktree later
     worktree_dir.rmdir()
 
-    def _check_worktree(worktree):
+    def _check_worktree(worktree: Worktree) -> None:
         # Confirm the name attribute matches the specified name
         assert worktree.name == worktree_name
         # Confirm the path attribute points to the correct path
@@ -918,7 +933,7 @@ def test_worktree_custom_ref(testrepo: Repository) -> None:
     assert branch_name in testrepo.branches
 
 
-def test_open_extended(tmp_path):
+def test_open_extended(tmp_path: Path) -> None:
     with utils.TemporaryRepository('dirtyrepo.zip', tmp_path) as path:
         orig_repo = pygit2.Repository(path)
         assert not orig_repo.is_bare
