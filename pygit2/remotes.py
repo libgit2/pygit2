@@ -25,7 +25,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Generator, Iterator, Literal, TypedDict
 
 # Import from pygit2
 from pygit2 import RemoteCallbacks
@@ -340,16 +340,16 @@ class RemoteCollection:
     >>> repo.remotes["origin"]
     """
 
-    def __init__(self, repo: BaseRepository):
+    def __init__(self, repo: BaseRepository) -> None:
         self._repo = repo
 
-    def __len__(self):
+    def __len__(self) -> int:
         with utils.new_git_strarray() as names:
             err = C.git_remote_list(names, self._repo._repo)
             check_error(err)
             return names.count
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Remote]:
         cremote = ffi.new('git_remote **')
         for name in self._ffi_names():
             err = C.git_remote_lookup(cremote, self._repo._repo, name)
@@ -357,7 +357,7 @@ class RemoteCollection:
 
             yield Remote(self._repo, cremote[0])
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str | int) -> Remote:
         if isinstance(name, int):
             return list(self)[name]
 
@@ -374,12 +374,12 @@ class RemoteCollection:
             for i in range(names.count):
                 yield names.strings[i]
 
-    def names(self):
+    def names(self) -> Generator[str | None, None, None]:
         """An iterator over the names of the available remotes."""
         for name in self._ffi_names():
             yield maybe_string(name)
 
-    def create(self, name, url, fetch=None) -> Remote:
+    def create(self, name: str, url: str, fetch: str | None = None) -> Remote:
         """Create a new remote with the given name and url. Returns a <Remote>
         object.
 
@@ -388,31 +388,31 @@ class RemoteCollection:
         """
         cremote = ffi.new('git_remote **')
 
-        name = to_bytes(name)
-        url = to_bytes(url)
+        name_bytes = to_bytes(name)
+        url_bytes = to_bytes(url)
         if fetch:
-            fetch = to_bytes(fetch)
+            fetch_bytes = to_bytes(fetch)
             err = C.git_remote_create_with_fetchspec(
-                cremote, self._repo._repo, name, url, fetch
+                cremote, self._repo._repo, name_bytes, url_bytes, fetch_bytes
             )
         else:
-            err = C.git_remote_create(cremote, self._repo._repo, name, url)
+            err = C.git_remote_create(cremote, self._repo._repo, name_bytes, url_bytes)
 
         check_error(err)
 
         return Remote(self._repo, cremote[0])
 
-    def create_anonymous(self, url):
+    def create_anonymous(self, url: str) -> Remote:
         """Create a new anonymous (in-memory only) remote with the given URL.
         Returns a <Remote> object.
         """
         cremote = ffi.new('git_remote **')
-        url = to_bytes(url)
-        err = C.git_remote_create_anonymous(cremote, self._repo._repo, url)
+        url_bytes = to_bytes(url)
+        err = C.git_remote_create_anonymous(cremote, self._repo._repo, url_bytes)
         check_error(err)
         return Remote(self._repo, cremote[0])
 
-    def rename(self, name, new_name):
+    def rename(self, name: str, new_name: str) -> list[str]:
         """Rename a remote in the configuration. The refspecs in standard
         format will be renamed.
 
@@ -433,7 +433,7 @@ class RemoteCollection:
         check_error(err)
         return strarray_to_strings(problems)
 
-    def delete(self, name):
+    def delete(self, name: str) -> None:
         """Remove a remote from the configuration
 
         All remote-tracking branches and configuration settings for the remote will be removed.
@@ -441,17 +441,17 @@ class RemoteCollection:
         err = C.git_remote_delete(self._repo._repo, to_bytes(name))
         check_error(err)
 
-    def set_url(self, name, url):
+    def set_url(self, name: str, url: str) -> None:
         """Set the URL for a remote"""
         err = C.git_remote_set_url(self._repo._repo, to_bytes(name), to_bytes(url))
         check_error(err)
 
-    def set_push_url(self, name, url):
+    def set_push_url(self, name: str, url: str) -> None:
         """Set the push-URL for a remote"""
         err = C.git_remote_set_pushurl(self._repo._repo, to_bytes(name), to_bytes(url))
         check_error(err)
 
-    def add_fetch(self, name, refspec):
+    def add_fetch(self, name: str, refspec: str) -> None:
         """Add a fetch refspec (str) to the remote"""
 
         err = C.git_remote_add_fetch(
@@ -459,7 +459,7 @@ class RemoteCollection:
         )
         check_error(err)
 
-    def add_push(self, name, refspec):
+    def add_push(self, name: str, refspec: str) -> None:
         """Add a push refspec (str) to the remote"""
 
         err = C.git_remote_add_push(self._repo._repo, to_bytes(name), to_bytes(refspec))
