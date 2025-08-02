@@ -25,7 +25,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
 # Import from pygit2
 from pygit2 import RemoteCallbacks
@@ -46,6 +46,7 @@ from .utils import StrArray, maybe_string, strarray_to_strings, to_bytes
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
+    from ._libgit2.ffi import GitRemoteC
     from .repository import BaseRepository
 
 
@@ -92,34 +93,39 @@ class TransferProgress:
 
 
 class Remote:
-    def __init__(self, repo: BaseRepository, ptr):
+    def __init__(self, repo: BaseRepository, ptr: 'GitRemoteC') -> None:
         """The constructor is for internal use only."""
         self._repo = repo
         self._remote = ptr
         self._stored_exception = None
 
-    def __del__(self):
+    def __del__(self) -> None:
         C.git_remote_free(self._remote)
 
     @property
-    def name(self):
+    def name(self) -> str | None:
         """Name of the remote"""
 
         return maybe_string(C.git_remote_name(self._remote))
 
     @property
-    def url(self):
+    def url(self) -> str | None:
         """Url of the remote"""
 
         return maybe_string(C.git_remote_url(self._remote))
 
     @property
-    def push_url(self):
+    def push_url(self) -> str | None:
         """Push url of the remote"""
 
         return maybe_string(C.git_remote_pushurl(self._remote))
 
-    def connect(self, callbacks=None, direction=C.GIT_DIRECTION_FETCH, proxy=None):
+    def connect(
+        self,
+        callbacks: RemoteCallbacks | None = None,
+        direction: int = C.GIT_DIRECTION_FETCH,
+        proxy: None | bool | str = None,
+    ) -> None:
         """Connect to the remote.
 
         Parameters:
@@ -144,13 +150,13 @@ class Remote:
 
     def fetch(
         self,
-        refspecs=None,
-        message=None,
-        callbacks=None,
+        refspecs: list[str] | None = None,
+        message: str | None = None,
+        callbacks: RemoteCallbacks | None = None,
         prune: FetchPrune = FetchPrune.UNSPECIFIED,
-        proxy=None,
-        depth=0,
-    ):
+        proxy: None | Literal[True] | str = None,
+        depth: int = 0,
+    ) -> TransferProgress:
         """Perform a fetch against this remote. Returns a <TransferProgress>
         object.
 
@@ -241,7 +247,7 @@ class Remote:
             payload.check_error(err)
 
     @property
-    def refspec_count(self):
+    def refspec_count(self) -> int:
         """Total number of refspecs in this remote"""
 
         return C.git_remote_refspec_count(self._remote)
@@ -252,7 +258,7 @@ class Remote:
         return Refspec(self, spec)
 
     @property
-    def fetch_refspecs(self):
+    def fetch_refspecs(self) -> list[str]:
         """Refspecs that will be used for fetching"""
 
         specs = ffi.new('git_strarray *')
@@ -261,7 +267,7 @@ class Remote:
         return strarray_to_strings(specs)
 
     @property
-    def push_refspecs(self):
+    def push_refspecs(self) -> list[str]:
         """Refspecs that will be used for pushing"""
 
         specs = ffi.new('git_strarray *')
