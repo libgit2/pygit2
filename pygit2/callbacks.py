@@ -718,7 +718,7 @@ def _checkout_notify_cb(
     pyworkdir = DiffFile.from_c(ptr_to_bytes(workdir))
 
     try:
-        data.checkout_notify(why, pypath, pybaseline, pytarget, pyworkdir)
+        data.checkout_notify(why, pypath, pybaseline, pytarget, pyworkdir)  # type: ignore[arg-type]
     except Passthrough:
         # Unlike most other operations with optional callbacks, checkout
         # doesn't support the GIT_PASSTHROUGH return code, so we must bypass
@@ -733,7 +733,7 @@ def _checkout_notify_cb(
 
 @libgit2_callback_void
 def _checkout_progress_cb(path, completed_steps, total_steps, data: CheckoutCallbacks):
-    data.checkout_progress(maybe_string(path), completed_steps, total_steps)
+    data.checkout_progress(maybe_string(path), completed_steps, total_steps)  # type: ignore[arg-type]
 
 
 def _git_checkout_options(

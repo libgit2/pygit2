@@ -42,10 +42,10 @@ from typing import (
 from .ffi import C, ffi
 
 if TYPE_CHECKING:
-    from ._libgit2.ffi import ArrayC, GitStrrayC, char
+    from ._libgit2.ffi import ArrayC, GitStrrayC, char, char_pointer
 
 
-def maybe_string(ptr):
+def maybe_string(ptr: char_pointer) -> str | None:
     if not ptr:
         return None
 
