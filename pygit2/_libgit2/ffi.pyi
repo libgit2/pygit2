@@ -25,8 +25,6 @@
 
 from typing import Any, Generic, Literal, NewType, SupportsIndex, TypeVar, overload
 
-from pygit2._pygit2 import Repository
-
 T = TypeVar('T')
 
 NULL_TYPE = NewType('NULL_TYPE', object)
@@ -82,7 +80,8 @@ class GitHunkC:
 class GitRepositoryC:
     # incomplete
     # TODO: this has to be unified with pygit2._pygit2(pyi).Repository
-    def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
+    # def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
+    pass
 
 class GitFetchOptionsC:
     # TODO: FetchOptions exist in _pygit2.pyi
@@ -318,7 +317,7 @@ def new(
     a: Literal['git_remote_head ***'],
 ) -> _Pointer[_MultiPointer[GitRemoteHeadC]]: ...
 @overload
-def new(a: Literal['size_t *']) -> size_t: ...
+def new(a: Literal['size_t *', 'size_t*']) -> size_t: ...
 @overload
 def new(a: Literal['git_stash_save_options *']) -> GitStashSaveOptionsC: ...
 @overload

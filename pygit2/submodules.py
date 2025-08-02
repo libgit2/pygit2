@@ -65,7 +65,7 @@ class Submodule:
         err = C.git_submodule_open(crepo, self._subm)
         check_error(err)
 
-        return self._repo._from_c(crepo[0], True)
+        return self._repo._from_c(crepo[0], True)  # type: ignore[attr-defined]
 
     def init(self, overwrite: bool = False) -> None:
         """

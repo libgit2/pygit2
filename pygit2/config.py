@@ -38,7 +38,8 @@ from .ffi import C, ffi
 from .utils import to_bytes
 
 if TYPE_CHECKING:
-    from ._libgit2.ffi import GitConfigC, GitConfigEntryC, GitRepositoryC
+    from ._libgit2.ffi import GitConfigC, GitConfigEntryC
+    from .repository import BaseRepository
 
 
 def str_to_bytes(value: str | PathLike[str] | bytes, name: str) -> bytes:
@@ -79,7 +80,7 @@ class ConfigMultivarIterator(ConfigIterator):
 class Config:
     """Git configuration management."""
 
-    _repo: 'GitRepositoryC'
+    _repo: 'BaseRepository'
     _config: 'GitConfigC'
 
     def __init__(self, path: str | None = None) -> None:
@@ -95,7 +96,7 @@ class Config:
         self._config = cconfig[0]
 
     @classmethod
-    def from_c(cls, repo: 'GitRepositoryC', ptr: 'GitConfigC') -> 'Config':
+    def from_c(cls, repo: 'BaseRepository', ptr: 'GitConfigC') -> 'Config':
         config = cls.__new__(cls)
         config._repo = repo
         config._config = ptr

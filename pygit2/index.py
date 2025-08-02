@@ -29,11 +29,14 @@ from dataclasses import dataclass
 from os import PathLike
 
 # Import from pygit2
-from ._pygit2 import Diff, Oid, Repository, Tree
+from ._pygit2 import Diff, Oid, Tree
 from .enums import DiffOption, FileMode
 from .errors import check_error
 from .ffi import C, ffi
 from .utils import GenericIterator, StrArray, to_bytes, to_str
+
+if typing.TYPE_CHECKING:
+    from .repository import Repository
 
 
 class Index:
@@ -152,7 +155,7 @@ class Index:
         err = C.git_index_read_tree(self._index, tree_cptr[0])
         check_error(err)
 
-    def write_tree(self, repo: Repository | None = None) -> Oid:
+    def write_tree(self, repo: 'Repository | None' = None) -> Oid:
         """Create a tree out of the Index. Return the <Oid> object of the
         written tree.
 

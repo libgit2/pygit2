@@ -33,10 +33,11 @@ from .utils import to_bytes
 
 if TYPE_CHECKING:
     from pygit2 import Oid, Repository
+    from pygit2.repository import BaseRepository
 
 
 class PackBuilder:
-    def __init__(self, repo: 'Repository') -> None:
+    def __init__(self, repo: 'Repository | BaseRepository') -> None:
         cpackbuilder = ffi.new('git_packbuilder **')
         err = C.git_packbuilder_new(cpackbuilder, repo._repo)
         check_error(err)

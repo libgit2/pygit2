@@ -1,10 +1,8 @@
-import tarfile
 from io import DEFAULT_BUFFER_SIZE, IOBase
 from pathlib import Path
 from queue import Queue
 from threading import Event
 from typing import (
-    Callable,
     Generic,
     Iterator,
     Literal,
@@ -16,54 +14,35 @@ from typing import (
     overload,
 )
 
-from . import Index, IndexEntry
+from . import Index
 from ._libgit2.ffi import (
     GitCommitC,
-    GitMergeOptionsC,
     GitObjectC,
     GitProxyOptionsC,
-    GitRepositoryC,
     GitSignatureC,
     _Pointer,
 )
-from .blame import Blame
-from .branches import Branches
-from .callbacks import CheckoutCallbacks, StashApplyCallbacks
-from .config import Config
 from .enums import (
     ApplyLocation,
-    AttrCheck,
-    BlameFlag,
     BlobFilter,
     BranchType,
-    CheckoutStrategy,
     ConfigLevel,
     DeltaStatus,
-    DescribeStrategy,
     DiffFind,
     DiffFlag,
     DiffOption,
     DiffStatsFormat,
     FileMode,
     MergeAnalysis,
-    MergeFavor,
-    MergeFileFlag,
-    MergeFlag,
     MergePreference,
     ObjectType,
     Option,
     ReferenceFilter,
     ReferenceType,
-    RepositoryState,
     ResetMode,
     SortMode,
 )
 from .filter import Filter
-from .index import MergeFileResult
-from .packbuilder import PackBuilder
-from .references import References
-from .remotes import RemoteCollection
-from .submodules import SubmoduleCollection
 
 GIT_OBJ_BLOB = Literal[3]
 GIT_OBJ_COMMIT = Literal[1]
@@ -575,7 +554,7 @@ class Odb:
     def add_disk_alternate(self, path: str | Path) -> None: ...
     def exists(self, oid: _OidArg) -> bool: ...
     def read(self, oid: _OidArg) -> tuple[int, bytes]: ...
-    def write(self, type: int, data: bytes) -> Oid: ...
+    def write(self, type: int, data: bytes | str) -> Oid: ...
     def __contains__(self, other: _OidArg) -> bool: ...
     def __iter__(self) -> Iterator[Oid]: ...  # Odb_as_iter
 
@@ -691,46 +670,11 @@ class _LsRemotesDict(TypedDict):
     oid: Oid
 
 class Repository:
-    _pointer: GitRepositoryC
-    _repo: GitRepositoryC
-    backend: RefdbBackend
-    default_signature: Signature
-    head: Reference
-    head_is_detached: bool
-    head_is_unborn: bool
-    is_bare: bool
-    is_empty: bool
-    is_shallow: bool
-    odb: Odb
-    path: str
-    refdb: Refdb
-    workdir: str
-    references: References
-    remotes: RemoteCollection
-    branches: Branches
-    submodules: SubmoduleCollection
-    index: Index
-    def __init__(self, *args, **kwargs) -> None: ...
     def TreeBuilder(self, src: Tree | _OidArg = ...) -> TreeBuilder: ...
     def _disown(self, *args, **kwargs) -> None: ...
-    @classmethod
-    def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
-    def __iter__(self) -> Iterator[Oid]: ...
-    def __getitem__(self, key: str | Oid) -> Object: ...
-    def __contains__(self, name: _OidArg) -> bool: ...
     def add_worktree(
         self, name: str, path: str | Path, ref: Reference = ...
     ) -> Worktree: ...
-    def amend_commit(
-        self,
-        commit: Commit | Oid | str,
-        refname: Reference | str | None,
-        author: Signature | None = None,
-        committer: Signature | None = None,
-        message: str | None = None,
-        tree: Tree | Oid | str | None = None,
-        encoding: str = 'UTF-8',
-    ) -> Oid: ...
     def applies(
         self,
         diff: Diff,
@@ -740,30 +684,8 @@ class Repository:
     def apply(
         self, diff: Diff, location: ApplyLocation = ApplyLocation.WORKDIR
     ) -> None: ...
-    def blame(
-        self,
-        path: str,
-        flags: BlameFlag = BlameFlag.NORMAL,
-        min_match_characters: int | None = None,
-        newest_commit: _OidArg | None = None,
-        oldest_commit: _OidArg | None = None,
-        min_line: int | None = None,
-        max_line: int | None = None,
-    ) -> Blame: ...
-    def checkout(
-        self,
-        refname: _OidArg | None | Reference = None,
-        *,
-        strategy: CheckoutStrategy | None = None,
-        directory: str | Path | None = None,
-        paths: list[str] | None = None,
-        callbacks: CheckoutCallbacks | None = None,
-    ) -> None: ...
-    def ahead_behind(self, local: _OidArg, upstream: _OidArg) -> tuple[int, int]: ...
     def cherrypick(self, id: _OidArg) -> None: ...
     def compress_references(self) -> None: ...
-    @property
-    def config(self) -> Config: ...
     def create_blob(self, data: str | bytes) -> Oid: ...
     def create_blob_fromdisk(self, path: str) -> Oid: ...
     def create_blob_fromiobase(self, iobase: IOBase) -> Oid: ...
@@ -800,13 +722,6 @@ class Repository:
         ref: str = 'refs/notes/commits',
         force: bool = False,
     ) -> Oid: ...
-    def create_reference(
-        self,
-        name: str,
-        target: _OidArg,
-        force: bool = False,
-        message: str | None = None,
-    ) -> Reference: ...
     def create_reference_direct(
         self, name: str, target: _OidArg, force: bool, message: Optional[str] = None
     ) -> Reference: ...
@@ -816,50 +731,13 @@ class Repository:
     def create_tag(
         self, name: str, oid: _OidArg, type: ObjectType, tagger: Signature, message: str
     ) -> Oid: ...
-    def diff(
-        self,
-        a: None | str | bytes | Commit | Oid | Reference = None,
-        b: None | str | bytes | Commit | Oid | Reference = None,
-        cached: bool = False,
-        flags: DiffOption = DiffOption.NORMAL,
-        context_lines: int = 3,
-        interhunk_lines: int = 0,
-    ) -> Diff: ...
     def descendant_of(self, oid1: _OidArg, oid2: _OidArg) -> bool: ...
-    def describe(
-        self,
-        committish: str | Reference | Commit | None = None,
-        max_candidates_tags: int | None = None,
-        describe_strategy: DescribeStrategy = DescribeStrategy.DEFAULT,
-        pattern: str | None = None,
-        only_follow_first_parent: bool | None = None,
-        show_commit_oid_as_fallback: bool | None = None,
-        abbreviated_size: object | None = None,
-        always_use_long_format: bool | None = None,
-        dirty_suffix: str | None = None,
-    ) -> str: ...
     def expand_id(self, hex: str) -> Oid: ...
     def free(self) -> None: ...
-    def get(self, key: _OidArg, default: Optional[Commit] = None) -> None | Object: ...
-    def get_attr(
-        self,
-        path: str | bytes | Path,
-        name: str | bytes,
-        flags: AttrCheck = AttrCheck.FILE_THEN_INDEX,
-        commit: _OidArg | None = None,
-    ) -> bool | None | str: ...
     def git_object_lookup_prefix(self, oid: _OidArg) -> Object: ...
-    def hashfile(
-        self,
-        path: str,
-        object_type: ObjectType = ObjectType.BLOB,
-        as_path: str | None = None,
-    ) -> Oid: ...
     def list_worktrees(self) -> list[str]: ...
     def listall_branches(self, flag: BranchType = BranchType.LOCAL) -> list[str]: ...
     def listall_mergeheads(self) -> list[Oid]: ...
-    def listall_references(self) -> list[str]: ...
-    def listall_reference_objects(self) -> list[Reference]: ...
     def listall_stashes(self) -> list[Stash]: ...
     def listall_submodules(self) -> list[str]: ...
     def lookup_branch(
@@ -871,65 +749,18 @@ class Repository:
     def lookup_reference(self, name: str) -> Reference: ...
     def lookup_reference_dwim(self, name: str) -> Reference: ...
     def lookup_worktree(self, name: str) -> Worktree: ...
-    def merge(
-        self,
-        source: Reference | Commit | Oid | str,
-        favor: MergeFavor = MergeFavor.NORMAL,
-        flags: MergeFlag = MergeFlag.FIND_RENAMES,
-        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
-    ) -> None: ...
     def merge_analysis(
         self, their_head: _OidArg, our_ref: str = 'HEAD'
     ) -> tuple[MergeAnalysis, MergePreference]: ...
     def merge_base(self, oid1: _OidArg, oid2: _OidArg) -> Oid: ...
     def merge_base_many(self, oids: list[_OidArg]) -> Oid: ...
     def merge_base_octopus(self, oids: list[_OidArg]) -> Oid: ...
-    def merge_commits(
-        self,
-        ours: str | Oid | Commit,
-        theirs: str | Oid | Commit,
-        favor: MergeFavor = MergeFavor.NORMAL,
-        flags: MergeFlag = MergeFlag.FIND_RENAMES,
-        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
-    ) -> Index: ...
-    def merge_file_from_index(
-        self,
-        ancestor: IndexEntry | None,
-        ours: IndexEntry | None,
-        theirs: IndexEntry | None,
-        use_deprecated: bool = True,
-    ) -> str | MergeFileResult | None: ...
-    @staticmethod
-    def _merge_options(
-        favor: int | MergeFavor, flags: int | MergeFlag, file_flags: int | MergeFileFlag
-    ) -> GitMergeOptionsC: ...
-    def merge_trees(
-        self,
-        ancestor: str | Oid | Tree,
-        ours: str | Oid | Tree,
-        theirs: str | Oid | Tree,
-        favor: MergeFavor = MergeFavor.NORMAL,
-        flags: MergeFlag = MergeFlag.FIND_RENAMES,
-        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
-    ) -> Index: ...
-    @property
-    def message(self) -> str: ...
     def notes(self) -> Iterator[Note]: ...
-    def pack(
-        self,
-        path: str | Path | None = None,
-        pack_delegate: Callable[[PackBuilder], None] | None = None,
-        n_threads: int | None = None,
-    ) -> bool: ...
     def path_is_ignored(self, path: str) -> bool: ...
     def raw_listall_branches(
         self, flag: BranchType = BranchType.LOCAL
     ) -> list[bytes]: ...
     def raw_listall_references(self) -> list[bytes]: ...
-    @property
-    def raw_message(self) -> bytes: ...
-    def read(self, oid: _OidArg) -> tuple[int, bytes]: ...
-    def remove_message(self) -> None: ...
     def references_iterator_init(self) -> Iterator[Reference]: ...
     def references_iterator_next(
         self,
@@ -937,64 +768,18 @@ class Repository:
         references_return_type: ReferenceFilter = ReferenceFilter.ALL,
     ) -> Reference: ...
     def reset(self, oid: _OidArg, reset_type: ResetMode) -> None: ...
-    def resolve_refish(self, refresh: str) -> tuple[Commit, Reference]: ...
     def revparse(self, revspec: str) -> RevSpec: ...
     def revparse_ext(self, revision: str) -> tuple[Object, Reference]: ...
     def revparse_single(self, revision: str) -> Object: ...
-    def revert(self, commit: Commit) -> None: ...
-    def revert_commit(
-        self, revert_commit: Commit, our_commit: Commit, mainline: int = 0
-    ) -> Index: ...
-    def set_head(self, target: _OidArg) -> None: ...
-    def set_ident(self, name: str, email: str) -> None: ...
     def set_odb(self, odb: Odb) -> None: ...
     def set_refdb(self, refdb: Refdb) -> None: ...
     def status(
         self, untracked_files: str = 'all', ignored: bool = False
     ) -> dict[str, int]: ...
-    def stash(
-        self,
-        stasher: Signature,
-        message: str | None = None,
-        keep_index: bool = False,
-        include_untracked: bool = False,
-        include_ignored: bool = False,
-        keep_all: bool = False,
-        paths: list[str] | None = None,
-    ) -> Oid: ...
-    def stash_apply(
-        self,
-        index: int = 0,
-        reinstate_index: bool | None = None,
-        include_untracked: bool | None = None,
-        message: str | None = None,
-        strategy: CheckoutStrategy | None = None,
-        callbacks: StashApplyCallbacks | None = None,
-    ) -> None: ...
-    def stash_pop(
-        self,
-        index: int = 0,
-        reinstate_index: bool | None = None,
-        include_untracked: bool | None = None,
-        message: str | None = None,
-        strategy: CheckoutStrategy | None = None,
-        callbacks: StashApplyCallbacks | None = None,
-    ) -> None: ...
-    def stash_drop(self, index: int = 0) -> None: ...
     def status_file(self, path: str) -> int: ...
-    def state(self) -> RepositoryState: ...
-    def state_cleanup(self) -> None: ...
     def walk(
         self, oid: _OidArg | None, sort_mode: SortMode = SortMode.NONE
     ) -> Walker: ...
-    def write(self, type: int, data: bytes | str) -> Oid: ...
-    def write_archive(
-        self,
-        treeish: str | Tree | Object | Oid,
-        archive: tarfile.TarFile,
-        timestamp: int | None = None,
-        prefix: str = '',
-    ) -> None: ...
 
 class RevSpec:
     flags: int

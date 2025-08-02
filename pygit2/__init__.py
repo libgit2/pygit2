@@ -307,7 +307,6 @@ from ._pygit2 import (
     RefdbFsBackend,
     Reference,
     RefLogEntry,
-    Repository,
     RevSpec,
     Signature,
     Stash,
@@ -348,7 +347,7 @@ from .index import Index, IndexEntry
 from .legacyenums import *
 from .packbuilder import PackBuilder
 from .remotes import Remote
-from .repository import Repository  # noqa: F811
+from .repository import Repository
 from .settings import Settings
 from .submodules import Submodule
 from .utils import to_bytes, to_str
