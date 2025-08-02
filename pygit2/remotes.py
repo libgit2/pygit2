@@ -46,7 +46,7 @@ from .utils import StrArray, maybe_string, strarray_to_strings, to_bytes
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
-    from ._libgit2.ffi import GitRemoteC
+    from ._libgit2.ffi import GitRemoteC, char_pointer
     from .repository import BaseRepository
 
 
@@ -367,12 +367,12 @@ class RemoteCollection:
 
         return Remote(self._repo, cremote[0])
 
-    def _ffi_names(self):
+    def _ffi_names(self) -> Generator['char_pointer', None, None]:
         with utils.new_git_strarray() as names:
             err = C.git_remote_list(names, self._repo._repo)
             check_error(err)
             for i in range(names.count):
-                yield names.strings[i]
+                yield names.strings[i]  # type: ignore[index]
 
     def names(self) -> Generator[str | None, None, None]:
         """An iterator over the names of the available remotes."""
