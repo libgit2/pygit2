@@ -25,9 +25,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
 
-from ._pygit2 import Commit, Oid
+from ._pygit2 import Branch, Commit, Oid
 from .enums import BranchType, ReferenceType
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
@@ -36,9 +36,15 @@ if TYPE_CHECKING:
 
 
 class Branches:
+    local: 'Branches'
+    remote: 'Branches'
+
     def __init__(
-        self, repository: BaseRepository, flag: BranchType = BranchType.ALL, commit=None
-    ):
+        self,
+        repository: BaseRepository,
+        flag: BranchType = BranchType.ALL,
+        commit: Commit | Oid | str | None = None,
+    ) -> None:
         self._repository = repository
         self._flag = flag
         if commit is not None:
@@ -52,7 +58,7 @@ class Branches:
             self.local = Branches(repository, flag=BranchType.LOCAL, commit=commit)
             self.remote = Branches(repository, flag=BranchType.REMOTE, commit=commit)
 
-    def __getitem__(self, name: str):
+    def __getitem__(self, name: str) -> Branch:
         branch = None
         if self._flag & BranchType.LOCAL:
             branch = self._repository.lookup_branch(name, BranchType.LOCAL)
@@ -65,36 +71,38 @@ class Branches:
 
         return branch
 
-    def get(self, key: str):
+    def get(self, key: str) -> Branch:
         try:
             return self[key]
         except KeyError:
-            return None
+            return None  # type:ignore #  next commit
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         for branch_name in self._repository.listall_branches(self._flag):
             if self._commit is None or self.get(branch_name) is not None:
                 yield branch_name
 
-    def create(self, name: str, commit, force=False):
+    def create(self, name: str, commit: Commit, force: bool = False) -> Branch:
         return self._repository.create_branch(name, commit, force)
 
-    def delete(self, name: str):
+    def delete(self, name: str) -> None:
         self[name].delete()
 
-    def _valid(self, branch):
+    def _valid(self, branch: Branch) -> bool:
         if branch.type == ReferenceType.SYMBOLIC:
-            branch = branch.resolve()
+            branch_direct = branch.resolve()
+        else:
+            branch_direct = branch
 
         return (
             self._commit is None
-            or branch.target == self._commit
-            or self._repository.descendant_of(branch.target, self._commit)
+            or branch_direct.target == self._commit
+            or self._repository.descendant_of(branch_direct.target, self._commit)
         )
 
-    def with_commit(self, commit):
+    def with_commit(self, commit: Commit | Oid | str | None) -> 'Branches':
         assert self._commit is None
         return Branches(self._repository, self._flag, commit)
 
-    def __contains__(self, name):
+    def __contains__(self, name: str) -> bool:
         return self.get(name) is not None

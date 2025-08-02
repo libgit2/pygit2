@@ -1,5 +1,4 @@
 import tarfile
-from collections.abc import Generator
 from io import DEFAULT_BUFFER_SIZE, IOBase
 from pathlib import Path
 from queue import Queue
@@ -28,6 +27,7 @@ from ._libgit2.ffi import (
     _Pointer,
 )
 from .blame import Blame
+from .branches import Branches
 from .callbacks import CheckoutCallbacks, StashApplyCallbacks
 from .config import Config
 from .enums import (
@@ -63,7 +63,6 @@ from .index import MergeFileResult
 from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
-from .repository import BaseRepository
 from .submodules import SubmoduleCollection
 
 GIT_OBJ_BLOB = Literal[3]
@@ -690,25 +689,6 @@ class _LsRemotesDict(TypedDict):
     name: str | None
     symref_target: str | None
     oid: Oid
-
-class Branches:
-    local: 'Branches'
-    remote: 'Branches'
-    def __init__(
-        self,
-        repository: BaseRepository,
-        flag: BranchType = ...,
-        commit: Commit | _OidArg | None = None,
-    ) -> None: ...
-    def __getitem__(self, name: str) -> Branch: ...
-    def get(self, key: str) -> Branch: ...
-    def __iter__(self) -> Iterator[str]: ...
-    def create(
-        self, name: str, commit: Object | Commit, force: bool = False
-    ) -> Branch: ...
-    def delete(self, name: str) -> None: ...
-    def with_commit(self, commit: Object | Commit | _OidArg | None) -> 'Branches': ...
-    def __contains__(self, name: _OidArg) -> bool: ...
 
 class Repository:
     _pointer: GitRepositoryC

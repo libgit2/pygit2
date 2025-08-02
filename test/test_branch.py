@@ -58,6 +58,7 @@ def test_branches(testrepo: Repository) -> None:
 
 def test_branches_create(testrepo: Repository) -> None:
     commit = testrepo[LAST_COMMIT]
+    assert isinstance(commit, Commit)
     reference = testrepo.branches.create('version1', commit)
     assert 'version1' in testrepo.branches
     reference = testrepo.branches['version1']
@@ -142,7 +143,9 @@ def test_branches_with_commit(testrepo: Repository) -> None:
     branches = testrepo.branches.with_commit(LAST_COMMIT)
     assert sorted(branches) == ['master']
 
-    branches = testrepo.branches.with_commit(testrepo[LAST_COMMIT])
+    commit = testrepo[LAST_COMMIT]
+    assert isinstance(commit, Commit)
+    branches = testrepo.branches.with_commit(commit)
     assert sorted(branches) == ['master']
 
     branches = testrepo.branches.remote.with_commit(LAST_COMMIT)

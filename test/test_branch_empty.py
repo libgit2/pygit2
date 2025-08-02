@@ -58,7 +58,9 @@ def test_branches_remote_getitem(repo: Repository) -> None:
 
 def test_branches_upstream(repo: Repository) -> None:
     remote_master = repo.branches.remote['origin/master']
-    master = repo.branches.create('master', repo[remote_master.target])
+    commit = repo[remote_master.target]
+    assert isinstance(commit, Commit)
+    master = repo.branches.create('master', commit)
 
     assert master.upstream is None
     master.upstream = remote_master
@@ -76,7 +78,9 @@ def test_branches_upstream(repo: Repository) -> None:
 
 def test_branches_upstream_name(repo: Repository) -> None:
     remote_master = repo.branches.remote['origin/master']
-    master = repo.branches.create('master', repo[remote_master.target])
+    commit = repo[remote_master.target]
+    assert isinstance(commit, Commit)
+    master = repo.branches.create('master', commit)
 
     master.upstream = remote_master
     assert master.upstream_name == 'refs/remotes/origin/master'

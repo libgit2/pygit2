@@ -906,6 +906,7 @@ def test_worktree_custom_ref(testrepo: Repository) -> None:
 
     # New branch based on head
     tip = testrepo.revparse_single('HEAD')
+    assert isinstance(tip, Commit)
     worktree_ref = testrepo.branches.create(branch_name, tip)
     # Delete temp path so that it's not present when we attempt to add the
     # worktree later

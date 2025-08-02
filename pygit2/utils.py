@@ -28,8 +28,8 @@ import os
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
-    Generic,
     Generator,
+    Generic,
     Iterator,
     Optional,
     Protocol,
@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from ._libgit2.ffi import ArrayC, GitStrrayC, char, char_pointer
 
 
-def maybe_string(ptr: 'char_pointer' | None) -> str | None:
+def maybe_string(ptr: 'char_pointer | None') -> str | None:
     if not ptr:
         return None
 
@@ -106,7 +106,7 @@ def ptr_to_bytes(ptr_cdata):
 
 
 @contextlib.contextmanager
-def new_git_strarray() -> Generator[GitStrrayC, None, None]:
+def new_git_strarray() -> Generator['GitStrrayC', None, None]:
     strarray = ffi.new('git_strarray *')
     yield strarray
     C.git_strarray_dispose(strarray)
