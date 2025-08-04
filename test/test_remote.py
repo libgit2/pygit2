@@ -204,6 +204,22 @@ def test_ls_remotes(testrepo: Repository) -> None:
     assert next(iter(r for r in refs if r['name'] == 'refs/tags/v0.28.2'))
 
 
+@utils.requires_network
+def test_ls_remotes_without_implicit_connect(testrepo: Repository) -> None:
+    assert 1 == len(testrepo.remotes)
+    remote = testrepo.remotes[0]
+
+    with pytest.raises(pygit2.GitError, match='this remote has never connected'):
+        remote.ls_remotes(connect=False)
+
+    remote.connect()
+    refs = remote.ls_remotes(connect=False)
+    assert refs
+
+    # Check that a known ref is returned.
+    assert next(iter(r for r in refs if r['name'] == 'refs/tags/v0.28.2'))
+
+
 def test_remote_collection(testrepo: Repository) -> None:
     remote = testrepo.remotes['origin']
     assert REMOTE_NAME == remote.name

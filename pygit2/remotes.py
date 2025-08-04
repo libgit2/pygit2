@@ -224,7 +224,10 @@ class Remote:
         return TransferProgress(C.git_remote_stats(self._remote))
 
     def ls_remotes(
-        self, callbacks: RemoteCallbacks | None = None, proxy: str | None | bool = None
+        self,
+        callbacks: RemoteCallbacks | None = None,
+        proxy: str | None | bool = None,
+        connect: bool = True,
     ) -> list[LsRemotesDict]:
         """
         Return a list of dicts that maps to `git_remote_head` from a
@@ -235,9 +238,14 @@ class Remote:
         callbacks : Passed to connect()
 
         proxy : Passed to connect()
+
+        connect : Whether to connect to the remote first. You can pass False
+        if the remote has already connected. The list remains available after
+        disconnecting as long as a new connection is not initiated.
         """
 
-        self.connect(callbacks=callbacks, proxy=proxy)
+        if connect:
+            self.connect(callbacks=callbacks, proxy=proxy)
 
         refs = ffi.new('git_remote_head ***')
         refs_len = ffi.new('size_t *')
