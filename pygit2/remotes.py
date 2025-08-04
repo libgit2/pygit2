@@ -58,6 +58,34 @@ class LsRemotesDict(TypedDict):
     oid: Oid
 
 
+class PushUpdate:
+    """
+    Represents an update which will be performed on the remote during push.
+    """
+
+    src_refname: str
+    """The source name of the reference"""
+
+    dst_refname: str
+    """The name of the reference to update on the server"""
+
+    src: Oid
+    """The current target of the reference"""
+
+    dst: Oid
+    """The new target for the reference"""
+
+    def __init__(self, c_struct: Any) -> None:
+        src_refname = maybe_string(c_struct.src_refname)
+        dst_refname = maybe_string(c_struct.dst_refname)
+        assert src_refname is not None, 'libgit2 returned null src_refname'
+        assert dst_refname is not None, 'libgit2 returned null dst_refname'
+        self.src_refname = src_refname
+        self.dst_refname = dst_refname
+        self.src = Oid(raw=bytes(ffi.buffer(c_struct.src.id)[:]))
+        self.dst = Oid(raw=bytes(ffi.buffer(c_struct.dst.id)[:]))
+
+
 class TransferProgress:
     """Progress downloading and indexing data during a fetch."""
 

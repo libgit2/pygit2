@@ -16,6 +16,11 @@ extern "Python" int _push_update_reference_cb(
     const char *status,
     void *data);
 
+extern "Python" int _push_negotiation_cb(
+    const git_push_update **updates,
+    size_t len,
+    void *data);
+
 extern "Python" int _remote_create_cb(
 	git_remote **out,
 	git_repository *repo,

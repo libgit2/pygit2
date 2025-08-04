@@ -81,7 +81,7 @@ if TYPE_CHECKING:
     from pygit2._libgit2.ffi import GitProxyOptionsC
 
     from ._pygit2 import CloneOptions, PushOptions
-    from .remotes import TransferProgress
+    from .remotes import PushUpdate, TransferProgress
 #
 # The payload is the way to pass information from the pygit2 API, through
 # libgit2, to the Python callbacks. And back.
@@ -197,6 +197,15 @@ class RemoteCallbacks(Payload):
         """
 
         raise Passthrough
+
+    def push_negotiation(self, updates: list['PushUpdate']) -> None:
+        """
+        During a push, called once between the negotiation step and the upload.
+        Provides information about what updates will be performed.
+
+        Override with your own function to check the pending updates
+        and possibly reject them (by raising an exception).
+        """
 
     def transfer_progress(self, stats: 'TransferProgress') -> None:
         """
@@ -427,6 +436,7 @@ def git_push_options(payload, opts=None):
     opts.callbacks.credentials = C._credentials_cb
     opts.callbacks.certificate_check = C._certificate_check_cb
     opts.callbacks.push_update_reference = C._push_update_reference_cb
+    opts.callbacks.push_negotiation = C._push_negotiation_cb
     # Per libgit2 sources, push_transfer_progress may incur a performance hit.
     # So, set it only if the user has overridden the no-op stub.
     if (
@@ -556,6 +566,19 @@ def _credentials_cb(cred_out, url, username, allowed, data):
 
     ccred = get_credentials(credentials, url, username, allowed)
     cred_out[0] = ccred[0]
+    return 0
+
+
+@libgit2_callback
+def _push_negotiation_cb(updates, num_updates, data):
+    from .remotes import PushUpdate
+
+    push_negotiation = getattr(data, 'push_negotiation', None)
+    if not push_negotiation:
+        return 0
+
+    py_updates = [PushUpdate(updates[i]) for i in range(num_updates)]
+    push_negotiation(py_updates)
     return 0
 
 

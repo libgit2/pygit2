@@ -31,7 +31,7 @@ import pytest
 
 import pygit2
 from pygit2 import Remote, Repository
-from pygit2.remotes import TransferProgress
+from pygit2.remotes import PushUpdate, TransferProgress
 
 from . import utils
 
@@ -406,9 +406,12 @@ def test_push_transfer_progress(
     assert origin.branches['master'].target == new_tip_id
 
 
+@pytest.mark.parametrize('reject_from', ['push_transfer_progress', 'push_negotiation'])
 def test_push_interrupted_from_callbacks(
-    origin: Repository, clone: Repository, remote: Remote
+    origin: Repository, clone: Repository, remote: Remote, reject_from: str
 ) -> None:
+    reject_message = 'retreat! retreat!'
+
     tip = clone[clone.head.target]
     clone.create_commit(
         'refs/heads/master',
@@ -420,10 +423,15 @@ def test_push_interrupted_from_callbacks(
     )
 
     class MyCallbacks(pygit2.RemoteCallbacks):
+        def push_negotiation(self, updates: list[PushUpdate]) -> None:
+            if reject_from == 'push_negotiation':
+                raise InterruptedError(reject_message)
+
         def push_transfer_progress(
             self, objects_pushed: int, total_objects: int, bytes_pushed: int
         ) -> None:
-            raise InterruptedError('retreat! retreat!')
+            if reject_from == 'push_transfer_progress':
+                raise InterruptedError(reject_message)
 
     assert origin.branches['master'].target == tip.id
 
@@ -504,3 +512,37 @@ def test_push_threads(origin: Repository, clone: Repository, remote: Remote) -> 
     callbacks = RemoteCallbacks()
     remote.push(['refs/heads/master'], callbacks, threads=1)
     assert callbacks.push_options.pb_parallelism == 1
+
+
+def test_push_negotiation(
+    origin: Repository, clone: Repository, remote: Remote
+) -> None:
+    old_tip = clone[clone.head.target]
+    new_tip_id = clone.create_commit(
+        'refs/heads/master',
+        old_tip.author,
+        old_tip.author,
+        'empty commit',
+        old_tip.tree.id,
+        [old_tip.id],
+    )
+
+    the_updates: list[PushUpdate] = []
+
+    class MyCallbacks(pygit2.RemoteCallbacks):
+        def push_negotiation(self, updates: list[PushUpdate]) -> None:
+            the_updates.extend(updates)
+
+    assert origin.branches['master'].target == old_tip.id
+    assert 'new_branch' not in origin.branches
+
+    callbacks = MyCallbacks()
+    remote.push(['refs/heads/master'], callbacks=callbacks)
+
+    assert len(the_updates) == 1
+    assert the_updates[0].src_refname == 'refs/heads/master'
+    assert the_updates[0].dst_refname == 'refs/heads/master'
+    assert the_updates[0].src == old_tip.id
+    assert the_updates[0].dst == new_tip_id
+
+    assert origin.branches['master'].target == new_tip_id
