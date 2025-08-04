@@ -152,6 +152,14 @@ class Submodule:
         url = C.git_submodule_url(self._subm)
         return maybe_string(url)
 
+    @url.setter
+    def url(self, url: str) -> None:
+        crepo = self._repo._repo
+        cname = ffi.new('char[]', to_bytes(self.name))
+        curl = ffi.new('char[]', to_bytes(url))
+        err = C.git_submodule_set_url(crepo, cname, curl)
+        check_error(err)
+
     @property
     def branch(self):
         """Branch that is to be tracked by the submodule."""

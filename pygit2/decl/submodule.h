@@ -41,3 +41,5 @@ const char * git_submodule_branch(git_submodule *submodule);
 const git_oid * git_submodule_head_id(git_submodule *submodule);
 
 int git_submodule_status(unsigned int *status, git_repository *repo, const char *name, git_submodule_ignore_t ignore);
+
+int git_submodule_set_url(git_repository *repo, const char *name, const char *url);

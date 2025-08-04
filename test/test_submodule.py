@@ -124,6 +124,17 @@ def test_url(repo: Repository) -> None:
     assert SUBM_URL == s.url
 
 
+def test_set_url(repo: Repository) -> None:
+    new_url = 'ssh://git@127.0.0.1:2222/my_repo'
+    s = repo.submodules[SUBM_PATH]
+    s.url = new_url
+    assert new_url == repo.submodules[SUBM_PATH].url
+    # Ensure .gitmodules has been correctly altered
+    with open(Path(repo.workdir, '.gitmodules'), 'r') as fd:
+        modules = fd.read()
+    assert new_url in modules
+
+
 def test_missing_url(repo: Repository) -> None:
     # Remove "url" from .gitmodules
     with open(Path(repo.workdir, '.gitmodules'), 'wt') as f:
