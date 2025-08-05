@@ -23,6 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+# mypy: disable-error-code="import-not-found, import-untyped"
+
 # Import setuptools before distutils to avoid user warning
 import os
 import sys
