@@ -201,7 +201,21 @@ def test_ls_remotes(testrepo: Repository) -> None:
     assert refs
 
     # Check that a known ref is returned.
-    assert next(iter(r for r in refs if r['name'] == 'refs/tags/v0.28.2'))
+    assert next(iter(r for r in refs if r.name == 'refs/tags/v0.28.2'))
+
+
+@utils.requires_network
+def test_ls_remotes_backwards_compatibility(testrepo: Repository) -> None:
+    assert 1 == len(testrepo.remotes)
+    remote = testrepo.remotes[0]
+    refs = remote.ls_remotes()
+    ref = refs[0]
+
+    for field in ('name', 'oid', 'loid', 'local', 'symref_target'):
+        new_value = getattr(ref, field)
+        with pytest.warns(DeprecationWarning, match='no longer returns a dict'):
+            old_value = ref[field]
+        assert new_value == old_value
 
 
 @utils.requires_network
@@ -217,7 +231,7 @@ def test_ls_remotes_without_implicit_connect(testrepo: Repository) -> None:
     assert refs
 
     # Check that a known ref is returned.
-    assert next(iter(r for r in refs if r['name'] == 'refs/tags/v0.28.2'))
+    assert next(iter(r for r in refs if r.name == 'refs/tags/v0.28.2'))
 
 
 def test_remote_collection(testrepo: Repository) -> None:
