@@ -59,7 +59,7 @@ def test_new_tag(barerepo: Repository) -> None:
     target_prefix = target[:5]
     too_short_prefix = target[:3]
     with pytest.raises(ValueError):
-        barerepo.create_tag(name, too_short_prefix, ObjectType.BLOB, tagger, message)  # type: ignore
+        barerepo.create_tag(name, too_short_prefix, ObjectType.BLOB, tagger, message)
 
     sha = barerepo.create_tag(name, target_prefix, ObjectType.BLOB, tagger, message)
     tag = barerepo[sha]

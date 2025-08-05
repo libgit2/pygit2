@@ -414,7 +414,7 @@ def git_proxy_options(
     elif type(proxy) is str:
         opts.type = C.GIT_PROXY_SPECIFIED
         # Keep url in memory, otherwise memory is freed and bad things happen
-        payload.__proxy_url = ffi.new('char[]', to_bytes(proxy))  # type: ignore[attr-defined, no-untyped-call]
+        payload.__proxy_url = ffi.new('char[]', to_bytes(proxy))  # type: ignore[attr-defined]
         opts.url = payload.__proxy_url  # type: ignore[attr-defined]
     else:
         raise TypeError('Proxy must be None, True, or a string')

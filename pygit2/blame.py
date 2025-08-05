@@ -127,7 +127,7 @@ class Blame:
         C.git_blame_free(self._blame)
 
     def __len__(self) -> int:
-        return C.git_blame_get_hunk_count(self._blame)  # type: ignore[no-any-return]
+        return C.git_blame_get_hunk_count(self._blame)
 
     def __getitem__(self, index: int) -> BlameHunk:
         chunk = C.git_blame_get_hunk_byindex(self._blame, index)
