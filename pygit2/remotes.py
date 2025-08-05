@@ -62,7 +62,7 @@ class RemoteHead:
 
     oid: Oid
 
-    loid: Oid | None
+    loid: Oid
 
     name: str | None
 
@@ -74,12 +74,8 @@ class RemoteHead:
 
     def __init__(self, c_struct: Any) -> None:
         self.local = bool(c_struct.local)
-        if self.local:
-            self.loid = Oid(raw=bytes(ffi.buffer(c_struct.loid.id)[:]))
-        else:
-            self.loid = None
-
         self.oid = Oid(raw=bytes(ffi.buffer(c_struct.oid.id)[:]))
+        self.loid = Oid(raw=bytes(ffi.buffer(c_struct.loid.id)[:]))
         self.name = maybe_string(c_struct.name)
         self.symref_target = maybe_string(c_struct.symref_target)
 
