@@ -1,6 +1,6 @@
 import codecs
+from collections.abc import Callable, Generator
 from io import BytesIO
-from typing import Callable, Generator
 
 import pytest
 

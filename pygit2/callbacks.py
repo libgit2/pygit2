@@ -63,9 +63,10 @@ API.
 """
 
 # Standard Library
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Callable, Generator, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 # pygit2
 from ._pygit2 import DiffFile, Oid
@@ -151,7 +152,7 @@ class RemoteCallbacks(Payload):
     def credentials(
         self,
         url: str,
-        username_from_url: Union[str, None],
+        username_from_url: str | None,
         allowed_types: CredentialType,
     ) -> _Credentials:
         """

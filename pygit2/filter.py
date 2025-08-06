@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from typing import Callable, List, Optional
+from collections.abc import Callable
 
 from ._pygit2 import FilterSource
 
@@ -58,7 +58,7 @@ class Filter:
     def nattrs(cls) -> int:
         return len(cls.attributes.split())
 
-    def check(self, src: FilterSource, attr_values: List[Optional[str]]) -> None:
+    def check(self, src: FilterSource, attr_values: list[str | None]) -> None:
         """
         Check whether this filter should be applied to the given source.
 

@@ -26,8 +26,8 @@
 """Tests for Diff objects."""
 
 import textwrap
+from collections.abc import Iterator
 from itertools import chain
-from typing import Iterator
 
 import pytest
 

@@ -25,11 +25,12 @@
 
 import tarfile
 import warnings
+from collections.abc import Callable, Iterator
 from io import BytesIO
 from pathlib import Path
 from string import hexdigits
 from time import time
-from typing import TYPE_CHECKING, Callable, Iterator, Optional, overload
+from typing import TYPE_CHECKING, Optional, overload
 
 # Import from pygit2
 from ._pygit2 import (

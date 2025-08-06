@@ -26,7 +26,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Generator, Iterator, Literal
+from collections.abc import Generator, Iterator
+from typing import TYPE_CHECKING, Any, Literal
 
 # Import from pygit2
 from pygit2 import RemoteCallbacks

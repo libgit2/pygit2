@@ -25,7 +25,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from ._pygit2 import Branch, Commit, Oid
 from .enums import BranchType, ReferenceType

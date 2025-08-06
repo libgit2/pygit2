@@ -23,8 +23,8 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
 

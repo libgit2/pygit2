@@ -392,7 +392,7 @@ class MergeFileResult:
     automergeable: bool
     'True if the output was automerged, false if the output contains conflict markers'
 
-    path: typing.Union[str, None, PathLike[str]]
+    path: str | None | PathLike[str]
     'The path that the resultant merge file should use, or None if a filename conflict would occur'
 
     mode: FileMode

@@ -25,8 +25,8 @@
 
 """Tests for Refdb objects."""
 
+from collections.abc import Generator, Iterator
 from pathlib import Path
-from typing import Generator, Iterator
 
 import pytest
 

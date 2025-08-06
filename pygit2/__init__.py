@@ -364,12 +364,10 @@ _cache_enums()
 
 
 def init_repository(
-    path: typing.Union[str, bytes, os.PathLike, None],
+    path: str | bytes | os.PathLike | None,
     bare: bool = False,
     flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
-    mode: typing.Union[
-        int, enums.RepositoryInitMode
-    ] = enums.RepositoryInitMode.SHARED_UMASK,
+    mode: int | enums.RepositoryInitMode = enums.RepositoryInitMode.SHARED_UMASK,
     workdir_path: typing.Optional[str] = None,
     description: typing.Optional[str] = None,
     template_path: typing.Optional[str] = None,

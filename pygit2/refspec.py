@@ -23,7 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-from typing import Callable
+from collections.abc import Callable
 
 # Import from pygit2
 from .errors import check_error

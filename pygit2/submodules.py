@@ -25,8 +25,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 from ._pygit2 import Oid
 from .callbacks import RemoteCallbacks, git_fetch_options
@@ -147,7 +148,7 @@ class Submodule:
         return ffi.string(path).decode('utf-8')
 
     @property
-    def url(self) -> Union[str, None]:
+    def url(self) -> str | None:
         """URL of the submodule."""
         url = C.git_submodule_url(self._subm)
         return maybe_string(url)
@@ -167,7 +168,7 @@ class Submodule:
         return ffi.string(branch).decode('utf-8')
 
     @property
-    def head_id(self) -> Union[Oid, None]:
+    def head_id(self) -> Oid | None:
         """
         The submodule's HEAD commit id (as recorded in the superproject's
         current HEAD tree).
@@ -205,7 +206,7 @@ class SubmoduleCollection:
         for s in self._repository.listall_submodules():
             yield self[s]
 
-    def get(self, name: str) -> Union[Submodule, None]:
+    def get(self, name: str) -> Submodule | None:
         """
         Look up submodule information by name or path.
         Unlike __getitem__, this returns None if the submodule is not found.

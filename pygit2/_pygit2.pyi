@@ -1,13 +1,12 @@
+from collections.abc import Iterator, Sequence
 from io import DEFAULT_BUFFER_SIZE, IOBase
 from pathlib import Path
 from queue import Queue
 from threading import Event
-from typing import (
+from typing import (  # noqa: UP035
     Generic,
-    Iterator,
     Literal,
     Optional,
-    Sequence,
     Type,
     TypedDict,
     TypeVar,

@@ -30,9 +30,10 @@ import socket
 import stat
 import sys
 import zipfile
+from collections.abc import Callable
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Callable, Optional, ParamSpec, TypeVar
+from typing import Any, Optional, ParamSpec, TypeVar
 
 # Requirements
 import pytest

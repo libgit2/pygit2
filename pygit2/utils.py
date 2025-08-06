@@ -25,15 +25,13 @@
 
 import contextlib
 import os
+from collections.abc import Generator, Iterator, Sequence
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
-    Generator,
     Generic,
-    Iterator,
     Optional,
     Protocol,
-    Sequence,
     TypeVar,
     Union,
     overload,
@@ -55,7 +53,7 @@ def maybe_string(ptr: 'char_pointer | None') -> str | None:
 
 @overload
 def to_bytes(
-    s: Union[str, bytes, os.PathLike[str]],
+    s: str | bytes | os.PathLike[str],
     encoding: str = 'utf-8',
     errors: str = 'strict',
 ) -> bytes: ...

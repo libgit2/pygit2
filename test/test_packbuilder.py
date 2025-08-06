@@ -25,8 +25,8 @@
 
 """Tests for Index files."""
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 import pygit2
 from pygit2 import Oid, PackBuilder, Repository

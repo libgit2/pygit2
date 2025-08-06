@@ -27,8 +27,8 @@
 
 # Standard Library
 import binascii
+from collections.abc import Generator, Iterator
 from pathlib import Path
-from typing import Generator, Iterator
 
 import pytest
 
