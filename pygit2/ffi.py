@@ -26,3 +26,5 @@
 # Import from pygit2
 from ._libgit2 import ffi  # noqa: F401
 from ._libgit2 import lib as C  # type: ignore # noqa: F401
+
+__all__ = ['C', 'ffi']

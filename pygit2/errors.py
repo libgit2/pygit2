@@ -27,6 +27,8 @@
 from ._pygit2 import GitError
 from .ffi import C, ffi
 
+__all__ = ['GitError']
+
 value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
 
 
