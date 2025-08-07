@@ -66,7 +66,7 @@ API.
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, ParamSpec, TypeVar
 
 # pygit2
 from ._pygit2 import DiffFile, Oid
@@ -490,8 +490,11 @@ def git_remote_callbacks(payload):
 # exception.
 #
 
+P = ParamSpec('P')
+T = TypeVar('T')
 
-def libgit2_callback(f):
+
+def libgit2_callback(f: Callable[P, T]) -> Callable[P, T]:
     @wraps(f)
     def wrapper(*args):
         data = ffi.from_handle(args[-1])
@@ -509,10 +512,10 @@ def libgit2_callback(f):
             data._stored_exception = e
             return C.GIT_EUSER
 
-    return ffi.def_extern()(wrapper)
+    return ffi.def_extern()(wrapper)  # type: ignore[attr-defined]
 
 
-def libgit2_callback_void(f):
+def libgit2_callback_void(f: Callable[P, T]) -> Callable[P, T]:
     @wraps(f)
     def wrapper(*args):
         data = ffi.from_handle(args[-1])
@@ -529,7 +532,7 @@ def libgit2_callback_void(f):
             data._stored_exception = e
             pass  # Function returns void, so we can't do much here.
 
-    return ffi.def_extern()(wrapper)
+    return ffi.def_extern()(wrapper)  # type: ignore[attr-defined]
 
 
 @libgit2_callback
