@@ -28,7 +28,7 @@
 # Import setuptools before distutils to avoid user warning
 import os
 import sys
-from distutils import log
+from distutils import log  # type: ignore[attr-defined]
 from distutils.command.build import build
 from distutils.command.sdist import sdist
 from pathlib import Path
@@ -129,7 +129,7 @@ class BuildWithDLLs(build):
 
 # On Windows we package up the dlls with the plugin.
 if os.name == 'nt':
-    cmdclass['build'] = BuildWithDLLs
+    cmdclass['build'] = BuildWithDLLs  # type: ignore[assignment]
 
 src = __dir__ / 'src'
 pygit2_exts = [str(path) for path in sorted(src.iterdir()) if path.suffix == '.c']

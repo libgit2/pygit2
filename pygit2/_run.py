@@ -33,7 +33,7 @@ import sys
 from pathlib import Path
 
 # Import from cffi
-from cffi import FFI  # type: ignore
+from cffi import FFI
 
 # Import from pygit2
 try:
