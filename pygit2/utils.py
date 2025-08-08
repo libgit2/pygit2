@@ -53,7 +53,7 @@ def maybe_string(ptr: 'char_pointer | None') -> str | None:
 
 @overload
 def to_bytes(
-    s: str | bytes | os.PathLike[str],
+    s: str | bytes | os.PathLike[str] | os.PathLike[bytes],
     encoding: str = 'utf-8',
     errors: str = 'strict',
 ) -> bytes: ...
@@ -64,7 +64,7 @@ def to_bytes(
     errors: str = 'strict',
 ) -> Union['ffi.NULL_TYPE']: ...
 def to_bytes(
-    s: Union[str, bytes, 'ffi.NULL_TYPE', os.PathLike[str], None],
+    s: Union[str, bytes, 'ffi.NULL_TYPE', os.PathLike[str], os.PathLike[bytes], None],
     encoding: str = 'utf-8',
     errors: str = 'strict',
 ) -> Union[bytes, 'ffi.NULL_TYPE']:

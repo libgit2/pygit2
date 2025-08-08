@@ -364,7 +364,7 @@ _cache_enums()
 
 
 def init_repository(
-    path: str | bytes | os.PathLike | None,
+    path: str | bytes | os.PathLike[str] | os.PathLike[bytes] | None,
     bare: bool = False,
     flags: enums.RepositoryInitFlag = enums.RepositoryInitFlag.MKPATH,
     mode: int | enums.RepositoryInitMode = enums.RepositoryInitMode.SHARED_UMASK,
@@ -444,8 +444,8 @@ def init_repository(
 
 
 def clone_repository(
-    url: str | bytes | os.PathLike,
-    path: str | bytes | os.PathLike,
+    url: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+    path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
     bare: bool = False,
     repository: typing.Callable | None = None,
     remote: typing.Callable | None = None,
