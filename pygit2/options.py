@@ -347,7 +347,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
 
         try:
-            if buf.ptr != ffi.NULL:
+            if buf.ptr != ffi.NULL:  # type: ignore[comparison-overlap]
                 result = to_str(ffi.string(buf.ptr))
             else:
                 result = None
@@ -475,7 +475,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
 
         try:
-            if buf.ptr != ffi.NULL:
+            if buf.ptr != ffi.NULL:  # type: ignore[comparison-overlap]
                 result = to_str(ffi.string(buf.ptr))
             else:
                 result = None
@@ -507,7 +507,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
 
         try:
-            if buf.ptr != ffi.NULL:
+            if buf.ptr != ffi.NULL:  # type: ignore[comparison-overlap]
                 result = to_str(ffi.string(buf.ptr))
             else:
                 result = None
@@ -643,7 +643,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
                 # Cast to the non-NULL type for type checking
                 strings = cast('ArrayC[char_pointer]', strarray.strings)
                 for i in range(strarray.count):
-                    if strings[i] != ffi.NULL:
+                    if strings[i] != ffi.NULL:  # type: ignore[comparison-overlap]
                         result.append(to_str(ffi.string(strings[i])))
         finally:
             # Must dispose of the strarray to free the memory
@@ -687,7 +687,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
 
         try:
-            if buf.ptr != ffi.NULL:
+            if buf.ptr != ffi.NULL:  # type: ignore[comparison-overlap]
                 result = to_str(ffi.string(buf.ptr))
             else:
                 result = None
@@ -767,7 +767,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
 
         try:
-            if buf.ptr != ffi.NULL:
+            if buf.ptr != ffi.NULL:  # type: ignore[comparison-overlap]
                 result = to_str(ffi.string(buf.ptr))
             else:
                 result = None

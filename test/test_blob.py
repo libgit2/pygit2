@@ -87,7 +87,7 @@ def test_read_blob(testrepo: Repository) -> None:
     assert blob.id == BLOB_SHA
     assert isinstance(blob, pygit2.Blob)
     assert not blob.is_binary
-    assert ObjectType.BLOB == blob.type
+    assert int(ObjectType.BLOB) == blob.type
     assert BLOB_CONTENT == blob.data
     assert len(BLOB_CONTENT) == blob.size
     assert BLOB_CONTENT == blob.read_raw()
@@ -98,7 +98,7 @@ def test_create_blob(testrepo: Repository) -> None:
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert int(ObjectType.BLOB) == blob.type
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_NEW_CONTENT) == blob_oid
@@ -122,7 +122,7 @@ def test_create_blob_fromworkdir(testrepo: Repository) -> None:
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert int(ObjectType.BLOB) == blob.type
 
     assert blob_oid == blob.id
     assert utils.gen_blob_sha1(BLOB_FILE_CONTENT) == blob_oid
@@ -149,7 +149,7 @@ def test_create_blob_fromdisk(testrepo: Repository) -> None:
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert int(ObjectType.BLOB) == blob.type
 
 
 def test_create_blob_fromiobase(testrepo: Repository) -> None:
@@ -161,7 +161,7 @@ def test_create_blob_fromiobase(testrepo: Repository) -> None:
     blob = testrepo[blob_oid]
 
     assert isinstance(blob, pygit2.Blob)
-    assert ObjectType.BLOB == blob.type
+    assert int(ObjectType.BLOB) == blob.type
 
     assert blob_oid == blob.id
     assert BLOB_SHA == blob_oid
