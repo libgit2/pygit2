@@ -84,7 +84,7 @@ class _BlobIO(io.RawIOBase):
         except KeyboardInterrupt:
             return 0
 
-    def close(self):
+    def close(self) -> None:
         try:
             self._ready.wait()
             self._writer_closed.wait()
