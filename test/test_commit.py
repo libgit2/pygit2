@@ -278,7 +278,7 @@ def test_amend_commit_argument_types(barerepo: Repository) -> None:
     # Pass an Oid for the commit
     amended_oid = repo.amend_commit(alt_commit1, None, message='Hello')
     amended_commit = repo[amended_oid]
-    assert ObjectType.COMMIT == amended_commit.type
+    assert int(ObjectType.COMMIT) == amended_commit.type
     assert amended_oid != COMMIT_SHA_TO_AMEND
 
     # Pass a str for the commit
@@ -294,6 +294,6 @@ def test_amend_commit_argument_types(barerepo: Repository) -> None:
     # (Warning: the tip of the branch will be altered after this test!)
     amended_oid = repo.amend_commit(alt_commit2, alt_refname, message='Hello')
     amended_commit = repo[amended_oid]
-    assert ObjectType.COMMIT == amended_commit.type
+    assert int(ObjectType.COMMIT) == amended_commit.type
     assert amended_oid != COMMIT_SHA_TO_AMEND
     assert repo.head.target == amended_oid
