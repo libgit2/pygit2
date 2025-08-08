@@ -99,7 +99,7 @@ def test_sorting(barerepo: Repository) -> None:
     tree_a = barerepo['18e2d2e9db075f9eb43bcb2daa65a2867d29a15e']
     assert isinstance(tree_a, Tree)
     assert list(tree_a) == sorted(reversed(list(tree_a)), key=pygit2.tree_entry_key)
-    assert list(tree_a) != reversed(list(tree_a))
+    assert list(tree_a) != list(reversed(list(tree_a)))
 
 
 def test_read_subtree(barerepo: Repository) -> None:
