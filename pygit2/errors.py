@@ -32,7 +32,7 @@ __all__ = ['GitError']
 value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
 
 
-def check_error(err, io=False):
+def check_error(err: int, io=False) -> None:
     if err >= 0:
         return
 
