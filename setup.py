@@ -47,7 +47,7 @@ libgit2_bin, libgit2_kw = get_libgit2_paths()
 
 
 class sdist_files_from_git(sdist):
-    def get_file_list(self):
+    def get_file_list(self) -> None:
         popen = Popen(
             ['git', 'ls-files'], stdout=PIPE, stderr=PIPE, universal_newlines=True
         )
@@ -56,7 +56,7 @@ class sdist_files_from_git(sdist):
             print(stderrdata)
             sys.exit()
 
-        def exclude(line):
+        def exclude(line: str) -> bool:
             for prefix in ['.', 'appveyor.yml', 'docs/', 'misc/']:
                 if line.startswith(prefix):
                     return True
@@ -97,11 +97,11 @@ cmdclass = {
 
 # On Windows, we install the git2.dll too.
 class BuildWithDLLs(build):
-    def _get_dlls(self):
+    def _get_dlls(self) -> list[tuple[Path, Path]]:
         # return a list of (FQ-in-name, relative-out-name) tuples.
         ret = []
         bld_ext = self.distribution.get_command_obj('build_ext')
-        compiler_type = bld_ext.compiler.compiler_type
+        compiler_type = bld_ext.compiler.compiler_type  # type: ignore[attr-defined]
         libgit2_dlls = []
         if compiler_type == 'msvc':
             libgit2_dlls.append('git2.dll')
@@ -121,7 +121,7 @@ class BuildWithDLLs(build):
                 log.debug(f'(looked in {look_dirs})')
         return ret
 
-    def run(self):
+    def run(self) -> None:
         build.run(self)
         for s, d in self._get_dlls():
             self.copy_file(s, d)

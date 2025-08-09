@@ -40,7 +40,7 @@ __version__ = '1.18.1'
 #
 # Utility functions to get the paths required for building extensions
 #
-def _get_libgit2_path():
+def _get_libgit2_path() -> Path:
     # LIBGIT2 environment variable takes precedence
     libgit2_path = os.getenv('LIBGIT2')
     if libgit2_path is not None:
@@ -52,7 +52,7 @@ def _get_libgit2_path():
     return Path('/usr/local')
 
 
-def get_libgit2_paths():
+def get_libgit2_paths() -> tuple[Path, dict[str, list[str]]]:
     # Base path
     path = _get_libgit2_path()
 
@@ -61,7 +61,7 @@ def get_libgit2_paths():
     if libgit2_lib is None:
         library_dirs = [path / 'lib', path / 'lib64']
     else:
-        library_dirs = [libgit2_lib]
+        library_dirs = [Path(libgit2_lib)]
 
     include_dirs = [path / 'include']
     return (

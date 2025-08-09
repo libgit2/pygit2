@@ -34,7 +34,7 @@ from .utils import to_bytes
 class Refspec:
     """The constructor is for internal use only."""
 
-    def __init__(self, owner, ptr):
+    def __init__(self, owner, ptr) -> None:
         self._owner = owner
         self._refspec = ptr
 
