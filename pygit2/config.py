@@ -110,7 +110,7 @@ class Config:
         except AttributeError:
             pass
 
-    def _get(self, key: str | bytes) -> tuple[object, 'ConfigEntry']:
+    def _get(self, key: str | bytes) -> tuple[int, 'ConfigEntry']:
         key = str_to_bytes(key, 'key')
 
         entry = ffi.new('git_config_entry **')
