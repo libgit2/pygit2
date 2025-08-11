@@ -145,7 +145,7 @@ class StrArray:
 
     __array: 'GitStrrayC | ffi.NULL_TYPE'
     __strings: list['None | ArrayC[char]']
-    __arr: 'ArrayC[char]'
+    __arr: 'ArrayC[char_pointer]'
 
     def __init__(self, lst: None | Sequence[str | os.PathLike[str]]):
         # Allow passing in None as lg2 typically considers them the same as empty
@@ -164,7 +164,7 @@ class StrArray:
 
             strings[i] = ffi.new('char []', to_bytes(li))
 
-        self.__arr = ffi.new('char *[]', strings)  # type: ignore[call-overload]
+        self.__arr = ffi.new('char *[]', strings)
         self.__strings = strings
         self.__array = ffi.new('git_strarray *', [self.__arr, len(strings)])  # type: ignore[call-overload]
 

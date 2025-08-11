@@ -28,7 +28,7 @@ from __future__ import annotations
 Libgit2 global options management using CFFI.
 """
 
-from typing import Any, Literal, Optional, Tuple, Union, overload
+from typing import Any, Literal, overload, cast
 
 from .ffi import C, ffi
 from .errors import check_error
@@ -39,7 +39,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .enums import ConfigLevel, ObjectType, Option
-    from ._libgit2.ffi import ArrayC, NULL_TYPE, char
+    from ._libgit2.ffi import ArrayC, NULL_TYPE, char, char_pointer
 
 # Export GIT_OPT constants for backward compatibility
 GIT_OPT_GET_MWINDOW_SIZE: int = C.GIT_OPT_GET_MWINDOW_SIZE
@@ -76,6 +76,20 @@ GIT_OPT_GET_MWINDOW_FILE_LIMIT: int = C.GIT_OPT_GET_MWINDOW_FILE_LIMIT
 GIT_OPT_SET_MWINDOW_FILE_LIMIT: int = C.GIT_OPT_SET_MWINDOW_FILE_LIMIT
 GIT_OPT_GET_OWNER_VALIDATION: int = C.GIT_OPT_GET_OWNER_VALIDATION
 GIT_OPT_SET_OWNER_VALIDATION: int = C.GIT_OPT_SET_OWNER_VALIDATION
+GIT_OPT_ENABLE_HTTP_EXPECT_CONTINUE: int = C.GIT_OPT_ENABLE_HTTP_EXPECT_CONTINUE
+GIT_OPT_SET_ODB_PACKED_PRIORITY: int = C.GIT_OPT_SET_ODB_PACKED_PRIORITY
+GIT_OPT_SET_ODB_LOOSE_PRIORITY: int = C.GIT_OPT_SET_ODB_LOOSE_PRIORITY
+GIT_OPT_GET_EXTENSIONS: int = C.GIT_OPT_GET_EXTENSIONS
+GIT_OPT_SET_EXTENSIONS: int = C.GIT_OPT_SET_EXTENSIONS
+GIT_OPT_GET_HOMEDIR: int = C.GIT_OPT_GET_HOMEDIR
+GIT_OPT_SET_HOMEDIR: int = C.GIT_OPT_SET_HOMEDIR
+GIT_OPT_SET_SERVER_CONNECT_TIMEOUT: int = C.GIT_OPT_SET_SERVER_CONNECT_TIMEOUT
+GIT_OPT_GET_SERVER_CONNECT_TIMEOUT: int = C.GIT_OPT_GET_SERVER_CONNECT_TIMEOUT
+GIT_OPT_SET_SERVER_TIMEOUT: int = C.GIT_OPT_SET_SERVER_TIMEOUT
+GIT_OPT_GET_SERVER_TIMEOUT: int = C.GIT_OPT_GET_SERVER_TIMEOUT
+GIT_OPT_GET_USER_AGENT_PRODUCT: int = C.GIT_OPT_GET_USER_AGENT_PRODUCT
+GIT_OPT_SET_USER_AGENT_PRODUCT: int = C.GIT_OPT_SET_USER_AGENT_PRODUCT
+GIT_OPT_ADD_SSL_X509_CERT: int = C.GIT_OPT_ADD_SSL_X509_CERT
 
 
 NOT_PASSED = object()
@@ -94,21 +108,21 @@ def check_args(option: Option, arg1: Any, arg2: Any, expected: int) -> None:
 
 @overload
 def option(
-    option_type: Union[
-        Literal[Option.GET_MWINDOW_SIZE],
-        Literal[Option.GET_MWINDOW_MAPPED_LIMIT],
-        Literal[Option.GET_MWINDOW_FILE_LIMIT],
+    option_type: Literal[
+        Option.GET_MWINDOW_SIZE,
+        Option.GET_MWINDOW_MAPPED_LIMIT,
+        Option.GET_MWINDOW_FILE_LIMIT,
     ],
 ) -> int: ...
 
 
 @overload
 def option(
-    option_type: Union[
-        Literal[Option.SET_MWINDOW_SIZE],
-        Literal[Option.SET_MWINDOW_MAPPED_LIMIT],
-        Literal[Option.SET_MWINDOW_FILE_LIMIT],
-        Literal[Option.SET_CACHE_MAX_SIZE],
+    option_type: Literal[
+        Option.SET_MWINDOW_SIZE,
+        Option.SET_MWINDOW_MAPPED_LIMIT,
+        Option.SET_MWINDOW_FILE_LIMIT,
+        Option.SET_CACHE_MAX_SIZE,
     ],
     arg1: int,  # value
 ) -> None: ...
@@ -138,29 +152,29 @@ def option(
 
 
 @overload
-def option(option_type: Literal[Option.GET_CACHED_MEMORY]) -> Tuple[int, int]: ...
+def option(option_type: Literal[Option.GET_CACHED_MEMORY]) -> tuple[int, int]: ...
 
 
 @overload
 def option(
     option_type: Literal[Option.SET_SSL_CERT_LOCATIONS],
-    arg1: Optional[str | bytes],  # cert_file
-    arg2: Optional[str | bytes],  # cert_dir
+    arg1: str | bytes | None,  # cert_file
+    arg2: str | bytes | None,  # cert_dir
 ) -> None: ...
 
 
 @overload
 def option(
-    option_type: Union[
-        Literal[Option.ENABLE_CACHING],
-        Literal[Option.ENABLE_STRICT_OBJECT_CREATION],
-        Literal[Option.ENABLE_STRICT_SYMBOLIC_REF_CREATION],
-        Literal[Option.ENABLE_OFS_DELTA],
-        Literal[Option.ENABLE_FSYNC_GITDIR],
-        Literal[Option.ENABLE_STRICT_HASH_VERIFICATION],
-        Literal[Option.ENABLE_UNSAVED_INDEX_SAFETY],
-        Literal[Option.DISABLE_PACK_KEEP_FILE_CHECKS],
-        Literal[Option.SET_OWNER_VALIDATION],
+    option_type: Literal[
+        Option.ENABLE_CACHING,
+        Option.ENABLE_STRICT_OBJECT_CREATION,
+        Option.ENABLE_STRICT_SYMBOLIC_REF_CREATION,
+        Option.ENABLE_OFS_DELTA,
+        Option.ENABLE_FSYNC_GITDIR,
+        Option.ENABLE_STRICT_HASH_VERIFICATION,
+        Option.ENABLE_UNSAVED_INDEX_SAFETY,
+        Option.DISABLE_PACK_KEEP_FILE_CHECKS,
+        Option.SET_OWNER_VALIDATION,
     ],
     arg1: bool,  # value
 ) -> None: ...
@@ -168,6 +182,75 @@ def option(
 
 @overload
 def option(option_type: Literal[Option.GET_OWNER_VALIDATION]) -> bool: ...
+
+
+@overload
+def option(
+    option_type: Literal[
+        Option.GET_TEMPLATE_PATH,
+        Option.GET_USER_AGENT,
+        Option.GET_HOMEDIR,
+        Option.GET_USER_AGENT_PRODUCT,
+    ],
+) -> str | None: ...
+
+
+@overload
+def option(
+    option_type: Literal[
+        Option.SET_TEMPLATE_PATH,
+        Option.SET_USER_AGENT,
+        Option.SET_SSL_CIPHERS,
+        Option.SET_HOMEDIR,
+        Option.SET_USER_AGENT_PRODUCT,
+    ],
+    arg1: str | bytes,  # value
+) -> None: ...
+
+
+@overload
+def option(
+    option_type: Literal[
+        Option.GET_WINDOWS_SHAREMODE,
+        Option.GET_PACK_MAX_OBJECTS,
+        Option.GET_SERVER_CONNECT_TIMEOUT,
+        Option.GET_SERVER_TIMEOUT,
+    ],
+) -> int: ...
+
+
+@overload
+def option(
+    option_type: Literal[
+        Option.SET_WINDOWS_SHAREMODE,
+        Option.SET_PACK_MAX_OBJECTS,
+        Option.ENABLE_HTTP_EXPECT_CONTINUE,
+        Option.SET_ODB_PACKED_PRIORITY,
+        Option.SET_ODB_LOOSE_PRIORITY,
+        Option.SET_SERVER_CONNECT_TIMEOUT,
+        Option.SET_SERVER_TIMEOUT,
+    ],
+    arg1: int,  # value
+) -> None: ...
+
+
+@overload
+def option(option_type: Literal[Option.GET_EXTENSIONS]) -> list[str]: ...
+
+
+@overload
+def option(
+    option_type: Literal[Option.SET_EXTENSIONS],
+    arg1: list[str],  # extensions
+    arg2: int,  # length
+) -> None: ...
+
+
+@overload
+def option(
+    option_type: Literal[Option.ADD_SSL_X509_CERT],
+    arg1: str | bytes,  # certificate
+) -> None: ...
 
 
 # Fallback overload for generic Option values (used in tests)
@@ -205,6 +288,24 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     GIT_OPT_SET_OWNER_VALIDATION, enabled
         Set that repository directories should be owned by the current user.
         The default is to validate ownership.
+
+    GIT_OPT_GET_TEMPLATE_PATH
+        Get the default template path.
+
+    GIT_OPT_SET_TEMPLATE_PATH, path
+        Set the default template path.
+
+    GIT_OPT_GET_USER_AGENT
+        Get the user agent string.
+
+    GIT_OPT_SET_USER_AGENT, user_agent
+        Set the user agent string.
+
+    GIT_OPT_GET_PACK_MAX_OBJECTS
+        Get the maximum number of objects to include in a pack.
+
+    GIT_OPT_SET_PACK_MAX_OBJECTS, count
+        Set the maximum number of objects to include in a pack.
     """
 
     # Handle GET options with size_t output
@@ -376,18 +477,354 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return bool(enabled_ptr[0])
 
-    # Not implemented options
+    # Handle GET_TEMPLATE_PATH
+    elif option_type == C.GIT_OPT_GET_TEMPLATE_PATH:
+        check_args(option_type, arg1, arg2, 0)
+
+        buf = ffi.new("git_buf *")
+        err = C.git_libgit2_opts(option_type, buf)
+        check_error(err)
+
+        try:
+            if buf.ptr != ffi.NULL:
+                result = to_str(ffi.string(buf.ptr))
+            else:
+                result = None
+        finally:
+            C.git_buf_dispose(buf)
+
+        return result
+
+    # Handle SET_TEMPLATE_PATH
+    elif option_type == C.GIT_OPT_SET_TEMPLATE_PATH:
+        check_args(option_type, arg1, arg2, 1)
+
+        path = arg1
+        template_path_cdata: ArrayC[char] | NULL_TYPE
+        if path is None:
+            template_path_cdata = ffi.NULL
+        else:
+            path_bytes = to_bytes(path)
+            template_path_cdata = ffi.new("char[]", path_bytes)
+
+        err = C.git_libgit2_opts(option_type, template_path_cdata)
+        check_error(err)
+        return None
+
+    # Handle GET_USER_AGENT
+    elif option_type == C.GIT_OPT_GET_USER_AGENT:
+        check_args(option_type, arg1, arg2, 0)
+
+        buf = ffi.new("git_buf *")
+        err = C.git_libgit2_opts(option_type, buf)
+        check_error(err)
+
+        try:
+            if buf.ptr != ffi.NULL:
+                result = to_str(ffi.string(buf.ptr))
+            else:
+                result = None
+        finally:
+            C.git_buf_dispose(buf)
+
+        return result
+
+    # Handle SET_USER_AGENT
+    elif option_type == C.GIT_OPT_SET_USER_AGENT:
+        check_args(option_type, arg1, arg2, 1)
+
+        agent = arg1
+        agent_bytes = to_bytes(agent)
+        agent_cdata = ffi.new("char[]", agent_bytes)
+
+        err = C.git_libgit2_opts(option_type, agent_cdata)
+        check_error(err)
+        return None
+
+    # Handle SET_SSL_CIPHERS
+    elif option_type == C.GIT_OPT_SET_SSL_CIPHERS:
+        check_args(option_type, arg1, arg2, 1)
+
+        ciphers = arg1
+        ciphers_bytes = to_bytes(ciphers)
+        ciphers_cdata = ffi.new("char[]", ciphers_bytes)
+
+        err = C.git_libgit2_opts(option_type, ciphers_cdata)
+        check_error(err)
+        return None
+
+    # Handle GET_WINDOWS_SHAREMODE
+    elif option_type == C.GIT_OPT_GET_WINDOWS_SHAREMODE:
+        check_args(option_type, arg1, arg2, 0)
+
+        value_ptr = ffi.new("unsigned int *")
+        err = C.git_libgit2_opts(option_type, value_ptr)
+        check_error(err)
+        return value_ptr[0]
+
+    # Handle SET_WINDOWS_SHAREMODE
+    elif option_type == C.GIT_OPT_SET_WINDOWS_SHAREMODE:
+        check_args(option_type, arg1, arg2, 1)
+
+        if not isinstance(arg1, int):
+            raise TypeError(
+                f"option value must be an integer, not {type(arg1).__name__}"
+            )
+        value = arg1
+        if value < 0:
+            raise ValueError("value must be non-negative")
+
+        err = C.git_libgit2_opts(option_type, ffi.cast("unsigned int", value))
+        check_error(err)
+        return None
+
+    # Handle GET_PACK_MAX_OBJECTS
+    elif option_type == C.GIT_OPT_GET_PACK_MAX_OBJECTS:
+        check_args(option_type, arg1, arg2, 0)
+
+        size_ptr = ffi.new("size_t *")
+        err = C.git_libgit2_opts(option_type, size_ptr)
+        check_error(err)
+        return size_ptr[0]
+
+    # Handle SET_PACK_MAX_OBJECTS
+    elif option_type == C.GIT_OPT_SET_PACK_MAX_OBJECTS:
+        check_args(option_type, arg1, arg2, 1)
+
+        if not isinstance(arg1, int):
+            raise TypeError(
+                f"option value must be an integer, not {type(arg1).__name__}"
+            )
+        size = arg1
+        if size < 0:
+            raise ValueError("size must be non-negative")
+
+        err = C.git_libgit2_opts(option_type, ffi.cast("size_t", size))
+        check_error(err)
+        return None
+
+    # Handle ENABLE_HTTP_EXPECT_CONTINUE
+    elif option_type == C.GIT_OPT_ENABLE_HTTP_EXPECT_CONTINUE:
+        check_args(option_type, arg1, arg2, 1)
+
+        enabled = arg1
+        # Convert to int (0 or 1)
+        value = 1 if enabled else 0
+
+        err = C.git_libgit2_opts(option_type, ffi.cast("int", value))
+        check_error(err)
+        return None
+
+    # Handle SET_ODB_PACKED_PRIORITY
+    elif option_type == C.GIT_OPT_SET_ODB_PACKED_PRIORITY:
+        check_args(option_type, arg1, arg2, 1)
+
+        if not isinstance(arg1, int):
+            raise TypeError(
+                f"option value must be an integer, not {type(arg1).__name__}"
+            )
+        priority = arg1
+
+        err = C.git_libgit2_opts(option_type, ffi.cast("int", priority))
+        check_error(err)
+        return None
+
+    # Handle SET_ODB_LOOSE_PRIORITY
+    elif option_type == C.GIT_OPT_SET_ODB_LOOSE_PRIORITY:
+        check_args(option_type, arg1, arg2, 1)
+
+        if not isinstance(arg1, int):
+            raise TypeError(
+                f"option value must be an integer, not {type(arg1).__name__}"
+            )
+        priority = arg1
+
+        err = C.git_libgit2_opts(option_type, ffi.cast("int", priority))
+        check_error(err)
+        return None
+
+    # Handle GET_EXTENSIONS
+    elif option_type == C.GIT_OPT_GET_EXTENSIONS:
+        check_args(option_type, arg1, arg2, 0)
+
+        # GET_EXTENSIONS expects a git_strarray pointer
+        strarray = ffi.new("git_strarray *")
+        err = C.git_libgit2_opts(option_type, strarray)
+        check_error(err)
+
+        result = []
+        try:
+            if strarray.strings != ffi.NULL:
+                # Cast to the non-NULL type for type checking
+                strings = cast('ArrayC[char_pointer]', strarray.strings)
+                for i in range(strarray.count):
+                    if strings[i] != ffi.NULL:
+                        result.append(to_str(ffi.string(strings[i])))
+        finally:
+            # Must dispose of the strarray to free the memory
+            C.git_strarray_dispose(strarray)
+        
+        return result
+
+    # Handle SET_EXTENSIONS
+    elif option_type == C.GIT_OPT_SET_EXTENSIONS:
+        check_args(option_type, arg1, arg2, 2)
+
+        extensions = arg1
+        length = arg2
+
+        if not isinstance(extensions, list):
+            raise TypeError("extensions must be a list of strings")
+        if not isinstance(length, int):
+            raise TypeError("length must be an integer")
+
+        # Create array of char pointers
+        # libgit2 will make its own copies with git__strdup
+        ext_array: ArrayC[char_pointer] = ffi.new("char *[]", len(extensions))
+        ext_strings: list[ArrayC[char]] = []  # Keep references during the call
+        
+        for i, ext in enumerate(extensions):
+            ext_bytes = to_bytes(ext)
+            ext_string: ArrayC[char] = ffi.new("char[]", ext_bytes)
+            ext_strings.append(ext_string)
+            ext_array[i] = ffi.cast("char *", ext_string)
+
+        err = C.git_libgit2_opts(option_type, ext_array, ffi.cast("size_t", length))
+        check_error(err)
+        return None
+
+    # Handle GET_HOMEDIR
+    elif option_type == C.GIT_OPT_GET_HOMEDIR:
+        check_args(option_type, arg1, arg2, 0)
+
+        buf = ffi.new("git_buf *")
+        err = C.git_libgit2_opts(option_type, buf)
+        check_error(err)
+
+        try:
+            if buf.ptr != ffi.NULL:
+                result = to_str(ffi.string(buf.ptr))
+            else:
+                result = None
+        finally:
+            C.git_buf_dispose(buf)
+
+        return result
+
+    # Handle SET_HOMEDIR
+    elif option_type == C.GIT_OPT_SET_HOMEDIR:
+        check_args(option_type, arg1, arg2, 1)
+
+        path = arg1
+        homedir_cdata: ArrayC[char] | NULL_TYPE
+        if path is None:
+            homedir_cdata = ffi.NULL
+        else:
+            path_bytes = to_bytes(path)
+            homedir_cdata = ffi.new("char[]", path_bytes)
+
+        err = C.git_libgit2_opts(option_type, homedir_cdata)
+        check_error(err)
+        return None
+
+    # Handle GET_SERVER_CONNECT_TIMEOUT
+    elif option_type == C.GIT_OPT_GET_SERVER_CONNECT_TIMEOUT:
+        check_args(option_type, arg1, arg2, 0)
+
+        timeout_ptr = ffi.new("int *")
+        err = C.git_libgit2_opts(option_type, timeout_ptr)
+        check_error(err)
+        return timeout_ptr[0]
+
+    # Handle SET_SERVER_CONNECT_TIMEOUT
+    elif option_type == C.GIT_OPT_SET_SERVER_CONNECT_TIMEOUT:
+        check_args(option_type, arg1, arg2, 1)
+
+        if not isinstance(arg1, int):
+            raise TypeError(
+                f"option value must be an integer, not {type(arg1).__name__}"
+            )
+        timeout = arg1
+
+        err = C.git_libgit2_opts(option_type, ffi.cast("int", timeout))
+        check_error(err)
+        return None
+
+    # Handle GET_SERVER_TIMEOUT
+    elif option_type == C.GIT_OPT_GET_SERVER_TIMEOUT:
+        check_args(option_type, arg1, arg2, 0)
+
+        timeout_ptr = ffi.new("int *")
+        err = C.git_libgit2_opts(option_type, timeout_ptr)
+        check_error(err)
+        return timeout_ptr[0]
+
+    # Handle SET_SERVER_TIMEOUT
+    elif option_type == C.GIT_OPT_SET_SERVER_TIMEOUT:
+        check_args(option_type, arg1, arg2, 1)
+
+        if not isinstance(arg1, int):
+            raise TypeError(
+                f"option value must be an integer, not {type(arg1).__name__}"
+            )
+        timeout = arg1
+
+        err = C.git_libgit2_opts(option_type, ffi.cast("int", timeout))
+        check_error(err)
+        return None
+
+    # Handle GET_USER_AGENT_PRODUCT
+    elif option_type == C.GIT_OPT_GET_USER_AGENT_PRODUCT:
+        check_args(option_type, arg1, arg2, 0)
+
+        buf = ffi.new("git_buf *")
+        err = C.git_libgit2_opts(option_type, buf)
+        check_error(err)
+
+        try:
+            if buf.ptr != ffi.NULL:
+                result = to_str(ffi.string(buf.ptr))
+            else:
+                result = None
+        finally:
+            C.git_buf_dispose(buf)
+
+        return result
+
+    # Handle SET_USER_AGENT_PRODUCT
+    elif option_type == C.GIT_OPT_SET_USER_AGENT_PRODUCT:
+        check_args(option_type, arg1, arg2, 1)
+
+        product = arg1
+        product_bytes = to_bytes(product)
+        product_cdata = ffi.new("char[]", product_bytes)
+
+        err = C.git_libgit2_opts(option_type, product_cdata)
+        check_error(err)
+        return None
+
+    # Handle ADD_SSL_X509_CERT
+    elif option_type == C.GIT_OPT_ADD_SSL_X509_CERT:
+        check_args(option_type, arg1, arg2, 1)
+
+        cert = arg1
+        if isinstance(cert, (str, bytes)):
+            cert_bytes = to_bytes(cert)
+            cert_cdata = ffi.new("char[]", cert_bytes)
+            cert_len = len(cert_bytes)
+        else:
+            raise TypeError("certificate must be a string or bytes")
+
+        err = C.git_libgit2_opts(option_type, cert_cdata, ffi.cast("size_t", cert_len))
+        check_error(err)
+        return None
+
+    # Not implemented - SET_ALLOCATOR is not feasible from Python level
+    # because it requires providing C function pointers for memory management
+    # (malloc, free, etc.) that must handle raw memory at the C level,
+    # which cannot be safely implemented in pure Python.
     elif option_type in (
-        C.GIT_OPT_GET_TEMPLATE_PATH,
-        C.GIT_OPT_SET_TEMPLATE_PATH,
-        C.GIT_OPT_SET_USER_AGENT,
-        C.GIT_OPT_SET_SSL_CIPHERS,
-        C.GIT_OPT_GET_USER_AGENT,
-        C.GIT_OPT_GET_WINDOWS_SHAREMODE,
-        C.GIT_OPT_SET_WINDOWS_SHAREMODE,
         C.GIT_OPT_SET_ALLOCATOR,
-        C.GIT_OPT_GET_PACK_MAX_OBJECTS,
-        C.GIT_OPT_SET_PACK_MAX_OBJECTS,
     ):
         return NotImplemented
 

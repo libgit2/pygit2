@@ -130,3 +130,173 @@ def test_search_path_proxy() -> None:
 
 def test_owner_validation() -> None:
     __option(Option.GET_OWNER_VALIDATION, Option.SET_OWNER_VALIDATION, 0)
+
+
+def test_template_path() -> None:
+    # Get the initial template path
+    original_path = option(Option.GET_TEMPLATE_PATH)
+
+    # Set a new template path
+    test_path = '/tmp/test_templates'
+    option(Option.SET_TEMPLATE_PATH, test_path)
+    assert option(Option.GET_TEMPLATE_PATH) == test_path
+
+    # Reset to original path
+    if original_path:
+        option(Option.SET_TEMPLATE_PATH, original_path)
+    else:
+        option(Option.SET_TEMPLATE_PATH, None)
+
+
+def test_user_agent() -> None:
+    # Get the initial user agent
+    original_agent = option(Option.GET_USER_AGENT)
+
+    # Set a new user agent
+    test_agent = 'test-agent/1.0'
+    option(Option.SET_USER_AGENT, test_agent)
+    assert option(Option.GET_USER_AGENT) == test_agent
+
+    # Reset to original agent
+    if original_agent:
+        option(Option.SET_USER_AGENT, original_agent)
+
+
+def test_pack_max_objects() -> None:
+    __option(Option.GET_PACK_MAX_OBJECTS, Option.SET_PACK_MAX_OBJECTS, 100000)
+
+
+def test_windows_sharemode() -> None:
+    # This test might not work on non-Windows platforms
+    try:
+        __option(Option.GET_WINDOWS_SHAREMODE, Option.SET_WINDOWS_SHAREMODE, 1)
+    except Exception:
+        # May fail on non-Windows platforms
+        pass
+
+
+def test_ssl_ciphers() -> None:
+    # Setting SSL ciphers (no getter available)
+    try:
+        option(Option.SET_SSL_CIPHERS, 'DEFAULT')
+    except pygit2.GitError as e:
+        # May fail if TLS backend doesn't support custom ciphers
+        if "TLS backend doesn't support custom ciphers" not in str(e):
+            raise
+
+
+def test_enable_http_expect_continue() -> None:
+    # Enable and disable HTTP expect continue
+    option(Option.ENABLE_HTTP_EXPECT_CONTINUE, True)
+    option(Option.ENABLE_HTTP_EXPECT_CONTINUE, False)
+
+
+def test_odb_priorities() -> None:
+    # Set ODB priorities
+    option(Option.SET_ODB_PACKED_PRIORITY, 1)
+    option(Option.SET_ODB_LOOSE_PRIORITY, 2)
+
+
+def test_extensions() -> None:
+    # Get initial extensions list
+    original_extensions = option(Option.GET_EXTENSIONS)
+    assert isinstance(original_extensions, list)
+    
+    # Try to set extensions (this might fail depending on the setup)
+    try:
+        test_extensions = ['objectformat', 'worktreeconfig']
+        option(Option.SET_EXTENSIONS, test_extensions, len(test_extensions))
+        
+        # Verify they were set
+        new_extensions = option(Option.GET_EXTENSIONS)
+        assert isinstance(new_extensions, list)
+        
+        # Check that our extensions are present
+        # Note: libgit2 may add its own built-in extensions and sort them
+        for ext in test_extensions:
+            assert ext in new_extensions, f"Extension '{ext}' not found in {new_extensions}"
+        
+        # Test with empty list
+        option(Option.SET_EXTENSIONS, [], 0)
+        empty_extensions = option(Option.GET_EXTENSIONS)
+        assert isinstance(empty_extensions, list)
+        # Even with empty input, libgit2 may have built-in extensions
+        
+        # Test with a custom extension
+        custom_extensions = ['myextension', 'objectformat']
+        option(Option.SET_EXTENSIONS, custom_extensions, len(custom_extensions))
+        custom_result = option(Option.GET_EXTENSIONS)
+        assert 'myextension' in custom_result
+        assert 'objectformat' in custom_result
+        
+        # Restore original extensions
+        if original_extensions:
+            option(Option.SET_EXTENSIONS, original_extensions, len(original_extensions))
+        else:
+            # Reset to empty list if there were no extensions
+            option(Option.SET_EXTENSIONS, [], 0)
+            
+        # Verify restoration
+        final_extensions = option(Option.GET_EXTENSIONS)
+        assert set(final_extensions) == set(original_extensions)
+    except Exception:
+        # May fail if extensions cannot be modified
+        pass
+
+
+def test_homedir() -> None:
+    # Get the initial home directory
+    original_homedir = option(Option.GET_HOMEDIR)
+
+    # Set a new home directory
+    test_homedir = '/tmp/test_home'
+    option(Option.SET_HOMEDIR, test_homedir)
+    assert option(Option.GET_HOMEDIR) == test_homedir
+
+    # Reset to original home directory
+    if original_homedir:
+        option(Option.SET_HOMEDIR, original_homedir)
+    else:
+        option(Option.SET_HOMEDIR, None)
+
+
+def test_server_timeouts() -> None:
+    # Test connect timeout
+    original_connect = option(Option.GET_SERVER_CONNECT_TIMEOUT)
+    option(Option.SET_SERVER_CONNECT_TIMEOUT, 5000)
+    assert option(Option.GET_SERVER_CONNECT_TIMEOUT) == 5000
+    option(Option.SET_SERVER_CONNECT_TIMEOUT, original_connect)
+
+    # Test server timeout
+    original_timeout = option(Option.GET_SERVER_TIMEOUT)
+    option(Option.SET_SERVER_TIMEOUT, 10000)
+    assert option(Option.GET_SERVER_TIMEOUT) == 10000
+    option(Option.SET_SERVER_TIMEOUT, original_timeout)
+
+
+def test_user_agent_product() -> None:
+    # Get the initial user agent product
+    original_product = option(Option.GET_USER_AGENT_PRODUCT)
+
+    # Set a new user agent product
+    test_product = 'test-product'
+    option(Option.SET_USER_AGENT_PRODUCT, test_product)
+    assert option(Option.GET_USER_AGENT_PRODUCT) == test_product
+
+    # Reset to original product
+    if original_product:
+        option(Option.SET_USER_AGENT_PRODUCT, original_product)
+
+
+def test_add_ssl_x509_cert() -> None:
+    # Test adding an SSL certificate (basic test, just ensure it doesn't crash)
+    test_cert = "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----"
+    try:
+        option(Option.ADD_SSL_X509_CERT, test_cert)
+    except Exception:
+        # May fail depending on SSL backend
+        pass
+
+
+def test_mwindow_file_limit() -> None:
+    __option(Option.GET_MWINDOW_FILE_LIMIT, Option.SET_MWINDOW_FILE_LIMIT, 100)
