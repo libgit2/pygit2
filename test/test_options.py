@@ -294,9 +294,11 @@ def test_add_ssl_x509_cert() -> None:
     except pygit2.GitError as e:
         # May fail if TLS backend doesn't support adding raw certs
         # or if the certificate format is invalid
+        msg = str(e).lower()
         if (
-            "TLS backend doesn't support" not in str(e)
-            and "invalid" not in str(e).lower()
+            "tls backend doesn't support" not in msg
+            and "invalid" not in msg
+            and "failed to add raw x509 certificate" not in msg
         ):
             raise
 

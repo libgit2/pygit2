@@ -97,13 +97,13 @@ NOT_PASSED = object()
 
 def check_args(option: Option, arg1: Any, arg2: Any, expected: int) -> None:
     if expected == 0 and (arg1 is not NOT_PASSED or arg2 is not NOT_PASSED):
-        raise TypeError(f"option({option}) takes no additional arguments")
+        raise TypeError(f'option({option}) takes no additional arguments')
 
     if expected == 1 and (arg1 is NOT_PASSED or arg2 is not NOT_PASSED):
-        raise TypeError(f"option({option}, x) requires 1 additional argument")
+        raise TypeError(f'option({option}, x) requires 1 additional argument')
 
     if expected == 2 and (arg1 is NOT_PASSED or arg2 is NOT_PASSED):
-        raise TypeError(f"option({option}, x, y) requires 2 additional arguments")
+        raise TypeError(f'option({option}, x, y) requires 2 additional arguments')
 
 
 @overload
@@ -316,7 +316,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     ):
         check_args(option_type, arg1, arg2, 0)
 
-        size_ptr = ffi.new("size_t *")
+        size_ptr = ffi.new('size_t *')
         err = C.git_libgit2_opts(option_type, size_ptr)
         check_error(err)
         return size_ptr[0]
@@ -330,14 +330,12 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_args(option_type, arg1, arg2, 1)
 
         if not isinstance(arg1, int):
-            raise TypeError(
-                f"option value must be an integer, not {type(arg1)}"
-            )
+            raise TypeError(f'option value must be an integer, not {type(arg1)}')
         size = arg1
         if size < 0:
-            raise ValueError("size must be non-negative")
+            raise ValueError('size must be non-negative')
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("size_t", size))
+        err = C.git_libgit2_opts(option_type, ffi.cast('size_t', size))
         check_error(err)
         return None
 
@@ -346,8 +344,8 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_args(option_type, arg1, arg2, 1)
 
         level = int(arg1)  # Convert enum to int
-        buf = ffi.new("git_buf *")
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", level), buf)
+        buf = ffi.new('git_buf *')
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', level), buf)
         check_error(err)
 
         try:
@@ -372,9 +370,9 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
             path_cdata = ffi.NULL
         else:
             path_bytes = to_bytes(path)
-            path_cdata = ffi.new("char[]", path_bytes)
+            path_cdata = ffi.new('char[]', path_bytes)
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", level), path_cdata)
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', level), path_cdata)
         check_error(err)
         return None
 
@@ -385,14 +383,14 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         object_type = int(arg1)  # Convert enum to int
         if not isinstance(arg2, int):
             raise TypeError(
-                f"option value must be an integer, not {type(arg2).__name__}"
+                f'option value must be an integer, not {type(arg2).__name__}'
             )
         size = arg2
         if size < 0:
-            raise ValueError("size must be non-negative")
+            raise ValueError('size must be non-negative')
 
         err = C.git_libgit2_opts(
-            option_type, ffi.cast("int", object_type), ffi.cast("size_t", size)
+            option_type, ffi.cast('int', object_type), ffi.cast('size_t', size)
         )
         check_error(err)
         return None
@@ -404,10 +402,10 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         size = arg1
         if not isinstance(size, int):
             raise TypeError(
-                f"option value must be an integer, not {type(size).__name__}"
+                f'option value must be an integer, not {type(size).__name__}'
             )
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("ssize_t", size))
+        err = C.git_libgit2_opts(option_type, ffi.cast('ssize_t', size))
         check_error(err)
         return None
 
@@ -415,8 +413,8 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_CACHED_MEMORY:
         check_args(option_type, arg1, arg2, 0)
 
-        current_ptr = ffi.new("ssize_t *")
-        allowed_ptr = ffi.new("ssize_t *")
+        current_ptr = ffi.new('ssize_t *')
+        allowed_ptr = ffi.new('ssize_t *')
         err = C.git_libgit2_opts(option_type, current_ptr, allowed_ptr)
         check_error(err)
         return (current_ptr[0], allowed_ptr[0])
@@ -433,14 +431,14 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
             cert_file_cdata = ffi.NULL
         else:
             cert_file_bytes = to_bytes(cert_file)
-            cert_file_cdata = ffi.new("char[]", cert_file_bytes)
+            cert_file_cdata = ffi.new('char[]', cert_file_bytes)
 
         cert_dir_cdata: ArrayC[char] | NULL_TYPE
         if cert_dir is None:
             cert_dir_cdata = ffi.NULL
         else:
             cert_dir_bytes = to_bytes(cert_dir)
-            cert_dir_cdata = ffi.new("char[]", cert_dir_bytes)
+            cert_dir_cdata = ffi.new('char[]', cert_dir_bytes)
 
         err = C.git_libgit2_opts(option_type, cert_file_cdata, cert_dir_cdata)
         check_error(err)
@@ -464,7 +462,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         # Convert to int (0 or 1)
         value = 1 if enabled else 0
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", value))
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', value))
         check_error(err)
         return None
 
@@ -472,7 +470,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_OWNER_VALIDATION:
         check_args(option_type, arg1, arg2, 0)
 
-        enabled_ptr = ffi.new("int *")
+        enabled_ptr = ffi.new('int *')
         err = C.git_libgit2_opts(option_type, enabled_ptr)
         check_error(err)
         return bool(enabled_ptr[0])
@@ -481,7 +479,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_TEMPLATE_PATH:
         check_args(option_type, arg1, arg2, 0)
 
-        buf = ffi.new("git_buf *")
+        buf = ffi.new('git_buf *')
         err = C.git_libgit2_opts(option_type, buf)
         check_error(err)
 
@@ -505,7 +503,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
             template_path_cdata = ffi.NULL
         else:
             path_bytes = to_bytes(path)
-            template_path_cdata = ffi.new("char[]", path_bytes)
+            template_path_cdata = ffi.new('char[]', path_bytes)
 
         err = C.git_libgit2_opts(option_type, template_path_cdata)
         check_error(err)
@@ -515,7 +513,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_USER_AGENT:
         check_args(option_type, arg1, arg2, 0)
 
-        buf = ffi.new("git_buf *")
+        buf = ffi.new('git_buf *')
         err = C.git_libgit2_opts(option_type, buf)
         check_error(err)
 
@@ -535,7 +533,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         agent = arg1
         agent_bytes = to_bytes(agent)
-        agent_cdata = ffi.new("char[]", agent_bytes)
+        agent_cdata = ffi.new('char[]', agent_bytes)
 
         err = C.git_libgit2_opts(option_type, agent_cdata)
         check_error(err)
@@ -547,7 +545,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         ciphers = arg1
         ciphers_bytes = to_bytes(ciphers)
-        ciphers_cdata = ffi.new("char[]", ciphers_bytes)
+        ciphers_cdata = ffi.new('char[]', ciphers_bytes)
 
         err = C.git_libgit2_opts(option_type, ciphers_cdata)
         check_error(err)
@@ -557,7 +555,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_WINDOWS_SHAREMODE:
         check_args(option_type, arg1, arg2, 0)
 
-        value_ptr = ffi.new("unsigned int *")
+        value_ptr = ffi.new('unsigned int *')
         err = C.git_libgit2_opts(option_type, value_ptr)
         check_error(err)
         return value_ptr[0]
@@ -568,13 +566,13 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         if not isinstance(arg1, int):
             raise TypeError(
-                f"option value must be an integer, not {type(arg1).__name__}"
+                f'option value must be an integer, not {type(arg1).__name__}'
             )
         value = arg1
         if value < 0:
-            raise ValueError("value must be non-negative")
+            raise ValueError('value must be non-negative')
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("unsigned int", value))
+        err = C.git_libgit2_opts(option_type, ffi.cast('unsigned int', value))
         check_error(err)
         return None
 
@@ -582,7 +580,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_PACK_MAX_OBJECTS:
         check_args(option_type, arg1, arg2, 0)
 
-        size_ptr = ffi.new("size_t *")
+        size_ptr = ffi.new('size_t *')
         err = C.git_libgit2_opts(option_type, size_ptr)
         check_error(err)
         return size_ptr[0]
@@ -593,13 +591,13 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         if not isinstance(arg1, int):
             raise TypeError(
-                f"option value must be an integer, not {type(arg1).__name__}"
+                f'option value must be an integer, not {type(arg1).__name__}'
             )
         size = arg1
         if size < 0:
-            raise ValueError("size must be non-negative")
+            raise ValueError('size must be non-negative')
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("size_t", size))
+        err = C.git_libgit2_opts(option_type, ffi.cast('size_t', size))
         check_error(err)
         return None
 
@@ -611,7 +609,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         # Convert to int (0 or 1)
         value = 1 if enabled else 0
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", value))
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', value))
         check_error(err)
         return None
 
@@ -621,11 +619,11 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         if not isinstance(arg1, int):
             raise TypeError(
-                f"option value must be an integer, not {type(arg1).__name__}"
+                f'option value must be an integer, not {type(arg1).__name__}'
             )
         priority = arg1
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", priority))
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', priority))
         check_error(err)
         return None
 
@@ -635,11 +633,11 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         if not isinstance(arg1, int):
             raise TypeError(
-                f"option value must be an integer, not {type(arg1).__name__}"
+                f'option value must be an integer, not {type(arg1).__name__}'
             )
         priority = arg1
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", priority))
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', priority))
         check_error(err)
         return None
 
@@ -648,7 +646,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_args(option_type, arg1, arg2, 0)
 
         # GET_EXTENSIONS expects a git_strarray pointer
-        strarray = ffi.new("git_strarray *")
+        strarray = ffi.new('git_strarray *')
         err = C.git_libgit2_opts(option_type, strarray)
         check_error(err)
 
@@ -663,7 +661,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         finally:
             # Must dispose of the strarray to free the memory
             C.git_strarray_dispose(strarray)
-        
+
         return result
 
     # Handle SET_EXTENSIONS
@@ -674,22 +672,22 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         length = arg2
 
         if not isinstance(extensions, list):
-            raise TypeError("extensions must be a list of strings")
+            raise TypeError('extensions must be a list of strings')
         if not isinstance(length, int):
-            raise TypeError("length must be an integer")
+            raise TypeError('length must be an integer')
 
         # Create array of char pointers
         # libgit2 will make its own copies with git__strdup
-        ext_array: ArrayC[char_pointer] = ffi.new("char *[]", len(extensions))
+        ext_array: ArrayC[char_pointer] = ffi.new('char *[]', len(extensions))
         ext_strings: list[ArrayC[char]] = []  # Keep references during the call
-        
+
         for i, ext in enumerate(extensions):
             ext_bytes = to_bytes(ext)
-            ext_string: ArrayC[char] = ffi.new("char[]", ext_bytes)
+            ext_string: ArrayC[char] = ffi.new('char[]', ext_bytes)
             ext_strings.append(ext_string)
-            ext_array[i] = ffi.cast("char *", ext_string)
+            ext_array[i] = ffi.cast('char *', ext_string)
 
-        err = C.git_libgit2_opts(option_type, ext_array, ffi.cast("size_t", length))
+        err = C.git_libgit2_opts(option_type, ext_array, ffi.cast('size_t', length))
         check_error(err)
         return None
 
@@ -697,7 +695,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_HOMEDIR:
         check_args(option_type, arg1, arg2, 0)
 
-        buf = ffi.new("git_buf *")
+        buf = ffi.new('git_buf *')
         err = C.git_libgit2_opts(option_type, buf)
         check_error(err)
 
@@ -721,7 +719,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
             homedir_cdata = ffi.NULL
         else:
             path_bytes = to_bytes(path)
-            homedir_cdata = ffi.new("char[]", path_bytes)
+            homedir_cdata = ffi.new('char[]', path_bytes)
 
         err = C.git_libgit2_opts(option_type, homedir_cdata)
         check_error(err)
@@ -731,7 +729,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_SERVER_CONNECT_TIMEOUT:
         check_args(option_type, arg1, arg2, 0)
 
-        timeout_ptr = ffi.new("int *")
+        timeout_ptr = ffi.new('int *')
         err = C.git_libgit2_opts(option_type, timeout_ptr)
         check_error(err)
         return timeout_ptr[0]
@@ -742,11 +740,11 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         if not isinstance(arg1, int):
             raise TypeError(
-                f"option value must be an integer, not {type(arg1).__name__}"
+                f'option value must be an integer, not {type(arg1).__name__}'
             )
         timeout = arg1
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", timeout))
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', timeout))
         check_error(err)
         return None
 
@@ -754,7 +752,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_SERVER_TIMEOUT:
         check_args(option_type, arg1, arg2, 0)
 
-        timeout_ptr = ffi.new("int *")
+        timeout_ptr = ffi.new('int *')
         err = C.git_libgit2_opts(option_type, timeout_ptr)
         check_error(err)
         return timeout_ptr[0]
@@ -765,11 +763,11 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         if not isinstance(arg1, int):
             raise TypeError(
-                f"option value must be an integer, not {type(arg1).__name__}"
+                f'option value must be an integer, not {type(arg1).__name__}'
             )
         timeout = arg1
 
-        err = C.git_libgit2_opts(option_type, ffi.cast("int", timeout))
+        err = C.git_libgit2_opts(option_type, ffi.cast('int', timeout))
         check_error(err)
         return None
 
@@ -777,7 +775,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     elif option_type == C.GIT_OPT_GET_USER_AGENT_PRODUCT:
         check_args(option_type, arg1, arg2, 0)
 
-        buf = ffi.new("git_buf *")
+        buf = ffi.new('git_buf *')
         err = C.git_libgit2_opts(option_type, buf)
         check_error(err)
 
@@ -797,7 +795,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         product = arg1
         product_bytes = to_bytes(product)
-        product_cdata = ffi.new("char[]", product_bytes)
+        product_cdata = ffi.new('char[]', product_bytes)
 
         err = C.git_libgit2_opts(option_type, product_cdata)
         check_error(err)
@@ -810,12 +808,12 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         cert = arg1
         if isinstance(cert, (str, bytes)):
             cert_bytes = to_bytes(cert)
-            cert_cdata = ffi.new("char[]", cert_bytes)
+            cert_cdata = ffi.new('char[]', cert_bytes)
             cert_len = len(cert_bytes)
         else:
-            raise TypeError("certificate must be a string or bytes")
+            raise TypeError('certificate must be a string or bytes')
 
-        err = C.git_libgit2_opts(option_type, cert_cdata, ffi.cast("size_t", cert_len))
+        err = C.git_libgit2_opts(option_type, cert_cdata, ffi.cast('size_t', cert_len))
         check_error(err)
         return None
 
@@ -823,10 +821,8 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     # because it requires providing C function pointers for memory management
     # (malloc, free, etc.) that must handle raw memory at the C level,
     # which cannot be safely implemented in pure Python.
-    elif option_type in (
-        C.GIT_OPT_SET_ALLOCATOR,
-    ):
+    elif option_type in (C.GIT_OPT_SET_ALLOCATOR,):
         return NotImplemented
 
     else:
-        raise ValueError(f"Invalid option {option_type}")
+        raise ValueError(f'Invalid option {option_type}')
