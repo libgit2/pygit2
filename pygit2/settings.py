@@ -32,7 +32,7 @@ from typing import overload
 
 import pygit2.enums
 
-from ._pygit2 import option
+from .options import option
 from .enums import ConfigLevel, Option
 from .errors import GitError
 

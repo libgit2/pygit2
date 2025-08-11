@@ -24,7 +24,7 @@ def global_git_config() -> None:
 
     # Fix tests running in AppVeyor
     if platform.system() == 'Windows':
-        pygit2.option(pygit2.enums.Option.SET_OWNER_VALIDATION, 0)
+        pygit2.option(pygit2.enums.Option.SET_OWNER_VALIDATION, False)
 
 
 @pytest.fixture

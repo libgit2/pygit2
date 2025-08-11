@@ -29,11 +29,11 @@ from pygit2.enums import ConfigLevel, ObjectType, Option
 
 
 def __option(getter: Option, setter: Option, value: object) -> None:
-    old_value = option(getter)  # type: ignore[call-overload]
-    option(setter, value)  # type: ignore[call-overload]
-    assert value == option(getter)  # type: ignore[call-overload]
+    old_value = option(getter)
+    option(setter, value)
+    assert value == option(getter)
     # Reset to avoid side effects in later tests
-    option(setter, old_value)  # type: ignore[call-overload]
+    option(setter, old_value)
 
 
 def __proxy(name: str, value: object) -> None:
