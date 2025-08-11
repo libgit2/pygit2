@@ -337,8 +337,6 @@ def new(a: Literal['char **']) -> _Pointer[char_pointer]: ...
 @overload
 def new(a: Literal['char[]', 'char []'], b: bytes | NULL_TYPE) -> ArrayC[char]: ...
 @overload
-def new(a: Literal['char ***']) -> Any: ...  # For extensions_ptr in GET_EXTENSIONS
-@overload
 def new(a: Literal['char *[]'], b: int) -> ArrayC[char_pointer]: ...  # For ext_array in SET_EXTENSIONS
 @overload
 def new(a: Literal['char *[]'], b: list[Any]) -> ArrayC[char_pointer]: ...  # For string arrays

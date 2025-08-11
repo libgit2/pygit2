@@ -201,47 +201,43 @@ def test_extensions() -> None:
     # Get initial extensions list
     original_extensions = option(Option.GET_EXTENSIONS)
     assert isinstance(original_extensions, list)
-    
-    # Try to set extensions (this might fail depending on the setup)
-    try:
-        test_extensions = ['objectformat', 'worktreeconfig']
-        option(Option.SET_EXTENSIONS, test_extensions, len(test_extensions))
-        
-        # Verify they were set
-        new_extensions = option(Option.GET_EXTENSIONS)
-        assert isinstance(new_extensions, list)
-        
-        # Check that our extensions are present
-        # Note: libgit2 may add its own built-in extensions and sort them
-        for ext in test_extensions:
-            assert ext in new_extensions, f"Extension '{ext}' not found in {new_extensions}"
-        
-        # Test with empty list
+
+    # Set extensions
+    test_extensions = ['objectformat', 'worktreeconfig']
+    option(Option.SET_EXTENSIONS, test_extensions, len(test_extensions))
+
+    # Verify they were set
+    new_extensions = option(Option.GET_EXTENSIONS)
+    assert isinstance(new_extensions, list)
+
+    # Check that our extensions are present
+    # Note: libgit2 may add its own built-in extensions and sort them
+    for ext in test_extensions:
+        assert ext in new_extensions, f"Extension '{ext}' not found in {new_extensions}"
+
+    # Test with empty list
+    option(Option.SET_EXTENSIONS, [], 0)
+    empty_extensions = option(Option.GET_EXTENSIONS)
+    assert isinstance(empty_extensions, list)
+    # Even with empty input, libgit2 may have built-in extensions
+
+    # Test with a custom extension
+    custom_extensions = ['myextension', 'objectformat']
+    option(Option.SET_EXTENSIONS, custom_extensions, len(custom_extensions))
+    custom_result = option(Option.GET_EXTENSIONS)
+    assert 'myextension' in custom_result
+    assert 'objectformat' in custom_result
+
+    # Restore original extensions
+    if original_extensions:
+        option(Option.SET_EXTENSIONS, original_extensions, len(original_extensions))
+    else:
+        # Reset to empty list if there were no extensions
         option(Option.SET_EXTENSIONS, [], 0)
-        empty_extensions = option(Option.GET_EXTENSIONS)
-        assert isinstance(empty_extensions, list)
-        # Even with empty input, libgit2 may have built-in extensions
-        
-        # Test with a custom extension
-        custom_extensions = ['myextension', 'objectformat']
-        option(Option.SET_EXTENSIONS, custom_extensions, len(custom_extensions))
-        custom_result = option(Option.GET_EXTENSIONS)
-        assert 'myextension' in custom_result
-        assert 'objectformat' in custom_result
-        
-        # Restore original extensions
-        if original_extensions:
-            option(Option.SET_EXTENSIONS, original_extensions, len(original_extensions))
-        else:
-            # Reset to empty list if there were no extensions
-            option(Option.SET_EXTENSIONS, [], 0)
-            
-        # Verify restoration
-        final_extensions = option(Option.GET_EXTENSIONS)
-        assert set(final_extensions) == set(original_extensions)
-    except Exception:
-        # May fail if extensions cannot be modified
-        pass
+
+    # Verify restoration
+    final_extensions = option(Option.GET_EXTENSIONS)
+    assert set(final_extensions) == set(original_extensions)
 
 
 def test_homedir() -> None:
@@ -289,13 +285,20 @@ def test_user_agent_product() -> None:
 
 
 def test_add_ssl_x509_cert() -> None:
-    # Test adding an SSL certificate (basic test, just ensure it doesn't crash)
+    # Test adding an SSL certificate
+    # This is a minimal test certificate (not valid, but tests the API)
     test_cert = "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----"
+
     try:
         option(Option.ADD_SSL_X509_CERT, test_cert)
-    except Exception:
-        # May fail depending on SSL backend
-        pass
+    except pygit2.GitError as e:
+        # May fail if TLS backend doesn't support adding raw certs
+        # or if the certificate format is invalid
+        if (
+            "TLS backend doesn't support" not in str(e)
+            and "invalid" not in str(e).lower()
+        ):
+            raise
 
 
 def test_mwindow_file_limit() -> None:
