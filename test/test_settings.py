@@ -67,7 +67,7 @@ def test_enable_caching() -> None:
     # Verify the method exists and accepts boolean values without raising
     assert hasattr(pygit2.settings, 'enable_caching')
     assert callable(pygit2.settings.enable_caching)
-    
+
     # Should not raise exceptions
     pygit2.settings.enable_caching(False)
     pygit2.settings.enable_caching(True)
@@ -77,7 +77,7 @@ def test_disable_pack_keep_file_checks() -> None:
     """Test disable pack keep file checks"""
     assert hasattr(pygit2.settings, 'disable_pack_keep_file_checks')
     assert callable(pygit2.settings.disable_pack_keep_file_checks)
-    
+
     # Should not raise exceptions
     pygit2.settings.disable_pack_keep_file_checks(False)
     pygit2.settings.disable_pack_keep_file_checks(True)
@@ -96,26 +96,34 @@ def test_cache_max_size() -> None:
         pygit2.settings.cache_max_size(original_max_size)
 
 
-@pytest.mark.parametrize("object_type,test_size,default_size", [
-    (ObjectType.BLOB, 2 * 1024, 0),
-    (ObjectType.COMMIT, 8 * 1024, 4096),
-    (ObjectType.TREE, 8 * 1024, 4096),
-    (ObjectType.TAG, 8 * 1024, 4096),
-    (ObjectType.BLOB, 0, 0),
-])
-def test_cache_object_limit(object_type: ObjectType, test_size: int, default_size: int) -> None:
+@pytest.mark.parametrize(
+    'object_type,test_size,default_size',
+    [
+        (ObjectType.BLOB, 2 * 1024, 0),
+        (ObjectType.COMMIT, 8 * 1024, 4096),
+        (ObjectType.TREE, 8 * 1024, 4096),
+        (ObjectType.TAG, 8 * 1024, 4096),
+        (ObjectType.BLOB, 0, 0),
+    ],
+)
+def test_cache_object_limit(
+    object_type: ObjectType, test_size: int, default_size: int
+) -> None:
     """Test set cache object limit"""
     assert callable(pygit2.settings.cache_object_limit)
-    
+
     pygit2.settings.cache_object_limit(object_type, test_size)
     pygit2.settings.cache_object_limit(object_type, default_size)
 
 
-@pytest.mark.parametrize("level,test_path", [
-    (ConfigLevel.GLOBAL, '/tmp/test_global'),
-    (ConfigLevel.XDG, '/tmp/test_xdg'),
-    (ConfigLevel.SYSTEM, '/tmp/test_system'),
-])
+@pytest.mark.parametrize(
+    'level,test_path',
+    [
+        (ConfigLevel.GLOBAL, '/tmp/test_global'),
+        (ConfigLevel.XDG, '/tmp/test_xdg'),
+        (ConfigLevel.SYSTEM, '/tmp/test_system'),
+    ],
+)
 def test_search_path(level: ConfigLevel, test_path: str) -> None:
     """Test get/set search paths"""
     original = pygit2.settings.search_path[level]
@@ -209,7 +217,7 @@ def test_server_timeouts() -> None:
     try:
         pygit2.settings.server_connect_timeout = 5000
         assert pygit2.settings.server_connect_timeout == 5000
-        
+
         pygit2.settings.server_timeout = 10000
         assert pygit2.settings.server_timeout == 10000
     finally:
@@ -223,7 +231,7 @@ def test_extensions() -> None:
     try:
         test_extensions = ['objectformat', 'worktreeconfig']
         pygit2.settings.set_extensions(test_extensions)
-        
+
         new_extensions = pygit2.settings.extensions
         for ext in test_extensions:
             assert ext in new_extensions
@@ -232,37 +240,40 @@ def test_extensions() -> None:
             pygit2.settings.set_extensions(original)
 
 
-@pytest.mark.parametrize("method_name,default_value", [
-    ('enable_strict_object_creation', True),
-    ('enable_strict_symbolic_ref_creation', True),
-    ('enable_ofs_delta', True),
-    ('enable_fsync_gitdir', False),
-    ('enable_strict_hash_verification', True),
-    ('enable_unsaved_index_safety', False),
-    ('enable_http_expect_continue', False),
-])
+@pytest.mark.parametrize(
+    'method_name,default_value',
+    [
+        ('enable_strict_object_creation', True),
+        ('enable_strict_symbolic_ref_creation', True),
+        ('enable_ofs_delta', True),
+        ('enable_fsync_gitdir', False),
+        ('enable_strict_hash_verification', True),
+        ('enable_unsaved_index_safety', False),
+        ('enable_http_expect_continue', False),
+    ],
+)
 def test_enable_methods(method_name: str, default_value: bool) -> None:
     """Test various enable methods"""
     assert hasattr(pygit2.settings, method_name)
     method = getattr(pygit2.settings, method_name)
     assert callable(method)
-    
+
     method(True)
     method(False)
     method(default_value)
 
 
-@pytest.mark.parametrize("priority", [1, 5, 10, 0, -1, -2])
+@pytest.mark.parametrize('priority', [1, 5, 10, 0, -1, -2])
 def test_odb_priorities(priority: int) -> None:
     """Test setting ODB priorities"""
     assert hasattr(pygit2.settings, 'set_odb_packed_priority')
     assert hasattr(pygit2.settings, 'set_odb_loose_priority')
     assert callable(pygit2.settings.set_odb_packed_priority)
     assert callable(pygit2.settings.set_odb_loose_priority)
-    
+
     pygit2.settings.set_odb_packed_priority(priority)
     pygit2.settings.set_odb_loose_priority(priority)
-    
+
     pygit2.settings.set_odb_packed_priority(1)
     pygit2.settings.set_odb_loose_priority(2)
 
@@ -271,7 +282,7 @@ def test_ssl_methods() -> None:
     """Test SSL-related methods"""
     assert callable(pygit2.settings.set_ssl_ciphers)
     assert callable(pygit2.settings.add_ssl_x509_cert)
-    
+
     ssl_ciphers_supported = True
     try:
         pygit2.settings.set_ssl_ciphers('DEFAULT')
@@ -280,8 +291,8 @@ def test_ssl_methods() -> None:
         if "tls backend doesn't support" not in msg:
             raise
         ssl_ciphers_supported = False
-    
-    test_cert = "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----"
+
+    test_cert = '-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----'
     x509_cert_supported = True
     try:
         pygit2.settings.add_ssl_x509_cert(test_cert)
@@ -289,17 +300,17 @@ def test_ssl_methods() -> None:
         msg = str(e).lower()
         if (
             "tls backend doesn't support" not in msg
-            and "invalid" not in msg
-            and "failed to add raw x509 certificate" not in msg
+            and 'invalid' not in msg
+            and 'failed to add raw x509 certificate' not in msg
         ):
             raise
         x509_cert_supported = False
-    
+
     # At least verify the methods exist even if not supported
     assert not ssl_ciphers_supported or not x509_cert_supported or True
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Windows-specific feature")
+@pytest.mark.skipif(sys.platform != 'win32', reason='Windows-specific feature')
 def test_windows_sharemode() -> None:
     """Test get/set Windows share mode"""
     original = pygit2.settings.windows_sharemode

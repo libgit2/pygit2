@@ -287,7 +287,7 @@ def test_user_agent_product() -> None:
 def test_add_ssl_x509_cert() -> None:
     # Test adding an SSL certificate
     # This is a minimal test certificate (not valid, but tests the API)
-    test_cert = "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----"
+    test_cert = '-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----'
 
     try:
         option(Option.ADD_SSL_X509_CERT, test_cert)
@@ -297,8 +297,8 @@ def test_add_ssl_x509_cert() -> None:
         msg = str(e).lower()
         if (
             "tls backend doesn't support" not in msg
-            and "invalid" not in msg
-            and "failed to add raw x509 certificate" not in msg
+            and 'invalid' not in msg
+            and 'failed to add raw x509 certificate' not in msg
         ):
             raise
 
