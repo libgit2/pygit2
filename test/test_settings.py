@@ -26,7 +26,9 @@
 """Test the Settings class."""
 
 import sys
+
 import pytest
+
 import pygit2
 from pygit2.enums import ConfigLevel, ObjectType
 

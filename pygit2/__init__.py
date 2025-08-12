@@ -295,8 +295,24 @@ from ._pygit2 import (
 )
 from .blame import Blame, BlameHunk
 from .blob import BlobIO
+from .callbacks import (
+    CheckoutCallbacks,
+    Payload,
+    RemoteCallbacks,
+    StashApplyCallbacks,
+    get_credentials,
+    git_clone_options,
+    git_fetch_options,
+    git_proxy_options,
+)
+from .config import Config
+from .credentials import *
+from .errors import Passthrough, check_error
+from .ffi import C, ffi
+from .filter import Filter
+from .index import Index, IndexEntry
+from .legacyenums import *
 from .options import (
-    option,
     GIT_OPT_ADD_SSL_X509_CERT,
     GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS,
     GIT_OPT_ENABLE_CACHING,
@@ -343,24 +359,8 @@ from .options import (
     GIT_OPT_SET_USER_AGENT,
     GIT_OPT_SET_USER_AGENT_PRODUCT,
     GIT_OPT_SET_WINDOWS_SHAREMODE,
+    option,
 )
-from .callbacks import (
-    CheckoutCallbacks,
-    Payload,
-    RemoteCallbacks,
-    StashApplyCallbacks,
-    get_credentials,
-    git_clone_options,
-    git_fetch_options,
-    git_proxy_options,
-)
-from .config import Config
-from .credentials import *
-from .errors import Passthrough, check_error
-from .ffi import C, ffi
-from .filter import Filter
-from .index import Index, IndexEntry
-from .legacyenums import *
 from .packbuilder import PackBuilder
 from .remotes import Remote
 from .repository import Repository

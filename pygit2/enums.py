@@ -25,8 +25,7 @@
 
 from enum import IntEnum, IntFlag
 
-from . import _pygit2
-from . import options
+from . import _pygit2, options
 from .ffi import C
 
 

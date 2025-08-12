@@ -1,4 +1,3 @@
-from __future__ import annotations
 # Copyright 2010-2025 The pygit2 contributors
 #
 # This file is free software; you can redistribute it and/or modify
@@ -28,18 +27,18 @@ from __future__ import annotations
 Libgit2 global options management using CFFI.
 """
 
-from typing import Any, Literal, overload, cast
-
-from .ffi import C, ffi
-from .errors import check_error
-from .utils import to_bytes, to_str
+from __future__ import annotations
 
 # Import only for type checking to avoid circular imports
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
+
+from .errors import check_error
+from .ffi import C, ffi
+from .utils import to_bytes, to_str
 
 if TYPE_CHECKING:
+    from ._libgit2.ffi import NULL_TYPE, ArrayC, char, char_pointer
     from .enums import ConfigLevel, ObjectType, Option
-    from ._libgit2.ffi import ArrayC, NULL_TYPE, char, char_pointer
 
 # Export GIT_OPT constants for backward compatibility
 GIT_OPT_GET_MWINDOW_SIZE: int = C.GIT_OPT_GET_MWINDOW_SIZE

@@ -32,9 +32,9 @@ from typing import overload
 
 import pygit2.enums
 
-from .options import option
 from .enums import ConfigLevel, Option
 from .errors import GitError
+from .options import option
 
 
 class SearchPathList:
