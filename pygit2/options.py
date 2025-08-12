@@ -790,14 +790,14 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
     # as the API works accepts a X509* struct.  Use GIT_OPT_SET_SSL_CERT_LOCATIONS
     # instead.
     elif option_type == C.GIT_OPT_ADD_SSL_X509_CERT:
-        raise NotImplementedError("Use GIT_OPT_SET_SSL_CERT_LOCATIONS instead")
+        raise NotImplementedError('Use GIT_OPT_SET_SSL_CERT_LOCATIONS instead')
 
     # Not implemented - SET_ALLOCATOR is not feasible from Python level
     # because it requires providing C function pointers for memory management
     # (malloc, free, etc.) that must handle raw memory at the C level,
     # which cannot be safely implemented in pure Python.
     elif option_type == C.GIT_OPT_SET_ALLOCATOR:
-        raise NotImplementedError("Setting a custom allocator not possible from Python")
+        raise NotImplementedError('Setting a custom allocator not possible from Python')
 
     else:
         raise ValueError(f'Invalid option {option_type}')
