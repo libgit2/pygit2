@@ -34,7 +34,6 @@ from pygit2.enums import ConfigLevel, ObjectType
 
 
 def test_mwindow_size() -> None:
-    """Test get/set mwindow size"""
     original = pygit2.settings.mwindow_size
     try:
         test_size = 200 * 1024
@@ -45,7 +44,6 @@ def test_mwindow_size() -> None:
 
 
 def test_mwindow_mapped_limit() -> None:
-    """Test get/set mwindow mapped limit"""
     original = pygit2.settings.mwindow_mapped_limit
     try:
         test_limit = 300 * 1024
@@ -56,7 +54,6 @@ def test_mwindow_mapped_limit() -> None:
 
 
 def test_cached_memory() -> None:
-    """Test get cached memory"""
     cached = pygit2.settings.cached_memory
     assert isinstance(cached, tuple)
     assert len(cached) == 2
@@ -65,8 +62,6 @@ def test_cached_memory() -> None:
 
 
 def test_enable_caching() -> None:
-    """Test enable/disable caching"""
-    # Verify the method exists and accepts boolean values without raising
     assert hasattr(pygit2.settings, 'enable_caching')
     assert callable(pygit2.settings.enable_caching)
 
@@ -76,7 +71,6 @@ def test_enable_caching() -> None:
 
 
 def test_disable_pack_keep_file_checks() -> None:
-    """Test disable pack keep file checks"""
     assert hasattr(pygit2.settings, 'disable_pack_keep_file_checks')
     assert callable(pygit2.settings.disable_pack_keep_file_checks)
 
@@ -87,7 +81,6 @@ def test_disable_pack_keep_file_checks() -> None:
 
 
 def test_cache_max_size() -> None:
-    """Test set cache max size"""
     original_max_size = pygit2.settings.cached_memory[1]
     try:
         pygit2.settings.cache_max_size(128 * 1024**2)
@@ -111,7 +104,6 @@ def test_cache_max_size() -> None:
 def test_cache_object_limit(
     object_type: ObjectType, test_size: int, default_size: int
 ) -> None:
-    """Test set cache object limit"""
     assert callable(pygit2.settings.cache_object_limit)
 
     pygit2.settings.cache_object_limit(object_type, test_size)
@@ -127,7 +119,6 @@ def test_cache_object_limit(
     ],
 )
 def test_search_path(level: ConfigLevel, test_path: str) -> None:
-    """Test get/set search paths"""
     original = pygit2.settings.search_path[level]
     try:
         pygit2.settings.search_path[level] = test_path
@@ -137,7 +128,6 @@ def test_search_path(level: ConfigLevel, test_path: str) -> None:
 
 
 def test_template_path() -> None:
-    """Test get/set template path"""
     original = pygit2.settings.template_path
     try:
         pygit2.settings.template_path = '/tmp/test_templates'
@@ -148,7 +138,6 @@ def test_template_path() -> None:
 
 
 def test_user_agent() -> None:
-    """Test get/set user agent"""
     original = pygit2.settings.user_agent
     try:
         pygit2.settings.user_agent = 'test-agent/1.0'
@@ -159,7 +148,6 @@ def test_user_agent() -> None:
 
 
 def test_user_agent_product() -> None:
-    """Test get/set user agent product"""
     original = pygit2.settings.user_agent_product
     try:
         pygit2.settings.user_agent_product = 'test-product'
@@ -170,7 +158,6 @@ def test_user_agent_product() -> None:
 
 
 def test_pack_max_objects() -> None:
-    """Test get/set pack max objects"""
     original = pygit2.settings.pack_max_objects
     try:
         pygit2.settings.pack_max_objects = 100000
@@ -180,7 +167,6 @@ def test_pack_max_objects() -> None:
 
 
 def test_owner_validation() -> None:
-    """Test get/set owner validation"""
     original = pygit2.settings.owner_validation
     try:
         pygit2.settings.owner_validation = False
@@ -192,7 +178,6 @@ def test_owner_validation() -> None:
 
 
 def test_mwindow_file_limit() -> None:
-    """Test get/set mwindow file limit"""
     original = pygit2.settings.mwindow_file_limit
     try:
         pygit2.settings.mwindow_file_limit = 100
@@ -202,7 +187,6 @@ def test_mwindow_file_limit() -> None:
 
 
 def test_homedir() -> None:
-    """Test get/set home directory"""
     original = pygit2.settings.homedir
     try:
         pygit2.settings.homedir = '/tmp/test_home'
@@ -213,7 +197,6 @@ def test_homedir() -> None:
 
 
 def test_server_timeouts() -> None:
-    """Test get/set server timeouts"""
     original_connect = pygit2.settings.server_connect_timeout
     original_timeout = pygit2.settings.server_timeout
     try:
@@ -228,7 +211,6 @@ def test_server_timeouts() -> None:
 
 
 def test_extensions() -> None:
-    """Test get/set extensions"""
     original = pygit2.settings.extensions
     try:
         test_extensions = ['objectformat', 'worktreeconfig']
@@ -255,7 +237,6 @@ def test_extensions() -> None:
     ],
 )
 def test_enable_methods(method_name: str, default_value: bool) -> None:
-    """Test various enable methods"""
     assert hasattr(pygit2.settings, method_name)
     method = getattr(pygit2.settings, method_name)
     assert callable(method)
@@ -280,41 +261,19 @@ def test_odb_priorities(priority: int) -> None:
     pygit2.settings.set_odb_loose_priority(2)
 
 
-def test_ssl_methods() -> None:
-    """Test SSL-related methods"""
+def test_ssl_ciphers() -> None:
     assert callable(pygit2.settings.set_ssl_ciphers)
-    assert callable(pygit2.settings.add_ssl_x509_cert)
 
-    ssl_ciphers_supported = True
     try:
         pygit2.settings.set_ssl_ciphers('DEFAULT')
     except pygit2.GitError as e:
-        msg = str(e).lower()
-        if "tls backend doesn't support" not in msg:
-            raise
-        ssl_ciphers_supported = False
-
-    test_cert = '-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----'
-    x509_cert_supported = True
-    try:
-        pygit2.settings.add_ssl_x509_cert(test_cert)
-    except pygit2.GitError as e:
-        msg = str(e).lower()
-        if (
-            "tls backend doesn't support" not in msg
-            and 'invalid' not in msg
-            and 'failed to add raw x509 certificate' not in msg
-        ):
-            raise
-        x509_cert_supported = False
-
-    # At least verify the methods exist even if not supported
-    assert not ssl_ciphers_supported or not x509_cert_supported or True
+        if "TLS backend doesn't support" in str(e):
+            pytest.skip(str(e))
+        raise
 
 
 @pytest.mark.skipif(sys.platform != 'win32', reason='Windows-specific feature')
 def test_windows_sharemode() -> None:
-    """Test get/set Windows share mode"""
     original = pygit2.settings.windows_sharemode
     try:
         pygit2.settings.windows_sharemode = 1

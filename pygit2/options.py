@@ -307,7 +307,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         Set the maximum number of objects to include in a pack.
     """
 
-    # Handle GET options with size_t output
     if option_type in (
         C.GIT_OPT_GET_MWINDOW_SIZE,
         C.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT,
@@ -320,7 +319,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return size_ptr[0]
 
-    # Handle SET options with size_t input
     elif option_type in (
         C.GIT_OPT_SET_MWINDOW_SIZE,
         C.GIT_OPT_SET_MWINDOW_MAPPED_LIMIT,
@@ -338,7 +336,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle GET_SEARCH_PATH
     elif option_type == C.GIT_OPT_GET_SEARCH_PATH:
         check_args(option_type, arg1, arg2, 1)
 
@@ -357,7 +354,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         return result
 
-    # Handle SET_SEARCH_PATH
     elif option_type == C.GIT_OPT_SET_SEARCH_PATH:
         check_args(option_type, arg1, arg2, 2)
 
@@ -375,7 +371,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle SET_CACHE_OBJECT_LIMIT
     elif option_type == C.GIT_OPT_SET_CACHE_OBJECT_LIMIT:
         check_args(option_type, arg1, arg2, 2)
 
@@ -394,7 +389,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle SET_CACHE_MAX_SIZE
     elif option_type == C.GIT_OPT_SET_CACHE_MAX_SIZE:
         check_args(option_type, arg1, arg2, 1)
 
@@ -408,7 +402,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle GET_CACHED_MEMORY
     elif option_type == C.GIT_OPT_GET_CACHED_MEMORY:
         check_args(option_type, arg1, arg2, 0)
 
@@ -418,7 +411,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return (current_ptr[0], allowed_ptr[0])
 
-    # Handle SET_SSL_CERT_LOCATIONS
     elif option_type == C.GIT_OPT_SET_SSL_CERT_LOCATIONS:
         check_args(option_type, arg1, arg2, 2)
 
@@ -465,7 +457,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle GET_OWNER_VALIDATION
     elif option_type == C.GIT_OPT_GET_OWNER_VALIDATION:
         check_args(option_type, arg1, arg2, 0)
 
@@ -474,7 +465,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return bool(enabled_ptr[0])
 
-    # Handle GET_TEMPLATE_PATH
     elif option_type == C.GIT_OPT_GET_TEMPLATE_PATH:
         check_args(option_type, arg1, arg2, 0)
 
@@ -492,7 +482,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         return result
 
-    # Handle SET_TEMPLATE_PATH
     elif option_type == C.GIT_OPT_SET_TEMPLATE_PATH:
         check_args(option_type, arg1, arg2, 1)
 
@@ -508,7 +497,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle GET_USER_AGENT
     elif option_type == C.GIT_OPT_GET_USER_AGENT:
         check_args(option_type, arg1, arg2, 0)
 
@@ -526,7 +514,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         return result
 
-    # Handle SET_USER_AGENT
     elif option_type == C.GIT_OPT_SET_USER_AGENT:
         check_args(option_type, arg1, arg2, 1)
 
@@ -538,7 +525,6 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle SET_SSL_CIPHERS
     elif option_type == C.GIT_OPT_SET_SSL_CIPHERS:
         check_args(option_type, arg1, arg2, 1)
 
@@ -800,28 +786,18 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
         return None
 
-    # Handle ADD_SSL_X509_CERT
+    # Not implemented - ADD_SSL_X509_CERT requires directly binding with OpenSSL
+    # as the API works accepts a X509* struct.  Use GIT_OPT_SET_SSL_CERT_LOCATIONS
+    # instead.
     elif option_type == C.GIT_OPT_ADD_SSL_X509_CERT:
-        check_args(option_type, arg1, arg2, 1)
-
-        cert = arg1
-        if isinstance(cert, (str, bytes)):
-            cert_bytes = to_bytes(cert)
-            cert_cdata = ffi.new('char[]', cert_bytes)
-            cert_len = len(cert_bytes)
-        else:
-            raise TypeError('certificate must be a string or bytes')
-
-        err = C.git_libgit2_opts(option_type, cert_cdata, ffi.cast('size_t', cert_len))
-        check_error(err)
-        return None
+        raise NotImplementedError("Use GIT_OPT_SET_SSL_CERT_LOCATIONS instead")
 
     # Not implemented - SET_ALLOCATOR is not feasible from Python level
     # because it requires providing C function pointers for memory management
     # (malloc, free, etc.) that must handle raw memory at the C level,
     # which cannot be safely implemented in pure Python.
-    elif option_type in (C.GIT_OPT_SET_ALLOCATOR,):
-        return NotImplemented
+    elif option_type == C.GIT_OPT_SET_ALLOCATOR:
+        raise NotImplementedError("Setting a custom allocator not possible from Python")
 
     else:
         raise ValueError(f'Invalid option {option_type}')

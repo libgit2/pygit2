@@ -248,10 +248,6 @@ class Settings:
         """Set the SSL ciphers to use for HTTPS connections"""
         option(Option.SET_SSL_CIPHERS, ciphers)
 
-    def add_ssl_x509_cert(self, certificate: str | bytes) -> None:
-        """Add a trusted X.509 certificate for SSL/TLS connections"""
-        option(Option.ADD_SSL_X509_CERT, certificate)
-
     def enable_strict_object_creation(self, value: bool = True) -> None:
         """Enable or disable strict object creation validation"""
         option(Option.ENABLE_STRICT_OBJECT_CREATION, value)
