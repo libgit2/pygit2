@@ -32,9 +32,9 @@ from typing import overload
 
 import pygit2.enums
 
-from ._pygit2 import option
 from .enums import ConfigLevel, Option
 from .errors import GitError
+from .options import option
 
 
 class SearchPathList:
@@ -104,6 +104,15 @@ class Settings:
     @mwindow_mapped_limit.setter
     def mwindow_mapped_limit(self, value: int) -> None:
         option(Option.SET_MWINDOW_MAPPED_LIMIT, value)
+
+    @property
+    def mwindow_file_limit(self) -> int:
+        """Get or set the maximum number of files to be mapped at any time"""
+        return option(Option.GET_MWINDOW_FILE_LIMIT)
+
+    @mwindow_file_limit.setter
+    def mwindow_file_limit(self, value: int) -> None:
+        option(Option.SET_MWINDOW_FILE_LIMIT, value)
 
     @property
     def cached_memory(self) -> tuple[int, int]:
@@ -207,3 +216,133 @@ class Settings:
         option(Option.SET_SSL_CERT_LOCATIONS, cert_file, cert_dir)
         self._ssl_cert_file = cert_file
         self._ssl_cert_dir = cert_dir
+
+    @property
+    def template_path(self) -> str | None:
+        """Get or set the default template path for new repositories"""
+        return option(Option.GET_TEMPLATE_PATH)
+
+    @template_path.setter
+    def template_path(self, value: str | bytes) -> None:
+        option(Option.SET_TEMPLATE_PATH, value)
+
+    @property
+    def user_agent(self) -> str | None:
+        """Get or set the user agent string for network operations"""
+        return option(Option.GET_USER_AGENT)
+
+    @user_agent.setter
+    def user_agent(self, value: str | bytes) -> None:
+        option(Option.SET_USER_AGENT, value)
+
+    @property
+    def user_agent_product(self) -> str | None:
+        """Get or set the user agent product name"""
+        return option(Option.GET_USER_AGENT_PRODUCT)
+
+    @user_agent_product.setter
+    def user_agent_product(self, value: str | bytes) -> None:
+        option(Option.SET_USER_AGENT_PRODUCT, value)
+
+    def set_ssl_ciphers(self, ciphers: str | bytes) -> None:
+        """Set the SSL ciphers to use for HTTPS connections"""
+        option(Option.SET_SSL_CIPHERS, ciphers)
+
+    def enable_strict_object_creation(self, value: bool = True) -> None:
+        """Enable or disable strict object creation validation"""
+        option(Option.ENABLE_STRICT_OBJECT_CREATION, value)
+
+    def enable_strict_symbolic_ref_creation(self, value: bool = True) -> None:
+        """Enable or disable strict symbolic reference creation validation"""
+        option(Option.ENABLE_STRICT_SYMBOLIC_REF_CREATION, value)
+
+    def enable_ofs_delta(self, value: bool = True) -> None:
+        """Enable or disable offset delta encoding"""
+        option(Option.ENABLE_OFS_DELTA, value)
+
+    def enable_fsync_gitdir(self, value: bool = True) -> None:
+        """Enable or disable fsync for git directory operations"""
+        option(Option.ENABLE_FSYNC_GITDIR, value)
+
+    def enable_strict_hash_verification(self, value: bool = True) -> None:
+        """Enable or disable strict hash verification"""
+        option(Option.ENABLE_STRICT_HASH_VERIFICATION, value)
+
+    def enable_unsaved_index_safety(self, value: bool = True) -> None:
+        """Enable or disable unsaved index safety checks"""
+        option(Option.ENABLE_UNSAVED_INDEX_SAFETY, value)
+
+    def enable_http_expect_continue(self, value: bool = True) -> None:
+        """Enable or disable HTTP Expect/Continue for large pushes"""
+        option(Option.ENABLE_HTTP_EXPECT_CONTINUE, value)
+
+    @property
+    def windows_sharemode(self) -> int:
+        """Get or set the Windows share mode for opening files"""
+        return option(Option.GET_WINDOWS_SHAREMODE)
+
+    @windows_sharemode.setter
+    def windows_sharemode(self, value: int) -> None:
+        option(Option.SET_WINDOWS_SHAREMODE, value)
+
+    @property
+    def pack_max_objects(self) -> int:
+        """Get or set the maximum number of objects in a pack"""
+        return option(Option.GET_PACK_MAX_OBJECTS)
+
+    @pack_max_objects.setter
+    def pack_max_objects(self, value: int) -> None:
+        option(Option.SET_PACK_MAX_OBJECTS, value)
+
+    @property
+    def owner_validation(self) -> bool:
+        """Get or set repository directory ownership validation"""
+        return option(Option.GET_OWNER_VALIDATION)
+
+    @owner_validation.setter
+    def owner_validation(self, value: bool) -> None:
+        option(Option.SET_OWNER_VALIDATION, value)
+
+    def set_odb_packed_priority(self, priority: int) -> None:
+        """Set the priority for packed ODB backend (default 1)"""
+        option(Option.SET_ODB_PACKED_PRIORITY, priority)
+
+    def set_odb_loose_priority(self, priority: int) -> None:
+        """Set the priority for loose ODB backend (default 2)"""
+        option(Option.SET_ODB_LOOSE_PRIORITY, priority)
+
+    @property
+    def extensions(self) -> list[str]:
+        """Get the list of enabled extensions"""
+        return option(Option.GET_EXTENSIONS)
+
+    def set_extensions(self, extensions: list[str]) -> None:
+        """Set the list of enabled extensions"""
+        option(Option.SET_EXTENSIONS, extensions, len(extensions))
+
+    @property
+    def homedir(self) -> str | None:
+        """Get or set the home directory"""
+        return option(Option.GET_HOMEDIR)
+
+    @homedir.setter
+    def homedir(self, value: str | bytes) -> None:
+        option(Option.SET_HOMEDIR, value)
+
+    @property
+    def server_connect_timeout(self) -> int:
+        """Get or set the server connection timeout in milliseconds"""
+        return option(Option.GET_SERVER_CONNECT_TIMEOUT)
+
+    @server_connect_timeout.setter
+    def server_connect_timeout(self, value: int) -> None:
+        option(Option.SET_SERVER_CONNECT_TIMEOUT, value)
+
+    @property
+    def server_timeout(self) -> int:
+        """Get or set the server timeout in milliseconds"""
+        return option(Option.GET_SERVER_TIMEOUT)
+
+    @server_timeout.setter
+    def server_timeout(self, value: int) -> None:
+        option(Option.SET_SERVER_TIMEOUT, value)

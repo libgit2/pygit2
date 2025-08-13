@@ -23,17 +23,21 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import sys
+
+import pytest
+
 import pygit2
 from pygit2 import option
 from pygit2.enums import ConfigLevel, ObjectType, Option
 
 
 def __option(getter: Option, setter: Option, value: object) -> None:
-    old_value = option(getter)  # type: ignore[call-overload]
-    option(setter, value)  # type: ignore[call-overload]
-    assert value == option(getter)  # type: ignore[call-overload]
+    old_value = option(getter)
+    option(setter, value)
+    assert value == option(getter)
     # Reset to avoid side effects in later tests
-    option(setter, old_value)  # type: ignore[call-overload]
+    option(setter, old_value)
 
 
 def __proxy(name: str, value: object) -> None:
@@ -130,3 +134,129 @@ def test_search_path_proxy() -> None:
 
 def test_owner_validation() -> None:
     __option(Option.GET_OWNER_VALIDATION, Option.SET_OWNER_VALIDATION, 0)
+
+
+def test_template_path() -> None:
+    original_path = option(Option.GET_TEMPLATE_PATH)
+
+    test_path = '/tmp/test_templates'
+    option(Option.SET_TEMPLATE_PATH, test_path)
+    assert option(Option.GET_TEMPLATE_PATH) == test_path
+
+    if original_path:
+        option(Option.SET_TEMPLATE_PATH, original_path)
+    else:
+        option(Option.SET_TEMPLATE_PATH, None)
+
+
+def test_user_agent() -> None:
+    original_agent = option(Option.GET_USER_AGENT)
+
+    test_agent = 'test-agent/1.0'
+    option(Option.SET_USER_AGENT, test_agent)
+    assert option(Option.GET_USER_AGENT) == test_agent
+
+    if original_agent:
+        option(Option.SET_USER_AGENT, original_agent)
+
+
+def test_pack_max_objects() -> None:
+    __option(Option.GET_PACK_MAX_OBJECTS, Option.SET_PACK_MAX_OBJECTS, 100000)
+
+
+@pytest.mark.skipif(sys.platform != 'win32', reason='Windows-specific feature')
+def test_windows_sharemode() -> None:
+    __option(Option.GET_WINDOWS_SHAREMODE, Option.SET_WINDOWS_SHAREMODE, 1)
+
+
+def test_ssl_ciphers() -> None:
+    # Setting SSL ciphers (no getter available)
+    try:
+        option(Option.SET_SSL_CIPHERS, 'DEFAULT')
+    except pygit2.GitError as e:
+        if "TLS backend doesn't support custom ciphers" in str(e):
+            pytest.skip(str(e))
+        raise
+
+
+def test_enable_http_expect_continue() -> None:
+    option(Option.ENABLE_HTTP_EXPECT_CONTINUE, True)
+    option(Option.ENABLE_HTTP_EXPECT_CONTINUE, False)
+
+
+def test_odb_priorities() -> None:
+    option(Option.SET_ODB_PACKED_PRIORITY, 1)
+    option(Option.SET_ODB_LOOSE_PRIORITY, 2)
+
+
+def test_extensions() -> None:
+    original_extensions = option(Option.GET_EXTENSIONS)
+    assert isinstance(original_extensions, list)
+
+    test_extensions = ['objectformat', 'worktreeconfig']
+    option(Option.SET_EXTENSIONS, test_extensions, len(test_extensions))
+
+    new_extensions = option(Option.GET_EXTENSIONS)
+    assert isinstance(new_extensions, list)
+
+    # Note: libgit2 may add its own built-in extensions and sort them
+    for ext in test_extensions:
+        assert ext in new_extensions, f"Extension '{ext}' not found in {new_extensions}"
+
+    option(Option.SET_EXTENSIONS, [], 0)
+    empty_extensions = option(Option.GET_EXTENSIONS)
+    assert isinstance(empty_extensions, list)
+
+    custom_extensions = ['myextension', 'objectformat']
+    option(Option.SET_EXTENSIONS, custom_extensions, len(custom_extensions))
+    custom_result = option(Option.GET_EXTENSIONS)
+    assert 'myextension' in custom_result
+    assert 'objectformat' in custom_result
+
+    if original_extensions:
+        option(Option.SET_EXTENSIONS, original_extensions, len(original_extensions))
+    else:
+        option(Option.SET_EXTENSIONS, [], 0)
+
+    final_extensions = option(Option.GET_EXTENSIONS)
+    assert set(final_extensions) == set(original_extensions)
+
+
+def test_homedir() -> None:
+    original_homedir = option(Option.GET_HOMEDIR)
+
+    test_homedir = '/tmp/test_home'
+    option(Option.SET_HOMEDIR, test_homedir)
+    assert option(Option.GET_HOMEDIR) == test_homedir
+
+    if original_homedir:
+        option(Option.SET_HOMEDIR, original_homedir)
+    else:
+        option(Option.SET_HOMEDIR, None)
+
+
+def test_server_timeouts() -> None:
+    original_connect = option(Option.GET_SERVER_CONNECT_TIMEOUT)
+    option(Option.SET_SERVER_CONNECT_TIMEOUT, 5000)
+    assert option(Option.GET_SERVER_CONNECT_TIMEOUT) == 5000
+    option(Option.SET_SERVER_CONNECT_TIMEOUT, original_connect)
+
+    original_timeout = option(Option.GET_SERVER_TIMEOUT)
+    option(Option.SET_SERVER_TIMEOUT, 10000)
+    assert option(Option.GET_SERVER_TIMEOUT) == 10000
+    option(Option.SET_SERVER_TIMEOUT, original_timeout)
+
+
+def test_user_agent_product() -> None:
+    original_product = option(Option.GET_USER_AGENT_PRODUCT)
+
+    test_product = 'test-product'
+    option(Option.SET_USER_AGENT_PRODUCT, test_product)
+    assert option(Option.GET_USER_AGENT_PRODUCT) == test_product
+
+    if original_product:
+        option(Option.SET_USER_AGENT_PRODUCT, original_product)
+
+
+def test_mwindow_file_limit() -> None:
+    __option(Option.GET_MWINDOW_FILE_LIMIT, Option.SET_MWINDOW_FILE_LIMIT, 100)

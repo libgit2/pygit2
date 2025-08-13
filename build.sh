@@ -178,7 +178,7 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     wget https://github.com/libgit2/libgit2/archive/refs/tags/v$LIBGIT2_VERSION.tar.gz -N -O $FILENAME.tar.gz
     tar xf $FILENAME.tar.gz
     cd $FILENAME
-    mkdir build -p
+    mkdir -p build
     cd build
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
         CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$PREFIX cmake .. \

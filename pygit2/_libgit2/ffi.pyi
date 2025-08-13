@@ -42,6 +42,9 @@ class int_c:
 class int64_t:
     def __getitem__(self, item: Literal[0]) -> int: ...
 
+class ssize_t:
+    def __getitem__(self, item: Literal[0]) -> int: ...
+
 class _Pointer(Generic[T]):
     def __setitem__(self, item: Literal[0], a: T) -> None: ...
     @overload
@@ -55,7 +58,8 @@ class _MultiPointer(Generic[T]):
 class ArrayC(Generic[T]):
     # incomplete!
     # def _len(self, ?) -> ?: ...
-    pass
+    def __getitem__(self, index: int) -> T: ...
+    def __setitem__(self, index: int, value: T) -> None: ...
 
 class GitTimeC:
     # incomplete
@@ -196,7 +200,7 @@ class GitStashSaveOptionsC:
 
 class GitStrrayC:
     # incomplete?
-    strings: NULL_TYPE | ArrayC[char]
+    strings: NULL_TYPE | ArrayC[char_pointer]
     count: int
 
 class GitTreeC:
@@ -319,6 +323,8 @@ def new(
 @overload
 def new(a: Literal['size_t *', 'size_t*']) -> size_t: ...
 @overload
+def new(a: Literal['ssize_t *', 'ssize_t*']) -> ssize_t: ...
+@overload
 def new(a: Literal['git_stash_save_options *']) -> GitStashSaveOptionsC: ...
 @overload
 def new(a: Literal['git_strarray *']) -> GitStrrayC: ...
@@ -330,6 +336,14 @@ def new(a: Literal['git_buf *'], b: tuple[NULL_TYPE, Literal[0]]) -> GitBufC: ..
 def new(a: Literal['char **']) -> _Pointer[char_pointer]: ...
 @overload
 def new(a: Literal['char[]', 'char []'], b: bytes | NULL_TYPE) -> ArrayC[char]: ...
+@overload
+def new(
+    a: Literal['char *[]'], b: int
+) -> ArrayC[char_pointer]: ...  # For ext_array in SET_EXTENSIONS
+@overload
+def new(
+    a: Literal['char *[]'], b: list[Any]
+) -> ArrayC[char_pointer]: ...  # For string arrays
 def addressof(a: object, attribute: str) -> _Pointer[object]: ...
 
 class buffer(bytes):
@@ -340,4 +354,13 @@ class buffer(bytes):
     @overload
     def __getitem__(self, item: slice[Any, Any, Any]) -> bytes: ...
 
+@overload
 def cast(a: Literal['int'], b: object) -> int: ...
+@overload
+def cast(a: Literal['unsigned int'], b: object) -> int: ...
+@overload
+def cast(a: Literal['size_t'], b: object) -> int: ...
+@overload
+def cast(a: Literal['ssize_t'], b: object) -> int: ...
+@overload
+def cast(a: Literal['char *'], b: object) -> char_pointer: ...

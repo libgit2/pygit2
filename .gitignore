@@ -4,6 +4,7 @@
 /.envrc
 /.tox/
 /build/
+/ci/
 /dist/
 /docs/_build/
 /MANIFEST
@@ -13,3 +14,5 @@ __pycache__/
 *.pyc
 *.so
 *.swp
+/pygit2/_libgit2.c
+/pygit2/_libgit2.o
