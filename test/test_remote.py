@@ -193,11 +193,11 @@ def test_remote_list(testrepo: Repository) -> None:
 
 
 @utils.requires_network
-def test_ls_remotes(testrepo: Repository) -> None:
+def test_list_heads(testrepo: Repository) -> None:
     assert 1 == len(testrepo.remotes)
     remote = testrepo.remotes[0]
 
-    refs = remote.ls_remotes()
+    refs = remote.list_heads()
     assert refs
 
     # Check that a known ref is returned.
@@ -205,29 +205,36 @@ def test_ls_remotes(testrepo: Repository) -> None:
 
 
 @utils.requires_network
-def test_ls_remotes_backwards_compatibility(testrepo: Repository) -> None:
+def test_ls_remotes_deprecated(testrepo: Repository) -> None:
     assert 1 == len(testrepo.remotes)
     remote = testrepo.remotes[0]
-    refs = remote.ls_remotes()
-    ref = refs[0]
 
-    for field in ('name', 'oid', 'loid', 'local', 'symref_target'):
-        new_value = getattr(ref, field)
-        with pytest.warns(DeprecationWarning, match='no longer returns a dict'):
-            old_value = ref[field]
-        assert new_value == old_value
+    new_refs = remote.list_heads()
+
+    with pytest.warns(DeprecationWarning, match='Use list_heads'):
+        old_refs = remote.ls_remotes()
+
+    assert new_refs
+    assert old_refs
+
+    for new, old in zip(new_refs, old_refs, strict=True):
+        assert new.name == old['name']
+        assert new.oid == old['oid']
+        assert new.loid == old['loid']
+        assert new.local == old['local']
+        assert new.symref_target == old['symref_target']
 
 
 @utils.requires_network
-def test_ls_remotes_without_implicit_connect(testrepo: Repository) -> None:
+def test_list_heads_without_implicit_connect(testrepo: Repository) -> None:
     assert 1 == len(testrepo.remotes)
     remote = testrepo.remotes[0]
 
     with pytest.raises(pygit2.GitError, match='this remote has never connected'):
-        remote.ls_remotes(connect=False)
+        remote.list_heads(connect=False)
 
     remote.connect()
-    refs = remote.ls_remotes(connect=False)
+    refs = remote.list_heads(connect=False)
     assert refs
 
     # Check that a known ref is returned.
@@ -328,7 +335,7 @@ def test_update_tips(emptyrepo: Repository) -> None:
 
 
 @utils.requires_network
-def test_ls_remotes_certificate_check() -> None:
+def test_list_heads_certificate_check() -> None:
     url = 'https://github.com/pygit2/empty.git'
 
     class MyCallbacks(pygit2.RemoteCallbacks):
@@ -350,7 +357,7 @@ def test_ls_remotes_certificate_check() -> None:
     remote = git.remotes.create_anonymous(url)
 
     callbacks = MyCallbacks()
-    refs = remote.ls_remotes(callbacks=callbacks)
+    refs = remote.list_heads(callbacks=callbacks)
 
     # Sanity check that we indeed got some refs.
     assert len(refs) > 0

@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 class RemoteHead:
     """
     Description of a reference advertised by a remote server,
-    given out on `Remote.ls_remotes` calls.
+    given out on `Remote.list_heads` calls.
     """
 
     local: bool
@@ -79,19 +79,6 @@ class RemoteHead:
         self.loid = Oid(raw=bytes(ffi.buffer(c_struct.loid.id)[:]))
         self.name = maybe_string(c_struct.name)
         self.symref_target = maybe_string(c_struct.symref_target)
-
-    def __getitem__(self, item: str) -> Any:
-        """
-        DEPRECATED: Backwards compatibility with legacy user code
-        that expects this object to be a dictionary with string keys.
-        """
-        warnings.warn(
-            'ls_remotes no longer returns a dict. '
-            'Update your code to read from fields instead '
-            '(e.g. result["name"] --> result.name)',
-            DeprecationWarning,
-        )
-        return getattr(self, item)
 
 
 class PushUpdate:
@@ -259,7 +246,7 @@ class Remote:
 
         return TransferProgress(C.git_remote_stats(self._remote))
 
-    def ls_remotes(
+    def list_heads(
         self,
         callbacks: RemoteCallbacks | None = None,
         proxy: str | None | bool = None,
@@ -293,6 +280,30 @@ class Remote:
         results = [RemoteHead(refs_ptr[0][i]) for i in range(num_refs)]
 
         return results
+
+    def ls_remotes(
+        self,
+        callbacks: RemoteCallbacks | None = None,
+        proxy: str | None | bool = None,
+        connect: bool = True,
+    ) -> list[dict[str, Any]]:
+        """
+        Deprecated interface to list_heads
+        """
+        warnings.warn('Use list_heads', DeprecationWarning)
+
+        heads = self.list_heads(callbacks, proxy, connect)
+
+        return [
+            {
+                'local': h.local,
+                'oid': h.oid,
+                'loid': h.loid,
+                'name': h.name,
+                'symref_target': h.symref_target,
+            }
+            for h in heads
+        ]
 
     def prune(self, callbacks: RemoteCallbacks | None = None) -> None:
         """Perform a prune against this remote."""
