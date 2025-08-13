@@ -1,3 +1,62 @@
+# 1.18.2 (UNRELEASED)
+
+- Add support for almost all global options
+  [#1409](https://github.com/libgit2/pygit2/pull/1409)
+
+- Now it's possible to set `Submodule.url = url`
+  [#1395](https://github.com/libgit2/pygit2/pull/1395)
+
+- New `RemoteCallbacks.push_negotiation(...)`
+  [#1396](https://github.com/libgit2/pygit2/pull/1396)
+
+- New optional boolean argument `connect` in `Remote.ls_remotes(...)`
+  [#1396](https://github.com/libgit2/pygit2/pull/1396)
+
+- Now `Remote.ls_remotes(...)` returns a list of `RemoteHead` objects
+  [#1397](https://github.com/libgit2/pygit2/pull/1397)
+
+- Now `RemoteHead.loid` is Oid zero instead of None when not available locally
+  [#1397](https://github.com/libgit2/pygit2/pull/1397)
+
+- Documentation fixes
+  [#1388](https://github.com/libgit2/pygit2/pull/1388)
+
+- Typing improvements
+  [#1387](https://github.com/libgit2/pygit2/pull/1387)
+  [#1389](https://github.com/libgit2/pygit2/pull/1389)
+  [#1390](https://github.com/libgit2/pygit2/pull/1390)
+  [#1391](https://github.com/libgit2/pygit2/pull/1391)
+  [#1392](https://github.com/libgit2/pygit2/pull/1392)
+  [#1393](https://github.com/libgit2/pygit2/pull/1393)
+  [#1394](https://github.com/libgit2/pygit2/pull/1394)
+  [#1398](https://github.com/libgit2/pygit2/pull/1398)
+  [#1399](https://github.com/libgit2/pygit2/pull/1399)
+  [#1400](https://github.com/libgit2/pygit2/pull/1400)
+  [#1402](https://github.com/libgit2/pygit2/pull/1402)
+  [#1403](https://github.com/libgit2/pygit2/pull/1403)
+  [#1406](https://github.com/libgit2/pygit2/pull/1406)
+
+Deprecations:
+
+- Now `Remote.ls_remotes(...)` returns a list of `RemoteHead` objects
+
+      # Before
+      for head in remote.ls_remotes():
+          head['name']
+          head['oid']
+          head['loid']
+          head['local']
+          head['symref_target']
+
+      # Now
+      for head in remote.ls_remotes():
+          head.name
+          head.oid
+          head.loid
+          head.local
+          head.symref_target
+
+
 # 1.18.1 (2025-07-26)
 
 - Update wheels to libgit2 1.9.1 and OpenSSL 3.3
