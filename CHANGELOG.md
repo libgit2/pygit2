@@ -12,11 +12,9 @@
 - New optional boolean argument `connect` in `Remote.ls_remotes(...)`
   [#1396](https://github.com/libgit2/pygit2/pull/1396)
 
-- Now `Remote.ls_remotes(...)` returns a list of `RemoteHead` objects
+- New `Remote.list_heads(...)` returns a list of `RemoteHead` objects
   [#1397](https://github.com/libgit2/pygit2/pull/1397)
-
-- Now `RemoteHead.loid` is Oid zero instead of None when not available locally
-  [#1397](https://github.com/libgit2/pygit2/pull/1397)
+  [#1410](https://github.com/libgit2/pygit2/pull/1410)
 
 - Documentation fixes
   [#1388](https://github.com/libgit2/pygit2/pull/1388)
@@ -38,21 +36,21 @@
 
 Deprecations:
 
-- Now `Remote.ls_remotes(...)` returns a list of `RemoteHead` objects
+- `Remote.ls_remotes(...)` is deprecated, use `Remote.list_heads(...)`:
 
       # Before
       for head in remote.ls_remotes():
           head['name']
           head['oid']
-          head['loid']
+          head['loid']  # None when local is False
           head['local']
           head['symref_target']
 
       # Now
-      for head in remote.ls_remotes():
+      for head in remote.list_heads():
           head.name
           head.oid
-          head.loid
+          head.loid  # The zero oid when local is False
           head.local
           head.symref_target
 
