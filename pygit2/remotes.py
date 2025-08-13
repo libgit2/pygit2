@@ -298,7 +298,7 @@ class Remote:
             {
                 'local': h.local,
                 'oid': h.oid,
-                'loid': h.loid,
+                'loid': h.loid if h.local else None,
                 'name': h.name,
                 'symref_target': h.symref_target,
             }

@@ -220,9 +220,13 @@ def test_ls_remotes_deprecated(testrepo: Repository) -> None:
     for new, old in zip(new_refs, old_refs, strict=True):
         assert new.name == old['name']
         assert new.oid == old['oid']
-        assert new.loid == old['loid']
         assert new.local == old['local']
         assert new.symref_target == old['symref_target']
+        if new.local:
+            assert new.loid == old['loid']
+        else:
+            assert new.loid == pygit2.Oid(b'')
+            assert old['loid'] is None
 
 
 @utils.requires_network
