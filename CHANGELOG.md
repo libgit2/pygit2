@@ -33,6 +33,8 @@
   [#1402](https://github.com/libgit2/pygit2/pull/1402)
   [#1403](https://github.com/libgit2/pygit2/pull/1403)
   [#1406](https://github.com/libgit2/pygit2/pull/1406)
+  [#1407](https://github.com/libgit2/pygit2/pull/1407)
+  [#1408](https://github.com/libgit2/pygit2/pull/1408)
 
 Deprecations:
 

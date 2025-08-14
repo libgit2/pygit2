@@ -307,6 +307,8 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         Set the maximum number of objects to include in a pack.
     """
 
+    result: str | None | list[str]
+
     if option_type in (
         C.GIT_OPT_GET_MWINDOW_SIZE,
         C.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT,
