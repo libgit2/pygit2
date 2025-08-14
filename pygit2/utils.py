@@ -93,7 +93,7 @@ def to_str(s: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> str:
     raise TypeError(f'unexpected type "{repr(s)}"')
 
 
-def ptr_to_bytes(ptr_cdata):
+def ptr_to_bytes(ptr_cdata) -> bytes:
     """
     Convert a pointer coming from C code (<cdata 'some_type *'>)
     to a byte buffer containing the address that the pointer refers to.
