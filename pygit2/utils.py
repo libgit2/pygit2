@@ -80,7 +80,7 @@ def to_bytes(
     return s.encode(encoding, errors)  # type: ignore[union-attr]
 
 
-def to_str(s):
+def to_str(s: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> str:
     if hasattr(s, '__fspath__'):
         s = os.fspath(s)
 
@@ -110,7 +110,7 @@ def new_git_strarray() -> Generator['GitStrrayC', None, None]:
     C.git_strarray_dispose(strarray)
 
 
-def strarray_to_strings(arr):
+def strarray_to_strings(arr) -> list[str]:
     """
     Return a list of strings from a git_strarray pointer.
 

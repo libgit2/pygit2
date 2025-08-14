@@ -32,7 +32,7 @@ __all__ = ['GitError']
 value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
 
 
-def check_error(err, io=False):
+def check_error(err, io: bool = False) -> None:
     if err >= 0:
         return
 
@@ -69,5 +69,5 @@ def check_error(err, io=False):
 
 # Indicate that we want libgit2 to pretend a function was not set
 class Passthrough(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('The function asked for pass-through')
