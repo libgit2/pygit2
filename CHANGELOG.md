@@ -1,4 +1,4 @@
-# 1.18.2 (UNRELEASED)
+# 1.18.2 (2025-08-16)
 
 - Add support for almost all global options
   [#1409](https://github.com/libgit2/pygit2/pull/1409)

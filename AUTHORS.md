@@ -4,6 +4,7 @@ Authors:
     Carlos Martín Nieto
     Nico von Geyso
     Iliyas Jorio
+    Benedikt Seidl
     Sviatoslav Sydorenko
     Matthias Bartelmeß
     Robert Coup
@@ -16,10 +17,10 @@ Authors:
     Richo Healey
     Christian Boos
     Julien Miotte
-    Benedikt Seidl
     Nick Hynes
     Richard Möhn
     Xu Tao
+    Konstantin Baikov
     Matthew Duggan
     Matthew Gamble
     Jeremy Westwood
@@ -28,6 +29,7 @@ Authors:
     Sriram Raghu
     Victor Garcia
     Yonggang Luo
+    Łukasz Langa
     Patrick Steinhardt
     Petr Hosek
     Tamir Bahar
@@ -202,6 +204,7 @@ Authors:
     Maxwell G
     Michał Górny
     Na'aman Hirschfeld
+    Nicolas Rybowski
     Nicolás Sanguinetti
     Nikita Kartashov
     Nikolai Zujev
