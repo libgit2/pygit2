@@ -533,6 +533,11 @@ diff_get_patch_byindex(git_diff *diff, size_t idx)
     if (err < 0)
         return Error_set(err);
 
+    /* libgit2 may decide not to create a patch if the file is
+       "unchanged or binary", but this isn't an error case */
+    if (patch == NULL)
+        Py_RETURN_NONE;
+
     return (PyObject*) wrap_patch(patch, NULL, NULL);
 }
 
