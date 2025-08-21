@@ -28,6 +28,7 @@
 import textwrap
 from collections.abc import Iterator
 from itertools import chain
+from pathlib import Path
 
 import pytest
 
@@ -459,3 +460,33 @@ def test_diff_blobs(emptyrepo: Repository) -> None:
     assert diff_one_context_line.text == PATCH_BLOBS_ONE_CONTEXT_LINE
     diff_all_together = repo.diff(blob1, blob2, context_lines=1, interhunk_lines=1)
     assert diff_all_together.text == PATCH_BLOBS_DEFAULT
+
+
+def test_diff_unchanged_file_no_patch(testrepo) -> None:
+    repo = testrepo
+
+    # Convert hello.txt line endings to CRLF
+    path = Path(repo.workdir) / 'hello.txt'
+    data = path.read_bytes()
+    data = data.replace(b'\n', b'\r\n')
+    path.write_bytes(data)
+
+    # Enable CRLF filter
+    repo.config['core.autocrlf'] = 'input'
+
+    diff = repo.diff()
+    assert len(diff) == 1
+
+    # Get patch #0 in the same diff several times.
+    # git_patch_from_diff eventually decides that the file is "unchanged";
+    # it returns a NULL patch in this case.
+    # https://libgit2.org/docs/reference/main/patch/git_patch_from_diff
+    for i in range(10):  # loop typically exits in the third iteration
+        patch = diff[0]
+        if patch is None:  # libgit2 decides the file is unchanged
+            break
+        assert patch.delta.new_file.path == path.name
+        assert patch.text == ''  # no content change (just line endings)
+    else:
+        # Didn't find the edge case that this test is supposed to exercise.
+        assert False, 'libgit2 rebuilt a new patch every time'
