@@ -154,8 +154,8 @@ setup(
     ext_modules=ext_modules,
     # Requirements
     python_requires='>=3.10',
-    setup_requires=['cffi>=1.17.0'],
-    install_requires=['cffi>=1.17.0'],
+    setup_requires=['cffi>=2.0'],
+    install_requires=['cffi>=2.0'],
     # URLs
     url='https://github.com/libgit2/pygit2',
     project_urls={

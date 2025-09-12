@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 
 [tool.cibuildwheel]
 enable = ["pypy"]
-skip = "*musllinux_ppc64le cp314*"
+skip = "*musllinux_ppc64le"
 
 archs = ["native"]
 build-frontend = "default"
