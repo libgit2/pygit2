@@ -74,6 +74,7 @@ Table of Contents
    oid
    packing
    references
+   transactions
    remotes
    repository
    revparse

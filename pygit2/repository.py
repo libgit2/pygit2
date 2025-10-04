@@ -78,6 +78,7 @@ from .packbuilder import PackBuilder
 from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
+from .transaction import ReferenceTransaction
 from .utils import StrArray, to_bytes
 
 if TYPE_CHECKING:
@@ -120,6 +121,7 @@ class BaseRepository(_Repository):
         self.references = References(self)
         self.remotes = RemoteCollection(self)
         self.submodules = SubmoduleCollection(self)
+        self._active_transaction = None
 
         # Get the pointer as the contents of a buffer and store it for
         # later access
@@ -358,6 +360,22 @@ class BaseRepository(_Repository):
             commit = reference.peel(Commit)  # type: ignore
 
         return (commit, reference)  # type: ignore
+
+    def transaction(self) -> ReferenceTransaction:
+        """Create a new reference transaction.
+
+        Returns a context manager that commits all reference updates atomically
+        when the context exits successfully, or performs no updates if an exception
+        is raised.
+
+        Example::
+
+            with repo.transaction() as txn:
+                txn.lock_ref('refs/heads/master')
+                txn.set_target('refs/heads/master', new_oid, message='Update')
+        """
+        txn = ReferenceTransaction(self)
+        return txn
 
     #
     # Checkout

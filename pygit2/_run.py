@@ -81,6 +81,7 @@ h_files = [
     'revert.h',
     'stash.h',
     'submodule.h',
+    'transaction.h',
     'options.h',
     'callbacks.h',  # Bridge from libgit2 to Python
 ]

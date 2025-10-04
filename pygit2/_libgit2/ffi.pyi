@@ -239,11 +239,16 @@ class GitRemoteC:
 class GitReferenceC:
     pass
 
+class GitTransactionC:
+    pass
+
 def string(a: char_pointer) -> bytes: ...
 @overload
 def new(a: Literal['git_repository **']) -> _Pointer[GitRepositoryC]: ...
 @overload
 def new(a: Literal['git_remote **']) -> _Pointer[GitRemoteC]: ...
+@overload
+def new(a: Literal['git_transaction **']) -> _Pointer[GitTransactionC]: ...
 @overload
 def new(a: Literal['git_repository_init_options *']) -> GitRepositoryInitOptionsC: ...
 @overload

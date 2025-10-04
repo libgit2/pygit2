@@ -88,6 +88,21 @@ Example::
 .. autoclass:: pygit2.RefLogEntry
    :members:
 
+Reference Transactions
+=======================
+
+For atomic updates of multiple references, use transactions. See the
+:doc:`transactions` documentation for details.
+
+Example::
+
+    # Update multiple refs atomically
+    with repo.transaction() as txn:
+        txn.lock_ref('refs/heads/master')
+        txn.lock_ref('refs/heads/develop')
+        txn.set_target('refs/heads/master', new_oid, message='Release')
+        txn.set_target('refs/heads/develop', dev_oid, message='Continue dev')
+
 Notes
 ====================
 

@@ -12,6 +12,8 @@ typedef struct git_submodule git_submodule;
 typedef struct git_transport git_transport;
 typedef struct git_tree git_tree;
 typedef struct git_packbuilder git_packbuilder;
+typedef struct git_transaction git_transaction;
+typedef struct git_reflog git_reflog;
 
 typedef int64_t git_off_t;
 typedef int64_t git_time_t;

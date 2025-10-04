@@ -366,6 +366,7 @@ from .remotes import Remote
 from .repository import Repository
 from .settings import Settings
 from .submodules import Submodule
+from .transaction import ReferenceTransaction
 from .utils import to_bytes, to_str
 
 # Features
@@ -971,6 +972,8 @@ __all__ = (
     'Settings',
     'submodules',
     'Submodule',
+    'transaction',
+    'ReferenceTransaction',
     'utils',
     'to_bytes',
     'to_str',
