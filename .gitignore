@@ -6,6 +6,7 @@
 /build/
 /ci/
 /dist/
+/wheelhouse/
 /docs/_build/
 /MANIFEST
 /venv*
