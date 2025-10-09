@@ -24,6 +24,35 @@ archs = ["universal2"]
 environment = {LIBGIT2_VERSION="1.9.1", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.3.3", LIBGIT2="/Users/runner/work/pygit2/pygit2/ci"}
 repair-wheel-command = "DYLD_LIBRARY_PATH=/Users/runner/work/pygit2/pygit2/ci/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
 
+[tool.cibuildwheel.windows]
+environment.LIBGIT2_SRC = "build/libgit2_src"
+environment.LIBGIT2_VERSION = "1.9.1"
+before-all = "powershell -File build.ps1"
+
+[[tool.cibuildwheel.overrides]]
+select="*-win_amd64"
+inherit.environment="append"
+environment.CMAKE_GENERATOR = "Visual Studio 17 2022"
+environment.CMAKE_GENERATOR_PLATFORM = "x64"
+environment.CMAKE_INSTALL_PREFIX = "C:/libgit2_install_x86_64"
+environment.LIBGIT2 = "C:/libgit2_install_x86_64"
+
+[[tool.cibuildwheel.overrides]]
+select="*-win32"
+inherit.environment="append"
+environment.CMAKE_GENERATOR = "Visual Studio 17 2022"
+environment.CMAKE_GENERATOR_PLATFORM = "Win32"
+environment.CMAKE_INSTALL_PREFIX = "C:/libgit2_install_x86"
+environment.LIBGIT2 = "C:/libgit2_install_x86"
+
+[[tool.cibuildwheel.overrides]]
+select="*-win_arm64"
+inherit.environment="append"
+environment.CMAKE_GENERATOR = "Visual Studio 17 2022"
+environment.CMAKE_GENERATOR_PLATFORM = "ARM64"
+environment.CMAKE_INSTALL_PREFIX = "C:/libgit2_install_arm64"
+environment.LIBGIT2 = "C:/libgit2_install_arm64"
+
 [tool.ruff]
 extend-exclude = [ ".cache", ".coverage", "build", "site-packages", "venv*"]
 target-version = "py310"  # oldest supported Python version

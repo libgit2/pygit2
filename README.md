@@ -3,18 +3,22 @@
 Bindings to the libgit2 shared library, implements Git plumbing.
 Supports Python 3.10 to 3.13 and PyPy3 7.3+
 
-[![image](https://github.com/libgit2/pygit2/actions/workflows/tests.yml/badge.svg)](https://github.com/libgit2/pygit2/actions/workflows/tests.yml)
+[![test-ci-badge][test-ci-badge]][test-ci-link]
+[![deploy-ci-badge][deploy-ci-badge]][deploy-ci-link]
 
-[![image](https://ci.appveyor.com/api/projects/status/edmwc0dctk5nacx0/branch/master?svg=true)](https://ci.appveyor.com/project/jdavid/pygit2/branch/master)
+[deploy-ci-badge]: https://github.com/libgit2/pygit2/actions/workflows/wheels.yml/badge.svg
+[deploy-ci-link]: https://github.com/libgit2/pygit2/actions/workflows/wheels.yml
+[test-ci-badge]: https://github.com/libgit2/pygit2/actions/workflows/tests.yml/badge.svg
+[test-ci-link]: https://github.com/libgit2/pygit2/actions/workflows/tests.yml
 
 ## Links
 
--   Documentation - <https://www.pygit2.org/>
--   Install - <https://www.pygit2.org/install.html>
--   Download - <https://pypi.org/project/pygit2/>
--   Source code and issue tracker - <https://github.com/libgit2/pygit2>
--   Changelog - <https://github.com/libgit2/pygit2/blob/master/CHANGELOG.md>
--   Authors - <https://github.com/libgit2/pygit2/blob/master/AUTHORS.md>
+- Documentation - <https://www.pygit2.org/>
+- Install - <https://www.pygit2.org/install.html>
+- Download - <https://pypi.org/project/pygit2/>
+- Source code and issue tracker - <https://github.com/libgit2/pygit2>
+- Changelog - <https://github.com/libgit2/pygit2/blob/master/CHANGELOG.md>
+- Authors - <https://github.com/libgit2/pygit2/blob/master/AUTHORS.md>
 
 ## Sponsors
 
