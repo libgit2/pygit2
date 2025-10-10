@@ -30,5 +30,6 @@ import os
 import sys
 
 cwd = os.getcwd()
-sys.path.remove(cwd)
-sys.path.append(cwd)
+if cwd in sys.path:
+    sys.path.remove(cwd)
+    sys.path.append(cwd)

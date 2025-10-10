@@ -11,6 +11,9 @@ dependency-versions = "pinned"
 environment = {LIBGIT2_VERSION="1.9.1", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.3.3", LIBGIT2="/project/ci"}
 
 before-all = "sh build.sh"
+test-command = "pytest"
+test-sources = ["test"]
+before-test = "pip install -r {project}/requirements-test.txt"
 
 [tool.cibuildwheel.linux]
 repair-wheel-command = "LD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
