@@ -28,7 +28,6 @@
 # Import setuptools before distutils to avoid user warning
 import os
 import sys
-import sysconfig
 from distutils import log  # type: ignore[attr-defined]
 from distutils.command.build import build
 from distutils.command.sdist import sdist
@@ -153,16 +152,6 @@ setup(
     cmdclass=cmdclass,
     cffi_modules=['pygit2/_run.py:ffi'],
     ext_modules=ext_modules,
-    options={
-        'bdist_wheel': {
-            # for ABI3 (future-compatible) wheels.
-            # NOTE: free-threaded CPython builds do not support the limited API yet.
-            # See https://github.com/python/cpython/issues/111506
-            'py_limited_api': False
-            if sysconfig.get_config_var('Py_GIL_DISABLED')
-            else 'cp310'  # should correspond to `python_requires` below
-        }
-    },
     # Requirements
     python_requires='>=3.10',
     setup_requires=['cffi>=2.0'],
