@@ -465,6 +465,10 @@ PyInit__pygit2(void)
     if (m == NULL)
         return NULL;
 
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+#endif
+
     /* libgit2 version info */
     ADD_CONSTANT_INT(m, LIBGIT2_VER_MAJOR)
     ADD_CONSTANT_INT(m, LIBGIT2_VER_MINOR)
