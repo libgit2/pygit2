@@ -595,7 +595,10 @@ def test_set_target_with_message(testrepo: Repository) -> None:
     assert reference.raw_target == b'refs/heads/i18n'
     first = list(reference.log())[0]
     assert first.message == msg
-    assert first.committer == sig
+    # Signature.time and Signature.encoding may not be equal.
+    # Here we only care that the name and email are correctly set.
+    assert first.committer.name == sig.name
+    assert first.committer.email == sig.email
 
 
 def test_delete(testrepo: Repository) -> None:
