@@ -134,7 +134,7 @@ if [ -n "$OPENSSL_VERSION" ]; then
         # Linux
         tar xf $FILENAME.tar.gz
         cd $FILENAME
-        ./Configure shared --prefix=$PREFIX --libdir=$PREFIX/lib
+        ./Configure shared no-apps no-docs no-tests --prefix=$PREFIX --libdir=$PREFIX/lib
         make
         make install
         OPENSSL_PREFIX=$(pwd)
