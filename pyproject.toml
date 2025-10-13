@@ -14,6 +14,8 @@ before-all = "sh build.sh"
 test-command = "pytest"
 test-sources = ["test"]
 before-test = "pip install -r {project}/requirements-test.txt"
+# Will avoid testing on emulated architectures (specifically ppc64le)
+test-skip = "*-*linux_ppc64le"
 
 [tool.cibuildwheel.linux]
 repair-wheel-command = "LD_LIBRARY_PATH=/project/ci/lib64 auditwheel repair -w {dest_dir} {wheel}"
