@@ -12,7 +12,7 @@ environment = {LIBGIT2_VERSION="1.9.1", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSIO
 
 before-all = "sh build.sh"
 test-command = "pytest"
-test-sources = ["test"]
+test-sources = ["test", "pytest.ini"]
 before-test = "pip install -r {project}/requirements-test.txt"
 # Will avoid testing on emulated architectures (specifically ppc64le)
 test-skip = "*-*linux_ppc64le"

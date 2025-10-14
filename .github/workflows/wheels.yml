@@ -1,12 +1,18 @@
 name: Wheels
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'master' }}
+
 on:
   push:
-    branches:
-    - master
-    - wheels-*
+    branches: [master]
     tags:
-    - 'v*'
+      - 'v*'
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - 'docs/**'
 
 jobs:
   build_wheels:
@@ -54,6 +60,7 @@ jobs:
 
   build_wheels_ppc:
     name: Wheels for linux-ppc
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
 
     steps:
@@ -86,6 +93,8 @@ jobs:
 
   sdist:
     runs-on: ubuntu-latest
+    outputs:
+      release_title: ${{ steps.parse_changelog.outputs.release_title }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -103,6 +112,17 @@ jobs:
         with:
           name: wheels-sdist
           path: dist/*
+
+      - name: parse CHANGELOG for release notes
+        id: parse_changelog
+        run: python .github/workflows/parse_release_notes.py
+
+      - name: Upload Release Notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: ReleaseNotes.md
+
 
   twine-check:
     name: Twine check
@@ -123,7 +143,9 @@ jobs:
 
   pypi:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [build_wheels, build_wheels_ppc]
+    needs: [build_wheels, build_wheels_ppc, sdist]
+    permissions:
+      contents: write # to create GitHub Release
     runs-on: ubuntu-24.04
 
     steps:
@@ -140,3 +162,21 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+        skip-existing: true
+
+    - uses: actions/download-artifact@v5
+      with:
+        name: release-notes
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        TAG: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        TITLE: ${{ needs.sdist.outputs.release_title }}
+      # https://cli.github.com/manual/gh_release_create
+      run: >-
+        gh release create ${TAG}
+        --verify-tag
+        --repo ${REPO}
+        --title ${TITLE}
+        --notes-file ReleaseNotes.md
