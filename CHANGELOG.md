@@ -1,3 +1,30 @@
+# 1.19.0 (UNRELEASED)
+
+- Add support for Python 3.14
+
+- Support threaded builds
+  [#1430](https://github.com/libgit2/pygit2/pull/1430)
+
+- Add Linux wheels for musl on AArch64
+
+- Add Windows wheels for AArch64
+  [#1423](https://github.com/libgit2/pygit2/pull/1423)
+
+- New `Repository.transaction()` context manager, returns new `ReferenceTransaction`
+  [#1420](https://github.com/libgit2/pygit2/pull/1420)
+
+- CI: Move Windows wheels to cibuildwheel and GitHub
+  [#1423](https://github.com/libgit2/pygit2/pull/1423)
+
+- CI: add GitHub releases and other improvements
+  [#1433](https://github.com/libgit2/pygit2/pull/1433)
+  [#1432](https://github.com/libgit2/pygit2/pull/1432)
+  [#1425](https://github.com/libgit2/pygit2/pull/1425)
+  [#1431](https://github.com/libgit2/pygit2/pull/1431)
+
+- Updated .gitignore
+  [#1424](https://github.com/libgit2/pygit2/pull/1424)
+
 # 1.18.2 (2025-08-16)
 
 - Add support for almost all global options
