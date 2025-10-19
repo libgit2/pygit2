@@ -25,6 +25,14 @@
 - Updated .gitignore
   [#1424](https://github.com/libgit2/pygit2/pull/1424)
 
+Breaking changes:
+
+- Remove deprecated `IndexEntry.hex`, use `str(entry.id)` instead of `entry.hex`
+
+Deprecations:
+
+- Deprecate `IndexEntry.oid`, use `entry.id` instead of `entry.oid`
+
 # 1.18.2 (2025-08-16)
 
 - Add support for almost all global options
@@ -325,31 +333,39 @@ Deprecations:
 
 # 1.14.0 (2024-01-26)
 
--   Drop support for Python 3.8
--   Add Linux wheels for musl on x86\_64
-    [#1266](https://github.com/libgit2/pygit2/pull/1266)
--   New `Repository.submodules` namespace
-    [#1250](https://github.com/libgit2/pygit2/pull/1250)
--   New `Repository.listall_mergeheads()`, `Repository.message`,
-    `Repository.raw_message` and `Repository.remove_message()`
-    [#1261](https://github.com/libgit2/pygit2/pull/1261)
--   New `pygit2.enums` supersedes the `GIT_` constants
-    [#1251](https://github.com/libgit2/pygit2/pull/1251)
--   Now `Repository.status()`, `Repository.status_file()`,
-    `Repository.merge_analysis()`, `DiffFile.flags`, `DiffFile.mode`,
-    `DiffDelta.flags` and `DiffDelta.status` return enums
-    [#1263](https://github.com/libgit2/pygit2/pull/1263)
--   Now repository\'s `merge()`, `merge_commits()` and `merge_trees()`
-    take enums/flags for their `favor`, `flags` and `file_flags` arguments.
-    [#1271](https://github.com/libgit2/pygit2/pull/1271)
-    [#1272](https://github.com/libgit2/pygit2/pull/1272)
--   Fix crash in filter cleanup
-    [#1259](https://github.com/libgit2/pygit2/pull/1259)
--   Documentation fixes
-    [#1255](https://github.com/libgit2/pygit2/pull/1255)
-    [#1258](https://github.com/libgit2/pygit2/pull/1258)
-    [#1268](https://github.com/libgit2/pygit2/pull/1268)
-    [#1270](https://github.com/libgit2/pygit2/pull/1270)
+- Drop support for Python 3.8
+
+- Add Linux wheels for musl on x86\_64
+  [#1266](https://github.com/libgit2/pygit2/pull/1266)
+
+- New `Repository.submodules` namespace
+  [#1250](https://github.com/libgit2/pygit2/pull/1250)
+
+- New `Repository.listall_mergeheads()`, `Repository.message`,
+  `Repository.raw_message` and `Repository.remove_message()`
+  [#1261](https://github.com/libgit2/pygit2/pull/1261)
+
+- New `pygit2.enums` supersedes the `GIT_` constants
+  [#1251](https://github.com/libgit2/pygit2/pull/1251)
+
+- Now `Repository.status()`, `Repository.status_file()`,
+  `Repository.merge_analysis()`, `DiffFile.flags`, `DiffFile.mode`,
+  `DiffDelta.flags` and `DiffDelta.status` return enums
+  [#1263](https://github.com/libgit2/pygit2/pull/1263)
+
+- Now repository\'s `merge()`, `merge_commits()` and `merge_trees()`
+  take enums/flags for their `favor`, `flags` and `file_flags` arguments.
+  [#1271](https://github.com/libgit2/pygit2/pull/1271)
+  [#1272](https://github.com/libgit2/pygit2/pull/1272)
+
+- Fix crash in filter cleanup
+  [#1259](https://github.com/libgit2/pygit2/pull/1259)
+
+- Documentation fixes
+  [#1255](https://github.com/libgit2/pygit2/pull/1255)
+  [#1258](https://github.com/libgit2/pygit2/pull/1258)
+  [#1268](https://github.com/libgit2/pygit2/pull/1268)
+  [#1270](https://github.com/libgit2/pygit2/pull/1270)
 
 Breaking changes:
 

@@ -446,14 +446,8 @@ class IndexEntry:
 
     @property
     def oid(self):
-        # For backwards compatibility
+        warnings.warn('Use entry.id', DeprecationWarning)
         return self.id
-
-    @property
-    def hex(self):
-        """The id of the referenced object as a hex string"""
-        warnings.warn('Use str(entry.id)', DeprecationWarning)
-        return str(self.id)
 
     def __str__(self):
         return f'<path={self.path} id={self.id} mode={self.mode}>'
