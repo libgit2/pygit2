@@ -46,6 +46,17 @@
 #include <git2/odb_backend.h>
 #include <git2/sys/repository.h>
 
+// TODO: remove this function when Python 3.13 becomes the minimum supported version
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 13
+static inline PyObject *
+PyList_GetItemRef(PyObject *op, Py_ssize_t index)
+{
+    PyObject *item = PyList_GetItem(op, index);
+    Py_XINCREF(item);
+    return item;
+}
+#endif
+
 extern PyObject *GitError;
 
 extern PyTypeObject IndexType;
@@ -599,8 +610,11 @@ merge_base_xxx(Repository *self, PyObject *args, git_merge_base_xxx_t git_merge_
     }
 
     for (; i < commit_oid_count; i++) {
-        py_commit_oid = PyList_GET_ITEM(py_commit_oids, i);
+        py_commit_oid = PyList_GetItemRef(py_commit_oids, i);
+        if (py_commit_oid == NULL)
+            goto out;
         err = py_oid_to_git_oid_expand(self->repo, py_commit_oid, &commit_oids[i]);
+        Py_DECREF(py_commit_oid);
         if (err < 0)
             goto out;
     }
@@ -1052,8 +1066,11 @@ Repository_create_commit(Repository *self, PyObject *args)
         goto out;
     }
     for (; i < parent_count; i++) {
-        py_parent = PyList_GET_ITEM(py_parents, i);
+        py_parent = PyList_GetItemRef(py_parents, i);
+        if (py_parent == NULL)
+            goto out;
         len = py_oid_to_git_oid(py_parent, &oid);
+        Py_DECREF(py_parent);
         if (len == 0)
             goto out;
         err = git_commit_lookup_prefix(&parents[i], self->repo, &oid, len);
@@ -1135,8 +1152,11 @@ Repository_create_commit_string(Repository *self, PyObject *args)
         goto out;
     }
     for (; i < parent_count; i++) {
-        py_parent = PyList_GET_ITEM(py_parents, i);
+        py_parent = PyList_GetItemRef(py_parents, i);
+        if (py_parent == NULL)
+            goto out;
         len = py_oid_to_git_oid(py_parent, &oid);
+        Py_DECREF(py_parent);
         if (len == 0)
             goto out;
         err = git_commit_lookup_prefix(&parents[i], self->repo, &oid, len);
