@@ -46,7 +46,7 @@ Requirements
 
 Supported versions of Python:
 
-- Python 3.10 to 3.13
+- Python 3.11 to 3.14
 - PyPy3 7.3+
 
 Python requirements (these are specified in ``setup.py``):
@@ -83,7 +83,7 @@ of Python and the required libgit2 version.
 +-------------+----------------+------------+
 | pygit2      | Python         | libgit2    |
 +-------------+----------------+------------+
-| 1.19        | 3.10 - 3.14(t) | 1.9        |
+| 1.19        | 3.11 - 3.14(t) | 1.9        |
 +-------------+----------------+------------+
 | 1.17 - 1.18 | 3.10 - 3.13    | 1.9        |
 +-------------+----------------+------------+
@@ -126,6 +126,10 @@ of Python and the required libgit2 version.
    Backwards compatibility is not guaranteed in minor releases. Please check
    the release notes for incompatible changes before upgrading to a new
    release.
+
+.. warning::
+
+   Threaded builds are experimental, do not use them in production.
 
 History: the 0.x series
 -----------------------

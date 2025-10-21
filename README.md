@@ -1,7 +1,7 @@
 # pygit2 - libgit2 bindings in Python
 
 Bindings to the libgit2 shared library, implements Git plumbing.
-Supports Python 3.10 to 3.13 and PyPy3 7.3+
+Supports Python 3.11 to 3.14 and PyPy3 7.3+
 
 [![test-ci-badge][test-ci-badge]][test-ci-link]
 [![deploy-ci-badge][deploy-ci-badge]][deploy-ci-link]
