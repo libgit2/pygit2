@@ -60,7 +60,6 @@ jobs:
 
   build_wheels_ppc:
     name: Wheels for linux-ppc
-    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
 
     steps:
