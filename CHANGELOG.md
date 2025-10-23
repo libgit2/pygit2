@@ -1,9 +1,10 @@
-# 1.19.0 (UNRELEASED)
+# 1.19.0 (2025-10-23)
 
 - Add support for Python 3.14 and drop 3.10
 
 - Support threaded builds (experimental)
   [#1430](https://github.com/libgit2/pygit2/pull/1430)
+  [#1435](https://github.com/libgit2/pygit2/pull/1435)
 
 - Add Linux musl wheels for AArch64
 
@@ -20,7 +21,8 @@
   [#1425](https://github.com/libgit2/pygit2/pull/1425)
   [#1431](https://github.com/libgit2/pygit2/pull/1431)
 
-- Updated .gitignore
+- Documentation improvements and other changes
+  [#1426](https://github.com/libgit2/pygit2/pull/1426)
   [#1424](https://github.com/libgit2/pygit2/pull/1424)
 
 Breaking changes:

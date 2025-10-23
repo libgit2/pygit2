@@ -15,6 +15,7 @@ Authors:
     Daniel Rodríguez Troitiño
     Peter Rowlands
     Richo Healey
+    Brendan Doherty
     Christian Boos
     Julien Miotte
     Nick Hynes
@@ -50,7 +51,7 @@ Authors:
     Mathieu Parent
     Michał Kępień
     Nicolas Dandrimont
-    Raphael Medaer (Escaux)
+    Raphael Medaer
     Yaroslav Halchenko
     Anatoly Techtonik
     Andrew Olsen
@@ -64,6 +65,7 @@ Authors:
     Santiago Perez De Rosso
     Sebastian Thiel
     Thom Wiggers
+    WANG Xuerui
     William Manley
     Alexander Linne
     Alok Singhal
@@ -89,7 +91,6 @@ Authors:
     Sukhman Bhuller
     Thomas Kluyver
     Tyler Cipriani
-    WANG Xuerui
     Alex Chamberlain
     Alexander Bayandin
     Amit Bakshi
@@ -98,6 +99,7 @@ Authors:
     Ben Davis
     CJ Steiner
     Colin Watson
+    Craig de Stigter
     Dan Yeaw
     Dustin Raimondi
     Eric Schrijver
@@ -156,7 +158,6 @@ Authors:
     Chris Rebert
     Christopher Hunt
     Claudio Jolowicz
-    Craig de Stigter
     Cristian Hotea
     Cyril Jouve
     Dan Cecile
