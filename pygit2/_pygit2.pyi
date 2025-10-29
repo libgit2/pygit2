@@ -432,8 +432,8 @@ class Diff:
     def from_c(diff, repo) -> Diff: ...
     @staticmethod
     def parse_diff(git_diff: str | bytes) -> Diff: ...
-    def __getitem__(self, index: int) -> Patch: ...  # Diff_getitem
-    def __iter__(self) -> Iterator[Patch]: ...  # -> DiffIter
+    def __getitem__(self, index: int) -> Patch | None: ...  # Diff_getitem
+    def __iter__(self) -> Iterator[Patch | None]: ...  # -> DiffIter
     def __len__(self) -> int: ...
 
 class DiffDelta:
