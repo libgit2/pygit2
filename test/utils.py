@@ -30,7 +30,7 @@ import socket
 import stat
 import sys
 import zipfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Optional, ParamSpec, TypeVar
@@ -101,6 +101,18 @@ def rmtree(path: str | Path) -> None:
     """
     if Path(path).exists():
         shutil.rmtree(path, onerror=force_rm_handle)
+
+
+def diff_safeiter(diff: pygit2.Diff) -> Iterator[pygit2.Patch]:
+    """
+    In rare cases, Diff.__iter__ may yield None (see diff_get_patch_byindex).
+    To make mypy happy, use this iterator instead of Diff.__iter__ to ensure
+    that all patches in a Diff are valid Patch objects, not None.
+    """
+    for patch in diff:
+        if patch is None:
+            raise TypeError('patch is None')
+        yield patch
 
 
 class TemporaryRepository:

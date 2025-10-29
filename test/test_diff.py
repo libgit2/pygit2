@@ -36,6 +36,8 @@ import pygit2
 from pygit2 import Diff, Repository
 from pygit2.enums import DeltaStatus, DiffFlag, DiffOption, DiffStatsFormat, FileMode
 
+from .utils import diff_safeiter
+
 COMMIT_SHA1_1 = '5fe808e8953c12735680c257f56600cb0de44b10'
 COMMIT_SHA1_2 = 'c2792cfa289ae6321ecf2cd5806c2194b0fd070c'
 COMMIT_SHA1_3 = '2cdae28389c059815e951d0bb9eed6533f61a46b'
@@ -177,11 +179,11 @@ def test_diff_empty_index(dirtyrepo: Repository) -> None:
     head = repo[repo.lookup_reference('HEAD').resolve().target]
 
     diff = head.tree.diff_to_index(repo.index)
-    files = [patch.delta.new_file.path for patch in diff]
+    files = [patch.delta.new_file.path for patch in diff_safeiter(diff)]
     assert DIFF_HEAD_TO_INDEX_EXPECTED == files
 
     diff = repo.diff('HEAD', cached=True)
-    files = [patch.delta.new_file.path for patch in diff]
+    files = [patch.delta.new_file.path for patch in diff_safeiter(diff)]
     assert DIFF_HEAD_TO_INDEX_EXPECTED == files
 
 
@@ -190,17 +192,17 @@ def test_workdir_to_tree(dirtyrepo: Repository) -> None:
     head = repo[repo.lookup_reference('HEAD').resolve().target]
 
     diff = head.tree.diff_to_workdir()
-    files = [patch.delta.new_file.path for patch in diff]
+    files = [patch.delta.new_file.path for patch in diff_safeiter(diff)]
     assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
 
     diff = repo.diff('HEAD')
-    files = [patch.delta.new_file.path for patch in diff]
+    files = [patch.delta.new_file.path for patch in diff_safeiter(diff)]
     assert DIFF_HEAD_TO_WORKDIR_EXPECTED == files
 
 
 def test_index_to_workdir(dirtyrepo: Repository) -> None:
     diff = dirtyrepo.diff()
-    files = [patch.delta.new_file.path for patch in diff]
+    files = [patch.delta.new_file.path for patch in diff_safeiter(diff)]
     assert DIFF_INDEX_TO_WORK_EXPECTED == files
 
 
@@ -218,15 +220,15 @@ def test_diff_empty_index_bare(barerepo: Repository) -> None:
     head = repo[repo.lookup_reference('HEAD').resolve().target]
 
     diff = barerepo.index.diff_to_tree(head.tree)
-    files = [patch.delta.new_file.path.split('/')[0] for patch in diff]
+    files = [patch.delta.new_file.path.split('/')[0] for patch in diff_safeiter(diff)]
     assert [x.name for x in head.tree] == files
 
     diff = head.tree.diff_to_index(repo.index)
-    files = [patch.delta.new_file.path.split('/')[0] for patch in diff]
+    files = [patch.delta.new_file.path.split('/')[0] for patch in diff_safeiter(diff)]
     assert [x.name for x in head.tree] == files
 
     diff = repo.diff('HEAD', cached=True)
-    files = [patch.delta.new_file.path.split('/')[0] for patch in diff]
+    files = [patch.delta.new_file.path.split('/')[0] for patch in diff_safeiter(diff)]
     assert [x.name for x in head.tree] == files
 
 
@@ -236,9 +238,10 @@ def test_diff_tree(barerepo: Repository) -> None:
 
     def _test(diff: Diff) -> None:
         assert diff is not None
-        assert 2 == sum(map(lambda x: len(x.hunks), diff))
+        assert 2 == sum(map(lambda x: len(x.hunks), diff_safeiter(diff)))
 
         patch = diff[0]
+        assert patch is not None
         hunk = patch.hunks[0]
         assert hunk.old_start == 1
         assert hunk.old_lines == 1
@@ -268,16 +271,16 @@ def test_diff_empty_tree(barerepo: Repository) -> None:
     diff = commit_a.tree.diff_to_tree()
 
     def get_context_for_lines(diff: Diff) -> Iterator[str]:
-        hunks = chain.from_iterable(map(lambda x: x.hunks, diff))
+        hunks = chain.from_iterable(map(lambda x: x.hunks, diff_safeiter(diff)))
         lines = chain.from_iterable(map(lambda x: x.lines, hunks))
         return map(lambda x: x.origin, lines)
 
-    entries = [p.delta.new_file.path for p in diff]
+    entries = [p.delta.new_file.path for p in diff_safeiter(diff)]
     assert all(commit_a.tree[x] for x in entries)
     assert all('-' == x for x in get_context_for_lines(diff))
 
     diff_swaped = commit_a.tree.diff_to_tree(swap=True)
-    entries = [p.delta.new_file.path for p in diff_swaped]
+    entries = [p.delta.new_file.path for p in diff_safeiter(diff_swaped)]
     assert all(commit_a.tree[x] for x in entries)
     assert all('+' == x for x in get_context_for_lines(diff_swaped))
 
@@ -294,11 +297,15 @@ def test_diff_tree_opts(barerepo: Repository) -> None:
     for flag in [DiffOption.IGNORE_WHITESPACE, DiffOption.IGNORE_WHITESPACE_EOL]:
         diff = commit_c.tree.diff_to_tree(commit_d.tree, flag)
         assert diff is not None
-        assert 0 == len(diff[0].hunks)
+        patch = diff[0]
+        assert patch is not None
+        assert 0 == len(patch.hunks)
 
     diff = commit_c.tree.diff_to_tree(commit_d.tree)
     assert diff is not None
-    assert 1 == len(diff[0].hunks)
+    patch = diff[0]
+    assert patch is not None
+    assert 1 == len(patch.hunks)
 
 
 def test_diff_merge(barerepo: Repository) -> None:
@@ -311,13 +318,14 @@ def test_diff_merge(barerepo: Repository) -> None:
 
     diff_c = commit_b.tree.diff_to_tree(commit_c.tree)
     assert diff_c is not None
-    assert 'b' not in [patch.delta.new_file.path for patch in diff_b]
-    assert 'b' in [patch.delta.new_file.path for patch in diff_c]
+    assert 'b' not in [patch.delta.new_file.path for patch in diff_safeiter(diff_b)]
+    assert 'b' in [patch.delta.new_file.path for patch in diff_safeiter(diff_c)]
 
     diff_b.merge(diff_c)
-    assert 'b' in [patch.delta.new_file.path for patch in diff_b]
+    assert 'b' in [patch.delta.new_file.path for patch in diff_safeiter(diff_b)]
 
     patch = diff_b[0]
+    assert patch is not None
     hunk = patch.hunks[0]
     assert hunk.old_start == 1
     assert hunk.old_lines == 1
@@ -341,6 +349,7 @@ def test_diff_ids(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
+    assert patch is not None
     delta = patch.delta
     assert delta.old_file.id == '7f129fd57e31e935c6d60a0c794efe4e6927664b'
     assert delta.new_file.id == 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
@@ -358,6 +367,7 @@ def test_hunk_content(barerepo: Repository) -> None:
     commit_a = barerepo[COMMIT_SHA1_1]
     commit_b = barerepo[COMMIT_SHA1_2]
     patch = commit_a.tree.diff_to_tree(commit_b.tree)[0]
+    assert patch is not None
     hunk = patch.hunks[0]
     lines = (f'{x.origin} {x.content}' for x in hunk.lines)
     assert HUNK_EXPECTED == ''.join(lines)
@@ -372,11 +382,15 @@ def test_find_similar(barerepo: Repository) -> None:
     # ~ Must pass INCLUDE_UNMODIFIED if you expect to emulate
     # ~ --find-copies-harder during rename transformion...
     diff = commit_a.tree.diff_to_tree(commit_b.tree, DiffOption.INCLUDE_UNMODIFIED)
-    assert all(x.delta.status != DeltaStatus.RENAMED for x in diff)
-    assert all(x.delta.status_char() != 'R' for x in diff)
+    assert all(
+        patch.delta.status != DeltaStatus.RENAMED for patch in diff_safeiter(diff)
+    )
+    assert all(patch.delta.status_char() != 'R' for patch in diff_safeiter(diff))
     diff.find_similar()
-    assert any(x.delta.status == DeltaStatus.RENAMED for x in diff)
-    assert any(x.delta.status_char() == 'R' for x in diff)
+    assert any(
+        patch.delta.status == DeltaStatus.RENAMED for patch in diff_safeiter(diff)
+    )
+    assert any(patch.delta.status_char() == 'R' for patch in diff_safeiter(diff))
 
 
 def test_diff_stats(barerepo: Repository) -> None:
@@ -399,7 +413,7 @@ def test_deltas(barerepo: Repository) -> None:
     commit_b = barerepo[COMMIT_SHA1_2]
     diff = commit_a.tree.diff_to_tree(commit_b.tree)
     deltas = list(diff.deltas)
-    patches = list(diff)
+    patches = list(diff_safeiter(diff))
     assert len(deltas) == len(patches)
     for i, delta in enumerate(deltas):
         patch_delta = patches[i].delta
@@ -462,7 +476,7 @@ def test_diff_blobs(emptyrepo: Repository) -> None:
     assert diff_all_together.text == PATCH_BLOBS_DEFAULT
 
 
-def test_diff_unchanged_file_no_patch(testrepo) -> None:
+def test_diff_unchanged_file_no_patch(testrepo: Repository) -> None:
     repo = testrepo
 
     # Convert hello.txt line endings to CRLF

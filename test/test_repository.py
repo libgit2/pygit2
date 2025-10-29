@@ -456,7 +456,9 @@ def test_stash_partial(testrepo: Repository) -> None:
         )
         stash_commit = testrepo[stash_id].peel(pygit2.Commit)
         stash_diff = testrepo.diff(stash_commit.parents[0], stash_commit)
-        stash_files = set(patch.delta.new_file.path for patch in stash_diff)
+        stash_files = set(
+            patch.delta.new_file.path for patch in utils.diff_safeiter(stash_diff)
+        )
         return stash_files == set(paths)
 
     # Stash a modified file
