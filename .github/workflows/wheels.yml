@@ -46,7 +46,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel~=3.1.1
+        run: python -m pip install cibuildwheel~=3.3
 
       - name: Build wheels
         env:
@@ -77,7 +77,7 @@ jobs:
           platforms: linux/ppc64le
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel~=3.1.1
+        run: python -m pip install cibuildwheel~=3.3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
