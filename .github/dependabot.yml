@@ -15,11 +15,11 @@ updates:
       actions:
         patterns:
           - "*"
-  # - package-ecosystem: pip
-  #   directory: .github/
-  #   schedule:
-  #     interval: "monthly"
-  #   groups:
-  #     pip:
-  #       patterns:
-  #         - "*"
+  - package-ecosystem: pip
+    directory: .github/
+    schedule:
+      interval: "monthly"
+    groups:
+      pip:
+        patterns:
+          - "*"

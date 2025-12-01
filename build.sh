@@ -268,7 +268,7 @@ if [ "$1" = "mypy" ]; then
     if [ -n "$WHEELDIR" ]; then
         $PREFIX/bin/pip install $WHEELDIR/pygit2*-$PYTHON_TAG-*.whl
     fi
-    $PREFIX/bin/pip install -r requirements-test.txt
+    $PREFIX/bin/pip install -r requirements-test.txt -r requirements-typing.txt
     $PREFIX/bin/mypy pygit2 test
 fi
 
