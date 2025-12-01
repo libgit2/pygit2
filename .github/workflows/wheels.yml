@@ -36,7 +36,7 @@ jobs:
           os: windows-11-arm
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # avoid leaking credentials in uploaded artifacts
           persist-credentials: false
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # avoid leaking credentials in uploaded artifacts
           persist-credentials: false
@@ -95,7 +95,7 @@ jobs:
     outputs:
       release_title: ${{ steps.parse_changelog.outputs.release_title }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # avoid leaking credentials in uploaded artifacts
           persist-credentials: false
