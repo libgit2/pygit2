@@ -19,6 +19,8 @@ jobs:
     name: Wheels for ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
+      # let other jobs in matrix complete if one fails
+      fail-fast: false
       matrix:
         include:
         - name: linux-amd
