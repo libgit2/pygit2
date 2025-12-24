@@ -1,3 +1,17 @@
+# 1.19.1 (UNRELEASED)
+
+- Fix diff getitem/iter for unachanged or binary files, return `None`
+  [#1412](https://github.com/libgit2/pygit2/pull/1412)
+
+- CI: separate macOS wheels (arm and intel instead of universal)
+  [#1441](https://github.com/libgit2/pygit2/pull/1441)
+
+- CI: pypy wheels on macOS
+
+- CI: fix tests with pypy
+  [#1437](https://github.com/libgit2/pygit2/pull/1437)
+
+
 # 1.19.0 (2025-10-23)
 
 - Add support for Python 3.14 and drop 3.10

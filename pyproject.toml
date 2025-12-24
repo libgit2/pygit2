@@ -15,7 +15,7 @@ test-command = "pytest"
 test-sources = ["test", "pytest.ini"]
 before-test = "pip install -r {project}/requirements-test.txt"
 # Will avoid testing on emulated architectures (specifically ppc64le)
-# Also, skip testing on pypy on macOS arm64 due issue with bootstrapping git config paths
+# Also, skip testing pypy on macOS arm64 due issue with bootstrapping git config paths
 # see https://github.com/libgit2/pygit2/issues/1442
 test-skip = "*-*linux_ppc64le pp*-macosx_arm64"
 
