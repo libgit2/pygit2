@@ -62,6 +62,8 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         apt-get install wget -y
         if [ -z "$OPENSSL_VERSION" ]; then
             apt-get install libssl-dev -y
+        else
+            apt-get install libtime-piece-perl -y
         fi
     elif [ -f /usr/bin/yum ]; then
         yum install wget zlib-devel -y
@@ -70,11 +72,14 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         else
             yum install perl-IPC-Cmd -y
             yum install perl-Pod-Html -y
+            yum install perl-Time-Piece -y
         fi
     elif [ -f /sbin/apk ]; then
         apk add wget
         if [ -z "$OPENSSL_VERSION" ]; then
             apk add openssl-dev
+        else
+            apk add perl-time-piece
         fi
     fi
     rm -rf ci
