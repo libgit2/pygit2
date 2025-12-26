@@ -77,9 +77,9 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
     elif [ -f /sbin/apk ]; then
         apk add wget
         if [ -z "$OPENSSL_VERSION" ]; then
-            apk add openssl-dev
+            apk add --no-cache openssl-dev
         else
-            apk add perl-time-piece
+            apk add --no-cache perl
         fi
     fi
     rm -rf ci
