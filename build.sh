@@ -22,14 +22,14 @@
 #
 #   sh build.sh
 #
-# Build libgit2 1.9.0 (will use libssh2 if available), then build pygit2
+# Build libgit2 1.9.2 (will use libssh2 if available), then build pygit2
 # inplace:
 #
-#   LIBGIT2_VERSION=1.9.0 sh build.sh
+#   LIBGIT2_VERSION=1.9.2 sh build.sh
 #
-# Build libssh2 1.11.1 and libgit2 1.9.0, then build pygit2 inplace:
+# Build libssh2 1.11.1 and libgit2 1.9.2, then build pygit2 inplace:
 #
-#   LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.0 sh build.sh
+#   LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.2 sh build.sh
 #
 # Build inplace and run the tests:
 #

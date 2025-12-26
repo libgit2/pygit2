@@ -59,7 +59,7 @@ worry about this if you `install from the source distribution`_.
 Optional libgit2 dependencies to support ssh and https:
 
 - https: WinHTTP (Windows), SecureTransport (OS X) or OpenSSL.
-- ssh: libssh2 1.9.1 or later, pkg-config
+- ssh: libssh2 1.10.0 or later, pkg-config
 
 To run the tests:
 
@@ -158,9 +158,9 @@ directory, do:
 .. code-block:: sh
    :caption: On Linux using bash
 
-   wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.1.tar.gz -O libgit2-1.9.1.tar.gz
-   tar -xzf libgit2-1.9.1.tar.gz
-   cd libgit2-1.9.1/
+   wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.2.tar.gz -O libgit2-1.9.2.tar.gz
+   tar -xzf libgit2-1.9.2.tar.gz
+   cd libgit2-1.9.2/
    cmake .
    make
    sudo make install
@@ -245,9 +245,9 @@ Install libgit2 (see we define the installation prefix):
 .. code-block:: sh
    :caption: On Linux using bash
 
-   wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.1.tar.gz -O libgit2-1.9.1.tar.gz
-   tar xzf libgit2-1.9.1.tar.gz
-   cd libgit2-1.9.1/
+   wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.2.tar.gz -O libgit2-1.9.2.tar.gz
+   tar xzf libgit2-1.9.2.tar.gz
+   cd libgit2-1.9.2/
    cmake . -DCMAKE_INSTALL_PREFIX=$LIBGIT2
    cmake --build . --target install
 
@@ -307,7 +307,7 @@ variable.  The following recipe shows you how to do it:
 .. code-block:: pwsh
    :caption: On Windows using PowerShell (and CMake v3.21 or newer)
 
-   git clone --depth=1 -b v1.9.1 https://github.com/libgit2/libgit2.git
+   git clone --depth=1 -b v1.9.2 https://github.com/libgit2/libgit2.git
    $env:CMAKE_INSTALL_PREFIX = "C:/Dev/libgit2"
    $env:CMAKE_GENERATOR = "Visual Studio 17 2022"
    $env:CMAKE_GENERATOR_PLATFORM = "x64" # or "Win32" or "ARM64"
