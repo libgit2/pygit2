@@ -136,3 +136,19 @@ def test_filter_cleanup(dirtyrepo: Repository, rot13_filter: Filter) -> None:
     # Indirectly test that pygit2_filter_cleanup has the GIL
     # before calling pygit2_filter_payload_free.
     dirtyrepo.diff()
+
+
+def test_filterlist_none(testrepo: Repository) -> None:
+    fl = testrepo.load_filter_list('hello.txt')
+    assert fl is None
+
+
+def test_filterlist_crlf(testrepo: Repository) -> None:
+    testrepo.config['core.autocrlf'] = True
+
+    fl = testrepo.load_filter_list('hello.txt')
+    assert fl is not None
+    assert 'crlf' in fl
+
+    with pytest.raises(TypeError):
+        1234 in fl  # type: ignore

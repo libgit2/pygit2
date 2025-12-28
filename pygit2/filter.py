@@ -24,8 +24,14 @@
 # Boston, MA 02110-1301, USA.
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from ._pygit2 import FilterSource
+from .ffi import C, ffi
+from .utils import to_bytes
+
+if TYPE_CHECKING:
+    from ._libgit2.ffi import GitFilterListC
 
 
 class Filter:
@@ -107,3 +113,25 @@ class Filter:
                 Any remaining filtered output data must be written to
                 `write_next` before returning.
         """
+
+
+class FilterList:
+    _pointer: GitFilterListC
+
+    @classmethod
+    def _from_c(cls, ptr: GitFilterListC):
+        if ptr == ffi.NULL:
+            return None
+        fl = cls.__new__(cls)
+        fl._pointer = ptr
+        return fl
+
+    def __contains__(self, name: str) -> bool:
+        if not isinstance(name, str):
+            raise TypeError('argument must be str')
+        c_name = to_bytes(name)
+        result = C.git_filter_list_contains(self._pointer, c_name)
+        return bool(result)
+
+    def __del__(self):
+        C.git_filter_list_free(self._pointer)

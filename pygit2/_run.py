@@ -77,6 +77,7 @@ h_files = [
     'net.h',
     'refspec.h',
     'repository.h',
+    'filter.h',
     'commit.h',
     'revert.h',
     'stash.h',

@@ -177,6 +177,10 @@ class GitDescribeOptionsC:
 class GitDescribeResultC:
     pass
 
+class GitFilterListC:
+    # opaque struct
+    pass
+
 class GitIndexC:
     pass
 
@@ -317,6 +321,8 @@ def new(a: Literal['git_packbuilder **']) -> _Pointer[GitPackbuilderC]: ...
 def new(a: Literal['git_signature *']) -> GitSignatureC: ...
 @overload
 def new(a: Literal['git_signature **']) -> _Pointer[GitSignatureC]: ...
+@overload
+def new(a: Literal['git_filter_list **']) -> _Pointer[GitFilterListC]: ...
 @overload
 def new(a: Literal['int *']) -> int_c: ...
 @overload

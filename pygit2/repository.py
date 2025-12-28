@@ -64,6 +64,7 @@ from .enums import (
     DescribeStrategy,
     DiffOption,
     FileMode,
+    FilterMode,
     MergeFavor,
     MergeFileFlag,
     MergeFlag,
@@ -73,6 +74,7 @@ from .enums import (
 )
 from .errors import check_error
 from .ffi import C, ffi
+from .filter import FilterList
 from .index import Index, IndexEntry, MergeFileResult
 from .packbuilder import PackBuilder
 from .references import References
@@ -234,6 +236,31 @@ class BaseRepository(_Repository):
 
         oid = Oid(raw=bytes(ffi.buffer(c_oid.id)[:]))
         return oid
+
+    def load_filter_list(
+        self, path: str, mode: FilterMode = FilterMode.TO_ODB
+    ) -> FilterList | None:
+        """
+        Load the filter list for a given path.
+        May return None if there are no filters to apply to this path.
+
+        Parameters:
+
+        path
+            Relative path of the file to be filtered
+
+        mode
+            Filtering direction: ODB to worktree (SMUDGE), or worktree to ODB
+            (CLEAN).
+        """
+        c_filters = ffi.new('git_filter_list **')
+        c_path = to_bytes(path)
+        c_mode = int(mode)
+
+        err = C.git_filter_list_load(c_filters, self._repo, ffi.NULL, c_path, c_mode, 0)
+        check_error(err)
+        fl = FilterList._from_c(c_filters[0])
+        return fl
 
     def __iter__(self) -> Iterator[Oid]:
         return iter(self.odb)
