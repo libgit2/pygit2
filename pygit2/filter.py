@@ -133,5 +133,8 @@ class FilterList:
         result = C.git_filter_list_contains(self._pointer, c_name)
         return bool(result)
 
+    def __len__(self) -> int:
+        return C.git_filter_list_length(self._pointer)
+
     def __del__(self):
         C.git_filter_list_free(self._pointer)

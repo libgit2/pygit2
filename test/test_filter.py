@@ -148,6 +148,7 @@ def test_filterlist_crlf(testrepo: Repository) -> None:
 
     fl = testrepo.load_filter_list('hello.txt')
     assert fl is not None
+    assert len(fl) == 1
     assert 'crlf' in fl
 
     with pytest.raises(TypeError):

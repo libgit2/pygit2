@@ -23,4 +23,7 @@ int git_filter_list_contains(
 	git_filter_list *filters,
 	const char *name);
 
+size_t git_filter_list_length(
+	const git_filter_list *fl);
+
 void git_filter_list_free(git_filter_list *filters);
