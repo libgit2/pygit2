@@ -23,6 +23,9 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from __future__ import annotations
+
+import weakref
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
@@ -116,15 +119,33 @@ class Filter:
 
 
 class FilterList:
+    _all_filter_lists: set[weakref.ReferenceType[FilterList]] = set()
+
     _pointer: GitFilterListC
 
     @classmethod
     def _from_c(cls, ptr: GitFilterListC):
         if ptr == ffi.NULL:
             return None
+
         fl = cls.__new__(cls)
         fl._pointer = ptr
+
+        # Keep track of this FilterList until it's garbage collected. This lets
+        # `filter_unregister` ensure the user isn't trying to delete a filter
+        # that's still in use.
+        ref = weakref.ref(fl, FilterList._all_filter_lists.remove)
+        FilterList._all_filter_lists.add(ref)
+
         return fl
+
+    @classmethod
+    def _is_filter_in_use(cls, name: str) -> bool:
+        for ref in cls._all_filter_lists:
+            fl = ref()
+            if fl is not None and name in fl:
+                return True
+        return False
 
     def __contains__(self, name: str) -> bool:
         if not isinstance(name, str):

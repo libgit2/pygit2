@@ -11,6 +11,9 @@ typedef enum {
 	GIT_FILTER_ATTRIBUTES_FROM_COMMIT = ...,
 } git_filter_flag_t;
 
+int git_filter_unregister(
+	const char *name);
+
 int git_filter_list_load(
 	git_filter_list **filters,
 	git_repository *repo,

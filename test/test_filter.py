@@ -1,4 +1,5 @@
 import codecs
+import gc
 from collections.abc import Callable, Generator
 from io import BytesIO
 
@@ -56,32 +57,34 @@ class _UnmatchedFilter(_Rot13Filter):
     attributes = 'filter=rot13'
 
 
+def _filter_fixture(name: str, filter: type[Filter]) -> Generator[None, None, None]:
+    pygit2.filter_register(name, filter)
+    yield
+
+    # Collect any FilterLists that may use this filter before unregistering it
+    gc.collect()
+
+    pygit2.filter_unregister(name)
+
+
 @pytest.fixture
 def rot13_filter() -> Generator[None, None, None]:
-    pygit2.filter_register('rot13', _Rot13Filter)
-    yield
-    pygit2.filter_unregister('rot13')
+    yield from _filter_fixture('rot13', _Rot13Filter)
 
 
 @pytest.fixture
 def passthrough_filter() -> Generator[None, None, None]:
-    pygit2.filter_register('passthrough-rot13', _PassthroughFilter)
-    yield
-    pygit2.filter_unregister('passthrough-rot13')
+    yield from _filter_fixture('passthrough-rot13', _PassthroughFilter)
 
 
 @pytest.fixture
 def buffered_filter() -> Generator[None, None, None]:
-    pygit2.filter_register('buffered-rot13', _BufferedFilter)
-    yield
-    pygit2.filter_unregister('buffered-rot13')
+    yield from _filter_fixture('buffered-rot13', _BufferedFilter)
 
 
 @pytest.fixture
 def unmatched_filter() -> Generator[None, None, None]:
-    pygit2.filter_register('unmatched-rot13', _UnmatchedFilter)
-    yield
-    pygit2.filter_unregister('unmatched-rot13')
+    yield from _filter_fixture('unmatched-rot13', _UnmatchedFilter)
 
 
 def test_filter(testrepo: Repository, rot13_filter: Filter) -> None:
@@ -153,3 +156,29 @@ def test_filterlist_crlf(testrepo: Repository) -> None:
 
     with pytest.raises(TypeError):
         1234 in fl  # type: ignore
+
+
+def test_filterlist_rot13(testrepo: Repository, rot13_filter: Filter) -> None:
+    fl = testrepo.load_filter_list('hello.txt')
+    assert fl is not None
+    assert 'rot13' in fl
+
+
+def test_filterlist_dangerous_unregister(testrepo: Repository) -> None:
+    pygit2.filter_register('rot13', _Rot13Filter)
+
+    fl = testrepo.load_filter_list('hello.txt')
+    assert fl is not None
+    assert len(fl) == 1
+    assert 'rot13' in fl
+
+    # Unregistering a filter that's still in use in a FilterList is dangerous!
+    # Our built-in check (that raises RuntimeError) may avert a segfault.
+    with pytest.raises(RuntimeError):
+        pygit2.filter_unregister('rot13')
+
+    # Delete any FilterLists that use the filter, and only then is it safe
+    # to unregister the filter.
+    del fl
+    gc.collect()
+    pygit2.filter_unregister('rot13')

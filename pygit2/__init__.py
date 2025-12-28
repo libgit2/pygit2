@@ -286,7 +286,6 @@ from ._pygit2 import (
     _cache_enums,
     discover_repository,
     filter_register,
-    filter_unregister,
     hash,
     hashfile,
     init_file_backend,
@@ -545,6 +544,27 @@ def clone_repository(
     return Repository._from_c(crepo[0], owned=True)
 
 
+def filter_unregister(name: str) -> None:
+    """
+    Unregister the given filter.
+
+    Note that the filter registry is not thread safe. Any registering or
+    deregistering of filters should be done outside of any possible usage
+    of the filters.
+
+    In particular, any FilterLists that use the filter must have been garbage
+    collected before you can unregister the filter.
+    """
+    from .filter import FilterList
+
+    if FilterList._is_filter_in_use(name):
+        raise RuntimeError(f"filter still in use: '{name}'")
+
+    c_name = to_bytes(name)
+    err = C.git_filter_unregister(c_name)
+    check_error(err)
+
+
 tree_entry_key = functools.cmp_to_key(tree_entry_cmp)
 
 settings = Settings()
@@ -610,7 +630,6 @@ __all__ = (
     # Low Level API (not present in .pyi)
     'FilterSource',
     'filter_register',
-    'filter_unregister',
     'GIT_APPLY_LOCATION_BOTH',
     'GIT_APPLY_LOCATION_INDEX',
     'GIT_APPLY_LOCATION_WORKDIR',

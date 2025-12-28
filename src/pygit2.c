@@ -345,31 +345,6 @@ done:
     return result;
 }
 
-PyDoc_STRVAR(filter_unregister__doc__,
-    "filter_unregister(name: str) -> None\n"
-    "\n"
-    "Unregister the given filter.\n"
-    "\n"
-    "Note that the filter registry is not thread safe. Any registering or\n"
-    "deregistering of filters should be done outside of any possible usage\n"
-    "of the filters.\n");
-
-PyObject *
-filter_unregister(PyObject *self, PyObject *args)
-{
-    const char *name;
-    Py_ssize_t size;
-    int err;
-
-    if (!PyArg_ParseTuple(args, "s#", &name, &size))
-        return NULL;
-    if ((err = git_filter_unregister(name)) < 0)
-        return Error_set(err);
-
-    Py_RETURN_NONE;
-}
-
-
 static void
 forget_enums(void)
 {
@@ -441,7 +416,6 @@ PyMethodDef module_methods[] = {
     {"reference_is_valid_name", reference_is_valid_name, METH_O, reference_is_valid_name__doc__},
     {"tree_entry_cmp", tree_entry_cmp, METH_VARARGS, tree_entry_cmp__doc__},
     {"filter_register", (PyCFunction)filter_register, METH_VARARGS | METH_KEYWORDS, filter_register__doc__},
-    {"filter_unregister", filter_unregister, METH_VARARGS, filter_unregister__doc__},
     {"_cache_enums", _cache_enums, METH_NOARGS, _cache_enums__doc__},
     {NULL}
 };
