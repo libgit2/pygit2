@@ -13,9 +13,9 @@ Authors:
     Dave Borowitz
     Brandon Milton
     Daniel Rodríguez Troitiño
+    Brendan Doherty
     Peter Rowlands
     Richo Healey
-    Brendan Doherty
     Christian Boos
     Julien Miotte
     Nick Hynes

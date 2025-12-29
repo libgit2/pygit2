@@ -1,14 +1,14 @@
-# 1.19.1 (UNRELEASED)
+# 1.19.1 (2025-12-29)
 
-- Fix diff getitem/iter for unachanged or binary files, return `None`
+- Update wheels to libgit2 1.9.2 and OpenSSL 3.5
+
+- Fix: now diff's getitem/iter returns `None` for unchanged or binary files
   [#1412](https://github.com/libgit2/pygit2/pull/1412)
 
-- CI: separate macOS wheels (arm and intel instead of universal)
+- CI (macOS): arm, intel and pypy wheels (instead of universal)
   [#1441](https://github.com/libgit2/pygit2/pull/1441)
 
-- CI: pypy wheels on macOS
-
-- CI: fix tests with pypy
+- CI (pypy): fix tests
   [#1437](https://github.com/libgit2/pygit2/pull/1437)
 
 
