@@ -7,7 +7,7 @@ import pytest
 
 import pygit2
 from pygit2 import Blob, Filter, FilterSource, Repository
-from pygit2.enums import BlobFilter
+from pygit2.enums import BlobFilter, FilterMode
 from pygit2.errors import Passthrough
 
 
@@ -146,22 +146,31 @@ def test_filterlist_none(testrepo: Repository) -> None:
     assert fl is None
 
 
-def test_filterlist_crlf(testrepo: Repository) -> None:
+def test_filterlist_apply_to_buffer_crlf_clean(testrepo: Repository) -> None:
     testrepo.config['core.autocrlf'] = True
 
-    fl = testrepo.load_filter_list('hello.txt')
+    fl = testrepo.load_filter_list('whatever.txt', mode=FilterMode.CLEAN)
+    assert fl is not None
+    assert len(fl) == 1
+    assert 'crlf' in fl
+    assert 'bogus_filter_name' not in fl
+    with pytest.raises(TypeError):
+        1234 in fl  # type: ignore
+
+    filtered = fl.apply_to_buffer(b'hello\r\nworld\r\n')
+    assert filtered == b'hello\nworld\n'
+
+
+def test_filterlist_apply_to_buffer_crlf_smudge(testrepo: Repository) -> None:
+    testrepo.config['core.autocrlf'] = True
+
+    fl = testrepo.load_filter_list('whatever.txt', mode=FilterMode.SMUDGE)
     assert fl is not None
     assert len(fl) == 1
     assert 'crlf' in fl
 
-    with pytest.raises(TypeError):
-        1234 in fl  # type: ignore
-
-
-def test_filterlist_rot13(testrepo: Repository, rot13_filter: Filter) -> None:
-    fl = testrepo.load_filter_list('hello.txt')
-    assert fl is not None
-    assert 'rot13' in fl
+    filtered = fl.apply_to_buffer(b'hello\nworld\n')
+    assert filtered == b'hello\r\nworld\r\n'
 
 
 def test_filterlist_dangerous_unregister(testrepo: Repository) -> None:
@@ -182,3 +191,42 @@ def test_filterlist_dangerous_unregister(testrepo: Repository) -> None:
     del fl
     gc.collect()
     pygit2.filter_unregister('rot13')
+
+
+def test_filterlist_apply_to_file(testrepo: Repository, rot13_filter: Filter) -> None:
+    fl = testrepo.load_filter_list('bye.txt')
+    assert fl is not None
+    assert len(fl) == 1
+    assert 'rot13' in fl
+
+    filtered = fl.apply_to_file(testrepo, 'bye.txt')
+    assert filtered == b'olr jbeyq\n'
+
+
+def test_filterlist_apply_to_blob(testrepo: Repository, rot13_filter: Filter) -> None:
+    fl = testrepo.load_filter_list('whatever.txt')
+    assert fl is not None
+    assert len(fl) == 1
+    assert 'rot13' in fl
+
+    blob_oid = testrepo.create_blob(b'bye world\n')
+    blob = testrepo[blob_oid]
+    assert isinstance(blob, Blob)
+
+    filtered = fl.apply_to_blob(blob)
+    assert filtered == b'olr jbeyq\n'
+
+
+def test_filterlist_apply_to_buffer_multiple(
+    testrepo: Repository, rot13_filter: Filter
+) -> None:
+    testrepo.config['core.autocrlf'] = True
+
+    fl = testrepo.load_filter_list('whatever.txt')
+    assert fl is not None
+    assert len(fl) == 2
+    assert 'crlf' in fl
+    assert 'rot13' in fl
+
+    filtered = fl.apply_to_buffer(b'bye\r\nworld\r\n')
+    assert filtered == b'olr\njbeyq\n'

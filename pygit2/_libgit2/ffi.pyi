@@ -123,6 +123,10 @@ class GitBlameC:
     # incomplete
     pass
 
+class GitBlobC:
+    # incomplete
+    pass
+
 class GitMergeOptionsC:
     file_favor: int
     flags: int
@@ -267,6 +271,8 @@ def new(a: Literal['git_proxy_options *']) -> GitProxyOptionsC: ...
 def new(a: Literal['git_oid *']) -> GitOidC: ...
 @overload
 def new(a: Literal['git_blame **']) -> _Pointer[GitBlameC]: ...
+@overload
+def new(a: Literal['git_blob **']) -> _Pointer[GitBlobC]: ...
 @overload
 def new(a: Literal['git_clone_options *']) -> GitCloneOptionsC: ...
 @overload
