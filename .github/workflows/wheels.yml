@@ -57,7 +57,7 @@ jobs:
           CIBW_ARCHS_WINDOWS: ${{ matrix.name == 'windows-x86' && 'auto32' || 'native' }}
         run: python -m cibuildwheel --output-dir wheelhouse
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: wheels-${{ matrix.name }}
           path: ./wheelhouse/*.whl
@@ -89,7 +89,7 @@ jobs:
           CIBW_ARCHS: ppc64le
           CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.2 LIBGIT2=/project/ci
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: wheels-linux-ppc
           path: ./wheelhouse/*.whl
@@ -111,7 +111,7 @@ jobs:
       - name: Build sdist
         run: pipx run build --sdist --outdir dist
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: wheels-sdist
           path: dist/*
@@ -121,7 +121,7 @@ jobs:
         run: python .github/workflows/parse_release_notes.py
 
       - name: Upload Release Notes
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: release-notes
           path: ReleaseNotes.md
@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: dist
           pattern: wheels-*
@@ -152,7 +152,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         path: dist
         pattern: wheels-*
@@ -167,7 +167,7 @@ jobs:
         password: ${{ secrets.PYPI_API_TOKEN }}
         skip-existing: true
 
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: release-notes
     - name: Create GitHub Release
