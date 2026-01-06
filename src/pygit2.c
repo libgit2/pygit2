@@ -408,7 +408,7 @@ free_module(void *self)
 }
 
 
-PyMethodDef module_methods[] = {
+static PyMethodDef module_methods[] = {
     {"discover_repository", discover_repository, METH_VARARGS, discover_repository__doc__},
     {"hash", hash, METH_VARARGS, hash__doc__},
     {"hashfile", hashfile, METH_VARARGS, hashfile__doc__},
