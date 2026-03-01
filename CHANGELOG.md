@@ -1,3 +1,15 @@
+# 1.19.2 (UNRELEASED)
+
+- New `Repository.load_filter_list(...)` and `FilterList`
+  [#1444](https://github.com/libgit2/pygit2/pull/1444)
+
+- Build: Fix static build conflict with numpy
+  [#1446](https://github.com/libgit2/pygit2/pull/1446)
+
+- CI: Fix create GitHub release
+  [#1448](https://github.com/libgit2/pygit2/pull/1448)
+
+
 # 1.19.1 (2025-12-29)
 
 - Update wheels to libgit2 1.9.2 and OpenSSL 3.5
