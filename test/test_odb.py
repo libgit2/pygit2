@@ -41,6 +41,7 @@ from . import utils
 BLOB_HEX = 'af431f20fc541ed6d5afede3e2dc7160f6f01f16'
 BLOB_RAW = binascii.unhexlify(BLOB_HEX.encode('ascii'))
 BLOB_OID = Oid(raw=BLOB_RAW)
+BLOB_CONTENTS = b'a contents\n'
 
 
 def test_emptyodb(barerepo: Repository) -> None:
@@ -75,7 +76,7 @@ def test_read(odb: Odb) -> None:
     ab = odb.read(BLOB_OID)
     a = odb.read(BLOB_HEX)
     assert ab == a
-    assert (ObjectType.BLOB, b'a contents\n') == a
+    assert (ObjectType.BLOB, BLOB_CONTENTS) == a
     assert isinstance(a[0], ObjectType)
 
     a2 = odb.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
@@ -84,8 +85,20 @@ def test_read(odb: Odb) -> None:
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = odb.read(a_hex_prefix)
-    assert (ObjectType.BLOB, b'a contents\n') == a3
+    assert (ObjectType.BLOB, BLOB_CONTENTS) == a3
     assert isinstance(a3[0], ObjectType)
+
+
+def test_read_header(odb: Odb) -> None:
+    with pytest.raises(TypeError):
+        odb.read_header(123)  # type: ignore
+    utils.assertRaisesWithArg(KeyError, '1' * 40, odb.read_header, '1' * 40)
+
+    ab = odb.read_header(BLOB_OID)
+    a = odb.read_header(BLOB_HEX)
+    assert ab == a
+    assert (ObjectType.BLOB, len(BLOB_CONTENTS)) == a
+    assert isinstance(a[0], ObjectType)
 
 
 def test_write(odb: Odb) -> None:

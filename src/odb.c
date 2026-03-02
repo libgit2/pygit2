@@ -208,6 +208,44 @@ Odb_read(Odb *self, PyObject *py_hex)
     return tuple;
 }
 
+PyDoc_STRVAR(Odb_read_header__doc__,
+    "read_header(oid: Oid) -> tuple[enums.ObjectType, size\n"
+    "\n"
+    "Read the header of an object from the database, without reading its full\n"
+    "contents.\n"
+    "\n"
+    "The header includes the type and the length of an object.\n"
+    "\n"
+    "Note that most backends do not support reading only the header of an object,\n"
+    "so the whole object may be read and then the header will be returned.");
+
+PyObject *
+Odb_read_header(Odb *self, PyObject *py_hex)
+{
+    git_oid oid;
+    int err;
+    size_t len;
+    git_object_t type;
+    PyObject* type_enum;
+    PyObject* tuple;
+
+    len = py_oid_to_git_oid(py_hex, &oid);
+    if (len == 0)
+        return NULL;
+
+    err = git_odb_read_header(&len, &type, self->odb, &oid);
+    if (err != 0) {
+        Error_set_oid(err, &oid, len);
+        return NULL;
+    }
+
+    // Convert type to ObjectType enum
+    type_enum = pygit2_enum(ObjectTypeEnum, type);
+
+    tuple = Py_BuildValue("(On)", type_enum, len);
+    return tuple;
+}
+
 PyDoc_STRVAR(Odb_write__doc__,
     "write(type: int, data: bytes) -> Oid\n"
     "\n"
@@ -309,6 +347,7 @@ Odb_add_backend(Odb *self, PyObject *args)
 PyMethodDef Odb_methods[] = {
     METHOD(Odb, add_disk_alternate, METH_O),
     METHOD(Odb, read, METH_O),
+    METHOD(Odb, read_header, METH_O),
     METHOD(Odb, write, METH_VARARGS),
     METHOD(Odb, exists, METH_O),
     METHOD(Odb, add_backend, METH_VARARGS),
