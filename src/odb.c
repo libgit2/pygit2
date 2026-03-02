@@ -170,7 +170,7 @@ Odb_read_raw(git_odb *odb, const git_oid *oid, size_t len)
 }
 
 PyDoc_STRVAR(Odb_read__doc__,
-  "read(oid) -> type, data, size\n"
+  "read(oid) -> type, data\n"
   "\n"
   "Read raw object data from the object db.");
 
