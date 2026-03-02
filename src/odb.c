@@ -37,6 +37,8 @@
 
 extern PyTypeObject OdbBackendType;
 
+extern PyObject *ObjectTypeEnum;
+
 static git_otype
 int_to_loose_object_type(int type_id)
 {
@@ -170,7 +172,7 @@ Odb_read_raw(git_odb *odb, const git_oid *oid, size_t len)
 }
 
 PyDoc_STRVAR(Odb_read__doc__,
-  "read(oid) -> type, data\n"
+  "read(oid: Oid) -> tuple[enums.ObjectType, bytes]\n"
   "\n"
   "Read raw object data from the object db.");
 
@@ -180,6 +182,8 @@ Odb_read(Odb *self, PyObject *py_hex)
     git_oid oid;
     git_odb_object *obj;
     size_t len;
+    git_object_t type;
+    PyObject* type_enum;
     PyObject* tuple;
 
     len = py_oid_to_git_oid(py_hex, &oid);
@@ -190,9 +194,13 @@ Odb_read(Odb *self, PyObject *py_hex)
     if (obj == NULL)
         return NULL;
 
+    // Convert type to ObjectType enum
+    type = git_odb_object_type(obj);
+    type_enum = pygit2_enum(ObjectTypeEnum, type);
+
     tuple = Py_BuildValue(
-        "(ny#)",
-        git_odb_object_type(obj),
+        "(Oy#)",
+        type_enum,
         git_odb_object_data(obj),
         git_odb_object_size(obj));
 

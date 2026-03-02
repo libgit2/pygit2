@@ -47,6 +47,7 @@ PyObject *FileModeEnum;
 PyObject *FileStatusEnum;
 PyObject *MergeAnalysisEnum;
 PyObject *MergePreferenceEnum;
+PyObject *ObjectTypeEnum;
 PyObject *ReferenceTypeEnum;
 
 extern PyTypeObject RepositoryType;
@@ -354,6 +355,7 @@ forget_enums(void)
     Py_CLEAR(FileStatusEnum);
     Py_CLEAR(MergeAnalysisEnum);
     Py_CLEAR(MergePreferenceEnum);
+    Py_CLEAR(ObjectTypeEnum);
     Py_CLEAR(ReferenceTypeEnum);
 }
 
@@ -389,6 +391,7 @@ _cache_enums(PyObject *self, PyObject *args)
     CACHE_PYGIT2_ENUM(FileStatus);
     CACHE_PYGIT2_ENUM(MergeAnalysis);
     CACHE_PYGIT2_ENUM(MergePreference);
+    CACHE_PYGIT2_ENUM(ObjectType);
     CACHE_PYGIT2_ENUM(ReferenceType);
 
 #undef CACHE_PYGIT2_ENUM

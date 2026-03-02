@@ -76,13 +76,16 @@ def test_read(odb: Odb) -> None:
     a = odb.read(BLOB_HEX)
     assert ab == a
     assert (ObjectType.BLOB, b'a contents\n') == a
+    assert isinstance(a[0], ObjectType)
 
     a2 = odb.read('7f129fd57e31e935c6d60a0c794efe4e6927664b')
     assert (ObjectType.BLOB, b'a contents 2\n') == a2
+    assert isinstance(a2[0], ObjectType)
 
     a_hex_prefix = BLOB_HEX[:4]
     a3 = odb.read(a_hex_prefix)
     assert (ObjectType.BLOB, b'a contents\n') == a3
+    assert isinstance(a3[0], ObjectType)
 
 
 def test_write(odb: Odb) -> None:
