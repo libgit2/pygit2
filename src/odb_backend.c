@@ -518,7 +518,7 @@ OdbBackend_refresh(OdbBackend *self)
  * - readstream
  * - freshen
  */
-PyMethodDef OdbBackend_methods[] = {
+static PyMethodDef OdbBackend_methods[] = {
     METHOD(OdbBackend, read, METH_O),
     METHOD(OdbBackend, read_prefix, METH_O),
     METHOD(OdbBackend, read_header, METH_O),

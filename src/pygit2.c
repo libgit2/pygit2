@@ -305,45 +305,51 @@ filter_register(PyObject *self, PyObject *args, PyObject *kwds)
     int priority = GIT_FILTER_DRIVER_PRIORITY;
     char *keywords[] = {"name", "filter_cls", "priority", NULL};
     pygit2_filter *filter;
-    PyObject *py_attrs;
-    PyObject *result = Py_None;
     int err;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "s#O|i", keywords,
                                      &name, &size, &py_filter_cls, &priority))
         return NULL;
 
-    py_attrs = PyObject_GetAttrString(py_filter_cls, "attributes");
-    if (py_attrs == NULL)
+    /* py_attrs = py_filter_cls.attributes */
+    PyObject* py_attrs = PyObject_GetAttrString(py_filter_cls, "attributes");
+    if (py_attrs == NULL) {
         return NULL;
+    }
+    char* attrs = pgit_strdup(py_attrs);
+    Py_DECREF(py_attrs);
+    if (attrs == NULL) {
+        return NULL;
+    }
 
+    /* allocate memory */
     filter = malloc(sizeof(pygit2_filter));
-    if (filter == NULL)
-    {
-        return PyExc_MemoryError;
+    if (filter == NULL) {
+        free(attrs);
+        return PyErr_NoMemory();
     }
     memset(filter, 0, sizeof(pygit2_filter));
-    git_filter_init(&filter->filter, GIT_FILTER_VERSION);
 
-    filter->filter.attributes = PyUnicode_AsUTF8(py_attrs);
+    /* initialize git_filter */
+    git_filter_init(&filter->filter, GIT_FILTER_VERSION);
+    filter->filter.attributes = attrs;
     filter->filter.shutdown = pygit2_filter_shutdown;
     filter->filter.check = pygit2_filter_check;
     filter->filter.stream = pygit2_filter_stream;
     filter->filter.cleanup = pygit2_filter_cleanup;
+
+    /* keep reference to Python filter */
     filter->py_filter_cls = py_filter_cls;
-    Py_INCREF(py_filter_cls);
 
-    if ((err = git_filter_register(name, &filter->filter, priority)) < 0)
-        goto error;
+    /* git register filter */
+    if ((err = git_filter_register(name, &filter->filter, priority)) < 0) {
+        free(attrs);
+        free(filter);
+        return Error_set(err);
+    }
 
-    goto done;
-
-error:
-    Py_DECREF(py_filter_cls);
-    free(filter);
-done:
-    Py_DECREF(py_attrs);
-    return result;
+    Py_INCREF(py_filter_cls);  /* libgit2 now owns this reference, will decref in shutdown */
+    Py_RETURN_NONE;
 }
 
 static void

@@ -551,7 +551,9 @@ void pygit2_filter_cleanup(git_filter *self, void *payload)
 void pygit2_filter_shutdown(git_filter *self)
 {
     pygit2_filter *filter = (pygit2_filter *)self;
+
     PyGILState_STATE gil = PyGILState_Ensure();
+    free((void*)filter->filter.attributes);
     Py_DECREF(filter->py_filter_cls);
     free(filter);
     PyGILState_Release(gil);

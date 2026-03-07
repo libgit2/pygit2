@@ -658,7 +658,7 @@ PyTypeObject RefLogEntryType = {
     0,                                         /* tp_new            */
 };
 
-PyMethodDef Reference_methods[] = {
+static PyMethodDef Reference_methods[] = {
     METHOD(Reference, delete, METH_NOARGS),
     METHOD(Reference, rename, METH_O),
     METHOD(Reference, resolve, METH_NOARGS),

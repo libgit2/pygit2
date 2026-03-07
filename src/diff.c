@@ -236,7 +236,7 @@ PyMemberDef DiffFile_members[] = {
     {NULL}
 };
 
-PyMethodDef DiffFile_methods[] = {
+static PyMethodDef DiffFile_methods[] = {
     METHOD(DiffFile, from_c, METH_STATIC | METH_O),
     {NULL},
 };
@@ -914,7 +914,7 @@ DiffStats_dealloc(DiffStats *self)
     PyObject_Del(self);
 }
 
-PyMethodDef DiffStats_methods[] = {
+static PyMethodDef DiffStats_methods[] = {
     METHOD(DiffStats, format, METH_VARARGS | METH_KEYWORDS),
     {NULL}
 };

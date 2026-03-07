@@ -160,7 +160,7 @@ TreeBuilder_clear(TreeBuilder *self)
     Py_RETURN_NONE;
 }
 
-PyMethodDef TreeBuilder_methods[] = {
+static PyMethodDef TreeBuilder_methods[] = {
     METHOD(TreeBuilder, clear, METH_NOARGS),
     METHOD(TreeBuilder, get, METH_O),
     METHOD(TreeBuilder, insert, METH_VARARGS),

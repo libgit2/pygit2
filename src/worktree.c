@@ -93,7 +93,7 @@ Worktree_dealloc(Worktree *self)
 }
 
 
-PyMethodDef Worktree_methods[] = {
+static PyMethodDef Worktree_methods[] = {
     METHOD(Worktree, prune, METH_VARARGS),
     {NULL}
 };

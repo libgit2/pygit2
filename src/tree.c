@@ -405,7 +405,7 @@ PyMappingMethods Tree_as_mapping = {
     0,                            /* mp_ass_subscript */
 };
 
-PyMethodDef Tree_methods[] = {
+static PyMethodDef Tree_methods[] = {
     METHOD(Tree, diff_to_tree, METH_VARARGS | METH_KEYWORDS),
     METHOD(Tree, diff_to_workdir, METH_VARARGS | METH_KEYWORDS),
     METHOD(Tree, diff_to_index, METH_VARARGS | METH_KEYWORDS),

@@ -344,7 +344,7 @@ Odb_add_backend(Odb *self, PyObject *args)
 }
 
 
-PyMethodDef Odb_methods[] = {
+static PyMethodDef Odb_methods[] = {
     METHOD(Odb, add_disk_alternate, METH_O),
     METHOD(Odb, read, METH_O),
     METHOD(Odb, read_header, METH_O),

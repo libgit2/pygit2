@@ -125,13 +125,11 @@ Refdb_open(PyObject *self, Repository *repo)
     return wrap_refdb(refdb);
 }
 
-PyMethodDef Refdb_methods[] = {
+static PyMethodDef Refdb_methods[] = {
     METHOD(Refdb, compress, METH_NOARGS),
     METHOD(Refdb, set_backend, METH_O),
-    {"new", (PyCFunction) Refdb_new,
-      METH_O | METH_STATIC, Refdb_new__doc__},
-    {"open", (PyCFunction) Refdb_open,
-      METH_O | METH_STATIC, Refdb_open__doc__},
+    {"new", (PyCFunction) Refdb_new, METH_O | METH_STATIC, Refdb_new__doc__},
+    {"open", (PyCFunction) Refdb_open, METH_O | METH_STATIC, Refdb_open__doc__},
     {NULL}
 };
 

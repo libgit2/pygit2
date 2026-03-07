@@ -302,7 +302,7 @@ PyGetSetDef Object_getseters[] = {
     {NULL}
 };
 
-PyMethodDef Object_methods[] = {
+static PyMethodDef Object_methods[] = {
     METHOD(Object, read_raw, METH_NOARGS),
     METHOD(Object, peel, METH_O),
     {NULL}

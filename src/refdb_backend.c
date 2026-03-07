@@ -772,7 +772,7 @@ RefdbBackend_ensure_log(RefdbBackend *self, PyObject *_ref_name)
     }
 }
 
-PyMethodDef RefdbBackend_methods[] = {
+static PyMethodDef RefdbBackend_methods[] = {
     METHOD(RefdbBackend, exists, METH_O),
     METHOD(RefdbBackend, lookup, METH_O),
     METHOD(RefdbBackend, write, METH_VARARGS),

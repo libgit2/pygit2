@@ -275,7 +275,7 @@ Branch_upstream_name__get__(Branch *self)
 }
 
 
-PyMethodDef Branch_methods[] = {
+static PyMethodDef Branch_methods[] = {
     METHOD(Branch, delete, METH_NOARGS),
     METHOD(Branch, is_head, METH_NOARGS),
     METHOD(Branch, is_checked_out, METH_NOARGS),

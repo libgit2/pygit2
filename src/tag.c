@@ -142,7 +142,7 @@ Tag_raw_message__get__(Tag *self)
     return PyBytes_FromString(message);
 }
 
-PyMethodDef Tag_methods[] = {
+static PyMethodDef Tag_methods[] = {
     METHOD(Tag, get_object, METH_NOARGS),
     {NULL}
 };

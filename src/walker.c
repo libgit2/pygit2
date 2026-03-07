@@ -163,7 +163,7 @@ Walker_iternext(Walker *self)
     return wrap_object((git_object*)commit, self->repo, NULL);
 }
 
-PyMethodDef Walker_methods[] = {
+static PyMethodDef Walker_methods[] = {
     METHOD(Walker, hide, METH_O),
     METHOD(Walker, push, METH_O),
     METHOD(Walker, reset, METH_NOARGS),

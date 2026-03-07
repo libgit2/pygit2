@@ -188,7 +188,7 @@ Mailmap_dealloc(Mailmap *self)
 }
 
 
-PyMethodDef Mailmap_methods[] = {
+static PyMethodDef Mailmap_methods[] = {
     METHOD(Mailmap, add_entry, METH_VARARGS | METH_KEYWORDS),
     METHOD(Mailmap, resolve, METH_VARARGS),
     METHOD(Mailmap, resolve_signature, METH_VARARGS),

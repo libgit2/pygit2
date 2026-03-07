@@ -151,6 +151,35 @@ pgit_borrow(PyObject *value)
 }
 
 
+char*
+pgit_strdup(PyObject *value)
+{
+    const char *str;
+    char *copy;
+    size_t len;
+
+    if (PyUnicode_Check(value)) {
+        str = PyUnicode_AsUTF8(value);
+        if (str == NULL)
+            return NULL;
+        len = strlen(str);
+    }
+    else {
+        Error_type_error("unexpected %.200s", value);
+        return NULL;
+    }
+
+    copy = malloc(len + 1);
+    if (copy == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    memcpy(copy, str, len + 1);
+    return copy;
+}
+
+
 static git_otype
 py_type_to_git_type(PyTypeObject *py_type)
 {

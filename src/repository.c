@@ -2423,7 +2423,7 @@ Repository_listall_mergeheads(Repository *self, PyObject *args)
     }
 }
 
-PyMethodDef Repository_methods[] = {
+static PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_O),
     METHOD(Repository, create_blob_fromdisk, METH_O),

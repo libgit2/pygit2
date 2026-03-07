@@ -235,7 +235,7 @@ Patch_hunks__get__(Patch *self)
 }
 
 
-PyMethodDef Patch_methods[] = {
+static PyMethodDef Patch_methods[] = {
     {"create_from", (PyCFunction) Patch_create_from,
       METH_KEYWORDS | METH_VARARGS | METH_STATIC, Patch_create_from__doc__},
     {NULL}

@@ -99,7 +99,7 @@ Note_dealloc(Note *self)
 }
 
 
-PyMethodDef Note_methods[] = {
+static PyMethodDef Note_methods[] = {
     METHOD(Note, remove, METH_VARARGS),
     {NULL}
 };
