@@ -1,13 +1,17 @@
 # 1.19.2 (UNRELEASED)
 
+- Fix refcount and error handling issues in `filter_register(...)`
+
 - New `Repository.load_filter_list(...)` and `FilterList`
   [#1444](https://github.com/libgit2/pygit2/pull/1444)
 
-- Build: Fix static build conflict with numpy
-  [#1446](https://github.com/libgit2/pygit2/pull/1446)
+- New `Odb.read_header(...)` and now `Odb.read(...)` returns `enums.ObjectType` instead of int
+  [#1450](https://github.com/libgit2/pygit2/pull/1450)
 
-- CI: Fix create GitHub release
+- Build and CI fixes
+  [#1446](https://github.com/libgit2/pygit2/pull/1446)
   [#1448](https://github.com/libgit2/pygit2/pull/1448)
+  [#1455](https://github.com/libgit2/pygit2/pull/1455)
 
 
 # 1.19.1 (2025-12-29)
