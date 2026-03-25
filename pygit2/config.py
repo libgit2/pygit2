@@ -73,7 +73,7 @@ class ConfigIterator:
 
 
 class ConfigMultivarIterator(ConfigIterator):
-    def __next__(self) -> str:  # type: ignore[override]
+    def __next__(self) -> str | None:  # type: ignore[override]
         entry = self._next_entry()
         return entry.value
 
@@ -137,7 +137,7 @@ class Config:
 
         return True
 
-    def __getitem__(self, key: str | bytes) -> str:
+    def __getitem__(self, key: str | bytes) -> str | None:
         """
         When using the mapping interface, the value is returned as a string. In
         order to apply the git-config parsing rules, you can use
@@ -365,8 +365,8 @@ class ConfigEntry:
         return ffi.string(self._entry.name)
 
     @cached_property
-    def raw_value(self) -> bytes:
-        return ffi.string(self.c_value)
+    def raw_value(self) -> bytes | None:
+        return ffi.string(self.c_value) if self.c_value != ffi.NULL else None
 
     @cached_property
     def level(self) -> int:
@@ -379,6 +379,6 @@ class ConfigEntry:
         return self.raw_name.decode('utf-8')
 
     @property
-    def value(self) -> str:
+    def value(self) -> str | None:
         """The entry's value as a string."""
-        return self.raw_value.decode('utf-8')
+        return self.raw_value.decode('utf-8') if self.raw_value is not None else None

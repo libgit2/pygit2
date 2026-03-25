@@ -185,6 +185,35 @@ def test_iterator(config: Config) -> None:
     assert lst['core.bare']
 
 
+def test_valueless_key_iteration() -> None:
+    # A valueless key (no `= value`) has a NULL value pointer in libgit2.
+    # Iterating over such entries must not raise a RuntimeError.
+    with open(CONFIG_FILENAME, 'w') as new_file:
+        new_file.write('[section]\n\tvaluelesskey\n\tnormalkey = somevalue\n')
+
+    config = Config()
+    config.add_file(CONFIG_FILENAME, 6)
+
+    entries = {entry.name: entry for entry in config}
+    assert 'section.valuelesskey' in entries
+    assert 'section.normalkey' in entries
+
+
+def test_valueless_key_value() -> None:
+    # A valueless key must expose value=None and raw_value=None.
+    with open(CONFIG_FILENAME, 'w') as new_file:
+        new_file.write('[section]\n\tvaluelesskey\n\tnormalkey = somevalue\n')
+
+    config = Config()
+    config.add_file(CONFIG_FILENAME, 6)
+
+    entries = {entry.name: entry for entry in config}
+    assert entries['section.valuelesskey'].raw_value is None
+    assert entries['section.valuelesskey'].value is None
+    assert entries['section.normalkey'].raw_value == b'somevalue'
+    assert entries['section.normalkey'].value == 'somevalue'
+
+
 def test_parsing() -> None:
     assert Config.parse_bool('on')
     assert Config.parse_bool('1')
