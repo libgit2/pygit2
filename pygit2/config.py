@@ -73,7 +73,7 @@ class ConfigIterator:
 
 
 class ConfigMultivarIterator(ConfigIterator):
-    def __next__(self) -> str:  # type: ignore[override]
+    def __next__(self) -> str | None:  # type: ignore[override]
         entry = self._next_entry()
         return entry.value
 
@@ -137,7 +137,7 @@ class Config:
 
         return True
 
-    def __getitem__(self, key: str | bytes) -> str:
+    def __getitem__(self, key: str | bytes) -> str | None:
         """
         When using the mapping interface, the value is returned as a string. In
         order to apply the git-config parsing rules, you can use
