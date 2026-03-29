@@ -138,6 +138,7 @@ Authors:
     Adam Spiers
     Adrien Nader
     Albin Söderström
+    Alexander Shadchin
     Alexandru Fikl
     Andrew Chin
     Andrew McNulty
@@ -182,6 +183,7 @@ Authors:
     Hugh Cole-Baker
     Isabella Stephens
     Jacob Swanson
+    Jah-yee
     Jasper Lievisse Adriaanse
     Jimisola Laursen
     Jiri Benc
@@ -237,6 +239,7 @@ Authors:
     Timo Röhling
     Victor Florea
     Vladimir Rutsky
+    Vruyr Gyolchanyan
     William Schueller
     Wim Jeantine-Glenn
     Yu Jianjian

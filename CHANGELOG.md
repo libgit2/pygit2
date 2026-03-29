@@ -1,6 +1,9 @@
-# 1.19.2 (UNRELEASED)
+# 1.19.2 (2026-03-29)
 
 - Fix refcount and error handling issues in `filter_register(...)`
+
+- Fix config with valueless keys
+  [#1457](https://github.com/libgit2/pygit2/pull/1457)
 
 - New `Repository.load_filter_list(...)` and `FilterList`
   [#1444](https://github.com/libgit2/pygit2/pull/1444)
