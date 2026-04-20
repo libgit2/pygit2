@@ -614,7 +614,7 @@ class BaseRepository(_Repository):
             If 'b' is None, by default the working directory is compared to 'a'.
             If 'cached' is set to True, the index/staging area is used for comparing.
 
-        flag
+        flags
             A combination of enums.DiffOption constants.
 
         context_lines
