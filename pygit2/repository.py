@@ -81,7 +81,7 @@ from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
 from .transaction import ReferenceTransaction
-from .utils import StrArray, to_bytes
+from .utils import StrArray, maybe_string, to_bytes
 
 if TYPE_CHECKING:
     from pygit2._libgit2.ffi import (
@@ -1585,7 +1585,7 @@ class BaseRepository(_Repository):
         err = C.git_repository_ident(cname, cemail, self._repo)
         check_error(err)
 
-        return (ffi.string(cname).decode('utf-8'), ffi.string(cemail).decode('utf-8'))
+        return (maybe_string(cname[0]), maybe_string(cemail[0]))
 
     def set_ident(self, name: str, email: str) -> None:
         """Set the identity to be used for reference operations.
