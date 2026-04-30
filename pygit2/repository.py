@@ -1578,7 +1578,7 @@ class BaseRepository(_Repository):
     # Identity for reference operations
     #
     @property
-    def ident(self):
+    def ident(self) -> tuple[Optional[str], Optional[str]]:
         cname = ffi.new('char **')
         cemail = ffi.new('char **')
 
@@ -1587,7 +1587,7 @@ class BaseRepository(_Repository):
 
         return (maybe_string(cname[0]), maybe_string(cemail[0]))
 
-    def set_ident(self, name: str, email: str) -> None:
+    def set_ident(self, name: Optional[str], email: Optional[str]) -> None:
         """Set the identity to be used for reference operations.
 
         Updates to some references also append data to their
