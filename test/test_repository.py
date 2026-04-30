@@ -641,6 +641,19 @@ def test_default_signature(testrepo: Repository) -> None:
     assert 'rjh@example.com' == sig.email
 
 
+def test_ident_get_set(testrepo: Repository) -> None:
+    # By default, reflog identity should be unset.
+    assert testrepo.ident == (None, None)
+
+    cname = 'C O Mitter'
+    cemail = 'committer@example.com'
+    testrepo.set_ident(cname, cemail)
+    assert testrepo.ident == (cname, cemail)
+
+    testrepo.set_ident(None, None)
+    assert testrepo.ident == (None, None)
+
+
 def test_new_repo(tmp_path: Path) -> None:
     repo = init_repository(tmp_path, False)
 

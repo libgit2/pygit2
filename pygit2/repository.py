@@ -81,7 +81,7 @@ from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
 from .transaction import ReferenceTransaction
-from .utils import StrArray, to_bytes
+from .utils import StrArray, maybe_string, to_bytes
 
 if TYPE_CHECKING:
     from pygit2._libgit2.ffi import (
@@ -1278,7 +1278,7 @@ class BaseRepository(_Repository):
         Example::
 
             >>> repo = pygit2.Repository('.')
-            >>> repo.stash(repo.default_signature(), 'WIP: stashing')
+            >>> repo.stash(repo.default_signature, 'WIP: stashing')
         """
 
         opts = ffi.new('git_stash_save_options *')
@@ -1347,7 +1347,7 @@ class BaseRepository(_Repository):
         Example::
 
             >>> repo = pygit2.Repository('.')
-            >>> repo.stash(repo.default_signature(), 'WIP: stashing')
+            >>> repo.stash(repo.default_signature, 'WIP: stashing')
             >>> repo.stash_apply(strategy=CheckoutStrategy.ALLOW_CONFLICTS)
         """
         with git_stash_apply_options(
@@ -1578,16 +1578,16 @@ class BaseRepository(_Repository):
     # Identity for reference operations
     #
     @property
-    def ident(self):
+    def ident(self) -> tuple[Optional[str], Optional[str]]:
         cname = ffi.new('char **')
         cemail = ffi.new('char **')
 
         err = C.git_repository_ident(cname, cemail, self._repo)
         check_error(err)
 
-        return (ffi.string(cname).decode('utf-8'), ffi.string(cemail).decode('utf-8'))
+        return (maybe_string(cname[0]), maybe_string(cemail[0]))
 
-    def set_ident(self, name: str, email: str) -> None:
+    def set_ident(self, name: Optional[str], email: Optional[str]) -> None:
         """Set the identity to be used for reference operations.
 
         Updates to some references also append data to their
