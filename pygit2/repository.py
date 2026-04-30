@@ -1278,7 +1278,7 @@ class BaseRepository(_Repository):
         Example::
 
             >>> repo = pygit2.Repository('.')
-            >>> repo.stash(repo.default_signature(), 'WIP: stashing')
+            >>> repo.stash(repo.default_signature, 'WIP: stashing')
         """
 
         opts = ffi.new('git_stash_save_options *')
@@ -1347,7 +1347,7 @@ class BaseRepository(_Repository):
         Example::
 
             >>> repo = pygit2.Repository('.')
-            >>> repo.stash(repo.default_signature(), 'WIP: stashing')
+            >>> repo.stash(repo.default_signature, 'WIP: stashing')
             >>> repo.stash_apply(strategy=CheckoutStrategy.ALLOW_CONFLICTS)
         """
         with git_stash_apply_options(
