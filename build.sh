@@ -217,7 +217,7 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         cp $OPENSSL_PREFIX/*.dylib $PREFIX/lib/
         echo "PREFIX        " $PREFIX
         echo "OPENSSL_PREFIX" $OPENSSL_PREFIX
-        ls -l /Users/runner/work/pygit2/pygit2/ci/
+        ls -l $PREFIX
         ls -l $PREFIX/lib
     fi
     # we're done building dependencies, cibuildwheel action will take over
