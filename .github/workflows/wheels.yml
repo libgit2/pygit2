@@ -15,85 +15,6 @@ on:
       - 'docs/**'
 
 jobs:
-  build_wheels:
-    name: Wheels for ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      # let other jobs in matrix complete if one fails
-      fail-fast: false
-      matrix:
-        include:
-        - name: linux-amd
-          os: ubuntu-24.04
-        - name: linux-arm
-          os: ubuntu-24.04-arm
-        - name: macos-intel
-          os: macos-15-intel
-        - name: macos-arm
-          os: macos-15
-        - name: windows-x64
-          os: windows-latest
-        - name: windows-x86
-          os: windows-latest
-        - name: windows-arm64
-          # https://github.com/actions/partner-runner-images#available-images
-          os: windows-11-arm
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          # avoid leaking credentials in uploaded artifacts
-          persist-credentials: false
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel~=3.3
-
-      - name: Build wheels
-        env:
-          CIBW_ARCHS_WINDOWS: ${{ matrix.name == 'windows-x86' && 'auto32' || 'native' }}
-        run: python -m cibuildwheel --output-dir wheelhouse
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: wheels-${{ matrix.name }}
-          path: ./wheelhouse/*.whl
-
-  build_wheels_ppc:
-    name: Wheels for linux-ppc
-    runs-on: ubuntu-24.04
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          # avoid leaking credentials in uploaded artifacts
-          persist-credentials: false
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-
-      - uses: docker/setup-qemu-action@v3
-        with:
-          platforms: linux/ppc64le
-
-      - name: Install cibuildwheel
-        run: python -m pip install -r requirements-wheel.txt
-
-      - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_ARCHS: ppc64le
-          CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.2 LIBGIT2=/project/ci
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: wheels-linux-ppc
-          path: ./wheelhouse/*.whl
-
   sdist:
     runs-on: ubuntu-latest
     outputs:
@@ -126,6 +47,90 @@ jobs:
           name: release-notes
           path: ReleaseNotes.md
 
+  build_wheels:
+    name: Wheels for ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    needs: sdist
+    strategy:
+      # let other jobs in matrix complete if one fails
+      fail-fast: false
+      matrix:
+        include:
+        - name: linux-amd
+          os: ubuntu-24.04
+        - name: linux-arm
+          os: ubuntu-24.04-arm
+        - name: macos-intel
+          os: macos-15-intel
+        - name: macos-arm
+          os: macos-15
+        - name: windows-x64
+          os: windows-latest
+        - name: windows-x86
+          os: windows-latest
+        - name: windows-arm64
+          # https://github.com/actions/partner-runner-images#available-images
+          os: windows-11-arm
+
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Download sdist
+        uses: actions/download-artifact@v8
+        with:
+          name: wheels-sdist
+          path: dist
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel~=3.3
+
+      - name: Build wheels
+        shell: bash
+        env:
+          CIBW_ARCHS_WINDOWS: ${{ matrix.name == 'windows-x86' && 'auto32' || 'native' }}
+        run: python -m cibuildwheel dist/*.tar.gz --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.name }}
+          path: ./wheelhouse/*.whl
+
+  build_wheels_ppc:
+    name: Wheels for linux-ppc
+    runs-on: ubuntu-24.04
+    needs: sdist
+
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/ppc64le
+
+      - name: Download sdist
+        uses: actions/download-artifact@v8
+        with:
+          name: wheels-sdist
+          path: dist
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel~=3.3
+
+      - name: Build wheels
+        shell: bash
+        run: python -m cibuildwheel dist/*.tar.gz --output-dir wheelhouse
+        env:
+          CIBW_ARCHS: ppc64le
+          CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.2 LIBGIT2=/project/ci
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-linux-ppc
+          path: ./wheelhouse/*.whl
 
   twine-check:
     name: Twine check
