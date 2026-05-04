@@ -12,6 +12,7 @@ dependency-versions = "pinned"
 environment = {LIBGIT2_VERSION="1.9.2", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.5.4"}
 
 before-all = "sh build.sh"
+before-build = "export LIBGIT2='{package}/ci'"
 test-command = "pytest"
 test-sources = ["test", "pytest.ini"]
 before-test = "pip install -r {package}/requirements-test.txt"
@@ -34,6 +35,7 @@ repair-wheel-command = "DYLD_LIBRARY_PATH={package}/ci/lib delocate-wheel --requ
 environment.LIBGIT2_SRC = "build/libgit2_src"
 environment.LIBGIT2_VERSION = "1.9.2"
 before-all = "powershell -File build.ps1"
+before-build = ""
 
 [[tool.cibuildwheel.overrides]]
 select="*-win_amd64"
