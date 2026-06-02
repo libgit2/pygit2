@@ -255,6 +255,10 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
 
     // Create the C backend
     pgit_odb_backend *custom_backend = calloc(1, sizeof(pgit_odb_backend));
+    if (custom_backend == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
     custom_backend->backend.version = GIT_ODB_BACKEND_VERSION;
 
     // Fill the member methods

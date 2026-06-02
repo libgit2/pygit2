@@ -128,23 +128,6 @@ PyObject *pygit2_enum(PyObject *enum_type, int value);
   {#attr, attr_type, offsetof(type, attr), READONLY, PyDoc_STR(docstr)}
 
 
-/* Helpers for memory allocation */
-#define CALLOC(ptr, num, size, label) \
-        ptr = calloc((num), size);\
-        if (ptr == NULL) {\
-            err = GIT_ERROR;\
-            giterr_set_oom();\
-            goto label;\
-        }
-
-#define MALLOC(ptr, size, label) \
-        ptr = malloc(size);\
-        if (ptr == NULL) {\
-            err = GIT_ERROR;\
-            giterr_set_oom();\
-            goto label;\
-        }
-
 /* Helpers to make type init shorter. */
 #define INIT_TYPE(type, base, new) \
     type.tp_base = base; \

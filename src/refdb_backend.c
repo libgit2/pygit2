@@ -36,6 +36,7 @@
 #include "wildmatch.h"
 #include <git2/refdb.h>
 #include <git2/sys/refdb_backend.h>
+#include <git2/sys/errors.h>
 
 extern PyTypeObject ReferenceType;
 extern PyTypeObject RepositoryType;
@@ -137,8 +138,12 @@ pygit2_refdb_backend_iterator(git_reference_iterator **iter,
     PyObject *iterator = PyObject_GetIter((PyObject *)be->RefdbBackend);
     assert(iterator);
 
-    struct pygit2_refdb_iterator *pyiter =
-        calloc(1, sizeof(struct pygit2_refdb_iterator));
+    struct pygit2_refdb_iterator *pyiter = calloc(1, sizeof(struct pygit2_refdb_iterator));
+    if (pyiter == NULL) {
+        Py_DECREF(iterator);
+        git_error_set(GIT_ERROR_NOMEMORY, "out of memory");
+        return GIT_ERROR;
+    }
     *iter = (git_reference_iterator *)pyiter;
     pyiter->iterator = iterator;
     pyiter->base.next = pygit2_refdb_iterator_next;
@@ -389,18 +394,20 @@ int
 RefdbBackend_init(RefdbBackend *self, PyObject *args, PyObject *kwds)
 {
     if (args && PyTuple_Size(args) > 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "RefdbBackend takes no arguments");
+        PyErr_SetString(PyExc_TypeError, "RefdbBackend takes no arguments");
         return -1;
     }
 
     if (kwds && PyDict_Size(kwds) > 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "RefdbBackend takes no keyword arguments");
+        PyErr_SetString(PyExc_TypeError, "RefdbBackend takes no keyword arguments");
         return -1;
     }
 
     struct pygit2_refdb_backend *be = calloc(1, sizeof(struct pygit2_refdb_backend));
+    if (be == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
     git_refdb_init_backend(&be->backend, GIT_REFDB_BACKEND_VERSION);
     be->RefdbBackend = (PyObject *)self;
 
