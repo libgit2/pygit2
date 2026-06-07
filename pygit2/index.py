@@ -255,11 +255,11 @@ class Index:
         centry_ours: ffi.NULL_TYPE | ffi.GitIndexEntryC = ffi.NULL
         centry_theirs: ffi.NULL_TYPE | ffi.GitIndexEntryC = ffi.NULL
         if ancestor is not None:
-            centry_ancestor, _ = ancestor._to_c()
+            centry_ancestor, path_ancestor = ancestor._to_c()
         if ours is not None:
-            centry_ours, _ = ours._to_c()
+            centry_ours, path_ours = ours._to_c()
         if theirs is not None:
-            centry_theirs, _ = theirs._to_c()
+            centry_theirs, path_theirs = theirs._to_c()
         err = C.git_index_conflict_add(
             self._index, centry_ancestor, centry_ours, centry_theirs
         )
