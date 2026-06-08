@@ -1,3 +1,22 @@
+# 1.19.3 (UNRELEASED)
+
+- Memory fixes
+  [#1368](https://github.com/libgit2/pygit2/issues/1368)
+  [#1417](https://github.com/libgit2/pygit2/issues/1417)
+  [#1443](https://github.com/libgit2/pygit2/issues/1443)
+
+- Fix `Repository.ident`
+  [#1461](https://github.com/libgit2/pygit2/pull/1461)
+
+- Build/CI fixes and updates
+  [#1454](https://github.com/libgit2/pygit2/issues/1454)
+  [#1459](https://github.com/libgit2/pygit2/pull/1459)
+
+- Documentation fixes
+  [#1458](https://github.com/libgit2/pygit2/issues/1458)
+  [#1460](https://github.com/libgit2/pygit2/pull/1460)
+
+
 # 1.19.2 (2026-03-29)
 
 - Fix refcount and error handling issues in `filter_register(...)`
