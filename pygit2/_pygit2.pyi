@@ -43,7 +43,6 @@ from .enums import (
 )
 from .filter import Filter
 
-
 LIBGIT2_VER_MAJOR: int
 LIBGIT2_VER_MINOR: int
 LIBGIT2_VER_REVISION: int
@@ -280,9 +279,7 @@ class _ObjectBase(Generic[_T]):
         self, target_type: 'Literal[ObjectType.TREE] | Type[Tree]', /
     ) -> 'Tree': ...
     @overload
-    def peel(
-        self, target_type: 'Literal[ObjectType.TAG] | Type[Tag]', /
-    ) -> 'Tag': ...
+    def peel(self, target_type: 'Literal[ObjectType.TAG] | Type[Tag]', /) -> 'Tag': ...
     @overload
     def peel(
         self, target_type: 'Literal[ObjectType.BLOB] | Type[Blob]', /
@@ -378,8 +375,6 @@ class Branch(Reference):  # type: ignore[misc]
     def is_checked_out(self) -> bool: ...
     def is_head(self) -> bool: ...
     def rename(self, name: str, force: bool = False) -> 'Branch': ...  # type: ignore[override]
-
-
 
 @final
 class Commit(_ObjectBase[GitCommitC]):
@@ -625,7 +620,6 @@ _Proxy = None | Literal[True] | str
 class _StrArray:
     # incomplete
     count: int
-
 
 class _LsRemotesDict(TypedDict):
     local: bool
