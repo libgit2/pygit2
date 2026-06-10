@@ -10,16 +10,16 @@ from typing import (  # noqa: UP035
     Type,
     TypedDict,
     TypeVar,
+    final,
     overload,
 )
 
-from typing_extensions import disjoint_base, final
+from typing_extensions import disjoint_base
 
 from . import Index
 from ._libgit2.ffi import (
     GitCommitC,
     GitObjectC,
-    GitProxyOptionsC,
     GitSignatureC,
     _Pointer,
 )
