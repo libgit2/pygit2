@@ -25,7 +25,7 @@
 
 """Tests for Refdb objects."""
 
-from collections.abc import Generator, Iterator
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -76,9 +76,6 @@ class ProxyRefdbBackend(pygit2.RefdbBackend):
 
     def ensure_log(self, ref_name: str) -> bool:
         return self.source.ensure_log(ref_name)
-
-    def __iter__(self) -> Iterator[Reference]:
-        return iter(self.source)
 
 
 @pytest.fixture

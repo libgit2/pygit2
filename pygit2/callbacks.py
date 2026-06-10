@@ -66,7 +66,7 @@ API.
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Optional, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, Optional, ParamSpec, TypeVar
 
 # pygit2
 from ._pygit2 import DiffFile, Oid
@@ -81,7 +81,6 @@ _Credentials = Username | UserPass | Keypair
 if TYPE_CHECKING:
     from pygit2._libgit2.ffi import GitProxyOptionsC
 
-    from ._pygit2 import CloneOptions, PushOptions
     from .remotes import PushUpdate, TransferProgress
 #
 # The payload is the way to pass information from the pygit2 API, through
@@ -92,7 +91,7 @@ if TYPE_CHECKING:
 class Payload:
     repository: Callable | None
     remote: Callable | None
-    clone_options: 'CloneOptions'
+    clone_options: Any
 
     def __init__(self, **kw: object) -> None:
         for key, value in kw.items():
@@ -125,7 +124,7 @@ class RemoteCallbacks(Payload):
     RemoteCallbacks(certificate=certificate).
     """
 
-    push_options: 'PushOptions'
+    push_options: Any
 
     def __init__(
         self,
