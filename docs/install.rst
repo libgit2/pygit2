@@ -309,7 +309,7 @@ variable.  The following recipe shows you how to do it:
 
    git clone --depth=1 -b v1.9.4 https://github.com/libgit2/libgit2.git
    $env:CMAKE_INSTALL_PREFIX = "C:/Dev/libgit2"
-   $env:CMAKE_GENERATOR = "Visual Studio 17 2022"
+   $env:CMAKE_GENERATOR = "Visual Studio 18 2026"
    $env:CMAKE_GENERATOR_PLATFORM = "x64" # or "Win32" or "ARM64"
    cmake -B libgit2/build -S libgit2
    cmake --build libgit2/build --config release --target install
