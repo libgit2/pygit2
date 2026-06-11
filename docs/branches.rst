@@ -35,7 +35,7 @@ Example::
     >>> # Create a local branch, branching from master
     >>> new_branch = repo.branches.local.create('new-branch', repo[master_branch.target])
 
-    >>> And delete it
+    >>> # And delete it
     >>> repo.branches.delete('new-branch')
 
 

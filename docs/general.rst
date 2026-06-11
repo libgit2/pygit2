@@ -18,41 +18,41 @@ library that has been built against. The version number has a
 .. py:data:: LIBGIT2_VER_MAJOR
 
    Integer value of the major version number. For example, for the version
-   ``0.26.0``::
+   ``1.9.4``::
 
       >>> print(pygit2.LIBGIT2_VER_MAJOR)
-      0
+      1
 
 .. py:data:: LIBGIT2_VER_MINOR
 
    Integer value of the minor version number. For example, for the version
-   ``0.26.0``::
+   ``1.9.4``::
 
       >>> print(pygit2.LIBGIT2_VER_MINOR)
-      26
+      9
 
 .. py:data:: LIBGIT2_VER_REVISION
 
    Integer value of the revision version number. For example, for the version
-   ``0.26.0``::
+   ``1.9.4``::
 
       >>> print(pygit2.LIBGIT2_VER_REVISION)
-      0
+      4
 
 .. py:data:: LIBGIT2_VER
 
    Tuple value of the revision version numbers. For example, for the version
-   ``0.26.0``::
+   ``1.9.4``::
 
       >>> print(pygit2.LIBGIT2_VER)
-      (0, 26, 0)
+      (1, 9, 4)
 
 .. py:data:: LIBGIT2_VERSION
 
    The libgit2 version number as a string::
 
       >>> print(pygit2.LIBGIT2_VERSION)
-      '0.26.0'
+      '1.9.4'
 
 Options
 =========
@@ -80,3 +80,11 @@ Exception when trying to create an object (reference, etc) that already exists.
    :undoc-members:
 
 Exception when an input specification such as a reference name is invalid.
+
+.. autoexception:: pygit2.Passthrough
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception that can be raised from a callback to tell libgit2 to behave as if
+that callback had not been set. See :doc:`callbacks` for details.

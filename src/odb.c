@@ -209,7 +209,7 @@ Odb_read(Odb *self, PyObject *py_hex)
 }
 
 PyDoc_STRVAR(Odb_read_header__doc__,
-    "read_header(oid: Oid) -> tuple[enums.ObjectType, size\n"
+    "read_header(oid: Oid) -> tuple[enums.ObjectType, int]\n"
     "\n"
     "Read the header of an object from the database, without reading its full\n"
     "contents.\n"

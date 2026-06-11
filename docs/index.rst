@@ -62,9 +62,11 @@ Table of Contents
    backends
    blame
    branches
+   callbacks
    commit_log
    config
    diff
+   enums
    features
    filters
    index_file

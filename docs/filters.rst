@@ -19,6 +19,17 @@ Registering filters
 .. autofunction:: pygit2.filter_register
 .. autofunction:: pygit2.filter_unregister
 
+Loading filters
+===============
+
+.. automethod:: pygit2.Repository.load_filter_list
+
+The FilterList type
+-------------------
+
+.. autoclass:: pygit2.filter.FilterList
+   :members:
+
 Example
 =======
 

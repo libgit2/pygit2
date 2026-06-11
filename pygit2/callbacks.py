@@ -308,7 +308,7 @@ class CheckoutCallbacks(Payload):
 
         Raising an exception from this callback will cancel the checkout.
         The exception will be propagated back and raised by the
-        Repository.checkout_... call.
+        ``Repository.checkout_...`` call.
 
         Notification callbacks are made prior to modifying any files on disk,
         so canceling on any notification will still happen prior to any files

@@ -239,6 +239,7 @@ pyrightconfig.json
 # custom ignore paths
 /.envrc
 /venv*
+/.docenv
 /ci/
 *.swp
 /pygit2/_libgit2.c

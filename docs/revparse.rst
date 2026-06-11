@@ -17,5 +17,8 @@ You can use any of the fancy `<rev>` forms supported by libgit2::
 Constants:
 
 .. py:data:: pygit2.enums.RevSpecFlag.SINGLE
+   :noindex:
 .. py:data:: pygit2.enums.RevSpecFlag.RANGE
+   :noindex:
 .. py:data:: pygit2.enums.RevSpecFlag.MERGE_BASE
+   :noindex:

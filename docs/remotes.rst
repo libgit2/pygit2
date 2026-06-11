@@ -22,7 +22,11 @@ The Remote type
 The RemoteCallbacks type
 ========================
 
+See :doc:`callbacks` for the full reference. The following autoclass is only
+included here for discoverability.
+
 .. autoclass:: pygit2.RemoteCallbacks
+   :noindex:
    :members:
 
 The TransferProgress type
@@ -31,6 +35,24 @@ The TransferProgress type
 This class contains the data which is available to us during a fetch.
 
 .. autoclass:: pygit2.remotes.TransferProgress
+   :members:
+
+The RemoteHead type
+===================
+
+Description of a reference advertised by a remote server, returned by
+:meth:`pygit2.Remote.list_heads`.
+
+.. autoclass:: pygit2.remotes.RemoteHead
+   :members:
+
+The PushUpdate type
+===================
+
+Represents an update which will be performed on the remote during push.
+Passed to :meth:`pygit2.RemoteCallbacks.push_negotiation`.
+
+.. autoclass:: pygit2.remotes.PushUpdate
    :members:
 
 The Refspec type

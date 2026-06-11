@@ -363,7 +363,7 @@ class DiffFind(IntFlag):
     """Flags to control the behavior of diff rename/copy detection."""
 
     FIND_BY_CONFIG = _pygit2.GIT_DIFF_FIND_BY_CONFIG
-    """ Obey `diff.renames`. Overridden by any other FIND_... flag. """
+    """ Obey ``diff.renames``. Overridden by any other ``FIND_...`` flag. """
 
     FIND_RENAMES = _pygit2.GIT_DIFF_FIND_RENAMES
     """ Look for renames? (`--find-renames`) """

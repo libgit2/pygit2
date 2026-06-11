@@ -112,16 +112,22 @@ them to the Git object database:
 
       Example:
 
-        >>> id  = repo.create_blob('foo bar')   # Creates blob from a byte string
+        >>> id  = repo.create_blob(b'foo bar')   # Creates blob from a byte string
         >>> blob = repo[id]
         >>> blob.data
-        'foo bar'
+        b'foo bar'
 
 There are also some functions to calculate the id for a byte string without
 creating the blob object:
 
 .. autofunction:: pygit2.hash
 .. autofunction:: pygit2.hashfile
+
+To calculate the hash of a file using the repository's filtering rules (e.g.
+``core.safecrlf``), use the repository's instance method:
+
+.. automethod:: pygit2.Repository.hashfile
+   :noindex:
 
 Streaming blob content
 ----------------------

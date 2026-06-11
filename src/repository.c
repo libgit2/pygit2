@@ -1216,7 +1216,7 @@ Repository_create_commit_with_signature(Repository *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Repository_create_tag__doc__,
-  "create_tag(name: str, oid: Oid, type: enums.ObjectType, tagger: Signature[, message: str]) -> Oid\n"
+  "create_tag(name: str, oid: Oid, type: enums.ObjectType, tagger: Signature, message: str) -> Oid\n"
   "\n"
   "Create a new tag object, return its oid.");
 

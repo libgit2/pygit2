@@ -14,6 +14,8 @@
 
 - Documentation and annotation fixes
   [#410](https://github.com/libgit2/pygit2/issues/410)
+  [#1289](https://github.com/libgit2/pygit2/issues/1289)
+  [#1323](https://github.com/libgit2/pygit2/issues/1323)
   [#1333](https://github.com/libgit2/pygit2/issues/1333)
   [#1458](https://github.com/libgit2/pygit2/issues/1458)
   [#1460](https://github.com/libgit2/pygit2/pull/1460)
