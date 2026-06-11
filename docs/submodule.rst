@@ -7,6 +7,7 @@ dedicated subdirectory of the repositories tree.
 
 .. autoclass:: pygit2.Repository
    :members: listall_submodules
+   :noindex:
 
    .. py:attribute:: Repository.submodules
 
