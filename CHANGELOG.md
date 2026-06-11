@@ -13,6 +13,7 @@
   [#1459](https://github.com/libgit2/pygit2/pull/1459)
 
 - Documentation and annotation fixes
+  [#410](https://github.com/libgit2/pygit2/issues/410)
   [#1333](https://github.com/libgit2/pygit2/issues/1333)
   [#1458](https://github.com/libgit2/pygit2/issues/1458)
   [#1460](https://github.com/libgit2/pygit2/pull/1460)
