@@ -1,3 +1,5 @@
+$ErrorActionPreference = 'Stop'
+
 if (!(Test-Path -Path "build")) {
     # in case the pygit2 package build/ workspace has not been created by cibuildwheel yet
     mkdir build
