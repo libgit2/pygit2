@@ -74,6 +74,7 @@ Authors:
     Christian Häggström
     Edmundo Carmona Antoranz
     Erik Johnson
+    Ethan Meng
     Filip Rindler
     Fraser Tweedale
     Grégoire ROCHER
@@ -206,6 +207,7 @@ Authors:
     Matěj Cepl
     Maxwell G
     Michał Górny
+    Mukunda Rao Katta
     Na'aman Hirschfeld
     Nicolas Rybowski
     Nicolás Sanguinetti

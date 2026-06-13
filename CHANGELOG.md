@@ -1,4 +1,4 @@
-# 1.19.3 (UNRELEASED)
+# 1.19.3 (2026-06-13)
 
 - Memory fixes
   [#1368](https://github.com/libgit2/pygit2/issues/1368)
