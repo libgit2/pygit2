@@ -108,6 +108,9 @@ jobs:
         - name: linux-ppc64le
           qemu_platform: linux/ppc64le
           cibw_arch: ppc64le
+        - name: linux-riscv64
+          qemu_platform: linux/riscv64
+          cibw_arch: riscv64
 
     steps:
       - uses: actions/setup-python@v6
