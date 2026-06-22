@@ -15,6 +15,9 @@ Breaking changes:
   by default. The previous string-returning behavior is still available
   with `use_deprecated=True`, but is deprecated.
 
+- Remove deprecated `Remote.ls_remotes(...)`, use `Remote.list_heads(...)`
+  instead
+
 
 # 1.19.3 (2026-06-13)
 

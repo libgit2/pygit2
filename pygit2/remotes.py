@@ -25,7 +25,6 @@
 
 from __future__ import annotations
 
-import warnings
 from collections.abc import Generator, Iterator
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -280,30 +279,6 @@ class Remote:
         results = [RemoteHead(refs_ptr[0][i]) for i in range(num_refs)]
 
         return results
-
-    def ls_remotes(
-        self,
-        callbacks: RemoteCallbacks | None = None,
-        proxy: str | None | bool = None,
-        connect: bool = True,
-    ) -> list[dict[str, Any]]:
-        """
-        Deprecated interface to list_heads
-        """
-        warnings.warn('Use list_heads', DeprecationWarning)
-
-        heads = self.list_heads(callbacks, proxy, connect)
-
-        return [
-            {
-                'local': h.local,
-                'oid': h.oid,
-                'loid': h.loid if h.local else None,
-                'name': h.name,
-                'symref_target': h.symref_target,
-            }
-            for h in heads
-        ]
 
     def prune(self, callbacks: RemoteCallbacks | None = None) -> None:
         """Perform a prune against this remote."""

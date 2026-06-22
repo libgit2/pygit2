@@ -205,31 +205,6 @@ def test_list_heads(testrepo: Repository) -> None:
 
 
 @utils.requires_network
-def test_ls_remotes_deprecated(testrepo: Repository) -> None:
-    assert 1 == len(testrepo.remotes)
-    remote = testrepo.remotes[0]
-
-    new_refs = remote.list_heads()
-
-    with pytest.warns(DeprecationWarning, match='Use list_heads'):
-        old_refs = remote.ls_remotes()
-
-    assert new_refs
-    assert old_refs
-
-    for new, old in zip(new_refs, old_refs, strict=True):
-        assert new.name == old['name']
-        assert new.oid == old['oid']
-        assert new.local == old['local']
-        assert new.symref_target == old['symref_target']
-        if new.local:
-            assert new.loid == old['loid']
-        else:
-            assert new.loid == pygit2.Oid(b'')
-            assert old['loid'] is None
-
-
-@utils.requires_network
 def test_list_heads_without_implicit_connect(testrepo: Repository) -> None:
     assert 1 == len(testrepo.remotes)
     remote = testrepo.remotes[0]

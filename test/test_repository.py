@@ -1142,17 +1142,13 @@ def test_merge_file_from_index(testrepo: Repository) -> None:
         return blob.data.decode()
 
     # no change
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt, hello_txt
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_txt)
     assert res == MergeFileResult(
         True, hello_txt.path, hello_txt.mode, get_hello_txt_from_repo()
     )
 
     # executable switch on ours
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt_executable, hello_txt
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt_executable, hello_txt)
     assert res == MergeFileResult(
         True,
         hello_txt.path,
@@ -1161,9 +1157,7 @@ def test_merge_file_from_index(testrepo: Repository) -> None:
     )
 
     # executable switch on theirs
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt, hello_txt_executable
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_txt_executable)
     assert res == MergeFileResult(
         True,
         hello_txt.path,
@@ -1183,31 +1177,23 @@ def test_merge_file_from_index(testrepo: Repository) -> None:
     )
 
     # path switch on ours
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_world, hello_txt
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_txt)
     assert res == MergeFileResult(
         True, hello_world.path, hello_txt.mode, get_hello_txt_from_repo()
     )
 
     # path switch on theirs
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt, hello_world
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_world)
     assert res == MergeFileResult(
         True, hello_world.path, hello_txt.mode, get_hello_txt_from_repo()
     )
 
     # path switch on both
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_world, hello_world
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_world)
     assert res == MergeFileResult(True, None, hello_txt.mode, get_hello_txt_from_repo())
 
     # path switch on ours, executable flag switch on theirs
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_world, hello_txt_executable
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_txt_executable)
     assert res == MergeFileResult(
         True,
         hello_world.path,
@@ -1216,9 +1202,7 @@ def test_merge_file_from_index(testrepo: Repository) -> None:
     )
 
     # path switch on theirs, executable flag switch on ours
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt_executable, hello_world
-    )
+    res = testrepo.merge_file_from_index(hello_txt, hello_txt_executable, hello_world)
     assert res == MergeFileResult(
         True,
         hello_world.path,

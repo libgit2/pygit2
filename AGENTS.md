@@ -56,8 +56,7 @@ modules:
     `repository.py`, `callbacks.py`, `config.py`, `index.py`, `remotes.py`,
     `settings.py`, `submodules.py`, `transaction.py`, `filter.py`, `blob.py`,
     `blame.py`, `branches.py`, `credentials.py`, `errors.py`, `options.py`,
-    `packbuilder.py`, `references.py`, `refspec.py`, `utils.py`, `enums.py`,
-    `legacyenums.py`.
+    `packbuilder.py`, `references.py`, `refspec.py`, `utils.py`, `enums.py`.
 
 - **`test/`** — pytest suite with fixture-based repository handling.
 - **`docs/`** — Sphinx documentation (RTD theme).
@@ -167,6 +166,9 @@ make -C docs html   # requires sphinx-rtd-theme
   - Target Python: 3.11+
   - Quote style: single quotes
   - Selected rules: `E4`, `E7`, `E9`, `F`, `I`, `UP035`, `UP007`
+  - Run `ruff format` and `ruff check` on changed files before committing.
+    CI runs `ruff format --diff` and `ruff check`; formatting failures will
+    fail the build.
 - **Type checker**: mypy (strict settings enabled; see `mypy.ini`)
 - All Python source files must include the standard GPLv2 copyright header.
 - `pygit2/__init__.py` is large because it re-exports a large surface of
@@ -275,5 +277,6 @@ and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le` and
   extension. Keep it in sync when adding or changing low-level APIs.
 - **Header stub order matters**: `pygit2/_run.py` concatenates `decl/*.h` in a
   fixed list; add new stubs in the correct position if dependencies require it.
-- Run the full test suite and type checks before considering a change complete:
-  `sh build.sh test` and `sh build.sh mypy`.
+- Run the full test suite, type checks, and linting/formatting before
+  considering a change complete:
+  `sh build.sh test`, `sh build.sh mypy`, `ruff check .`, and `ruff format .`.
