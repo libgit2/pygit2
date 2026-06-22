@@ -983,7 +983,7 @@ class BaseRepository(_Repository):
 
     def merge(
         self,
-        source: Reference | Commit | Oid | str,
+        source: Reference | Commit | Oid,
         favor: MergeFavor = MergeFavor.NORMAL,
         flags: MergeFlag = MergeFlag.FIND_RENAMES,
         file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
@@ -1003,8 +1003,6 @@ class BaseRepository(_Repository):
             It is preferable to pass in a Reference, because this enriches the
             merge with additional information (for example, Repository.message will
             specify the name of the branch being merged).
-            Previous versions of pygit2 allowed passing in a partial commit
-            hash as a string; this is deprecated.
 
         favor
             An enums.MergeFavor constant specifying how to deal with file-level conflicts.
@@ -1026,15 +1024,7 @@ class BaseRepository(_Repository):
             check_error(err)
         else:
             # Annotated commit from commit id
-            if isinstance(source, str):
-                # For backwards compatibility, parse a string as a partial commit hash
-                warnings.warn(
-                    'Passing str to Repository.merge is deprecated. '
-                    'Pass Commit, Oid, or a Reference (such as a Branch) instead.',
-                    DeprecationWarning,
-                )
-                oid = self[source].peel(Commit).id
-            elif isinstance(source, Commit):
+            if isinstance(source, Commit):
                 oid = source.id
             elif isinstance(source, Oid):
                 oid = source

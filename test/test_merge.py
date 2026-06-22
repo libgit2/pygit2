@@ -34,20 +34,10 @@ from pygit2 import Repository
 from pygit2.enums import FileStatus, MergeAnalysis, MergeFavor, MergeFileFlag, MergeFlag
 
 
-@pytest.mark.parametrize('id', [None, 42])
-def test_merge_invalid_type(mergerepo: Repository, id: None | int) -> None:
+@pytest.mark.parametrize('id', [None, 42, '5ebeeebb320790caf276b9fc8b24546d63316533'])
+def test_merge_invalid_type(mergerepo: Repository, id: None | int | str) -> None:
     with pytest.raises(TypeError):
         mergerepo.merge(id)  # type:ignore
-
-
-# TODO: Once Repository.merge drops support for str arguments,
-#       add an extra parameter to test_merge_invalid_type above
-#       to make sure we cover legacy code.
-def test_merge_string_argument_deprecated(mergerepo: Repository) -> None:
-    branch_head_hex = '5ebeeebb320790caf276b9fc8b24546d63316533'
-
-    with pytest.warns(DeprecationWarning, match=r'Pass Commit.+instead'):
-        mergerepo.merge(branch_head_hex)
 
 
 def test_merge_analysis_uptodate(mergerepo: Repository) -> None:
@@ -89,15 +79,6 @@ def test_merge_no_fastforward_no_conflicts(mergerepo: Repository) -> None:
     # Asking twice to assure the reference counting is correct
     assert {} == mergerepo.status()
     assert {} == mergerepo.status()
-
-
-def test_merge_invalid_hex(mergerepo: Repository) -> None:
-    branch_head_hex = '12345678'
-    with (
-        pytest.raises(KeyError),
-        pytest.warns(DeprecationWarning, match=r'Pass Commit.+instead'),
-    ):
-        mergerepo.merge(branch_head_hex)
 
 
 def test_merge_already_something_in_index(mergerepo: Repository) -> None:

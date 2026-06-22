@@ -1,4 +1,4 @@
-# Unreleased
+# 1.20.0 (UNRELEASED)
 
 - Add riscv64 wheels
   [#1463](https://github.com/libgit2/pygit2/pull/1463)
@@ -7,6 +7,9 @@ Breaking changes:
 
 - Remove deprecated `pygit2.legacyenums` module and `GIT_*` constants,
   use `pygit2.enums` instead
+
+- Remove deprecated support for passing `str` to `Repository.merge(...)`,
+  pass a `Commit`, `Oid`, or `Reference` object instead
 
 
 # 1.19.3 (2026-06-13)
