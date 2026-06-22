@@ -1,3 +1,14 @@
+# Unreleased
+
+- Add riscv64 wheels
+  [#1463](https://github.com/libgit2/pygit2/pull/1463)
+
+Breaking changes:
+
+- Remove deprecated `pygit2.legacyenums` module and `GIT_*` constants,
+  use `pygit2.enums` instead
+
+
 # 1.19.3 (2026-06-13)
 
 - Memory fixes
