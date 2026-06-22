@@ -813,13 +813,13 @@ class BaseRepository(_Repository):
         ancestor: 'IndexEntry | None',
         ours: 'IndexEntry | None',
         theirs: 'IndexEntry | None',
-        use_deprecated: bool = True,
-    ) -> 'str | MergeFileResult | None':
+        use_deprecated: bool = False,
+    ) -> 'MergeFileResult | str | None':
         """Merge files from index.
 
-        Returns: A string with the content of the file containing
-        possible conflicts if use_deprecated==True.
-        If use_deprecated==False then it returns an instance of MergeFileResult.
+        Returns: An instance of MergeFileResult by default.
+        If use_deprecated==True then it returns a string with the content of
+        the file containing possible conflicts.
 
         ancestor
             The index entry which will be used as a common
@@ -829,9 +829,9 @@ class BaseRepository(_Repository):
         theirs
             The index entry which will be merged into "ours"
         use_deprecated
-            This controls what will be returned. If use_deprecated==True (default),
-            a string with the contents of the file will be returned.
-            An instance of MergeFileResult will be returned otherwise.
+            This controls what will be returned. If use_deprecated==False (default),
+            an instance of MergeFileResult will be returned.
+            A string with the contents of the file will be returned otherwise.
         """
         cmergeresult = ffi.new('git_merge_file_result *')
 

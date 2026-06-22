@@ -241,7 +241,7 @@ def test_conflicts_in_bare_repository(barerepo: Repository) -> None:
     (a, t, o) = index.conflicts['conflict']
     diff = barerepo.merge_file_from_index(a, t, o)
     assert (
-        diff
+        diff.contents
         == """<<<<<<< conflict
 ASCII - abc
 =======

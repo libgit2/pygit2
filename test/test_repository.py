@@ -1073,46 +1073,63 @@ def test_merge_file_from_index_deprecated(testrepo: Repository) -> None:
         assert isinstance(blob, Blob)
         return blob.data.decode()
 
-    # no change
-    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_txt)
-    assert res == get_hello_txt_from_repo()
+    with pytest.warns(DeprecationWarning, match='Getting an str'):
+        # no change
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_txt, hello_txt, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # executable switch on ours
-    res = testrepo.merge_file_from_index(hello_txt, hello_txt_executable, hello_txt)
-    assert res == get_hello_txt_from_repo()
+        # executable switch on ours
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_txt_executable, hello_txt, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # executable switch on theirs
-    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_txt_executable)
-    assert res == get_hello_txt_from_repo()
+        # executable switch on theirs
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_txt, hello_txt_executable, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # executable switch on both
-    res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt_executable, hello_txt_executable
-    )
-    assert res == get_hello_txt_from_repo()
+        # executable switch on both
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_txt_executable, hello_txt_executable, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # path switch on ours
-    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_txt)
-    assert res == get_hello_txt_from_repo()
+        # path switch on ours
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_world, hello_txt, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # path switch on theirs
-    res = testrepo.merge_file_from_index(hello_txt, hello_txt, hello_world)
-    assert res == get_hello_txt_from_repo()
+        # path switch on theirs
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_txt, hello_world, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # path switch on both
-    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_world)
-    assert res == get_hello_txt_from_repo()
+        # path switch on both
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_world, hello_world, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # path switch on ours, executable flag switch on theirs
-    res = testrepo.merge_file_from_index(hello_txt, hello_world, hello_txt_executable)
-    assert res == get_hello_txt_from_repo()
+        # path switch on ours, executable flag switch on theirs
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_world, hello_txt_executable, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
-    # path switch on theirs, executable flag switch on ours
-    res = testrepo.merge_file_from_index(hello_txt, hello_txt_executable, hello_world)
-    assert res == get_hello_txt_from_repo()
+        # path switch on theirs, executable flag switch on ours
+        res = testrepo.merge_file_from_index(
+            hello_txt, hello_txt_executable, hello_world, use_deprecated=True
+        )
+        assert res == get_hello_txt_from_repo()
 
 
-def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
+def test_merge_file_from_index(testrepo: Repository) -> None:
     hello_txt = testrepo.index['hello.txt']
     hello_txt_executable = IndexEntry(
         hello_txt.path, hello_txt.id, FileMode.BLOB_EXECUTABLE
@@ -1126,7 +1143,7 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # no change
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt, hello_txt, use_deprecated=False
+        hello_txt, hello_txt, hello_txt
     )
     assert res == MergeFileResult(
         True, hello_txt.path, hello_txt.mode, get_hello_txt_from_repo()
@@ -1134,7 +1151,7 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # executable switch on ours
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt_executable, hello_txt, use_deprecated=False
+        hello_txt, hello_txt_executable, hello_txt
     )
     assert res == MergeFileResult(
         True,
@@ -1145,7 +1162,7 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # executable switch on theirs
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt, hello_txt_executable, use_deprecated=False
+        hello_txt, hello_txt, hello_txt_executable
     )
     assert res == MergeFileResult(
         True,
@@ -1156,7 +1173,7 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # executable switch on both
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt_executable, hello_txt_executable, use_deprecated=False
+        hello_txt, hello_txt_executable, hello_txt_executable
     )
     assert res == MergeFileResult(
         True,
@@ -1167,7 +1184,7 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # path switch on ours
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_world, hello_txt, use_deprecated=False
+        hello_txt, hello_world, hello_txt
     )
     assert res == MergeFileResult(
         True, hello_world.path, hello_txt.mode, get_hello_txt_from_repo()
@@ -1175,7 +1192,7 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # path switch on theirs
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt, hello_world, use_deprecated=False
+        hello_txt, hello_txt, hello_world
     )
     assert res == MergeFileResult(
         True, hello_world.path, hello_txt.mode, get_hello_txt_from_repo()
@@ -1183,13 +1200,13 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # path switch on both
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_world, hello_world, use_deprecated=False
+        hello_txt, hello_world, hello_world
     )
     assert res == MergeFileResult(True, None, hello_txt.mode, get_hello_txt_from_repo())
 
     # path switch on ours, executable flag switch on theirs
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_world, hello_txt_executable, use_deprecated=False
+        hello_txt, hello_world, hello_txt_executable
     )
     assert res == MergeFileResult(
         True,
@@ -1200,7 +1217,7 @@ def test_merge_file_from_index_non_deprecated(testrepo: Repository) -> None:
 
     # path switch on theirs, executable flag switch on ours
     res = testrepo.merge_file_from_index(
-        hello_txt, hello_txt_executable, hello_world, use_deprecated=False
+        hello_txt, hello_txt_executable, hello_world
     )
     assert res == MergeFileResult(
         True,

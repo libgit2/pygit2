@@ -11,6 +11,10 @@ Breaking changes:
 - Remove deprecated support for passing `str` to `Repository.merge(...)`,
   pass a `Commit`, `Oid`, or `Reference` object instead
 
+- `Repository.merge_file_from_index(...)` now returns `MergeFileResult`
+  by default. The previous string-returning behavior is still available
+  with `use_deprecated=True`, but is deprecated.
+
 
 # 1.19.3 (2026-06-13)
 
