@@ -30,7 +30,7 @@ from io import BytesIO
 from pathlib import Path
 from string import hexdigits
 from time import time
-from typing import TYPE_CHECKING, Optional, overload
+from typing import TYPE_CHECKING, Literal, Optional, overload
 
 # Import from pygit2
 from ._pygit2 import (
@@ -808,13 +808,31 @@ class BaseRepository(_Repository):
 
         return opts
 
+    @overload
+    def merge_file_from_index(
+        self,
+        ancestor: 'IndexEntry | None',
+        ours: 'IndexEntry | None',
+        theirs: 'IndexEntry | None',
+        use_deprecated: Literal[True],
+    ) -> str: ...
+
+    @overload
+    def merge_file_from_index(
+        self,
+        ancestor: 'IndexEntry | None',
+        ours: 'IndexEntry | None',
+        theirs: 'IndexEntry | None',
+        use_deprecated: Literal[False] = False,
+    ) -> MergeFileResult: ...
+
     def merge_file_from_index(
         self,
         ancestor: 'IndexEntry | None',
         ours: 'IndexEntry | None',
         theirs: 'IndexEntry | None',
         use_deprecated: bool = False,
-    ) -> 'MergeFileResult | str | None':
+    ) -> 'MergeFileResult | str':
         """Merge files from index.
 
         Returns: An instance of MergeFileResult by default.
@@ -850,6 +868,8 @@ class BaseRepository(_Repository):
 
         mergeFileResult = MergeFileResult._from_c(cmergeresult)
         C.git_merge_file_result_free(cmergeresult)
+
+        assert mergeFileResult is not None
 
         if use_deprecated:
             warnings.warn(
