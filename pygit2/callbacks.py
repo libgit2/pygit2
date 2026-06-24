@@ -66,9 +66,8 @@ API.
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Generator, Optional, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, Optional, ParamSpec, TypeVar
 
-from pygit2.utils import StrArray
 # pygit2
 from ._pygit2 import DiffFile, Oid
 from .credentials import Keypair, Username, UserPass
