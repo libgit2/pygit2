@@ -66,8 +66,9 @@ API.
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Optional, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, Generator, Optional, ParamSpec, TypeVar
 
+from pygit2.utils import StrArray
 # pygit2
 from ._pygit2 import DiffFile, Oid
 from .credentials import Keypair, Username, UserPass
@@ -79,7 +80,7 @@ from .utils import StrArray, maybe_string, ptr_to_bytes, to_bytes
 _Credentials = Username | UserPass | Keypair
 
 if TYPE_CHECKING:
-    from pygit2._libgit2.ffi import GitProxyOptionsC
+    from pygit2._libgit2.ffi import GitProxyOptionsC, GitStrrayC
 
     from .remotes import PushUpdate, TransferProgress
 #
@@ -120,8 +121,8 @@ class RemoteCallbacks(Payload):
     method, or if it's a constant value, pass the value to the constructor,
     e.g. RemoteCallbacks(credentials=credentials).
 
-    You can as well pass the certificate the same way, for example:
-    RemoteCallbacks(certificate=certificate).
+    You can as well pass the certificate check callback the same way, for example:
+    RemoteCallbacks(certificate_check=certificate_check).
     """
 
     push_options: Any
@@ -262,6 +263,19 @@ class RemoteCallbacks(Payload):
             Rejection message from the remote. If None, the update was accepted.
         """
 
+    def custom_headers(self) -> list[str] | None:
+        """
+        Custom headers callback. Override with your own function to return a
+        list of custom headers that should be used when connecting to, pushing
+        to, or fetching from the remote.
+
+        Example use case to authenticate with bearer tokens instead of username/password:
+
+            return [f"Authorization: Bearer {token}"]
+
+        Returns: list of header strings or None
+        """
+
 
 class CheckoutCallbacks(Payload):
     """Base class for pygit2 checkout callbacks.
@@ -352,6 +366,23 @@ class StashApplyCallbacks(CheckoutCallbacks):
 
 
 @contextmanager
+def git_custom_headers(
+    payload: RemoteCallbacks,
+    opts_custom_headers: Optional['GitStrrayC'] = None,
+) -> Generator[StrArray, Any, None]:
+    custom_headers = payload.custom_headers()
+    if custom_headers:
+        with StrArray(custom_headers) as headers_array:
+            if opts_custom_headers is not None:
+                headers_array.assign_to(opts_custom_headers)
+            yield headers_array
+
+    else:
+        with StrArray(None) as null_array:
+            yield null_array
+
+
+@contextmanager
 def git_clone_options(payload, opts=None):
     if opts is None:
         opts = ffi.new('git_clone_options *')
@@ -392,10 +423,11 @@ def git_fetch_options(payload, opts=None):
     handle = ffi.new_handle(payload)
     opts.callbacks.payload = handle
 
-    # Give back control
-    payload.fetch_options = opts
-    payload._stored_exception = None
-    yield payload
+    with git_custom_headers(payload, opts.custom_headers):
+        # Give back control
+        payload.fetch_options = opts
+        payload._stored_exception = None
+        yield payload
 
 
 @contextmanager
@@ -448,10 +480,11 @@ def git_push_options(payload, opts=None):
     handle = ffi.new_handle(payload)
     opts.callbacks.payload = handle
 
-    # Give back control
-    payload.push_options = opts
-    payload._stored_exception = None
-    yield payload
+    with git_custom_headers(payload, opts.custom_headers):
+        # Give back control
+        payload.push_options = opts
+        payload._stored_exception = None
+        yield payload
 
 
 @contextmanager

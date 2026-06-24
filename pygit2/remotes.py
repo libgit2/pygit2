@@ -34,6 +34,7 @@ from pygit2 import RemoteCallbacks
 from . import utils
 from ._pygit2 import Oid
 from .callbacks import (
+    git_custom_headers,
     git_fetch_options,
     git_proxy_options,
     git_push_options,
@@ -189,14 +190,15 @@ class Remote:
         """
         with git_proxy_options(self, proxy=proxy) as proxy_opts:
             with git_remote_callbacks(callbacks) as payload:
-                err = C.git_remote_connect(
-                    self._remote,
-                    direction,
-                    payload.remote_callbacks,
-                    proxy_opts,
-                    ffi.NULL,
-                )
-                payload.check_error(err)
+                with git_custom_headers(payload) as custom_headers:
+                    err = C.git_remote_connect(
+                        self._remote,
+                        direction,
+                        payload.remote_callbacks,
+                        proxy_opts,
+                        custom_headers.ptr,
+                    )
+                    payload.check_error(err)
 
     def fetch(
         self,

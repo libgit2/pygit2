@@ -91,6 +91,10 @@ class GitFetchOptionsC:
     # TODO: FetchOptions exist in _pygit2.pyi
     # incomplete
     depth: int
+    custom_headers: GitStrrayC
+
+class GitPushOptionsC:
+    custom_headers: GitStrrayC
 
 class GitSubmoduleC:
     pass

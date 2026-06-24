@@ -109,6 +109,7 @@ lcov.info
 .hypothesis/
 .pytest_cache/
 cover/
+test_config
 
 # Translations
 *.mo
