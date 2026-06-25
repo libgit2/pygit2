@@ -87,10 +87,36 @@ class GitRepositoryC:
     # def _from_c(cls, ptr: 'GitRepositoryC', owned: bool) -> 'Repository': ...
     pass
 
+class GitRemoteCallbacksC:
+    # TODO: Several Anys need filling in
+    version: int
+    sideband_progress: Any
+    completion: Any
+    credentials: Any
+    certificate_check: Any
+    transfer_progress: Any
+    update_tips: Any
+    pack_progress: Any
+    push_transfer_progress: Any
+    push_update_reference: Any
+    push_negotiation: Any
+    transport: Any
+    remote_ready: Any
+    payload: Any
+    resolve_url: Any
+    update_refs: Any
+
 class GitFetchOptionsC:
     # TODO: FetchOptions exist in _pygit2.pyi
     # incomplete
     depth: int
+    callbacks: GitRemoteCallbacksC
+    custom_headers: GitStrrayC
+
+class GitPushOptionsC:
+    # TODO incomplete
+    callbacks: GitRemoteCallbacksC
+    custom_headers: GitStrrayC
 
 class GitSubmoduleC:
     pass
@@ -225,7 +251,11 @@ class GitRepositoryInitOptionsC:
     origin_url: ArrayC[char]
 
 class GitCloneOptionsC:
-    pass
+    # TODO: Several Anys need filling in
+    repository_cb: Any
+    repository_cb_payload: Any
+    remote_cb: Any
+    remote_cb_payload: Any
 
 class GitPackbuilderC:
     pass
@@ -256,6 +286,8 @@ def new(a: Literal['git_repository **']) -> _Pointer[GitRepositoryC]: ...
 @overload
 def new(a: Literal['git_remote **']) -> _Pointer[GitRemoteC]: ...
 @overload
+def new(a: Literal['git_remote_callbacks *']) -> GitRemoteCallbacksC: ...
+@overload
 def new(a: Literal['git_transaction **']) -> _Pointer[GitTransactionC]: ...
 @overload
 def new(a: Literal['git_repository_init_options *']) -> GitRepositoryInitOptionsC: ...
@@ -276,7 +308,11 @@ def new(a: Literal['git_blob **']) -> _Pointer[GitBlobC]: ...
 @overload
 def new(a: Literal['git_clone_options *']) -> GitCloneOptionsC: ...
 @overload
+def new(a: Literal['git_fetch_options *']) -> GitFetchOptionsC: ...
+@overload
 def new(a: Literal['git_merge_options *']) -> GitMergeOptionsC: ...
+@overload
+def new(a: Literal['git_push_options *']) -> GitPushOptionsC: ...
 @overload
 def new(a: Literal['git_blame_options *']) -> GitBlameOptionsC: ...
 @overload
@@ -364,6 +400,7 @@ def new(
     a: Literal['char *[]'], b: list[Any]
 ) -> ArrayC[char_pointer]: ...  # For string arrays
 def addressof(a: object, attribute: str) -> _Pointer[object]: ...
+def new_handle(a: T) -> _Pointer[T]: ...
 
 class buffer(bytes):
     def __init__(self, a: object) -> None: ...

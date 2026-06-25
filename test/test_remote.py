@@ -30,7 +30,8 @@ from pathlib import Path
 import pytest
 
 import pygit2
-from pygit2 import Remote, Repository
+from pygit2 import Remote, RemoteCallbacks, Repository
+from pygit2.ffi import ffi
 from pygit2.remotes import PushUpdate, TransferProgress
 
 from . import utils
@@ -485,8 +486,6 @@ def test_push_non_fast_forward_commits_to_remote_fails(
 
 
 def test_push_options(origin: Repository, clone: Repository, remote: Remote) -> None:
-    from pygit2 import RemoteCallbacks
-
     callbacks = RemoteCallbacks()
     remote.push(['refs/heads/master'], callbacks)
     remote_push_options = callbacks.push_options.remote_push_options
@@ -515,8 +514,6 @@ def test_push_options(origin: Repository, clone: Repository, remote: Remote) -> 
 
 
 def test_push_threads(origin: Repository, clone: Repository, remote: Remote) -> None:
-    from pygit2 import RemoteCallbacks
-
     callbacks = RemoteCallbacks()
     remote.push(['refs/heads/master'], callbacks)
     assert callbacks.push_options.pb_parallelism == 1
@@ -562,3 +559,142 @@ def test_push_negotiation(
     assert the_updates[0].dst == new_tip_id
 
     assert origin.branches['master'].target == new_tip_id
+
+
+class HeaderCallbacks(RemoteCallbacks):
+    def custom_headers(self) -> list[str] | None:
+        return ['X-Other-One: foo', 'X-Other-Two: bar']
+
+
+def test_git_custom_headers_context_manager(
+    origin: Repository,
+    clone: Repository,
+    remote: Remote,
+) -> None:
+    from pygit2.callbacks import git_custom_headers, git_fetch_options, git_push_options
+
+    class EmptyHeaderCallbacks(RemoteCallbacks):
+        def custom_headers(self) -> list[str] | None:
+            return []
+
+    callbacks = RemoteCallbacks()
+    with git_custom_headers(callbacks) as headers:
+        assert headers.ptr == ffi.NULL
+
+    callbacks = EmptyHeaderCallbacks()
+    with git_custom_headers(callbacks) as headers:
+        assert headers.ptr == ffi.NULL
+
+    callbacks = HeaderCallbacks()
+    with git_custom_headers(callbacks) as headers:
+        ptr = headers.ptr
+        assert ptr != ffi.NULL
+        assert ptr.count == 2  # type: ignore[union-attr]
+        assert ffi.string(ptr.strings[0]) == b'X-Other-One: foo'  # type: ignore[union-attr,index]
+        assert ffi.string(ptr.strings[1]) == b'X-Other-Two: bar'  # type: ignore[union-attr,index]
+
+    callbacks = RemoteCallbacks()
+    with git_fetch_options(callbacks) as payload:
+        assert payload.fetch_options.custom_headers.count == 0
+        assert payload.fetch_options.custom_headers.strings == ffi.NULL
+
+    callbacks = EmptyHeaderCallbacks()
+    with git_fetch_options(callbacks) as payload:
+        assert payload.fetch_options.custom_headers.count == 0
+        assert payload.fetch_options.custom_headers.strings == ffi.NULL
+
+    callbacks = HeaderCallbacks()
+    with git_fetch_options(callbacks) as payload:
+        assert payload.fetch_options.custom_headers.count == 2
+        assert (
+            ffi.string(payload.fetch_options.custom_headers.strings[0])
+            == b'X-Other-One: foo'
+        )
+        assert (
+            ffi.string(payload.fetch_options.custom_headers.strings[1])
+            == b'X-Other-Two: bar'
+        )
+
+    callbacks = RemoteCallbacks()
+    with git_push_options(callbacks) as payload:
+        assert payload.push_options.custom_headers.count == 0
+        assert payload.push_options.custom_headers.strings == ffi.NULL
+
+    callbacks = EmptyHeaderCallbacks()
+    with git_push_options(callbacks) as payload:
+        assert payload.push_options.custom_headers.count == 0
+        assert payload.push_options.custom_headers.strings == ffi.NULL
+
+    callbacks = HeaderCallbacks()
+    with git_push_options(callbacks) as payload:
+        assert payload.push_options.custom_headers.count == 2
+        assert (
+            ffi.string(payload.push_options.custom_headers.strings[0])
+            == b'X-Other-One: foo'
+        )
+        assert (
+            ffi.string(payload.push_options.custom_headers.strings[1])
+            == b'X-Other-Two: bar'
+        )
+
+
+def test_push_headers(origin: Repository, clone: Repository, remote: Remote) -> None:
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.push_options.custom_headers.count == 0
+    assert callbacks.push_options.custom_headers.strings == ffi.NULL
+
+    callbacks = HeaderCallbacks()
+    remote.push(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.push_options.custom_headers.count == 2
+    assert callbacks.push_options.custom_headers.strings != ffi.NULL
+    # strings pointed to by callbacks.push_options.custom_headers.strings[] are already freed
+
+    # make sure the custom headers don't "stick around"
+    callbacks = RemoteCallbacks()
+    remote.push(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.push_options.custom_headers.count == 0
+    assert callbacks.push_options.custom_headers.strings == ffi.NULL
+
+
+def test_fetch_headers(origin: Repository, clone: Repository, remote: Remote) -> None:
+    callbacks = RemoteCallbacks()
+    remote.fetch(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.fetch_options.custom_headers.count == 0
+    assert callbacks.fetch_options.custom_headers.strings == ffi.NULL
+
+    callbacks = HeaderCallbacks()
+    remote.fetch(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.fetch_options.custom_headers.count == 2
+    assert callbacks.fetch_options.custom_headers.strings != ffi.NULL
+    # strings pointed to by callbacks.fetch_options.custom_headers.strings[] are already freed
+
+    # make sure the custom headers don't "stick around"
+    callbacks = RemoteCallbacks()
+    remote.fetch(['refs/heads/master'], callbacks=callbacks)
+    assert callbacks.fetch_options.custom_headers.count == 0
+    assert callbacks.fetch_options.custom_headers.strings == ffi.NULL
+
+
+@utils.requires_network
+def test_connect_headers(testrepo: Repository) -> None:
+    # This is just a check that having custom headers doesn't cause errors. As far as I can tell,
+    # there's no way to assert that C.git_remote_connect was called with the headers except for
+    # having a remote server that expects the headers and fails without them.
+
+    assert 1 == len(testrepo.remotes)
+    remote = testrepo.remotes[0]
+
+    callbacks = RemoteCallbacks()
+    remote.connect(callbacks=callbacks)
+    refs = remote.list_heads(connect=False)
+    assert refs
+    # Check that a known ref is returned.
+    assert next(iter(r for r in refs if r.name == 'refs/tags/v0.28.2'))
+
+    callbacks = HeaderCallbacks()
+    remote.connect(callbacks=callbacks)
+    refs = remote.list_heads(connect=False)
+    assert refs
+    # Check that a known ref is returned.
+    assert next(iter(r for r in refs if r.name == 'refs/tags/v0.28.2'))
