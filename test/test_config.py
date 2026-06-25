@@ -32,16 +32,15 @@ from pygit2 import Config, Repository
 
 from . import utils
 
-CONFIG_FILENAME = 'test_config'
+
+@pytest.fixture
+def config_path(tmp_path: Path) -> Path:
+    return tmp_path / 'test_config'
 
 
 @pytest.fixture
 def config(testrepo: Repository) -> Generator[object, None, None]:
     yield testrepo.config
-    try:
-        Path(CONFIG_FILENAME).unlink()
-    except OSError:
-        pass
 
 
 def test_config(config: Config) -> None:
@@ -64,42 +63,42 @@ def test_system_config() -> None:
         pass
 
 
-def test_new() -> None:
+def test_new(config_path: Path) -> None:
     # Touch file
-    open(CONFIG_FILENAME, 'w').close()
+    config_path.touch()
 
-    config_write = Config(CONFIG_FILENAME)
+    config_write = Config(str(config_path))
     assert config_write is not None
 
     config_write['core.bare'] = False
     config_write['core.editor'] = 'ed'
 
-    config_read = Config(CONFIG_FILENAME)
+    config_read = Config(str(config_path))
     assert 'core.bare' in config_read
     assert not config_read.get_bool('core.bare')
     assert 'core.editor' in config_read
     assert config_read['core.editor'] == 'ed'
 
 
-def test_add() -> None:
-    with open(CONFIG_FILENAME, 'w') as new_file:
+def test_add(config_path: Path) -> None:
+    with open(config_path, 'w') as new_file:
         new_file.write('[this]\n\tthat = true\n')
         new_file.write('[something "other"]\n\there = false')
 
     config = Config()
-    config.add_file(CONFIG_FILENAME, 0)
+    config.add_file(config_path, 0)
     assert 'this.that' in config
     assert config.get_bool('this.that')
     assert 'something.other.here' in config
     assert not config.get_bool('something.other.here')
 
 
-def test_add_aspath() -> None:
-    with open(CONFIG_FILENAME, 'w') as new_file:
+def test_add_aspath(config_path: Path) -> None:
+    with open(config_path, 'w') as new_file:
         new_file.write('[this]\n\tthat = true\n')
 
     config = Config()
-    config.add_file(Path(CONFIG_FILENAME), 0)
+    config.add_file(config_path, 0)
     assert 'this.that' in config
 
 
@@ -148,12 +147,12 @@ def test_write(config: Config) -> None:
     assert 'core.dummy3' not in config
 
 
-def test_multivar() -> None:
-    with open(CONFIG_FILENAME, 'w') as new_file:
+def test_multivar(config_path: Path) -> None:
+    with open(config_path, 'w') as new_file:
         new_file.write('[this]\n\tthat = foobar\n\tthat = foobeer\n')
 
     config = Config()
-    config.add_file(CONFIG_FILENAME, 6)
+    config.add_file(config_path, 6)
     assert 'this.that' in config
 
     assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that'))
@@ -185,27 +184,27 @@ def test_iterator(config: Config) -> None:
     assert lst['core.bare']
 
 
-def test_valueless_key_iteration() -> None:
+def test_valueless_key_iteration(config_path: Path) -> None:
     # A valueless key (no `= value`) has a NULL value pointer in libgit2.
     # Iterating over such entries must not raise a RuntimeError.
-    with open(CONFIG_FILENAME, 'w') as new_file:
+    with open(config_path, 'w') as new_file:
         new_file.write('[section]\n\tvaluelesskey\n\tnormalkey = somevalue\n')
 
     config = Config()
-    config.add_file(CONFIG_FILENAME, 6)
+    config.add_file(config_path, 6)
 
     entries = {entry.name: entry for entry in config}
     assert 'section.valuelesskey' in entries
     assert 'section.normalkey' in entries
 
 
-def test_valueless_key_value() -> None:
+def test_valueless_key_value(config_path: Path) -> None:
     # A valueless key must expose value=None and raw_value=None.
-    with open(CONFIG_FILENAME, 'w') as new_file:
+    with open(config_path, 'w') as new_file:
         new_file.write('[section]\n\tvaluelesskey\n\tnormalkey = somevalue\n')
 
     config = Config()
-    config.add_file(CONFIG_FILENAME, 6)
+    config.add_file(config_path, 6)
 
     entries = {entry.name: entry for entry in config}
     assert entries['section.valuelesskey'].raw_value is None

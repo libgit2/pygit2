@@ -25,9 +25,9 @@
 
 """Tests for non unicode byte strings"""
 
-import os
 import shutil
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -45,12 +45,12 @@ works_in_linux = pytest.mark.xfail(
 
 @utils.requires_network
 @works_in_linux
-def test_nonunicode_branchname(testrepo: Repository) -> None:
-    folderpath = 'temp_repo_nonutf'
-    if os.path.exists(folderpath):
+def test_nonunicode_branchname(testrepo: Repository, tmp_path: Path) -> None:
+    folderpath = tmp_path / 'temp_repo_nonutf'
+    if folderpath.exists():
         shutil.rmtree(folderpath)
     newrepo = pygit2.clone_repository(
-        path=folderpath, url='https://github.com/pygit2/test_branch_notutf.git'
+        path=str(folderpath), url='https://github.com/pygit2/test_branch_notutf.git'
     )
     bstring = b'\xc3master'
     assert bstring in [

@@ -33,9 +33,13 @@ COMMIT_HASH = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 
 def check_writing(
-    repo: Repository, treeish: str | Tree | Oid | Object, timestamp: int | None = None
+    repo: Repository,
+    treeish: str | Tree | Oid | Object,
+    tmp_path: Path,
+    timestamp: int | None = None,
 ) -> None:
-    archive = tarfile.open('foo.tar', mode='w')
+    archive_path = tmp_path / 'foo.tar'
+    archive = tarfile.open(archive_path, mode='w')
     repo.write_archive(treeish, archive)
 
     index = Index()
@@ -51,19 +55,17 @@ def check_writing(
         assert timestamp == fileinfo.mtime
 
     archive.close()
-    path = Path('foo.tar')
-    assert path.is_file()
-    path.unlink()
+    assert archive_path.is_file()
 
 
-def test_write_tree(testrepo: Repository) -> None:
-    check_writing(testrepo, TREE_HASH)
-    check_writing(testrepo, Oid(hex=TREE_HASH))
-    check_writing(testrepo, testrepo[TREE_HASH])
+def test_write_tree(testrepo: Repository, tmp_path: Path) -> None:
+    check_writing(testrepo, TREE_HASH, tmp_path)
+    check_writing(testrepo, Oid(hex=TREE_HASH), tmp_path)
+    check_writing(testrepo, testrepo[TREE_HASH], tmp_path)
 
 
-def test_write_commit(testrepo: Repository) -> None:
+def test_write_commit(testrepo: Repository, tmp_path: Path) -> None:
     commit_timestamp = testrepo[COMMIT_HASH].committer.time
-    check_writing(testrepo, COMMIT_HASH, commit_timestamp)
-    check_writing(testrepo, Oid(hex=COMMIT_HASH), commit_timestamp)
-    check_writing(testrepo, testrepo[COMMIT_HASH], commit_timestamp)
+    check_writing(testrepo, COMMIT_HASH, tmp_path, commit_timestamp)
+    check_writing(testrepo, Oid(hex=COMMIT_HASH), tmp_path, commit_timestamp)
+    check_writing(testrepo, testrepo[COMMIT_HASH], tmp_path, commit_timestamp)
