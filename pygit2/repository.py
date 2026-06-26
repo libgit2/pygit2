@@ -291,7 +291,7 @@ class BaseRepository(_Repository):
     def config(self) -> Config:
         """The configuration file for this repository.
 
-        If a the configuration hasn't been set yet, the default config for
+        If the configuration hasn't been set yet, the default config for
         repository will be returned, including global and system configurations
         (if they are available).
         """

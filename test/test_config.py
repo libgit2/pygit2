@@ -28,7 +28,7 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import Config, Repository
+from pygit2 import Config, Repository, Settings
 
 from . import utils
 
@@ -39,7 +39,7 @@ def config_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def config(testrepo: Repository) -> Generator[object, None, None]:
+def config(testrepo: Repository) -> Generator[Config, None, None]:
     yield testrepo.config
 
 
@@ -50,17 +50,16 @@ def test_config(config: Config) -> None:
 def test_global_config() -> None:
     try:
         assert Config.get_global_config() is not None
-    except IOError:
-        # There is no user config
-        pass
+    except IOError as e:
+        settings = Settings()
+        pytest.skip(f'Unavailable for testing with home dir = {settings.homedir}: {e}')
 
 
 def test_system_config() -> None:
     try:
         assert Config.get_system_config() is not None
-    except IOError:
-        # There is no system config
-        pass
+    except IOError as e:
+        pytest.skip(f'Unavailable for testing: {e}')
 
 
 def test_new(config_path: Path) -> None:
@@ -219,3 +218,62 @@ def test_parsing() -> None:
 
     assert 5 == Config.parse_int('5')
     assert 1024 == Config.parse_int('1k')
+
+
+def test_repository_config_snapshot(config: Config) -> None:
+    assert 'core.bare' in config
+    assert not config.get_bool('core.bare')
+    assert 'core.editor' in config
+    assert config['core.editor'] == 'ed'
+    assert 'core.repositoryformatversion' in config
+    assert config.get_int('core.repositoryformatversion') == 0
+
+    snapshot = config.snapshot()
+    assert 'core.bare' in snapshot
+    assert not snapshot.get_bool('core.bare')
+    assert 'core.editor' in snapshot
+    assert snapshot['core.editor'] == 'ed'
+    assert 'core.repositoryformatversion' in snapshot
+    assert snapshot.get_int('core.repositoryformatversion') == 0
+
+    assert 'core.snapshot1' not in config
+    assert 'core.snapshot1' not in snapshot
+    config['core.snapshot1'] = 42
+    assert 'core.snapshot1' in config
+    assert 'core.snapshot1' not in snapshot
+    assert config.get_int('core.snapshot1') == 42
+    utils.assertRaisesWithArg(
+        KeyError,
+        'core.snapshot1',
+        lambda: snapshot.get_int('core.snapshot1'),
+    )
+
+
+def test_non_repository_config_snapshot(config_path: Path) -> None:
+    with config_path.open('w') as new_file:
+        new_file.write('[this]\n\tthat = true\n')
+        new_file.write('[something "other"]\n\there = false')
+
+    config = Config(config_path)
+    assert 'this.that' in config
+    assert config.get_bool('this.that')
+    assert 'something.other.here' in config
+    assert not config.get_bool('something.other.here')
+
+    snapshot = config.snapshot()
+    assert 'this.that' in snapshot
+    assert snapshot.get_bool('this.that')
+    assert 'something.other.here' in snapshot
+    assert not snapshot.get_bool('something.other.here')
+
+    assert 'this.snapshot1' not in config
+    assert 'this.snapshot1' not in snapshot
+    config['this.snapshot1'] = 42
+    assert 'this.snapshot1' in config
+    assert 'this.snapshot1' not in snapshot
+    assert config.get_int('this.snapshot1') == 42
+    utils.assertRaisesWithArg(
+        KeyError,
+        'this.snapshot1',
+        lambda: snapshot.get_int('this.snapshot1'),
+    )
