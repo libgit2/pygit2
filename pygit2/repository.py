@@ -23,6 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import os
 import tarfile
 import warnings
 from collections.abc import Callable, Iterator
@@ -1824,7 +1825,7 @@ class Repository(BaseRepository):
             if hasattr(path, '__fspath__'):
                 path = path.__fspath__()
             if not isinstance(path, str):
-                path = path.decode('utf-8')
+                path = os.fsdecode(path)
             path_backend = init_file_backend(path, int(flags))
             super().__init__(path_backend)
         else:
