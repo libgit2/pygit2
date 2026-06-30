@@ -33,6 +33,8 @@ import pytest
 
 import pygit2
 from pygit2 import Repository
+from pygit2.enums import FileStatus
+from pygit2.utils import to_bytes
 
 from . import utils
 
@@ -57,3 +59,16 @@ def test_nonunicode_branchname(testrepo: Repository, tmp_path: Path) -> None:
         (ref.split('/')[-1]).encode('utf8', 'surrogateescape')
         for ref in newrepo.listall_references()
     ]  # Remote branch among references: 'refs/remotes/origin/\udcc3master'
+
+
+@works_in_linux
+def test_nonunicode_status_path(tmp_path: Path) -> None:
+    repo = pygit2.init_repository(str(tmp_path / 'repo'), bare=False)
+    path_bytes = 'éléphant'.encode('latin1')
+    filepath = Path(repo.workdir) / path_bytes.decode('utf-8', 'surrogateescape')
+    filepath.write_bytes(b'dummy')
+    git_status = repo.status()
+    path_key = os.fsdecode(path_bytes)
+    assert path_bytes in [to_bytes(path) for path in git_status]
+    assert git_status[path_key] & FileStatus.WT_NEW
+    assert to_bytes(path_key) == path_bytes

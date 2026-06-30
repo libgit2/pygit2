@@ -48,7 +48,7 @@ def maybe_string(ptr: 'char_pointer | None') -> str | None:
     if not ptr:
         return None
 
-    return ffi.string(ptr).decode('utf8', errors='surrogateescape')
+    return os.fsdecode(ffi.string(ptr))
 
 
 @overload
@@ -77,6 +77,9 @@ def to_bytes(
     if isinstance(s, bytes):
         return s
 
+    if encoding == 'utf-8' and errors == 'strict':
+        return os.fsencode(s)
+
     return s.encode(encoding, errors)  # type: ignore[union-attr]
 
 
@@ -88,7 +91,7 @@ def to_str(s: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> str:
         return s
 
     if type(s) is bytes:
-        return s.decode()
+        return os.fsdecode(s)
 
     raise TypeError(f'unexpected type "{repr(s)}"')
 
@@ -118,7 +121,7 @@ def strarray_to_strings(arr) -> list[str]:
     calling this function.
     """
     try:
-        return [ffi.string(arr.strings[i]).decode('utf-8') for i in range(arr.count)]
+        return [maybe_string(arr.strings[i]) for i in range(arr.count)]
     finally:
         C.git_strarray_dispose(arr)
 

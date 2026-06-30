@@ -1514,7 +1514,9 @@ PyDoc_STRVAR(Repository_listall_submodules__doc__,
 static int foreach_path_cb(git_submodule *submodule, const char *name, void *payload)
 {
     PyObject *list = (PyObject *)payload;
-    PyObject *path = to_unicode(git_submodule_path(submodule), NULL, NULL);
+    PyObject *path = PyUnicode_DecodeFSDefault(git_submodule_path(submodule));
+    if (path == NULL)
+        return -1;
 
     int err = PyList_Append(list, path);
     Py_DECREF(path);
@@ -1797,7 +1799,12 @@ Repository_status(Repository *self, PyObject *args, PyObject *kw)
         if (status == NULL)
             goto error;
 
-        err = PyDict_SetItemString(dict, path, status);
+        PyObject *py_path = PyUnicode_DecodeFSDefault(path);
+        if (py_path == NULL)
+            goto error;
+
+        err = PyDict_SetItem(dict, py_path, status);
+        Py_DECREF(py_path);
         Py_CLEAR(status);
 
         if (err < 0)
