@@ -1298,7 +1298,7 @@ def _config_memory_backend_get(
     backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
     self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
     try:
-        key = ffi.string(name).decode('utf-8')
+        key = ffi.string(name).decode('utf-8').lower()
         if key not in self._read_data or not self._read_data[key]:
             return C.GIT_ENOTFOUND
 
@@ -1341,7 +1341,7 @@ def _config_memory_backend_set(
     backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
     self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
     try:
-        key = ffi.string(name).decode('utf-8')
+        key = ffi.string(name).decode('utf-8').lower()
         decoded_value = ffi.string(value).decode('utf-8')
         self._write_data[key] = [_InMemoryBackend.Entry(key, decoded_value)]
     except BaseException as e:
@@ -1379,7 +1379,7 @@ def _config_memory_backend_set_multivar(
     backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
     self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
     try:
-        key = ffi.string(name).decode('utf-8')
+        key = ffi.string(name).decode('utf-8').lower()
         with self.write_lock():
             if key in self._write_data and regexp != ffi.NULL:
                 expression = re.compile(ffi.string(regexp).decode('utf-8'))
@@ -1418,7 +1418,7 @@ def _config_memory_backend_del(
     backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
     self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
     try:
-        key = ffi.string(name).decode('utf-8')
+        key = ffi.string(name).decode('utf-8').lower()
         with self.write_lock():
             if key not in self._write_data:
                 return C.GIT_ENOTFOUND
@@ -1452,7 +1452,7 @@ def _config_memory_backend_del_multivar(
     backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
     self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
     try:
-        key = ffi.string(name).decode('utf-8')
+        key = ffi.string(name).decode('utf-8').lower()
         with self.write_lock():
             if key not in self._write_data:
                 return C.GIT_ENOTFOUND
@@ -1635,13 +1635,17 @@ def _config_memory_backend_free(backend: 'GitConfigBackendC') -> None:
     C signature:
         void free(git_config_backend *backend);
     """
-    backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
-    self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
     try:
-        self.clear()
-    except BaseException as e:
-        self._config._stored_exception = e
-        # nothing we can do here because of the void return type
+        backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
+        self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
+        try:
+            self.clear()
+        except BaseException as e:
+            self._config._stored_exception = e
+            # nothing we can do here because of the void return type
+    except (AttributeError, TypeError, RuntimeError, ReferenceError):
+        # The Python interpreter is exiting when this is called. Nothing we can do.
+        pass
 
 
 @ffi.def_extern()

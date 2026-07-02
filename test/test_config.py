@@ -451,11 +451,13 @@ def test_repository_config_in_memory_overrides(config: RepositoryConfig) -> None
         assert 'core.local3' in config
         assert config['core.local3'] == 'lorem ipsum'
 
-        # let's try some different values now
+        # let's try some different values now (and case insensitivity)
         assert 'core.override1' not in config
-        config['core.override1'] = False
+        config['core.oVeRrIdE1'] = False
         assert 'core.override1' in config
+        assert 'core.oVeRrIdE1' in config
         assert not config.get_bool('core.override1')
+        assert not config.get_bool('core.oVeRrIdE1')
 
         assert 'core.override2' not in config
         config['core.override2'] = 81
@@ -557,11 +559,13 @@ def test_default_config_in_memory_overrides() -> None:
     assert 'core.override5' not in config
 
     with config:
-        # let's try some different values now
+        # let's try some different values now (and case insensitivity)
         assert 'core.override1' not in config
-        config['core.override1'] = False
+        config['core.oVeRrIdE1'] = False
         assert 'core.override1' in config
+        assert 'core.oVeRrIdE1' in config
         assert not config.get_bool('core.override1')
+        assert not config.get_bool('core.oVeRrIdE1')
 
         assert 'core.override2' not in config
         config['core.override2'] = 81
