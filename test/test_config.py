@@ -386,14 +386,15 @@ def test_repository_config_in_memory_overrides(config: RepositoryConfig) -> None
         config.set_multivar('core.override5', '^$', 'dolor')
         config.set_multivar('core.override5', '^$', 'simet')
         assert 'core.override5' in config
-        assert list(
-            config.get_multivar('core.override5')
-        ) == ['lorem', 'ipsum', 'dolor', 'simet']
+        assert list(config.get_multivar('core.override5')) == [
+            'lorem',
+            'ipsum',
+            'dolor',
+            'simet',
+        ]
         config.delete_multivar('core.override5', r'.*or.*')
         assert 'core.override5' in config
-        assert list(
-            config.get_multivar('core.override5')
-        ) == ['ipsum', 'simet']
+        assert list(config.get_multivar('core.override5')) == ['ipsum', 'simet']
         config.delete_multivar('core.override5', r'.*')
         assert 'core.override5' not in config
 
@@ -524,14 +525,15 @@ def test_default_config_in_memory_overrides() -> None:
         config.set_multivar('core.override5', '^$', 'dolor')
         config.set_multivar('core.override5', '^$', 'simet')
         assert 'core.override5' in config
-        assert list(
-            config.get_multivar('core.override5')
-        ) == ['lorem', 'ipsum', 'dolor', 'simet']
+        assert list(config.get_multivar('core.override5')) == [
+            'lorem',
+            'ipsum',
+            'dolor',
+            'simet',
+        ]
         config.delete_multivar('core.override5', r'.*or.*')
         assert 'core.override5' in config
-        assert list(
-            config.get_multivar('core.override5')
-        ) == ['ipsum', 'simet']
+        assert list(config.get_multivar('core.override5')) == ['ipsum', 'simet']
         config.delete_multivar('core.override5', r'.*')
         assert 'core.override5' not in config
 
