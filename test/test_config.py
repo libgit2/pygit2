@@ -256,6 +256,12 @@ def test_repository_config_snapshot(config: RepositoryConfig) -> None:
         "cannot set 'something.other.changed': the configuration is read-only",
         lambda: snapshot.set_multivar('something.other.changed', '^$', 'foo'),
     )
+    utils.assertRaisesWithArg(
+        TypeError,
+        'A read-only config snapshot cannot be used as a context manager, '
+        'because its backend data cannot be changed.',
+        snapshot.__enter__,
+    )
 
     assert 'core.snapshot1' not in config
     assert 'core.snapshot1' not in snapshot
@@ -318,6 +324,12 @@ def test_default_config_snapshot() -> None:
         GitError,
         "cannot set 'something.other.changed': the configuration is read-only",
         lambda: snapshot.set_multivar('something.other.changed', '^$', 'foo'),
+    )
+    utils.assertRaisesWithArg(
+        TypeError,
+        'A read-only config snapshot cannot be used as a context manager, '
+        'because its backend data cannot be changed.',
+        snapshot.__enter__,
     )
 
 

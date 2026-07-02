@@ -209,6 +209,7 @@ Authors:
     Michał Górny
     Mukunda Rao Katta
     Na'aman Hirschfeld
+    Nicholas Williams
     Nicolas Rybowski
     Nicolás Sanguinetti
     Nikita Kartashov
