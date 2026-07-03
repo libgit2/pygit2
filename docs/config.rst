@@ -15,12 +15,12 @@ The Config types
    :special-members: __contains__, __delitem__, __getitem__, __init__, __iter__, __setitem__
 
 .. autoclass:: pygit2.DefaultConfig
-   :members: __enter__, __exit__
+   :members: __enter__, __exit__, add_file, snapshot
    :undoc-members:
    :special-members: __init__
 
 .. autoclass:: pygit2.RepositoryConfig
-   :members: __enter__, __exit__
+   :members: __enter__, __exit__, add_file, snapshot
    :undoc-members:
    :special-members: __init__
 
@@ -29,4 +29,4 @@ The ConfigEntry type
 ====================
 
 .. autoclass:: pygit2.config.ConfigEntry
-   :members: name, value, level
+   :members: level, name, raw_level, raw_name, raw_value, value

@@ -84,23 +84,45 @@ def str_to_bytes(value: str | bytes, name: str) -> bytes:
 
 
 class _BaseIterator:
-    def __init__(self, config, ptr) -> None:
-        self._iter = ptr
+    def __init__(self, config: 'Config', c_iter: 'GitConfigIteratorC') -> None:
         self._config = config
+        self._iter = c_iter
+
+        self._freed = False
+        self._c_entry_ptr = ffi.new('git_config_entry **')
+
+    def _free(self):
+        if not self._freed:
+            self._freed = True
+            self._c_entry_ptr = None  # do not free; see comment in _next_entry
+            C.git_config_iterator_free(self._iter)
 
     def __del__(self) -> None:
-        C.git_config_iterator_free(self._iter)
+        self._free()  # fallback in case we never hit StopIteration below
 
     def __iter__(self) -> Self:
         return self
 
     def _next_entry(self) -> 'ConfigEntry':
-        self._config._stored_exception = None
-        centry = ffi.new('git_config_entry **')
-        err = C.git_config_next(centry, self._iter)
-        check_error(err, user_exception=self._config._stored_exception)
-
-        return ConfigEntry._from_c(centry[0], self)
+        try:
+            # git_config_next (or, rather, the file backend specifically) re-uses a
+            # git_config_entry buffer from one call to the next. And more so than just
+            # this, it re-uses a buffer even from one iterator to the next. It's a
+            # matter of discussion whether this is correct behavior, but what it means
+            # is that we should never call git_config_entry_free on an entry allocated
+            # by git_config_next. And, in fact, we must completely copy the data out of
+            # one entry before the next git_config_next invocation, or else it might
+            # get corrupted. See:
+            # - https://github.com/libgit2/libgit2/issues/7307
+            # - https://github.com/libgit2/pygit2/issues/970
+            # - https://libgit2.org/docs/reference/v1.9.4/config/git_config_next.html
+            self._config._stored_exception = None
+            err = C.git_config_next(self._c_entry_ptr, self._iter)
+            check_error(err, user_exception=self._config._stored_exception)
+            return ConfigEntry(self._c_entry_ptr[0])
+        except StopIteration:
+            self._free()  # release the memory as soon as we can
+            raise
 
 
 class ConfigIterator(_BaseIterator):
@@ -255,11 +277,14 @@ class Config:
     def _get(self, name: str | bytes) -> tuple[int, 'ConfigEntry | None']:
         name = str_to_bytes(name, 'name')
 
-        entry = ffi.new('git_config_entry **')
-        err = C.git_config_get_entry(entry, self._config, name)
+        c_entry_ptr = ffi.new('git_config_entry **')
+        err = C.git_config_get_entry(c_entry_ptr, self._config, name)
 
         if err >= 0:
-            return err, ConfigEntry._from_c(entry[0])
+            try:
+                return err, ConfigEntry(c_entry_ptr[0])
+            finally:
+                C.git_config_entry_free(c_entry_ptr[0])
 
         return err, None
 
@@ -383,11 +408,11 @@ class Config:
         :returns: An iterator over :class:`pygit2.config.ConfigEntry` objects.
         """
         self._stored_exception = None
-        citer = ffi.new('git_config_iterator **')
-        err = C.git_config_iterator_new(citer, self._config)
+        c_iter_ptr = ffi.new('git_config_iterator **')
+        err = C.git_config_iterator_new(c_iter_ptr, self._config)
         self._check_error(err)
 
-        return ConfigIterator(self, citer[0])
+        return ConfigIterator(self, c_iter_ptr[0])
 
     def get_multivar(
         self,
@@ -417,11 +442,16 @@ class Config:
         name = str_to_bytes(name, 'name')
         regex_bytes = to_bytes(regex or None)
 
-        citer = ffi.new('git_config_iterator **')
-        err = C.git_config_multivar_iterator_new(citer, self._config, name, regex_bytes)
+        c_iter_ptr = ffi.new('git_config_iterator **')
+        err = C.git_config_multivar_iterator_new(
+            c_iter_ptr,
+            self._config,
+            name,
+            regex_bytes,
+        )
         self._check_error(err)
 
-        return ConfigMultivarIterator(self, citer[0])
+        return ConfigMultivarIterator(self, c_iter_ptr[0])
 
     def set_multivar(
         self,
@@ -601,10 +631,10 @@ class Config:
 
     def _c_snapshot(self) -> 'GitConfigC':
         self._stored_exception = None
-        c_config = ffi.new('git_config **')
-        err = C.git_config_snapshot(c_config, self._config)
+        c_config_ptr = ffi.new('git_config **')
+        err = C.git_config_snapshot(c_config_ptr, self._config)
         self._check_error(err)
-        return c_config[0]
+        return c_config_ptr[0]
 
     #
     # Methods to parse a string according to the git-config rules
@@ -848,10 +878,10 @@ class DefaultConfig(_InMemoryAppBackendConfig):
         if c_snapshot is not None:
             super().__init__(c_config=c_snapshot, is_snapshot=True)
         else:
-            c_config = ffi.new('git_config **')
-            err = C.git_config_open_default(c_config)
+            c_config_ptr = ffi.new('git_config **')
+            err = C.git_config_open_default(c_config_ptr)
             check_error(err)
-            super().__init__(c_config=c_config[0], is_snapshot=False)
+            super().__init__(c_config=c_config_ptr[0], is_snapshot=False)
 
     @override
     def snapshot(self) -> DefaultConfig:
@@ -974,13 +1004,13 @@ class RepositoryConfig(_InMemoryAppBackendConfig):
         if c_snapshot is not None:
             super().__init__(c_config=c_snapshot, is_snapshot=True)
         else:
-            c_config = ffi.new('git_config **')
+            c_config_ptr = ffi.new('git_config **')
             if do_snapshot:
-                err = C.git_repository_config_snapshot(c_config, self._c_repo)
+                err = C.git_repository_config_snapshot(c_config_ptr, self._c_repo)
             else:
-                err = C.git_repository_config(c_config, self._c_repo)
+                err = C.git_repository_config(c_config_ptr, self._c_repo)
             check_error(err)
-            super().__init__(c_config=c_config[0], is_snapshot=do_snapshot)
+            super().__init__(c_config=c_config_ptr[0], is_snapshot=do_snapshot)
 
     @override
     def snapshot(self) -> RepositoryConfig:
@@ -1763,63 +1793,77 @@ def _config_memory_iterator_entry_free(entry: 'GitConfigBackendEntryC') -> None:
 class ConfigEntry:
     """An entry in a configuration object."""
 
-    _entry: 'GitConfigEntryC'
-    iterator: _BaseIterator | None
+    def __init__(self, c_entry: 'GitConfigEntryC') -> None:
+        """For internal use only."""
+        # The c_entry will not be valid for the entire life of this ConfigEntry, so we
+        # must copy *all* of the data out of it at construction and *not* store the
+        # c_entry.
+        self._raw_name = ffi.string(c_entry.name)
+        self._name = self._raw_name.decode('utf-8')
 
-    @classmethod
-    def _from_c(
-        cls, ptr: 'GitConfigEntryC', iterator: _BaseIterator | None = None
-    ) -> 'ConfigEntry':
-        """Builds the entry from a ``git_config_entry`` pointer.
+        self._raw_value: bytes | None = None
+        if c_entry.value is not None and c_entry.value != ffi.NULL:
+            self._raw_value = ffi.string(c_entry.value)
 
-        ``iterator`` must be a ``ConfigIterator`` instance if the entry was
-        created during ``git_config_iterator`` actions.
-        """
-        entry = cls.__new__(cls)
-        entry._entry = ptr
-        entry.iterator = iterator
-
-        # It should be enough to keep a reference to iterator, so we only call
-        # git_config_iterator_free when we've deleted all ConfigEntry objects.
-        # But it's not, to reproduce the error comment the lines below and run
-        # the script in https://github.com/libgit2/pygit2/issues/970
-        # So instead we load the Python object immediately. Ideally we should
-        # investigate libgit2 source code.
-        if iterator is not None:
-            entry.raw_name = entry.raw_name
-            entry.raw_value = entry.raw_value
-            entry.level = entry.level
-
-        return entry
-
-    def __del__(self) -> None:
-        if self.iterator is None and self._entry != ffi.NULL:
-            C.git_config_entry_free(self._entry)
+        self._raw_level = c_entry.level
+        self._level = ConfigLevel(self._raw_level)
 
     @property
-    def c_value(self) -> 'ffi.char_pointer':
-        """The raw ``cData`` entry value."""
-        return self._entry.value
-
-    @cached_property
     def raw_name(self) -> bytes:
-        return ffi.string(self._entry.name)
+        """The entry's name as encoded bytes.
 
-    @cached_property
+        :returns: The raw name obtained from the entry without decoding it.
+        """
+        return self._raw_name
+
+    @property
     def raw_value(self) -> bytes | None:
-        return ffi.string(self.c_value) if self.c_value != ffi.NULL else None
+        """The entry's value as encoded bytes.
 
-    @cached_property
-    def level(self) -> int:
-        """The entry's ``git_config_level_t`` value."""
-        return self._entry.level
+        The value may be ``None`` if the config entry this represents was a
+        valueless flag.
+
+        :returns: The raw value obtained from the entry without decoding it.
+        """
+        return self._raw_value
+
+    @property
+    def raw_level(self) -> int:
+        """The entry's level as an integer.
+
+        :returns: The raw ``git_config_level_t`` value from the entry.
+        """
+        return self._raw_level
+
+    @property
+    def level(self) -> ConfigLevel:
+        """The entry's level as a :class:`pygit2.enums.ConfigLevel`.
+
+        :returns: The ``ConfigLevel`` equivalent of the entry's ``git_config_level_t``.
+        """
+        return self._level
 
     @property
     def name(self) -> str:
-        """The entry's name."""
-        return self.raw_name.decode('utf-8')
+        """The entry's name.
 
-    @property
+        :returns: The name.
+        """
+        return self._name
+
+    @cached_property
     def value(self) -> str | None:
-        """The entry's value as a string."""
-        return self.raw_value.decode('utf-8') if self.raw_value is not None else None
+        """The entry's value as a string.
+
+        The value may be ``None`` if the config entry this represents was a
+        valueless flag.
+
+        The value is UTF-8 decoded from the :meth:`ConfigEntry.raw_value` the first time
+        this property is accessed. If you know or suspect that the value cannot be UTF-8
+        decoded, access :meth:`ConfigEntry.raw_value`, instead, and decode it by other
+        means.
+
+        :returns: The UTF-8 decoded string value from this entry.
+        :raises UnicodeDecodeError: If the value cannot be UTF-8 decoded.
+        """
+        return self._raw_value.decode('utf-8') if self._raw_value is not None else None
