@@ -469,6 +469,37 @@ def test_repository_config_in_memory_overrides(config: RepositoryConfig) -> None
         assert 'core.override3' in config
         assert config['core.override3'] == 'dolor simet'
 
+        # let's make sure snapshots work, too
+        snapshot = config.snapshot()
+        utils.assertRaisesWithArg(
+            TypeError,
+            'A read-only config snapshot cannot be used as a context manager, '
+            'because its backend data cannot be changed.',
+            snapshot.__enter__,
+        )
+        utils.assertRaisesWithArg(
+            GitError,
+            "cannot set 'core.override4': the configuration is read-only",
+            lambda: snapshot.set_multivar('core.override4', '^$', 'foo'),
+        )
+        assert 'core.editor' in snapshot
+        assert snapshot['core.editor'] == 'ed'
+        assert 'core.repositoryformatversion' in snapshot
+        assert snapshot.get_int('core.repositoryformatversion') == 0
+        assert 'core.local1' in snapshot
+        assert not snapshot.get_bool('core.local1')
+        assert 'core.local2' in snapshot
+        assert snapshot.get_int('core.local2') == 56
+        assert 'core.local3' in snapshot
+        assert snapshot['core.local3'] == 'lorem ipsum'
+        assert 'core.oVeRrIdE1' in snapshot
+        assert not snapshot.get_bool('core.override1')
+        assert not snapshot.get_bool('core.oVeRrIdE1')
+        assert 'core.override2' in snapshot
+        assert snapshot.get_int('core.override2') == 81
+        assert 'core.override3' in snapshot
+        assert snapshot['core.override3'] == 'dolor simet'
+
     # it all should have been erased again
     assert 'core.override1' not in config
     assert 'core.override2' not in config
@@ -576,6 +607,27 @@ def test_default_config_in_memory_overrides() -> None:
         config['core.override3'] = 'dolor simet'
         assert 'core.override3' in config
         assert config['core.override3'] == 'dolor simet'
+
+        # let's make sure snapshots work, too
+        snapshot = config.snapshot()
+        utils.assertRaisesWithArg(
+            TypeError,
+            'A read-only config snapshot cannot be used as a context manager, '
+            'because its backend data cannot be changed.',
+            snapshot.__enter__,
+        )
+        utils.assertRaisesWithArg(
+            GitError,
+            "cannot set 'core.override4': the configuration is read-only",
+            lambda: snapshot.set_multivar('core.override4', '^$', 'foo'),
+        )
+        assert 'core.oVeRrIdE1' in snapshot
+        assert not snapshot.get_bool('core.override1')
+        assert not snapshot.get_bool('core.oVeRrIdE1')
+        assert 'core.override2' in snapshot
+        assert snapshot.get_int('core.override2') == 81
+        assert 'core.override3' in snapshot
+        assert snapshot['core.override3'] == 'dolor simet'
 
     # it all should have been erased again
     assert 'core.override1' not in config

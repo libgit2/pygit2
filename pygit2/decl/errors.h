@@ -39,13 +39,15 @@ typedef enum {
 	GIT_EINDEXDIRTY     = -34,	/**< Unsaved changes in the index would be overwritten */
 	GIT_EAPPLYFAIL      = -35,	/**< Patch application failed */
 	GIT_EOWNER          = -36,	/**< The object is not owned by the current user */
-	GIT_TIMEOUT         = -37	/**< The operation timed out */
+	GIT_TIMEOUT         = -37,	/**< The operation timed out */
+	GIT_EUNCHANGED      = -38,	/**< There were no changes */
+	GIT_ENOTSUPPORTED   = -39,	/**< An option is not supported */
+	GIT_EREADONLY       = -40	/**< The subject is read-only */
 } git_error_code;
 
 typedef struct {
 	char *message;
 	int klass;
 } git_error;
-
 
 const git_error * git_error_last(void);
