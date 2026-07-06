@@ -107,9 +107,9 @@ class _BaseIterator:
 
     def _next_entry(self) -> 'ConfigEntry':
         try:
-            # git_config_next (or, rather, the file backend specifically) re-uses a
+            # git_config_next (or, rather, the file backend specifically) reuses a
             # git_config_entry buffer from one call to the next. And more so than just
-            # this, it re-uses a buffer even from one iterator to the next. It's a
+            # this, it reuses a buffer even from one iterator to the next. It's a
             # matter of discussion whether this is correct behavior, but what it means
             # is that we should never call git_config_entry_free on an entry allocated
             # by git_config_next. And, in fact, we must completely copy the data out of
