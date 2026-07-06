@@ -30,7 +30,7 @@ import re
 import sys
 import threading
 import weakref
-from collections.abc import Callable, Generator, Iterator
+from collections.abc import Callable, Generator, Iterator, Sequence
 from os import PathLike
 from types import TracebackType
 
@@ -805,6 +805,10 @@ class _InMemoryAppBackendConfig(Config, abc.ABC):
     def _add_backend_to_config(self, backend: _InMemoryBackend) -> None:
         """Adds the backend to the config object."""
 
+    @abc.abstractmethod
+    def _default_write_order(self) -> Sequence[ConfigLevel]:
+        """Get the default write order to restore on context exit."""
+
     def __enter__(self) -> Self:
         """Enter a context where all writes occur against an in-memory configuration.
 
@@ -825,7 +829,7 @@ class _InMemoryAppBackendConfig(Config, abc.ABC):
         if not self._backend_added:
             self._add_backend_to_config(self._backend)
             self._backend_added = True
-        self._change_write_priority(ConfigLevel.APP)
+        self._set_write_order((ConfigLevel.APP,))
         return self
 
     def __exit__(
@@ -843,24 +847,26 @@ class _InMemoryAppBackendConfig(Config, abc.ABC):
         :returns: ``False``
         """
         if self._backend_added:
-            self._change_write_priority(ConfigLevel.LOCAL)
+            self._set_write_order(self._default_write_order())
             self._backend.clear()
         return False
 
-    def _change_write_priority(self, level: ConfigLevel) -> None:
+    def _set_write_order(self, levels: Sequence[ConfigLevel]) -> None:
         """For internal use only.
 
         By default, when libgit2 creates a ``git_config`` object for a repository, it sets
         the write order to ``{ GIT_CONFIG_LEVEL_LOCAL }``. This means that writes go
         only to the local config in ``.git/config`` and nowhere else. We need to change
         this to ``{ GIT_CONFIG_LEVEL_APP }` when entering the context and then back to
-        ``{ GIT_CONFIG_LEVEL_LOCAL }`` when exiting the context.
+        ``{ GIT_CONFIG_LEVEL_LOCAL }`` when exiting the context. For the non-repo "default"
+        config, the default we want to restore is ``{ GIT_CONFIG_LEVEL_GLOBAL,
+        GIT_CONFIG_LEVEL_XDG, GIT_CONFIG_LEVEL_SYSTEM, GIT_CONFIG_LEVEL_PROGRAMDATA }``.
         """
         c_levels = ffi.new(
             'git_config_level_t[]',
-            [ffi.cast('git_config_level_t', level.value)],
+            [ffi.cast('git_config_level_t', level.value) for level in levels],
         )
-        err = C.git_config_set_writeorder(self._c_config, c_levels, 1)
+        err = C.git_config_set_writeorder(self._c_config, c_levels, len(levels))
         check_error(err)
 
 
@@ -949,6 +955,15 @@ class DefaultConfig(_InMemoryAppBackendConfig):
     @override
     def _add_backend_to_config(self, backend: _InMemoryBackend) -> None:
         backend.add_to_config(self._c_config)
+
+    @override
+    def _default_write_order(self) -> Sequence[ConfigLevel]:
+        return (
+            ConfigLevel.GLOBAL,
+            ConfigLevel.XDG,
+            ConfigLevel.SYSTEM,
+            ConfigLevel.PROGRAMDATA,
+        )
 
     @override
     def add_file(
@@ -1082,6 +1097,10 @@ class RepositoryConfig(_InMemoryAppBackendConfig):
     @override
     def _add_backend_to_config(self, backend: _InMemoryBackend) -> None:
         backend.add_to_config(self._c_config, self._c_repo)
+
+    @override
+    def _default_write_order(self) -> Sequence[ConfigLevel]:
+        return (ConfigLevel.LOCAL,)
 
     @override
     def add_file(
@@ -1230,7 +1249,7 @@ class _InMemoryBackend:
     def initialize_backend(self) -> PyGitConfigBackendWrapperC:
         """Initializes the C backend object."""
         if self._c_backend is not None:
-            raise ValueError('add_to_config called twice')
+            raise ValueError('initialize_backend called twice')
 
         self._c_backend = ffi.new('_pygit_in_memory_backend *')
         assert self._c_backend is not None
