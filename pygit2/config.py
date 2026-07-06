@@ -44,7 +44,6 @@ from typing import (  # noqa: UP035
     Type,
     cast,
     overload,
-    override,
 )
 
 try:
@@ -938,7 +937,6 @@ class DefaultConfig(_InMemoryAppBackendConfig):
             check_error(err)
             super().__init__(c_config=c_config_ptr[0], is_snapshot=False)
 
-    @override
     def snapshot(self) -> DefaultConfig:
         """Create a read-only snapshot of this ``DefaultConfig`` object.
 
@@ -952,11 +950,9 @@ class DefaultConfig(_InMemoryAppBackendConfig):
         self._on_snapshot_completion = None
         return DefaultConfig(snapshot_of=self)
 
-    @override
     def _add_backend_to_config(self, backend: _InMemoryBackend) -> None:
         backend.add_to_config(self._c_config)
 
-    @override
     def _default_write_order(self) -> Sequence[ConfigLevel]:
         return (
             ConfigLevel.GLOBAL,
@@ -965,7 +961,6 @@ class DefaultConfig(_InMemoryAppBackendConfig):
             ConfigLevel.PROGRAMDATA,
         )
 
-    @override
     def add_file(
         self,
         path: str | PathLike,
@@ -1079,7 +1074,6 @@ class RepositoryConfig(_InMemoryAppBackendConfig):
             check_error(err)
             super().__init__(c_config=c_config_ptr[0], is_snapshot=do_snapshot)
 
-    @override
     def snapshot(self) -> RepositoryConfig:
         """Create a read-only snapshot of this ``RepositoryConfig`` object.
 
@@ -1094,15 +1088,12 @@ class RepositoryConfig(_InMemoryAppBackendConfig):
         self._on_snapshot_completion = None
         return RepositoryConfig(self._repo, self._c_repo, snapshot_of=self)
 
-    @override
     def _add_backend_to_config(self, backend: _InMemoryBackend) -> None:
         backend.add_to_config(self._c_config, self._c_repo)
 
-    @override
     def _default_write_order(self) -> Sequence[ConfigLevel]:
         return (ConfigLevel.LOCAL,)
 
-    @override
     def add_file(
         self,
         path: str | PathLike,
