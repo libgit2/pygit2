@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import to_bytes, to_str
+from .utils import decode_fs_path, encode_fs_path, to_bytes, to_str
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import NULL_TYPE, ArrayC, char, char_pointer
@@ -348,7 +348,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         try:
             if buf.ptr != ffi.NULL:
-                result = to_str(ffi.string(buf.ptr))
+                result = decode_fs_path(ffi.string(buf.ptr))
             else:
                 result = None
         finally:
@@ -366,7 +366,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         if path is None:
             path_cdata = ffi.NULL
         else:
-            path_bytes = to_bytes(path)
+            path_bytes = encode_fs_path(path)
             path_cdata = ffi.new('char[]', path_bytes)
 
         err = C.git_libgit2_opts(option_type, ffi.cast('int', level), path_cdata)
@@ -423,14 +423,14 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         if cert_file is None:
             cert_file_cdata = ffi.NULL
         else:
-            cert_file_bytes = to_bytes(cert_file)
+            cert_file_bytes = encode_fs_path(cert_file)
             cert_file_cdata = ffi.new('char[]', cert_file_bytes)
 
         cert_dir_cdata: ArrayC[char] | NULL_TYPE
         if cert_dir is None:
             cert_dir_cdata = ffi.NULL
         else:
-            cert_dir_bytes = to_bytes(cert_dir)
+            cert_dir_bytes = encode_fs_path(cert_dir)
             cert_dir_cdata = ffi.new('char[]', cert_dir_bytes)
 
         err = C.git_libgit2_opts(option_type, cert_file_cdata, cert_dir_cdata)
@@ -476,7 +476,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         try:
             if buf.ptr != ffi.NULL:
-                result = to_str(ffi.string(buf.ptr))
+                result = decode_fs_path(ffi.string(buf.ptr))
             else:
                 result = None
         finally:
@@ -492,7 +492,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         if path is None:
             template_path_cdata = ffi.NULL
         else:
-            path_bytes = to_bytes(path)
+            path_bytes = encode_fs_path(path)
             template_path_cdata = ffi.new('char[]', path_bytes)
 
         err = C.git_libgit2_opts(option_type, template_path_cdata)
@@ -688,7 +688,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
 
         try:
             if buf.ptr != ffi.NULL:
-                result = to_str(ffi.string(buf.ptr))
+                result = decode_fs_path(ffi.string(buf.ptr))
             else:
                 result = None
         finally:
@@ -705,7 +705,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         if path is None:
             homedir_cdata = ffi.NULL
         else:
-            path_bytes = to_bytes(path)
+            path_bytes = encode_fs_path(path)
             homedir_cdata = ffi.new('char[]', path_bytes)
 
         err = C.git_libgit2_opts(option_type, homedir_cdata)

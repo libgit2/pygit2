@@ -34,6 +34,7 @@ from typing import (
     Protocol,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
@@ -44,11 +45,54 @@ if TYPE_CHECKING:
     from ._libgit2.ffi import ArrayC, GitStrrayC, char, char_pointer
 
 
+PathStrOrBytes = str | bytes | os.PathLike[str] | os.PathLike[bytes]
+
+
 def maybe_string(ptr: 'char_pointer | None') -> str | None:
     if not ptr:
         return None
 
     return ffi.string(ptr).decode('utf8', errors='surrogateescape')
+
+
+@overload
+def decode_fs_path(ptr_or_bytes: 'char_pointer') -> str: ...
+@overload
+def decode_fs_path(ptr_or_bytes: None) -> None: ...
+@overload
+def decode_fs_path(ptr_or_bytes: bytes) -> str: ...
+def decode_fs_path(ptr_or_bytes: 'char_pointer | bytes | None') -> str | None:
+    if ptr_or_bytes is None:
+        return None
+
+    if isinstance(ptr_or_bytes, bytes):
+        return os.fsdecode(ptr_or_bytes)
+
+    if not ptr_or_bytes:
+        return None
+
+    return os.fsdecode(ffi.string(ptr_or_bytes))
+
+
+@overload
+def encode_fs_path(s: PathStrOrBytes) -> bytes: ...
+@overload
+def encode_fs_path(s: 'ffi.NULL_TYPE | None') -> 'ffi.NULL_TYPE': ...
+def encode_fs_path(
+    s: PathStrOrBytes | 'ffi.NULL_TYPE | None',
+) -> bytes | 'ffi.NULL_TYPE':
+    if s is None or s == ffi.NULL:
+        return ffi.NULL
+
+    s_pathlike = cast(PathStrOrBytes, s)
+
+    if hasattr(s_pathlike, '__fspath__'):
+        return os.fsencode(s_pathlike)
+
+    if isinstance(s_pathlike, bytes):
+        return s_pathlike
+
+    return os.fsencode(s_pathlike)
 
 
 @overload

@@ -81,7 +81,7 @@ from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
 from .transaction import ReferenceTransaction
-from .utils import StrArray, maybe_string, to_bytes
+from .utils import StrArray, decode_fs_path, encode_fs_path, maybe_string, to_bytes
 
 if TYPE_CHECKING:
     from pygit2._libgit2.ffi import (
@@ -219,7 +219,7 @@ class BaseRepository(_Repository):
             If this is `None` and the `path` parameter is a file within the
             repository's working directory, then the `path` will be used.
         """
-        c_path = to_bytes(path)
+        c_path = encode_fs_path(path)
 
         c_as_path: ffi.NULL_TYPE | bytes
         if as_path is None:
@@ -1824,7 +1824,7 @@ class Repository(BaseRepository):
             if hasattr(path, '__fspath__'):
                 path = path.__fspath__()
             if not isinstance(path, str):
-                path = path.decode('utf-8')
+                path = decode_fs_path(path)
             path_backend = init_file_backend(path, int(flags))
             super().__init__(path_backend)
         else:

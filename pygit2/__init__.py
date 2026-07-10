@@ -365,7 +365,7 @@ from .repository import Repository
 from .settings import Settings
 from .submodules import Submodule
 from .transaction import ReferenceTransaction
-from .utils import to_bytes, to_str
+from .utils import decode_fs_path, encode_fs_path, to_bytes, to_str
 
 # Features
 features = enums.Feature(C.git_libgit2_features())
@@ -430,7 +430,7 @@ def init_repository(
     options.mode = mode
 
     if workdir_path:
-        workdir_path_ref = ffi.new('char []', to_bytes(workdir_path))
+        workdir_path_ref = ffi.new('char []', encode_fs_path(workdir_path))
         options.workdir_path = workdir_path_ref
 
     if description:
@@ -438,7 +438,7 @@ def init_repository(
         options.description = description_ref
 
     if template_path:
-        template_path_ref = ffi.new('char []', to_bytes(template_path))
+        template_path_ref = ffi.new('char []', encode_fs_path(template_path))
         options.template_path = template_path_ref
 
     if initial_head:
@@ -451,7 +451,7 @@ def init_repository(
 
     # Call
     crepository = ffi.new('git_repository **')
-    err = C.git_repository_init_ext(crepository, to_bytes(path), options)
+    err = C.git_repository_init_ext(crepository, encode_fs_path(path), options)
     check_error(err)
 
     # Ok
@@ -536,7 +536,7 @@ def clone_repository(
         with git_fetch_options(payload, opts=opts.fetch_opts):
             with git_proxy_options(payload, opts.fetch_opts.proxy_opts, proxy):
                 crepo = ffi.new('git_repository **')
-                err = C.git_clone(crepo, to_bytes(url), to_bytes(path), opts)
+                err = C.git_clone(crepo, to_bytes(url), encode_fs_path(path), opts)
                 payload.check_error(err)
 
     # Ok

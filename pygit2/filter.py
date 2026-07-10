@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from ._pygit2 import Blob, FilterSource
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import to_bytes
+from .utils import encode_fs_path, to_bytes
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import GitFilterListC
@@ -178,7 +178,7 @@ class FilterList:
         Return the filtered contents.
         """
         buf = ffi.new('git_buf *')
-        c_path = to_bytes(path)
+        c_path = encode_fs_path(path)
         err = C.git_filter_list_apply_to_file(buf, self._pointer, repo._repo, c_path)
         check_error(err)
         try:
