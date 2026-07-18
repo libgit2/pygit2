@@ -1,5 +1,12 @@
 # 1.20.0 (UNRELEASED)
 
+- New `RemoteCallbacks.custom_headers()`
+  [#1465](https://github.com/libgit2/pygit2/pull/1465)
+
+- Fix `Config.snapshot()` for non-repository configs, allow `PathLike` in
+  `Config.__init__()`, and improve `Config` documentation
+  [#1468](https://github.com/libgit2/pygit2/pull/1468)
+
 - Add riscv64 wheels
   [#1463](https://github.com/libgit2/pygit2/pull/1463)
 
