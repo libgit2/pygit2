@@ -56,7 +56,7 @@ from .callbacks import (
     git_checkout_options,
     git_stash_apply_options,
 )
-from .config import Config
+from .config import RepositoryConfig
 from .enums import (
     AttrCheck,
     BlameFlag,
@@ -288,31 +288,28 @@ class BaseRepository(_Repository):
     # Configuration
     #
     @property
-    def config(self) -> Config:
-        """The configuration file for this repository.
+    def config(self) -> RepositoryConfig:
+        """The configuration for this repository.
 
-        If the configuration hasn't been set yet, the default config for
-        repository will be returned, including global and system configurations
-        (if they are available).
+        This includes any program, system, XDG, and global (user) configuration
+        present on the system, with the local repository config set to the highest
+        priority for reads and the only option for writes.
+
+        If the configuration hasn't been set yet, the default config for the
+        repository will be created and returned.
         """
-        cconfig = ffi.new('git_config **')
-        err = C.git_repository_config(cconfig, self._repo)
-        check_error(err)
-
-        return Config.from_c(self, cconfig[0])
+        return RepositoryConfig(self, self._repo)
 
     @property
-    def config_snapshot(self):
-        """A snapshot for this repositiory's configuration
+    def config_snapshot(self) -> RepositoryConfig:
+        """A read-only snapshot of this repository's configuration.
 
         This allows reads over multiple values to use the same version
-        of the configuration files.
+        of the configuration files. As with :meth:`BaseRepository.config`, the
+        snapshot includes any program, system, XDG, or global (user)
+        present on the system.
         """
-        cconfig = ffi.new('git_config **')
-        err = C.git_repository_config_snapshot(cconfig, self._repo)
-        check_error(err)
-
-        return Config.from_c(self, cconfig[0])
+        return RepositoryConfig(self, self._repo, do_snapshot=True)
 
     #
     # References

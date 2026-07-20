@@ -24,11 +24,10 @@
 # Boston, MA 02110-1301, USA.
 
 """
-This is an special module, it provides stuff used by by pygit2 at run-time.
+This is a special module, it provides stuff used by pygit2 at run-time.
 """
 
 # Import from the Standard Library
-import codecs
 import sys
 from pathlib import Path
 
@@ -69,6 +68,7 @@ h_files = [
     'clone.h',
     'common.h',
     'config.h',
+    'config_bridge.h',
     'describe.h',
     'errors.h',
     'graph.h',
@@ -88,17 +88,17 @@ h_files = [
 ]
 h_source = []
 for h_file in h_files:
-    h_file = dir_path / 'decl' / h_file  # type: ignore
-    with codecs.open(h_file, 'r', 'utf-8') as f:
-        h_source.append(f.read())
+    h_path = dir_path / 'decl' / h_file
+    h_source.append(h_path.read_text(encoding='utf-8'))
 
 C_HEADER_SRC = '\n'.join(h_source)
 
 C_PREAMBLE = """\
 #include <git2.h>
+#include <git2/sys/config.h>
 #include <git2/sys/repository.h>
 #include <git2/sys/filter.h>
-"""
+""" + (dir_path / 'decl' / 'config_bridge.h').read_text(encoding='utf-8')
 
 # ffi
 _, libgit2_kw = get_libgit2_paths()

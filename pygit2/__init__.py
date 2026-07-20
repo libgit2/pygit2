@@ -304,7 +304,11 @@ from .callbacks import (
     git_fetch_options,
     git_proxy_options,
 )
-from .config import Config
+from .config import (
+    Config,
+    DefaultConfig,
+    RepositoryConfig,
+)
 from .credentials import *
 from .errors import Passthrough, check_error
 from .ffi import C, ffi
@@ -897,6 +901,7 @@ __all__ = (
     'get_credentials',
     'config',
     'Config',
+    'DefaultConfig',
     'credentials',
     'CredentialType',
     'Username',
@@ -921,6 +926,7 @@ __all__ = (
     'Remote',
     'repository',
     'Repository',
+    'RepositoryConfig',
     'branches',
     'references',
     'settings',

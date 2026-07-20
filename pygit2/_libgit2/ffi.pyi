@@ -22,9 +22,21 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
+from __future__ import annotations
 
-from typing import Any, Generic, Literal, NewType, SupportsIndex, TypeVar, overload
+from collections.abc import Callable
+from typing import (
+    Any,
+    Generic,
+    Literal,
+    NewType,
+    ParamSpec,
+    SupportsIndex,
+    TypeVar,
+    overload,
+)
 
+P = ParamSpec('P')
 T = TypeVar('T')
 
 NULL_TYPE = NewType('NULL_TYPE', object)
@@ -44,6 +56,11 @@ class int64_t:
 
 class ssize_t:
     def __getitem__(self, item: Literal[0]) -> int: ...
+
+class uintptr_t:
+    def __int__(self) -> int: ...
+
+class git_config_level_t(int): ...
 
 class _Pointer(Generic[T]):
     def __setitem__(self, item: Literal[0], a: T) -> None: ...
@@ -181,14 +198,65 @@ class GitConfigC:
     pass
 
 class GitConfigIteratorC:
-    # incomplete
-    pass
+    backend: 'GitConfigBackendC'
+    flags: int
+    next: Callable[['GitConfigBackendEntryC', GitConfigIteratorC], int]
+    free: Callable[[GitConfigIteratorC], None]
 
 class GitConfigEntryC:
     # incomplete
     name: char_pointer
     value: char_pointer
+    backend_type: char_pointer
+    origin_path: char_pointer
+    include_depth: int
     level: int
+
+class GitConfigBackendEntryC:
+    entry: GitConfigEntryC
+    free: Callable[[GitConfigBackendEntryC], None]
+
+class GitConfigBackendC:
+    version: int
+    readonly: int
+    cfg: GitConfigC
+    open: Callable[[GitConfigBackendC, int, GitRepositoryC], int]
+    get: Callable[
+        [GitConfigBackendC, char_pointer, _Pointer[GitConfigBackendEntryC]], int
+    ]
+    set: Callable[[GitConfigBackendC, char_pointer, char_pointer], int]
+    set_multivar: Callable[
+        [GitConfigBackendC, char_pointer, char_pointer, char_pointer], int
+    ]
+    # this unfortunate name is actually `del`, but that conflicts with a Python keyword
+    del_: Callable[[GitConfigBackendC, char_pointer], int]
+    del_multivar: Callable[[GitConfigBackendC, char_pointer, char_pointer], int]
+    iterator: Callable[[_Pointer[GitConfigIteratorC], GitConfigBackendC], int]
+    snapshot: Callable[[_Pointer[GitConfigBackendC], GitConfigBackendC], int]
+    lock: Callable[[GitConfigBackendC], int]
+    unlock: Callable[[GitConfigBackendC, int], int]
+    free: Callable[[GitConfigBackendC], None]
+
+class GitConfigBackendMemoryOptionsC:
+    version: int
+    backend_type: char_pointer
+    origin_path: char_pointer
+
+class PyGitConfigBackendWrapperC:
+    parent: GitConfigBackendC
+    self: Any
+
+class PyGitConfigBackendEntryC:
+    parent: GitConfigBackendEntryC
+    owner: PyGitConfigBackendWrapperC
+
+class PyGitConfigIteratorWrapperC:
+    parent: GitConfigIteratorC
+    self: Any
+
+class PyGitConfigIteratorEntryC:
+    parent: GitConfigBackendEntryC
+    owner: PyGitConfigIteratorWrapperC
 
 class GitDescribeFormatOptionsC:
     version: int
@@ -334,9 +402,40 @@ def new(a: Literal['git_config *']) -> GitConfigC: ...
 @overload
 def new(a: Literal['git_config **']) -> _Pointer[GitConfigC]: ...
 @overload
+def new(a: Literal['git_config_iterator *']) -> GitConfigIteratorC: ...
+@overload
 def new(a: Literal['git_config_iterator **']) -> _Pointer[GitConfigIteratorC]: ...
 @overload
 def new(a: Literal['git_config_entry **']) -> _Pointer[GitConfigEntryC]: ...
+@overload
+def new(a: Literal['git_config_backend *']) -> GitConfigBackendC: ...
+@overload
+def new(a: Literal['git_config_backend **']) -> _Pointer[GitConfigBackendC]: ...
+@overload
+def new(a: Literal['git_config_backend_entry *']) -> GitConfigBackendEntryC: ...
+@overload
+def new(
+    a: Literal['git_config_backend_memory_options *'],
+) -> GitConfigBackendMemoryOptionsC: ...
+@overload
+def new(
+    a: Literal['git_config_level_t[]'],
+    b: list[git_config_level_t],
+) -> list[git_config_level_t]: ...
+@overload
+def new(
+    a: Literal['_pygit_in_memory_backend_entry *'],
+) -> PyGitConfigBackendEntryC: ...
+@overload
+def new(
+    a: Literal['_pygit_in_memory_backend_iterator_entry *'],
+) -> PyGitConfigIteratorEntryC: ...
+@overload
+def new(a: Literal['_pygit_in_memory_backend *']) -> PyGitConfigBackendWrapperC: ...
+@overload
+def new(
+    a: Literal['_pygit_in_memory_backend_iterator *'],
+) -> PyGitConfigIteratorWrapperC: ...
 @overload
 def new(a: Literal['git_describe_format_options *']) -> GitDescribeFormatOptionsC: ...
 @overload
@@ -399,7 +498,12 @@ def new(
 def new(
     a: Literal['char *[]'], b: list[Any]
 ) -> ArrayC[char_pointer]: ...  # For string arrays
+@overload
+def addressof(a: object) -> _Pointer[object]: ...
+@overload
 def addressof(a: object, attribute: str) -> _Pointer[object]: ...
+def def_extern() -> Callable[[Callable[P, T]], Callable[P, T]]: ...
+def from_handle(a: _Pointer[T]) -> T: ...
 def new_handle(a: T) -> _Pointer[T]: ...
 
 class buffer(bytes):
@@ -420,3 +524,42 @@ def cast(a: Literal['size_t'], b: object) -> int: ...
 def cast(a: Literal['ssize_t'], b: object) -> int: ...
 @overload
 def cast(a: Literal['char *'], b: object) -> char_pointer: ...
+@overload
+def cast(a: Literal['uintptr_t'], b: object) -> uintptr_t: ...
+@overload
+def cast(a: Literal['git_config_level_t'], b: int) -> git_config_level_t: ...
+@overload
+def cast(
+    a: Literal['git_config_backend *'],
+    b: PyGitConfigBackendWrapperC,
+) -> GitConfigBackendC: ...
+@overload
+def cast(
+    a: Literal['_pygit_in_memory_backend *'],
+    b: GitConfigBackendC,
+) -> PyGitConfigBackendWrapperC: ...
+@overload
+def cast(
+    a: Literal['git_config_iterator *'],
+    b: PyGitConfigIteratorWrapperC,
+) -> GitConfigIteratorC: ...
+@overload
+def cast(
+    a: Literal['_pygit_in_memory_backend_iterator *'],
+    b: GitConfigIteratorC,
+) -> PyGitConfigIteratorWrapperC: ...
+@overload
+def cast(
+    a: Literal['git_config_backend_entry *'],
+    b: PyGitConfigBackendEntryC | PyGitConfigIteratorEntryC,
+) -> GitConfigBackendEntryC: ...
+@overload
+def cast(
+    a: Literal['_pygit_in_memory_backend_entry *'],
+    b: GitConfigBackendEntryC,
+) -> PyGitConfigBackendEntryC: ...
+@overload
+def cast(
+    a: Literal['_pygit_in_memory_backend_iterator_entry *'],
+    b: GitConfigBackendEntryC,
+) -> PyGitConfigIteratorEntryC: ...

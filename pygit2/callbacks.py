@@ -557,7 +557,7 @@ def libgit2_callback(f: Callable[P, T]) -> Callable[P, T]:
             data._stored_exception = e
             return C.GIT_EUSER
 
-    return ffi.def_extern()(wrapper)  # type: ignore[attr-defined]
+    return ffi.def_extern()(wrapper)  # type: ignore[arg-type]
 
 
 def libgit2_callback_void(f: Callable[P, T]) -> Callable[P, T]:
@@ -577,7 +577,7 @@ def libgit2_callback_void(f: Callable[P, T]) -> Callable[P, T]:
             data._stored_exception = e
             pass  # Function returns void, so we can't do much here.
 
-    return ffi.def_extern()(wrapper)  # type: ignore[attr-defined]
+    return ffi.def_extern()(wrapper)  # type: ignore[arg-type]
 
 
 @libgit2_callback

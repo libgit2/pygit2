@@ -236,6 +236,10 @@ class ConfigLevel(IntEnum):
     (from higher to lower) when searching for config entries in git.git.
     """
 
+    UNSPECIFIED = 0
+    """The lowest priority level supported by libgit2. Not part of the ``git_config_level_t``
+    enumeration because C enums allow non-member values while Python enums do not."""
+
     PROGRAMDATA = _pygit2.GIT_CONFIG_LEVEL_PROGRAMDATA
     'System-wide on Windows, for compatibility with portable git'
 
