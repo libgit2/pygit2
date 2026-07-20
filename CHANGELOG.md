@@ -10,6 +10,8 @@
 - Add riscv64 wheels
   [#1463](https://github.com/libgit2/pygit2/pull/1463)
 
+- Update wheels to libgit2 1.9.6
+
 Breaking changes:
 
 - Remove deprecated `pygit2.legacyenums` module and `GIT_*` constants,

@@ -11,7 +11,7 @@ and a high-level, Pythonic API for repository manipulation.
 - **License**: GPLv2 with linking exception (see `COPYING`)
 - **Maintainer**: J. David Ibáñez
 - **Python Support**: 3.11 – 3.14 and PyPy3 7.3+
-- **libgit2 Version**: 1.9.4
+- **libgit2 Version**: 1.9.6
 - **Homepage**: <https://www.pygit2.org/>
 - **Repository**: <https://github.com/libgit2/pygit2>
 
@@ -105,7 +105,7 @@ handles libgit2 compilation via CMake.
 make
 
 # Or manually:
-LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.4 sh build.sh
+LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.6 sh build.sh
 
 # Build inplace and run the tests
 sh build.sh test
@@ -246,7 +246,7 @@ GitHub Actions workflows live in `.github/workflows/`:
 
 The `cibuildwheel` configuration in `pyproject.toml` pins:
 
-- `LIBGIT2_VERSION="1.9.4"`
+- `LIBGIT2_VERSION="1.9.6"`
 - `LIBSSH2_VERSION="1.11.1"`
 - `OPENSSL_VERSION="3.5.4"`
 
