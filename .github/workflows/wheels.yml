@@ -25,7 +25,7 @@ jobs:
           # avoid leaking credentials in uploaded artifacts
           persist-credentials: false
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
@@ -73,7 +73,7 @@ jobs:
           os: windows-11-arm
 
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
@@ -113,7 +113,7 @@ jobs:
           cibw_arch: riscv64
 
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
