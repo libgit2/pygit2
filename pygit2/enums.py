@@ -225,7 +225,7 @@ class CheckoutStrategy(IntFlag):
     notifications; don't update the working directory or index.
     """
 
-    CONFLICT_STYLE_ZDIFF3 = _pygit2.GIT_CHECKOUT_CONFLICT_STYLE_DIFF3
+    CONFLICT_STYLE_ZDIFF3 = _pygit2.GIT_CHECKOUT_CONFLICT_STYLE_ZDIFF3
     """ Include common ancestor data in zdiff3 format for conflicts """
 
 
@@ -996,6 +996,34 @@ class Option(IntEnum):
     GET_USER_AGENT_PRODUCT = options.GIT_OPT_GET_USER_AGENT_PRODUCT
     SET_USER_AGENT_PRODUCT = options.GIT_OPT_SET_USER_AGENT_PRODUCT
     ADD_SSL_X509_CERT = options.GIT_OPT_ADD_SSL_X509_CERT
+
+
+class RebaseOperationType(IntEnum):
+    """Type of rebase operation in-progress after calling Rebase.next()."""
+
+    PICK = C.GIT_REBASE_OPERATION_PICK
+    """The given commit is to be cherry-picked.  The client should commit
+    the changes and continue if there are no conflicts."""
+
+    REWORD = C.GIT_REBASE_OPERATION_REWORD
+    """The given commit is to be cherry-picked, but the client should prompt
+    the user to provide an updated commit message."""
+
+    EDIT = C.GIT_REBASE_OPERATION_EDIT
+    """The given commit is to be cherry-picked, but the client should stop
+    to allow the user to edit the changes before committing them."""
+
+    SQUASH = C.GIT_REBASE_OPERATION_SQUASH
+    """The given commit is to be squashed into the previous commit.  The
+    commit message will be merged with the previous message."""
+
+    FIXUP = C.GIT_REBASE_OPERATION_FIXUP
+    """The given commit is to be squashed into the previous commit.  The
+    commit message from this commit will be discarded."""
+
+    EXEC = C.GIT_REBASE_OPERATION_EXEC
+    """No commit will be cherry-picked.  The client should run the given
+    command and (if successful) continue."""
 
 
 class ReferenceFilter(IntEnum):

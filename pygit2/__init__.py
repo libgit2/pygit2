@@ -360,6 +360,7 @@ from .options import (
     option,
 )
 from .packbuilder import PackBuilder
+from .rebase import Rebase, RebaseOperation
 from .remotes import Remote
 from .repository import Repository
 from .settings import Settings

@@ -75,6 +75,7 @@ Table of Contents
    objects
    oid
    packing
+   rebase
    references
    transactions
    remotes

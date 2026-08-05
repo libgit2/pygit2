@@ -77,6 +77,7 @@ from .ffi import C, ffi
 from .filter import FilterList
 from .index import Index, IndexEntry, MergeFileResult
 from .packbuilder import PackBuilder
+from .rebase import Rebase
 from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
@@ -86,7 +87,9 @@ from .utils import StrArray, maybe_string, to_bytes
 if TYPE_CHECKING:
     from pygit2._libgit2.ffi import (
         ArrayC,
+        GitAnnotatedCommitC,
         GitMergeOptionsC,
+        GitRebaseOptionsC,
         GitRepositoryC,
         _Pointer,
         char,
@@ -1001,6 +1004,32 @@ class BaseRepository(_Repository):
 
         return Index.from_c(self, cindex)
 
+    def _annotated_commit(
+        self, source: 'Reference | Commit | Oid | None'
+    ) -> '_Pointer[GitAnnotatedCommitC] | None':
+        """Return a git_annotated_commit** cdata for the given source, or
+        None if source is None.  The caller must free the result with
+        git_annotated_commit_free."""
+        if source is None:
+            return None
+        commit_ptr = ffi.new('git_annotated_commit **')
+        if isinstance(source, Reference):
+            cptr = ffi.new('struct git_reference **')
+            ffi.buffer(cptr)[:] = source._pointer[:]  # type: ignore[attr-defined]
+            err = C.git_annotated_commit_from_ref(commit_ptr, self._repo, cptr[0])
+        else:
+            if isinstance(source, Commit):
+                oid = source.id
+            elif isinstance(source, Oid):
+                oid = source
+            else:
+                raise TypeError('expected Reference, Commit, or Oid')
+            c_id = ffi.new('git_oid *')
+            ffi.buffer(c_id)[:] = oid.raw[:]
+            err = C.git_annotated_commit_lookup(commit_ptr, self._repo, c_id)
+        check_error(err)
+        return commit_ptr
+
     def merge(
         self,
         source: Reference | Commit | Oid,
@@ -1035,26 +1064,9 @@ class BaseRepository(_Repository):
             A combination of enums.MergeFileFlag constants.
         """
 
-        if isinstance(source, Reference):
-            # Annotated commit from ref
-            cptr = ffi.new('struct git_reference **')
-            ffi.buffer(cptr)[:] = source._pointer[:]  # type: ignore[attr-defined]
-            commit_ptr = ffi.new('git_annotated_commit **')
-            err = C.git_annotated_commit_from_ref(commit_ptr, self._repo, cptr[0])
-            check_error(err)
-        else:
-            # Annotated commit from commit id
-            if isinstance(source, Commit):
-                oid = source.id
-            elif isinstance(source, Oid):
-                oid = source
-            else:
-                raise TypeError('expected Reference, Commit, or Oid')
-            c_id = ffi.new('git_oid *')
-            ffi.buffer(c_id)[:] = oid.raw[:]
-            commit_ptr = ffi.new('git_annotated_commit **')
-            err = C.git_annotated_commit_lookup(commit_ptr, self._repo, c_id)
-            check_error(err)
+        commit_ptr = self._annotated_commit(source)
+        if commit_ptr is None:
+            raise TypeError('expected Reference, Commit, or Oid')
 
         merge_opts = self._merge_options(favor, flags, file_flags)
 
@@ -1067,6 +1079,203 @@ class BaseRepository(_Repository):
         err = C.git_merge(self._repo, commit_ptr, 1, merge_opts, checkout_opts)
         C.git_annotated_commit_free(commit_ptr[0])
         check_error(err)
+
+    #
+    # Rebasing
+    #
+    def _rebase_options(
+        self,
+        inmemory: bool,
+        quiet: bool,
+        rewrite_notes_ref: 'str | None',
+        favor: MergeFavor,
+        flags: MergeFlag,
+        file_flags: MergeFileFlag,
+        checkout_strategy: 'CheckoutStrategy | None',
+        ancestor_label: 'str | None',
+        our_label: 'str | None',
+        their_label: 'str | None',
+    ) -> 'tuple[GitRebaseOptionsC, list]':
+        """Return a git_rebase_options pointer plus the list of cdata
+        objects that must be kept alive for as long as libgit2 may read
+        the options."""
+        opts = ffi.new('git_rebase_options *')
+        err = C.git_rebase_options_init(opts, C.GIT_REBASE_OPTIONS_VERSION)
+        check_error(err)
+        refs: list = [opts]
+
+        opts.inmemory = int(inmemory)
+        opts.quiet = int(quiet)
+        if rewrite_notes_ref is not None:
+            notes_ref = ffi.new('char[]', to_bytes(rewrite_notes_ref))
+            refs.append(notes_ref)
+            opts.rewrite_notes_ref = notes_ref
+
+        merge_opts = self._merge_options(favor, flags, file_flags)
+        ffi.buffer(ffi.addressof(opts, 'merge_options'))[:] = ffi.buffer(merge_opts)[:]
+
+        if checkout_strategy is not None:
+            opts.checkout_options.checkout_strategy = int(checkout_strategy)
+        labels = (
+            ('ancestor_label', ancestor_label),
+            ('our_label', our_label),
+            ('their_label', their_label),
+        )
+        for field, label in labels:
+            if label is not None:
+                clabel = ffi.new('char[]', to_bytes(label))
+                refs.append(clabel)
+                setattr(opts.checkout_options, field, clabel)
+
+        return opts, refs
+
+    def rebase_init(
+        self,
+        branch: 'Reference | Commit | Oid | None' = None,
+        upstream: 'Reference | Commit | Oid | None' = None,
+        onto: 'Reference | Commit | Oid | None' = None,
+        *,
+        inmemory: bool = False,
+        quiet: bool = False,
+        rewrite_notes_ref: 'str | None' = None,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+        checkout_strategy: 'CheckoutStrategy | None' = None,
+        ancestor_label: 'str | None' = None,
+        our_label: 'str | None' = None,
+        their_label: 'str | None' = None,
+    ) -> Rebase:
+        """
+        Initialize a rebase operation to rebase the changes in `branch`
+        relative to `upstream` onto another branch, and return a Rebase
+        object.  To begin the rebase process, iterate over it; commit each
+        successful operation with Rebase.commit(), then call
+        Rebase.finish() or Rebase.abort().
+
+        Parameters:
+
+        branch
+            The terminal commit to rebase: a Reference, Commit, or commit
+            Oid.  None means rebase the current branch.
+
+        upstream
+            The commit to begin rebasing from.  None means rebase all
+            reachable commits.
+
+        onto
+            The branch to rebase onto.  None means rebase onto the given
+            upstream.
+
+        inmemory
+            Begin an in-memory rebase, which will allow callers to step
+            through the rebase operations and commit the rebased changes,
+            but will not rewind HEAD or update the repository to be in a
+            rebasing state.  This will not interfere with the working
+            directory.
+
+        quiet
+            Instruct other clients working on this rebase that you want a
+            quiet rebase experience.  This has no effect upon libgit2
+            directly, but is provided for interoperability between Git
+            tools.
+
+        rewrite_notes_ref
+            Name of the notes reference used to rewrite notes for rebased
+            commits when finishing the rebase.  If None, the
+            `notes.rewriteRef` configuration option is examined.
+
+        favor
+            An enums.MergeFavor constant specifying how to deal with
+            file-level conflicts.  For all but NORMAL, the index will not
+            record a conflict.
+
+        flags
+            A combination of enums.MergeFlag constants.
+
+        file_flags
+            A combination of enums.MergeFileFlag constants.  For example,
+            MergeFileFlag.STYLE_DIFF3 asks for conflict markers that
+            include the common ancestor content.
+
+        checkout_strategy
+            A CheckoutStrategy value controlling how files are written
+            during Rebase.__next__() and Rebase.abort(), or None for
+            libgit2's default.
+
+        ancestor_label, our_label, their_label
+            Override the labels used in conflict markers.  By default
+            libgit2 labels the "ours" side with the name of the branch
+            being rebased onto, and the "theirs" side with the summary of
+            the commit being replayed.
+        """
+        opts, refs = self._rebase_options(
+            inmemory,
+            quiet,
+            rewrite_notes_ref,
+            favor,
+            flags,
+            file_flags,
+            checkout_strategy,
+            ancestor_label,
+            our_label,
+            their_label,
+        )
+        branch_c = self._annotated_commit(branch)
+        upstream_c = self._annotated_commit(upstream)
+        onto_c = self._annotated_commit(onto)
+
+        crebase = ffi.new('git_rebase **')
+        err = C.git_rebase_init(
+            crebase,
+            self._repo,
+            branch_c[0] if branch_c is not None else ffi.NULL,
+            upstream_c[0] if upstream_c is not None else ffi.NULL,
+            onto_c[0] if onto_c is not None else ffi.NULL,
+            opts,
+        )
+        for commit_c in (branch_c, upstream_c, onto_c):
+            if commit_c is not None:
+                C.git_annotated_commit_free(commit_c[0])
+        check_error(err)
+        return Rebase(self, crebase[0], refs)
+
+    def rebase_open(
+        self,
+        *,
+        inmemory: bool = False,
+        quiet: bool = False,
+        rewrite_notes_ref: 'str | None' = None,
+        favor: MergeFavor = MergeFavor.NORMAL,
+        flags: MergeFlag = MergeFlag.FIND_RENAMES,
+        file_flags: MergeFileFlag = MergeFileFlag.DEFAULT,
+        checkout_strategy: 'CheckoutStrategy | None' = None,
+        ancestor_label: 'str | None' = None,
+        our_label: 'str | None' = None,
+        their_label: 'str | None' = None,
+    ) -> Rebase:
+        """
+        Open an existing rebase that was previously started by either an
+        invocation of rebase_init() or by another client.
+
+        The keyword arguments have the same meaning as in rebase_init().
+        """
+        opts, refs = self._rebase_options(
+            inmemory,
+            quiet,
+            rewrite_notes_ref,
+            favor,
+            flags,
+            file_flags,
+            checkout_strategy,
+            ancestor_label,
+            our_label,
+            their_label,
+        )
+        crebase = ffi.new('git_rebase **')
+        err = C.git_rebase_open(crebase, self._repo, opts)
+        check_error(err)
+        return Rebase(self, crebase[0], refs)
 
     #
     # Prepared message (MERGE_MSG)

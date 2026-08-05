@@ -74,6 +74,7 @@ h_files = [
     'graph.h',
     'index.h',
     'merge.h',
+    'rebase.h',
     'net.h',
     'refspec.h',
     'repository.h',

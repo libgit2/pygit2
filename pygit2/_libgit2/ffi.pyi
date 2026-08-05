@@ -172,6 +172,9 @@ class GitBufC:
 class GitCheckoutOptionsC:
     # incomplete
     checkout_strategy: int
+    ancestor_label: ArrayC[char]
+    our_label: ArrayC[char]
+    their_label: ArrayC[char]
 
 class GitCommitC:
     pass
@@ -270,6 +273,22 @@ class GitProxyOptionsC:
     # credentials
     # certificate_check
     # payload
+
+class GitRebaseC:
+    pass
+
+class GitRebaseOperationC:
+    type: int
+    id: GitOidC
+    exec: char_pointer
+
+class GitRebaseOptionsC:
+    version: int
+    quiet: int
+    inmemory: int
+    rewrite_notes_ref: ArrayC[char]
+    merge_options: GitMergeOptionsC
+    checkout_options: GitCheckoutOptionsC
 
 class GitRemoteC:
     pass
@@ -382,6 +401,12 @@ def new(a: Literal['git_stash_save_options *']) -> GitStashSaveOptionsC: ...
 @overload
 def new(a: Literal['git_strarray *']) -> GitStrrayC: ...
 @overload
+def new(a: Literal['git_rebase **']) -> _Pointer[GitRebaseC]: ...
+@overload
+def new(a: Literal['git_rebase_options *']) -> GitRebaseOptionsC: ...
+@overload
+def new(a: Literal['git_rebase_operation **']) -> _Pointer[GitRebaseOperationC]: ...
+@overload
 def new(a: Literal['git_tree **']) -> _Pointer[GitTreeC]: ...
 @overload
 def new(a: Literal['git_buf *'], b: tuple[NULL_TYPE, Literal[0]]) -> GitBufC: ...
@@ -401,6 +426,7 @@ def new(
 ) -> ArrayC[char_pointer]: ...  # For string arrays
 def addressof(a: object, attribute: str) -> _Pointer[object]: ...
 def new_handle(a: T) -> _Pointer[T]: ...
+def gc(cdata: T, destructor: Any, size: int = ...) -> T: ...
 
 class buffer(bytes):
     def __init__(self, a: object) -> None: ...

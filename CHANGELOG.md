@@ -12,6 +12,13 @@
 
 - Update wheels to libgit2 1.9.6
 
+- Wrap libgit2's rebase API: add `Repository.rebase_init(...)` and
+  `Repository.rebase_open(...)` returning a `Rebase` object, plus
+  `RebaseOperation` and `enums.RebaseOperationType`
+
+- Fix `enums.CheckoutStrategy.CONFLICT_STYLE_ZDIFF3`, which was mistakenly
+  bound to the `DIFF3` constant
+
 Breaking changes:
 
 - Remove deprecated `pygit2.legacyenums` module and `GIT_*` constants,
