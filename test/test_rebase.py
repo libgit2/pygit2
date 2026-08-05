@@ -528,7 +528,9 @@ def test_rebase_api_clean(rebaserepo: Repository) -> None:
         assert operation.exec is None
         assert rebase.current_index == i
         assert rebaserepo.state() == RepositoryState.REBASE_MERGE
-        replayed.append(rebase.commit(committer=_signature()))
+        new_id = rebase.commit(committer=_signature())
+        assert new_id is not None
+        replayed.append(new_id)
     rebase.finish(_signature())
 
     assert rebaserepo.state() == RepositoryState.NONE
@@ -684,6 +686,7 @@ def test_rebase_api_inmemory(rebaserepo: Repository) -> None:
     assert 'file4.txt' in merged
 
     new_oid = rebase.commit(committer=_signature())
+    assert new_oid is not None
     rebase.finish(_signature())
 
     # HEAD and the branch were left alone; putting the result in place is
@@ -742,8 +745,8 @@ def test_rebase_api_replays_even_when_upstream_is_behind(
 
 def test_rebase_api_already_applied_commit(rebaserepo: Repository) -> None:
     """A local commit whose changes are already present upstream has
-    nothing left to commit; libgit2 reports that as an error and the
-    caller simply moves on to the next operation."""
+    nothing left to commit; commit() reports that by returning None and
+    the caller simply moves on to the next operation."""
     _diverge(
         rebaserepo,
         upstream=[('file3.txt', 'identical\n', 'Add file3.txt upstream')],
@@ -751,8 +754,7 @@ def test_rebase_api_already_applied_commit(rebaserepo: Repository) -> None:
     )
     rebase = rebaserepo.rebase_init(upstream=rebaserepo.branches['upstream'])
     next(rebase)
-    with pytest.raises(pygit2.GitError):
-        rebase.commit(committer=_signature())
+    assert rebase.commit(committer=_signature()) is None
     with pytest.raises(StopIteration):
         next(rebase)
     rebase.finish(_signature())

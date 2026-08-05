@@ -35,6 +35,10 @@ Rebase the current branch onto its upstream::
 Use ``abort()`` instead of ``finish()`` to reset the repository and the
 working directory to their state before the rebase began.
 
+``commit()`` returns ``None`` for a patch that turns out to be already
+present upstream; like ``git rebase``, simply move on to the next
+operation.
+
 With ``inmemory=True`` the rebase does not touch HEAD, the repository
 state, or the working directory; each step's result is available as
 ``rebase.inmemory_index`` and updating the branch reference afterwards is

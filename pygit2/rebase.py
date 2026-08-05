@@ -165,15 +165,16 @@ class Rebase:
         committer: Signature,
         author: 'Signature | None' = None,
         message: 'str | None' = None,
-    ) -> Oid:
+    ) -> 'Oid | None':
         """
-        Commit the current patch and return the id of the new commit.  You
-        must have resolved any conflicts that were introduced during the
-        patch application from the last __next__() invocation.
+        Commit the current patch and return the id of the new commit, or
+        None if the current commit has already been applied to the upstream
+        and there is nothing to commit — mirroring how `git rebase` skips
+        already-applied patches.  You must have resolved any conflicts that
+        were introduced during the patch application from the last
+        __next__() invocation.
 
-        Raises GitError if there are unmerged changes in the index, or if
-        the current commit has already been applied to the upstream and
-        there is nothing to commit.
+        Raises GitError if there are unmerged changes in the index.
 
         Parameters:
 
@@ -202,6 +203,8 @@ class Rebase:
             ffi.NULL,
             cmessage,
         )
+        if err == C.GIT_EAPPLIED:
+            return None
         check_error(err)
         return Oid(raw=bytes(ffi.buffer(coid)[:]))
 

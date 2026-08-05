@@ -15,9 +15,11 @@
 - Wrap libgit2's rebase API: add `Repository.rebase_init(...)` and
   `Repository.rebase_open(...)` returning a `Rebase` object, plus
   `RebaseOperation` and `enums.RebaseOperationType`
+  [#1483](https://github.com/libgit2/pygit2/pull/1483)
 
 - Fix `enums.CheckoutStrategy.CONFLICT_STYLE_ZDIFF3`, which was mistakenly
   bound to the `DIFF3` constant
+  [#1483](https://github.com/libgit2/pygit2/pull/1483)
 
 Breaking changes:
 
