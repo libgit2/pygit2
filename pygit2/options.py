@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import decode_fs_path, encode_fs_path, encode_string, to_str
+from .utils import decode_fs_path, decode_string, encode_fs_path, encode_string
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import NULL_TYPE, ArrayC, char, char_pointer
@@ -507,10 +507,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
 
         try:
-            if buf.ptr != ffi.NULL:
-                result = to_str(ffi.string(buf.ptr))
-            else:
-                result = None
+            result = decode_string(buf.ptr)
         finally:
             C.git_buf_dispose(buf)
 
@@ -643,8 +640,9 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
                 # Cast to the non-NULL type for type checking
                 strings = cast('ArrayC[char_pointer]', strarray.strings)
                 for i in range(strarray.count):
-                    if strings[i] != ffi.NULL:
-                        result.append(to_str(ffi.string(strings[i])))
+                    s = decode_string(strings[i])
+                    if s is not None:
+                        result.append(s)
         finally:
             # Must dispose of the strarray to free the memory
             C.git_strarray_dispose(strarray)
@@ -767,10 +765,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_error(err)
 
         try:
-            if buf.ptr != ffi.NULL:
-                result = to_str(ffi.string(buf.ptr))
-            else:
-                result = None
+            result = decode_string(buf.ptr)
         finally:
             C.git_buf_dispose(buf)
 

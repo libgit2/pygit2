@@ -41,7 +41,8 @@ Breaking changes:
 - Remove deprecated `Remote.ls_remotes(...)`, use `Remote.list_heads(...)`
   instead
 
-- Remove `pygit2.to_bytes`; it was an undocumented accidental public API
+- Remove `pygit2.to_bytes` and `pygit2.to_str`; they were undocumented
+  accidental public APIs
 
 
 # 1.19.3 (2026-06-13)

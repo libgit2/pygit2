@@ -84,6 +84,11 @@ def encode_fs_path(
     return os.fsencode(s)  # type: ignore[arg-type]
 
 
+# TODO decode_string uses errors='surrogateescape', but encode_string defaults
+# to errors='strict', so a value read from libgit2 with bad bytes cannot be
+# written back without raising. Decide whether encode_string should default to
+# 'surrogateescape' too, and audit every caller to make sure that's safe
+# (this is a behavior change, not just a rename).
 @overload
 def encode_string(
     s: str | bytes | os.PathLike[str] | os.PathLike[bytes],
@@ -113,7 +118,7 @@ def encode_string(
     return s.encode(encoding, errors)  # type: ignore[union-attr]
 
 
-def to_str(s: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> str:
+def path_to_str(s: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> str:
     if hasattr(s, '__fspath__'):
         s = os.fspath(s)
 

@@ -366,7 +366,6 @@ from .repository import Repository
 from .settings import Settings
 from .submodules import Submodule
 from .transaction import ReferenceTransaction
-from .utils import to_str
 
 # Features
 features = enums.Feature(C.git_libgit2_features())
@@ -456,7 +455,7 @@ def init_repository(
     check_error(err)
 
     # Ok
-    return Repository(to_str(path))
+    return Repository(utils.path_to_str(path))
 
 
 def clone_repository(
@@ -938,7 +937,6 @@ __all__ = (
     'transaction',
     'ReferenceTransaction',
     'utils',
-    'to_str',
     # __init__ module defined symbols
     'features',
     'LIBGIT2_VER',
