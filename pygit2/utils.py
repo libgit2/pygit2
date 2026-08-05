@@ -76,8 +76,8 @@ def encode_fs_path(s: PathStrOrBytes) -> bytes: ...
 @overload
 def encode_fs_path(s: 'ffi.NULL_TYPE | None') -> 'ffi.NULL_TYPE': ...
 def encode_fs_path(
-    s: PathStrOrBytes | 'ffi.NULL_TYPE | None',
-) -> bytes | 'ffi.NULL_TYPE':
+    s: 'PathStrOrBytes | ffi.NULL_TYPE | None',
+) -> 'bytes | ffi.NULL_TYPE':
     if s is None or s == ffi.NULL:
         return ffi.NULL
 
