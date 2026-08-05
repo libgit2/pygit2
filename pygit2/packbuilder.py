@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING
 # Import from pygit2
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import to_bytes
+from .utils import encode_fs_path
 
 if TYPE_CHECKING:
     from pygit2 import Oid, Repository
@@ -76,7 +76,7 @@ class PackBuilder:
         return C.git_packbuilder_set_threads(self._packbuilder, n_threads)
 
     def write(self, path: str | bytes | PathLike[str] | None = None) -> None:
-        path_bytes = ffi.NULL if path is None else to_bytes(path)
+        path_bytes = ffi.NULL if path is None else encode_fs_path(path)
         err = C.git_packbuilder_write(
             self._packbuilder, path_bytes, 0, ffi.NULL, ffi.NULL
         )

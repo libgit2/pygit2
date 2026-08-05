@@ -35,7 +35,7 @@ except ImportError:
 # Import from pygit2
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import to_bytes
+from .utils import encode_fs_path, to_bytes
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import GitConfigC, GitConfigEntryC
@@ -116,7 +116,7 @@ class Config:
         if not path:
             err = C.git_config_new(cconfig)
         else:
-            path_bytes = to_bytes(path)
+            path_bytes = encode_fs_path(path)
             err = C.git_config_open_ondisk(cconfig, path_bytes)
 
         check_error(err, io=True)
@@ -282,7 +282,7 @@ class Config:
         """Add a config file instance to an existing config."""
 
         err = C.git_config_add_file_ondisk(
-            self._config, to_bytes(path), level, ffi.NULL, force
+            self._config, encode_fs_path(path), level, ffi.NULL, force
         )
         check_error(err)
 

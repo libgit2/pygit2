@@ -1797,7 +1797,14 @@ Repository_status(Repository *self, PyObject *args, PyObject *kw)
         if (status == NULL)
             goto error;
 
-        err = PyDict_SetItemString(dict, path, status);
+        PyObject *py_path = PyUnicode_DecodeFSDefault(path);
+        if (py_path == NULL) {
+            Py_CLEAR(status);
+            goto error;
+        }
+
+        err = PyDict_SetItem(dict, py_path, status);
+        Py_DECREF(py_path);
         Py_CLEAR(status);
 
         if (err < 0)

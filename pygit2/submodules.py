@@ -138,14 +138,12 @@ class Submodule:
     @property
     def name(self):
         """Name of the submodule."""
-        name = C.git_submodule_name(self._subm)
-        return ffi.string(name).decode('utf-8')
+        return maybe_string(C.git_submodule_name(self._subm))
 
     @property
     def path(self):
         """Path of the submodule."""
-        path = C.git_submodule_path(self._subm)
-        return ffi.string(path).decode('utf-8')
+        return maybe_string(C.git_submodule_path(self._subm))
 
     @property
     def url(self) -> str | None:
@@ -164,8 +162,7 @@ class Submodule:
     @property
     def branch(self):
         """Branch that is to be tracked by the submodule."""
-        branch = C.git_submodule_branch(self._subm)
-        return ffi.string(branch).decode('utf-8')
+        return maybe_string(C.git_submodule_branch(self._subm))
 
     @property
     def head_id(self) -> Oid | None:

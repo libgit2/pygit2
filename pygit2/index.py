@@ -33,7 +33,7 @@ from ._pygit2 import Diff, Oid, Tree
 from .enums import DiffOption, FileMode
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import GenericIterator, StrArray, to_bytes, to_str
+from .utils import GenericIterator, StrArray, decode_fs_path, encode_fs_path
 
 if typing.TYPE_CHECKING:
     from .repository import Repository
@@ -52,7 +52,7 @@ class Index:
         to read from and write to.
         """
         cindex = ffi.new('git_index **')
-        err = C.git_index_open(cindex, to_bytes(path))
+        err = C.git_index_open(cindex, encode_fs_path(path))
         check_error(err)
 
         self._repo = None
@@ -79,7 +79,7 @@ class Index:
         return C.git_index_entrycount(self._index)
 
     def __contains__(self, path) -> bool:
-        err = C.git_index_find(ffi.NULL, self._index, to_bytes(path))
+        err = C.git_index_find(ffi.NULL, self._index, encode_fs_path(path))
         if err == C.GIT_ENOTFOUND:
             return False
 
@@ -89,7 +89,7 @@ class Index:
     def __getitem__(self, key: str | int | PathLike[str]) -> 'IndexEntry':
         centry = ffi.NULL
         if isinstance(key, str) or hasattr(key, '__fspath__'):
-            centry = C.git_index_get_bypath(self._index, to_bytes(key), 0)
+            centry = C.git_index_get_bypath(self._index, encode_fs_path(key), 0)
         elif isinstance(key, int):
             if key >= 0:
                 centry = C.git_index_get_byindex(self._index, key)
@@ -180,12 +180,12 @@ class Index:
 
     def remove(self, path: PathLike[str] | str, level: int = 0) -> None:
         """Remove an entry from the Index."""
-        err = C.git_index_remove(self._index, to_bytes(path), level)
+        err = C.git_index_remove(self._index, encode_fs_path(path), level)
         check_error(err, io=True)
 
     def remove_directory(self, path: PathLike[str] | str, level: int = 0) -> None:
         """Remove a directory from the Index."""
-        err = C.git_index_remove_directory(self._index, to_bytes(path), level)
+        err = C.git_index_remove_directory(self._index, encode_fs_path(path), level)
         check_error(err, io=True)
 
     def remove_all(self, pathspecs: typing.Sequence[str | PathLike[str]]) -> None:
@@ -221,7 +221,7 @@ class Index:
             err = C.git_index_add(self._index, centry)
         elif isinstance(path_or_entry, str) or hasattr(path_or_entry, '__fspath__'):
             path = path_or_entry
-            err = C.git_index_add_bypath(self._index, to_bytes(path))
+            err = C.git_index_add_bypath(self._index, encode_fs_path(path))
         else:
             raise TypeError('argument must be string, Path or IndexEntry')
 
@@ -420,7 +420,7 @@ class MergeFileResult:
             return None
 
         automergeable = centry.automergeable != 0
-        path = to_str(ffi.string(centry.path)) if centry.path else None
+        path = decode_fs_path(ffi.string(centry.path)) if centry.path else None
         mode = FileMode(centry.mode)
         contents = ffi.string(centry.ptr, centry.len).decode('utf-8')
 
@@ -475,7 +475,7 @@ class IndexEntry:
         # basically memcpy()
         ffi.buffer(ffi.addressof(centry, 'id'))[:] = self.id.raw[:]
         centry.mode = int(self.mode)
-        path = ffi.new('char[]', to_bytes(self.path))
+        path = ffi.new('char[]', encode_fs_path(self.path))
         centry.path = path
 
         return centry, path
@@ -486,7 +486,7 @@ class IndexEntry:
             return None
 
         entry = cls.__new__(cls)
-        entry.path = to_str(ffi.string(centry.path))
+        entry.path = decode_fs_path(ffi.string(centry.path))
         entry.mode = FileMode(centry.mode)
         entry.id = Oid(raw=bytes(ffi.buffer(ffi.addressof(centry, 'id'))[:]))
 
@@ -503,7 +503,7 @@ class ConflictCollection:
         ctheirs = ffi.new('git_index_entry **')
 
         err = C.git_index_conflict_get(
-            cancestor, cours, ctheirs, self._index._index, to_bytes(path)
+            cancestor, cours, ctheirs, self._index._index, encode_fs_path(path)
         )
         check_error(err)
 
@@ -514,7 +514,7 @@ class ConflictCollection:
         return ancestor, ours, theirs
 
     def __delitem__(self, path):
-        err = C.git_index_conflict_remove(self._index._index, to_bytes(path))
+        err = C.git_index_conflict_remove(self._index._index, encode_fs_path(path))
         check_error(err)
 
     def __iter__(self):
@@ -526,7 +526,7 @@ class ConflictCollection:
         ctheirs = ffi.new('git_index_entry **')
 
         err = C.git_index_conflict_get(
-            cancestor, cours, ctheirs, self._index._index, to_bytes(path)
+            cancestor, cours, ctheirs, self._index._index, encode_fs_path(path)
         )
         if err == C.GIT_ENOTFOUND:
             return False

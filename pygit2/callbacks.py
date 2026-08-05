@@ -74,7 +74,14 @@ from .credentials import Keypair, Username, UserPass
 from .enums import CheckoutNotify, CheckoutStrategy, CredentialType, StashApplyProgress
 from .errors import Passthrough, check_error
 from .ffi import C, ffi
-from .utils import StrArray, maybe_string, ptr_to_bytes, to_bytes
+from .utils import (
+    StrArray,
+    decode_fs_path,
+    encode_fs_path,
+    maybe_string,
+    ptr_to_bytes,
+    to_bytes,
+)
 
 _Credentials = Username | UserPass | Keypair
 
@@ -784,13 +791,13 @@ def get_credentials(fn, url, username, allowed):
 def _checkout_notify_cb(
     why, path_cstr, baseline, target, workdir, data: CheckoutCallbacks
 ):
-    pypath = maybe_string(path_cstr)
+    pypath = decode_fs_path(path_cstr)
     pybaseline = DiffFile.from_c(ptr_to_bytes(baseline))
     pytarget = DiffFile.from_c(ptr_to_bytes(target))
     pyworkdir = DiffFile.from_c(ptr_to_bytes(workdir))
 
     try:
-        data.checkout_notify(why, pypath, pybaseline, pytarget, pyworkdir)  # type: ignore[arg-type]
+        data.checkout_notify(why, pypath, pybaseline, pytarget, pyworkdir)
     except Passthrough:
         # Unlike most other operations with optional callbacks, checkout
         # doesn't support the GIT_PASSTHROUGH return code, so we must bypass
@@ -805,7 +812,7 @@ def _checkout_notify_cb(
 
 @libgit2_callback_void
 def _checkout_progress_cb(path, completed_steps, total_steps, data: CheckoutCallbacks):
-    data.checkout_progress(maybe_string(path), completed_steps, total_steps)  # type: ignore[arg-type]
+    data.checkout_progress(decode_fs_path(path), completed_steps, total_steps)
 
 
 def _git_checkout_options(
@@ -839,7 +846,7 @@ def _git_checkout_options(
     opts.checkout_strategy = int(strategy)
 
     if directory:
-        target_dir = ffi.new('char[]', to_bytes(directory))
+        target_dir = ffi.new('char[]', encode_fs_path(directory))
         refs.append(target_dir)
         opts.target_directory = target_dir
 
