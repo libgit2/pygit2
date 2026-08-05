@@ -999,7 +999,8 @@ class Option(IntEnum):
 
 
 class RebaseOperationType(IntEnum):
-    """Type of rebase operation in-progress after calling Rebase.next()."""
+    """Type of a rebase operation, as returned when iterating over or
+    indexing a Rebase."""
 
     PICK = C.GIT_REBASE_OPERATION_PICK
     """The given commit is to be cherry-picked.  The client should commit

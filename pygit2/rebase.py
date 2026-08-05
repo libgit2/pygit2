@@ -59,8 +59,8 @@ class RebaseOperation:
         'The type of rebase operation.'
 
         self.id = id
-        """The commit ID being cherry-picked.  This will be populated for
-        all operations except those of type RebaseOperationType.EXEC."""
+        """The commit ID being cherry-picked.  For operations of type
+        RebaseOperationType.EXEC this is the zero OID."""
 
         self.exec = exec
         """The executable the user has requested be run.  This will only
