@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 PathStrOrBytes = str | bytes | os.PathLike[str] | os.PathLike[bytes]
 
 
-def maybe_string(ptr: 'char_pointer | None') -> str | None:
+def decode_string(ptr: 'char_pointer | None') -> str | None:
     if not ptr:
         return None
 
@@ -85,18 +85,18 @@ def encode_fs_path(
 
 
 @overload
-def to_bytes(
+def encode_string(
     s: str | bytes | os.PathLike[str] | os.PathLike[bytes],
     encoding: str = 'utf-8',
     errors: str = 'strict',
 ) -> bytes: ...
 @overload
-def to_bytes(
+def encode_string(
     s: Union['ffi.NULL_TYPE', None],
     encoding: str = 'utf-8',
     errors: str = 'strict',
 ) -> Union['ffi.NULL_TYPE']: ...
-def to_bytes(
+def encode_string(
     s: Union[str, bytes, 'ffi.NULL_TYPE', os.PathLike[str], os.PathLike[bytes], None],
     encoding: str = 'utf-8',
     errors: str = 'strict',
@@ -195,7 +195,7 @@ class StrArray:
             if not isinstance(li, str) and not hasattr(li, '__fspath__'):
                 raise TypeError('Value must be a string or PathLike object')
 
-            strings[i] = ffi.new('char []', to_bytes(li))
+            strings[i] = ffi.new('char []', encode_string(li))
 
         self.__arr = ffi.new('char *[]', strings)
         self.__strings = strings

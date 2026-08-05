@@ -7,9 +7,8 @@
   `Config.__init__()`, and improve `Config` documentation
   [#1468](https://github.com/libgit2/pygit2/pull/1468)
 
-- Fix handling of non-UTF-8 file paths: add `decode_fs_path` and
-  `encode_fs_path`, use the filesystem codec for paths in `Repository.status()`,
-  `DiffFile.path`, index entries, checkout callbacks, and related APIs
+- Fix `UnicodeDecodeError` with non-UTF-8 file paths in `Repository.status()`,
+  `DiffFile.path`, index paths, checkout callbacks, and related APIs
   [#1451](https://github.com/libgit2/pygit2/issues/1451)
   [#1469](https://github.com/libgit2/pygit2/pull/1469)
 
@@ -41,6 +40,8 @@ Breaking changes:
 
 - Remove deprecated `Remote.ls_remotes(...)`, use `Remote.list_heads(...)`
   instead
+
+- Remove `pygit2.to_bytes`; it was an undocumented accidental public API
 
 
 # 1.19.3 (2026-06-13)

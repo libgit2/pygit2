@@ -31,7 +31,7 @@ import os
 import typing
 
 # High level API
-from . import enums
+from . import enums, utils
 from ._build import __version__
 
 # Low level API
@@ -366,7 +366,7 @@ from .repository import Repository
 from .settings import Settings
 from .submodules import Submodule
 from .transaction import ReferenceTransaction
-from .utils import decode_fs_path, encode_fs_path, to_bytes, to_str
+from .utils import to_str
 
 # Features
 features = enums.Feature(C.git_libgit2_features())
@@ -431,28 +431,28 @@ def init_repository(
     options.mode = mode
 
     if workdir_path:
-        workdir_path_ref = ffi.new('char []', encode_fs_path(workdir_path))
+        workdir_path_ref = ffi.new('char []', utils.encode_fs_path(workdir_path))
         options.workdir_path = workdir_path_ref
 
     if description:
-        description_ref = ffi.new('char []', to_bytes(description))
+        description_ref = ffi.new('char []', utils.encode_string(description))
         options.description = description_ref
 
     if template_path:
-        template_path_ref = ffi.new('char []', encode_fs_path(template_path))
+        template_path_ref = ffi.new('char []', utils.encode_fs_path(template_path))
         options.template_path = template_path_ref
 
     if initial_head:
-        initial_head_ref = ffi.new('char []', to_bytes(initial_head))
+        initial_head_ref = ffi.new('char []', utils.encode_string(initial_head))
         options.initial_head = initial_head_ref
 
     if origin_url:
-        origin_url_ref = ffi.new('char []', to_bytes(origin_url))
+        origin_url_ref = ffi.new('char []', utils.encode_string(origin_url))
         options.origin_url = origin_url_ref
 
     # Call
     crepository = ffi.new('git_repository **')
-    err = C.git_repository_init_ext(crepository, encode_fs_path(path), options)
+    err = C.git_repository_init_ext(crepository, utils.encode_fs_path(path), options)
     check_error(err)
 
     # Ok
@@ -531,13 +531,13 @@ def clone_repository(
         opts.fetch_opts.depth = depth
 
         if checkout_branch:
-            checkout_branch_ref = ffi.new('char []', to_bytes(checkout_branch))
+            checkout_branch_ref = ffi.new('char []', utils.encode_string(checkout_branch))
             opts.checkout_branch = checkout_branch_ref
 
         with git_fetch_options(payload, opts=opts.fetch_opts):
             with git_proxy_options(payload, opts.fetch_opts.proxy_opts, proxy):
                 crepo = ffi.new('git_repository **')
-                err = C.git_clone(crepo, to_bytes(url), encode_fs_path(path), opts)
+                err = C.git_clone(crepo, utils.encode_string(url), utils.encode_fs_path(path), opts)
                 payload.check_error(err)
 
     # Ok
@@ -560,7 +560,7 @@ def filter_unregister(name: str) -> None:
     if FilterList._is_filter_in_use(name):
         raise RuntimeError(f"filter still in use: '{name}'")
 
-    c_name = to_bytes(name)
+    c_name = utils.encode_string(name)
     err = C.git_filter_unregister(c_name)
     check_error(err)
 
@@ -934,7 +934,6 @@ __all__ = (
     'transaction',
     'ReferenceTransaction',
     'utils',
-    'to_bytes',
     'to_str',
     # __init__ module defined symbols
     'features',

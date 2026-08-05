@@ -35,7 +35,7 @@ except ImportError:
 # Import from pygit2
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import encode_fs_path, to_bytes
+from .utils import encode_fs_path, encode_string
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import GitConfigC, GitConfigEntryC
@@ -46,7 +46,7 @@ def str_to_bytes(value: str | bytes, name: str) -> bytes:
     if not isinstance(value, str):
         raise TypeError(f'{name} must be a string')
 
-    return to_bytes(value)
+    return encode_string(value)
 
 
 class ConfigIterator:
@@ -183,7 +183,7 @@ class Config:
         elif isinstance(value, int):
             err = C.git_config_set_int64(self._config, key, value)
         else:
-            err = C.git_config_set_string(self._config, key, to_bytes(value))
+            err = C.git_config_set_string(self._config, key, encode_string(value))
 
         check_error(err)
 
@@ -215,7 +215,7 @@ class Config:
         to filter the variables we're interested in.
         """
         name = str_to_bytes(name, 'name')
-        regex_bytes = to_bytes(regex or None)
+        regex_bytes = encode_string(regex or None)
 
         citer = ffi.new('git_config_iterator **')
         err = C.git_config_multivar_iterator_new(citer, self._config, name, regex_bytes)
@@ -305,7 +305,7 @@ class Config:
     @staticmethod
     def parse_bool(text: str) -> bool:
         res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, to_bytes(text))
+        err = C.git_config_parse_bool(res, encode_string(text))
         check_error(err)
 
         return res[0] != 0
@@ -313,7 +313,7 @@ class Config:
     @staticmethod
     def parse_int(text: str) -> int:
         res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, to_bytes(text))
+        err = C.git_config_parse_int64(res, encode_string(text))
         check_error(err)
 
         return res[0]

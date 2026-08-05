@@ -31,7 +31,7 @@ from .enums import RebaseOperationType
 from .errors import check_error
 from .ffi import C, ffi
 from .index import Index
-from .utils import maybe_string
+from .utils import decode_string
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import GitRebaseC, GitRebaseOperationC
@@ -70,7 +70,7 @@ class RebaseOperation:
     def _from_c(cls, coperation: 'GitRebaseOperationC') -> 'RebaseOperation':
         type = RebaseOperationType(coperation.type)
         id = Oid(raw=bytes(ffi.buffer(ffi.addressof(coperation, 'id'))[:]))
-        exec = maybe_string(coperation.exec)
+        exec = decode_string(coperation.exec)
         return cls(type, id, exec)
 
     def __repr__(self) -> str:
@@ -229,7 +229,7 @@ class Rebase:
     @property
     def orig_head_name(self) -> 'str | None':
         """The original HEAD ref name."""
-        return maybe_string(C.git_rebase_orig_head_name(self._rebase))
+        return decode_string(C.git_rebase_orig_head_name(self._rebase))
 
     @property
     def orig_head_id(self) -> Oid:
@@ -240,7 +240,7 @@ class Rebase:
     @property
     def onto_name(self) -> 'str | None':
         """The onto ref name."""
-        return maybe_string(C.git_rebase_onto_name(self._rebase))
+        return decode_string(C.git_rebase_onto_name(self._rebase))
 
     @property
     def onto_id(self) -> Oid:

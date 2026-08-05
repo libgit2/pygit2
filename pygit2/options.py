@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import decode_fs_path, encode_fs_path, to_bytes, to_str
+from .utils import decode_fs_path, encode_fs_path, encode_string, to_str
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import NULL_TYPE, ArrayC, char, char_pointer
@@ -520,7 +520,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_args(option_type, arg1, arg2, 1)
 
         agent = arg1
-        agent_bytes = to_bytes(agent)
+        agent_bytes = encode_string(agent)
         agent_cdata = ffi.new('char[]', agent_bytes)
 
         err = C.git_libgit2_opts(option_type, agent_cdata)
@@ -531,7 +531,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_args(option_type, arg1, arg2, 1)
 
         ciphers = arg1
-        ciphers_bytes = to_bytes(ciphers)
+        ciphers_bytes = encode_string(ciphers)
         ciphers_cdata = ffi.new('char[]', ciphers_bytes)
 
         err = C.git_libgit2_opts(option_type, ciphers_cdata)
@@ -669,7 +669,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         ext_strings: list[ArrayC[char]] = []  # Keep references during the call
 
         for i, ext in enumerate(extensions):
-            ext_bytes = to_bytes(ext)
+            ext_bytes = encode_string(ext)
             ext_string: ArrayC[char] = ffi.new('char[]', ext_bytes)
             ext_strings.append(ext_string)
             ext_array[i] = ffi.cast('char *', ext_string)
@@ -781,7 +781,7 @@ def option(option_type: Option, arg1: Any = NOT_PASSED, arg2: Any = NOT_PASSED) 
         check_args(option_type, arg1, arg2, 1)
 
         product = arg1
-        product_bytes = to_bytes(product)
+        product_bytes = encode_string(product)
         product_cdata = ffi.new('char[]', product_bytes)
 
         err = C.git_libgit2_opts(option_type, product_cdata)

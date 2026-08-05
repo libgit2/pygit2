@@ -34,7 +34,7 @@ from .callbacks import RemoteCallbacks, git_fetch_options
 from .enums import SubmoduleIgnore, SubmoduleStatus
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import decode_fs_path, maybe_string, to_bytes
+from .utils import decode_fs_path, decode_string, encode_string
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
@@ -138,7 +138,7 @@ class Submodule:
     @property
     def name(self):
         """Name of the submodule."""
-        return maybe_string(C.git_submodule_name(self._subm))
+        return decode_string(C.git_submodule_name(self._subm))
 
     @property
     def path(self):
@@ -149,20 +149,20 @@ class Submodule:
     def url(self) -> str | None:
         """URL of the submodule."""
         url = C.git_submodule_url(self._subm)
-        return maybe_string(url)
+        return decode_string(url)
 
     @url.setter
     def url(self, url: str) -> None:
         crepo = self._repo._repo
-        cname = ffi.new('char[]', to_bytes(self.name))
-        curl = ffi.new('char[]', to_bytes(url))
+        cname = ffi.new('char[]', encode_string(self.name))
+        curl = ffi.new('char[]', encode_string(url))
         err = C.git_submodule_set_url(crepo, cname, curl)
         check_error(err)
 
     @property
     def branch(self):
         """Branch that is to be tracked by the submodule."""
-        return maybe_string(C.git_submodule_branch(self._subm))
+        return decode_string(C.git_submodule_branch(self._subm))
 
     @property
     def head_id(self) -> Oid | None:
@@ -190,7 +190,7 @@ class SubmoduleCollection:
         Raises KeyError if there is no such submodule.
         """
         csub = ffi.new('git_submodule **')
-        cpath = ffi.new('char[]', to_bytes(name))
+        cpath = ffi.new('char[]', encode_string(name))
 
         err = C.git_submodule_lookup(csub, self._repository._repo, cpath)
         check_error(err)
@@ -246,8 +246,8 @@ class SubmoduleCollection:
             The default is 0 (full commit history).
         """
         csub = ffi.new('git_submodule **')
-        curl = ffi.new('char[]', to_bytes(url))
-        cpath = ffi.new('char[]', to_bytes(path))
+        curl = ffi.new('char[]', encode_string(url))
+        cpath = ffi.new('char[]', encode_string(path))
         gitlink = 1 if link else 0
 
         err = C.git_submodule_add_setup(
@@ -360,7 +360,7 @@ class SubmoduleCollection:
         """
         cstatus = ffi.new('unsigned int *')
         err = C.git_submodule_status(
-            cstatus, self._repository._repo, to_bytes(name), ignore
+            cstatus, self._repository._repo, encode_string(name), ignore
         )
         check_error(err)
         return SubmoduleStatus(cstatus[0])

@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from ._pygit2 import Blob, FilterSource
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import encode_fs_path, to_bytes
+from .utils import encode_fs_path, encode_string
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import GitFilterListC
@@ -152,7 +152,7 @@ class FilterList:
     def __contains__(self, name: str) -> bool:
         if not isinstance(name, str):
             raise TypeError('argument must be str')
-        c_name = to_bytes(name)
+        c_name = encode_string(name)
         result = C.git_filter_list_contains(self._pointer, c_name)
         return bool(result)
 

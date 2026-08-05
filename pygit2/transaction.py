@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import to_bytes
+from .utils import encode_string
 
 if TYPE_CHECKING:
     from ._pygit2 import Oid, Signature
@@ -81,7 +81,7 @@ class ReferenceTransaction:
         if self._tx is None:
             raise ValueError('Transaction already closed')
 
-        c_refname = ffi.new('char[]', to_bytes(refname))
+        c_refname = ffi.new('char[]', encode_string(refname))
         err = C.git_transaction_lock_ref(self._tx, c_refname)
         check_error(err)
 
@@ -108,7 +108,7 @@ class ReferenceTransaction:
 
         from ._pygit2 import Oid
 
-        c_refname = ffi.new('char[]', to_bytes(refname))
+        c_refname = ffi.new('char[]', encode_string(refname))
 
         # Convert target to OID
         if isinstance(target, str):
@@ -118,7 +118,7 @@ class ReferenceTransaction:
         ffi.buffer(c_oid)[:] = target.raw
 
         c_sig = signature._pointer if signature else ffi.NULL
-        c_msg = ffi.new('char[]', to_bytes(message)) if message else ffi.NULL
+        c_msg = ffi.new('char[]', encode_string(message)) if message else ffi.NULL
 
         err = C.git_transaction_set_target(self._tx, c_refname, c_oid, c_sig, c_msg)
         check_error(err)
@@ -144,10 +144,10 @@ class ReferenceTransaction:
         if self._tx is None:
             raise ValueError('Transaction already closed')
 
-        c_refname = ffi.new('char[]', to_bytes(refname))
-        c_target = ffi.new('char[]', to_bytes(target))
+        c_refname = ffi.new('char[]', encode_string(refname))
+        c_target = ffi.new('char[]', encode_string(target))
         c_sig = signature._pointer if signature else ffi.NULL
-        c_msg = ffi.new('char[]', to_bytes(message)) if message else ffi.NULL
+        c_msg = ffi.new('char[]', encode_string(message)) if message else ffi.NULL
 
         err = C.git_transaction_set_symbolic_target(
             self._tx, c_refname, c_target, c_sig, c_msg
@@ -166,7 +166,7 @@ class ReferenceTransaction:
         if self._tx is None:
             raise ValueError('Transaction already closed')
 
-        c_refname = ffi.new('char[]', to_bytes(refname))
+        c_refname = ffi.new('char[]', encode_string(refname))
         err = C.git_transaction_remove(self._tx, c_refname)
         check_error(err)
 

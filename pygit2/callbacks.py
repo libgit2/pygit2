@@ -77,10 +77,10 @@ from .ffi import C, ffi
 from .utils import (
     StrArray,
     decode_fs_path,
+    decode_string,
     encode_fs_path,
-    maybe_string,
+    encode_string,
     ptr_to_bytes,
-    to_bytes,
 )
 
 _Credentials = Username | UserPass | Keypair
@@ -460,7 +460,7 @@ def git_proxy_options(
     elif type(proxy) is str:
         opts.type = C.GIT_PROXY_SPECIFIED
         # Keep url in memory, otherwise memory is freed and bad things happen
-        payload.__proxy_url = ffi.new('char[]', to_bytes(proxy))  # type: ignore[union-attr]
+        payload.__proxy_url = ffi.new('char[]', encode_string(proxy))  # type: ignore[union-attr]
         opts.url = payload.__proxy_url  # type: ignore[union-attr]
     else:
         raise TypeError('Proxy must be None, True, or a string')
@@ -644,8 +644,8 @@ def _push_update_reference_cb(ref, msg, data):
     if not push_update_reference:
         return 0
 
-    refname = maybe_string(ref)
-    message = maybe_string(msg)
+    refname = decode_string(ref)
+    message = decode_string(msg)
     push_update_reference(refname, message)
     return 0
 
@@ -713,7 +713,7 @@ def _update_tips_cb(refname, a, b, data):
     if not update_tips:
         return 0
 
-    s = maybe_string(refname)
+    s = decode_string(refname)
     a = Oid(raw=bytes(ffi.buffer(a)[:]))
     b = Oid(raw=bytes(ffi.buffer(b)[:]))
     update_tips(s, a, b)
@@ -727,8 +727,8 @@ def _update_tips_cb(refname, a, b, data):
 
 def get_credentials(fn, url, username, allowed):
     """Call fn and return the credentials object."""
-    url_str = maybe_string(url)
-    username_str = maybe_string(username)
+    url_str = decode_string(url)
+    username_str = decode_string(username)
 
     creds = fn(url_str, username_str, allowed)
 
@@ -746,22 +746,22 @@ def get_credentials(fn, url, username, allowed):
     if cred_type == CredentialType.USERPASS_PLAINTEXT:
         name, passwd = credential_tuple
         err = C.git_credential_userpass_plaintext_new(
-            ccred, to_bytes(name), to_bytes(passwd)
+            ccred, encode_string(name), encode_string(passwd)
         )
 
     elif cred_type == CredentialType.SSH_KEY:
         name, pubkey, privkey, passphrase = credential_tuple
-        name = to_bytes(name)
+        name = encode_string(name)
         if pubkey is None and privkey is None:
             err = C.git_credential_ssh_key_from_agent(ccred, name)
         else:
             err = C.git_credential_ssh_key_new(
-                ccred, name, to_bytes(pubkey), to_bytes(privkey), to_bytes(passphrase)
+                ccred, name, encode_string(pubkey), encode_string(privkey), encode_string(passphrase)
             )
 
     elif cred_type == CredentialType.USERNAME:
         (name,) = credential_tuple
-        err = C.git_credential_username_new(ccred, to_bytes(name))
+        err = C.git_credential_username_new(ccred, encode_string(name))
 
     elif cred_type == CredentialType.SSH_MEMORY:
         name, pubkey, privkey, passphrase = credential_tuple
@@ -769,10 +769,10 @@ def get_credentials(fn, url, username, allowed):
             raise TypeError('SSH keys from memory are empty')
         err = C.git_credential_ssh_key_memory_new(
             ccred,
-            to_bytes(name),
-            to_bytes(pubkey),
-            to_bytes(privkey),
-            to_bytes(passphrase),
+            encode_string(name),
+            encode_string(pubkey),
+            encode_string(privkey),
+            encode_string(passphrase),
         )
     else:
         raise TypeError('unsupported credential type')

@@ -82,7 +82,13 @@ from .references import References
 from .remotes import RemoteCollection
 from .submodules import SubmoduleCollection
 from .transaction import ReferenceTransaction
-from .utils import StrArray, decode_fs_path, encode_fs_path, maybe_string, to_bytes
+from .utils import (
+    StrArray,
+    decode_fs_path,
+    decode_string,
+    encode_fs_path,
+    encode_string,
+)
 
 if TYPE_CHECKING:
     from pygit2._libgit2.ffi import (
@@ -228,7 +234,7 @@ class BaseRepository(_Repository):
         if as_path is None:
             c_as_path = ffi.NULL
         else:
-            c_as_path = to_bytes(as_path)
+            c_as_path = encode_string(as_path)
 
         c_oid = ffi.new('git_oid *')
 
@@ -257,7 +263,7 @@ class BaseRepository(_Repository):
             (CLEAN).
         """
         c_filters = ffi.new('git_filter_list **')
-        c_path = to_bytes(path)
+        c_path = encode_string(path)
         c_mode = int(mode)
 
         err = C.git_filter_list_load(c_filters, self._repo, ffi.NULL, c_path, c_mode, 0)
@@ -534,7 +540,7 @@ class BaseRepository(_Repository):
             return
 
         # if it's a string, then it's a reference name
-        err = C.git_repository_set_head(self._repo, to_bytes(target))
+        err = C.git_repository_set_head(self._repo, encode_string(target))
         check_error(err)
 
     #
@@ -765,7 +771,7 @@ class BaseRepository(_Repository):
             options.max_line = max_line
 
         cblame = ffi.new('git_blame **')
-        err = C.git_blame_file(cblame, self._repo, to_bytes(path), options)
+        err = C.git_blame_file(cblame, self._repo, encode_string(path), options)
         check_error(err)
 
         return Blame._from_c(self, cblame[0])
@@ -1107,7 +1113,7 @@ class BaseRepository(_Repository):
         opts.inmemory = int(inmemory)
         opts.quiet = int(quiet)
         if rewrite_notes_ref is not None:
-            notes_ref = ffi.new('char[]', to_bytes(rewrite_notes_ref))
+            notes_ref = ffi.new('char[]', encode_string(rewrite_notes_ref))
             refs.append(notes_ref)
             opts.rewrite_notes_ref = notes_ref
 
@@ -1123,7 +1129,7 @@ class BaseRepository(_Repository):
         )
         for field, label in labels:
             if label is not None:
-                clabel = ffi.new('char[]', to_bytes(label))
+                clabel = ffi.new('char[]', encode_string(label))
                 refs.append(clabel)
                 setattr(opts.checkout_options, field, clabel)
 
@@ -1401,7 +1407,7 @@ class BaseRepository(_Repository):
             # The returned pointer object has ownership on the allocated
             # memory. Make sure it is kept alive until git_describe_commit() or
             # git_describe_workdir() are called below.
-            pattern_char = ffi.new('char[]', to_bytes(pattern))
+            pattern_char = ffi.new('char[]', encode_string(pattern))
             options.pattern = pattern_char
         if only_follow_first_parent is not None:
             options.only_follow_first_parent = only_follow_first_parent
@@ -1438,7 +1444,7 @@ class BaseRepository(_Repository):
                 format_options.always_use_long_format = always_use_long_format
             dirty_ptr = None
             if dirty_suffix:
-                dirty_ptr = ffi.new('char[]', to_bytes(dirty_suffix))
+                dirty_ptr = ffi.new('char[]', encode_string(dirty_suffix))
                 format_options.dirty_suffix = dirty_ptr
 
             buf = ffi.new('git_buf *', (ffi.NULL, 0))
@@ -1515,7 +1521,7 @@ class BaseRepository(_Repository):
         opts.stasher = stasher_cptr[0]
 
         if message:
-            message_ref = ffi.new('char[]', to_bytes(message))
+            message_ref = ffi.new('char[]', encode_string(message))
             opts.message = message_ref
 
         if paths:
@@ -1776,7 +1782,7 @@ class BaseRepository(_Repository):
 
         cvalue = ffi.new('char **')
         err = C.git_attr_get_ext(
-            cvalue, self._repo, copts, to_bytes(path), to_bytes(name)
+            cvalue, self._repo, copts, encode_string(path), encode_string(name)
         )
         check_error(err)
 
@@ -1804,7 +1810,7 @@ class BaseRepository(_Repository):
         err = C.git_repository_ident(cname, cemail, self._repo)
         check_error(err)
 
-        return (maybe_string(cname[0]), maybe_string(cemail[0]))
+        return (decode_string(cname[0]), decode_string(cemail[0]))
 
     def set_ident(self, name: Optional[str], email: Optional[str]) -> None:
         """Set the identity to be used for reference operations.
@@ -1814,7 +1820,7 @@ class BaseRepository(_Repository):
         used. If none is set, it will be read from the configuration.
         """
 
-        err = C.git_repository_set_ident(self._repo, to_bytes(name), to_bytes(email))
+        err = C.git_repository_set_ident(self._repo, encode_string(name), encode_string(email))
         check_error(err)
 
     def revert(self, commit: Commit) -> None:
@@ -1950,9 +1956,9 @@ class BaseRepository(_Repository):
 
         # Get refname as C string.
         if isinstance(refname, Reference):
-            refname_cstr = ffi.new('char[]', to_bytes(refname.name))
+            refname_cstr = ffi.new('char[]', encode_string(refname.name))
         elif type(refname) is str:
-            refname_cstr = ffi.new('char[]', to_bytes(refname))
+            refname_cstr = ffi.new('char[]', encode_string(refname))
         elif refname is not None:
             raise TypeError('refname must be a str or Reference')
 
@@ -1970,8 +1976,8 @@ class BaseRepository(_Repository):
 
         # Get message and encoding as C strings.
         if message is not None:
-            message_cstr = ffi.new('char[]', to_bytes(message, encoding))
-            encoding_cstr = ffi.new('char[]', to_bytes(encoding))
+            message_cstr = ffi.new('char[]', encode_string(message, encoding))
+            encoding_cstr = ffi.new('char[]', encode_string(encoding))
 
         # Get tree as pointer to git_tree.
         if tree is not None:
