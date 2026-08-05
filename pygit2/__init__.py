@@ -531,13 +531,17 @@ def clone_repository(
         opts.fetch_opts.depth = depth
 
         if checkout_branch:
-            checkout_branch_ref = ffi.new('char []', utils.encode_string(checkout_branch))
+            checkout_branch_ref = ffi.new(
+                'char []', utils.encode_string(checkout_branch)
+            )
             opts.checkout_branch = checkout_branch_ref
 
         with git_fetch_options(payload, opts=opts.fetch_opts):
             with git_proxy_options(payload, opts.fetch_opts.proxy_opts, proxy):
                 crepo = ffi.new('git_repository **')
-                err = C.git_clone(crepo, utils.encode_string(url), utils.encode_fs_path(path), opts)
+                err = C.git_clone(
+                    crepo, utils.encode_string(url), utils.encode_fs_path(path), opts
+                )
                 payload.check_error(err)
 
     # Ok

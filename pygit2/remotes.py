@@ -485,12 +485,16 @@ class RemoteCollection:
 
     def set_url(self, name: str, url: str) -> None:
         """Set the URL for a remote"""
-        err = C.git_remote_set_url(self._repo._repo, encode_string(name), encode_string(url))
+        err = C.git_remote_set_url(
+            self._repo._repo, encode_string(name), encode_string(url)
+        )
         check_error(err)
 
     def set_push_url(self, name: str, url: str) -> None:
         """Set the push-URL for a remote"""
-        err = C.git_remote_set_pushurl(self._repo._repo, encode_string(name), encode_string(url))
+        err = C.git_remote_set_pushurl(
+            self._repo._repo, encode_string(name), encode_string(url)
+        )
         check_error(err)
 
     def add_fetch(self, name: str, refspec: str) -> None:
@@ -504,5 +508,7 @@ class RemoteCollection:
     def add_push(self, name: str, refspec: str) -> None:
         """Add a push refspec (str) to the remote"""
 
-        err = C.git_remote_add_push(self._repo._repo, encode_string(name), encode_string(refspec))
+        err = C.git_remote_add_push(
+            self._repo._repo, encode_string(name), encode_string(refspec)
+        )
         check_error(err)

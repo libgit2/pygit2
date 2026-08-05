@@ -56,7 +56,8 @@ modules:
     `repository.py`, `callbacks.py`, `config.py`, `index.py`, `remotes.py`,
     `settings.py`, `submodules.py`, `transaction.py`, `filter.py`, `blob.py`,
     `blame.py`, `branches.py`, `credentials.py`, `errors.py`, `options.py`,
-    `packbuilder.py`, `references.py`, `refspec.py`, `utils.py`, `enums.py`.
+    `packbuilder.py`, `rebase.py`, `references.py`, `refspec.py`, `utils.py`,
+    `enums.py`.
 
 - **`test/`** — pytest suite with fixture-based repository handling.
 - **`docs/`** — Sphinx documentation (RTD theme).
@@ -64,7 +65,8 @@ modules:
 ## Key Configuration Files
 
 - **`setup.py`** — setuptools entry point. Builds both the C extension
-  (`src/*.c`) and the CFFI extension (`pygit2/_run.py:ffi`).
+  (`src/*.c`) and the CFFI extension (`pygit2/_run.py:ffi`). On Windows it
+  also copies `git2.dll` into the package (see `BuildWithDLLs`).
 - **`pyproject.toml`** — Build-system requirements, `cibuildwheel`
   configuration, `ruff` settings, and `codespell` settings.
 - **`setup.cfg`** — Legacy pycodestyle configuration.
@@ -72,7 +74,7 @@ modules:
   `testpaths = test/`).
 - **`mypy.ini`** — mypy configuration with strict settings.
 - **`mypy-stubtest.ini`** — mypy configuration for `stubtest` against
-  `_pygit2.pyi`.
+  `_pygit2.pyi` (at the repo root).
 - **`requirements.txt`** — Runtime/build requirements (`cffi>=2.0`,
   `setuptools` for Python >= 3.12).
 - **`requirements-test.txt`** — Test requirements (`pytest`, `pytest-cov`).
@@ -107,14 +109,12 @@ make
 # Or manually:
 LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.6 sh build.sh
 
-# Build inplace and run the tests
-sh build.sh test
-
-# Build a wheel, install it, and run the tests
+# Build a wheel and bundle the shared libraries into it
 sh build.sh wheel
+sh build.sh bundle
 
-# Run tests with coverage
-sh build.sh test   # build.sh adds --cov=pygit2
+# Build inplace and run the tests with coverage (build.sh adds --cov=pygit2)
+sh build.sh test
 
 # Run mypy type checking
 sh build.sh mypy
@@ -169,7 +169,9 @@ make -C docs html   # requires sphinx-rtd-theme
   - Run `ruff format` and `ruff check` on changed files before committing.
     CI runs `ruff format --diff` and `ruff check`; formatting failures will
     fail the build.
-- **Type checker**: mypy (strict settings enabled; see `mypy.ini`)
+- **Type checker**: mypy (strict settings enabled; see `mypy.ini`). Test
+  modules additionally require typed defs and calls (`disallow_untyped_defs`,
+  `disallow_untyped_calls` under `[mypy-test.*]`).
 - All Python source files must include the standard GPLv2 copyright header.
 - `pygit2/__init__.py` is large because it re-exports a large surface of
   constants and classes; follow existing patterns when adding new public
@@ -235,13 +237,15 @@ def f(a, b):
 GitHub Actions workflows live in `.github/workflows/`:
 
 - **`tests.yml`** — Runs on s390x via QEMU (`uraimo/run-on-arch-action`).
-  Allowed to fail; see issue #812.
+  Allowed to fail (`continue-on-error`); see issue #812.
 - **`lint.yml`** — Runs `ruff format --diff`, `ruff check`, and
   `sh build.sh mypy`.
-- **`wheels.yml`** — Uses `cibuildwheel` to build wheels for Linux (amd64,
-  arm64, ppc64le, musl), macOS (intel, arm64, PyPy), and Windows (x64, x86,
-  arm64). It also builds an sdist, runs a `twine check`, publishes to PyPI,
-  and creates a GitHub Release on version tags (`v*`).
+- **`wheels.yml`** — Uses `cibuildwheel` (`~=3.3`) to build wheels for Linux
+  (amd64, arm64, ppc64le and riscv64 via QEMU, musl), macOS (intel, arm64,
+  PyPy), and Windows (x64, x86, arm64). It also builds an sdist, runs a
+  `twine check` (skipped on version tags), publishes to PyPI, and creates a
+  GitHub Release on version tags (`v*`), with release notes parsed from
+  `CHANGELOG.md` by `.github/workflows/parse_release_notes.py`.
 - **`codespell.yml`** — Spell checking with the codespell action.
 
 The `cibuildwheel` configuration in `pyproject.toml` pins:
@@ -250,8 +254,10 @@ The `cibuildwheel` configuration in `pyproject.toml` pins:
 - `LIBSSH2_VERSION="1.11.1"`
 - `OPENSSL_VERSION="3.5.4"`
 
-and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le` and
-`pp*-macosx_arm64`.
+and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le`,
+`*-*linux_riscv64` and `pp*-macosx_arm64`. On Windows it uses the
+`Visual Studio 18 2026` CMake generator for x64/x86 and
+`Visual Studio 17 2022` for ARM64.
 
 ## Security Considerations
 
@@ -263,6 +269,11 @@ and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le` and
   interface for supplying secrets; never hardcode credentials in tests.
 - Valgrind support: see `docs/development.rst` and
   `misc/valgrind-python.supp` for memory-leak debugging instructions.
+
+## Git Commits
+
+- Commits created by an AI agent must end with the `Assisted-by:` trailer.
+  Human-authored commits do not need it.
 
 ## Useful Notes for Agents
 

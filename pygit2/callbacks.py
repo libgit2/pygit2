@@ -756,7 +756,11 @@ def get_credentials(fn, url, username, allowed):
             err = C.git_credential_ssh_key_from_agent(ccred, name)
         else:
             err = C.git_credential_ssh_key_new(
-                ccred, name, encode_string(pubkey), encode_string(privkey), encode_string(passphrase)
+                ccred,
+                name,
+                encode_string(pubkey),
+                encode_string(privkey),
+                encode_string(passphrase),
             )
 
     elif cred_type == CredentialType.USERNAME:

@@ -1820,7 +1820,9 @@ class BaseRepository(_Repository):
         used. If none is set, it will be read from the configuration.
         """
 
-        err = C.git_repository_set_ident(self._repo, encode_string(name), encode_string(email))
+        err = C.git_repository_set_ident(
+            self._repo, encode_string(name), encode_string(email)
+        )
         check_error(err)
 
     def revert(self, commit: Commit) -> None:
