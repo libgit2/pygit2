@@ -7,6 +7,12 @@
   `Config.__init__()`, and improve `Config` documentation
   [#1468](https://github.com/libgit2/pygit2/pull/1468)
 
+- Fix handling of non-UTF-8 file paths: add `decode_fs_path` and
+  `encode_fs_path`, use the filesystem codec for paths in `Repository.status()`,
+  `DiffFile.path`, index entries, checkout callbacks, and related APIs
+  [#1451](https://github.com/libgit2/pygit2/issues/1451)
+  [#1469](https://github.com/libgit2/pygit2/pull/1469)
+
 - Add riscv64 wheels
   [#1463](https://github.com/libgit2/pygit2/pull/1463)
 

@@ -34,7 +34,6 @@ from typing import (
     Protocol,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
@@ -56,9 +55,7 @@ def maybe_string(ptr: 'char_pointer | None') -> str | None:
 
 
 @overload
-def decode_fs_path(ptr_or_bytes: 'char_pointer') -> str: ...
-@overload
-def decode_fs_path(ptr_or_bytes: None) -> None: ...
+def decode_fs_path(ptr_or_bytes: 'char_pointer | None') -> str | None: ...
 @overload
 def decode_fs_path(ptr_or_bytes: bytes) -> str: ...
 def decode_fs_path(ptr_or_bytes: 'char_pointer | bytes | None') -> str | None:
@@ -84,15 +81,7 @@ def encode_fs_path(
     if s is None or s == ffi.NULL:
         return ffi.NULL
 
-    s_pathlike = cast(PathStrOrBytes, s)
-
-    if hasattr(s_pathlike, '__fspath__'):
-        return os.fsencode(s_pathlike)
-
-    if isinstance(s_pathlike, bytes):
-        return s_pathlike
-
-    return os.fsencode(s_pathlike)
+    return os.fsencode(s)
 
 
 @overload

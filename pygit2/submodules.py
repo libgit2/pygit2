@@ -34,7 +34,7 @@ from .callbacks import RemoteCallbacks, git_fetch_options
 from .enums import SubmoduleIgnore, SubmoduleStatus
 from .errors import check_error
 from .ffi import C, ffi
-from .utils import maybe_string, to_bytes
+from .utils import decode_fs_path, maybe_string, to_bytes
 
 # Need BaseRepository for type hints, but don't let it cause a circular dependency
 if TYPE_CHECKING:
@@ -143,7 +143,7 @@ class Submodule:
     @property
     def path(self):
         """Path of the submodule."""
-        return maybe_string(C.git_submodule_path(self._subm))
+        return decode_fs_path(C.git_submodule_path(self._subm))
 
     @property
     def url(self) -> str | None:

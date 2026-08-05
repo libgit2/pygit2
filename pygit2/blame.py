@@ -30,7 +30,7 @@ from ._pygit2 import Oid, Repository, Signature
 
 # Import from pygit2
 from .ffi import C, ffi
-from .utils import GenericIterator, maybe_string
+from .utils import GenericIterator, decode_fs_path
 
 if TYPE_CHECKING:
     from ._libgit2.ffi import GitBlameC, GitHunkC, GitSignatureC
@@ -110,7 +110,7 @@ class BlameHunk:
         if not path:
             return None
 
-        return maybe_string(path)
+        return decode_fs_path(path)
 
 
 class Blame:
