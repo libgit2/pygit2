@@ -81,7 +81,7 @@ def encode_fs_path(
     if s is None or s == ffi.NULL:
         return ffi.NULL
 
-    return os.fsencode(s)
+    return os.fsencode(s)  # type: ignore[arg-type]
 
 
 @overload
