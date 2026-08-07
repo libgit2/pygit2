@@ -210,33 +210,38 @@ pygit2_refdb_backend_write(git_refdb_backend *_be,
         const git_signature *_who, const char *message,
         const git_oid *_old, const char *old_target)
 {
-    int err;
-    PyObject *args = NULL, *ref = NULL, *who = NULL, *old = NULL;
     struct pygit2_refdb_backend *be = (struct pygit2_refdb_backend *)_be;
 
-    // XXX: Drops const
-    if ((ref = wrap_reference((git_reference *)_ref, NULL)) == NULL)
-        goto euser;
-    if ((who = build_signature(NULL, _who, "utf-8")) == NULL)
-        goto euser;
-    if ((old = git_oid_to_python(_old)) == NULL)
-        goto euser;
-    if ((args = Py_BuildValue("(NNNsNs)", ref,
-            force ? Py_True : Py_False,
-            who, message, old, old_target)) == NULL)
-        goto euser;
+    PyObject *ref = wrap_reference((git_reference *)_ref, NULL);  // XXX: Drops const
+    if (ref == NULL) {
+        return GIT_EUSER;
+    }
+
+    PyObject *who = build_signature(NULL, _who, "utf-8");
+    if (who == NULL) {
+        Py_DECREF(ref);
+        return GIT_EUSER;
+    }
+
+    PyObject *old = git_oid_to_python(_old);
+    if (old == NULL) {
+        Py_DECREF(ref);
+        Py_DECREF(who);
+        return GIT_EUSER;
+    }
+
+    // Py_BuildValue takes ownership of ref, who and old (N format), even on failure, so
+    // they must not be decref'd past this point.
+    PyObject *args = Py_BuildValue("(NNNsNs)", ref, PyBool_FromLong(force), who, message,
+                                   old, old_target);
+    if (args == NULL) {
+        return GIT_EUSER;
+    }
 
     PyObject_CallObject(be->write, args);
-    err = git_error_for_exc();
-out:
-    Py_DECREF(ref);
-    Py_DECREF(who);
-    Py_DECREF(old);
+    int err = git_error_for_exc();
     Py_DECREF(args);
     return err;
-euser:
-    err = GIT_EUSER;
-    goto out;
 }
 
 static int
