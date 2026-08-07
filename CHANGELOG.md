@@ -23,6 +23,7 @@
   [#1471](https://github.com/libgit2/pygit2/issues/1471)
   [#1474](https://github.com/libgit2/pygit2/issues/1474)
   [#1475](https://github.com/libgit2/pygit2/issues/1475)
+  [#1476](https://github.com/libgit2/pygit2/issues/1476)
 
 - Update wheels to libgit2 1.9.6 and OpenSSL 3.5.7
 

@@ -237,8 +237,8 @@ pygit2_refdb_backend_exists(int *exists,
     *exists = PyObject_IsTrue(result);
 
 out:
-    Py_DECREF(result);
-    return 0;
+    Py_XDECREF(result);
+    return err;
 }
 
 static int
@@ -423,6 +423,7 @@ pygit2_refdb_backend_has_log(git_refdb_backend *_be, const char *refname)
     Py_DECREF(args);
 
     if ((err = git_error_for_exc()) != 0) {
+        Py_XDECREF(result);
         return err;
     }
 
@@ -449,6 +450,7 @@ pygit2_refdb_backend_ensure_log(git_refdb_backend *_be, const char *refname)
     Py_DECREF(args);
 
     if ((err = git_error_for_exc()) != 0) {
+        Py_XDECREF(result);
         return err;
     }
 
