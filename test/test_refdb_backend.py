@@ -209,7 +209,11 @@ def test_iterator_callback_no_leak(testrepo: Repository) -> None:
     assert backend.cache is not None
     refcount = sys.getrefcount(backend.cache[0])
     list(testrepo.references.iterator())
-    assert sys.getrefcount(backend.cache[0]) == refcount
+    # Keep the getrefcount call out of the assert: pytest's assertion
+    # rewriting holds the subscript result in a frame temporary, which
+    # inflates the refcount on some Python versions (e.g. 3.11).
+    new_refcount = sys.getrefcount(backend.cache[0])
+    assert new_refcount == refcount
 
 
 def test_write(repo: Repository) -> None:
