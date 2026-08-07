@@ -170,7 +170,8 @@ Reference_init(Reference *self, PyObject *args, PyObject *kwds)
         py_oid_to_git_oid(py_peel, &peel);
     }
 
-    self->reference = git_reference__alloc(name, &oid, &peel);
+    self->reference = git_reference__alloc(name, &oid,
+                                           py_peel == Py_None ? NULL : &peel);
     return 0;
 }
 

@@ -19,9 +19,10 @@
   bound to the `DIFF3` constant
   [#1483](https://github.com/libgit2/pygit2/pull/1483)
 
-- Fix memory issues
+- Fix memory issues in refdb backend
   [#1471](https://github.com/libgit2/pygit2/issues/1471)
   [#1474](https://github.com/libgit2/pygit2/issues/1474)
+  [#1475](https://github.com/libgit2/pygit2/issues/1475)
 
 - Update wheels to libgit2 1.9.6 and OpenSSL 3.5.7
 

@@ -25,13 +25,16 @@
 
 """Tests for Refdb objects."""
 
-from collections.abc import Generator
+import sys
+from collections.abc import Generator, Iterator
 from pathlib import Path
 
 import pytest
 
 import pygit2
 from pygit2 import Commit, Oid, Reference, Repository, Signature
+
+from . import utils
 
 
 # Note: the refdb abstraction from libgit2 is meant to provide information
@@ -96,6 +99,41 @@ def repo(testrepo: Repository) -> Generator[Repository, None, None]:
     yield testrepo
 
 
+class CachedRefdbBackend(ProxyRefdbBackend):
+    """A backend that caches and reuses the Reference objects it returns."""
+
+    def __init__(self, source: pygit2.RefdbBackend) -> None:
+        super().__init__(source)
+        self.cache: dict[str, Reference] = {}
+
+    def lookup(self, ref: str) -> Reference:
+        if ref not in self.cache:
+            self.cache[ref] = self.source.lookup(ref)
+        return self.cache[ref]
+
+
+class IterRefdbBackend(ProxyRefdbBackend):
+    """A backend whose iterator yields cached Reference objects."""
+
+    def __init__(self, source: pygit2.RefdbBackend) -> None:
+        super().__init__(source)
+        self.cache: list[Reference] | None = None
+        self.refs: Iterator[Reference] = iter([])
+
+    def __iter__(self) -> 'IterRefdbBackend':
+        if self.cache is None:
+            self.cache = [
+                self.source.lookup('refs/heads/master'),
+                self.source.lookup('refs/heads/i18n'),
+                Reference('refs/heads/symbolic', 'refs/heads/master'),
+            ]
+        self.refs = iter(self.cache)
+        return self
+
+    def __next__(self) -> Reference:
+        return next(self.refs)
+
+
 def test_exists(repo: Repository) -> None:
     assert not repo.backend.exists('refs/heads/does-not-exist')
     assert repo.backend.exists('refs/heads/master')
@@ -104,6 +142,55 @@ def test_exists(repo: Repository) -> None:
 def test_lookup(repo: Repository) -> None:
     assert repo.backend.lookup('refs/heads/does-not-exist') is None
     assert repo.backend.lookup('refs/heads/master').name == 'refs/heads/master'
+
+
+def test_lookup_cached_callback(testrepo: Repository) -> None:
+    # Regression test: a backend may cache and return the same Reference
+    # object on every lookup; the callback must not invalidate it, and
+    # repeated lookups through libgit2 must keep working.
+    backend = CachedRefdbBackend(pygit2.RefdbFsBackend(testrepo))
+    refdb = pygit2.Refdb.new(testrepo)
+    refdb.set_backend(backend)
+    testrepo.set_refdb(refdb)
+
+    target = testrepo.references['refs/heads/master'].target
+    assert testrepo.references['refs/heads/master'].target == target
+    assert backend.cache['refs/heads/master'].name == 'refs/heads/master'
+
+
+def test_iterator_callback(testrepo: Repository) -> None:
+    # Exercise the custom backend's iterator callback through libgit2's
+    # git_reference_iterator; the Python attribute alone doesn't install it.
+    backend = IterRefdbBackend(pygit2.RefdbFsBackend(testrepo))
+    refdb = pygit2.Refdb.new(testrepo)
+    refdb.set_backend(backend)
+    testrepo.set_refdb(refdb)
+
+    names = sorted(ref.name for ref in testrepo.references.iterator())
+    assert names == ['refs/heads/i18n', 'refs/heads/master', 'refs/heads/symbolic']
+
+    # The backend's cached objects must still be usable after iteration.
+    assert backend.cache is not None
+    assert [ref.name for ref in backend.cache] == [
+        'refs/heads/master',
+        'refs/heads/i18n',
+        'refs/heads/symbolic',
+    ]
+
+
+@utils.requires_refcount
+def test_iterator_callback_no_leak(testrepo: Repository) -> None:
+    # Iterating must not leak the Reference objects the backend yields.
+    backend = IterRefdbBackend(pygit2.RefdbFsBackend(testrepo))
+    refdb = pygit2.Refdb.new(testrepo)
+    refdb.set_backend(backend)
+    testrepo.set_refdb(refdb)
+
+    list(testrepo.references.iterator())
+    assert backend.cache is not None
+    refcount = sys.getrefcount(backend.cache[0])
+    list(testrepo.references.iterator())
+    assert sys.getrefcount(backend.cache[0]) == refcount
 
 
 def test_write(repo: Repository) -> None:
