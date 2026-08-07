@@ -599,7 +599,12 @@ class RefdbBackend:
     def has_log(self, ref_name: str, /) -> bool: ...
     def lookup(self, refname: str, /) -> Reference: ...
     def rename(
-        self, old_name: str, new_name: str, force: bool, who: Signature, message: str
+        self,
+        old_name: str,
+        new_name: str,
+        force: bool,
+        who: Signature,
+        message: str | None,
     ) -> Reference: ...
     def write(
         self,

@@ -249,31 +249,47 @@ pygit2_refdb_backend_rename(git_reference **out, git_refdb_backend *_be,
         const char *old_name, const char *new_name, int force,
         const git_signature *_who, const char *message)
 {
-    int err;
-    PyObject *args, *who;
     struct pygit2_refdb_backend *be = (struct pygit2_refdb_backend *)_be;
 
-    if ((who = build_signature(NULL, _who, "utf-8")) != NULL)
-        return GIT_EUSER;
-    if ((args = Py_BuildValue("(ssNNs)", old_name, new_name,
-            force ? Py_True : Py_False, who, message)) == NULL) {
-        Py_DECREF(who);
+    // The Python object takes ownership of the signature, so pass it a copy;
+    // _who belongs to the caller (libgit2).
+    git_signature *signature;
+    int err = git_signature_dup(&signature, _who);
+    if (err != 0) {
+        return err;
+    }
+
+    PyObject *who = build_signature(NULL, signature, "utf-8");
+    if (who == NULL) {
         return GIT_EUSER;
     }
+
+    // Py_BuildValue takes ownership of who (N format), even on failure, so
+    // it must not be decref'd past this point.
+    PyObject *args = Py_BuildValue("(ssNNs)", old_name, new_name,
+                                   PyBool_FromLong(force), who, message);
+    if (args == NULL) {
+        return GIT_EUSER;
+    }
+
     Reference *ref = (Reference *)PyObject_CallObject(be->rename, args);
-    Py_DECREF(who);
     Py_DECREF(args);
 
-    if ((err = git_error_for_exc()) != 0)
+    err = git_error_for_exc();
+    if (err != 0) {
         return err;
+    }
 
     if (!PyObject_IsInstance((PyObject *)ref, (PyObject *)&ReferenceType)) {
         PyErr_SetString(PyExc_TypeError, "Expected object of type pygit2.Reference");
+        Py_DECREF(ref);
         return GIT_EUSER;
     }
 
-    git_reference_dup(out, ref->reference);
-    Py_DECREF(ref);
+    // Ownership of the underlying git_reference is transferred to libgit2,
+    // which sets its db field itself once the callback returns, so the Python
+    // object must not be decref'd; same as in pygit2_refdb_backend_lookup.
+    *out = ref->reference;
     return 0;
 }
 
@@ -625,7 +641,7 @@ RefdbBackend_write(RefdbBackend *self, PyObject *args)
 }
 
 PyDoc_STRVAR(RefdbBackend_rename__doc__,
-    "rename(old_name: str, new_name: str, force: bool, who: Signature, message: str) -> Reference\n"
+    "rename(old_name: str, new_name: str, force: bool, who: Signature, message: str | None) -> Reference\n"
     "\n"
     "Renames a reference.");
 
@@ -643,7 +659,7 @@ RefdbBackend_rename(RefdbBackend *self, PyObject *args)
         return Py_NotImplemented;
     }
 
-    if (!PyArg_ParseTuple(args, "sspO!s", &old_name, &new_name,
+    if (!PyArg_ParseTuple(args, "sspO!z", &old_name, &new_name,
                 &force, &SignatureType, &who, &message))
         return NULL;
 

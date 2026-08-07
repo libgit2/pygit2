@@ -41,7 +41,14 @@ from pygit2 import Commit, Oid, Reference, Repository, Signature
 # design.
 class ProxyRefdbBackend(pygit2.RefdbBackend):
     def __init__(self, source: pygit2.RefdbBackend) -> None:
+        super().__init__()
         self.source = source
+
+    def __iter__(self) -> 'ProxyRefdbBackend':
+        return self
+
+    def __next__(self) -> Reference:
+        raise StopIteration
 
     def exists(self, ref: str) -> bool:
         return self.source.exists(ref)
@@ -61,7 +68,12 @@ class ProxyRefdbBackend(pygit2.RefdbBackend):
         return self.source.write(ref, force, who, message, old, old_target)
 
     def rename(
-        self, old_name: str, new_name: str, force: bool, who: Signature, message: str
+        self,
+        old_name: str,
+        new_name: str,
+        force: bool,
+        who: Signature,
+        message: str | None,
     ) -> Reference:
         return self.source.rename(old_name, new_name, force, who, message)
 
@@ -110,6 +122,18 @@ def test_rename(repo: Repository) -> None:
         'refs/heads/i18n', 'refs/heads/intl', False, target.committer, target.message
     )
     assert repo.backend.lookup('refs/heads/intl').target == target.id
+
+
+def test_rename_callback(repo: Repository) -> None:
+    # Exercise the custom backend's rename callback through libgit2's
+    # git_reference_rename; calling repo.backend.rename() directly bypasses it.
+    refdb = pygit2.Refdb.new(repo)
+    refdb.set_backend(repo.backend)
+    repo.set_refdb(refdb)
+    ref = repo.references['refs/heads/i18n']
+    target = ref.target
+    ref.rename('refs/heads/intl')
+    assert repo.references['refs/heads/intl'].target == target
 
 
 def test_delete(repo: Repository) -> None:
