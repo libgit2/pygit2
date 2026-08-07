@@ -136,6 +136,30 @@ def test_rename_callback(repo: Repository) -> None:
     assert repo.references['refs/heads/intl'].target == target
 
 
+def test_write_callback(repo: Repository) -> None:
+    # Exercise the custom backend's write callback through libgit2's
+    # git_reference_set_target; calling repo.backend.write() directly
+    # bypasses it.
+    refdb = pygit2.Refdb.new(repo)
+    refdb.set_backend(repo.backend)
+    repo.set_refdb(refdb)
+    master = repo.references['refs/heads/master']
+    i18n = repo.references['refs/heads/i18n']
+    i18n.set_target(master.target)
+    assert repo.references['refs/heads/i18n'].target == master.target
+
+
+def test_write_callback_create(repo: Repository) -> None:
+    # Exercise the custom backend's write callback through libgit2's
+    # git_reference_create, which passes old=NULL for new references.
+    refdb = pygit2.Refdb.new(repo)
+    refdb.set_backend(repo.backend)
+    repo.set_refdb(refdb)
+    master = repo.references['refs/heads/master']
+    repo.references.create('refs/heads/test-write', master.target)
+    assert repo.references['refs/heads/test-write'].target == master.target
+
+
 def test_delete(repo: Repository) -> None:
     old = repo.backend.lookup('refs/heads/i18n')
     repo.backend.delete('refs/heads/i18n', old.target, None)

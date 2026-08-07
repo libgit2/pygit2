@@ -190,18 +190,30 @@ pygit2_refdb_backend_lookup(git_reference **out,
     result = (Reference *)PyObject_CallObject(be->lookup, args);
     Py_DECREF(args);
 
-    if ((err = git_error_for_exc()) != 0)
-        goto out;
+    if ((err = git_error_for_exc()) != 0) {
+        Py_XDECREF(result);
+        return err;
+    }
+
+    // A lookup that finds nothing returns None, per RefdbBackend.lookup()
+    if ((PyObject *)result == Py_None) {
+        Py_DECREF(result);
+        return GIT_ENOTFOUND;
+    }
 
     if (!PyObject_IsInstance((PyObject *)result, (PyObject *)&ReferenceType)) {
         PyErr_SetString(PyExc_TypeError, "Expected object of type pygit2.Reference");
-        err = GIT_EUSER;
-        goto out;
+        Py_DECREF(result);
+        return GIT_EUSER;
     }
 
+    // Ownership of the underlying git_reference is transferred to libgit2,
+    // which sets its db field itself once the callback returns; detach it
+    // from the Python object before releasing the object.
     *out = result->reference;
-out:
-    return err;
+    result->reference = NULL;
+    Py_DECREF(result);
+    return 0;
 }
 
 static int
@@ -212,22 +224,44 @@ pygit2_refdb_backend_write(git_refdb_backend *_be,
 {
     struct pygit2_refdb_backend *be = (struct pygit2_refdb_backend *)_be;
 
-    PyObject *ref = wrap_reference((git_reference *)_ref, NULL);  // XXX: Drops const
+    // The Python objects take ownership of the reference and the signature,
+    // so pass them copies; _ref and _who belong to the caller (libgit2).
+    git_reference *reference;
+    int err = git_reference_dup(&reference, (git_reference *)_ref);  // XXX: Drops const
+    if (err != 0) {
+        return err;
+    }
+
+    PyObject *ref = wrap_reference(reference, NULL);
     if (ref == NULL) {
+        git_reference_free(reference);
         return GIT_EUSER;
     }
 
-    PyObject *who = build_signature(NULL, _who, "utf-8");
+    git_signature *signature;
+    err = git_signature_dup(&signature, _who);
+    if (err != 0) {
+        Py_DECREF(ref);
+        return err;
+    }
+
+    PyObject *who = build_signature(NULL, signature, "utf-8");
     if (who == NULL) {
         Py_DECREF(ref);
         return GIT_EUSER;
     }
 
-    PyObject *old = git_oid_to_python(_old);
-    if (old == NULL) {
-        Py_DECREF(ref);
-        Py_DECREF(who);
-        return GIT_EUSER;
+    PyObject *old;
+    if (_old == NULL) {
+        old = Py_None;
+        Py_INCREF(old);
+    } else {
+        old = git_oid_to_python(_old);
+        if (old == NULL) {
+            Py_DECREF(ref);
+            Py_DECREF(who);
+            return GIT_EUSER;
+        }
     }
 
     // Py_BuildValue takes ownership of ref, who and old (N format), even on failure, so
@@ -239,7 +273,7 @@ pygit2_refdb_backend_write(git_refdb_backend *_be,
     }
 
     PyObject_CallObject(be->write, args);
-    int err = git_error_for_exc();
+    err = git_error_for_exc();
     Py_DECREF(args);
     return err;
 }
@@ -277,6 +311,7 @@ pygit2_refdb_backend_rename(git_reference **out, git_refdb_backend *_be,
 
     err = git_error_for_exc();
     if (err != 0) {
+        Py_XDECREF(ref);
         return err;
     }
 
@@ -287,9 +322,11 @@ pygit2_refdb_backend_rename(git_reference **out, git_refdb_backend *_be,
     }
 
     // Ownership of the underlying git_reference is transferred to libgit2,
-    // which sets its db field itself once the callback returns, so the Python
-    // object must not be decref'd; same as in pygit2_refdb_backend_lookup.
+    // which sets its db field itself once the callback returns; detach it
+    // from the Python object before releasing the object.
     *out = ref->reference;
+    ref->reference = NULL;
+    Py_DECREF(ref);
     return 0;
 }
 
