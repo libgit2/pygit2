@@ -3,6 +3,9 @@
 - New `RemoteCallbacks.custom_headers()`
   [#1465](https://github.com/libgit2/pygit2/pull/1465)
 
+- New `Repository.rebase_init(...)` and `Repository.rebase_open(...)`
+  [#1483](https://github.com/libgit2/pygit2/pull/1483)
+
 - Fix `Config.snapshot()` for non-repository configs, allow `PathLike` in
   `Config.__init__()`, and improve `Config` documentation
   [#1468](https://github.com/libgit2/pygit2/pull/1468)
@@ -12,19 +15,18 @@
   [#1451](https://github.com/libgit2/pygit2/issues/1451)
   [#1469](https://github.com/libgit2/pygit2/pull/1469)
 
-- Add riscv64 wheels
-  [#1463](https://github.com/libgit2/pygit2/pull/1463)
-
-- Update wheels to libgit2 1.9.6
-
-- Wrap libgit2's rebase API: add `Repository.rebase_init(...)` and
-  `Repository.rebase_open(...)` returning a `Rebase` object, plus
-  `RebaseOperation` and `enums.RebaseOperationType`
-  [#1483](https://github.com/libgit2/pygit2/pull/1483)
-
 - Fix `enums.CheckoutStrategy.CONFLICT_STYLE_ZDIFF3`, which was mistakenly
   bound to the `DIFF3` constant
   [#1483](https://github.com/libgit2/pygit2/pull/1483)
+
+- Fix memory issues
+  [#1471](https://github.com/libgit2/pygit2/issues/1471)
+  [#1474](https://github.com/libgit2/pygit2/issues/1474)
+
+- Update wheels to libgit2 1.9.6 and OpenSSL 3.5.7
+
+- Add riscv64 wheels
+  [#1463](https://github.com/libgit2/pygit2/pull/1463)
 
 Breaking changes:
 
@@ -41,7 +43,7 @@ Breaking changes:
 - Remove deprecated `Remote.ls_remotes(...)`, use `Remote.list_heads(...)`
   instead
 
-- Remove `pygit2.to_bytes` and `pygit2.to_str`; they were undocumented
+- Remove `pygit2.to_bytes(...)` and `pygit2.to_str(...)`; they were undocumented
   accidental public APIs
 
 

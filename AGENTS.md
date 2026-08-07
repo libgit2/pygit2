@@ -252,7 +252,7 @@ The `cibuildwheel` configuration in `pyproject.toml` pins:
 
 - `LIBGIT2_VERSION="1.9.6"`
 - `LIBSSH2_VERSION="1.11.1"`
-- `OPENSSL_VERSION="3.5.4"`
+- `OPENSSL_VERSION="3.5.7"`
 
 and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le`,
 `*-*linux_riscv64` and `pp*-macosx_arm64`. On Windows it uses the
