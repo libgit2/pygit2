@@ -1,13 +1,14 @@
-# 1.20.0 (UNRELEASED)
+# 1.20.0 (2026-08-08)
 
 - New `RemoteCallbacks.custom_headers()`
   [#1465](https://github.com/libgit2/pygit2/pull/1465)
 
-- New `Repository.rebase_init(...)` and `Repository.rebase_open(...)`
+- New rebase API: `Repository.rebase_init(...)`, `Repository.rebase_open(...)`,
+  `Rebase`, and `RebaseOperation`
   [#1483](https://github.com/libgit2/pygit2/pull/1483)
 
 - Fix `Config.snapshot()` for non-repository configs, allow `PathLike` in
-  `Config.__init__()`, and improve `Config` documentation
+  `Config.__init__()`, and improve config documentation
   [#1468](https://github.com/libgit2/pygit2/pull/1468)
 
 - Fix `UnicodeDecodeError` with non-UTF-8 file paths in `Repository.status()`,
@@ -19,7 +20,7 @@
   bound to the `DIFF3` constant
   [#1483](https://github.com/libgit2/pygit2/pull/1483)
 
-- Fix memory issues in refdb backend
+- Fix crashes and reference-lifetime bugs in custom refdb backends
   [#1471](https://github.com/libgit2/pygit2/issues/1471)
   [#1474](https://github.com/libgit2/pygit2/issues/1474)
   [#1475](https://github.com/libgit2/pygit2/issues/1475)
@@ -38,9 +39,9 @@ Breaking changes:
 - Remove deprecated support for passing `str` to `Repository.merge(...)`,
   pass a `Commit`, `Oid`, or `Reference` object instead
 
-- `Repository.merge_file_from_index(...)` now returns `MergeFileResult`
-  by default. The previous string-returning behavior is still available
-  with `use_deprecated=True`, but is deprecated.
+- `Repository.merge_file_from_index(...)` now returns `MergeFileResult` by
+  default; pass `use_deprecated=True` for the previous string return, now
+  deprecated.
 
 - Remove deprecated `Remote.ls_remotes(...)`, use `Remote.list_heads(...)`
   instead

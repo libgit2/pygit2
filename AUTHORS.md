@@ -21,6 +21,7 @@ Authors:
     Nick Hynes
     Richard Möhn
     Xu Tao
+    Łukasz Langa
     Konstantin Baikov
     Matthew Duggan
     Matthew Gamble
@@ -30,7 +31,6 @@ Authors:
     Sriram Raghu
     Victor Garcia
     Yonggang Luo
-    Łukasz Langa
     Patrick Steinhardt
     Petr Hosek
     Tamir Bahar
@@ -44,6 +44,7 @@ Authors:
     Nabijacz Leweli
     Simon Cozens
     Vlad Temian
+    WANG Xuerui
     Brodie Rao
     Chad Dombrova
     Lukas Fleischer
@@ -65,7 +66,6 @@ Authors:
     Santiago Perez De Rosso
     Sebastian Thiel
     Thom Wiggers
-    WANG Xuerui
     William Manley
     Alexander Linne
     Alok Singhal
@@ -127,6 +127,7 @@ Authors:
     Masud Rahman
     Michael Sondergaard
     Natanael Arndt
+    Nick Williams
     Ondřej Nový
     Sarath Lakshman
     Steve Kieffer
@@ -242,6 +243,7 @@ Authors:
     Victor Florea
     Vladimir Rutsky
     Vruyr Gyolchanyan
+    William Bowers
     William Schueller
     Wim Jeantine-Glenn
     Yu Jianjian

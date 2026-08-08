@@ -19,11 +19,11 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'pygit2'
-copyright = '2010-2025 The pygit2 contributors'
+copyright = '2010-2026 The pygit2 contributors'
 # author = ''
 
 # The full version, including alpha/beta/rc tags
-release = '1.19.3'
+release = '1.20.0'
 
 
 # -- General configuration ---------------------------------------------------
