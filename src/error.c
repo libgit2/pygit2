@@ -30,6 +30,11 @@
 extern PyObject *GitError;
 extern PyObject *AlreadyExistsError;
 extern PyObject *InvalidSpecError;
+extern PyObject *InvalidError;
+extern PyObject *NotFoundError;
+extern PyObject *AmbiguousError;
+extern PyObject *AuthError;
+extern PyObject *CertificateError;
 
 PyObject *
 Error_type(int type)
@@ -39,7 +44,7 @@ Error_type(int type)
     switch (type) {
         /* Input does not exist in the scope searched. */
         case GIT_ENOTFOUND:
-            return PyExc_KeyError;
+            return NotFoundError;
 
         /* A reference with this name already exists */
         case GIT_EEXISTS:
@@ -47,7 +52,7 @@ Error_type(int type)
 
         /* The given short oid is ambiguous */
         case GIT_EAMBIGUOUS:
-            return PyExc_ValueError;
+            return AmbiguousError;
 
         /* The buffer is too short to satisfy the request */
         case GIT_EBUFS:
@@ -56,6 +61,18 @@ Error_type(int type)
         /* Invalid input spec */
         case GIT_EINVALIDSPEC:
             return InvalidSpecError;
+
+        /* Invalid operation or input */
+        case GIT_EINVALID:
+            return InvalidError;
+
+        /* Authentication error */
+        case GIT_EAUTH:
+            return AuthError;
+
+        /* Server certificate is invalid */
+        case GIT_ECERTIFICATE:
+            return CertificateError;
 
         /* Skip and passthrough the given ODB backend */
         case GIT_PASSTHROUGH:
@@ -75,7 +92,7 @@ Error_type(int type)
             case GITERR_OS:
                 return PyExc_OSError;
             case GITERR_INVALID:
-                return PyExc_ValueError;
+                return InvalidError;
         }
     }
     return GitError;
@@ -106,8 +123,8 @@ PyObject *
 Error_set_str(int err, const char *str)
 {
     if (err == GIT_ENOTFOUND) {
-        /* KeyError expects the arg to be the missing key. */
-        PyErr_SetString(PyExc_KeyError, str);
+        /* NotFoundError inherits from KeyError; the argument is the missing key. */
+        PyErr_SetString(NotFoundError, str);
         return NULL;
     }
 

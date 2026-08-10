@@ -248,7 +248,6 @@ from ._pygit2 import (
     LIBGIT2_VER_MINOR,
     LIBGIT2_VER_REVISION,
     LIBGIT2_VERSION,
-    AlreadyExistsError,
     Blob,
     Branch,
     Commit,
@@ -259,8 +258,6 @@ from ._pygit2 import (
     DiffLine,
     DiffStats,
     FilterSource,
-    GitError,
-    InvalidSpecError,
     Mailmap,
     Note,
     Object,
@@ -306,7 +303,18 @@ from .callbacks import (
 )
 from .config import Config
 from .credentials import *
-from .errors import Passthrough, check_error
+from .errors import (
+    AlreadyExistsError,
+    AmbiguousError,
+    AuthError,
+    CertificateError,
+    GitError,
+    InvalidError,
+    InvalidSpecError,
+    NotFoundError,
+    Passthrough,
+    check_error,
+)
 from .ffi import C, ffi
 from .filter import Filter
 from .index import Index, IndexEntry
@@ -592,8 +600,11 @@ __all__ = (
     'Object',
     'Reference',
     'AlreadyExistsError',
+    'AmbiguousError',
+    'AuthError',
     'Blob',
     'Branch',
+    'CertificateError',
     'Commit',
     'Diff',
     'DiffDelta',
@@ -602,9 +613,11 @@ __all__ = (
     'DiffLine',
     'DiffStats',
     'GitError',
+    'InvalidError',
     'InvalidSpecError',
     'Mailmap',
     'Note',
+    'NotFoundError',
     'Odb',
     'OdbBackend',
     'OdbBackendLoose',

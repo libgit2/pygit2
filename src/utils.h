@@ -148,6 +148,19 @@ PyObject *pygit2_enum(PyObject *enum_type, int value);
         goto fail;\
     }
 
+#define ADD_EXC2(m, name, base1, base2) {\
+    PyObject *bases = PyTuple_Pack(2, base1, base2);\
+    if (bases == NULL) goto fail;\
+    name = PyErr_NewException("_pygit2." #name, bases, NULL);\
+    Py_DECREF(bases);\
+    if (name == NULL) goto fail;\
+    Py_INCREF(name);\
+    if (PyModule_AddObject(m, #name, name)) {\
+        Py_DECREF(name);\
+        goto fail;\
+    }\
+}
+
 #define ADD_CONSTANT_INT(m, name) \
     if (PyModule_AddIntConstant(m, #name, name) == -1) return NULL;
 

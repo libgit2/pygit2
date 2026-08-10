@@ -24,12 +24,39 @@
 # Boston, MA 02110-1301, USA.
 
 # Import from pygit2
-from ._pygit2 import GitError
+from ._pygit2 import (
+    AlreadyExistsError,
+    AmbiguousError,
+    AuthError,
+    CertificateError,
+    GitError,
+    InvalidError,
+    InvalidSpecError,
+    NotFoundError,
+)
 from .ffi import C, ffi
 
-__all__ = ['GitError']
+__all__ = [
+    'AlreadyExistsError',
+    'AmbiguousError',
+    'AuthError',
+    'CertificateError',
+    'GitError',
+    'InvalidError',
+    'InvalidSpecError',
+    'NotFoundError',
+    'Passthrough',
+]
 
-value_errors = set([C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EAMBIGUOUS])
+# Docstrings for C-defined exception classes
+GitError.__doc__ = 'Generic libgit2 error.'
+AlreadyExistsError.__doc__ = 'Object already exists.'
+InvalidSpecError.__doc__ = 'Invalid name/ref spec.'
+NotFoundError.__doc__ = 'Requested object could not be found.'
+AmbiguousError.__doc__ = 'More than one object matches.'
+AuthError.__doc__ = 'Authentication error.'
+CertificateError.__doc__ = 'Server certificate is invalid.'
+InvalidError.__doc__ = 'Invalid operation or input.'
 
 
 def check_error(err: int, io: bool = False) -> None:
@@ -48,17 +75,32 @@ def check_error(err: int, io: bool = False) -> None:
         message = f'err {err} (no message provided)'
 
     # Translate to Python errors
-    if err in value_errors:
+    if err == C.GIT_EEXISTS:
+        raise AlreadyExistsError(message)
+
+    if err == C.GIT_EINVALIDSPEC:
+        raise InvalidSpecError(message)
+
+    if err == C.GIT_EINVALID:
+        raise InvalidError(message)
+
+    if err == C.GIT_EAMBIGUOUS:
+        raise AmbiguousError(message)
+
+    if err == C.GIT_EBUFS:
         raise ValueError(message)
+
+    if err == C.GIT_EAUTH:
+        raise AuthError(message)
+
+    if err == C.GIT_ECERTIFICATE:
+        raise CertificateError(message)
 
     if err == C.GIT_ENOTFOUND:
         if io:
             raise IOError(message)
 
-        raise KeyError(message)
-
-    if err == C.GIT_EINVALIDSPEC:
-        raise ValueError(message)
+        raise NotFoundError(message)
 
     if err == C.GIT_ITEROVER:
         raise StopIteration()

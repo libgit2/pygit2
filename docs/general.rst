@@ -81,6 +81,41 @@ Exception when trying to create an object (reference, etc) that already exists.
 
 Exception when an input specification such as a reference name is invalid.
 
+.. autoexception:: pygit2.InvalidError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception when an operation or input is invalid.
+
+.. autoexception:: pygit2.NotFoundError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception when a requested object could not be found.
+
+.. autoexception:: pygit2.AmbiguousError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception when more than one object matches.
+
+.. autoexception:: pygit2.AuthError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception when an authentication error occurs.
+
+.. autoexception:: pygit2.CertificateError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Exception when a server certificate is invalid.
+
 .. autoexception:: pygit2.Passthrough
    :members:
    :show-inheritance:
@@ -88,3 +123,50 @@ Exception when an input specification such as a reference name is invalid.
 
 Exception that can be raised from a callback to tell libgit2 to behave as if
 that callback had not been set. See :doc:`callbacks` for details.
+
+Error mapping
+=============
+
+The following table shows how libgit2 error codes map to pygit2 exceptions.
+The new exception classes inherit from :py:exc:`pygit2.GitError` and, where
+noted, from a Python built-in exception for backward compatibility.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 35 30
+
+   * - pygit2 exception
+     - libgit2 code / class
+     - Built-in base
+
+   * - :py:exc:`AlreadyExistsError`
+     - ``GIT_EEXISTS``
+     - ``ValueError``
+
+   * - :py:exc:`InvalidSpecError`
+     - ``GIT_EINVALIDSPEC``
+     - ``ValueError``
+
+   * - :py:exc:`InvalidError`
+     - ``GIT_EINVALID``, ``GIT_ERROR_INVALID``
+     - ``ValueError``
+
+   * - :py:exc:`NotFoundError`
+     - ``GIT_ENOTFOUND``
+     - ``KeyError``
+
+   * - :py:exc:`AmbiguousError`
+     - ``GIT_EAMBIGUOUS``
+     - ``ValueError``
+
+   * - :py:exc:`AuthError`
+     - ``GIT_EAUTH``
+     -
+
+   * - :py:exc:`CertificateError`
+     - ``GIT_ECERTIFICATE``
+     -
+
+   * - :py:exc:`GitError`
+     - generic / other errors
+     -

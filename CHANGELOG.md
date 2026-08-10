@@ -1,3 +1,12 @@
+# 1.20.1 (UNRELEASED)
+
+- New exception hierarchy: `AlreadyExistsError`, `InvalidSpecError`,
+  `InvalidError`, `NotFoundError`, `AmbiguousError`, `AuthError`, and
+  `CertificateError` all inherit from `GitError` and the appropriate Python
+  built-in exception (`ValueError`/`KeyError`) for backward compatibility
+  [#830](https://github.com/libgit2/pygit2/issues/830).
+
+
 # 1.20.0 (2026-08-08)
 
 - New `RemoteCallbacks.custom_headers()`
