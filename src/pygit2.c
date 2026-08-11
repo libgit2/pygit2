@@ -407,6 +407,7 @@ _cache_enums(PyObject *self, PyObject *args)
 
 #undef CACHE_PYGIT2_ENUM
 
+    Py_DECREF(enums);
     Py_RETURN_NONE;
 
 fail:

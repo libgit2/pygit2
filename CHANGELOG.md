@@ -25,6 +25,10 @@
   `Tree.diff_to_index()` on early error paths
   [#1480](https://github.com/libgit2/pygit2/issues/1480).
 
+- Fix reference leaks in the blob filter stream callbacks and in
+  `_cache_enums()`
+  [#1481](https://github.com/libgit2/pygit2/issues/1481).
+
 
 # 1.20.0 (2026-08-08)
 
