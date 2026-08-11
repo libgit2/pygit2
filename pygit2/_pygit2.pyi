@@ -426,7 +426,7 @@ class Diff:
 @final
 class DiffDelta:
     flags: DiffFlag
-    is_binary: bool
+    is_binary: bool | None
     nfiles: int
     new_file: DiffFile
     old_file: DiffFile

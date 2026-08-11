@@ -76,7 +76,7 @@ PyObject *
 Patch_delta__get__(Patch *self)
 {
     assert(self->patch);
-    return wrap_diff_delta(git_patch_get_delta(self->patch));
+    return wrap_diff_delta(git_patch_get_delta(self->patch), NULL, 0);
 }
 
 PyDoc_STRVAR(Patch_line_stats__doc__,

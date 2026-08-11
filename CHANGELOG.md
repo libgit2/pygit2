@@ -6,6 +6,11 @@
   built-in exception (`ValueError`/`KeyError`) for backward compatibility
   [#830](https://github.com/libgit2/pygit2/issues/830).
 
+- Fix `DiffDelta.is_binary` and `DiffDelta.flags` returning stale values for
+  deltas obtained from `Diff.deltas`; flags are now loaded lazily
+  [#962](https://github.com/libgit2/pygit2/issues/962)
+  [#1100](https://github.com/libgit2/pygit2/pull/1100).
+
 
 # 1.20.0 (2026-08-08)
 

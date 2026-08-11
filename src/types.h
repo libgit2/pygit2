@@ -182,6 +182,8 @@ typedef struct {
     uint16_t nfiles;
     PyObject *old_file;
     PyObject *new_file;
+    Diff *diff;
+    size_t idx;
 } DiffDelta;
 
 typedef struct {

@@ -426,9 +426,7 @@ def test_deltas(barerepo: Repository) -> None:
         assert delta.new_file.id == patch_delta.new_file.id
         assert delta.old_file.mode == patch_delta.old_file.mode
         assert delta.new_file.mode == patch_delta.new_file.mode
-
-        # As explained in the libgit2 documentation, flags are not set
-        # assert delta.flags == patch_delta.flags
+        assert delta.flags == patch_delta.flags
 
 
 def test_diff_parse(barerepo: Repository) -> None:

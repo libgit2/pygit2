@@ -67,3 +67,9 @@ def test_binary_diff(repo: Repository) -> None:
     assert PATCH_BINARY == diff.patch
     diff = repo.diff(b'HEAD', b'HEAD^', flags=DiffOption.SHOW_BINARY)
     assert PATCH_BINARY_SHOW == diff.patch
+
+
+def test_binary_delta_is_binary(repo: Repository) -> None:
+    diff = repo.diff('HEAD', 'HEAD^')
+    for delta in diff.deltas:
+        assert delta.is_binary
