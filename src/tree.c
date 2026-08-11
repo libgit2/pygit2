@@ -308,7 +308,7 @@ Tree_diff_to_index(Tree *self, PyObject *args, PyObject *kwds)
     index = *((git_index **) buffer); /* the "buffer" contains the pointer */
 
     /* Call git_diff_tree_to_index */
-    if (Object__load((Object*)self) == NULL) { return NULL; } // Lazy load
+    if (Object__load((Object*)self) == NULL) { goto error; } // Lazy load
 
     err = git_diff_tree_to_index(&diff, self->repo->repo, self->tree, index, &opts);
     Py_DECREF(py_idx_ptr);

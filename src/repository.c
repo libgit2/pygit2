@@ -1438,8 +1438,10 @@ Repository_listall_branches_impl(Repository *self, PyObject *args, PyObject *(*i
     if (list == NULL)
         return NULL;
 
-    if ((err = git_branch_iterator_new(&iter, self->repo, list_flags)) < 0)
+    if ((err = git_branch_iterator_new(&iter, self->repo, list_flags)) < 0) {
+        Py_DECREF(list);
         return Error_set(err);
+    }
 
     while ((err = git_branch_next(&ref, &type, iter)) == 0) {
         PyObject *py_branch_name = item_trans(git_reference_shorthand(ref));

@@ -21,6 +21,10 @@
   on allocation or per-item failure
   [#1479](https://github.com/libgit2/pygit2/issues/1479).
 
+- Fix memory leaks in `Repository.listall_branches()` and
+  `Tree.diff_to_index()` on early error paths
+  [#1480](https://github.com/libgit2/pygit2/issues/1480).
+
 
 # 1.20.0 (2026-08-08)
 
