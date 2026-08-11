@@ -832,14 +832,21 @@ DiffHunk_lines__get__(DiffHunk *self)
 
     // TODO Replace by an iterator
     py_lines = PyList_New(self->n_lines);
+    if (py_lines == NULL)
+        return NULL;
+
     for (i = 0; i < self->n_lines; ++i) {
         err = git_patch_get_line_in_hunk(&line, self->patch->patch, self->idx, i);
-        if (err < 0)
+        if (err < 0) {
+            Py_DECREF(py_lines);
             return Error_set(err);
+        }
 
         py_line = wrap_diff_line(line, self);
-        if (py_line == NULL)
+        if (py_line == NULL) {
+            Py_DECREF(py_lines);
             return NULL;
+        }
 
         PyList_SetItem(py_lines, i, py_line);
    }

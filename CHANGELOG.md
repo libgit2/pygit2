@@ -17,6 +17,10 @@
   instead of producing wrong results, `SystemError`, or crashes
   [#1478](https://github.com/libgit2/pygit2/issues/1478).
 
+- Fix potential crash and memory leak in `DiffHunk.lines` and `Patch.hunks`
+  on allocation or per-item failure
+  [#1479](https://github.com/libgit2/pygit2/issues/1479).
+
 
 # 1.20.0 (2026-08-08)
 
