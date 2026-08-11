@@ -104,6 +104,11 @@ Error_set(int err)
 {
     assert(err < 0);
 
+    /* GIT_EUSER means a Python callback raised an exception. Preserve that
+     * exception instead of overwriting it with a stale libgit2 error message. */
+    if (err == GIT_EUSER && PyErr_Occurred())
+        return NULL;
+
     return Error_set_exc(Error_type(err));
 }
 
@@ -122,6 +127,10 @@ Error_set_exc(PyObject* exception)
 PyObject *
 Error_set_str(int err, const char *str)
 {
+    /* GIT_EUSER means a Python callback raised an exception. Preserve it. */
+    if (err == GIT_EUSER && PyErr_Occurred())
+        return NULL;
+
     if (err == GIT_ENOTFOUND) {
         /* NotFoundError inherits from KeyError; the argument is the missing key. */
         PyErr_SetString(NotFoundError, str);
@@ -138,6 +147,10 @@ Error_set_str(int err, const char *str)
 PyObject *
 Error_set_oid(int err, const git_oid *oid, size_t len)
 {
+    /* GIT_EUSER means a Python callback raised an exception. Preserve it. */
+    if (err == GIT_EUSER && PyErr_Occurred())
+        return NULL;
+
     char hex[GIT_OID_HEXSZ + 1];
 
     git_oid_fmt(hex, oid);

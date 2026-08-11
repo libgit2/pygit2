@@ -140,22 +140,34 @@ def test_exists(repo: Repository) -> None:
 
 
 class RaisingRefdbBackend(ProxyRefdbBackend):
-    """A backend whose exists callback always raises."""
+    """A backend whose callbacks always raise RuntimeError."""
+
+    def __init__(self, source: pygit2.RefdbBackend, exc: Exception) -> None:
+        super().__init__(source)
+        self.exc = exc
 
     def exists(self, ref: str) -> bool:
-        raise RuntimeError('boom')
+        raise self.exc
+
+    def lookup(self, ref: str) -> Reference:
+        raise self.exc
 
 
-def test_exists_callback_raises(testrepo: Repository) -> None:
-    # Regression test (issue #1476): when the exists callback raises, the C
-    # wrapper must not crash on a NULL result, and must propagate the error.
-    backend = RaisingRefdbBackend(pygit2.RefdbFsBackend(testrepo))
-    # Call the unbound C method so the call goes through the C wrapper
-    # (pygit2_refdb_backend_exists), not directly to the Python override.
-    # The error propagates as GitError, or as OSError/ValueError when a stale
-    # libgit2 error (with a matching class) is left over from an earlier call.
-    with pytest.raises((pygit2.GitError, OSError)):
+def test_exists_callback_raises_runtime_error(testrepo: Repository) -> None:
+    # Regression test: when the exists callback raises RuntimeError, the C
+    # wrapper must propagate the original Python exception, not overwrite it
+    # with a stale libgit2 error message.
+    backend = RaisingRefdbBackend(pygit2.RefdbFsBackend(testrepo), RuntimeError('boom'))
+    with pytest.raises(RuntimeError, match='boom'):
         pygit2.RefdbBackend.exists(backend, 'refs/heads/master')
+
+
+def test_lookup_callback_raises_runtime_error(testrepo: Repository) -> None:
+    # Regression test: when the lookup callback raises RuntimeError, the C
+    # wrapper must propagate the original Python exception.
+    backend = RaisingRefdbBackend(pygit2.RefdbFsBackend(testrepo), RuntimeError('boom'))
+    with pytest.raises(RuntimeError, match='boom'):
+        pygit2.RefdbBackend.lookup(backend, 'refs/heads/master')
 
 
 def test_lookup(repo: Repository) -> None:

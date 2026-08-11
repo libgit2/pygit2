@@ -95,6 +95,29 @@ class ProxyBackend(pygit2.OdbBackend):
         return iter(self.source)
 
 
+class RaisingOdbBackend(pygit2.OdbBackend):
+    """A backend whose callbacks always raise a configurable exception."""
+
+    def __init__(self, exc: Exception) -> None:
+        super().__init__()
+        self.exc = exc
+
+    def read_cb(self, oid: Oid | str) -> tuple[int, bytes]:
+        raise self.exc
+
+    def read_prefix_cb(self, oid: Oid | str) -> tuple[int, bytes, Oid]:
+        raise self.exc
+
+    def read_header_cb(self, oid: Oid | str) -> tuple[int, int]:
+        raise self.exc
+
+    def exists_cb(self, oid: Oid | str) -> bool:
+        raise self.exc
+
+    def exists_prefix_cb(self, oid: Oid | str) -> Oid:
+        raise self.exc
+
+
 #
 # Test a custom object backend alone (without adding it to an ODB)
 # This doesn't make much sense, but it's possible.
@@ -139,6 +162,44 @@ def test_exists(proxy: ProxyBackend) -> None:
 def test_exists_prefix(proxy: ProxyBackend) -> None:
     a_hex_prefix = BLOB_HEX[:4]
     assert BLOB_HEX == proxy.exists_prefix(a_hex_prefix)
+
+
+@pytest.fixture
+def raising_backend() -> Generator[RaisingOdbBackend, None, None]:
+    yield RaisingOdbBackend(RuntimeError('boom'))
+
+
+def test_read_cb_raises_runtime_error(raising_backend: RaisingOdbBackend) -> None:
+    # Regression test: a RuntimeError in read_cb must propagate as RuntimeError,
+    # not be overwritten by a stale libgit2 error message.
+    with pytest.raises(RuntimeError, match='boom'):
+        pygit2.OdbBackend.read(raising_backend, BLOB_OID)
+
+
+def test_read_prefix_cb_raises_runtime_error(
+    raising_backend: RaisingOdbBackend,
+) -> None:
+    with pytest.raises(RuntimeError, match='boom'):
+        pygit2.OdbBackend.read_prefix(raising_backend, BLOB_HEX[:4])
+
+
+def test_read_header_cb_raises_runtime_error(
+    raising_backend: RaisingOdbBackend,
+) -> None:
+    with pytest.raises(RuntimeError, match='boom'):
+        pygit2.OdbBackend.read_header(raising_backend, BLOB_OID)
+
+
+def test_exists_cb_raises_runtime_error(raising_backend: RaisingOdbBackend) -> None:
+    with pytest.raises(RuntimeError, match='boom'):
+        pygit2.OdbBackend.exists(raising_backend, BLOB_OID)
+
+
+def test_exists_prefix_cb_raises_runtime_error(
+    raising_backend: RaisingOdbBackend,
+) -> None:
+    with pytest.raises(RuntimeError, match='boom'):
+        pygit2.OdbBackend.exists_prefix(raising_backend, BLOB_HEX[:4])
 
 
 #

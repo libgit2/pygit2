@@ -6,6 +6,9 @@
   built-in exception (`ValueError`/`KeyError`) for backward compatibility
   [#830](https://github.com/libgit2/pygit2/issues/830).
 
+- Fix custom ODB and refdb backend callbacks overwriting a pending Python
+  exception (e.g. `RuntimeError`) with a stale libgit2 error message.
+
 - Fix `DiffDelta.is_binary` and `DiffDelta.flags` returning stale values for
   deltas obtained from `Diff.deltas`; flags are now loaded lazily
   [#962](https://github.com/libgit2/pygit2/issues/962)
