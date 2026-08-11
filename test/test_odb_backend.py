@@ -169,3 +169,50 @@ def test_repo_read(repo: Repository) -> None:
     ab = repo[BLOB_OID]
     a = repo[BLOB_HEX]
     assert ab == a
+
+
+class BadOidReadPrefixBackend(ProxyBackend):
+    def read_prefix_cb(self, oid: Oid | str) -> tuple[int, bytes, Oid | str]:  # type: ignore[override]
+        return (ObjectType.BLOB, b'bad', 'not-a-valid-oid')
+
+
+class BadOidExistsPrefixBackend(ProxyBackend):
+    def exists_prefix_cb(self, oid: Oid | str) -> Oid | str:  # type: ignore[override]
+        return 'not-a-valid-oid'
+
+
+class BadOidIterBackend(ProxyBackend):
+    def __iter__(self) -> Iterator[Oid | str]:  # type: ignore[override]
+        yield 'not-a-valid-oid'
+
+
+def test_read_prefix_cb_bad_oid(barerepo: Repository) -> None:
+    # Regression test (issue #1478): an ODB backend returning an invalid oid
+    # from read_prefix_cb must raise InvalidError instead of silently returning
+    # garbage data.
+    path = Path(barerepo.path) / 'objects'
+    backend = BadOidReadPrefixBackend(pygit2.OdbBackendPack(path))
+    with pytest.raises(pygit2.InvalidError):
+        backend.read_prefix(BLOB_HEX[:4])
+
+
+def test_exists_prefix_cb_bad_oid(barerepo: Repository) -> None:
+    # Regression test (issue #1478): an ODB backend returning an invalid oid
+    # from exists_prefix_cb must raise InvalidError instead of silently returning
+    # garbage data.
+    path = Path(barerepo.path) / 'objects'
+    backend = BadOidExistsPrefixBackend(pygit2.OdbBackendPack(path))
+    with pytest.raises(pygit2.InvalidError):
+        backend.exists_prefix(BLOB_HEX[:4])
+
+
+def test_foreach_cb_bad_oid(barerepo: Repository) -> None:
+    # Regression test (issue #1478): an ODB backend yielding an invalid oid
+    # during iteration must raise InvalidError instead of crashing or returning
+    # garbage data.
+    path = Path(barerepo.path) / 'objects'
+    backend = BadOidIterBackend(pygit2.OdbBackendPack(path))
+    odb = pygit2.Odb()
+    odb.add_backend(backend, 1)
+    with pytest.raises(pygit2.InvalidError):
+        next(iter(odb))

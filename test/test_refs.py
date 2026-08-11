@@ -33,6 +33,7 @@ from pygit2 import (
     AlreadyExistsError,
     Commit,
     GitError,
+    InvalidError,
     InvalidSpecError,
     Oid,
     Reference,
@@ -790,3 +791,24 @@ def test_invalid_arguments() -> None:
         reference_is_valid_name(1)  # type: ignore
     with pytest.raises(TypeError):
         reference_is_valid_name('too', 'many')  # type: ignore
+
+
+def test_reference_init_invalid_target_type() -> None:
+    # Regression test (issue #1478): Reference constructor must raise TypeError
+    # for a non-oid target, not silently create a reference with garbage data.
+    with pytest.raises(TypeError):
+        Reference('refs/heads/test', 1234, None)
+
+
+def test_reference_init_invalid_target_str() -> None:
+    # Regression test (issue #1478): Reference constructor must raise InvalidError
+    # for a malformed oid string, not silently create a reference with garbage data.
+    with pytest.raises(InvalidError):
+        Reference('refs/heads/test', 'not-a-valid-oid', None)
+
+
+def test_reference_init_invalid_peel() -> None:
+    # Regression test (issue #1478): Reference constructor must raise TypeError
+    # for a malformed peel oid, not silently ignore the error.
+    with pytest.raises(TypeError):
+        Reference('refs/heads/test', LAST_COMMIT, 1234)

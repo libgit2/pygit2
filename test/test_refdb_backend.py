@@ -224,6 +224,42 @@ def test_write(repo: Repository) -> None:
     assert repo.backend.lookup('refs/heads/test-write').target == master.target
 
 
+def test_write_invalid_old_type(repo: Repository) -> None:
+    # Regression test (issue #1478): RefdbBackend.write must raise TypeError
+    # when old is not a valid oid, not silently ignore the bad argument.
+    master = repo.backend.lookup('refs/heads/master')
+    commit = repo[master.target]
+    ref = pygit2.Reference('refs/heads/test-write', master.target, None)
+    with pytest.raises(TypeError):
+        repo.backend.write(ref, False, commit.author, 'Create test-write', 1234, None)  # type: ignore
+
+
+def test_write_invalid_old_str(repo: Repository) -> None:
+    # Regression test (issue #1478): RefdbBackend.write must raise InvalidError
+    # when old is a malformed oid string, not silently ignore the bad argument.
+    master = repo.backend.lookup('refs/heads/master')
+    commit = repo[master.target]
+    ref = pygit2.Reference('refs/heads/test-write', master.target, None)
+    with pytest.raises(pygit2.InvalidError):
+        repo.backend.write(
+            ref, False, commit.author, 'Create test-write', 'not-a-valid-oid', None
+        )
+
+
+def test_delete_invalid_old_type(repo: Repository) -> None:
+    # Regression test (issue #1478): RefdbBackend.delete must raise TypeError
+    # when old_id is not a valid oid, not silently ignore the bad argument.
+    with pytest.raises(TypeError):
+        repo.backend.delete('refs/heads/master', 1234, None)  # type: ignore
+
+
+def test_delete_invalid_old_str(repo: Repository) -> None:
+    # Regression test (issue #1478): RefdbBackend.delete must raise InvalidError
+    # when old_id is a malformed oid string, not silently ignore the bad argument.
+    with pytest.raises(pygit2.InvalidError):
+        repo.backend.delete('refs/heads/master', 'not-a-valid-oid', None)
+
+
 def test_rename(repo: Repository) -> None:
     old_ref = repo.backend.lookup('refs/heads/i18n')
     target = repo.get(old_ref.target)

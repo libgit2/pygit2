@@ -316,9 +316,11 @@ Blob__write_to_queue(Blob *self, PyObject *args, PyObject *kwds)
     {
         if (py_oid != NULL && py_oid != Py_None)
         {
-            err = py_oid_to_git_oid(py_oid, &opts.attr_commit_id);
-            if (err < 0)
-                return Error_set(err);
+            size_t len = py_oid_to_git_oid(py_oid, &opts.attr_commit_id);
+            if (len == 0) {
+                git_blob_free(blob);
+                return NULL;
+            }
         }
 
         if ((opts.flags & GIT_BLOB_FILTER_NO_SYSTEM_ATTRIBUTES) != 0)

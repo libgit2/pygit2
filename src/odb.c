@@ -113,21 +113,24 @@ Odb_build_as_iter(const git_oid *oid, void *accum)
 PyObject *
 Odb_as_iter(Odb *self)
 {
-    int err;
     PyObject *accum = PyList_New(0);
-    PyObject *ret = NULL;
+    if (accum == NULL)
+        return NULL;
 
-    err = git_odb_foreach(self->odb, Odb_build_as_iter, (void*)accum);
+    int err = git_odb_foreach(self->odb, Odb_build_as_iter, (void*)accum);
+    if (err == GIT_EUSER && PyErr_Occurred()) {
+        Py_DECREF(accum);
+        return NULL;
+    }
     if (err == GIT_EUSER)
-        goto exit;
+        err = GIT_ERROR;
+
     if (err < 0) {
-        ret = Error_set(err);
-        goto exit;
+        Py_DECREF(accum);
+        return Error_set(err);
     }
 
-    ret = PyObject_GetIter(accum);
-
-exit:
+    PyObject *ret = PyObject_GetIter(accum);
     Py_DECREF(accum);
     return ret;
 }

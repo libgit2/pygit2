@@ -711,7 +711,8 @@ RefdbBackend_write(RefdbBackend *self, PyObject *args)
         return NULL;
 
     if ((PyObject *)py_old != Py_None) {
-        py_oid_to_git_oid(py_old, &_old);
+        if (py_oid_to_git_oid(py_old, &_old) == 0)
+            return NULL;
         old = &_old;
     }
 
@@ -785,7 +786,8 @@ RefdbBackend_delete(RefdbBackend *self, PyObject *args)
         return NULL;
 
     if (py_old_id != Py_None) {
-        py_oid_to_git_oid(py_old_id, &old_id);
+        if (py_oid_to_git_oid(py_old_id, &old_id) == 0)
+            return NULL;
         err = self->refdb_backend->del(self->refdb_backend,
                 ref_name, &old_id, old_target);
     } else {

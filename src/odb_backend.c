@@ -124,8 +124,10 @@ pgit_odb_backend_read_prefix(git_oid *oid_out, void **ptr, size_t *sz, git_objec
     }
 
     memcpy(*ptr, bytes, *sz);
-    py_oid_to_git_oid(py_oid_out, oid_out);
+    size_t oid_len = py_oid_to_git_oid(py_oid_out, oid_out);
     Py_DECREF(result);
+    if (oid_len == 0)
+        return GIT_EUSER;
     return 0;
 }
 
@@ -204,8 +206,10 @@ pgit_odb_backend_exists_prefix(git_oid *out, git_odb_backend *_be,
     if (py_oid == NULL)
         return git_error_for_exc();
 
-    py_oid_to_git_oid(py_oid, out);
+    size_t oid_len = py_oid_to_git_oid(py_oid, out);
     Py_DECREF(py_oid);
+    if (oid_len == 0)
+        return GIT_EUSER;
     return 0;
 }
 
@@ -224,15 +228,33 @@ pgit_odb_backend_foreach(git_odb_backend *_be,
     PyObject *item;
     git_oid oid;
     pgit_odb_backend *be = (pgit_odb_backend *)_be;
-    PyObject *iterator = PyObject_GetIter((PyObject *)be->py_backend);
-    assert(iterator);
+
+    /* Call the Python __iter__ method directly. PyObject_GetIter would invoke
+     * the C tp_iter slot (OdbBackend_as_iter), which calls this function back
+     * and causes infinite recursion for Python backends. */
+    PyObject *iter_method = PyObject_GetAttrString((PyObject *)be->py_backend, "__iter__");
+    if (iter_method == NULL)
+        return git_error_for_exc();
+
+    PyObject *iterator = PyObject_CallObject(iter_method, NULL);
+    Py_DECREF(iter_method);
+    if (iterator == NULL)
+        return git_error_for_exc();
 
     while ((item = PyIter_Next(iterator))) {
-        py_oid_to_git_oid(item, &oid);
-        cb(&oid, payload);
+        size_t len = py_oid_to_git_oid(item, &oid);
         Py_DECREF(item);
+        if (len == 0) {
+            Py_DECREF(iterator);
+            return GIT_EUSER;
+        }
+        if (cb(&oid, payload) != 0) {
+            Py_DECREF(iterator);
+            return GIT_EUSER;
+        }
     }
 
+    Py_DECREF(iterator);
     return git_error_for_exc();
 }
 
@@ -278,7 +300,7 @@ OdbBackend_init(OdbBackend *self, PyObject *args, PyObject *kwds)
 //  custom_backend->backend.freshen = pgit_odb_backend_freshen;
 //  custom_backend->backend.writestream = pgit_odb_backend_writestream;
 //  custom_backend->backend.readstream = pgit_odb_backend_readstream;
-    if (PyIter_Check((PyObject *)self))
+    if (PyObject_HasAttrString((PyObject *)self, "__iter__"))
         custom_backend->backend.foreach = pgit_odb_backend_foreach;
 
     // Cross reference (don't incref because it's something internal)
@@ -321,20 +343,23 @@ PyObject *
 OdbBackend_as_iter(OdbBackend *self)
 {
     PyObject *accum = PyList_New(0);
-    PyObject *iter = NULL;
+    if (accum == NULL)
+        return NULL;
 
     int err = self->odb_backend->foreach(self->odb_backend, OdbBackend_build_as_iter, (void*)accum);
+    if (err == GIT_EUSER && PyErr_Occurred()) {
+        Py_DECREF(accum);
+        return NULL;
+    }
     if (err == GIT_EUSER)
-        goto exit;
+        err = GIT_ERROR;
 
     if (err < 0) {
-        Error_set(err);
-        goto exit;
+        Py_DECREF(accum);
+        return Error_set(err);
     }
 
-    iter = PyObject_GetIter(accum);
-
-exit:
+    PyObject *iter = PyObject_GetIter(accum);
     Py_DECREF(accum);
     return iter;
 }
@@ -397,8 +422,9 @@ OdbBackend_read_prefix(OdbBackend *self, PyObject *py_hex)
 
     err = self->odb_backend->read_prefix(&oid_out, &data, &size, &type, self->odb_backend, &oid, len);
     if (err != 0) {
-        Error_set_oid(err, &oid, len);
-        return NULL;
+        if (err == GIT_EUSER && PyErr_Occurred())
+            return NULL;
+        return Error_set_oid(err, &oid, len);
     }
 
     PyObject *py_oid_out = git_oid_to_python(&oid_out);
@@ -492,8 +518,11 @@ OdbBackend_exists_prefix(OdbBackend *self, PyObject *py_hex)
     git_oid out;
     result = self->odb_backend->exists_prefix(&out, self->odb_backend, &oid, len);
 
-    if (result < 0)
+    if (result < 0) {
+        if (result == GIT_EUSER && PyErr_Occurred())
+            return NULL;
         return Error_set(result);
+    }
 
     return git_oid_to_python(&out);
 }
