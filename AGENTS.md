@@ -273,6 +273,7 @@ and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le`,
 
 ## Git Commits
 
+- Do not run `git commit` or create commits unless the user explicitly asks for it.
 - Commits created by an AI agent must end with the `Assisted-by:` trailer.
   Human-authored commits do not need it.
 
