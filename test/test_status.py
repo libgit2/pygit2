@@ -124,3 +124,13 @@ def test_status_file_unicode_normalization(tmp_path: Path, path: str) -> None:
     repo.index.add(path)
     repo.index.write()
     assert repo.status_file(path) == FileStatus.INDEX_NEW
+
+
+def test_status_file_bytes_path(tmp_path: Path) -> None:
+    """status_file must accept raw UTF-8 bytes for a path."""
+    repo = pygit2.init_repository(str(tmp_path / 'repo'))
+    path = 'täst_é.txt'
+    (Path(repo.workdir) / path).write_text('hello')
+    repo.index.add(path)
+    repo.index.write()
+    assert repo.status_file(path.encode('utf-8')) == FileStatus.INDEX_NEW
