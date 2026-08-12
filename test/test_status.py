@@ -23,8 +23,11 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+from pathlib import Path
+
 import pytest
 
+import pygit2
 from pygit2 import Repository
 from pygit2.enums import FileStatus
 
@@ -85,3 +88,39 @@ def test_status_ignored(
     assert {
         file for file, status in git_status.items() if status & FileStatus.IGNORED
     } == expected
+
+
+def test_status_file_non_ascii(tmp_path: Path) -> None:
+    """status_file must round-trip non-ASCII path names."""
+    repo = pygit2.init_repository(str(tmp_path / 'repo'))
+    path = 'täst_é.txt'
+    (Path(repo.workdir) / path).write_text('hello')
+    repo.index.add(path)
+    repo.index.write()
+    assert repo.status_file(path) == FileStatus.INDEX_NEW
+
+
+def test_status_file_non_breaking_space(tmp_path: Path) -> None:
+    """status_file must handle U+00A0 in the path."""
+    repo = pygit2.init_repository(str(tmp_path / 'repo'))
+    path = 'file\u00a0name.txt'
+    (Path(repo.workdir) / path).write_text('hello')
+    repo.index.add(path)
+    repo.index.write()
+    assert repo.status_file(path) == FileStatus.INDEX_NEW
+
+
+@pytest.mark.parametrize(
+    'path',
+    [
+        'café.txt',  # NFC
+        'cafe\u0301.txt',  # NFD
+    ],
+)
+def test_status_file_unicode_normalization(tmp_path: Path, path: str) -> None:
+    """status_file must work for both NFC and NFD forms of a path."""
+    repo = pygit2.init_repository(str(tmp_path / 'repo'))
+    (Path(repo.workdir) / path).write_text('hello')
+    repo.index.add(path)
+    repo.index.write()
+    assert repo.status_file(path) == FileStatus.INDEX_NEW
