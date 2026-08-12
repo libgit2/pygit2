@@ -48,7 +48,7 @@ jobs:
           path: ReleaseNotes.md
 
   build_wheels:
-    name: Wheels for ${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     needs: sdist
     strategy:
@@ -66,16 +66,37 @@ jobs:
           os: macos-15
         - name: windows-x64
           os: windows-latest
+          libgit2_prefix: C:/libgit2_install_x86_64
         - name: windows-x86
           os: windows-latest
+          libgit2_prefix: C:/libgit2_install_x86
         - name: windows-arm64
           # https://github.com/actions/partner-runner-images#available-images
           os: windows-11-arm
+          libgit2_prefix: C:/libgit2_install_arm64
 
     steps:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
+
+      - name: Cache compiled dependencies
+        if: ${{ !startsWith(matrix.name, 'windows-') }}
+        uses: actions/cache@v4
+        with:
+          path: ci
+          key: deps-ci-${{ matrix.name }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: deps-ci-${{ matrix.name }}-
+
+      - name: Cache compiled dependencies (Windows)
+        if: ${{ startsWith(matrix.name, 'windows-') }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/libgit2_src
+            ${{ matrix.libgit2_prefix }}
+          key: deps-ci-${{ matrix.name }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: deps-ci-${{ matrix.name }}-
 
       - name: Download sdist
         uses: actions/download-artifact@v8
@@ -98,7 +119,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_wheels_emulated_linux:
-    name: Wheels for ${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
     needs: sdist
     strategy:
@@ -120,6 +141,13 @@ jobs:
       - uses: docker/setup-qemu-action@v4
         with:
           platforms: ${{ matrix.qemu_platform }}
+
+      - name: Cache compiled dependencies
+        uses: actions/cache@v4
+        with:
+          path: ci
+          key: deps-ci-${{ matrix.name }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: deps-ci-${{ matrix.name }}-
 
       - name: Download sdist
         uses: actions/download-artifact@v8

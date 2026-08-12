@@ -82,6 +82,16 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
             apk add --no-cache perl
         fi
     fi
+
+    # Use cached dependencies if they match the requested versions.
+    if [ -f ci/versions.txt ] && \
+       grep -q "^LIBGIT2_VERSION=$LIBGIT2_VERSION$" ci/versions.txt && \
+       grep -q "^LIBSSH2_VERSION=$LIBSSH2_VERSION$" ci/versions.txt && \
+       grep -q "^OPENSSL_VERSION=$OPENSSL_VERSION$" ci/versions.txt; then
+        echo "Using cached dependencies"
+        exit 0
+    fi
+
     rm -rf ci
     mkdir ci || true
     cd ci
@@ -199,6 +209,12 @@ if [ -n "$LIBGIT2_VERSION" ]; then
 fi
 
 if [ "$CIBUILDWHEEL" = "1" ]; then
+    # Record versions so the cache can be reused.
+    cat > $PREFIX/versions.txt <<EOF
+LIBGIT2_VERSION=$LIBGIT2_VERSION
+LIBSSH2_VERSION=$LIBSSH2_VERSION
+OPENSSL_VERSION=$OPENSSL_VERSION
+EOF
     if [ "$KERNEL" = "Darwin" ]; then
         echo "PREFIX        " $PREFIX
         echo "OPENSSL_PREFIX" $OPENSSL_PREFIX

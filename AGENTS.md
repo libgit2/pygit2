@@ -242,7 +242,8 @@ GitHub Actions workflows live in `.github/workflows/`:
   `sh build.sh mypy`.
 - **`wheels.yml`** — Uses `cibuildwheel` (`~=3.3`) to build wheels for Linux
   (amd64, arm64, ppc64le and riscv64 via QEMU, musl), macOS (intel, arm64,
-  PyPy), and Windows (x64, x86, arm64). It also builds an sdist, runs a
+  PyPy), and Windows (x64, x86, arm64). Linux, macOS and Windows jobs cache
+  the compiled dependencies between runs. It also builds an sdist, runs a
   `twine check` (skipped on version tags), publishes to PyPI, and creates a
   GitHub Release on version tags (`v*`), with release notes parsed from
   `CHANGELOG.md` by `.github/workflows/parse_release_notes.py`.

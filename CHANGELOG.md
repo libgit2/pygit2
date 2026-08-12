@@ -1,5 +1,8 @@
 # 1.20.1 (UNRELEASED)
 
+- CI (Linux, macOS, Windows): cache compiled dependencies between wheel
+  builds, keyed by platform and dependency versions.
+
 - CI (macOS): build architecture-specific OpenSSL/libssh2/libgit2
   dependencies instead of universal binaries, producing smaller wheels.
 
