@@ -25,6 +25,8 @@
 
 import contextlib
 import os
+import sys
+import unicodedata
 from collections.abc import Generator, Iterator, Sequence
 from types import TracebackType
 from typing import (
@@ -82,6 +84,31 @@ def encode_fs_path(
         return ffi.NULL
 
     return os.fsencode(s)  # type: ignore[arg-type]
+
+
+@overload
+def encode_git_path(s: PathStrOrBytes) -> bytes: ...
+@overload
+def encode_git_path(s: 'ffi.NULL_TYPE | None') -> 'ffi.NULL_TYPE': ...
+def encode_git_path(
+    s: 'PathStrOrBytes | ffi.NULL_TYPE | None',
+) -> 'bytes | ffi.NULL_TYPE':
+    """Encode a path that lives inside a Git repository.
+
+    str and PathLike values are encoded as UTF-8 (with surrogateescape for
+    round-trip of non-UTF-8 bytes). On macOS they are also normalized to NFC,
+    matching Git's core.precomposeunicode default behaviour.
+    """
+    if s is None or s == ffi.NULL:
+        return ffi.NULL
+
+    if isinstance(s, bytes):
+        return s
+
+    text = os.fspath(s)  # type: ignore[arg-type]
+    if sys.platform == 'darwin':
+        text = unicodedata.normalize('NFC', text)
+    return text.encode('utf-8', 'surrogateescape')
 
 
 # TODO decode_string uses errors='surrogateescape', but encode_string defaults
