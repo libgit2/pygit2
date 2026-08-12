@@ -14,7 +14,7 @@
 #   LIBSSH2_VERSION=<Version> - Build the given version of libssh2
 #   LIBGIT2_VERSION=<Version> - Build the given version of libgit2
 #   OPENSSL_VERSION=<Version> - Build the given version of OpenSSL
-#                               (only needed for Mac universal on CI)
+#                               (used on Linux and macOS CI builds)
 #
 # Examples.
 #
@@ -110,31 +110,24 @@ if [ -n "$OPENSSL_VERSION" ]; then
     wget https://www.openssl.org/source/$FILENAME.tar.gz -N --no-check-certificate
 
     if [ "$KERNEL" = "Darwin" ]; then
+        # Build OpenSSL for the host architecture only.
         tar xf $FILENAME.tar.gz
-        mv $FILENAME openssl-x86
-
-        tar xf $FILENAME.tar.gz
-        mv $FILENAME openssl-arm
-
-        cd openssl-x86
-        ./Configure darwin64-x86_64-cc shared
+        cd $FILENAME
+        if [ "$ARCH" = "arm64" ]; then
+            ./Configure enable-rc5 zlib darwin64-arm64-cc no-asm shared --prefix=$PREFIX --libdir=$PREFIX/lib
+        else
+            ./Configure darwin64-x86_64-cc shared --prefix=$PREFIX --libdir=$PREFIX/lib
+        fi
         make
-        cd ../openssl-arm
-        ./Configure enable-rc5 zlib darwin64-arm64-cc no-asm
-        make
-        cd ..
-
-        mkdir openssl-universal
-
-        LIBSSL=$(basename openssl-x86/libssl.*.dylib)
-        lipo -create openssl-x86/libssl.*.dylib openssl-arm/libssl.*.dylib -output openssl-universal/$LIBSSL
-        LIBCRYPTO=$(basename openssl-x86/libcrypto.*.dylib)
-        lipo -create openssl-x86/libcrypto.*.dylib openssl-arm/libcrypto.*.dylib -output openssl-universal/$LIBCRYPTO
-        cd openssl-universal
-        install_name_tool -id "@rpath/$LIBSSL" $LIBSSL
-        install_name_tool -id "@rpath/$LIBCRYPTO" $LIBCRYPTO
-        OPENSSL_PREFIX=$(pwd)
-        cd ..
+        make install
+        OPENSSL_PREFIX=$PREFIX
+        # Set install names so delocate can bundle the libraries.
+        cd $PREFIX/lib
+        LIBSSL=$(find . -maxdepth 1 -name 'libssl.*.dylib' -type f | head -n1 | sed 's|^\./||')
+        LIBCRYPTO=$(find . -maxdepth 1 -name 'libcrypto.*.dylib' -type f | head -n1 | sed 's|^\./||')
+        install_name_tool -id "@rpath/$LIBSSL" "$LIBSSL"
+        install_name_tool -id "@rpath/$LIBCRYPTO" "$LIBCRYPTO"
+        cd ../..
     else
         # Linux
         tar xf $FILENAME.tar.gz
@@ -154,14 +147,11 @@ if [ -n "$LIBSSH2_VERSION" ]; then
     tar xf $FILENAME.tar.gz
     cd $FILENAME
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
-        cmake . \
+        CMAKE_PREFIX_PATH=$PREFIX cmake . \
                 -DCMAKE_INSTALL_PREFIX=$PREFIX \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_EXAMPLES=OFF \
-                -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
-                -DOPENSSL_CRYPTO_LIBRARY="../openssl-universal/$LIBCRYPTO" \
-                -DOPENSSL_SSL_LIBRARY="../openssl-universal/$LIBSSL" \
-                -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
+                -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
                 -DBUILD_TESTING=OFF
     else
         cmake . \
@@ -186,14 +176,11 @@ if [ -n "$LIBGIT2_VERSION" ]; then
     mkdir -p build
     cd build
     if [ "$KERNEL" = "Darwin" ] && [ "$CIBUILDWHEEL" = "1" ]; then
-        CMAKE_PREFIX_PATH=$OPENSSL_PREFIX:$PREFIX cmake .. \
+        CMAKE_PREFIX_PATH=$PREFIX cmake .. \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_TESTS=OFF \
                 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-                -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
-                -DOPENSSL_CRYPTO_LIBRARY="../openssl-universal/$LIBCRYPTO" \
-                -DOPENSSL_SSL_LIBRARY="../openssl-universal/$LIBSSL" \
-                -DOPENSSL_INCLUDE_DIR="../openssl-x86/include" \
+                -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
                 -DCMAKE_INSTALL_PREFIX=$PREFIX \
                 -DUSE_SSH=$USE_SSH
     else
@@ -213,8 +200,6 @@ fi
 
 if [ "$CIBUILDWHEEL" = "1" ]; then
     if [ "$KERNEL" = "Darwin" ]; then
-        cp $OPENSSL_PREFIX/*.dylib $PREFIX/lib/
-        cp $OPENSSL_PREFIX/*.dylib $PREFIX/lib/
         echo "PREFIX        " $PREFIX
         echo "OPENSSL_PREFIX" $OPENSSL_PREFIX
         ls -l $PREFIX

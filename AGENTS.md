@@ -139,8 +139,8 @@ Variables consumed by `build.sh`:
 
 - `LIBGIT2_VERSION` — If set, download and build this libgit2 version.
 - `LIBSSH2_VERSION` — If set, download and build libssh2 with SSH support.
-- `OPENSSL_VERSION` — If set, download and build OpenSSL (mainly used for
-  macOS universal builds on CI).
+- `OPENSSL_VERSION` — If set, download and build OpenSSL (used on Linux and
+  macOS CI builds).
 - `ZLIB_VERSION` — If set, download and build zlib.
 - `BUILD_TYPE` — CMake build type (default: `Debug`).
 - `PYTHON` — Python interpreter to use (default: `python3`).

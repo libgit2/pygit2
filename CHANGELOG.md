@@ -1,5 +1,8 @@
 # 1.20.1 (UNRELEASED)
 
+- CI (macOS): build architecture-specific OpenSSL/libssh2/libgit2
+  dependencies instead of universal binaries, producing smaller wheels.
+
 - New exception hierarchy: `AlreadyExistsError`, `InvalidSpecError`,
   `InvalidError`, `NotFoundError`, `AmbiguousError`, `AuthError`, and
   `CertificateError` all inherit from `GitError` and the appropriate Python
