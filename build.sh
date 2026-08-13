@@ -92,8 +92,10 @@ if [ "$CIBUILDWHEEL" = "1" ]; then
         exit 0
     fi
 
-    rm -rf ci
-    mkdir ci || true
+    # The ci directory may be a bind-mount (e.g. inside cibuildwheel), so
+    # remove its contents but keep the directory itself.
+    rm -rf ci/* ci/.[!.]* ci/..?* 2>/dev/null || true
+    mkdir -p ci
     cd ci
 else
     # Create a virtual environment
