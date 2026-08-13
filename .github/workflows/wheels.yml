@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ci
-          key: deps-ci-${{ matrix.name }}-${{ hashFiles('pyproject.toml') }}
+          key: deps-ci-${{ matrix.name }}-${{ hashFiles('pyproject.toml', 'build.sh') }}
           restore-keys: deps-ci-${{ matrix.name }}-
 
       - name: Cache compiled dependencies (Windows)
@@ -124,6 +124,7 @@ jobs:
         env:
           CIBW_ARCHS_WINDOWS: ${{ matrix.name == 'windows-x86' && 'auto32' || 'native' }}
           CIBW_SKIP: ${{ matrix.cibw_skip }}
+          CIBW_CONTAINER_ENGINE: 'docker; create_args: -v ${{ github.workspace }}/ci:/project/ci'
         run: python -m cibuildwheel dist/*.tar.gz --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v7
@@ -169,7 +170,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ci
-          key: deps-ci-${{ matrix.name }}-${{ hashFiles('pyproject.toml') }}
+          key: deps-ci-${{ matrix.name }}-${{ hashFiles('pyproject.toml', 'build.sh') }}
           restore-keys: deps-ci-${{ matrix.name }}-
 
       - name: Download sdist
@@ -187,6 +188,7 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.cibw_arch }}
           CIBW_SKIP: ${{ matrix.cibw_skip }}
+          CIBW_CONTAINER_ENGINE: 'docker; create_args: -v ${{ github.workspace }}/ci:/project/ci'
           CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.6 LIBGIT2=/project/ci
 
       - uses: actions/upload-artifact@v7
