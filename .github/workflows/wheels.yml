@@ -56,10 +56,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - name: linux-amd
+        - name: linux-amd-glibc
           os: ubuntu-24.04
-        - name: linux-arm
+          cibw_skip: '*musllinux*'
+        - name: linux-amd-musl
+          os: ubuntu-24.04
+          cibw_skip: '*manylinux*'
+        - name: linux-arm-glibc
           os: ubuntu-24.04-arm
+          cibw_skip: '*musllinux*'
+        - name: linux-arm-musl
+          os: ubuntu-24.04-arm
+          cibw_skip: '*manylinux*'
         - name: macos-intel
           os: macos-15-intel
         - name: macos-arm
@@ -115,6 +123,7 @@ jobs:
         shell: bash
         env:
           CIBW_ARCHS_WINDOWS: ${{ matrix.name == 'windows-x86' && 'auto32' || 'native' }}
+          CIBW_SKIP: ${{ matrix.cibw_skip }}
         run: python -m cibuildwheel dist/*.tar.gz --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v7
@@ -130,12 +139,18 @@ jobs:
       fail-fast: true
       matrix:
         include:
-        - name: linux-ppc64le
+        - name: linux-ppc64le-glibc
           qemu_platform: linux/ppc64le
           cibw_arch: ppc64le
-        - name: linux-riscv64
+          cibw_skip: '*musllinux*'
+        - name: linux-riscv64-glibc
           qemu_platform: linux/riscv64
           cibw_arch: riscv64
+          cibw_skip: '*musllinux*'
+        - name: linux-riscv64-musl
+          qemu_platform: linux/riscv64
+          cibw_arch: riscv64
+          cibw_skip: '*manylinux*'
 
     steps:
       - uses: actions/setup-python@v7
@@ -171,6 +186,7 @@ jobs:
         run: python -m cibuildwheel dist/*.tar.gz --output-dir wheelhouse
         env:
           CIBW_ARCHS: ${{ matrix.cibw_arch }}
+          CIBW_SKIP: ${{ matrix.cibw_skip }}
           CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.6 LIBGIT2=/project/ci
 
       - uses: actions/upload-artifact@v7
