@@ -1,5 +1,7 @@
 # 1.20.1 (UNRELEASED)
 
+- Update wheels to libgit2 1.9.7
+
 - CI (Linux, macOS, Windows): cache compiled dependencies between wheel
   builds, keyed by platform and dependency versions.
 

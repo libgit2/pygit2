@@ -189,7 +189,7 @@ jobs:
           CIBW_ARCHS: ${{ matrix.cibw_arch }}
           CIBW_SKIP: ${{ matrix.cibw_skip }}
           CIBW_CONTAINER_ENGINE: 'docker; create_args: -v ${{ github.workspace }}/ci:/project/ci'
-          CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.6 LIBGIT2=/project/ci
+          CIBW_ENVIRONMENT: LIBSSH2_VERSION=1.11.1 LIBGIT2_VERSION=1.9.7 LIBGIT2=/project/ci
 
       - uses: actions/upload-artifact@v7
         with:
