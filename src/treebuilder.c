@@ -107,7 +107,7 @@ PyObject *
 TreeBuilder_get(TreeBuilder *self, PyObject *py_filename)
 {
     PyObject *tvalue;
-    char *filename = pgit_borrow_fsdefault(py_filename, &tvalue);
+    char *filename = pgit_borrow_gitpath(py_filename, &tvalue);
     if (filename == NULL)
         return NULL;
 
@@ -135,7 +135,7 @@ PyObject *
 TreeBuilder_remove(TreeBuilder *self, PyObject *py_filename)
 {
     PyObject *tvalue;
-    char *filename = pgit_borrow_fsdefault(py_filename, &tvalue);
+    char *filename = pgit_borrow_gitpath(py_filename, &tvalue);
     if (filename == NULL)
         return NULL;
 
