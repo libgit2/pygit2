@@ -66,7 +66,7 @@ Tree_contains(Tree *self, PyObject *py_name)
     if (Object__load((Object*)self) == NULL) { return -1; } // Lazy load
 
     PyObject *tvalue;
-    char *name = pgit_borrow_fsdefault(py_name, &tvalue);
+    char *name = pgit_borrow_gitpath(py_name, &tvalue);
     if (name == NULL)
         return -1;
 
@@ -160,7 +160,7 @@ PyObject*
 tree_getentry_by_path(const git_tree *tree, Repository *repo, PyObject *py_path)
 {
     PyObject *tvalue;
-    char *path = pgit_borrow_fsdefault(py_path, &tvalue);
+    char *path = pgit_borrow_gitpath(py_path, &tvalue);
     if (path == NULL) {
         PyErr_SetString(PyExc_TypeError, "Value must be a path string");
         return NULL;

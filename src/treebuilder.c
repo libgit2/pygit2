@@ -45,7 +45,7 @@ TreeBuilder_dealloc(TreeBuilder *self)
 
 
 PyDoc_STRVAR(TreeBuilder_insert__doc__,
-    "insert(name: str, oid: Oid, attr: FileMode)\n"
+    "insert(name: str | bytes, oid: Oid, attr: FileMode)\n"
     "\n"
     "Insert or replace an entry in the treebuilder.\n"
     "\n"
@@ -58,20 +58,26 @@ PyDoc_STRVAR(TreeBuilder_insert__doc__,
 PyObject *
 TreeBuilder_insert(TreeBuilder *self, PyObject *args)
 {
-    PyObject *py_oid;
+    PyObject *py_name, *py_oid, *tvalue;
     size_t len;
     int err, attr;
     git_oid oid;
-    const char *fname;
 
-    if (!PyArg_ParseTuple(args, "sOi", &fname, &py_oid, &attr))
+    if (!PyArg_ParseTuple(args, "OOi", &py_name, &py_oid, &attr))
+        return NULL;
+
+    char *fname = pgit_borrow_gitpath(py_name, &tvalue);
+    if (fname == NULL)
         return NULL;
 
     len = py_oid_to_git_oid(py_oid, &oid);
-    if (len == 0)
+    if (len == 0) {
+        Py_DECREF(tvalue);
         return NULL;
+    }
 
     err = git_treebuilder_insert(NULL, self->bld, fname, &oid, attr);
+    Py_DECREF(tvalue);
     if (err < 0)
         return Error_set(err);
 
