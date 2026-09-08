@@ -148,7 +148,7 @@ Commit_raw_message__get__(Commit *self)
 }
 
 
-PyDoc_STRVAR(Commit_commit_time__doc__, "Commit time.");
+PyDoc_STRVAR(Commit_commit_time__doc__, "Commit time, an int (Unix timestamp).");
 
 PyObject *
 Commit_commit_time__get__(Commit *self)
@@ -158,7 +158,7 @@ Commit_commit_time__get__(Commit *self)
 }
 
 
-PyDoc_STRVAR(Commit_commit_time_offset__doc__, "Commit time offset.");
+PyDoc_STRVAR(Commit_commit_time_offset__doc__, "Commit time zone UTC offset, an int (minutes).");
 
 PyObject *
 Commit_commit_time_offset__get__(Commit *self)
