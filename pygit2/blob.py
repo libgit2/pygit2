@@ -86,10 +86,20 @@ class _BlobIO(io.RawIOBase):
 
     def close(self) -> None:
         try:
-            self._ready.wait()
-            self._writer_closed.wait()
-            while self._queue is not None and not self._queue.empty():
-                self._queue.get()
+            # The writer thread may be blocked in queue.put() because the
+            # queue (maxsize=1) still holds a chunk that was never consumed
+            # (e.g. the reader stopped before reaching EOF). Draining the
+            # queue must happen *before* (not after) waiting for
+            # `_writer_closed`, otherwise the writer can never make progress
+            # to reach its close callback and this would deadlock.
+            while True:
+                self._ready.wait()
+                while self._queue is not None and not self._queue.empty():
+                    self._queue.get()
+                if self._writer_closed.is_set():
+                    # Done
+                    break
+                self._ready.clear()
             self._thread.join()
         except KeyboardInterrupt:
             pass
