@@ -81,6 +81,12 @@ def testrepo(tmp_path: Path) -> Generator[Repository, None, None]:
 
 
 @pytest.fixture
+def bigrepo(tmp_path: Path) -> Generator[Repository, None, None]:
+    with utils.TemporaryRepository('bigrepo.zip', tmp_path) as path:
+        yield pygit2.Repository(path)
+
+
+@pytest.fixture
 def testrepo_path(tmp_path: Path) -> Generator[tuple[Repository, Path], None, None]:
     with utils.TemporaryRepository('testrepo.zip', tmp_path) as path:
         yield pygit2.Repository(path), path
