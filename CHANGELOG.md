@@ -2,43 +2,41 @@
 
 - Update wheels to libgit2 1.9.7
 
-- CI (Linux, macOS, Windows): cache compiled dependencies between wheel
-  builds, keyed by platform and dependency versions.
-
-- CI (macOS): build architecture-specific OpenSSL/libssh2/libgit2
-  dependencies instead of universal binaries, producing smaller wheels.
-
 - New exception hierarchy: `AlreadyExistsError`, `InvalidSpecError`,
   `InvalidError`, `NotFoundError`, `AmbiguousError`, `AuthError`, and
   `CertificateError` all inherit from `GitError` and the appropriate Python
   built-in exception (`ValueError`/`KeyError`) for backward compatibility
-  [#830](https://github.com/libgit2/pygit2/issues/830).
-
-- Fix custom ODB and refdb backend callbacks overwriting a pending Python
-  exception (e.g. `RuntimeError`) with a stale libgit2 error message.
+  [#830](https://github.com/libgit2/pygit2/issues/830)
 
 - Fix `DiffDelta.is_binary` and `DiffDelta.flags` returning stale values for
   deltas obtained from `Diff.deltas`; flags are now loaded lazily
   [#962](https://github.com/libgit2/pygit2/issues/962)
-  [#1100](https://github.com/libgit2/pygit2/pull/1100).
+  [#1100](https://github.com/libgit2/pygit2/pull/1100)
 
-- Fix invalid oid arguments being silently ignored in `BlobIO`, the
-  `Reference` constructor, `RefdbBackend.write()`/`delete()`, and custom
-  `OdbBackend` callbacks; they now raise the appropriate Python exception
-  instead of producing wrong results, `SystemError`, or crashes
-  [#1478](https://github.com/libgit2/pygit2/issues/1478).
+- Fix `Repository.submodules.get()` and `name in repo.submodules` raising
+  `AlreadyExistsError` when a repository exists at the submodule path but was
+  never registered as a submodule; they now return `None` and `False`
+  respectively as documented
+  [#1487](https://github.com/libgit2/pygit2/pull/1487)
 
-- Fix potential crash and memory leak in `DiffHunk.lines` and `Patch.hunks`
-  on allocation or per-item failure
-  [#1479](https://github.com/libgit2/pygit2/issues/1479).
+- Fix `BlobIO` cleanup deadlock on partial reads
+  [#1488](https://github.com/libgit2/pygit2/issues/1488)
+  [#1491](https://github.com/libgit2/pygit2/pull/1491)
 
-- Fix memory leaks in `Repository.listall_branches()` and
-  `Tree.diff_to_index()` on early error paths
-  [#1480](https://github.com/libgit2/pygit2/issues/1480).
+- Fix leaks and crashes in error paths
+  [#1478](https://github.com/libgit2/pygit2/issues/1478)
+  [#1479](https://github.com/libgit2/pygit2/issues/1479)
+  [#1480](https://github.com/libgit2/pygit2/issues/1480)
+  [#1481](https://github.com/libgit2/pygit2/issues/1481)
 
-- Fix reference leaks in the blob filter stream callbacks and in
-  `_cache_enums()`
-  [#1481](https://github.com/libgit2/pygit2/issues/1481).
+- Fix custom ODB and refdb backend callbacks overwriting a pending Python
+  exception (e.g. `RuntimeError`) with a stale libgit2 error message.
+
+- Documentation fixes
+  [#1490](https://github.com/libgit2/pygit2/pull/1490)
+
+- CI (macOS): build architecture-specific OpenSSL/libssh2/libgit2
+  dependencies instead of universal binaries, producing smaller wheels.
 
 
 # 1.20.0 (2026-08-08)

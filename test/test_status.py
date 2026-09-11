@@ -23,6 +23,7 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import sys
 from pathlib import Path
 
 import pytest
@@ -110,6 +111,10 @@ def test_status_file_non_breaking_space(tmp_path: Path) -> None:
     assert repo.status_file(path) == FileStatus.INDEX_NEW
 
 
+@pytest.mark.skipif(
+    sys.platform == 'darwin',
+    reason='macOS filesystem normalizes filenames to NFD',
+)
 @pytest.mark.parametrize(
     'path',
     [
