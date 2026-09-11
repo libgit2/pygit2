@@ -227,6 +227,36 @@ class Index:
 
         check_error(err, io=True)
 
+    def add_intent(self, path: str) -> None:
+        """Add an intent-to-add entry with null OID (like git add -N).
+
+        This creates an index entry with a null blob ID, making the file
+        visible in git diff without staging its content.
+
+        Parameters:
+
+        path
+            The path of the file to add with intent-to-add.
+
+        Example::
+
+            >>> repo = pygit2.Repository('.')
+            >>> repo.index.add_intent('new_file.txt')
+            >>> # File is now visible in diff but not staged
+        """
+        # First add the file normally so we get a valid OID
+        self.add(path)
+
+        # Get the entry pointer and zero out its OID
+        centry = C.git_index_get_bypath(self._index, encode_fs_path(path), 0)
+        if centry == ffi.NULL:
+            raise ValueError(f"Could not find entry for {path}")
+
+        # Use FFI to create a buffer of null bytes and copy it
+        # The oid field is 20 bytes
+        null_buf = ffi.new('unsigned char[20]')
+        ffi.memmove(ffi.addressof(centry.id), null_buf, 20)
+
     def add_conflict(
         self, ancestor: 'IndexEntry', ours: 'IndexEntry', theirs: 'IndexEntry | None'
     ) -> None:
