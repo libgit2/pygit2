@@ -126,6 +126,7 @@ Authors:
     Marcel Waldvogel
     Masud Rahman
     Michael Sondergaard
+    Michal Koutný
     Natanael Arndt
     Nick Williams
     Ondřej Nový
@@ -201,6 +202,7 @@ Authors:
     Lance Eftink
     Legorooj
     Lukas Berk
+    Marius Gedminas
     Martin von Zweigbergk
     Mathieu Bridon
     Mathieu Pillard
@@ -227,6 +229,7 @@ Authors:
     Remy Suen
     Ridge Kennedy
     Rodrigo Bistolfi
+    Roshan Ramani
     Ross Nicoll
     Rui Abreu Ferreira
     Rui Chen

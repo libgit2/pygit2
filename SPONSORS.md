@@ -1,5 +1,7 @@
 Friends of pygit2:
 
+- [William Bowers](https://github.com/ralian)
+
 - Add your name to the list,
   [become a friend of pygit2](https://github.com/sponsors/jdavid).
 

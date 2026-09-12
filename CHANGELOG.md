@@ -1,4 +1,4 @@
-# 1.20.1 (UNRELEASED)
+# 1.20.1 (2026-09-12)
 
 - Update wheels to libgit2 1.9.7
 
@@ -13,7 +13,7 @@
   [#962](https://github.com/libgit2/pygit2/issues/962)
   [#1100](https://github.com/libgit2/pygit2/pull/1100)
 
-- Fix `Repository.submodules.get()` and `name in repo.submodules` raising
+- Fix `repo.submodules.get()` and `name in repo.submodules` raising
   `AlreadyExistsError` when a repository exists at the submodule path but was
   never registered as a submodule; they now return `None` and `False`
   respectively as documented
