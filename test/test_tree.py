@@ -211,3 +211,24 @@ def test_deep_contains(barerepo: Repository) -> None:
     assert isinstance(tree['c'], Tree)
     assert 'd' in tree['c']
     assert 'e' not in tree['c']
+
+
+@pytest.mark.parametrize(
+    'name',
+    [
+        'café.txt',  # NFC
+        'café.txt',  # NFD
+        b'caf\xc3\xa9.txt',  # NFC as raw UTF-8 bytes
+    ],
+)
+def test_tree_non_ascii_name(barerepo: Repository, name: str | bytes) -> None:
+    """Tree lookups must work for non-ASCII names, str or bytes."""
+    oid = barerepo.create_blob(b'hello')
+    bld = barerepo.TreeBuilder()
+    bld.insert(name, oid, FileMode.BLOB)
+    tree = barerepo[bld.write()]
+    assert isinstance(tree, Tree)
+
+    assert name in tree
+    assert tree[name].id == oid
+    assert (tree / name).id == oid
