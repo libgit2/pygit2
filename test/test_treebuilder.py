@@ -23,7 +23,10 @@
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import pytest
+
 from pygit2 import Repository, Tree
+from pygit2.enums import FileMode
 
 TREE_SHA = '967fce8df97cc71722d3c2a5930ef3e6f1d27b12'
 
@@ -66,3 +69,21 @@ def test_rebuild_treebuilder(barerepo: Repository) -> None:
 
     assert len(bld) == len(tree)
     assert tree.id == result
+
+
+@pytest.mark.parametrize(
+    'name',
+    [
+        'café.txt',  # NFC
+        'café.txt',  # NFD
+        b'caf\xc3\xa9.txt',  # NFC as raw UTF-8 bytes
+    ],
+)
+def test_treebuilder_non_ascii_name(barerepo: Repository, name: str | bytes) -> None:
+    """insert/get/remove must agree on non-ASCII names, str or bytes."""
+    oid = barerepo.create_blob(b'hello')
+    bld = barerepo.TreeBuilder()
+    bld.insert(name, oid, FileMode.BLOB)
+    assert bld.get(name).id == oid
+    bld.remove(name)
+    assert bld.get(name) is None

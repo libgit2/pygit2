@@ -81,6 +81,101 @@ pgit_borrow_fsdefault(PyObject *value, PyObject **tvalue)
 }
 
 /**
+ * Return a borrowed C string for a path inside a Git repository.
+ *
+ * The input may be a str, bytes, or os.PathLike.  str/PathLike values are
+ * encoded as UTF-8 (with surrogateescape for round-trip of non-UTF-8 bytes).
+ * On macOS they are also normalized to NFC, matching Git's
+ * core.precomposeunicode default behaviour.  bytes values are returned
+ * unchanged as raw path bytes.
+ */
+static PyObject *unicode_normalize = NULL;
+
+static int
+ensure_unicode_normalize(void)
+{
+    if (unicode_normalize != NULL) {
+        return 0;
+    }
+
+    PyObject *mod = PyImport_ImportModule("unicodedata");
+    if (mod == NULL) {
+        return -1;
+    }
+
+    unicode_normalize = PyObject_GetAttrString(mod, "normalize");
+    Py_DECREF(mod);
+    if (unicode_normalize == NULL) {
+        return -1;
+    }
+
+    return 0;
+}
+
+char*
+pgit_borrow_gitpath(PyObject *value, PyObject **tvalue)
+{
+    PyObject *py_path = NULL;
+
+    if (PyUnicode_Check(value)) {
+        py_path = value;
+        Py_INCREF(py_path);
+    } else if (PyBytes_Check(value)) {
+        Py_INCREF(value);
+        *tvalue = value;
+        return PyBytes_AsString(value);
+    } else {
+        py_path = PyOS_FSPath(value);
+        if (py_path == NULL) {
+            return NULL;
+        }
+    }
+
+    if (PyBytes_Check(py_path)) {
+        *tvalue = py_path;
+        return PyBytes_AsString(py_path);
+    }
+
+#ifdef __APPLE__
+    if (ensure_unicode_normalize() < 0) {
+        Py_DECREF(py_path);
+        return NULL;
+    }
+
+    PyObject *form = PyUnicode_FromString("NFC");
+    if (form == NULL) {
+        Py_DECREF(py_path);
+        return NULL;
+    }
+
+    PyObject *normalized = PyObject_CallFunctionObjArgs(
+        unicode_normalize, form, py_path, NULL);
+    Py_DECREF(form);
+    Py_DECREF(py_path);
+    if (normalized == NULL) {
+        return NULL;
+    }
+
+    PyObject *bytes = PyUnicode_AsEncodedString(
+        normalized, "utf-8", "surrogateescape");
+    Py_DECREF(normalized);
+    if (bytes == NULL) {
+        return NULL;
+    }
+#else
+    PyObject *bytes = PyUnicode_AsEncodedString(
+        py_path, "utf-8", "surrogateescape");
+    Py_DECREF(py_path);
+    if (bytes == NULL) {
+        return NULL;
+    }
+#endif
+
+    *tvalue = bytes;
+    return PyBytes_AsString(bytes);
+}
+
+/**
  * Return a pointer to the underlying C string in 'value'. The pointer is
  * guaranteed by 'tvalue', decrease its refcount when done with the string.
  */

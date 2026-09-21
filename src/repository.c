@@ -1824,7 +1824,7 @@ error:
 
 
 PyDoc_STRVAR(Repository_status_file__doc__,
-  "status_file(path: str) -> enums.FileStatus\n"
+  "status_file(path: str | bytes) -> enums.FileStatus\n"
   "\n"
   "Returns the status of the given file path.");
 
@@ -1832,7 +1832,7 @@ PyObject *
 Repository_status_file(Repository *self, PyObject *value)
 {
     PyObject *tvalue;
-    char *path = pgit_borrow_fsdefault(value, &tvalue);
+    char *path = pgit_borrow_gitpath(value, &tvalue);
     if (!path)
         return NULL;
 
