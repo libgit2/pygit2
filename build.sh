@@ -164,6 +164,7 @@ if [ -n "$LIBSSH2_VERSION" ]; then
                 -DCMAKE_INSTALL_PREFIX=$PREFIX \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_EXAMPLES=OFF \
+                -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
                 -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
                 -DBUILD_TESTING=OFF
     else
@@ -171,6 +172,7 @@ if [ -n "$LIBSSH2_VERSION" ]; then
                 -DCMAKE_INSTALL_PREFIX=$PREFIX \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_EXAMPLES=OFF \
+                -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
                 -DBUILD_TESTING=OFF
     fi
     cmake --build . --target install
