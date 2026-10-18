@@ -59,9 +59,16 @@ CertificateError.__doc__ = 'Server certificate is invalid.'
 InvalidError.__doc__ = 'Invalid operation or input.'
 
 
-def check_error(err: int, io: bool = False) -> None:
+def check_error(
+    err: int,
+    io: bool = False,
+    user_exception: BaseException | None = None,
+) -> None:
     if err >= 0:
         return
+
+    if err == C.GIT_EUSER and user_exception:
+        raise user_exception
 
     # These are special error codes, they should never reach here
     test = err != C.GIT_EUSER and err != C.GIT_PASSTHROUGH
