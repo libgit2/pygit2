@@ -29,6 +29,7 @@ from pathlib import Path
 import pytest
 
 from pygit2 import Config, Repository, Settings
+from pygit2.config import ConfigEntry
 
 from . import utils
 
@@ -156,7 +157,28 @@ def test_multivar(config_path: Path) -> None:
 
     assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that'))
     assert ['foobar'] == list(config.get_multivar('this.that', 'bar'))
-    assert ['foobar', 'foobeer'] == list(config.get_multivar('this.that', 'foo.*'))
+
+    multivar_list = list(config.get_multivar('this.that', 'foo.*'))
+    assert ['foobar', 'foobeer'] == multivar_list
+    multivar_iter1 = config.get_multivar('this.that', 'foo.*')
+    multivar_iter2 = config.get_multivar('this.that', 'foo.*')
+
+    previous_list_value: str | None = None
+    previous_iter1_value: str | None = None
+    previous_iter2_value: str | None = None
+
+    for value in multivar_list:
+        assert value != previous_list_value
+        iter1_value = next(multivar_iter1)
+        assert iter1_value == value
+        assert iter1_value != previous_iter1_value
+        iter2_value = next(multivar_iter2)
+        assert iter2_value == value
+        assert iter2_value != previous_iter2_value
+
+        previous_list_value = value
+        previous_iter1_value = iter1_value
+        previous_iter2_value = iter2_value
 
     config.set_multivar('this.that', '^.*beer', 'fool')
     assert ['fool'] == list(config.get_multivar('this.that', 'fool'))
@@ -181,6 +203,27 @@ def test_iterator(config: Config) -> None:
 
     assert 'core.bare' in lst
     assert lst['core.bare']
+
+    config_list = list(config)
+    config_iter1 = iter(config)
+    config_iter2 = iter(config)
+
+    previous_list_entry: ConfigEntry | None = None
+    previous_iter1_entry: ConfigEntry | None = None
+    previous_iter2_entry: ConfigEntry | None = None
+
+    for entry in config_list:
+        assert entry != previous_list_entry
+        iter1_entry = next(config_iter1)
+        assert iter1_entry == entry
+        assert iter1_entry != previous_iter1_entry
+        iter2_entry = next(config_iter2)
+        assert iter2_entry == entry
+        assert iter2_entry != previous_iter2_entry
+
+        previous_list_entry = entry
+        previous_iter1_entry = iter1_entry
+        previous_iter2_entry = iter2_entry
 
 
 def test_valueless_key_iteration(config_path: Path) -> None:
@@ -213,11 +256,39 @@ def test_valueless_key_value(config_path: Path) -> None:
 
 
 def test_parsing() -> None:
+    assert Config.parse_bool(None)
+    assert Config.parse_bool('true')
     assert Config.parse_bool('on')
+    assert Config.parse_bool('yes')
     assert Config.parse_bool('1')
+    assert Config.parse_bool('2')
+    assert Config.parse_bool('3')
+    assert Config.parse_bool('1234567890')
+    assert Config.parse_bool('-42')
 
+    assert not Config.parse_bool('')
+    assert not Config.parse_bool('false')
+    assert not Config.parse_bool('off')
+    assert not Config.parse_bool('no')
+    assert not Config.parse_bool('0')
+
+    with pytest.raises(ValueError):
+        Config.parse_bool('anything else')
+
+    assert -1 == Config.parse_int('-1')
     assert 5 == Config.parse_int('5')
     assert 1024 == Config.parse_int('1k')
+    assert 158720 == Config.parse_int('155k')
+    assert 22020096 == Config.parse_int('21m')
+    assert 45097156608 == Config.parse_int('42G')
+    assert 1234567890 == Config.parse_int('1234567890')
+
+    with pytest.raises(ValueError):
+        Config.parse_int(None)
+    with pytest.raises(ValueError):
+        Config.parse_int('')
+    with pytest.raises(ValueError):
+        Config.parse_int('not a number')
 
 
 def test_repository_config_snapshot(config: Config) -> None:

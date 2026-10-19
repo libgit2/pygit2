@@ -25,7 +25,7 @@
 
 from collections.abc import Callable, Iterator
 from os import PathLike
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 try:
     from functools import cached_property
@@ -33,46 +33,74 @@ except ImportError:
     from cached_property import cached_property  # type: ignore
 
 # Import from pygit2
-from .errors import check_error
+from .enums import ConfigLevel
+from .errors import GitError, InvalidError, check_error
 from .ffi import C, ffi
 from .utils import encode_fs_path, encode_string
 
 if TYPE_CHECKING:
-    from ._libgit2.ffi import GitConfigC, GitConfigEntryC
+    from ._libgit2.ffi import GitConfigC, GitConfigEntryC, GitConfigIteratorC
     from .repository import BaseRepository
 
 
 def str_to_bytes(value: str | bytes, name: str) -> bytes:
-    if not isinstance(value, str):
-        raise TypeError(f'{name} must be a string')
+    if isinstance(value, bytes):
+        return value
+    if isinstance(value, str):
+        return encode_string(value)
 
-    return encode_string(value)
+    raise TypeError(f'{name} must be a string or bytes')
 
 
-class ConfigIterator:
-    def __init__(self, config, ptr) -> None:
-        self._iter = ptr
+class _BaseIterator:
+    def __init__(self, config: 'Config', c_iter: 'GitConfigIteratorC') -> None:
         self._config = config
+        self._c_iter = c_iter
+
+        self._freed = False
+        self._c_entry_ptr = ffi.new('git_config_entry **')
+
+    def _free(self):
+        if not self._freed:
+            self._freed = True
+            self._c_entry_ptr = None  # do not free; see comment in _next_entry
+            C.git_config_iterator_free(self._c_iter)
 
     def __del__(self) -> None:
-        C.git_config_iterator_free(self._iter)
+        self._free()  # fallback in case we never hit StopIteration below
 
-    def __iter__(self) -> 'ConfigIterator':
+    def __iter__(self) -> Self:
         return self
 
+    def _next_entry(self) -> 'ConfigEntry':
+        try:
+            # git_config_next (or, rather, the file backend specifically) reuses a
+            # git_config_entry buffer from one call to the next. And more so than just
+            # this, it reuses a buffer even from one iterator to the next. It's a
+            # matter of discussion whether this is correct behavior, but what it means
+            # is that we should never call git_config_entry_free on an entry allocated
+            # by git_config_next. And, in fact, we must completely copy the data out of
+            # one entry before the next git_config_next invocation, or else it might
+            # get corrupted. See:
+            # - https://github.com/libgit2/libgit2/issues/7307
+            # - https://github.com/libgit2/pygit2/issues/970
+            # - https://libgit2.org/docs/reference/v1.9.4/config/git_config_next.html
+            self._config._stored_exception = None
+            err = C.git_config_next(self._c_entry_ptr, self._c_iter)
+            check_error(err, user_exception=self._config._stored_exception)
+            return ConfigEntry(self._c_entry_ptr[0])
+        except StopIteration:
+            self._free()  # release the memory as soon as we can
+            raise
+
+
+class ConfigIterator(_BaseIterator):
     def __next__(self) -> 'ConfigEntry':
         return self._next_entry()
 
-    def _next_entry(self) -> 'ConfigEntry':
-        centry = ffi.new('git_config_entry **')
-        err = C.git_config_next(centry, self._iter)
-        check_error(err)
 
-        return ConfigEntry._from_c(centry[0], self)
-
-
-class ConfigMultivarIterator(ConfigIterator):
-    def __next__(self) -> str | None:  # type: ignore[override]
+class ConfigMultivarIterator(_BaseIterator):
+    def __next__(self) -> str | None:
         entry = self._next_entry()
         return entry.value
 
@@ -111,6 +139,8 @@ class Config:
     _config: 'GitConfigC'
 
     def __init__(self, path: PathLike | str | None = None) -> None:
+        self._stored_exception: BaseException | None = None
+
         cconfig = ffi.new('git_config **')
 
         if not path:
@@ -137,13 +167,19 @@ class Config:
         except AttributeError:
             pass
 
-    def _get(self, key: str | bytes) -> tuple[int, 'ConfigEntry']:
-        key = str_to_bytes(key, 'key')
+    def _get(self, name: str | bytes) -> tuple[int, 'ConfigEntry | None']:
+        name = str_to_bytes(name, 'name')
 
-        entry = ffi.new('git_config_entry **')
-        err = C.git_config_get_entry(entry, self._config, key)
+        c_entry_ptr = ffi.new('git_config_entry **')
+        err = C.git_config_get_entry(c_entry_ptr, self._config, name)
 
-        return err, ConfigEntry._from_c(entry[0])
+        if err >= 0:
+            try:
+                return err, ConfigEntry(c_entry_ptr[0])
+            finally:
+                C.git_config_entry_free(c_entry_ptr[0])
+
+        return err, None
 
     def _get_entry(self, key: str | bytes) -> 'ConfigEntry':
         err, entry = self._get(key)
@@ -152,6 +188,7 @@ class Config:
             raise KeyError(key)
 
         check_error(err)
+        assert entry is not None
         return entry
 
     def __contains__(self, key: str | bytes) -> bool:
@@ -208,7 +245,7 @@ class Config:
 
     def get_multivar(
         self, name: str | bytes, regex: str | None = None
-    ) -> ConfigMultivarIterator:
+    ) -> Iterator[str | None]:
         """Get each value of a multivar ''name'' as a list of strings.
 
         The optional ''regex'' parameter is expected to be a regular expression
@@ -248,35 +285,62 @@ class Config:
         err = C.git_config_delete_multivar(self._config, name, regex)
         check_error(err)
 
-    def get_bool(self, key: str | bytes) -> bool:
-        """Look up *key* and parse its value as a boolean as per the git-config
-        rules. Return a boolean value (True or False).
+    def get_bool(self, name: str | bytes) -> bool:
+        """Obtain the last value found for a config var with name ``name`` as a boolean.
 
-        Truthy values are: 'true', 1, 'on' or 'yes'. Falsy values are: 'false',
-        0, 'off' and 'no'
+        Looks for a config var with name ``name`` and returns its value as a ``bool``.
+        If the config var found is a multivar, only the last value is returned. If you
+        need all the values of a multivar, use :meth:`Config.parse_bool` on each
+        value returned by :meth:`Config.get_multivar`, instead.
+
+        If this ``Config`` is backed by multiple files/backends, the one with the highest
+        :class:`pygit2.enums.ConfigLevel` is searched first, and then the next-highest
+        level, and so on.
+
+        Truthy values are: 'true', '1', 'on', 'yes', or ``NULL``.
+        Falsy values are: 'false', '0', 'off', 'no', or an empty value.
+
+        :param name: The name of the config var to look for.
+
+        :returns: The boolean value found for the config var with name ``name`` as
+                  parsed by ``git_config_parse_bool`` rules.
+
+        :raises KeyError: If no config var with name ``name`` is found in any
+                          of this ``Config``'s files/backends.
+        :raises ValueError: If the value does not match one of the expected truthy
+                            or falsy values.
         """
+        entry = self._get_entry(name)
+        return self.parse_bool(entry.value)
 
-        entry = self._get_entry(key)
-        res = ffi.new('int *')
-        err = C.git_config_parse_bool(res, entry.c_value)
-        check_error(err)
+    def get_int(self, name: bytes | str) -> int:
+        """Obtain the last value found for a config var with name ``name`` as an integer.
 
-        return res[0] != 0
+        Looks for a config var with name ``name`` and returns its value as an ``int``.
+        If the config var found is a multivar, only the last value is returned. If you
+        need all the values of a multivar, use :meth:`Config.parse_int` on each
+        value returned by :meth:`Config.get_multivar`, instead.
 
-    def get_int(self, key: bytes | str) -> int:
-        """Look up *key* and parse its value as an integer as per the git-config
-        rules. Return an integer.
+        If this ``Config`` is backed by multiple files/backends, the one with the highest
+        :class:`pygit2.enums.ConfigLevel` is searched first, and then the next-highest
+        level, and so on.
 
-        A value can have a suffix 'k', 'm' or 'g' which stand for 'kilo',
-        'mega' and 'giga' respectively.
+        A value can have a suffix 'k', 'm', or 'g' (lower or upper case) which stand for
+        'kilo', 'mega', and 'giga', respectively. The values are calculated with powers
+        of 2, not powers of 10.
+
+        :param name: The name of the config var to look for.
+
+        :returns: The integer value found for the config var with name ``name`` as
+                  parsed by ``git_config_parse_int64`` rules.
+
+        :raises KeyError: If no config var with name ``name`` is found in any
+                          of this ``Config``'s files/backends.
+        :raises ValueError: If the value is ``None`` or empty or otherwise does not
+                            match the ``git_config_parse_int64`` parsing rules.
         """
-
-        entry = self._get_entry(key)
-        res = ffi.new('int64_t *')
-        err = C.git_config_parse_int64(res, entry.c_value)
-        check_error(err)
-
-        return res[0]
+        entry = self._get_entry(name)
+        return self.parse_int(entry.value)
 
     def add_file(self, path: str | PathLike, level: int = 0, force: int = 0) -> None:
         """Add a config file instance to an existing config."""
@@ -303,18 +367,68 @@ class Config:
     #
 
     @staticmethod
-    def parse_bool(text: str) -> bool:
+    def parse_bool(text: str | None) -> bool:
+        """Parses the provided string ``text`` as a boolean value according to
+        Git config parsing rules.
+
+        Truthy values are: 'true', '1', 'on', 'yes', or ``NULL``.
+        Falsy values are: 'false', '0', 'off', 'no', or an empty value.
+
+        :param text: The string to convert.
+
+        :returns: The boolean value of the ``text`` as parsed by
+                  ``git_config_parse_bool`` rules.
+
+        :raises ValueError: If the value does not match one of the expected truthy
+                            or falsy values.
+        """
         res = ffi.new('int *')
         err = C.git_config_parse_bool(res, encode_string(text))
-        check_error(err)
+
+        try:
+            check_error(err)
+        except GitError as e:
+            if err == -1 and getattr(e, 'error_class', None) == C.GIT_ERROR_CONFIG:
+                # git_config_parse_bool returns a generic error code with class
+                # GIT_ERROR_CONFIG if the value passed is not valid. Make that a
+                # ValueError to be Pythonic.
+                raise InvalidError(e.args[0])
+            raise
 
         return res[0] != 0
 
     @staticmethod
-    def parse_int(text: str) -> int:
+    def parse_int(text: str | None) -> int:
+        """Parses the provided string ``text`` as an integer value according to
+        Git config parsing rules.
+
+        A value can have a suffix 'k', 'm', or 'g' (lower or upper case) which stand for
+        'kilo', 'mega', and 'giga', respectively. The values are calculated with powers
+        of 2, not powers of 10.
+
+        :param text: The string to convert.
+
+        :returns: The integer value of the ``text`` as parsed by
+                  ``git_config_parse_int64`` rules.
+
+        :raises ValueError: If the value is ``None`` or empty or otherwise does not
+                            match the ``git_config_parse_int64`` parsing rules.
+        """
+        if not text:
+            raise ValueError(f'Text value {text!r} is not parseable as an integer.')
+
         res = ffi.new('int64_t *')
         err = C.git_config_parse_int64(res, encode_string(text))
-        check_error(err)
+
+        try:
+            check_error(err)
+        except GitError as e:
+            if err == -1 and getattr(e, 'error_class', None) == C.GIT_ERROR_CONFIG:
+                # git_config_parse_int64 returns a generic error code with class
+                # GIT_ERROR_CONFIG if the value passed is not valid. Make that a
+                # ValueError to be Pythonic.
+                raise InvalidError(e.args[0])
+            raise
 
         return res[0]
 
@@ -366,63 +480,89 @@ class Config:
 class ConfigEntry:
     """An entry in a configuration object."""
 
-    _entry: 'GitConfigEntryC'
-    iterator: ConfigIterator | None
+    def __init__(self, c_entry: 'GitConfigEntryC') -> None:
+        """For internal use only."""
+        # The c_entry will not be valid for the entire life of this ConfigEntry, so we
+        # must copy *all* of the data out of it at construction and *not* store the
+        # c_entry.
+        self._raw_name = ffi.string(c_entry.name)
+        self._name = self._raw_name.decode('utf-8')
 
-    @classmethod
-    def _from_c(
-        cls, ptr: 'GitConfigEntryC', iterator: ConfigIterator | None = None
-    ) -> 'ConfigEntry':
-        """Builds the entry from a ``git_config_entry`` pointer.
+        self._raw_value: bytes | None = None
+        if c_entry.value is not None and c_entry.value != ffi.NULL:
+            self._raw_value = ffi.string(c_entry.value)
 
-        ``iterator`` must be a ``ConfigIterator`` instance if the entry was
-        created during ``git_config_iterator`` actions.
-        """
-        entry = cls.__new__(cls)
-        entry._entry = ptr
-        entry.iterator = iterator
-
-        # It should be enough to keep a reference to iterator, so we only call
-        # git_config_iterator_free when we've deleted all ConfigEntry objects.
-        # But it's not, to reproduce the error comment the lines below and run
-        # the script in https://github.com/libgit2/pygit2/issues/970
-        # So instead we load the Python object immediately. Ideally we should
-        # investigate libgit2 source code.
-        if iterator is not None:
-            entry.raw_name = entry.raw_name
-            entry.raw_value = entry.raw_value
-            entry.level = entry.level
-
-        return entry
-
-    def __del__(self) -> None:
-        if self.iterator is None:
-            C.git_config_entry_free(self._entry)
+        self._raw_level = c_entry.level
+        self._level = ConfigLevel(self._raw_level)
 
     @property
-    def c_value(self) -> 'ffi.char_pointer':
-        """The raw ``cData`` entry value."""
-        return self._entry.value
-
-    @cached_property
     def raw_name(self) -> bytes:
-        return ffi.string(self._entry.name)
+        """The entry's name as encoded bytes.
 
-    @cached_property
+        :returns: The raw name obtained from the entry without decoding it.
+        """
+        return self._raw_name
+
+    @property
     def raw_value(self) -> bytes | None:
-        return ffi.string(self.c_value) if self.c_value != ffi.NULL else None
+        """The entry's value as encoded bytes.
 
-    @cached_property
-    def level(self) -> int:
-        """The entry's ``git_config_level_t`` value."""
-        return self._entry.level
+        The value may be ``None`` if the config entry this represents was a
+        valueless flag.
+
+        :returns: The raw value obtained from the entry without decoding it.
+        """
+        return self._raw_value
+
+    @property
+    def raw_level(self) -> int:
+        """The entry's level as an integer.
+
+        :returns: The raw ``git_config_level_t`` value from the entry.
+        """
+        return self._raw_level
+
+    @property
+    def level(self) -> ConfigLevel:
+        """The entry's level as a :class:`pygit2.enums.ConfigLevel`.
+
+        :returns: The ``ConfigLevel`` equivalent of the entry's ``git_config_level_t``.
+        """
+        return self._level
 
     @property
     def name(self) -> str:
-        """The entry's name."""
-        return self.raw_name.decode('utf-8')
+        """The entry's name.
 
-    @property
+        :returns: The name.
+        """
+        return self._name
+
+    @cached_property
     def value(self) -> str | None:
-        """The entry's value as a string."""
-        return self.raw_value.decode('utf-8') if self.raw_value is not None else None
+        """The entry's value as a string.
+
+        The value may be ``None`` if the config entry this represents was a
+        valueless flag.
+
+        The value is UTF-8 decoded from the :meth:`ConfigEntry.raw_value` the first time
+        this property is accessed. If you know or suspect that the value cannot be UTF-8
+        decoded, access :meth:`ConfigEntry.raw_value`, instead, and decode it by other
+        means.
+
+        :returns: The UTF-8 decoded string value from this entry.
+        :raises UnicodeDecodeError: If the value cannot be UTF-8 decoded.
+        """
+        return self._raw_value.decode('utf-8') if self._raw_value is not None else None
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ConfigEntry):
+            return NotImplemented
+        return (
+            self._raw_level == other._raw_level
+            and self._raw_name == other._raw_name
+            and self._raw_value == other._raw_value
+        )
+
+    def __hash__(self) -> int:
+        return hash((self._raw_level, self._raw_name, self._raw_value))
