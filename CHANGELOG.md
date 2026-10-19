@@ -1,6 +1,12 @@
 # 1.21.0 (UNRELEASED)
 
 - Add support for Python 3.15
+  [#1498](https://github.com/libgit2/pygit2/pull/1498)
+
+- Fix `ConfigEntry` retaining `git_config_entry` pointers owned by config
+  iterators, which could make entry values change unexpectedly and cause
+  crashes; values are now copied eagerly
+  [#1499](https://github.com/libgit2/pygit2/pull/1499)
 
 - Fix custom ODB backends: acquire the GIL when calling back into Python,
   and fix `write_cb`'s type argument

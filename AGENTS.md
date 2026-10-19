@@ -10,7 +10,7 @@ and a high-level, Pythonic API for repository manipulation.
 - **Version**: 1.19.3 (canonical version is defined in `pygit2/_build.py`)
 - **License**: GPLv2 with linking exception (see `COPYING`)
 - **Maintainer**: J. David Ibáñez
-- **Python Support**: 3.11 – 3.14 and PyPy3 7.3+
+- **Python Support**: 3.11 – 3.15 and PyPy3 7.3+
 - **libgit2 Version**: 1.9.7
 - **Homepage**: <https://www.pygit2.org/>
 - **Repository**: <https://github.com/libgit2/pygit2>
