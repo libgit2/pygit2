@@ -1,3 +1,21 @@
+# 1.21.0 (UNRELEASED)
+
+- Fix custom ODB backends: acquire the GIL when calling back into Python,
+  and fix `write_cb`'s type argument
+  [#1496](https://github.com/libgit2/pygit2/pull/1496)
+
+- Fix `References.get()`, `Branches.get()`, and the `in` operator on both
+  collections raising `InvalidSpecError` for invalid names; they now return
+  `None` and `False` respectively, as documented
+  [#1495](https://github.com/libgit2/pygit2/pull/1495)
+
+- Fix `sh build.sh stubtest`
+  [#1492](https://github.com/libgit2/pygit2/pull/1492)
+
+- Wheels: build the bundled libgit2 and libssh2 in Release mode instead of Debug
+  [#1497](https://github.com/libgit2/pygit2/pull/1497)
+
+
 # 1.20.1 (2026-09-12)
 
 - Update wheels to libgit2 1.9.7
