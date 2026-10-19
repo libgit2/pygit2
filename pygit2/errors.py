@@ -113,9 +113,10 @@ def check_error(
         raise StopIteration()
 
     # Generic Git error
+    error = GitError(message)
     if giterr != ffi.NULL and giterr.klass != 0:
-        raise GitError(message, giterr.klass)
-    raise GitError(message)
+        setattr(error, 'error_class', giterr.klass)
+    raise error
 
 
 # Indicate that we want libgit2 to pretend a function was not set

@@ -34,7 +34,7 @@ except ImportError:
 
 # Import from pygit2
 from .enums import ConfigLevel
-from .errors import GitError, check_error
+from .errors import GitError, InvalidError, check_error
 from .ffi import C, ffi
 from .utils import encode_fs_path, encode_string
 
@@ -388,11 +388,11 @@ class Config:
         try:
             check_error(err)
         except GitError as e:
-            if err == -1 and len(e.args) > 1 and e.args[1] == C.GIT_ERROR_CONFIG:
+            if err == -1 and getattr(e, 'error_class', None) == C.GIT_ERROR_CONFIG:
                 # git_config_parse_bool returns a generic error code with class
                 # GIT_ERROR_CONFIG if the value passed is not valid. Make that a
                 # ValueError to be Pythonic.
-                raise ValueError(e.args[0])
+                raise InvalidError(e.args[0])
             raise
 
         return res[0] != 0
@@ -423,11 +423,11 @@ class Config:
         try:
             check_error(err)
         except GitError as e:
-            if err == -1 and len(e.args) > 1 and e.args[1] == C.GIT_ERROR_CONFIG:
+            if err == -1 and getattr(e, 'error_class', None) == C.GIT_ERROR_CONFIG:
                 # git_config_parse_int64 returns a generic error code with class
                 # GIT_ERROR_CONFIG if the value passed is not valid. Make that a
                 # ValueError to be Pythonic.
-                raise ValueError(e.args[0])
+                raise InvalidError(e.args[0])
             raise
 
         return res[0]
@@ -557,11 +557,11 @@ class ConfigEntry:
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, ConfigEntry):
-            return False
+            return NotImplemented
         return (
             self._raw_level == other._raw_level
-            and self._raw_name == other.raw_name
-            and self._raw_value == other.raw_value
+            and self._raw_name == other._raw_name
+            and self._raw_value == other._raw_value
         )
 
     def __hash__(self) -> int:

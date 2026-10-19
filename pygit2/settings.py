@@ -69,7 +69,7 @@ class Settings:
             )
         except GitError as git_err:
             valid_msg = "TLS backend doesn't support certificate locations"
-            if not git_err.args or git_err.args[0] != valid_msg:
+            if str(git_err) != valid_msg:
                 raise
             self._default_tls_verify_paths = None
             self._ssl_cert_file = None
