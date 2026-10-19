@@ -113,6 +113,8 @@ def check_error(
         raise StopIteration()
 
     # Generic Git error
+    if giterr != ffi.NULL and giterr.klass != 0:
+        raise GitError(message, giterr.klass)
     raise GitError(message)
 
 

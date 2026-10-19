@@ -25,7 +25,7 @@
 
 from collections.abc import Callable, Iterator
 from os import PathLike
-from typing import TYPE_CHECKING, Optional, Self
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 try:
     from functools import cached_property
@@ -34,7 +34,7 @@ except ImportError:
 
 # Import from pygit2
 from .enums import ConfigLevel
-from .errors import check_error
+from .errors import GitError, check_error
 from .ffi import C, ffi
 from .utils import encode_fs_path, encode_string
 
@@ -286,10 +286,10 @@ class Config:
         check_error(err)
 
     def get_bool(self, name: str | bytes) -> bool:
-        """Obtain the first value found for a config var with name ``name`` as a boolean.
+        """Obtain the last value found for a config var with name ``name`` as a boolean.
 
         Looks for a config var with name ``name`` and returns its value as a ``bool``.
-        If the config var found is a multivar, only the first value is returned. If you
+        If the config var found is a multivar, only the last value is returned. If you
         need all the values of a multivar, use :meth:`Config.parse_bool` on each
         value returned by :meth:`Config.get_multivar`, instead.
 
@@ -297,8 +297,8 @@ class Config:
         :class:`pygit2.enums.ConfigLevel` is searched first, and then the next-highest
         level, and so on.
 
-        Truthy values are: 'true', '1', 'on', 'yes', or an empty value / ``NULL``.
-        Falsy values are: 'false', '0', 'off', or 'no'.
+        Truthy values are: 'true', '1', 'on', 'yes', or ``NULL``.
+        Falsy values are: 'false', '0', 'off', 'no', or an empty value.
 
         :param name: The name of the config var to look for.
 
@@ -314,10 +314,10 @@ class Config:
         return self.parse_bool(entry.value)
 
     def get_int(self, name: bytes | str) -> int:
-        """Obtain the first value found for a config var with name ``name`` as an integer.
+        """Obtain the last value found for a config var with name ``name`` as an integer.
 
         Looks for a config var with name ``name`` and returns its value as an ``int``.
-        If the config var found is a multivar, only the first value is returned. If you
+        If the config var found is a multivar, only the last value is returned. If you
         need all the values of a multivar, use :meth:`Config.parse_int` on each
         value returned by :meth:`Config.get_multivar`, instead.
 
@@ -325,8 +325,9 @@ class Config:
         :class:`pygit2.enums.ConfigLevel` is searched first, and then the next-highest
         level, and so on.
 
-        A value can have a suffix 'k', 'm', or 'g' which stand for 'kilo',
-        'mega', and 'giga', respectively.
+        A value can have a suffix 'k', 'm', or 'g' (lower or upper case) which stand for
+        'kilo', 'mega', and 'giga', respectively. The values are calculated with powers
+        of 2, not powers of 10.
 
         :param name: The name of the config var to look for.
 
@@ -370,8 +371,8 @@ class Config:
         """Parses the provided string ``text`` as a boolean value according to
         Git config parsing rules.
 
-        Truthy values are: 'true', '1', 'on', 'yes', or an empty value / ``NULL``.
-        Falsy values are: 'false', '0', 'off', or 'no'.
+        Truthy values are: 'true', '1', 'on', 'yes', or ``NULL``.
+        Falsy values are: 'false', '0', 'off', 'no', or an empty value.
 
         :param text: The string to convert.
 
@@ -383,7 +384,16 @@ class Config:
         """
         res = ffi.new('int *')
         err = C.git_config_parse_bool(res, encode_string(text))
-        check_error(err)
+
+        try:
+            check_error(err)
+        except GitError as e:
+            if err == -1 and len(e.args) > 1 and e.args[1] == C.GIT_ERROR_CONFIG:
+                # git_config_parse_bool returns a generic error code with class
+                # GIT_ERROR_CONFIG if the value passed is not valid. Make that a
+                # ValueError to be Pythonic.
+                raise ValueError(e.args[0])
+            raise
 
         return res[0] != 0
 
@@ -392,8 +402,9 @@ class Config:
         """Parses the provided string ``text`` as an integer value according to
         Git config parsing rules.
 
-        A value can have a suffix 'k', 'm', or 'g' which stand for 'kilo',
-        'mega', and 'giga', respectively.
+        A value can have a suffix 'k', 'm', or 'g' (lower or upper case) which stand for
+        'kilo', 'mega', and 'giga', respectively. The values are calculated with powers
+        of 2, not powers of 10.
 
         :param text: The string to convert.
 
@@ -408,7 +419,16 @@ class Config:
 
         res = ffi.new('int64_t *')
         err = C.git_config_parse_int64(res, encode_string(text))
-        check_error(err)
+
+        try:
+            check_error(err)
+        except GitError as e:
+            if err == -1 and len(e.args) > 1 and e.args[1] == C.GIT_ERROR_CONFIG:
+                # git_config_parse_int64 returns a generic error code with class
+                # GIT_ERROR_CONFIG if the value passed is not valid. Make that a
+                # ValueError to be Pythonic.
+                raise ValueError(e.args[0])
+            raise
 
         return res[0]
 
@@ -534,3 +554,15 @@ class ConfigEntry:
         :raises UnicodeDecodeError: If the value cannot be UTF-8 decoded.
         """
         return self._raw_value.decode('utf-8') if self._raw_value is not None else None
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ConfigEntry):
+            return False
+        return (
+            self._raw_level == other._raw_level
+            and self._raw_name == other.raw_name
+            and self._raw_value == other.raw_value
+        )
+
+    def __hash__(self) -> int:
+        return hash((self._raw_level, self._raw_name, self._raw_value))
