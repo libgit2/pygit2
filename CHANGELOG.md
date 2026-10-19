@@ -1,5 +1,7 @@
 # 1.21.0 (UNRELEASED)
 
+- Add support for Python 3.15
+
 - Fix custom ODB backends: acquire the GIL when calling back into Python,
   and fix `write_cb`'s type argument
   [#1496](https://github.com/libgit2/pygit2/pull/1496)
@@ -14,7 +16,6 @@
 
 - Wheels: build the bundled libgit2 and libssh2 in Release mode instead of Debug
   [#1497](https://github.com/libgit2/pygit2/pull/1497)
-
 
 # 1.20.1 (2026-09-12)
 

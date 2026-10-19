@@ -35,6 +35,7 @@ environment.LIBGIT2_SRC = "build/libgit2_src"
 environment.LIBGIT2_VERSION = "1.9.7"
 before-all = "powershell -File build.ps1"
 before-build = ""
+repair-wheel-command = ""
 
 [[tool.cibuildwheel.overrides]]
 select="*-win_amd64"
