@@ -257,8 +257,7 @@ The `cibuildwheel` configuration in `pyproject.toml` pins:
 
 and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le`,
 `*-*linux_riscv64` and `pp*-macosx_arm64`. On Windows it uses the
-`Visual Studio 18 2026` CMake generator for x64/x86 and
-`Visual Studio 17 2022` for ARM64.
+`Visual Studio 18 2026` CMake generator for x64/x86 and ARM64.
 
 ## Security Considerations
 
