@@ -48,10 +48,6 @@ works_in_linux = pytest.mark.xfail(
 
 @utils.requires_network
 @works_in_linux
-@pytest.mark.skipif(
-    sys.platform == 'darwin',
-    reason='non-unicode branch names are not supported on macOS',
-)
 def test_nonunicode_branchname(testrepo: Repository, tmp_path: Path) -> None:
     folderpath = tmp_path / 'temp_repo_nonutf'
     if folderpath.exists():
@@ -67,10 +63,6 @@ def test_nonunicode_branchname(testrepo: Repository, tmp_path: Path) -> None:
 
 
 @works_in_linux
-@pytest.mark.skipif(
-    sys.platform == 'darwin',
-    reason='non-unicode status paths are not supported on macOS',
-)
 def test_nonunicode_status_path(tmp_path: Path) -> None:
     repo = pygit2.init_repository(str(tmp_path / 'repo'), bare=False)
     path_bytes = 'éléphant'.encode('latin1')
