@@ -51,7 +51,7 @@ def test_config(config: Config) -> None:
 def test_global_config() -> None:
     try:
         assert Config.get_global_config() is not None
-    except IOError as e:
+    except OSError as e:
         settings = Settings()
         pytest.skip(f'Unavailable for testing with home dir = {settings.homedir}: {e}')
 
@@ -59,7 +59,7 @@ def test_global_config() -> None:
 def test_system_config() -> None:
     try:
         assert Config.get_system_config() is not None
-    except IOError as e:
+    except OSError as e:
         pytest.skip(f'Unavailable for testing: {e}')
 
 

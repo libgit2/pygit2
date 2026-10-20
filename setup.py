@@ -26,9 +26,9 @@
 # mypy: disable-error-code="import-not-found, import-untyped"
 
 # Import setuptools before distutils to avoid user warning
+import logging
 import os
 import sys
-from distutils import log  # type: ignore[attr-defined]
 from distutils.command.build import build
 from distutils.command.sdist import sdist
 from pathlib import Path
@@ -42,15 +42,15 @@ from _build import __version__, get_libgit2_paths
 
 del sys.path[0]
 
+log = logging.getLogger(__name__)
+
 
 libgit2_bin, libgit2_kw = get_libgit2_paths()
 
 
 class sdist_files_from_git(sdist):
     def get_file_list(self) -> None:
-        popen = Popen(
-            ['git', 'ls-files'], stdout=PIPE, stderr=PIPE, universal_newlines=True
-        )
+        popen = Popen(['git', 'ls-files'], stdout=PIPE, stderr=PIPE, text=True)
         stdoutdata, stderrdata = popen.communicate()
         if popen.returncode != 0:
             print(stderrdata)
@@ -118,7 +118,7 @@ class BuildWithDLLs(build):
                     ret.append((f, target))
                     break
             else:
-                log.warn(f'Could not find required DLL {dll} to include')
+                log.warning(f'Could not find required DLL {dll} to include')
                 log.debug(f'(looked in {look_dirs})')
         return ret
 

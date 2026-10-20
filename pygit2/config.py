@@ -24,13 +24,9 @@
 # Boston, MA 02110-1301, USA.
 
 from collections.abc import Callable, Iterator
+from functools import cached_property
 from os import PathLike
 from typing import TYPE_CHECKING, Any, Optional, Self
-
-try:
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property  # type: ignore
 
 # Import from pygit2
 from .enums import ConfigLevel

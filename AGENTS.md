@@ -69,7 +69,6 @@ modules:
   also copies `git2.dll` into the package (see `BuildWithDLLs`).
 - **`pyproject.toml`** — Build-system requirements, `cibuildwheel`
   configuration, `ruff` settings, and `codespell` settings.
-- **`setup.cfg`** — Legacy pycodestyle configuration.
 - **`pytest.ini`** — pytest configuration (`--capture=no -ra --verbose`,
   `testpaths = test/`).
 - **`mypy.ini`** — mypy configuration with strict settings.

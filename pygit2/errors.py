@@ -105,7 +105,7 @@ def check_error(
 
     if err == C.GIT_ENOTFOUND:
         if io:
-            raise IOError(message)
+            raise OSError(message)
 
         raise NotFoundError(message)
 
