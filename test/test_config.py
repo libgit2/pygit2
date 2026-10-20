@@ -28,7 +28,14 @@ from pathlib import Path
 
 import pytest
 
-from pygit2 import Config, Repository, Settings
+from pygit2 import (
+    Config,
+    DefaultConfig,
+    GitError,
+    Repository,
+    RepositoryConfig,
+    Settings,
+)
 from pygit2.config import ConfigEntry
 
 from . import utils
@@ -40,7 +47,7 @@ def config_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def config(testrepo: Repository) -> Generator[Config, None, None]:
+def config(testrepo: Repository) -> Generator[RepositoryConfig, None, None]:
     yield testrepo.config
 
 
@@ -63,6 +70,12 @@ def test_system_config() -> None:
         pytest.skip(f'Unavailable for testing: {e}')
 
 
+def test_default_config() -> None:
+    # this shouldn't throw, even if get_global_config and git_system_config don't find configs
+    config = DefaultConfig()
+    assert 'pygit2.test.default.config' not in config
+
+
 def test_new(config_path: Path) -> None:
     # Touch file
     config_path.touch()
@@ -80,17 +93,35 @@ def test_new(config_path: Path) -> None:
     assert config_read['core.editor'] == 'ed'
 
 
-def test_add(config_path: Path) -> None:
+def test_add(
+    config_path: Path,
+    config: RepositoryConfig,
+) -> None:
     with open(config_path, 'w') as new_file:
         new_file.write('[this]\n\tthat = true\n')
         new_file.write('[something "other"]\n\there = false')
 
-    config = Config()
-    config.add_file(config_path, 0)
-    assert 'this.that' in config
-    assert config.get_bool('this.that')
-    assert 'something.other.here' in config
-    assert not config.get_bool('something.other.here')
+    local_config = Config()
+    local_config.add_file(config_path, 0)
+    assert 'this.that' in local_config
+    assert local_config.get_bool('this.that')
+    assert 'something.other.here' in local_config
+    assert not local_config.get_bool('something.other.here')
+
+    utils.assertRaisesWithArg(
+        TypeError,
+        'The local repository configuration does not support adding files.',
+        config.add_file,
+        config_path,
+    )
+
+    default_config = DefaultConfig()
+    utils.assertRaisesWithArg(
+        TypeError,
+        'The default configuration does not support adding files.',
+        default_config.add_file,
+        config_path,
+    )
 
 
 def test_add_aspath(config_path: Path) -> None:
@@ -291,7 +322,8 @@ def test_parsing() -> None:
         Config.parse_int('not a number')
 
 
-def test_repository_config_snapshot(config: Config) -> None:
+def test_repository_config_snapshot(config: RepositoryConfig) -> None:
+    assert not config.is_snapshot
     assert 'core.bare' in config
     assert not config.get_bool('core.bare')
     assert 'core.editor' in config
@@ -300,12 +332,27 @@ def test_repository_config_snapshot(config: Config) -> None:
     assert config.get_int('core.repositoryformatversion') == 0
 
     snapshot = config.snapshot()
+    assert not config.is_snapshot
+    assert snapshot.is_snapshot
     assert 'core.bare' in snapshot
     assert not snapshot.get_bool('core.bare')
     assert 'core.editor' in snapshot
     assert snapshot['core.editor'] == 'ed'
     assert 'core.repositoryformatversion' in snapshot
     assert snapshot.get_int('core.repositoryformatversion') == 0
+    utils.assertRaisesWithArg(
+        GitError,
+        "cannot set 'something.other.changed': the configuration is read-only",
+        snapshot.set_multivar,
+        'something.other.changed',
+        '^$',
+        'foo',
+    )
+    utils.assertRaisesWithArg(
+        TypeError,
+        'This repository config is already a snapshot.',
+        snapshot.snapshot,
+    )
 
     assert 'core.snapshot1' not in config
     assert 'core.snapshot1' not in snapshot
@@ -326,16 +373,32 @@ def test_non_repository_config_snapshot(config_path: Path) -> None:
         new_file.write('[something "other"]\n\there = false')
 
     config = Config(config_path)
+    assert not config.is_snapshot
     assert 'this.that' in config
     assert config.get_bool('this.that')
     assert 'something.other.here' in config
     assert not config.get_bool('something.other.here')
 
     snapshot = config.snapshot()
+    assert not config.is_snapshot
+    assert snapshot.is_snapshot
     assert 'this.that' in snapshot
     assert snapshot.get_bool('this.that')
     assert 'something.other.here' in snapshot
     assert not snapshot.get_bool('something.other.here')
+    utils.assertRaisesWithArg(
+        GitError,
+        "cannot set 'something.other.changed': the configuration is read-only",
+        snapshot.set_multivar,
+        'something.other.changed',
+        '^$',
+        'foo',
+    )
+    utils.assertRaisesWithArg(
+        TypeError,
+        'This config is already a snapshot.',
+        snapshot.snapshot,
+    )
 
     assert 'this.snapshot1' not in config
     assert 'this.snapshot1' not in snapshot
@@ -347,4 +410,25 @@ def test_non_repository_config_snapshot(config_path: Path) -> None:
         KeyError,
         'this.snapshot1',
         lambda: snapshot.get_int('this.snapshot1'),
+    )
+
+
+def test_default_config_snapshot() -> None:
+    config = DefaultConfig()
+    assert not config.is_snapshot
+    snapshot = config.snapshot()
+    assert not config.is_snapshot
+    assert snapshot.is_snapshot
+    utils.assertRaisesWithArg(
+        GitError,
+        "cannot set 'something.other.changed': the configuration is read-only",
+        snapshot.set_multivar,
+        'something.other.changed',
+        '^$',
+        'foo',
+    )
+    utils.assertRaisesWithArg(
+        TypeError,
+        'This default config is already a snapshot.',
+        snapshot.snapshot,
     )
