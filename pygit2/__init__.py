@@ -301,7 +301,11 @@ from .callbacks import (
     git_fetch_options,
     git_proxy_options,
 )
-from .config import Config
+from .config import (
+    Config,
+    DefaultConfig,
+    RepositoryConfig,
+)
 from .credentials import *
 from .errors import (
     AlreadyExistsError,
@@ -606,6 +610,7 @@ __all__ = (
     'Branch',
     'CertificateError',
     'Commit',
+    'DefaultConfig',
     'Diff',
     'DiffDelta',
     'DiffFile',
@@ -941,6 +946,7 @@ __all__ = (
     'Remote',
     'repository',
     'Repository',
+    'RepositoryConfig',
     'branches',
     'references',
     'settings',

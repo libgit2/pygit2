@@ -151,7 +151,7 @@ def assertRaisesWithArg(
 ) -> None:
     with pytest.raises(exc_class) as excinfo:
         func(*args, **kwargs)
-    assert excinfo.value.args == (arg,)
+    assert excinfo.value.args == (arg,), f'{excinfo.value.args!r} != {(arg,)!r}'
 
     # Explicitly clear the Exception Info. Citing
     # https://docs.pytest.org/en/latest/reference.html#pytest-raises:

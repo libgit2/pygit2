@@ -49,6 +49,7 @@ int git_config_delete_multivar(git_config *cfg, const char *name, const char *re
 int git_config_new(git_config **out);
 int git_config_snapshot(git_config **out, git_config *config);
 int git_config_open_ondisk(git_config **out, const char *path);
+int git_config_open_default(git_config **out);
 int git_config_find_system(git_buf *out);
 int git_config_find_global(git_buf *out);
 int git_config_find_xdg(git_buf *out);

@@ -22,11 +22,12 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
+from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 from functools import cached_property
 from os import PathLike
-from typing import TYPE_CHECKING, Any, Optional, Self
+from typing import TYPE_CHECKING, Any, NoReturn, Self, overload
 
 # Import from pygit2
 from .enums import ConfigLevel
@@ -35,7 +36,12 @@ from .ffi import C, ffi
 from .utils import encode_fs_path, encode_string
 
 if TYPE_CHECKING:
-    from ._libgit2.ffi import GitConfigC, GitConfigEntryC, GitConfigIteratorC
+    from ._libgit2.ffi import (
+        GitConfigC,
+        GitConfigEntryC,
+        GitConfigIteratorC,
+        GitRepositoryC,
+    )
     from .repository import BaseRepository
 
 
@@ -109,9 +115,9 @@ class Config:
     the constructor or by using one of the static methods
     :meth:`Config.get_system_config`, :meth:`Config.get_global_config`, or
     :meth:`Config.get_xdg_config`. Additional files can be loaded into the
-    `Config` object using :meth:`Config.add_file`.
+    ``Config`` object using :meth:`Config.add_file`.
 
-    Changes made to the configuration with :meth:`Config.set_multivar` are
+    Changes made to the configuration with one of the mutator methods are
     immediately persisted to disk. Reads performed with accessor methods like
     :meth:`Config.get_multivar` or :meth:`Config.__getitem__` may result in
     reading from different versions of the configuration file if this or
@@ -121,53 +127,129 @@ class Config:
     is especially important when iterating, as the contents of the config
     might change mid-iteration if you don't use a snapshot.
 
+    Some ``Config`` objects may be backed by multiple files/backends, such as
+    if you call :meth:`Config.add_file` with different levels or construct
+    one of :class:`DefaultConfig` or :class:`RepositoryConfig`. In this case,
+    read operations begin at the backend with the highest
+    :class:`pygit2.enums.ConfigLevel` and proceed down one level at a time,
+    and write operations affect only the highest-level non-read-only backend.
+
     This class can technically be used to manually read and write a repository's
-    configuration file by pointing the constructor to the repository's
+    local configuration by pointing the constructor to the repository's
     ``.git/config`` file, but this is not recommended. The resulting ``Config``
     object represents only the configuration directly within ``.git/config``.
     It does not represent the total effective configuration for that repository
-    that includes the combined system, global (user), and global (user) XDG.
-    Instead, use :meth:`BaseRepository.config` for loading a repository's
-    configuration.
+    that includes the combined program, system, XDG, global (user), and local
+    configurations. Instead, use :meth:`pygit2.repository.BaseRepository.config`
+    or :meth:`pygit2.repository.BaseRepository.config_snapshot` for loading a
+    local configuration and see :class:`RepositoryConfig` for special behaviors
+    supported by the local configuration.
+
+    For the non-repository global configuration used by Git during operations
+    not involving an existing repository (such as cloning), see
+    :class:`DefaultConfig`.
     """
 
-    _repo: Optional['BaseRepository']
     _config: 'GitConfigC'
 
-    def __init__(self, path: PathLike | str | None = None) -> None:
+    @overload
+    def __init__(self, /) -> None:
+        """Constructs a new, empty ``Config`` object pointing to no file.
+
+        To make changes to this ``Config`` object, you must use :meth:`Config.add_file`.
+        """
+        ...
+
+    @overload
+    def __init__(self, path: PathLike | str, /) -> None:
+        """Constructs a ``Config`` object backed by the specified file.
+
+        The configuration from the specified file is loaded, and subsequent writes
+        will persist to that file. The file backend is assigned
+        :attr:`pygit2.enums.ConfigLevel.LOCAL`. Additional files can be added to the
+        config, with different levels, using :meth:`Config.add_file`.
+
+        :param path: The path to the configuration file to load as a string or path-like
+                     value.
+        :raises IOError: If the path specified does not exist or could not be opened.
+        """
+        ...
+
+    @overload
+    def __init__(self, *, c_config: 'GitConfigC', is_snapshot: bool) -> None:
+        """For internal use only.
+
+        Constructs a ``Config`` object from a config object pointer.
+        """
+        ...
+
+    def __init__(
+        self,
+        path: PathLike | str | None = None,
+        *,
+        c_config: 'GitConfigC | None' = None,
+        is_snapshot: bool = False,
+    ) -> None:
+        """Constructs a ``Config`` object.
+
+        **Overload 1: __init__()**
+
+        Constructs a new, empty ``Config`` object pointing to no file. To make changes
+        to this ``Config`` object, you must use :meth:`Config.add_file`.
+
+        **Overload 2: __init__(path)**
+
+        The configuration from the specified file is loaded, and subsequent writes
+        will persist to that file. The file backend is assigned
+        :attr:`pygit2.enums.ConfigLevel.LOCAL`. Additional files can be added to the
+        config, with different levels, using :meth:`Config.add_file`.
+
+        :param path: The path to the configuration file to load as a string or path-like
+                     value.
+        :raises IOError: If the path specified does not exist or could not be opened.
+
+        **Overload 3: __init__(c_config, is_snapshot)**
+
+        For internal use only.
+        """
+        # ^^ see https://github.com/sphinx-doc/sphinx/issues/7787
+        if path is not None and c_config is not None:
+            raise ValueError('Cannot initialize Config from both path and c_config')
+
+        self._is_snapshot = is_snapshot
         self._stored_exception: BaseException | None = None
 
-        cconfig = ffi.new('git_config **')
-
-        if not path:
-            err = C.git_config_new(cconfig)
+        if c_config is not None:
+            self._c_config = c_config
         else:
-            path_bytes = encode_fs_path(path)
-            err = C.git_config_open_ondisk(cconfig, path_bytes)
+            c_config_ptr = ffi.new('git_config **')
 
-        check_error(err, io=True)
-        self._repo = None
-        self._config = cconfig[0]
+            if not path:
+                err = C.git_config_new(c_config_ptr)
+            else:
+                path_bytes = encode_fs_path(path)
+                err = C.git_config_open_ondisk(c_config_ptr, path_bytes)
 
-    @classmethod
-    def from_c(cls, repo: Optional['BaseRepository'], ptr: 'GitConfigC') -> 'Config':
-        config = cls.__new__(cls)
-        config._repo = repo
-        config._config = ptr
-
-        return config
+            check_error(err, io=True)
+            self._c_config = c_config_ptr[0]
 
     def __del__(self) -> None:
         try:
-            C.git_config_free(self._config)
+            C.git_config_free(self._c_config)
         except AttributeError:
             pass
+
+    def _check_error(self, err: int, io: bool = False):
+        try:
+            check_error(err, io=io, user_exception=self._stored_exception)
+        finally:
+            self._stored_exception = None
 
     def _get(self, name: str | bytes) -> tuple[int, 'ConfigEntry | None']:
         name = str_to_bytes(name, 'name')
 
         c_entry_ptr = ffi.new('git_config_entry **')
-        err = C.git_config_get_entry(c_entry_ptr, self._config, name)
+        err = C.git_config_get_entry(c_entry_ptr, self._c_config, name)
 
         if err >= 0:
             try:
@@ -177,109 +259,221 @@ class Config:
 
         return err, None
 
-    def _get_entry(self, key: str | bytes) -> 'ConfigEntry':
-        err, entry = self._get(key)
+    def _get_entry(self, name: str | bytes) -> 'ConfigEntry':
+        self._stored_exception = None
+        err, entry = self._get(name)
 
         if err == C.GIT_ENOTFOUND:
-            raise KeyError(key)
+            raise KeyError(name)
 
-        check_error(err)
+        self._check_error(err)
         assert entry is not None
         return entry
 
-    def __contains__(self, key: str | bytes) -> bool:
-        err, cstr = self._get(key)
+    def __contains__(self, name: str | bytes) -> bool:
+        """Indicates whether the configuration contains ``name``.
+
+        :param name: The name of the config var to look for.
+        :returns: ``True`` if any file/backend in this ``Config`` object contains any
+                  config var with the name ``name``, ``False`` otherwise.
+        """
+        self._stored_exception = None
+        err, _ = self._get(name)
 
         if err == C.GIT_ENOTFOUND:
             return False
 
-        check_error(err)
+        self._check_error(err)
 
         return True
 
-    def __getitem__(self, key: str | bytes) -> str | None:
+    def __getitem__(self, name: str | bytes) -> str | None:
+        """Obtain the first value found for a config var with name ``name``.
+
+        Looks for a config var with name ``name`` and returns its value as a string
+        or ``None`` if the config var exists but the value is empty. If you want to
+        apply the Git config parsing rules, use :meth:`Config.get_bool` or
+        :meth:`Config.get_int` instead of ``[name]``.
+
+        If the config var found is a multivar, only the first value is returned. To
+        obtain all values, use :meth:`Config.get_multivar` instead of ``[name]``.
+
+        If this ``Config`` is backed by multiple files/backends, the one with the highest
+        :class:`pygit2.enums.ConfigLevel` is searched first, and then the next-highest
+        level, and so on.
+
+        :param name: The name of the config var to look for.
+
+        :returns: The string value found for the config var with name ``name`` or,
+                  in the case of a valueless flag, ``None``.
+
+        :raises KeyError: If no config var with name ``name`` is found in any
+                          of this ``Config``'s files/backends.
         """
-        When using the mapping interface, the value is returned as a string. In
-        order to apply the git-config parsing rules, you can use
-        :meth:`Config.get_bool` or :meth:`Config.get_int`.
-        """
-        entry = self._get_entry(key)
+        entry = self._get_entry(name)
 
         return entry.value
 
-    def __setitem__(self, key: str | bytes, value: bool | int | str | bytes) -> None:
-        key = str_to_bytes(key, 'key')
+    def __setitem__(self, name: str | bytes, value: bool | int | str | bytes) -> None:
+        """Set the config var with name ``name`` to the specified ``value``.
 
-        err = 0
+        If this ``Config`` is backed by multiple files/backends, only the first
+        non-read-only backend with the highest :class:`pygit2.enums.ConfigLevel` is
+        changed. If that backend is a file, changes are persisted to disk immediately.
+
+        If the config var exists already, it is replaced. If it is already a multivar,
+        all values are removed in favor of this new value. If you want to add values
+        to a multivar instead of replacing them, use :meth:`Config.set_multivar` instead
+        of ``[name] = value``.
+
+        :param name: The name of the config var to set.
+        :param value: The new value to set.
+        """
+        self._stored_exception = None
+        name = str_to_bytes(name, 'name')
+
+        err: int
         if isinstance(value, bool):
-            err = C.git_config_set_bool(self._config, key, value)
+            err = C.git_config_set_bool(self._c_config, name, value)
         elif isinstance(value, int):
-            err = C.git_config_set_int64(self._config, key, value)
+            err = C.git_config_set_int64(self._c_config, name, value)
         else:
-            err = C.git_config_set_string(self._config, key, encode_string(value))
+            err = C.git_config_set_string(self._c_config, name, encode_string(value))
 
-        check_error(err)
+        self._check_error(err)
 
-    def __delitem__(self, key: str | bytes) -> None:
-        key = str_to_bytes(key, 'key')
+    def __delitem__(self, name: str | bytes) -> None:
+        """Deletes the config var with name ``name``.
 
-        err = C.git_config_delete_entry(self._config, key)
-        check_error(err)
+        If this ``Config`` is backed by multiple files/backends, only the first
+        non-read-only backend with the highest :class:`pygit2.enums.ConfigLevel` is
+        changed. If that backend is a file, changes are persisted to disk immediately.
+
+        If the config var is a multivar, all values are removed. If you want to remove
+        only some values, use :meth:`Config.delete_multivar` instead of ``del [name]``.
+
+        :param name: Name of the config var to delete.
+        :raises KeyError: If no config var with name ``name`` is found in the first
+                          non-read-only backend with the highest ``ConfigLevel``.
+        """
+        self._stored_exception = None
+        name = str_to_bytes(name, 'name')
+
+        err = C.git_config_delete_entry(self._c_config, name)
+        self._check_error(err)
 
     def __iter__(self) -> Iterator['ConfigEntry']:
-        """
-        Iterate over configuration entries, returning a ``ConfigEntry``
-        objects. These contain the name, level, and value of each configuration
+        """Iterate over configuration entries in the form of
+        :class:`pygit2.config.ConfigEntry` objects.
+
+        Creates and returns an iterator over all of the entries in this ``Config``
+        object. Entries contain the name, level, and value of each configuration
         variable. Be aware that this may return multiple versions of each entry
         if they are set multiple times in the configuration files.
-        """
-        citer = ffi.new('git_config_iterator **')
-        err = C.git_config_iterator_new(citer, self._config)
-        check_error(err)
 
-        return ConfigIterator(self, citer[0])
+        If this ``Config`` is backed by multiple files/backends, iteration begins with
+        all config vars from the backend with the highest
+        :class:`pygit2.enums.ConfigLevel` first, and then proceeds to the one with the
+        next-highest level, and so on.
+
+        :returns: An iterator over :class:`pygit2.config.ConfigEntry` objects.
+        """
+        self._stored_exception = None
+        c_iter_ptr = ffi.new('git_config_iterator **')
+        err = C.git_config_iterator_new(c_iter_ptr, self._c_config)
+        self._check_error(err)
+
+        return ConfigIterator(self, c_iter_ptr[0])
 
     def get_multivar(
-        self, name: str | bytes, regex: str | None = None
+        self,
+        name: str | bytes,
+        regex: str | None = None,
     ) -> Iterator[str | None]:
-        """Get each value of a multivar ''name'' as a list of strings.
+        """Get each value of a multivar ``name`` as an iterator of strings.
 
-        The optional ''regex'' parameter is expected to be a regular expression
-        to filter the variables we're interested in.
+        If this ``Config`` is backed by multiple files/backends, iteration begins with
+        all matching multivars from the backend with the highest
+        :class:`pygit2.enums.ConfigLevel` first, and then proceeds to the one with the
+        next-highest level, and so on.
+
+        :param name: The name of the multivar to iterate.
+        :param regex: If specified, only multivar values matching this regular expression
+                      will be iterated. The regular expression is matched case-sensitively.
+                      To iterate over all values, do not specify this argument, or use
+                      the regular expression ``r'.*'``.
+
+        :returns: An iterator of config var values, each of which will be either a
+                  string or, in the case of a valueless flag, ``None``.
+
+        :raises KeyError: If no config var with name ``name`` is found in any of the
+                          files/backends for this config.
         """
+        self._stored_exception = None
         name = str_to_bytes(name, 'name')
         regex_bytes = encode_string(regex or None)
 
-        citer = ffi.new('git_config_iterator **')
-        err = C.git_config_multivar_iterator_new(citer, self._config, name, regex_bytes)
-        check_error(err)
+        c_iter_ptr = ffi.new('git_config_iterator **')
+        err = C.git_config_multivar_iterator_new(
+            c_iter_ptr,
+            self._c_config,
+            name,
+            regex_bytes,
+        )
+        self._check_error(err)
 
-        return ConfigMultivarIterator(self, citer[0])
+        return ConfigMultivarIterator(self, c_iter_ptr[0])
 
     def set_multivar(
-        self, name: str | bytes, regex: str | bytes, value: str | bytes
+        self,
+        name: str | bytes,
+        regex: str | bytes,
+        value: str | bytes,
     ) -> None:
-        """Set a multivar ''name'' to ''value''. ''regexp'' is a regular
-        expression to indicate which values to replace. Changes are persisted
-        to the configuration file(s) backing this ``Config``.
+        """Add a ``value`` to multivar ``name``, optionally replacing other values
+        matching ``regex``.
+
+        If this ``Config`` is backed by multiple files/backends, only the first
+        non-read-only backend with the highest :class:`pygit2.enums.ConfigLevel` is
+        changed. If that backend is a file, changes are persisted to disk immediately.
+
+        :param name: The name of the multivar to set.
+        :param regex: A (required) regular expression to indicate which values to
+                      replace. It is matched case-sensitively. Values that match are
+                      removed, values that do not match are kept. To merely add
+                      without removing any values, use the regular expression ``r'^$'``.
+        :param value: The value to add to the multivar.
         """
+        self._stored_exception = None
         name = str_to_bytes(name, 'name')
         regex = str_to_bytes(regex, 'regex')
         value = str_to_bytes(value, 'value')
 
-        err = C.git_config_set_multivar(self._config, name, regex, value)
-        check_error(err)
+        err = C.git_config_set_multivar(self._c_config, name, regex, value)
+        self._check_error(err)
 
     def delete_multivar(self, name: str | bytes, regex: str | bytes) -> None:
-        """Delete a multivar ''name''. ''regexp'' is a regular expression to
-        indicate which values to delete. Changes are persisted to the
-        configuration file(s) backing this ``Config``.
+        """Delete values from a multivar with name ``name``.
+
+        If this ``Config`` is backed by multiple files/backends, only the first
+        non-read-only backend with the highest :class:`pygit2.enums.ConfigLevel` is
+        changed. If that backend is a file, changes are persisted to disk immediately.
+
+        :param name: The name of the multivar to delete.
+        :param regex: A (required) regular expression to indicate which values to
+                      delete. It is matched case-sensitively. To delete all values of
+                      the multivar, use the regular expression ``r'.*'`` or,
+                      alternatively, ``del config[name]``.
+
+        :raises KeyError: If no config var with name ``name`` is found in the first
+                          non-read-only backend with the highest ``ConfigLevel``.
         """
+        self._stored_exception = None
         name = str_to_bytes(name, 'name')
         regex = str_to_bytes(regex, 'regex')
 
-        err = C.git_config_delete_multivar(self._config, name, regex)
-        check_error(err)
+        err = C.git_config_delete_multivar(self._c_config, name, regex)
+        self._check_error(err)
 
     def get_bool(self, name: str | bytes) -> bool:
         """Obtain the last value found for a config var with name ``name`` as a boolean.
@@ -306,6 +500,7 @@ class Config:
         :raises ValueError: If the value does not match one of the expected truthy
                             or falsy values.
         """
+        self._stored_exception = None
         entry = self._get_entry(name)
         return self.parse_bool(entry.value)
 
@@ -335,28 +530,83 @@ class Config:
         :raises ValueError: If the value is ``None`` or empty or otherwise does not
                             match the ``git_config_parse_int64`` parsing rules.
         """
+        self._stored_exception = None
         entry = self._get_entry(name)
         return self.parse_int(entry.value)
 
-    def add_file(self, path: str | PathLike, level: int = 0, force: int = 0) -> None:
-        """Add a config file instance to an existing config."""
+    def add_file(
+        self,
+        path: str | PathLike,
+        level: ConfigLevel | int | None = None,
+        force: bool | int = False,
+    ) -> None:
+        """Add a config file backend to this ``Config`` object.
+
+        In a multi-backend ``Config`` object, write operations occur only against
+        the first non-read-only backend with the highest
+        :class:`pygit2.enums.ConfigLevel`, and read operations start with the backend
+        with the highest :class:`pygit2.enums.ConfigLevel` and continue down through
+        lower backends. Keep this in mind when choosing the value for ``level``.
+
+        :param path: The path of the config file to add.
+        :param level: The config level for the new file backend. If not specified, the
+                      special value "0" is used. This makes this new file the
+                      lowest-priority backend of all, superseded by all other backends
+                      in this config.
+        :param force: If another backend (of any kind) with the same level already
+                      exists, that backend will be replaced if ``force`` is ``True`` or
+                      1, otherwise a ``ValueError`` will be raised.
+
+        :raises ValueError: If another backend with the same level already exists and
+                            ``force`` was not specified or was ``False`` or 0.
+        """
+        self._stored_exception = None
+        if level is None:
+            level = 0
+        elif isinstance(level, ConfigLevel):
+            level = level.value
+
+        if force is True:
+            force = 1
+        elif force is False:
+            force = 0
 
         err = C.git_config_add_file_ondisk(
-            self._config, encode_fs_path(path), level, ffi.NULL, force
+            self._c_config,
+            encode_fs_path(path),
+            level,
+            ffi.NULL,
+            force,
         )
-        check_error(err)
+        self._check_error(err)
 
-    def snapshot(self) -> 'Config':
-        """Create a snapshot from this ``Config`` object.
+    @property
+    def is_snapshot(self) -> bool:
+        """Indicates whether this Config object is a read-only snapshot
+        of the underlying configuration.
+
+        :returns: ``True`` if it's a read-only snapshot, ``False`` otherwise.
+        """
+        return self._is_snapshot
+
+    def snapshot(self) -> Config:
+        """Create a read-only snapshot of this ``Config`` object.
 
         This means that looking up multiple values will use the same version
         of the configuration files.
-        """
-        ccfg = ffi.new('git_config **')
-        err = C.git_config_snapshot(ccfg, self._config)
-        check_error(err)
 
-        return Config.from_c(self._repo, ccfg[0])
+        :raises TypeError: If this is already a snapshot.
+        """
+        if self._is_snapshot:
+            raise TypeError('This config is already a snapshot.')
+        return Config(c_config=self._c_snapshot(), is_snapshot=True)
+
+    def _c_snapshot(self) -> 'GitConfigC':
+        self._stored_exception = None
+        c_config_ptr = ffi.new('git_config **')
+        err = C.git_config_snapshot(c_config_ptr, self._c_config)
+        self._check_error(err)
+        return c_config_ptr[0]
 
     #
     # Methods to parse a string according to the git-config rules
@@ -448,6 +698,8 @@ class Config:
 
         The system configuration file is the one found at ``/etc/gitconfig`` or
         ``%PROGRAMFILES%\\Git\\etc\\gitconfig``, depending on the operating system.
+
+        :raises IOError: If the configuration file is not found.
         """
         return Config._from_found_config(C.git_config_find_system)
 
@@ -459,6 +711,8 @@ class Config:
         location for Git, which is ``$HOME/.gitconfig``. This will not find the file
         at the XDG-compatible user config file location (for that, see
         :meth:`Config.get_xdg_config`).
+
+        :raises IOError: If the configuration file is not found.
         """
         return Config._from_found_config(C.git_config_find_global)
 
@@ -469,8 +723,199 @@ class Config:
         The XDG-compatible user config file follows the XDG Base Directory Specification.
         This file is located at ``$HOME/.config/git/config``. This will not find the file
         at the standard user config location (for that, see :meth:`Config.get_global_config`).
+
+        :raises IOError: If the configuration file is not found.
         """
         return Config._from_found_config(C.git_config_find_xdg)
+
+
+class DefaultConfig(Config):
+    """A special-case :class:`Config` extension representing the total default
+    configuration.
+
+    This extension to the base ``Config`` class represents the total default configuration
+    outside the context of a repository (for that, see :class:`RepositoryConfig`). It also
+    serves as a semantic indicator of the scope of the configuration.
+
+    The ``DefaultConfig`` includes the program, system, XDG, and global (user)
+    configurations. This is, in essence, the "effective" configuration that Git uses when
+    performing operations that are not against a repository. When a read operation occurs,
+    the configurations are searched in the following order: global (user), XDG, system,
+    and then program data.
+    """
+
+    @overload
+    def __init__(self, /) -> None:
+        """Load the total default configuration and construct a ``DefaultConfig``
+        from it.
+        """
+        ...
+
+    @overload
+    def __init__(self, *, snapshot_of: DefaultConfig) -> None:
+        """For internal use only.
+
+        Constructs a ``DefaultConfig`` from a given snapshot config object pointer.
+        The resulting configuration will be read-only.
+        """
+        ...
+
+    def __init__(self, *, snapshot_of: DefaultConfig | None = None) -> None:
+        """Constructs a ``DefaultConfig`` object.
+
+        **Overload 1: __init__()**
+
+        Loads the total default configuration.
+
+        **Overload 2: __init__(c_snapshot)**
+
+        For internal use only.
+        """
+        if snapshot_of is not None:
+            super().__init__(
+                c_config=snapshot_of._c_snapshot(),
+                is_snapshot=True,
+            )
+        else:
+            c_config_ptr = ffi.new('git_config **')
+            err = C.git_config_open_default(c_config_ptr)
+            check_error(err)
+            super().__init__(c_config=c_config_ptr[0], is_snapshot=False)
+
+    def snapshot(self) -> DefaultConfig:
+        """Create a read-only snapshot of this ``DefaultConfig`` object.
+
+        This means that looking up multiple values will use the same version
+        of the configuration files.
+
+        :raises TypeError: If this is already a snapshot.
+        """
+        if self._is_snapshot:
+            raise TypeError('This default config is already a snapshot.')
+        return DefaultConfig(snapshot_of=self)
+
+    def add_file(
+        self,
+        path: str | PathLike,
+        level: ConfigLevel | int | None = None,
+        force: bool | int = False,
+    ) -> NoReturn:
+        """
+        :raises TypeError: The default configuration does not support adding files.
+        """
+        raise TypeError('The default configuration does not support adding files.')
+
+
+class RepositoryConfig(Config):
+    """A special-case :class:`Config` extension that handles local (repository)
+    configuration.
+
+    This extension to the base ``Config`` class handles some of the special behaviors
+    associated with repository configs, as well as serving as a semantic indicator for
+    the scope of the configuration. You should not construct it directly, but instead
+    use one of :meth:`pygit2.repository.BaseRepository.config` or
+    :meth:`pygit2.repository.BaseRepository.config_snapshot` to obtain the local
+    configuration.
+
+    The ``RepositoryConfig`` represents not just the configuration present in
+    ``.git/config``, but the sum total of that plus the program, system, XDG, and global
+    (user) configurations. This is, in essence, the "effective" configuration that Git
+    uses when performing operations against this repository. When a read operation
+    occurs, the local configuration is searched first, then the global (user), XDG,
+    system, and finally program data configurations, in that order. When a write
+    operation occurs, only the local configuration is changed.
+    """
+
+    @overload
+    def __init__(
+        self,
+        repo: 'BaseRepository',
+        c_repo: 'GitRepositoryC',
+        *,
+        do_snapshot: bool = False,
+    ) -> None:
+        """For internal use only.
+
+        See :meth:`pygit2.repository.BaseRepository.config` for obtaining a repository
+        configuration or :meth:`pygit2.repository.BaseRepository.config_snapshot` for
+        obtaining a snapshot.
+
+        Constructs a new ``RepositoryConfig`` from the given repository.
+
+        If ``do_snapshot`` is ``True`` (defaults to ``False``), a read-only snapshot
+        configuration will be created from the repository. Otherwise, a writeable
+        configuration will be created.
+        """
+        ...
+
+    @overload
+    def __init__(
+        self,
+        repo: 'BaseRepository',
+        c_repo: 'GitRepositoryC',
+        *,
+        snapshot_of: RepositoryConfig,
+    ) -> None:
+        """For internal use only.
+
+        See :meth:`pygit2.repository.BaseRepository.config_snapshot` for obtaining a
+        repository configuration snapshot.
+
+        Constructs a ``RepositoryConfig`` from a given snapshot config object pointer.
+        The resulting configuration will be read-only.
+        """
+        ...
+
+    def __init__(
+        self,
+        repo: 'BaseRepository',
+        c_repo: 'GitRepositoryC',
+        *,
+        do_snapshot: bool = False,
+        snapshot_of: RepositoryConfig | None = None,
+    ) -> None:
+        """Constructs a ``RepositoryConfig`` object. For internal use only."""
+        self._repo = repo
+        self._c_repo = c_repo
+        if snapshot_of is not None:
+            super().__init__(
+                c_config=snapshot_of._c_snapshot(),
+                is_snapshot=True,
+            )
+        else:
+            c_config_ptr = ffi.new('git_config **')
+            if do_snapshot:
+                err = C.git_repository_config_snapshot(c_config_ptr, self._c_repo)
+            else:
+                err = C.git_repository_config(c_config_ptr, self._c_repo)
+            check_error(err)
+            super().__init__(c_config=c_config_ptr[0], is_snapshot=do_snapshot)
+
+    def snapshot(self) -> RepositoryConfig:
+        """Create a read-only snapshot of this ``RepositoryConfig`` object.
+
+        This means that looking up multiple values will use the same version
+        of the configuration files. The resulting ``RepositoryConfig`` cannot be
+        used as a context manager, because it is read-only.
+
+        :raises TypeError: If this is already a snapshot.
+        """
+        if self._is_snapshot:
+            raise TypeError('This repository config is already a snapshot.')
+        return RepositoryConfig(self._repo, self._c_repo, snapshot_of=self)
+
+    def add_file(
+        self,
+        path: str | PathLike,
+        level: ConfigLevel | int | None = None,
+        force: bool | int = False,
+    ) -> NoReturn:
+        """
+        :raises TypeError: The local repository configuration does not support adding files.
+        """
+        raise TypeError(
+            'The local repository configuration does not support adding files.',
+        )
 
 
 class ConfigEntry:
@@ -552,6 +997,15 @@ class ConfigEntry:
         return self._raw_value.decode('utf-8') if self._raw_value is not None else None
 
     def __eq__(self, other: Any) -> bool:
+        """Tests whether this entry equals the other value.
+
+        Two ``ConfigEntry`` objects are considered equal if they have the same values
+        for ``raw_level``, ``raw_name``, and ``raw_value``.
+
+        If the other value is not a ``ConfigEntry``, this returns ``NotImplemented``.
+
+        :returns: Whether ``other`` equals this entry.
+        """
         if not isinstance(other, ConfigEntry):
             return NotImplemented
         return (
@@ -561,4 +1015,9 @@ class ConfigEntry:
         )
 
     def __hash__(self) -> int:
+        """Computes a hash for this entry.
+
+        The hash is a combination of the hash of the ``raw_level``, ``raw_name``,
+        and ``raw_value``.
+        """
         return hash((self._raw_level, self._raw_name, self._raw_value))
