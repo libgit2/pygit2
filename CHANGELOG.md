@@ -3,6 +3,10 @@
 - Add support for Python 3.15
   [#1498](https://github.com/libgit2/pygit2/pull/1498)
 
+- New `Config` subclasses: `DefaultConfig` for the default configuration and
+  `RepositoryConfig` for repository configurations
+  [#1501](https://github.com/libgit2/pygit2/pull/1501)
+
 - Fix `ConfigEntry` retaining `git_config_entry` pointers owned by config
   iterators, which could make entry values change unexpectedly and cause
   crashes; values are now copied eagerly

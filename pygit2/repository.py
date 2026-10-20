@@ -316,7 +316,7 @@ class BaseRepository(_Repository):
         This allows reads over multiple values to use the same version
         of the configuration files. As with :meth:`BaseRepository.config`, the
         snapshot includes any program, system, XDG, or global (user)
-        present on the system.
+        configuration present on the system.
         """
         return RepositoryConfig(self, self._repo, do_snapshot=True)
 

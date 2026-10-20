@@ -171,7 +171,7 @@ class Config:
 
         :param path: The path to the configuration file to load as a string or path-like
                      value.
-        :raises IOError: If the path specified does not exist or could not be opened.
+        :raises OSError: If the path specified does not exist or could not be opened.
         """
         ...
 
@@ -206,7 +206,7 @@ class Config:
 
         :param path: The path to the configuration file to load as a string or path-like
                      value.
-        :raises IOError: If the path specified does not exist or could not be opened.
+        :raises OSError: If the path specified does not exist or could not be opened.
 
         **Overload 3: __init__(c_config, is_snapshot)**
 
@@ -290,9 +290,9 @@ class Config:
     def __getitem__(self, name: str | bytes) -> str | None:
         """Obtain the first value found for a config var with name ``name``.
 
-        Looks for a config var with name ``name`` and returns its value as a string
-        or ``None`` if the config var exists but the value is empty. If you want to
-        apply the Git config parsing rules, use :meth:`Config.get_bool` or
+        Looks for a config var with name ``name`` and returns its value as a string,
+        or ``None`` if the config var is a valueless flag. If you want to apply the
+        Git config parsing rules, use :meth:`Config.get_bool` or
         :meth:`Config.get_int` instead of ``[name]``.
 
         If the config var found is a multivar, only the first value is returned. To
@@ -699,7 +699,7 @@ class Config:
         The system configuration file is the one found at ``/etc/gitconfig`` or
         ``%PROGRAMFILES%\\Git\\etc\\gitconfig``, depending on the operating system.
 
-        :raises IOError: If the configuration file is not found.
+        :raises OSError: If the configuration file is not found.
         """
         return Config._from_found_config(C.git_config_find_system)
 
@@ -712,7 +712,7 @@ class Config:
         at the XDG-compatible user config file location (for that, see
         :meth:`Config.get_xdg_config`).
 
-        :raises IOError: If the configuration file is not found.
+        :raises OSError: If the configuration file is not found.
         """
         return Config._from_found_config(C.git_config_find_global)
 
@@ -724,7 +724,7 @@ class Config:
         This file is located at ``$HOME/.config/git/config``. This will not find the file
         at the standard user config location (for that, see :meth:`Config.get_global_config`).
 
-        :raises IOError: If the configuration file is not found.
+        :raises OSError: If the configuration file is not found.
         """
         return Config._from_found_config(C.git_config_find_xdg)
 
