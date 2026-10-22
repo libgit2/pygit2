@@ -353,6 +353,12 @@ def test_repository_config_snapshot(config: RepositoryConfig) -> None:
         'This repository config is already a snapshot.',
         snapshot.snapshot,
     )
+    utils.assertRaisesWithArg(
+        TypeError,
+        'A read-only config snapshot cannot be used as a context manager, '
+        'because its backend data cannot be changed.',
+        snapshot.__enter__,
+    )
 
     assert 'core.snapshot1' not in config
     assert 'core.snapshot1' not in snapshot
@@ -432,3 +438,371 @@ def test_default_config_snapshot() -> None:
         'This default config is already a snapshot.',
         snapshot.snapshot,
     )
+    utils.assertRaisesWithArg(
+        TypeError,
+        'A read-only config snapshot cannot be used as a context manager, '
+        'because its backend data cannot be changed.',
+        snapshot.__enter__,
+    )
+
+
+def test_repository_config_in_memory_overrides(config: RepositoryConfig) -> None:
+    assert not config.is_snapshot
+    assert 'core.bare' in config
+    assert not config.get_bool('core.bare')
+    assert 'core.editor' in config
+    assert config['core.editor'] == 'ed'
+    assert 'core.repositoryformatversion' in config
+    assert config.get_int('core.repositoryformatversion') == 0
+
+    assert 'core.override1' not in config
+    assert 'core.override2' not in config
+    assert 'core.override3' not in config
+    assert 'core.override4' not in config
+    assert 'core.override5' not in config
+    assert 'core.local1' not in config
+    assert 'core.local2' not in config
+    assert 'core.local3' not in config
+
+    with config:
+        # these should be unaffected
+        assert 'core.bare' in config
+        assert not config.get_bool('core.bare')
+        assert 'core.editor' in config
+        assert config['core.editor'] == 'ed'
+        assert 'core.repositoryformatversion' in config
+        assert config.get_int('core.repositoryformatversion') == 0
+
+        # now we should be able to add these to the local in-memory config
+        assert 'core.override1' not in config
+        config['core.override1'] = True
+        assert 'core.override1' in config
+        assert config.get_bool('core.override1')
+
+        assert 'core.override2' not in config
+        config['core.override2'] = 42
+        assert 'core.override2' in config
+        assert config.get_int('core.override2') == 42
+
+        assert 'core.override3' not in config
+        config['core.override3'] = 'foo'
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'foo'
+
+        assert 'core.override4' not in config
+        config.set_multivar('core.override4', '^$', 'bar')
+        assert 'core.override4' in config
+        assert list(config.get_multivar('core.override4')) == ['bar']
+        assert config['core.override4'] == 'bar'
+        config.set_multivar('core.override4', '^$', 'baz')
+        assert list(config.get_multivar('core.override4')) == ['bar', 'baz']
+        assert config['core.override4'] == 'baz'
+        config.set_multivar('core.override4', '^ba', 'qux')
+        assert list(config.get_multivar('core.override4')) == ['qux']
+        assert config['core.override4'] == 'qux'
+
+        with pytest.raises(RuntimeError) as exc_info:
+            with config:
+                pass
+        assert exc_info.value.args == (
+            'The config context manager is non-reentrant. You must exit the active '
+            'context before attempting to re-enter it.',
+        )
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'foo'
+        assert config['core.override4'] == 'qux'
+
+        # try deleting some stuff
+        assert 'core.override5' not in config
+        config['core.override5'] = 'to be deleted'
+        assert 'core.override5' in config
+        assert config['core.override5'] == 'to be deleted'
+        del config['core.override5']
+        assert 'core.override5' not in config
+
+        config.set_multivar('core.override5', '^$', 'lorem')
+        config.set_multivar('core.override5', '^$', 'ipsum')
+        config.set_multivar('core.override5', '^$', 'dolor')
+        config.set_multivar('core.override5', '^$', 'simet')
+        assert 'core.override5' in config
+        assert list(config.get_multivar('core.override5')) == [
+            'lorem',
+            'ipsum',
+            'dolor',
+            'simet',
+        ]
+        config.delete_multivar('core.override5', r'.*or.*')
+        assert 'core.override5' in config
+        assert list(config.get_multivar('core.override5')) == ['ipsum', 'simet']
+        config.delete_multivar('core.override5', r'.*')
+        assert 'core.override5' not in config
+
+        # these should not have been added yet
+        assert 'core.local1' not in config
+        assert 'core.local2' not in config
+        assert 'core.local3' not in config
+
+    # it all should have been erased
+    assert 'core.override1' not in config
+    assert 'core.override2' not in config
+    assert 'core.override3' not in config
+    assert 'core.override4' not in config
+    assert 'core.override5' not in config
+
+    # now let's add our local configs to the actual file backend
+    assert 'core.local1' not in config
+    config['core.local1'] = False
+    assert 'core.local1' in config
+    assert not config.get_bool('core.local1')
+    assert 'core.local2' not in config
+    config['core.local2'] = 56
+    assert 'core.local2' in config
+    assert config.get_int('core.local2') == 56
+    assert 'core.local3' not in config
+    config['core.local3'] = 'lorem ipsum'
+    assert 'core.local3' in config
+    assert config['core.local3'] == 'lorem ipsum'
+
+    with config:
+        # these should be unaffected
+        assert 'core.bare' in config
+        assert not config.get_bool('core.bare')
+        assert 'core.editor' in config
+        assert config['core.editor'] == 'ed'
+        assert 'core.repositoryformatversion' in config
+        assert config.get_int('core.repositoryformatversion') == 0
+        assert 'core.local1' in config
+        assert not config.get_bool('core.local1')
+        assert 'core.local2' in config
+        assert config.get_int('core.local2') == 56
+        assert 'core.local3' in config
+        assert config['core.local3'] == 'lorem ipsum'
+
+        # let's try some different values now (and case insensitivity)
+        assert 'core.override1' not in config
+        config['core.oVeRrIdE1'] = False
+        assert 'core.override1' in config
+        assert 'core.oVeRrIdE1' in config
+        assert not config.get_bool('core.override1')
+        assert not config.get_bool('core.oVeRrIdE1')
+
+        # and make sure case is preserved even though it's matched insensitively
+        folded_case_found = False
+        for entry in config:
+            if entry.name.lower() == 'core.override1':
+                folded_case_found = True
+                assert entry.name == 'core.oVeRrIdE1', (
+                    f"Expected the preserved name for config key 'core.override1' "
+                    f"to be 'core.oVeRrIdE1', but instead it was '{entry.name}'."
+                )
+                break
+        assert folded_case_found, (
+            f"Expected to find 'core.oVeRrIdE1' when iterating the config, but did "
+            f'not. All keys: {[entry.name for entry in config]!r}'
+        )
+
+        assert 'core.override2' not in config
+        config['core.override2'] = 81
+        assert 'core.override2' in config
+        assert config.get_int('core.override2') == 81
+
+        assert 'core.override3' not in config
+        config['core.override3'] = 'dolor simet'
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'dolor simet'
+
+        # let's make sure snapshots work, too
+        snapshot = config.snapshot()
+        utils.assertRaisesWithArg(
+            TypeError,
+            'A read-only config snapshot cannot be used as a context manager, '
+            'because its backend data cannot be changed.',
+            snapshot.__enter__,
+        )
+        utils.assertRaisesWithArg(
+            GitError,
+            "cannot set 'core.override4': the configuration is read-only",
+            lambda: snapshot.set_multivar('core.override4', '^$', 'foo'),
+        )
+        assert 'core.editor' in snapshot
+        assert snapshot['core.editor'] == 'ed'
+        assert 'core.repositoryformatversion' in snapshot
+        assert snapshot.get_int('core.repositoryformatversion') == 0
+        assert 'core.local1' in snapshot
+        assert not snapshot.get_bool('core.local1')
+        assert 'core.local2' in snapshot
+        assert snapshot.get_int('core.local2') == 56
+        assert 'core.local3' in snapshot
+        assert snapshot['core.local3'] == 'lorem ipsum'
+        assert 'core.oVeRrIdE1' in snapshot
+        assert not snapshot.get_bool('core.override1')
+        assert not snapshot.get_bool('core.oVeRrIdE1')
+        assert 'core.override2' in snapshot
+        assert snapshot.get_int('core.override2') == 81
+        assert 'core.override3' in snapshot
+        assert snapshot['core.override3'] == 'dolor simet'
+
+    # it all should have been erased again
+    assert 'core.override1' not in config
+    assert 'core.override2' not in config
+    assert 'core.override3' not in config
+    assert 'core.override4' not in config
+
+    # but these should not have been erased
+    assert 'core.bare' in config
+    assert not config.get_bool('core.bare')
+    assert 'core.editor' in config
+    assert config['core.editor'] == 'ed'
+    assert 'core.repositoryformatversion' in config
+    assert config.get_int('core.repositoryformatversion') == 0
+    assert 'core.local1' in config
+    assert not config.get_bool('core.local1')
+    assert 'core.local2' in config
+    assert config.get_int('core.local2') == 56
+    assert 'core.local3' in config
+    assert config['core.local3'] == 'lorem ipsum'
+
+
+def test_default_config_in_memory_overrides() -> None:
+    config = DefaultConfig()
+    assert not config.is_snapshot
+
+    assert 'core.override1' not in config
+    assert 'core.override2' not in config
+    assert 'core.override3' not in config
+    assert 'core.override4' not in config
+    assert 'core.override5' not in config
+
+    with config:
+        # now we should be able to add these to the local in-memory config
+        assert 'core.override1' not in config
+        config['core.override1'] = True
+        assert 'core.override1' in config
+        assert config.get_bool('core.override1')
+
+        assert 'core.override2' not in config
+        config['core.override2'] = 42
+        assert 'core.override2' in config
+        assert config.get_int('core.override2') == 42
+
+        assert 'core.override3' not in config
+        config['core.override3'] = 'foo'
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'foo'
+
+        assert 'core.override4' not in config
+        config.set_multivar('core.override4', '^$', 'bar')
+        assert 'core.override4' in config
+        assert list(config.get_multivar('core.override4')) == ['bar']
+        assert config['core.override4'] == 'bar'
+        config.set_multivar('core.override4', '^$', 'baz')
+        assert list(config.get_multivar('core.override4')) == ['bar', 'baz']
+        assert config['core.override4'] == 'baz'
+        config.set_multivar('core.override4', '^ba', 'qux')
+        assert list(config.get_multivar('core.override4')) == ['qux']
+        assert config['core.override4'] == 'qux'
+
+        with pytest.raises(RuntimeError) as exc_info:
+            with config:
+                pass
+        assert exc_info.value.args == (
+            'The config context manager is non-reentrant. You must exit the active '
+            'context before attempting to re-enter it.',
+        )
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'foo'
+        assert config['core.override4'] == 'qux'
+
+        # try deleting some stuff
+        assert 'core.override5' not in config
+        config['core.override5'] = 'to be deleted'
+        assert 'core.override5' in config
+        assert config['core.override5'] == 'to be deleted'
+        del config['core.override5']
+        assert 'core.override5' not in config
+
+        config.set_multivar('core.override5', '^$', 'lorem')
+        config.set_multivar('core.override5', '^$', 'ipsum')
+        config.set_multivar('core.override5', '^$', 'dolor')
+        config.set_multivar('core.override5', '^$', 'simet')
+        assert 'core.override5' in config
+        assert list(config.get_multivar('core.override5')) == [
+            'lorem',
+            'ipsum',
+            'dolor',
+            'simet',
+        ]
+        config.delete_multivar('core.override5', r'.*or.*')
+        assert 'core.override5' in config
+        assert list(config.get_multivar('core.override5')) == ['ipsum', 'simet']
+        config.delete_multivar('core.override5', r'.*')
+        assert 'core.override5' not in config
+
+    # it all should have been erased
+    assert 'core.override1' not in config
+    assert 'core.override2' not in config
+    assert 'core.override3' not in config
+    assert 'core.override4' not in config
+    assert 'core.override5' not in config
+
+    with config:
+        # let's try some different values now (and case insensitivity)
+        assert 'core.override1' not in config
+        config['core.oVeRrIdE1'] = False
+        assert 'core.override1' in config
+        assert 'core.oVeRrIdE1' in config
+        assert not config.get_bool('core.override1')
+        assert not config.get_bool('core.oVeRrIdE1')
+
+        # and make sure case is preserved even though it's matched insensitively
+        folded_case_found = False
+        for entry in config:
+            if entry.name.lower() == 'core.override1':
+                folded_case_found = True
+                assert entry.name == 'core.oVeRrIdE1', (
+                    f"Expected the preserved name for config key 'core.override1' "
+                    f"to be 'core.oVeRrIdE1', but instead it was '{entry.name}'."
+                )
+                break
+        assert folded_case_found, (
+            f"Expected to find 'core.oVeRrIdE1' when iterating the config, but did "
+            f'not. All keys: {[entry.name for entry in config]!r}'
+        )
+
+        assert 'core.override2' not in config
+        config['core.override2'] = 81
+        assert 'core.override2' in config
+        assert config.get_int('core.override2') == 81
+
+        assert 'core.override3' not in config
+        config['core.override3'] = 'dolor simet'
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'dolor simet'
+
+        # let's make sure snapshots work, too
+        snapshot = config.snapshot()
+        utils.assertRaisesWithArg(
+            TypeError,
+            'A read-only config snapshot cannot be used as a context manager, '
+            'because its backend data cannot be changed.',
+            snapshot.__enter__,
+        )
+        utils.assertRaisesWithArg(
+            GitError,
+            "cannot set 'core.override4': the configuration is read-only",
+            lambda: snapshot.set_multivar('core.override4', '^$', 'foo'),
+        )
+        assert 'core.oVeRrIdE1' in snapshot
+        assert not snapshot.get_bool('core.override1')
+        assert not snapshot.get_bool('core.oVeRrIdE1')
+        assert 'core.override2' in snapshot
+        assert snapshot.get_int('core.override2') == 81
+        assert 'core.override3' in snapshot
+        assert snapshot['core.override3'] == 'dolor simet'
+
+    # it all should have been erased again
+    assert 'core.override1' not in config
+    assert 'core.override2' not in config
+    assert 'core.override3' not in config
+    assert 'core.override4' not in config
+    assert 'core.override5' not in config
