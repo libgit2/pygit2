@@ -493,10 +493,24 @@ def test_repository_config_in_memory_overrides(config: RepositoryConfig) -> None
         config.set_multivar('core.override4', '^$', 'bar')
         assert 'core.override4' in config
         assert list(config.get_multivar('core.override4')) == ['bar']
+        assert config['core.override4'] == 'bar'
         config.set_multivar('core.override4', '^$', 'baz')
         assert list(config.get_multivar('core.override4')) == ['bar', 'baz']
+        assert config['core.override4'] == 'baz'
         config.set_multivar('core.override4', '^ba', 'qux')
         assert list(config.get_multivar('core.override4')) == ['qux']
+        assert config['core.override4'] == 'qux'
+
+        with pytest.raises(RuntimeError) as exc_info:
+            with config:
+                pass
+        assert exc_info.value.args == (
+            'The config context manager is non-reentrant. You must exit the active '
+            'context before attempting to re-enter it.',
+        )
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'foo'
+        assert config['core.override4'] == 'qux'
 
         # try deleting some stuff
         assert 'core.override5' not in config
@@ -571,6 +585,21 @@ def test_repository_config_in_memory_overrides(config: RepositoryConfig) -> None
         assert 'core.oVeRrIdE1' in config
         assert not config.get_bool('core.override1')
         assert not config.get_bool('core.oVeRrIdE1')
+
+        # and make sure case is preserved even though it's matched insensitively
+        folded_case_found = False
+        for entry in config:
+            if entry.name.lower() == 'core.override1':
+                folded_case_found = True
+                assert entry.name == 'core.oVeRrIdE1', (
+                    f"Expected the preserved name for config key 'core.override1' "
+                    f"to be 'core.oVeRrIdE1', but instead it was '{entry.name}'."
+                )
+                break
+        assert folded_case_found, (
+            f"Expected to find 'core.oVeRrIdE1' when iterating the config, but did "
+            f'not. All keys: {[entry.name for entry in config]!r}'
+        )
 
         assert 'core.override2' not in config
         config['core.override2'] = 81
@@ -665,10 +694,24 @@ def test_default_config_in_memory_overrides() -> None:
         config.set_multivar('core.override4', '^$', 'bar')
         assert 'core.override4' in config
         assert list(config.get_multivar('core.override4')) == ['bar']
+        assert config['core.override4'] == 'bar'
         config.set_multivar('core.override4', '^$', 'baz')
         assert list(config.get_multivar('core.override4')) == ['bar', 'baz']
+        assert config['core.override4'] == 'baz'
         config.set_multivar('core.override4', '^ba', 'qux')
         assert list(config.get_multivar('core.override4')) == ['qux']
+        assert config['core.override4'] == 'qux'
+
+        with pytest.raises(RuntimeError) as exc_info:
+            with config:
+                pass
+        assert exc_info.value.args == (
+            'The config context manager is non-reentrant. You must exit the active '
+            'context before attempting to re-enter it.',
+        )
+        assert 'core.override3' in config
+        assert config['core.override3'] == 'foo'
+        assert config['core.override4'] == 'qux'
 
         # try deleting some stuff
         assert 'core.override5' not in config
@@ -710,6 +753,21 @@ def test_default_config_in_memory_overrides() -> None:
         assert 'core.oVeRrIdE1' in config
         assert not config.get_bool('core.override1')
         assert not config.get_bool('core.oVeRrIdE1')
+
+        # and make sure case is preserved even though it's matched insensitively
+        folded_case_found = False
+        for entry in config:
+            if entry.name.lower() == 'core.override1':
+                folded_case_found = True
+                assert entry.name == 'core.oVeRrIdE1', (
+                    f"Expected the preserved name for config key 'core.override1' "
+                    f"to be 'core.oVeRrIdE1', but instead it was '{entry.name}'."
+                )
+                break
+        assert folded_case_found, (
+            f"Expected to find 'core.oVeRrIdE1' when iterating the config, but did "
+            f'not. All keys: {[entry.name for entry in config]!r}'
+        )
 
         assert 'core.override2' not in config
         config['core.override2'] = 81

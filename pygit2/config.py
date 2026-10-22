@@ -817,6 +817,8 @@ class _InMemoryAppBackendConfig(Config, abc.ABC):
             self._backend_added = False
             self._backend = _InMemoryBackend(config=self)
 
+        self._backend_active = False
+
     @abc.abstractmethod
     def _add_backend_to_config(self, backend: _InMemoryBackend) -> None:
         """Adds the backend to the config object."""
@@ -833,15 +835,26 @@ class _InMemoryAppBackendConfig(Config, abc.ABC):
         the context endures, Git operations will use the sum total configuration that
         includes the in-memory configuration.
 
+        The resulting context is non-reentrant. It must be exited before it can be
+        entered again, or else a ``RuntimeError`` is raised.
+
         :returns: ``self``
 
         :raises TypeError: If this is a read-only snapshot of the configuration.
+        :raises RuntimeError: If the config context manager has already been entered but
+                              not exited.
         """
         if self._is_snapshot:
             raise TypeError(
                 'A read-only config snapshot cannot be used as a context manager, '
                 'because its backend data cannot be changed.'
             )
+        if self._backend_active:
+            raise RuntimeError(
+                'The config context manager is non-reentrant. You must exit the active '
+                'context before attempting to re-enter it.'
+            )
+        self._backend_active = True
         if not self._backend_added:
             self._add_backend_to_config(self._backend)
             self._backend_added = True
@@ -865,6 +878,7 @@ class _InMemoryAppBackendConfig(Config, abc.ABC):
         if self._backend_added:
             self._set_write_order(self._default_write_order())
             self._backend.clear()
+        self._backend_active = False
         return False
 
     def _set_write_order(self, levels: Sequence[ConfigLevel]) -> None:
@@ -873,7 +887,7 @@ class _InMemoryAppBackendConfig(Config, abc.ABC):
         By default, when libgit2 creates a ``git_config`` object for a repository, it sets
         the write order to ``{ GIT_CONFIG_LEVEL_LOCAL }``. This means that writes go
         only to the local config in ``.git/config`` and nowhere else. We need to change
-        this to ``{ GIT_CONFIG_LEVEL_APP }` when entering the context and then back to
+        this to ``{ GIT_CONFIG_LEVEL_APP }`` when entering the context and then back to
         ``{ GIT_CONFIG_LEVEL_LOCAL }`` when exiting the context. For the non-repo "default"
         config, the default we want to restore is ``{ GIT_CONFIG_LEVEL_GLOBAL,
         GIT_CONFIG_LEVEL_XDG, GIT_CONFIG_LEVEL_SYSTEM, GIT_CONFIG_LEVEL_PROGRAMDATA }``.
@@ -909,8 +923,9 @@ class DefaultConfig(_InMemoryAppBackendConfig):
     usual order. When the context manager exits, the in-memory backend's contents are
     erased, undoing any changes made to it.
 
-    The context manager can be re-entered and then re-exited repeatedly; it is not a
-    one-use-only operation.
+    The context manager can be entered, exited, then re-entered and re-exited repeatedly;
+    it is not a one-use-only operation. However, an active context is non-reentrant. You
+    must exit the context before re-entering, or else a ``RuntimeError`` is raised.
 
     Only writeable ``DefaultConfig`` objects can be used as a context manager.
     Read-only snapshot ``DefaultConfig`` objects cannot.
@@ -1019,8 +1034,9 @@ class RepositoryConfig(_InMemoryAppBackendConfig):
     in-memory backend's contents are erased, undoing any changes made to it and
     allowing write operations to resume affecting the local configuration.
 
-    The context manager can be re-entered and then re-exited repeatedly; it is not a
-    one-use-only operation.
+    The context manager can be entered, exited, then re-entered and re-exited repeatedly;
+    it is not a one-use-only operation. However, an active context is non-reentrant. You
+    must exit the context before re-entering, or else a ``RuntimeError`` is raised.
 
     Only writeable ``RepositoryConfig`` objects can be used as a context manager.
     Read-only snapshot ``RepositoryConfig`` objects cannot.
@@ -1321,7 +1337,7 @@ class _InMemoryBackend:
         transaction).
         """
         if self._is_snapshot:
-            # If it's a snapshot, it's read-only.
+            # If it's a snapshot, it's read-only, so lock nothing.
             yield
             return
 
@@ -1483,8 +1499,16 @@ class _InMemoryBackend:
             self._c_handle = ffi.new_handle(self)
             self._c_iterator = c_iterator
             self._c_entries: dict[int, 'PyGitConfigIteratorEntryC'] = {}
+            self._closed = False
+
+        def close(self) -> None:
+            if not self._closed:
+                self._closed = True
+                self._generator.close()
 
         def __next__(self) -> tuple[str, _InMemoryBackend.Entry]:
+            if self._closed:
+                raise StopIteration()
             return next(self._generator)
 
         def __enter__(self) -> Self:
@@ -1497,8 +1521,12 @@ class _InMemoryBackend:
             exc_val: BaseException | None,
             exc_tb: TracebackType | None,
         ) -> Literal[False]:
+            self.close()
             self._backend._iterators.pop(id(self), None)
             return False
+
+        def __del__(self) -> None:
+            self.close()
 
 
 @ffi.def_extern()
@@ -1570,11 +1598,13 @@ def _config_memory_backend_get(
     backend_wrapper = ffi.cast('_pygit_in_memory_backend *', backend)
     self = cast(_InMemoryBackend, ffi.from_handle(backend_wrapper.self))
     try:
-        key = ffi.string(name).decode('utf-8').lower()
-        if key not in self._read_data or not self._read_data[key]:
-            return C.GIT_ENOTFOUND
+        key = ffi.string(name).decode('utf-8')
+        key_lowered = key.casefold()
+        with self.read_lock():
+            if key_lowered not in self._read_data or not self._read_data[key_lowered]:
+                return C.GIT_ENOTFOUND
+            value = self._read_data[key_lowered][-1]
 
-        value = self._read_data[key][0]
         entry = ffi.new('_pygit_in_memory_backend_entry *')
         ptr = int(ffi.cast('uintptr_t', entry))
         entry.owner = backend_wrapper
@@ -1617,9 +1647,11 @@ def _config_memory_backend_set(
     try:
         if self._is_snapshot:
             return C.GIT_EREADONLY
-        key = ffi.string(name).decode('utf-8').lower()
+        key = ffi.string(name).decode('utf-8')
+        key_lowered = key.casefold()
         decoded_value = ffi.string(value).decode('utf-8')
-        self._write_data[key] = [_InMemoryBackend.Entry(key, decoded_value)]
+        with self.write_lock():
+            self._write_data[key_lowered] = [_InMemoryBackend.Entry(key, decoded_value)]
     except BaseException as e:
         self.store_exception(e)
         return C.GIT_EUSER
@@ -1657,16 +1689,19 @@ def _config_memory_backend_set_multivar(
     try:
         if self._is_snapshot:
             return C.GIT_EREADONLY
-        key = ffi.string(name).decode('utf-8').lower()
+        key = ffi.string(name).decode('utf-8')
+        key_lowered = key.casefold()
         with self.write_lock():
-            if key in self._write_data and regexp != ffi.NULL:
+            if key_lowered in self._write_data and regexp != ffi.NULL:
                 expression = re.compile(ffi.string(regexp).decode('utf-8'))
-                self._write_data[key] = [
-                    v for v in self._write_data[key] if not expression.search(v.value)
+                self._write_data[key_lowered] = [
+                    v
+                    for v in self._write_data[key_lowered]
+                    if not expression.search(v.value)
                 ]
-            elif key not in self._write_data:
-                self._write_data[key] = []
-            self._write_data[key].append(
+            elif key_lowered not in self._write_data:
+                self._write_data[key_lowered] = []
+            self._write_data[key_lowered].append(
                 _InMemoryBackend.Entry(key, ffi.string(value).decode('utf-8')),
             )
     except BaseException as e:
@@ -1698,11 +1733,12 @@ def _config_memory_backend_del(
     try:
         if self._is_snapshot:
             return C.GIT_EREADONLY
-        key = ffi.string(name).decode('utf-8').lower()
+        key = ffi.string(name).decode('utf-8')
+        key_lowered = key.casefold()
         with self.write_lock():
-            if key not in self._write_data:
+            if key_lowered not in self._write_data:
                 return C.GIT_ENOTFOUND
-            del self._write_data[key]
+            del self._write_data[key_lowered]
     except BaseException as e:
         self.store_exception(e)
         return C.GIT_EUSER
@@ -1734,16 +1770,19 @@ def _config_memory_backend_del_multivar(
     try:
         if self._is_snapshot:
             return C.GIT_EREADONLY
-        key = ffi.string(name).decode('utf-8').lower()
+        key = ffi.string(name).decode('utf-8')
+        key_lowered = key.casefold()
         with self.write_lock():
-            if key not in self._write_data:
+            if key_lowered not in self._write_data:
                 return C.GIT_ENOTFOUND
             if regexp == ffi.NULL:
-                del self._write_data[key]
+                del self._write_data[key_lowered]
             else:
                 expression = re.compile(ffi.string(regexp).decode('utf-8'))
-                self._write_data[key] = [
-                    v for v in self._write_data[key] if not expression.search(v.value)
+                self._write_data[key_lowered] = [
+                    v
+                    for v in self._write_data[key_lowered]
+                    if not expression.search(v.value)
                 ]
     except BaseException as e:
         self.store_exception(e)
