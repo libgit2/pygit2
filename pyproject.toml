@@ -1,8 +1,8 @@
 [build-system]
-# setuptools 84.2.0 misnames the cffi extension as a bare .pyd on PyPy/Windows,
-# which PyPy cannot import (see pypa/setuptools#5351). Drop this exclusion once
-# the fix is released.
-requires = ["setuptools!=84.2.0", "cffi>=2.0"]
+# setuptools 84.2.0 and 84.2.1 misname the cffi extension as a bare .pyd on
+# PyPy/Windows, which PyPy cannot import (see pypa/setuptools#5351). Drop these
+# exclusions once the fix is released.
+requires = ["setuptools!=84.2.0,!=84.2.1", "cffi>=2.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
@@ -12,7 +12,7 @@ skip = "*musllinux_ppc64le"
 archs = ["native"]
 build-frontend = "default"
 dependency-versions = "pinned"
-environment = {LIBGIT2="$(pwd)/ci", LIBGIT2_VERSION="1.9.7", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.5.7", BUILD_TYPE="Release"}
+environment = {LIBGIT2="$(pwd)/ci", LIBGIT2_VERSION="1.9.7", LIBSSH2_VERSION="1.11.1", OPENSSL_VERSION="3.5.9", BUILD_TYPE="Release"}
 
 before-all = "sh build.sh"
 test-command = "pytest"

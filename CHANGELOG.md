@@ -24,8 +24,12 @@
 - Fix `sh build.sh stubtest`
   [#1492](https://github.com/libgit2/pygit2/pull/1492)
 
-- Wheels: build the bundled libgit2 and libssh2 in Release mode instead of Debug
+- Wheels: Build the bundled libgit2 and libssh2 in Release mode instead of Debug
   [#1497](https://github.com/libgit2/pygit2/pull/1497)
+
+- Wheels: Update OpenSSL to 3.5.9
+  [#1506](https://github.com/libgit2/pygit2/issues/1506)
+
 
 # 1.20.1 (2026-09-12)
 

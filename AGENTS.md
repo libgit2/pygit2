@@ -239,7 +239,7 @@ GitHub Actions workflows live in `.github/workflows/`:
   Allowed to fail (`continue-on-error`); see issue #812.
 - **`lint.yml`** — Runs `ruff format --diff`, `ruff check`, and
   `sh build.sh mypy`.
-- **`wheels.yml`** — Uses `cibuildwheel` (`~=3.3`) to build wheels for Linux
+- **`wheels.yml`** — Uses `cibuildwheel` (`~=4.3.1`) to build wheels for Linux
   (amd64, arm64, ppc64le and riscv64 via QEMU, musl), macOS (intel, arm64,
   PyPy), and Windows (x64, x86, arm64). Linux, macOS and Windows jobs cache
   the compiled dependencies between runs. It also builds an sdist, runs a
@@ -252,7 +252,7 @@ The `cibuildwheel` configuration in `pyproject.toml` pins:
 
 - `LIBGIT2_VERSION="1.9.7"`
 - `LIBSSH2_VERSION="1.11.1"`
-- `OPENSSL_VERSION="3.5.7"`
+- `OPENSSL_VERSION="3.5.9"`
 
 and skips `*musllinux_ppc64le` plus testing on `*-*linux_ppc64le`,
 `*-*linux_riscv64` and `pp*-macosx_arm64`. On Windows it uses the
