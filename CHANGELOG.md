@@ -1,4 +1,4 @@
-# 1.21.0 (UNRELEASED)
+# 1.21.0 (2026-11-04)
 
 - Add support for Python 3.15
   [#1498](https://github.com/libgit2/pygit2/pull/1498)

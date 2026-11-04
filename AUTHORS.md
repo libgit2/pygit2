@@ -14,9 +14,9 @@ Authors:
     Brandon Milton
     Daniel Rodríguez Troitiño
     Brendan Doherty
+    Christian Boos
     Peter Rowlands
     Richo Healey
-    Christian Boos
     Julien Miotte
     Nick Hynes
     Richard Möhn
@@ -42,6 +42,7 @@ Authors:
     Bernardo Heynemann
     John Szakmeister
     Nabijacz Leweli
+    Nicholas Williams
     Simon Cozens
     Vlad Temian
     WANG Xuerui
@@ -60,6 +61,7 @@ Authors:
     David Versmisse
     Grégory Herrero
     Mikhail Yushkovskiy
+    Or Hayat
     Robin Stocker
     Rohit Sanjay
     Rémi Duraffort
@@ -88,6 +90,7 @@ Authors:
     Petr Viktorin
     Robert Hölzl
     Ron Cohen
+    Roshan Ramani
     Sebastian Böhm
     Sukhman Bhuller
     Thomas Kluyver
@@ -128,7 +131,6 @@ Authors:
     Michael Sondergaard
     Michal Koutný
     Natanael Arndt
-    Nick Williams
     Ondřej Nový
     Sarath Lakshman
     Steve Kieffer
@@ -201,6 +203,7 @@ Authors:
     Kyriakos Oikonomakos
     Lance Eftink
     Legorooj
+    Logan Hunt
     Lukas Berk
     Marius Gedminas
     Martin von Zweigbergk
@@ -212,14 +215,12 @@ Authors:
     Michał Górny
     Mukunda Rao Katta
     Na'aman Hirschfeld
-    Nicholas Williams
     Nicolas Rybowski
     Nicolás Sanguinetti
     Nikita Kartashov
     Nikolai Zujev
     Nils Philippsen
     Noah Fontes
-    Or Hayat
     Óscar San José
     Patrick Lühne
     Paul Wagland
@@ -230,7 +231,6 @@ Authors:
     Remy Suen
     Ridge Kennedy
     Rodrigo Bistolfi
-    Roshan Ramani
     Ross Nicoll
     Rui Abreu Ferreira
     Rui Chen
