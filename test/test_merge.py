@@ -333,6 +333,11 @@ def test_merge_message(mergerepo: Repository) -> None:
     assert not mergerepo.message
 
 
+def test_merge_raw_message_keeps_nul_bytes(mergerepo: Repository) -> None:
+    Path(mergerepo.path, 'MERGE_MSG').write_bytes(b'Merge\x00tail\n')
+    assert mergerepo.raw_message == b'Merge\x00tail\n'
+
+
 def test_merge_remove_message(mergerepo: Repository) -> None:
     branch_head = pygit2.Oid(hex='1b2bae55ac95a4be3f8983b86cd579226d0eb247')
     mergerepo.merge(branch_head)

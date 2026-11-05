@@ -1295,7 +1295,7 @@ class BaseRepository(_Repository):
             if err == C.GIT_ENOTFOUND:
                 return b''
             check_error(err)
-            return ffi.string(buf.ptr)
+            return ffi.buffer(buf.ptr, buf.size)[:]
         finally:
             C.git_buf_dispose(buf)
 
