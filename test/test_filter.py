@@ -2,6 +2,7 @@ import codecs
 import gc
 from collections.abc import Callable, Generator
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 
@@ -230,3 +231,20 @@ def test_filterlist_apply_to_buffer_multiple(
 
     filtered = fl.apply_to_buffer(b'bye\r\nworld\r\n')
     assert filtered == b'olr\njbeyq\n'
+
+
+def test_filterlist_keeps_nul_bytes(testrepo: Repository) -> None:
+    testrepo.config['core.autocrlf'] = True
+    fl = testrepo.load_filter_list('whatever.bin')
+    assert fl is not None
+
+    # Binary data passes through the crlf filter unchanged
+    data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
+    assert fl.apply_to_buffer(data) == data
+
+    Path(testrepo.workdir, 'whatever.bin').write_bytes(data)
+    assert fl.apply_to_file(testrepo, 'whatever.bin') == data
+
+    blob = testrepo[testrepo.create_blob(data)]
+    assert isinstance(blob, Blob)
+    assert fl.apply_to_blob(blob) == data

@@ -168,7 +168,7 @@ class FilterList:
         err = C.git_filter_list_apply_to_buffer(buf, self._pointer, data, len(data))
         check_error(err)
         try:
-            return ffi.string(buf.ptr)
+            return ffi.buffer(buf.ptr, buf.size)[:]
         finally:
             C.git_buf_dispose(buf)
 
@@ -182,7 +182,7 @@ class FilterList:
         err = C.git_filter_list_apply_to_file(buf, self._pointer, repo._repo, c_path)
         check_error(err)
         try:
-            return ffi.string(buf.ptr)
+            return ffi.buffer(buf.ptr, buf.size)[:]
         finally:
             C.git_buf_dispose(buf)
 
@@ -199,7 +199,7 @@ class FilterList:
         err = C.git_filter_list_apply_to_blob(buf, self._pointer, c_blob[0])
         check_error(err)
         try:
-            return ffi.string(buf.ptr)
+            return ffi.buffer(buf.ptr, buf.size)[:]
         finally:
             C.git_buf_dispose(buf)
 
