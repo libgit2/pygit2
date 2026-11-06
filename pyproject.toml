@@ -1,8 +1,13 @@
 [build-system]
 # setuptools 84.2.0 and 84.2.1 misname the cffi extension as a bare .pyd on
-# PyPy/Windows, which PyPy cannot import (see pypa/setuptools#5351). Drop these
-# exclusions once the fix is released.
-requires = ["setuptools!=84.2.0,!=84.2.1", "cffi>=2.0"]
+# PyPy/Windows, which PyPy cannot import (see pypa/setuptools#5367). The fix
+# (pypa/setuptools#5368) is not released yet, so the exclusion is scoped with
+# environment markers to PyPy/Windows only. Drop it once the fix is released.
+requires = [
+    "setuptools!=84.2.0,!=84.2.1; platform_python_implementation == 'PyPy' and sys_platform == 'win32'",
+    "setuptools; platform_python_implementation != 'PyPy' or sys_platform != 'win32'",
+    "cffi>=2.0",
+]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
