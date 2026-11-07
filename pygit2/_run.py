@@ -68,6 +68,7 @@ h_files = [
     'clone.h',
     'common.h',
     'config.h',
+    'config_bridge.h',
     'describe.h',
     'errors.h',
     'graph.h',
@@ -95,9 +96,10 @@ C_HEADER_SRC = '\n'.join(h_source)
 
 C_PREAMBLE = """\
 #include <git2.h>
+#include <git2/sys/config.h>
 #include <git2/sys/repository.h>
 #include <git2/sys/filter.h>
-"""
+""" + (dir_path / 'decl' / 'config_bridge.h').read_text(encoding='utf-8')
 
 # ffi
 _, libgit2_kw = get_libgit2_paths()
